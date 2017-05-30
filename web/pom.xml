@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2017 Barclays Africa Group Limited
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>spline-web</artifactId>
+    <packaging>war</packaging>
+
+    <parent>
+        <groupId>za.co.absa</groupId>
+        <artifactId>spline-parent</artifactId>
+        <relativePath>../parent/pom.xml</relativePath>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <properties>
+        <webui.basedir>${project.basedir}/ui</webui.basedir>
+        <timestamp>${maven.build.timestamp}</timestamp>
+        <maven.build.timestamp.format>yyyyMMddHHmmssSSS</maven.build.timestamp.format>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>za.co.absa</groupId>
+            <artifactId>spline-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>${scala.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa</groupId>
+            <artifactId>spline-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>4.3.3.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.thymeleaf</groupId>
+            <artifactId>thymeleaf-spring4</artifactId>
+            <version>3.0.2.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>sparklineage-${project.version}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.5.0</version>
+                <executions>
+                    <execution>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includeProjectDependencies>true</includeProjectDependencies>
+                    <includePluginDependencies>true</includePluginDependencies>
+                    <executableDependency>
+                        <groupId>com.github.wajda</groupId>
+                        <artifactId>scala-ts_${scala.compat.version}</artifactId>
+                    </executableDependency>
+                    <mainClass>com.mpc.scalats.CLI</mainClass>
+                    <arguments>
+                        <argument>--out</argument>
+                        <argument>${project.basedir}/ui/src/generated-ts/lineage-model.ts</argument>
+                        <argument>--emit-interfaces</argument>
+                        <argument>--option-to-nullable</argument>
+                        <argument>za.co.absa.spline.core.model.DataLineageDescriptor</argument>
+                        <argument>za.co.absa.spline.core.model.DataLineage</argument>
+                        <argument>za.co.absa.spline.core.model.Attributes</argument>
+                        <argument>za.co.absa.spline.core.model.Expression</argument>
+                        <argument>za.co.absa.spline.core.model.AttributeRemoval</argument>
+                        <argument>za.co.absa.spline.core.model.AttributeReference</argument>
+                        <argument>za.co.absa.spline.core.model.GenericExpression</argument>
+                        <argument>za.co.absa.spline.core.model.BinaryOperator</argument>
+                        <argument>za.co.absa.spline.core.model.UserDefinedFunction</argument>
+                        <argument>za.co.absa.spline.core.model.AliasNode</argument>
+                        <argument>za.co.absa.spline.core.model.DestinationNode</argument>
+                        <argument>za.co.absa.spline.core.model.FilterNode</argument>
+                        <argument>za.co.absa.spline.core.model.GenericNode</argument>
+                        <argument>za.co.absa.spline.core.model.JoinNode</argument>
+                        <argument>za.co.absa.spline.core.model.ProjectionNode</argument>
+                        <argument>za.co.absa.spline.core.model.SourceNode</argument>
+                        <argument>za.co.absa.spline.core.model.DataType</argument>
+                        <argument>za.co.absa.spline.core.model.SimpleType</argument>
+                        <argument>za.co.absa.spline.core.model.StructType</argument>
+                        <argument>za.co.absa.spline.core.model.ArrayType</argument>
+                    </arguments>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.github.wajda</groupId>
+                        <artifactId>scala-ts_${scala.compat.version}</artifactId>
+                        <version>0.3.2.2</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <id>ui-package</id>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <target name="ui-build">
+                                <echo>Preparing UI build</echo>
+                                <!-- Install NPM dependencies -->
+                                <exec executable="cmd" dir="${webui.basedir}" osfamily="windows" failonerror="true">
+                                    <arg line="/c npm install --no-color"/>
+                                </exec>
+                                <exec executable="npm" dir="${webui.basedir}" osfamily="unix" failonerror="true">
+                                    <arg line="install --no-color"/>
+                                </exec>
+
+                                <!-- Install typings -->
+                                <exec executable="cmd" dir="${webui.basedir}" osfamily="windows" failonerror="true">
+                                    <arg line="/c npm run install-typings --no-color"/>
+                                </exec>
+                                <exec executable="npm" dir="${webui.basedir}" osfamily="unix" failonerror="true">
+                                    <arg line="run install-typings --no-color"/>
+                                </exec>
+
+                                <echo>Executing UI build</echo>
+                                <exec executable="cmd" dir="${webui.basedir}" osfamily="windows" failonerror="true">
+                                    <arg line="/c npm run prod-build --no-color"/>
+                                </exec>
+                                <exec executable="npm" dir="${webui.basedir}" osfamily="unix" failonerror="true">
+                                    <arg line="run prod-build --no-color"/>
+                                </exec>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <webResources>
+                        <resource>
+                            <directory>ui/dist</directory>
+                            <targetPath>/assets</targetPath>
+                            <filtering>false</filtering>
+                            <excludes>
+                                <exclude>dist/**/*.js.map</exclude>
+                            </excludes>
+                        </resource>
+                        <resource>
+                            <directory>ui/src</directory>
+                            <targetPath>/WEB-INF/html</targetPath>
+                            <filtering>true</filtering>
+                            <includes>
+                                <include>index.html</include>
+                            </includes>
+                        </resource>
+                        <resource>
+                            <directory>ui/src/static</directory>
+                            <targetPath>/</targetPath>
+                            <filtering>false</filtering>
+                        </resource>
+                    </webResources>
+                    <archive>
+                        <manifestEntries>
+                            <Build-Time>${maven.build.timestamp}</Build-Time>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>license-check</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.rat</groupId>
+                        <artifactId>apache-rat-plugin</artifactId>
+                        <configuration>
+                            <excludes combine.children="append">
+                                <exclude>ui/dist/**</exclude>
+                                <exclude>ui/node_modules/**</exclude>
+                                <exclude>ui/typings/**</exclude>
+                                <exclude>ui/src/third-party-scripts/**</exclude>
+                                <exclude>ui/src/generated-ts/**</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
