@@ -17,29 +17,30 @@ import za.co.absa.spline.core.SparkLineageInitializer._
 sparkSession.enableLineageTracking()
 
 // ... then run some Dataset computations as usual.
-// Data lineage of the job will be captured and stored in the configured Mongo database for further visualization by Spline Web UI
+// Data lineage of the job will be captured and stored in the
+// configured Mongo database for further visualization by Spline Web UI
 ```
 
 ### a sample lineage visualization
-[Todo] insert a screenshot
+![Spline UI screenshot](screenshot.png)
 
 
 # Motivation
 Spline should fill a big gap within [Apache Hadoop](http://hadoop.apache.org/) ecosystem.
 Spark jobs should't be treated only as magic black boxes and people should have a chance to understant what happens with their data.
 Our main focus is to solve the following particular problems:
- 
+
 * **Regulatory requirement for SA banks (BCBS 239)**
-    
+
     By 2020, all South African banks will have to be able to prove how numbers are calculated in their reports to regulatory authority.
-    
-* **Documentation of business logic** 
+
+* **Documentation of business logic**
 
     Business analysts should get a chance to verify whether Spark jobs were written according to the rules they provided.
     Moreover, it would be beneficial for them to have an up-to-date documentation where they could refresh their knowledge about a project.
-    
-* **Identification of performance bottlenecks** 
-    
+
+* **Identification of performance bottlenecks**
+
     Our focus is not only business-oriented.
     We see Spline also as a development tool that should be able to help developers with performance optimization of their Spark jobs.
 
@@ -75,7 +76,7 @@ mvn install -DskipTests
     import za.co.absa.spline.core.SparkLineageInitializer._
     sparkSession.enableLineageTracking()
     ```
-        
+
 ##### Web UI application:
 
 1. Setup the database connection properties ()either via system environment variables or JVM system properties) in the following format:
@@ -87,7 +88,7 @@ mvn install -DskipTests
 2. Deploy Spline WAR file to your Java web container (tested on Tomcat 7, but other containers should also work)
 
 # <a name="configuration"></a> Configuration
-When enabling data lineage tracking for a Spark session in your Spark job a ```SparkConfigurer``` instance can be passed 
+When enabling data lineage tracking for a Spark session in your Spark job a ```SparkConfigurer``` instance can be passed
 as a argument to the ```enableLineageTracking()``` method.
 
 The method signature is the following:
@@ -126,11 +127,11 @@ cd sample
 mvn test -Psamples -Dspline.mongodb.url={MONGO CONNECTION URL} -Dspline.mongodb.name={MONGO DATABASE NAME}
 ```
 
-It will execute [SamplesRunner](sample/src/test/scala/za/co/absa/spline/sample/SamplesRunner.scala) test that will run two sample jobs: 
+It will execute [SamplesRunner](sample/src/test/scala/za/co/absa/spline/sample/SamplesRunner.scala) test that will run two sample jobs:
 [SampleJob1](sample/src/main/scala/za/co/absa/spline/sample/SampleJob1.scala) and
 [SampleJob2](sample/src/main/scala/za/co/absa/spline/sample/SampleJob2.scala)
 
-Sample jobs read data from the [/sample/data/input/](sample/data/input/) folder 
+Sample jobs read data from the [/sample/data/input/](sample/data/input/) folder
 and write the result into [/sample/data/results/](sample/data/results/)
 
 When the lineage data is captured and stored into the database, it can be visualized and explored via Spline UI Web application.
@@ -176,16 +177,15 @@ joinedDS.write.mode(SaveMode.Overwrite).parquet("data/results/job1_results")
 # License
 
     Copyright 2017 Barclays Africa Group Limited
-    
+
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-    
+
         http://www.apache.org/licenses/LICENSE-2.0
-    
+
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
-
