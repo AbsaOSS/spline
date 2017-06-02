@@ -3,6 +3,7 @@
 The project consists of two parts:
 - A core library that sits on drivers, capturing data lineages from the jobs being executed by analyzing Spark execution plans
 - and a Web UI application that visualizes the stored data lineages.
+
 ***
 
 # Summary
@@ -22,7 +23,7 @@ sparkSession.enableLineageTracking()
 ```
 
 ### a sample lineage visualization
-![Spline UI screenshot](screenshot.png)
+<a href="imgs/screenshot.png"><img src="imgs/screenshot.png" width="660"></a>
 
 
 # Motivation
@@ -79,7 +80,7 @@ mvn install -DskipTests
 
 ##### Web UI application:
 
-1. Setup the database connection properties ()either via system environment variables or JVM system properties) in the following format:
+1. Setup the database connection properties (either via system environment variables or JVM system properties) in the following format:
     ```properties
     spline.mongodb.url=mongodb://11.22.33.44
     spline.mongodb.name=my_lineage_database_name

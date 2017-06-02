@@ -1,0 +1,17 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+#header_wrap {
+  background: #303d42;
+}
+#header_wrap img {
+  margin-left: -20px;
+  border: none;
+  box-shadow: none;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  -o-box-shadow: none;
+  -ms-box-shadow: none;
+}
