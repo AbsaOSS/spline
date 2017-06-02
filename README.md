@@ -113,7 +113,7 @@ def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfig
 
 
 # Examples
-[Sample](sample/) folder contains some sample Spline enabled Spark jobs.
+[Sample]({{ site.github.repository_url }}/tree/master/sample/) folder contains some sample Spline enabled Spark jobs.
 The jobs can be executed locally via ```SamplesRunner``` unit test class.
 
 ### Running sample job
@@ -128,12 +128,12 @@ cd sample
 mvn test -Psamples -Dspline.mongodb.url={MONGO CONNECTION URL} -Dspline.mongodb.name={MONGO DATABASE NAME}
 ```
 
-It will execute [SamplesRunner](sample/src/test/scala/za/co/absa/spline/sample/SamplesRunner.scala) test that will run two sample jobs:
-[SampleJob1](sample/src/main/scala/za/co/absa/spline/sample/SampleJob1.scala) and
-[SampleJob2](sample/src/main/scala/za/co/absa/spline/sample/SampleJob2.scala)
+It will execute [SamplesRunner]({{ site.github.repository_url }}/blob/master/sample/src/test/scala/za/co/absa/spline/sample/SamplesRunner.scala) test that will run two sample jobs:
+[SampleJob1]({{ site.github.repository_url }}/blob/master/sample/src/main/scala/za/co/absa/spline/sample/SampleJob1.scala) and
+[SampleJob2]({{ site.github.repository_url }}/blob/master/sample/src/main/scala/za/co/absa/spline/sample/SampleJob2.scala)
 
-Sample jobs read data from the [/sample/data/input/](sample/data/input/) folder
-and write the result into [/sample/data/results/](sample/data/results/)
+Sample jobs read data from the [/sample/data/input/]({{ site.github.repository_url }}/tree/master/sample/data/input/) folder
+and write the result into [/sample/data/results/]({{ site.github.repository_url }}/tree/master/sample/data/results/)
 
 When the lineage data is captured and stored into the database, it can be visualized and explored via Spline UI Web application.
 
