@@ -16,9 +16,12 @@
 
 var webpack = require('webpack')
 var path = require('path')
-var isProd = process.env.NODE_ENV === "production";
+var CleanWebpackPlugin = require('clean-webpack-plugin')
+
+var isProd = process.env.NODE_ENV === "production"
 
 var commonPlugins = [
+    new CleanWebpackPlugin(['dist']),
     new webpack.ContextReplacementPlugin(
         /angular(\\|\/)core(\\|\/)(esm(\\|\/)src|src)(\\|\/)linker/,
         path.resolve(__dirname, 'doesnotexist/')

@@ -5,6 +5,7 @@
     "@types/requirejs": "~2.1.28",
     "angular2-template-loader": "~0.6.2",
     "awesome-typescript-loader": "~3.1.2",
+    "clean-webpack-plugin": "~0.1.16",
     "concurrently": "~3.4.0",
     "css-loader": "~0.27.3",
     "file-loader": "~0.10.1",
