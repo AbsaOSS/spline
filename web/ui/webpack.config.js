@@ -22,6 +22,9 @@ var isProd = process.env.NODE_ENV === "production"
 
 var commonPlugins = [
     new CleanWebpackPlugin(['dist']),
+    new webpack.DefinePlugin({
+        __PRODUCTION_MODE__: isProd
+    }),
     new webpack.ContextReplacementPlugin(
         /angular(\\|\/)core(\\|\/)(esm(\\|\/)src|src)(\\|\/)linker/,
         path.resolve(__dirname, 'doesnotexist/')
@@ -46,8 +49,8 @@ module.exports = {
         extensions: ['.webpack.js', '.web.js', '.ts', '.tsx', '.js', '.jsx', '.less', '.css', '.html']
     },
     plugins: commonPlugins.concat(isProd
-        ? [new webpack.optimize.UglifyJsPlugin()]
-        : []
+            ? [/* prod build plugins */]
+            : [/* dev build plugins */]
     ),
     module: {
         loaders: [

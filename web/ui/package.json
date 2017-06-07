@@ -54,6 +54,6 @@
     "dev-http-server": "webpack-dev-server",
     "dev-rest-server": "json-server mock-rest-api/db.js",
     "dev-build": "webpack",
-    "prod-build": "webpack -p --no-color"
+    "prod-build": "NODE_ENV='production' webpack -p --no-color"
   }
 }
