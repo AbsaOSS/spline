@@ -80,13 +80,29 @@ mvn install -DskipTests
 
 ##### Web UI application:
 
-1. Setup the database connection properties (either via system environment variables or JVM system properties) in the following format:
+There are two ways how to run Spline Web UI:
+
+###### Standalone application (executable JAR)
+
+Execute: <br>
+```java -jar spline-ui-VERSION.exec.jar -Dspline.mongodb.url=... -Dspline.mongodb.name=...```
+and then point your browser to [http://localhost:8080](http://localhost:8080).
+
+To change the port number from *8080* to say *1234* add ```-httpPort 1234``` to the command line.
+
+(for more details see [Generated executable jar/war](http://tomcat.apache.org/maven-plugin-trunk/executable-war-jar.html#Generated_executable_jarwar)
+section.
+
+###### Standard Java web application (WAR)
+
+1. In your Java web container (e.g. Tomcat) setup the Spline database connection properties
+(either via system environment variables or JVM system properties) in the following format:
     ```properties
     spline.mongodb.url=mongodb://11.22.33.44
     spline.mongodb.name=my_lineage_database_name
     ```
 
-2. Deploy Spline WAR file to your Java web container (tested on Tomcat 7, but other containers should also work)
+1. Deploy Spline WAR file to your Java web container (tested on Tomcat 7, but other containers should also work)
 
 # <a name="configuration"></a> Configuration
 When enabling data lineage tracking for a Spark session in your Spark job a ```SparkConfigurer``` instance can be passed
