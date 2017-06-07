@@ -20,5 +20,9 @@ import "reflect-metadata";
 import "zone.js";
 import {platformBrowserDynamic} from "@angular/platform-browser-dynamic";
 import {AppModule} from "./app/app.module";
+import {enableProdMode} from '@angular/core';
+
+declare var __PRODUCTION_MODE__:boolean
+if (__PRODUCTION_MODE__) enableProdMode()
 
 platformBrowserDynamic().bootstrapModule(AppModule)
