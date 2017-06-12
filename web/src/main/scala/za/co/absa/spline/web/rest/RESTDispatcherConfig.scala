@@ -19,9 +19,6 @@ package za.co.absa.spline.web.rest
 import org.springframework.context.annotation.{ComponentScan, Configuration}
 import org.springframework.web.servlet.config.annotation.EnableWebMvc
 
-/**
-  * Created by vaydaole on 14/02/2017.
-  */
 @Configuration
 @EnableWebMvc
 @ComponentScan(Array("za.co.absa.spline.web.rest.controller"))

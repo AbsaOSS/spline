@@ -30,16 +30,25 @@
         <version>0.1.0-SNAPSHOT</version>
     </parent>
 
-    <properties>
-        <!-- Test properties -->
-        <test.spline.mongodb.url/>
-        <test.spline.mongodb.name/>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>za.co.absa</groupId>
             <artifactId>spline-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa</groupId>
+            <artifactId>spline-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa</groupId>
+            <artifactId>spline-persistence-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa</groupId>
+            <artifactId>spline-persistence-mongo</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -52,22 +61,6 @@
             <artifactId>spark-sql_${scala.compat.version}</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>com.github.salat</groupId>
-            <artifactId>salat-core_${scala.compat.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-        </dependency>
-
-        <!-- Test dependencies -->
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>1.10.8</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -75,14 +68,7 @@
             <plugin>
                 <groupId>org.scalatest</groupId>
                 <artifactId>scalatest-maven-plugin</artifactId>
-                <configuration>
-                    <systemProperties>
-                        <test.spline.mongodb.url>${test.spline.mongodb.url}</test.spline.mongodb.url>
-                        <test.spline.mongodb.name>${test.spline.mongodb.name}</test.spline.mongodb.name>
-                    </systemProperties>
-                </configuration>
             </plugin>
         </plugins>
     </build>
-
 </project>

@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.core.conf
 
-import za.co.absa.spline.core.storage.DataStorageFactory
+import za.co.absa.spline.persistence.api.PersistenceFactory
 
 /**
   * The trait describes settings needed for initialization of the library.
@@ -26,5 +26,5 @@ trait SplineConfigurer {
   /**
     * The method returns a factory creating persistence layer for various data lineage entities.
     */
-  def storageFactory: DataStorageFactory
+  def persistenceFactory: PersistenceFactory
 }

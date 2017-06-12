@@ -17,7 +17,7 @@
 package za.co.absa.spline.sample
 
 import org.scalatest.FunSuite
-import za.co.absa.spline.utils.{SparkJobRunner, SparkLocalMaster}
+import za.co.absa.spline.sample.utils.{SparkJobRunner, SparkLocalMaster}
 
 class SamplesRunner extends FunSuite with SparkJobRunner with SparkLocalMaster {
 

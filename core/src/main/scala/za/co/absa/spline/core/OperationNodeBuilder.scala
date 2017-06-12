@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.core
 
-import za.co.absa.spline.core.model._
+import za.co.absa.spline.model._
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation, SaveIntoDataSourceCommand}
 import org.apache.spark.sql.internal.SQLConf
@@ -99,8 +99,8 @@ sealed private trait OperationNodeBuilder[OpType <: LogicalPlan] extends DataTyp
   /**
     * Harvests output attributes from a specific Spark operation
     *
-    * @param operation
-    * @return
+    * @param operation - An input logical plan
+    * @return A list of output attributes
     */
   def createOutputAttributes(operation: LogicalPlan) = Some(
     Attributes(operation.output.map(i => Attribute(i.exprId.id, i.name, fromSparkDataType(i.dataType, i.nullable)))))

@@ -19,10 +19,11 @@ package za.co.absa.spline.web.salat
 import java.net.URI
 import java.util.UUID
 
-import za.co.absa.spline.core.model._
+import za.co.absa.spline.model._
 import org.scalatest.{FlatSpec, Matchers}
 import salat.grater
 import org.json4s.native.JsonMethods._
+import za.co.absa.spline.model.Attribute
 
 class JSONSalatContextSpec extends FlatSpec with Matchers {
 
