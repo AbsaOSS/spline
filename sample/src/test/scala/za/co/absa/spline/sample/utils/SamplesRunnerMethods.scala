@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.sample
+package za.co.absa.spline.sample.utils
 
-import org.scalatest.FunSuite
-import za.co.absa.spline.sample.utils.{SamplesRunnerMethods, SparkLocalMaster}
+import org.scalatest.{FunSuiteLike, Tag}
 
-class SamplesRunner extends FunSuite
-  with SamplesRunnerMethods
-  with SparkLocalMaster {
+import scala.reflect.ClassTag
 
-  runSample[SampleJob1.type]
+object SampleJobTag extends Tag("za.co.absa.spline.sample.SampleJobTag")
 
-  runSample[SampleJob2.type]
+trait SamplesRunnerMethods extends SparkJobRunnerMethods {
+  this: FunSuiteLike =>
+
+  def runSample[T](implicit ct: ClassTag[T]): Unit = {
+    val sampleName = ct.runtimeClass.getSimpleName
+    test(sampleName, SampleJobTag)(runSparkJob[T](ct))
+  }
 }

@@ -23,7 +23,7 @@ import scala.language.reflectiveCalls
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe
 
-trait SparkJobRunner {
+trait SparkJobRunnerMethods {
   def runSparkJob[T](implicit ct: ClassTag[T]): Unit = {
     type MainClass = {def main(args: Array[String]): Unit}
 
