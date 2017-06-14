@@ -47,12 +47,12 @@ class MongoExecutionPersistorSpec extends FlatSpec with Matchers with BeforeAndA
     storedExecution shouldEqual Option(execution)
   }
 
-  "List method" should "return only execution to a database." in {
+  "List method" should "only return executions with the given lineage ID" in {
     val dataLineageId = UUID.randomUUID()
     val execution1 = Execution(UUID.randomUUID(), dataLineageId, "Test1", 456L)
     val execution2 = Execution(UUID.randomUUID(), dataLineageId, "Test2", 789L)
 
-    val input = Seq(
+    val allExecutions = Seq(
       Execution(UUID.randomUUID(), UUID.randomUUID(), "Testa", 1L),
       execution1,
       Execution(UUID.randomUUID(), UUID.randomUUID(), "Testb", 2L),
@@ -60,10 +60,10 @@ class MongoExecutionPersistorSpec extends FlatSpec with Matchers with BeforeAndA
       Execution(UUID.randomUUID(), UUID.randomUUID(), "Testc", 3L)
     )
 
-    input.foreach(mongoPersistor.store(_))
+    allExecutions foreach mongoPersistor.store
 
-    val executions = mongoPersistor.list(dataLineageId).toSeq
+    val relatedExecutions = mongoPersistor.list(dataLineageId).toSeq
 
-    executions shouldEqual Seq(execution1, execution2)
+    relatedExecutions shouldEqual Seq(execution1, execution2)
   }
 }
