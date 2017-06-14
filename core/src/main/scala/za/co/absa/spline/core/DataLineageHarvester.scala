@@ -18,7 +18,7 @@ package za.co.absa.spline.core
 
 import java.util.UUID
 
-import za.co.absa.spline.core.model.{DataLineage, OperationNode}
+import za.co.absa.spline.model.{DataLineage, OperationNode}
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.execution.datasources.SaveIntoDataSourceCommand

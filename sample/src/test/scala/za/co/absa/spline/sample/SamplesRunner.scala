@@ -17,11 +17,13 @@
 package za.co.absa.spline.sample
 
 import org.scalatest.FunSuite
-import za.co.absa.spline.utils.{SparkJobRunner, SparkLocalMaster}
+import za.co.absa.spline.sample.utils.{SamplesRunnerMethods, SparkLocalMaster}
 
-class SamplesRunner extends FunSuite with SparkJobRunner with SparkLocalMaster {
+class SamplesRunner extends FunSuite
+  with SamplesRunnerMethods
+  with SparkLocalMaster {
 
-  test("Running Sample job 1")(runSparkJob[SampleJob1.type])
+  runSample[SampleJob1.type]
 
-  test("Running Sample job 2")(runSparkJob[SampleJob2.type])
+  runSample[SampleJob2.type]
 }

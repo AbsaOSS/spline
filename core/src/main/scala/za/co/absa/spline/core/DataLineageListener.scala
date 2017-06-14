@@ -18,8 +18,8 @@ package za.co.absa.spline.core
 
 import java.util.UUID
 
-import za.co.absa.spline.core.model.Execution
-import za.co.absa.spline.core.storage.DataStorageFactory
+import za.co.absa.spline.model.Execution
+import za.co.absa.spline.persistence.api.PersistenceFactory
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.util.QueryExecutionListener
 
@@ -28,9 +28,9 @@ import org.apache.spark.sql.util.QueryExecutionListener
   *
   * @param dataStorageFactory A factory of persistence layers
   */
-class DataLineageListener(dataStorageFactory: DataStorageFactory) extends QueryExecutionListener {
-  private lazy val dataLineageStorage = dataStorageFactory.createDataLineageStorage()
-  private lazy val executionStorage = dataStorageFactory.createExecutionStorage()
+class DataLineageListener(dataStorageFactory: PersistenceFactory) extends QueryExecutionListener {
+  private lazy val dataLineagePersistor = dataStorageFactory.createDataLineagePersistor()
+  private lazy val executionPersistor = dataStorageFactory.createExecutionPersistor()
 
   /**
     * The method is executed when an action execution is successful.
@@ -57,15 +57,15 @@ class DataLineageListener(dataStorageFactory: DataStorageFactory) extends QueryE
   private def processQueryExecution(funcName: String, qe: QueryExecution): Unit = {
     if (funcName == "save") {
       val lineage = DataLineageHarvester.harvestLineage(qe)
-      val lineageId = dataLineageStorage.exists(lineage) match {
+      val lineageId = dataLineagePersistor.exists(lineage) match {
         case None =>
-          dataLineageStorage.store(lineage)
+          dataLineagePersistor.store(lineage)
           lineage.id
         case Some(x) => x
       }
 
       val execution = Execution(UUID.randomUUID(), lineageId, qe.sparkSession.sparkContext.applicationId, System.currentTimeMillis())
-      executionStorage.store(execution)
+      executionPersistor.store(execution)
     }
   }
 }

@@ -16,8 +16,9 @@
 
 package za.co.absa.spline.core.conf
 
-import za.co.absa.spline.core.storage.mongo.MongoStorageFactory
+
 import org.apache.commons.configuration._
+import za.co.absa.spline.persistence.mongo.MongoPersistenceFactory
 
 /**
   * The object contains static information about default settings needed for initialization of the library.
@@ -37,7 +38,7 @@ class DefaultSplineConfigurer(conf: Configuration) extends SplineConfigurer {
   import DefaultSplineConfigurer._
   import za.co.absa.spline.common.ConfigurationImplicits._
 
-  override lazy val storageFactory = new MongoStorageFactory(
+  override lazy val persistenceFactory = new MongoPersistenceFactory(
     dbUrl = conf getRequiredString mongoDbUrlKey,
     dbName = conf getRequiredString mongoDbNameKey)
 }

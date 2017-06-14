@@ -18,18 +18,18 @@ package za.co.absa.spline.web.rest.controller
 
 import java.util.UUID
 
-import za.co.absa.spline.core.storage.DataLineageStorage
 import za.co.absa.spline.web.salat.JSONSalatContext._
 import za.co.absa.spline.web.salat.StringJSONConverters
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMethod._
 import org.springframework.web.bind.annotation.{PathVariable, RequestMapping, ResponseBody}
+import za.co.absa.spline.persistence.api.DataLineagePersistor
 
 @Controller
 class LineageController @Autowired()
 (
-  val storage: DataLineageStorage
+  val storage: DataLineagePersistor
 ) {
 
   import StringJSONConverters._

@@ -16,7 +16,8 @@
 
 package za.co.absa.spline.core
 
-import za.co.absa.spline.core.model.StructField
+import za.co.absa.spline.model.StructField
+import za.co.absa.spline.model
 import org.apache.spark.sql
 
 /**
