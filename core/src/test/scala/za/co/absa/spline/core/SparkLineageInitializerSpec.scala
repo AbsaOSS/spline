@@ -26,6 +26,7 @@ class SparkLineageInitializerSpec extends FlatSpec with BeforeAndAfterEach with 
   private val jvmProps = System.getProperties
 
   jvmProps.setProperty("spark.master", "local")
+  jvmProps.setProperty(persistenceTypeKey, "mongo")
   jvmProps.setProperty(mongoDbUrlKey, "fake")
   jvmProps.setProperty(mongoDbNameKey, "fake")
 

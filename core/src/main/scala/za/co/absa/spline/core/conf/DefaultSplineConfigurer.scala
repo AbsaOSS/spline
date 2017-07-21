@@ -18,6 +18,8 @@ package za.co.absa.spline.core.conf
 
 
 import org.apache.commons.configuration._
+import za.co.absa.spline.persistence.api.PersistenceFactory
+import za.co.absa.spline.persistence.atlas.AtlasPersistenceFactory
 import za.co.absa.spline.persistence.mongo.MongoPersistenceFactory
 
 /**
@@ -26,6 +28,7 @@ import za.co.absa.spline.persistence.mongo.MongoPersistenceFactory
 object DefaultSplineConfigurer {
   val mongoDbUrlKey = "spline.mongodb.url"
   val mongoDbNameKey = "spline.mongodb.name"
+  val persistenceTypeKey = "spline.persistence.type"
 }
 
 /**
@@ -38,7 +41,15 @@ class DefaultSplineConfigurer(conf: Configuration) extends SplineConfigurer {
   import DefaultSplineConfigurer._
   import za.co.absa.spline.common.ConfigurationImplicits._
 
-  override lazy val persistenceFactory = new MongoPersistenceFactory(
-    dbUrl = conf getRequiredString mongoDbUrlKey,
-    dbName = conf getRequiredString mongoDbNameKey)
+ override lazy val persistenceFactory = {
+   val persistenceType = conf getRequiredString persistenceTypeKey
+   persistenceType toLowerCase match {
+     case "mongo" | "mongodb" => new MongoPersistenceFactory(
+       dbUrl = conf getRequiredString mongoDbUrlKey,
+       dbName = conf getRequiredString mongoDbNameKey
+     )
+     case "atlas" => new AtlasPersistenceFactory()
+     case _ => throw new ConfigurationException(s"'$persistenceType' is not valid value for the '$persistenceTypeKey' property.")
+   }
+ }
 }
