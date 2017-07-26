@@ -7,6 +7,7 @@
     "awesome-typescript-loader": "~3.1.2",
     "clean-webpack-plugin": "~0.1.16",
     "concurrently": "~3.4.0",
+    "cross-env": "~5.0.1",
     "css-loader": "~0.27.3",
     "file-loader": "~0.10.1",
     "json-server": "~0.9.5",
@@ -54,6 +55,6 @@
     "dev-http-server": "webpack-dev-server",
     "dev-rest-server": "json-server mock-rest-api/db.js",
     "dev-build": "webpack",
-    "prod-build": "NODE_ENV='production' webpack -p --no-color"
+    "prod-build": "cross-env NODE_ENV='production' webpack -p --no-color"
   }
 }
