@@ -16,12 +16,30 @@
 
 package za.co.absa.spline.persistence.atlas
 
+import org.apache.commons.configuration.Configuration
 import za.co.absa.spline.persistence.api.{DataLineagePersistor, ExecutionPersistor, PersistenceFactory}
+
+
+/**
+  * The object contains static information about settings needed for initialization of the AtlasPersistenceFactory class.
+  */
+object AtlasPersistenceFactory{
+  val directoryContainingAtlasConfigurationAtlasKey = "atlas.conf"
+  val directoryContainingAtlasConfigurationKey = "spline.atlas.confDir"
+}
 
 /**
   * The class represents a factory creating Atlas persistence layers for all main data lineage entities.
+  *
+  * @param configuration A source of settings
   */
-class AtlasPersistenceFactory extends PersistenceFactory{
+class AtlasPersistenceFactory(configuration: Configuration) extends PersistenceFactory(configuration){
+
+  import AtlasPersistenceFactory._
+
+  val confDir = configuration getString directoryContainingAtlasConfigurationKey
+  if(confDir != null) System.setProperty(directoryContainingAtlasConfigurationAtlasKey, confDir)
+
   /**
     * The method creates a persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *

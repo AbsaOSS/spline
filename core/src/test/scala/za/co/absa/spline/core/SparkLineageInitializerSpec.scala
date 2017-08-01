@@ -18,6 +18,7 @@ package za.co.absa.spline.core
 
 import za.co.absa.spline.core.SparkLineageInitializer._
 import za.co.absa.spline.core.conf.DefaultSplineConfigurer._
+import za.co.absa.spline.persistence.mongo.MongoPersistenceFactory._
 import org.apache.spark.sql.SparkSession
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 
@@ -26,7 +27,7 @@ class SparkLineageInitializerSpec extends FlatSpec with BeforeAndAfterEach with 
   private val jvmProps = System.getProperties
 
   jvmProps.setProperty("spark.master", "local")
-  jvmProps.setProperty(persistenceTypeKey, "mongo")
+  jvmProps.setProperty(persistenceFactoryKey, "za.co.absa.spline.persistence.mongo.MongoPersistenceFactory")
   jvmProps.setProperty(mongoDbUrlKey, "fake")
   jvmProps.setProperty(mongoDbNameKey, "fake")
 
