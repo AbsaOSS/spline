@@ -16,15 +16,31 @@
 
 package za.co.absa.spline.persistence.mongo
 
+
+
+import org.apache.commons.configuration.Configuration
 import za.co.absa.spline.persistence.api._
+
+/**
+  * The object contains static information about settings needed for initialization of the MongoPersistenceFactory class.
+  */
+object MongoPersistenceFactory{
+  val mongoDbUrlKey = "spline.mongodb.url"
+  val mongoDbNameKey = "spline.mongodb.name"
+}
 
 /**
   * The class represents a factory creating Mongo persistence layers for all main data lineage entities.
   *
-  * @param dbUrl  An URL to Mongo host or cluster
-  * @param dbName A name of Mongo database
+  * @param configuration A source of settings
   */
-class MongoPersistenceFactory(dbUrl: String, dbName: String) extends PersistenceFactory {
+class MongoPersistenceFactory(configuration: Configuration) extends PersistenceFactory(configuration) {
+
+  import za.co.absa.spline.common.ConfigurationImplicits._
+  import MongoPersistenceFactory._
+
+  private lazy val dbUrl = configuration getRequiredString mongoDbUrlKey
+  private lazy val dbName = configuration getRequiredString mongoDbNameKey
 
   override def createDataLineagePersistor(): DataLineagePersistor = new MongoDataLineagePersistor(dbUrl, dbName)
 

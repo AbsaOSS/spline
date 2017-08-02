@@ -16,29 +16,32 @@
 
 package za.co.absa.spline.core.conf
 
-
-import org.apache.commons.configuration._
-import za.co.absa.spline.persistence.mongo.MongoPersistenceFactory
+import org.apache.commons.configuration.Configuration
+import za.co.absa.spline.persistence.api.PersistenceFactory
 
 /**
   * The object contains static information about default settings needed for initialization of the library.
   */
 object DefaultSplineConfigurer {
-  val mongoDbUrlKey = "spline.mongodb.url"
-  val mongoDbNameKey = "spline.mongodb.name"
+  val persistenceFactoryKey = "spline.persistence.factory"
 }
 
 /**
   * The class represents default settings needed for initialization of the library.
   *
-  * @param conf A source of settings
+  * @param configuration A source of settings
   */
-class DefaultSplineConfigurer(conf: Configuration) extends SplineConfigurer {
+class DefaultSplineConfigurer(configuration: Configuration) extends SplineConfigurer {
 
   import DefaultSplineConfigurer._
   import za.co.absa.spline.common.ConfigurationImplicits._
 
-  override lazy val persistenceFactory = new MongoPersistenceFactory(
-    dbUrl = conf getRequiredString mongoDbUrlKey,
-    dbName = conf getRequiredString mongoDbNameKey)
+ override lazy val persistenceFactory: PersistenceFactory = {
+   val persistenceFactoryClassName = configuration getRequiredString persistenceFactoryKey
+   Class
+     .forName(persistenceFactoryClassName)
+     .getConstructor(classOf[Configuration])
+     .newInstance(configuration)
+     .asInstanceOf[PersistenceFactory]
+ }
 }

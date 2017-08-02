@@ -16,10 +16,14 @@
 
 package za.co.absa.spline.persistence.api
 
+import org.apache.commons.configuration.Configuration
+
 /**
-  * The trait represents a factory creating persistence layers for all main data lineage entities.
+  * The abstract class represents a factory creating persistence layers for all main data lineage entities.
+  *
+  * @param configuration A source of settings
   */
-trait PersistenceFactory {
+abstract class PersistenceFactory(protected val configuration : Configuration) {
 
   /**
     * The method creates a persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
