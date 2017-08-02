@@ -26,6 +26,13 @@
 
     <packaging>pom</packaging>
 
+    <scm>
+        <url>https://bitbucket.absa.co.za/projects/BACIBBD/repos/spline/browse</url>
+        <connection>scm:git:ssh://git@bitbucket.absa.co.za:7999/bacibbd/spline.git</connection>
+        <developerConnection>scm:git:ssh://git@bitbucket.absa.co.za:7999/bacibbd/spline.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
     <modules>
         <module>parent</module>
         <module>commons</module>
