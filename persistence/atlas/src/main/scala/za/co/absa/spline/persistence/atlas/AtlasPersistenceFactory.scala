@@ -16,6 +16,8 @@
 
 package za.co.absa.spline.persistence.atlas
 
+import java.io.{File, IOException}
+
 import org.apache.commons.configuration.Configuration
 import za.co.absa.spline.persistence.api.{DataLineagePersistor, ExecutionPersistor, PersistenceFactory}
 
@@ -24,8 +26,9 @@ import za.co.absa.spline.persistence.api.{DataLineagePersistor, ExecutionPersist
   * The object contains static information about settings needed for initialization of the AtlasPersistenceFactory class.
   */
 object AtlasPersistenceFactory{
-  val directoryContainingAtlasConfigurationAtlasKey = "atlas.conf"
-  val directoryContainingAtlasConfigurationKey = "spline.atlas.confDir"
+  val atlasPropertyPrefix = "atlas"
+  val atlasConfigurationDirKey = "atlas.conf"
+  val atlasTemporaryConfigurationFileName = "atlas-application.properties"
 }
 
 /**
@@ -36,9 +39,34 @@ object AtlasPersistenceFactory{
 class AtlasPersistenceFactory(configuration: Configuration) extends PersistenceFactory(configuration){
 
   import AtlasPersistenceFactory._
+  import scala.collection.JavaConverters._
 
-  val confDir = configuration getString directoryContainingAtlasConfigurationKey
-  if(confDir != null) System.setProperty(directoryContainingAtlasConfigurationAtlasKey, confDir)
+  createAtlasTemporaryConfigurationFile()
+
+  def createTempDirectory() : File =
+  {
+    val temp = File.createTempFile("temp", System.nanoTime().toString)
+    if(!temp.delete) throw new IOException("Could not delete temp file: " + temp.getAbsolutePath)
+    if(!temp.mkdir) throw new IOException("Could not create temp directory: " + temp.getAbsolutePath)
+    temp
+  }
+
+  private def createAtlasTemporaryConfigurationFile() : Unit = {
+    val tempDir = createTempDirectory()
+    val tempFile = new File(tempDir,atlasTemporaryConfigurationFileName)
+    System.setProperty(atlasConfigurationDirKey, tempDir.getAbsolutePath)
+    tempFile.deleteOnExit()
+    tempDir.deleteOnExit()
+    val printStream  = new java.io.PrintStream(tempFile)
+    configuration.getKeys(atlasPropertyPrefix).asScala.foreach(
+      key => {
+        val value = configuration.getProperty(key)
+        printStream.println(s"$key=$value")
+      }
+    )
+    printStream.flush()
+    printStream.close()
+  }
 
   /**
     * The method creates a persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
