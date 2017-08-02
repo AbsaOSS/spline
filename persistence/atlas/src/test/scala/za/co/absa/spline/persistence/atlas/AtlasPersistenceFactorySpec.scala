@@ -22,6 +22,7 @@ import org.apache.atlas.ApplicationProperties.{APPLICATION_PROPERTIES, ATLAS_CON
 import org.apache.commons.configuration.BaseConfiguration
 import org.apache.commons.io.FileUtils
 import org.scalatest.{FlatSpec, Matchers}
+import scala.collection.JavaConverters._
 
 class AtlasPersistenceFactorySpec extends FlatSpec with Matchers {
 
@@ -33,13 +34,12 @@ class AtlasPersistenceFactorySpec extends FlatSpec with Matchers {
     })
 
     val confDir = new File(System.getProperty(ATLAS_CONFIGURATION_DIRECTORY_PROPERTY))
-    val confContent = FileUtils.readFileToString(new File(confDir, APPLICATION_PROPERTIES))
+    val confLines = FileUtils.readLines(new File(confDir, APPLICATION_PROPERTIES)).asScala
 
-    confContent.replaceAll("#.*", "").trim shouldEqual
-      """
-        |atlas.foo=foo
-        |atlas.complex\=key\:name=a complex value \:\=)
-      """.trim.stripMargin
+    confLines.filterNot(_ startsWith "#").sorted shouldEqual List(
+      "atlas.complex\\=key\\:name=a complex value \\:\\=)",
+      "atlas.foo=foo"
+    )
   }
 
 }
