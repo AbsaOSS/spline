@@ -16,20 +16,17 @@
 
 package za.co.absa.spline.core
 
-import za.co.absa.spline.core.SparkLineageInitializer._
-import za.co.absa.spline.core.conf.DefaultSplineConfigurer._
-import za.co.absa.spline.persistence.mongo.MongoPersistenceFactory._
 import org.apache.spark.sql.SparkSession
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
+import za.co.absa.spline.core.SparkLineageInitializer._
+import za.co.absa.spline.core.conf.DefaultSplineConfigurer._
 
 class SparkLineageInitializerSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
 
   private val jvmProps = System.getProperties
 
   jvmProps.setProperty("spark.master", "local")
-  jvmProps.setProperty(persistenceFactoryKey, "za.co.absa.spline.persistence.mongo.MongoPersistenceFactory")
-  jvmProps.setProperty(mongoDbUrlKey, "fake")
-  jvmProps.setProperty(mongoDbNameKey, "fake")
+  jvmProps.setProperty(persistenceFactoryKey, classOf[MockPersistenceFactory].getName)
 
   override protected def afterEach(): Unit = SparkSession.builder.getOrCreate.stop
 

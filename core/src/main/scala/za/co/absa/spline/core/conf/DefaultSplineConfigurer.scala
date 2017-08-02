@@ -36,10 +36,10 @@ class DefaultSplineConfigurer(configuration: Configuration) extends SplineConfig
   import DefaultSplineConfigurer._
   import za.co.absa.spline.common.ConfigurationImplicits._
 
- override lazy val persistenceFactory = {
-   val persistenceType = configuration getRequiredString persistenceFactoryKey
+ override lazy val persistenceFactory: PersistenceFactory = {
+   val persistenceFactoryClassName = configuration getRequiredString persistenceFactoryKey
    Class
-     .forName(persistenceType)
+     .forName(persistenceFactoryClassName)
      .getConstructor(classOf[Configuration])
      .newInstance(configuration)
      .asInstanceOf[PersistenceFactory]

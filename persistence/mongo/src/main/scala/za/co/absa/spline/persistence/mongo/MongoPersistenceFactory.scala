@@ -39,8 +39,8 @@ class MongoPersistenceFactory(configuration: Configuration) extends PersistenceF
   import za.co.absa.spline.common.ConfigurationImplicits._
   import MongoPersistenceFactory._
 
-  protected lazy val dbUrl = configuration getRequiredString mongoDbUrlKey
-  protected lazy val dbName = configuration getRequiredString mongoDbNameKey
+  private lazy val dbUrl = configuration getRequiredString mongoDbUrlKey
+  private lazy val dbName = configuration getRequiredString mongoDbNameKey
 
   override def createDataLineagePersistor(): DataLineagePersistor = new MongoDataLineagePersistor(dbUrl, dbName)
 
