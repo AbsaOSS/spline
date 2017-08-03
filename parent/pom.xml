@@ -165,11 +165,6 @@
     <profiles>
         <profile>
             <id>license-check</id>
-            <activation>
-                <property>
-                    <name>checkLicenses</name>
-                </property>
-            </activation>
             <build>
                 <plugins>
                     <plugin>

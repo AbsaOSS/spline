@@ -45,11 +45,6 @@
     <profiles>
         <profile>
             <id>release</id>
-            <activation>
-                <property>
-                    <name>releaseProfile</name>
-                </property>
-            </activation>
             <properties>
                 <test.spline.mongodb.url><!-- passed from mvn command line --></test.spline.mongodb.url>
                 <test.spline.mongodb.name><!-- passed from mvn command line --></test.spline.mongodb.name>
@@ -62,8 +57,6 @@
                         <configuration>
                             <tagNameFormat>release/@{project.version}</tagNameFormat>
                             <arguments>
-                                -DcheckLicenses
-                                -DreleaseProfile
                                 -Dtest.spline.mongodb.url=${test.spline.mongodb.url}
                                 -Dtest.spline.mongodb.name=${test.spline.mongodb.name}
                             </arguments>
