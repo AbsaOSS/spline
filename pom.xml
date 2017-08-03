@@ -15,7 +15,8 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>za.co.absa</groupId>
@@ -41,16 +42,35 @@
         <module>persistence</module>
     </modules>
 
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.5.3</version>
-                <configuration>
-                    <tagNameFormat>release/@{project.version}</tagNameFormat>
-                    <arguments>-DcheckLicenses</arguments>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+    <profiles>
+        <profile>
+            <id>release</id>
+            <activation>
+                <property>
+                    <name>releaseProfile</name>
+                </property>
+            </activation>
+            <properties>
+                <test.spline.mongodb.url><!-- passed from mvn command line --></test.spline.mongodb.url>
+                <test.spline.mongodb.name><!-- passed from mvn command line --></test.spline.mongodb.name>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-release-plugin</artifactId>
+                        <version>2.5.3</version>
+                        <configuration>
+                            <tagNameFormat>release/@{project.version}</tagNameFormat>
+                            <arguments>
+                                -DcheckLicenses
+                                -DreleaseProfile
+                                -Dtest.spline.mongodb.url=${test.spline.mongodb.url}
+                                -Dtest.spline.mongodb.name=${test.spline.mongodb.name}
+                            </arguments>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
