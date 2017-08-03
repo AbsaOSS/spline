@@ -48,6 +48,7 @@
                 <version>2.5.3</version>
                 <configuration>
                     <tagNameFormat>release/@{project.version}</tagNameFormat>
+                    <arguments>-DcheckLicenses</arguments>
                 </configuration>
             </plugin>
         </plugins>
