@@ -15,7 +15,8 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>spline-web</artifactId>
@@ -56,6 +57,10 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>
@@ -85,6 +90,12 @@
 
     <build>
         <finalName>spline-ui-${project.version}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -154,26 +165,28 @@
                                 <echo>Preparing UI build</echo>
                                 <!-- Install NPM dependencies -->
                                 <exec executable="cmd" dir="${webui.basedir}" osfamily="windows" failonerror="true">
-                                    <arg line="/c npm install --no-color" />
+                                    <arg line="/c npm install --no-color"/>
                                 </exec>
                                 <exec executable="npm" dir="${webui.basedir}" osfamily="unix" failonerror="true">
-                                    <arg line="install --no-color" />
+                                    <arg line="install --no-color"/>
                                 </exec>
 
                                 <!-- Install typings -->
                                 <exec executable="cmd" dir="${webui.basedir}" osfamily="windows" failonerror="true">
-                                    <arg line="/c npm run install-typings --no-color" />
+                                    <arg line="/c npm run install-typings --no-color"/>
                                 </exec>
                                 <exec executable="npm" dir="${webui.basedir}" osfamily="unix" failonerror="true">
-                                    <arg line="run install-typings --no-color" />
+                                    <arg line="run install-typings --no-color"/>
                                 </exec>
 
                                 <echo>Executing UI build</echo>
                                 <exec executable="cmd" dir="${webui.basedir}" osfamily="windows" failonerror="true">
-                                    <arg line="/c npm run prod-build --no-color" />
+                                    <env key="SPLINE_VERSION" value="${project.version}"/>
+                                    <arg line="/c npm run prod-build --no-color"/>
                                 </exec>
                                 <exec executable="npm" dir="${webui.basedir}" osfamily="unix" failonerror="true">
-                                    <arg line="run prod-build --no-color" />
+                                    <env key="SPLINE_VERSION" value="${project.version}"/>
+                                    <arg line="run prod-build --no-color"/>
                                 </exec>
                             </target>
                         </configuration>
