@@ -16,13 +16,23 @@
 
 package za.co.absa.spline.web.html.controller
 
+import org.apache.commons.io.IOUtils
 import org.springframework.stereotype.Controller
-import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.{RequestMapping, ResponseBody}
 import org.springframework.web.bind.annotation.RequestMethod.{GET, HEAD}
+import za.co.absa.spline.common.ARMImplicits
 
 @Controller
 class MainController {
 
   @RequestMapping(path = Array("/", "/lineage/**"), method = Array(GET, HEAD))
   def index = "index"
+
+  @RequestMapping(path = Array("/build-info"), method = Array(GET), produces = Array("text/x-java-properties"))
+  @ResponseBody
+  def buildInfo: String = {
+    import ARMImplicits._
+    for (stream <- this.getClass getResourceAsStream "/build.properties")
+      yield IOUtils.toString(stream)
+  }
 }

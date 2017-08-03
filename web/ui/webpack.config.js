@@ -23,7 +23,8 @@ var isProd = process.env.NODE_ENV === "production"
 var commonPlugins = [
     new CleanWebpackPlugin(['dist']),
     new webpack.DefinePlugin({
-        __PRODUCTION_MODE__: isProd
+        __PRODUCTION_MODE__: isProd,
+        __APP_VERSION__: JSON.stringify(process.env.SPLINE_VERSION)
     }),
     new webpack.ContextReplacementPlugin(
         /angular(\\|\/)core(\\|\/)(esm(\\|\/)src|src)(\\|\/)linker/,
@@ -49,8 +50,8 @@ module.exports = {
         extensions: ['.webpack.js', '.web.js', '.ts', '.tsx', '.js', '.jsx', '.less', '.css', '.html']
     },
     plugins: commonPlugins.concat(isProd
-            ? [/* prod build plugins */]
-            : [/* dev build plugins */]
+        ? [/* prod build plugins */]
+        : [/* dev build plugins */]
     ),
     module: {
         loaders: [
