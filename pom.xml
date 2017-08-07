@@ -27,8 +27,8 @@
 
     <scm>
         <url>https://bitbucket.absa.co.za/projects/BACIBBD/repos/spline/browse</url>
-        <connection>scm:git:ssh://git@bitbucket.absa.co.za:7999/bacibbd/spline.git</connection>
-        <developerConnection>scm:git:ssh://git@bitbucket.absa.co.za:7999/bacibbd/spline.git</developerConnection>
+        <connection>scm:git:https://bitbucket.absa.co.za/scm/bacibbd/spline.git</connection>
+        <developerConnection>scm:git:https://bitbucket.absa.co.za/scm/bacibbd/spline.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
@@ -46,6 +46,7 @@
         <profile>
             <id>release</id>
             <properties>
+                <project.scm.id>spline-scm-server</project.scm.id>
                 <test.spline.mongodb.url><!-- passed from mvn command line --></test.spline.mongodb.url>
                 <test.spline.mongodb.name><!-- passed from mvn command line --></test.spline.mongodb.name>
             </properties>
