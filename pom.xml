@@ -60,7 +60,22 @@
                                 -Dtest.spline.mongodb.url=${test.spline.mongodb.url}
                                 -Dtest.spline.mongodb.name=${test.spline.mongodb.name}
                             </arguments>
+                            <providerImplementations>
+                                <git>jgit</git>
+                            </providerImplementations>
                         </configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.apache.maven.scm</groupId>
+                                <artifactId>maven-scm-provider-jgit</artifactId>
+                                <version>1.9.5</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>org.eclipse.jgit</groupId>
+                                <artifactId>org.eclipse.jgit</artifactId>
+                                <version>3.7.1.201504261725-r</version>
+                            </dependency>
+                        </dependencies>
                     </plugin>
                 </plugins>
             </build>
