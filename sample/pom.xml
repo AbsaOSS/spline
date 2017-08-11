@@ -15,9 +15,7 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>spline-sample</artifactId>
     <packaging>jar</packaging>
@@ -26,7 +24,7 @@
         <groupId>za.co.absa</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>0.2.0</version>
     </parent>
 
     <dependencies>
@@ -44,6 +42,21 @@
             <groupId>za.co.absa</groupId>
             <artifactId>spline-core</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa</groupId>
+            <artifactId>spline-persistence-mongo</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa</groupId>
+            <artifactId>spline-persistence-atlas</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.databricks</groupId>
+            <artifactId>spark-xml_${scala.compat.version}</artifactId>
+            <version>0.4.1</version>
         </dependency>
     </dependencies>
 
@@ -83,6 +96,7 @@
                         <configuration>
                             <excludes combine.children="append">
                                 <exclude>data/**</exclude>
+                                <exclude>**/atlas-application.properties</exclude>
                             </excludes>
                         </configuration>
                     </plugin>

@@ -15,9 +15,7 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>spline-web</artifactId>
@@ -27,7 +25,7 @@
         <groupId>za.co.absa</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>0.2.0</version>
     </parent>
 
     <properties>
@@ -43,6 +41,25 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>za.co.absa</groupId>
+            <artifactId>spline-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa</groupId>
+            <artifactId>spline-persistence-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa</groupId>
+            <artifactId>spline-persistence-mongo</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>
@@ -53,11 +70,6 @@
             <artifactId>javax.servlet-api</artifactId>
             <version>3.1.0</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>za.co.absa</groupId>
-            <artifactId>spline-core</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -77,6 +89,12 @@
 
     <build>
         <finalName>spline-ui-${project.version}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -103,26 +121,26 @@
                         <argument>${project.basedir}/ui/src/generated-ts/lineage-model.ts</argument>
                         <argument>--emit-interfaces</argument>
                         <argument>--option-to-nullable</argument>
-                        <argument>za.co.absa.spline.core.model.DataLineageDescriptor</argument>
-                        <argument>za.co.absa.spline.core.model.DataLineage</argument>
-                        <argument>za.co.absa.spline.core.model.Attributes</argument>
-                        <argument>za.co.absa.spline.core.model.Expression</argument>
-                        <argument>za.co.absa.spline.core.model.AttributeRemoval</argument>
-                        <argument>za.co.absa.spline.core.model.AttributeReference</argument>
-                        <argument>za.co.absa.spline.core.model.GenericExpression</argument>
-                        <argument>za.co.absa.spline.core.model.BinaryOperator</argument>
-                        <argument>za.co.absa.spline.core.model.UserDefinedFunction</argument>
-                        <argument>za.co.absa.spline.core.model.AliasNode</argument>
-                        <argument>za.co.absa.spline.core.model.DestinationNode</argument>
-                        <argument>za.co.absa.spline.core.model.FilterNode</argument>
-                        <argument>za.co.absa.spline.core.model.GenericNode</argument>
-                        <argument>za.co.absa.spline.core.model.JoinNode</argument>
-                        <argument>za.co.absa.spline.core.model.ProjectionNode</argument>
-                        <argument>za.co.absa.spline.core.model.SourceNode</argument>
-                        <argument>za.co.absa.spline.core.model.DataType</argument>
-                        <argument>za.co.absa.spline.core.model.SimpleType</argument>
-                        <argument>za.co.absa.spline.core.model.StructType</argument>
-                        <argument>za.co.absa.spline.core.model.ArrayType</argument>
+                        <argument>za.co.absa.spline.model.DataLineageDescriptor</argument>
+                        <argument>za.co.absa.spline.model.DataLineage</argument>
+                        <argument>za.co.absa.spline.model.Attributes</argument>
+                        <argument>za.co.absa.spline.model.Expression</argument>
+                        <argument>za.co.absa.spline.model.AttributeRemoval</argument>
+                        <argument>za.co.absa.spline.model.AttributeReference</argument>
+                        <argument>za.co.absa.spline.model.GenericExpression</argument>
+                        <argument>za.co.absa.spline.model.BinaryOperator</argument>
+                        <argument>za.co.absa.spline.model.UserDefinedFunction</argument>
+                        <argument>za.co.absa.spline.model.AliasNode</argument>
+                        <argument>za.co.absa.spline.model.DestinationNode</argument>
+                        <argument>za.co.absa.spline.model.FilterNode</argument>
+                        <argument>za.co.absa.spline.model.GenericNode</argument>
+                        <argument>za.co.absa.spline.model.JoinNode</argument>
+                        <argument>za.co.absa.spline.model.ProjectionNode</argument>
+                        <argument>za.co.absa.spline.model.SourceNode</argument>
+                        <argument>za.co.absa.spline.model.DataType</argument>
+                        <argument>za.co.absa.spline.model.SimpleType</argument>
+                        <argument>za.co.absa.spline.model.StructType</argument>
+                        <argument>za.co.absa.spline.model.ArrayType</argument>
                     </arguments>
                 </configuration>
                 <dependencies>
@@ -146,26 +164,28 @@
                                 <echo>Preparing UI build</echo>
                                 <!-- Install NPM dependencies -->
                                 <exec executable="cmd" dir="${webui.basedir}" osfamily="windows" failonerror="true">
-                                    <arg line="/c npm install --no-color"/>
+                                    <arg line="/c npm install --no-color" />
                                 </exec>
                                 <exec executable="npm" dir="${webui.basedir}" osfamily="unix" failonerror="true">
-                                    <arg line="install --no-color"/>
+                                    <arg line="install --no-color" />
                                 </exec>
 
                                 <!-- Install typings -->
                                 <exec executable="cmd" dir="${webui.basedir}" osfamily="windows" failonerror="true">
-                                    <arg line="/c npm run install-typings --no-color"/>
+                                    <arg line="/c npm run install-typings --no-color" />
                                 </exec>
                                 <exec executable="npm" dir="${webui.basedir}" osfamily="unix" failonerror="true">
-                                    <arg line="run install-typings --no-color"/>
+                                    <arg line="run install-typings --no-color" />
                                 </exec>
 
                                 <echo>Executing UI build</echo>
                                 <exec executable="cmd" dir="${webui.basedir}" osfamily="windows" failonerror="true">
-                                    <arg line="/c npm run prod-build --no-color"/>
+                                    <env key="SPLINE_VERSION" value="${project.version}" />
+                                    <arg line="/c npm run prod-build --no-color" />
                                 </exec>
                                 <exec executable="npm" dir="${webui.basedir}" osfamily="unix" failonerror="true">
-                                    <arg line="run prod-build --no-color"/>
+                                    <env key="SPLINE_VERSION" value="${project.version}" />
+                                    <arg line="run prod-build --no-color" />
                                 </exec>
                             </target>
                         </configuration>

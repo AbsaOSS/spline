@@ -18,8 +18,8 @@ package za.co.absa.spline.web
 
 import java.util.Arrays.asList
 
-import za.co.absa.spline.core.storage.DataLineageStorage
-import za.co.absa.spline.core.storage.mongo.MongoDataLineageStorage
+import za.co.absa.spline.persistence.api.DataLineagePersistor
+import za.co.absa.spline.persistence.mongo.MongoDataLineagePersistor
 import org.apache.commons.configuration.{CompositeConfiguration, EnvironmentConfiguration, SystemConfiguration}
 import org.springframework.context.annotation.{Bean, Configuration}
 
@@ -33,7 +33,7 @@ class LineageWebAppConfig {
     new EnvironmentConfiguration
   ))
 
-  @Bean def lineageStorage: DataLineageStorage = new MongoDataLineageStorage(
+  @Bean def lineageStorage: DataLineagePersistor = new MongoDataLineagePersistor(
     dbUrl = confProps getRequiredString "spline.mongodb.url",
     dbName = confProps getRequiredString "spline.mongodb.name"
   )

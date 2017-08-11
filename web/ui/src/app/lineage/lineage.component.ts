@@ -16,10 +16,12 @@
 
 import {Component} from "@angular/core";
 
+declare const __APP_VERSION__: string
+
 @Component({
     templateUrl: 'lineage.component.html',
     styleUrls: ['lineage.component.css']
 })
 export class LineageComponent {
-
+    appVersion: string = __APP_VERSION__
 }

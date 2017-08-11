@@ -15,9 +15,7 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>spline-core</artifactId>
@@ -27,19 +25,23 @@
         <groupId>za.co.absa</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>0.2.0</version>
     </parent>
-
-    <properties>
-        <!-- Test properties -->
-        <test.spline.mongodb.url/>
-        <test.spline.mongodb.name/>
-    </properties>
 
     <dependencies>
         <dependency>
             <groupId>za.co.absa</groupId>
             <artifactId>spline-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa</groupId>
+            <artifactId>spline-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa</groupId>
+            <artifactId>spline-persistence-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -53,21 +55,16 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.salat</groupId>
-            <artifactId>salat-core_${scala.compat.version}</artifactId>
+            <groupId>com.databricks</groupId>
+            <artifactId>spark-xml_${scala.compat.version}</artifactId>
+            <version>0.4.1</version>
         </dependency>
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-        </dependency>
-
-        <!-- Test dependencies -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>1.10.8</version>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <build>
@@ -75,14 +72,7 @@
             <plugin>
                 <groupId>org.scalatest</groupId>
                 <artifactId>scalatest-maven-plugin</artifactId>
-                <configuration>
-                    <systemProperties>
-                        <test.spline.mongodb.url>${test.spline.mongodb.url}</test.spline.mongodb.url>
-                        <test.spline.mongodb.name>${test.spline.mongodb.name}</test.spline.mongodb.name>
-                    </systemProperties>
-                </configuration>
             </plugin>
         </plugins>
     </build>
-
 </project>

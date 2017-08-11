@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.core
 
-import za.co.absa.spline.core.model._
+import za.co.absa.spline.model._
 import org.apache.spark.sql.catalyst.expressions
 
 /**

@@ -16,9 +16,10 @@
 
 package za.co.absa.spline.core
 
-import za.co.absa.spline.core.model._
+import za.co.absa.spline.model._
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation, SaveIntoDataSourceCommand}
+import com.databricks.spark.xml.XmlRelation
 import org.apache.spark.sql.internal.SQLConf
 import org.apache.spark.sql.sources.BaseRelation
 
@@ -99,8 +100,8 @@ sealed private trait OperationNodeBuilder[OpType <: LogicalPlan] extends DataTyp
   /**
     * Harvests output attributes from a specific Spark operation
     *
-    * @param operation
-    * @return
+    * @param operation - An input logical plan
+    * @return A list of output attributes
     */
   def createOutputAttributes(operation: LogicalPlan) = Some(
     Attributes(operation.output.map(i => Attribute(i.exprId.id, i.name, fromSparkDataType(i.dataType, i.nullable)))))
@@ -145,10 +146,14 @@ private class SourceNodeBuilder(val operation: LogicalRelation) extends Operatio
     SourceNode(buildNodeProps(), sourceType, paths)
   }
 
-  private def getRelationPaths(relation: BaseRelation) = relation match {
+  private def getRelationPaths(relation: BaseRelation) : (String, Seq[String]) = relation match {
     case hfsr: HadoopFsRelation => (
       hfsr.fileFormat.toString,
       hfsr.location.rootPaths.map(_.toString)
+    )
+    case xmlr: XmlRelation => (
+      "XML",
+      xmlr.location.toSeq
     )
   }
 }

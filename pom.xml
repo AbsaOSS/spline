@@ -15,23 +15,70 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>za.co.absa</groupId>
     <artifactId>spline</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.2.0</version>
 
     <packaging>pom</packaging>
+
+    <scm>
+        <url>https://bitbucket.absa.co.za/projects/BACIBBD/repos/spline/browse</url>
+        <connection>scm:git:https://bitbucket.absa.co.za/scm/bacibbd/spline.git</connection>
+        <developerConnection>scm:git:https://bitbucket.absa.co.za/scm/bacibbd/spline.git</developerConnection>
+        <tag>release/0.2.0</tag>
+    </scm>
 
     <modules>
         <module>parent</module>
         <module>commons</module>
+        <module>model</module>
         <module>core</module>
         <module>web</module>
         <module>sample</module>
+        <module>persistence</module>
     </modules>
 
+    <profiles>
+        <profile>
+            <id>release</id>
+            <properties>
+                <project.scm.id>spline-scm-server</project.scm.id>
+                <test.spline.mongodb.url><!-- passed from mvn command line --></test.spline.mongodb.url>
+                <test.spline.mongodb.name><!-- passed from mvn command line --></test.spline.mongodb.name>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-release-plugin</artifactId>
+                        <version>2.5.3</version>
+                        <configuration>
+                            <tagNameFormat>release/@{project.version}</tagNameFormat>
+                            <arguments>
+                                -Dtest.spline.mongodb.url=${test.spline.mongodb.url}
+                                -Dtest.spline.mongodb.name=${test.spline.mongodb.name}
+                            </arguments>
+                            <providerImplementations>
+                                <git>jgit</git>
+                            </providerImplementations>
+                        </configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.apache.maven.scm</groupId>
+                                <artifactId>maven-scm-provider-jgit</artifactId>
+                                <version>1.9.5</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>org.eclipse.jgit</groupId>
+                                <artifactId>org.eclipse.jgit</artifactId>
+                                <version>3.7.1.201504261725-r</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

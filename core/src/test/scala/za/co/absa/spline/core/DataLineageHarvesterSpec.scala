@@ -16,13 +16,14 @@
 
 package za.co.absa.spline.core
 
-import za.co.absa.spline.core.model._
+import za.co.absa.spline.model._
 import org.apache.spark.sql.functions._
 import org.scalatest.{FlatSpec, Matchers}
+import za.co.absa.spline.model.{Attribute, Attributes}
 
 import scala.language.implicitConversions
 
-case class DataLineageHarvesterSpecTestRow(val i: Int, val d: Double, val s: String)
+case class DataLineageHarvesterSpecTestRow(i: Int, d: Double, s: String)
 
 class DataLineageHarvesterSpec extends FlatSpec with Matchers {
 

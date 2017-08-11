@@ -15,14 +15,12 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>za.co.absa</groupId>
     <artifactId>spline-parent</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.2.0</version>
 
     <packaging>pom</packaging>
 
@@ -69,8 +67,7 @@
         <java.version>1.8</java.version>
         <scala.version>2.11.8</scala.version>
         <scala.compat.version>2.11</scala.compat.version>
-        <!--<spark.version>2.1.0</spark.version>-->
-        <spark.version>2.2.0-SNAPSHOT</spark.version>
+        <spark.version>2.2.0</spark.version>
         <logback.version>1.2.2</logback.version>
         <slf4j.version>1.7.25</slf4j.version>
     </properties>
@@ -210,12 +207,6 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.scalatest</groupId>
-                <artifactId>scalatest_${scala.compat.version}</artifactId>
-                <version>3.0.1</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.spark</groupId>
                 <artifactId>spark-core_${scala.compat.version}</artifactId>
                 <version>${spark.version}</version>
@@ -244,6 +235,11 @@
                 <groupId>commons-configuration</groupId>
                 <artifactId>commons-configuration</artifactId>
                 <version>1.10</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>2.4</version>
             </dependency>
 
             <!-- Logging -->
@@ -301,6 +297,21 @@
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-access</artifactId>
                 <version>${logback.version}</version>
+            </dependency>
+
+            <!-- Test scope dependencies -->
+
+            <dependency>
+                <groupId>org.scalatest</groupId>
+                <artifactId>scalatest_${scala.compat.version}</artifactId>
+                <version>3.0.1</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>1.10.8</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
