@@ -39,3 +39,8 @@ data-type-view {
 :host /deep/ tree-node-expander {
     display: none;
 }
+
+:host /deep/ tree-viewport
+{
+    overflow: hidden;
+}
