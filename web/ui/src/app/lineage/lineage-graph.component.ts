@@ -16,11 +16,12 @@
 
 import {Component, Input, OnChanges, SimpleChanges, ElementRef, Output, EventEmitter} from "@angular/core";
 import {IDataLineage, IOperationNode} from "../../generated-ts/lineage-model";
-import {VisNodeBuilder, VisModel, VisEdge, VisNodeType} from "./visModel";
-import {DataSet} from "vis";
+import {VisNodeBuilder, VisModel, VisEdge, VisNodeType, VisClusterNodeBuilder, VisClusterNode, VisNode} from "./visModel";
+import {ClusterOptions, DataSet} from "vis";
 import {Network} from "vis";
 import "vis/dist/vis.min.css";
 import * as _ from "lodash";
+import {forEach} from "@angular/router/src/utils/collection";
 
 @Component({
     selector: 'graph',
@@ -35,25 +36,52 @@ export class LineageGraphComponent implements OnChanges {
 
     private network: Network;
     private graph: VisModel;
+    private clusters : VisClusterNode[];
+    private fittedCount: number = 0;
 
     constructor(private container: ElementRef) {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes["lineage"])
-            this.rebuildGraph()
+            this.rebuildGraph();
 
         if (changes["highlightedNodeIDs"])
-            this.refreshHighlightedNodes()
+            this.refreshHighlightedNodes();
 
         if (changes["selectedNodeID"])
             this.refreshSelectedNode()
     }
 
+    public fit()
+    {
+        this.network.fit()
+    }
+
+    private fitTimes(times : number)
+    {
+        if(this.fittedCount < times)
+        {
+            this.fittedCount++;
+            this.fit();
+        }
+    }
+
+    public collapseNodes()
+    {
+        this.clusters
+            .filter(c => !(<any>this.network).clustering.isCluster(c.id) && c.nodes.filter(i => i.id == this.selectedNodeID).length == 0)
+            .forEach(c => this.collapseCluster(c))
+    }
+
     private refreshSelectedNode() {
-        this.network.unselectAll()
-        if (this.selectedNodeID >= 0)
-            this.network.selectNodes([this.selectedNodeID])
+        this.network.unselectAll();
+        if (this.selectedNodeID >= 0){
+            this.network.selectNodes([this.selectedNodeID]);
+            this.clusters
+                .filter(c => (<any>this.network).clustering.isCluster(c.id) && c.nodes.filter(i => i.id == this.selectedNodeID).length > 0)
+                .forEach(c => (<any>this.network).clustering.openCluster(c.id))
+        }
     }
 
     private refreshHighlightedNodes() {
@@ -63,25 +91,69 @@ export class LineageGraphComponent implements OnChanges {
                     ? VisNodeType.Highlighted
                     : VisNodeType.Regular;
                 return new VisNodeBuilder(i, node, visNodeType)
-            })
+            });
 
         LineageGraphComponent
             .filterAliasNodesOut(
                 LineageGraphComponent.spreadAliases(visNodeBuilders))
             .forEach(builber =>
-                this.graph.nodes.update(builber.build()))
+                this.graph.nodes.update(builber.build()));
+
+        this.rebuildClusters(this.graph);
+        console.log("clustered",this.clusters);
+        this.clusters.forEach(c => {
+            if((<any>this.network).clustering.isCluster(c.id))
+                (<any>this.network).clustering.body.nodes[c.id].setOptions(c);
+        });
+    }
+
+    private rebuildClusters(graph: VisModel)
+    {
+        let nodes : VisNode[] = graph.nodes.map(i => i);
+        let edges : VisEdge[] = graph.edges.map(i => i);
+        let result : VisClusterNodeBuilder[] = [];
+        nodes.forEach(n => {
+            let siblingsTo = edges.filter(i => i.from == n.id).map(i => i.to);
+            let siblingsFrom = edges.filter(i => i.to == n.id).map(i => i.from);
+            if (siblingsFrom.length == 1 && siblingsTo.length == 1)
+            {
+                let clusters = result.filter(i => i.nodes.filter(j => j.id == siblingsTo[0]).length > 0);
+                if(clusters.length > 0)
+                {
+                    clusters[0].nodes.push(n);
+                }else{
+                    result.push(new VisClusterNodeBuilder(n))
+                }
+            }
+        });
+
+        this.clusters = result.filter(i => i.nodes.length > 1).map((v,i,a) => v.build("cluster" + i))
+    }
+
+    private changeCursor(cursorType :string)
+    {
+        this.container.nativeElement.getElementsByTagName("canvas")[0].style.cursor = cursorType
     }
 
     private rebuildGraph() {
+        this.fittedCount = 0;
         this.graph = LineageGraphComponent.lineageToGraph(this.lineage);
-
+        this.rebuildClusters(this.graph);
         this.network = new Network(this.container.nativeElement, this.graph, <any> visOptions);
 
         this.network.on("click", event => {
             let selectedNodeId = event.nodes[0];
-            this.nodeSelected.emit(this.lineage.nodes[selectedNodeId])
+            if(this.network.isCluster(selectedNodeId)) {
+                this.network.openCluster(selectedNodeId);
+                this.refreshSelectedNode();
+            }else{
+                this.nodeSelected.emit(this.lineage.nodes[selectedNodeId])
+            }
         });
 
+        this.network.on('hoverNode', () => this.changeCursor('pointer'));
+        this.network.on('blurNode', () => this.changeCursor('default'));
+        this.network.on('initRedraw', () => {console.log("initRedraw"); this.fitTimes(2)});
         this.network.on("beforeDrawing", ctx => {
             this.network.getSelectedNodes().forEach(nodeId => {
                 let nodePosition = this.network.getPositions([nodeId]);
@@ -90,7 +162,23 @@ export class LineageGraphComponent implements OnChanges {
                 ctx.fill()
             });
         });
-        //visGraph.nodes.forEach(n => this.makeSummaryCluster(n))
+
+        console.log(this.clusters);
+        this.collapseClusters();
+    }
+
+    private collapseCluster(cluster : VisClusterNode)
+    {
+        let clusterProps : ClusterOptions ={
+            clusterNodeProperties : <any>cluster,
+            joinCondition: nodeOps => {return cluster.nodes.map(i => i.id).indexOf(nodeOps.id) >= 0}
+        };
+
+        this.network.cluster(clusterProps);
+    }
+
+    private collapseClusters() {
+        this.clusters.forEach(c => this.collapseCluster(c));
     }
 
     private static lineageToGraph(lineage: IDataLineage): VisModel {
@@ -100,7 +188,7 @@ export class LineageGraphComponent implements OnChanges {
             let originalNode = lineage.nodes[i];
             nodes.push(new VisNodeBuilder(i, originalNode));
             originalNode.mainProps.childRefs.forEach(c => {
-                let output = lineage.nodes[c].mainProps.output
+                let output = lineage.nodes[c].mainProps.output;
                 if (output) {
                     edges.push(new VisEdge(c, i, '[' + output.seq.map(i => i.name).join(', ') + ']'))
                 }
@@ -171,24 +259,32 @@ export class LineageGraphComponent implements OnChanges {
 }
 
 const visOptions = {
+    autoResize: true,
     interaction: {
-        hover: true
+        hover: true,
+        selectConnectedEdges : false,
+        hoverConnectedEdges : false
     },
     layout: {
         hierarchical: {
-            levelSeparation: 250,
             enabled: true,
             sortMethod: 'directed',
             direction: 'UD',
-            parentCentralization: true
+            parentCentralization: true,
+            nodeSpacing: 200,
+            levelSeparation: 200
         }
     },
     physics: {
+        enabled: true,
         hierarchicalRepulsion: {
-            nodeDistance: 200,
-            springLength: 250
+            nodeDistance: 250,
+            springLength : 150,
+            springConstant : 10,
+            damping: 1
         }
     },
+
     edges: {
         color: '#E0E0E0',
         shadow: false,
@@ -207,7 +303,8 @@ const visOptions = {
         labelHighlightBold: false,
         font: {
             color: '#343434',
-            multi: 'html'
+            multi: false,
+            size: 20,
         },
     },
 };

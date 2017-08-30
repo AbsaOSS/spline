@@ -42,46 +42,100 @@ export enum VisNodeType {
     Highlighted
 }
 
+export class VisClusterNodeBuilder {
+    nodes: VisNode[];
+
+    constructor(node : VisNode)
+    {
+        this.nodes = [node];
+    }
+
+    build(id: string) : VisClusterNode {
+        let label = this.nodes.length + " ops";
+        console.log("nodes", this)
+        let highlighted = this.nodes.filter(i => i.type == VisNodeType.Highlighted).length > 0;
+        if(highlighted)
+            return new HighlightedVisClusterNode(id, label, this.nodes);
+        else
+            return new RegularVisClusterNode(id, label, this.nodes);
+    }
+}
+
+export abstract class VisClusterNode {
+    id: string;
+    label: string;
+    icon: any;
+    nodes: VisNode[];
+
+    constructor(id: string, label: string, nodes: VisNode[]) {
+        this.id = id;
+        this.label = label;
+        this.icon = new Icon("fa-cubes" ,"\uf1b3", "FontAwesome");
+        this.nodes = nodes;
+    }
+}
+
+export class RegularVisClusterNode extends VisClusterNode {
+    constructor(id: string, label: string, nodes: VisNode[]) {
+        super(id, label, nodes);
+        this.icon = {
+            face: this.icon.font,
+            size: 80,
+            code: this.icon.code,
+            color: "#644cb7"
+        }
+    }
+}
+
+export class HighlightedVisClusterNode extends VisClusterNode {
+    constructor(id: string, label: string, nodes: VisNode[]) {
+        super(id, label, nodes);
+        this.icon = {
+            face: this.icon.font,
+            size: 80,
+            code: this.icon.code,
+            color: "#ff6000"
+        }
+    }
+}
+
 export class VisNodeBuilder {
-    id: number
-    node: IOperationNode
-    caption: string
-    type: NodeType
-    alias: string
-    parents: number[]
-    nodeType: VisNodeType
+    id: number;
+    node: IOperationNode;
+    caption: string;
+    type: NodeType;
+    alias: string;
+    parents: number[];
+    nodeType: VisNodeType;
 
     constructor(id: number, originalNode: IOperationNode, nodeType: VisNodeType = VisNodeType.Regular) {
-        this.id = id
-        this.node = originalNode
-        this.caption = originalNode.mainProps.name
-        this.type = typeOfNode(originalNode)
-        this.alias = (<IAliasNode>originalNode).alias
-        this.parents = originalNode.mainProps.parentRefs
+        this.id = id;
+        this.node = originalNode;
+        this.caption = originalNode.mainProps.name;
+        this.type = typeOfNode(originalNode);
+        this.alias = (<IAliasNode>originalNode).alias;
+        this.parents = originalNode.mainProps.parentRefs;
         this.nodeType = nodeType
     }
 
     private createLabel(): string {
-        let result = `<b>${this.caption}</b>`
-        if (this.alias != null) result += " on " + this.alias
-        result += "\n"
-        result += `<i>${_.truncate(this.createDescription(), 20)}</i>`
+        let result = this.caption;
         return result
     }
 
     private createDescription(): string {
         switch (this.type) {
             case "ProjectionNode" : {
-                let pn = <IProjectionNode> this.node
-                let transformationStrings = pn.transformations.map(t => t.textualRepresentation).filter(_.identity)
+                let pn = <IProjectionNode> this.node;
+                let transformationStrings = pn.transformations.map(t => t.textualRepresentation).filter(_.identity);
                 return transformationStrings.join(", ")
             }
             case "SourceNode" : {
-                let sn = <ISourceNode> this.node
+                let sn = <ISourceNode> this.node;
                 return sn.sourceType + " : " + (sn.paths.map(p => p.substr(p.lastIndexOf('/'))).join(", ..."))
             }
             case "JoinNode" : {
-                let jn = <IJoinNode> this.node
+                let jn = <IJoinNode> this.node;
                 return jn.condition ? jn.condition.textualRepresentation : ""
             }
             case "GenericNode" : {
@@ -91,7 +145,7 @@ export class VisNodeBuilder {
                 return (<IFilterNode> this.node).condition.textualRepresentation
             }
             case "DestinationNode" : {
-                let dn = <IDestinationNode> this.node
+                let dn = <IDestinationNode> this.node;
                 return dn.destinationType + " : " + dn.path
             }
             case "AliasNode" : {
@@ -102,7 +156,7 @@ export class VisNodeBuilder {
 
     public build(): VisNode {
         let label = this.createLabel();
-        let icon = Icon.GetIconForNodeType(this.type)
+        let icon = Icon.GetIconForNodeType(this.type);
         switch (this.nodeType) {
             case VisNodeType.Highlighted :
                 return new HighlightedVisNode(this.id, label, icon);
@@ -116,16 +170,19 @@ export abstract class VisNode {
     id: number;
     label: string;
     icon: any;
+    type: VisNodeType;
 
-    constructor(id: number, label: string, icon: Icon) {
+    constructor(id: number, label: string, icon: Icon, type: VisNodeType) {
         this.id = id;
         this.label = label;
+        this.icon = icon;
+        this.type = type;
     }
 }
 
 export class RegularVisNode extends VisNode {
     constructor(id: number, label: string, icon: Icon) {
-        super(id, label, icon);
+        super(id, label, icon, VisNodeType.Regular);
         this.icon = {
             face: icon.font,
             size: 80,
@@ -137,7 +194,7 @@ export class RegularVisNode extends VisNode {
 
 export class HighlightedVisNode extends VisNode {
     constructor(id: number, label: string, icon: Icon) {
-        super(id, label, icon);
+        super(id, label, icon, VisNodeType.Highlighted);
         this.icon = {
             face: icon.font,
             size: 80,
@@ -146,9 +203,6 @@ export class HighlightedVisNode extends VisNode {
         }
     }
 }
-
-
-
 
 export class VisEdge {
     from: number;

@@ -17,11 +17,25 @@
 <div *ngIf="lineage">
     <md-grid-list cols="3">
         <md-grid-tile colspan="2">
-            <graph [lineage]="lineage"
-                   [selectedNodeID]="selectedNodeID"
-                   [highlightedNodeIDs]="highlightedNodeIDs"
-                   (nodeSelected)="onNodeSelected($event)">
-            </graph>
+            <div class="graph">
+                <md-card>
+                    <md-card-content>
+                        <div class="graph">
+                        <graph #graph
+                               [lineage]="lineage"
+                               [selectedNodeID]="selectedNodeID"
+                               [highlightedNodeIDs]="highlightedNodeIDs"
+                               (nodeSelected)="onNodeSelected($event)">
+                        </graph>
+                    </div>
+                    </md-card-content>
+
+                    <md-card-footer color="accent">
+                        <button (click)="graph.collapseNodes()">Collapse</button>
+                        <button (click)="graph.fit()">Fit</button>
+                    </md-card-footer>
+                </md-card>
+            </div>
         </md-grid-tile>
         <md-grid-tile>
             <div class="details-container">
