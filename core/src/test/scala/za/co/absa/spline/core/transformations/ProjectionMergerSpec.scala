@@ -48,7 +48,7 @@ class ProjectionMergerSpec extends FlatSpec with Matchers{
       ProjectionNode(NodeProps("node1", "node1, node2", Seq(createAttributes(1,2,3)), Some(createAttributes(4,5)), Seq.empty, Seq.empty), createGenericExpressions("a", "b", "c", "d"))
     )
 
-    val result = ProjectionMerger.transform(input)
+    val result = ProjectionMerger.apply(input)
 
     result shouldEqual expectedResult
   }
@@ -59,7 +59,7 @@ class ProjectionMergerSpec extends FlatSpec with Matchers{
       ProjectionNode(NodeProps("node1", "node1", Seq(createAttributes(1,2,3)), Some(createAttributes(3,4,5)), Seq(0), Seq.empty), createCompositeExpressions(("a", "b")))
     )
 
-    val result = ProjectionMerger.transform(input)
+    val result = ProjectionMerger.apply(input)
 
     result shouldEqual input
   }
@@ -75,7 +75,7 @@ class ProjectionMergerSpec extends FlatSpec with Matchers{
       ProjectionNode(NodeProps("node1", "node1, node2, node3", Seq(createAttributes(1,2,3)), Some(createAttributes(4,5)), Seq.empty, Seq.empty), createGenericExpressions("a", "b", "c", "d", "e", "f"))
     )
 
-    val result = ProjectionMerger.transform(input)
+    val result = ProjectionMerger.apply(input)
 
     result shouldEqual expectedResult
   }
@@ -96,7 +96,7 @@ class ProjectionMergerSpec extends FlatSpec with Matchers{
       ProjectionNode(NodeProps("root", "root", Seq(createAttributes(0,1,2,3)), Some(createAttributes(1,2,3)), Seq(1,2), Seq.empty), createGenericExpressions("r"))
     )
 
-    val result = ProjectionMerger.transform(input)
+    val result = ProjectionMerger.apply(input)
 
     result shouldEqual expectedResult
   }
@@ -118,7 +118,7 @@ class ProjectionMergerSpec extends FlatSpec with Matchers{
       ProjectionNode(NodeProps("root", "root", Seq(createAttributes(0,1,2,3)), Some(createAttributes(1,2,3)), Seq(2,3), Seq.empty), createGenericExpressions("r"))
     )
 
-    val result = ProjectionMerger.transform(input)
+    val result = ProjectionMerger.apply(input)
 
     result shouldEqual expectedResult
   }

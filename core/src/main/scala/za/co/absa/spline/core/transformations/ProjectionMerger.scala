@@ -30,7 +30,7 @@ object ProjectionMerger extends Transformation[Seq[OperationNode]]{
     * @param input An input instance
     * @return A transformed result
     */
-  override def transform(input: Seq[OperationNode]): Seq[OperationNode] = {
+  override def apply(input: Seq[OperationNode]): Seq[OperationNode] = {
     val wrappedNodes = input.zipWithIndex.map(i => new OperationNodeTransformationWrapper(i._2, i._1))
     wrappedNodes.foldLeft((List.empty[OperationNodeTransformationWrapper], wrappedNodes))(
       (collection, value) => collection match {

@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.common.transformations
+package za.co.absa.spline.common
 
 /**
-  * The trait represents a transformation performed on an input instance.
-  * @tparam T A type of a transformed instance.
+  * An package object containing type aliases.
   */
-trait Transformation[T] {
-
-  /**
-    * The method transforms an input instance by a custom logic.
-    * @param input An input instance
-    * @return A transformed result
-    */
-  def transform(input : T) : T
+package object transformations {
+  type Transformation[T] = (T) => T
 }

@@ -18,16 +18,16 @@ package za.co.absa.spline.common.transformations
 
 /**
   * The class represents a pipeline that gradually applies transformations onto a input instance.
-  * @param tranformations A sequence of transformations (see [[za.co.absa.spline.common.transformations.Transformation Transformation]]
+  * @param transformations A sequence of transformations
   * @tparam T A type of a transformed instance
   */
-class TransformationPipeline[T](tranformations : Seq[Transformation[T]]) {
+class TransformationPipeline[T](transformations : Seq[Transformation[T]]) extends Transformation[T]{
 
   /**
     * The method transforms a input instance by a logic of inner transformations.
     * @param input An input instance
     * @return A transformed result
     */
-  def transform(input: T): T =
-    tranformations.foldLeft(input)((value, transformation) => transformation.transform(value))
+  def apply(input: T): T =
+    transformations.foldLeft(input)((value, transformation) => transformation.apply(value))
 }

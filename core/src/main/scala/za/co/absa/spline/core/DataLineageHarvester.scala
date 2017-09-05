@@ -39,7 +39,7 @@ object DataLineageHarvester {
     */
   def harvestLineage(queryExecution: QueryExecution): DataLineage = {
     val nodes = harvestOperationNodes(queryExecution.analyzed)
-    val transformedNodes = transformationPipeline.transform(nodes)
+    val transformedNodes = transformationPipeline.apply(nodes)
 
     DataLineage(
       UUID.randomUUID,
