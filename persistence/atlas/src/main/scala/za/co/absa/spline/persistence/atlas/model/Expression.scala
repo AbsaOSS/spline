@@ -61,6 +61,21 @@ class Expression(
 )
 
 /**
+  * The class represents renaming of an underlying expression to a specific alias.
+  * @param commonProperties Common properties for all expression types
+  * @param alias A final name of the expression
+  */
+class AliasExpression
+(
+  commonProperties: ExpressionCommonProperties,
+  alias : String
+) extends Expression(
+  commonProperties,
+  SparkDataTypes.AliasExpression,
+  Map("alias" -> alias)
+)
+
+/**
   * The class represents binary operators like addition, multiplication, string concatenation, etc.
   * @param commonProperties Common properties for all expression types
   * @param symbol A symbol expressing the operation (+, -, *, /, etc. )

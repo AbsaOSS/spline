@@ -35,12 +35,19 @@ case class NodeProps
   * The trait represents one particular node within a lineage graph.
   */
 @Salat
-sealed trait OperationNode {
+sealed trait OperationNode{
 
   /**
     * Common properties of all node types.
     */
   val mainProps: NodeProps
+
+  /**
+    * The method creates a copy of the operation node but with different mainProperties
+    * @param mainProps New main properties
+    * @return A copy with new main properties
+    */
+  def withDifferentMainProps(mainProps: NodeProps): OperationNode
 }
 
 /**
@@ -49,6 +56,9 @@ sealed trait OperationNode {
   * @param mainProps Common node properties
   */
 case class GenericNode(mainProps: NodeProps) extends OperationNode
+{
+  override def withDifferentMainProps(mainProps: NodeProps): OperationNode = copy(mainProps = mainProps)
+}
 
 /**
   * The case class represents Spark join operation.
@@ -62,6 +72,10 @@ case class JoinNode(
                      condition: Option[Expression],
                      joinType: String
                    ) extends OperationNode
+{
+  override def withDifferentMainProps(mainProps: NodeProps): OperationNode = copy(mainProps = mainProps)
+}
+
 
 /**
   * The case class represents Spark filter (where) operation.
@@ -73,6 +87,10 @@ case class FilterNode(
                        mainProps: NodeProps,
                        condition: Expression
                      ) extends OperationNode
+{
+  override def withDifferentMainProps(mainProps: NodeProps): OperationNode = copy(mainProps = mainProps)
+}
+
 
 /**
   * The case class represents Spark projective operations (select, drop, withColumn, etc.)
@@ -85,6 +103,10 @@ case class ProjectionNode(
                            mainProps: NodeProps,
                            transformations: Seq[Expression]
                          ) extends OperationNode
+{
+  override def withDifferentMainProps(mainProps: NodeProps): OperationNode = copy(mainProps = mainProps)
+}
+
 
 /**
   * The case class represents Spark alias (as) operation for assigning a label to data set.
@@ -96,6 +118,10 @@ case class AliasNode(
                       mainProps: NodeProps,
                       alias: String
                     ) extends OperationNode
+{
+  override def withDifferentMainProps(mainProps: NodeProps): OperationNode = copy(mainProps = mainProps)
+}
+
 
 /**
   * The case class represents Spark operations for persisting data sets to HDFS, Hive, Kafka, etc. Operations are usually performed via DataFrameWriters.
@@ -109,6 +135,10 @@ case class DestinationNode(
                             destinationType: String,
                             path: String
                           ) extends OperationNode
+{
+  override def withDifferentMainProps(mainProps: NodeProps): OperationNode = copy(mainProps = mainProps)
+}
+
 
 /**
   * The case class represents Spark operations for loading data from HDFS, Hive, Kafka, etc.
@@ -122,3 +152,7 @@ case class SourceNode(
                        sourceType: String,
                        paths: Seq[String]
                      ) extends OperationNode
+{
+  override def withDifferentMainProps(mainProps: NodeProps): OperationNode = copy(mainProps = mainProps)
+}
+

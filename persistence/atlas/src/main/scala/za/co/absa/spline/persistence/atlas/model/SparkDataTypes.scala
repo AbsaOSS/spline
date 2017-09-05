@@ -35,6 +35,7 @@ object SparkDataTypes{
   val StructField : String = "spark_struct_field"
   val ArrayDataType : String = "spark_array_data_type"
   val Expression : String = "spark_expression"
+  val AliasExpression : String = "spark_alias_expression"
   val BinaryExpression : String = "spark_binary_expression"
   val AttributeReferenceExpression : String = "spark_attribute_reference_expression"
   val UDFExpression : String = "spark_udf_expression"

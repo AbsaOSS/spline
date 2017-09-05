@@ -22,11 +22,15 @@ import za.co.absa.spline.model.{DataLineage, OperationNode}
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.execution.datasources.SaveIntoDataSourceCommand
+import za.co.absa.spline.common.transformations.TransformationPipeline
+import za.co.absa.spline.core.transformations.ProjectionMerger
 
 import scala.collection.mutable
 
 /** The object is responsible for gathering lineage information from Spark internal structures (logical plan, physical plan, etc.) */
 object DataLineageHarvester {
+
+  val transformationPipeline = new TransformationPipeline(Seq(ProjectionMerger))
 
   /** A main method of the object that performs transformation of Spark internal structures to library lineage representation.
     *
@@ -34,10 +38,13 @@ object DataLineageHarvester {
     * @return A lineage representation
     */
   def harvestLineage(queryExecution: QueryExecution): DataLineage = {
+    val nodes = harvestOperationNodes(queryExecution.analyzed)
+    val transformedNodes = transformationPipeline.transform(nodes)
+
     DataLineage(
       UUID.randomUUID,
       queryExecution.sparkSession.sparkContext.appName,
-      harvestOperationNodes(queryExecution.analyzed)
+      transformedNodes
     )
   }
 

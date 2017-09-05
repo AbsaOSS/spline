@@ -425,6 +425,23 @@
       ]
     },
     {
+      "name": "spark_alias_expression",
+      "superTypes": [
+        "spark_expression"
+      ],
+      "typeVersion": "1.0",
+      "attributeDefs": [
+        {
+          "name": "alias",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": false,
+          "isUnique": false
+        }
+      ]
+    },
+    {
       "name": "spark_binary_expression",
       "superTypes": [
         "spark_expression"

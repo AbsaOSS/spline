@@ -28,6 +28,7 @@ export type NodeType =
 
 export type ExpressionType =
     ( "BinaryOperator"
+    | "AliasExpression"
     | "AttributeRemoval"
     | "UserDefinedFunction"
     | "GenericExpression"

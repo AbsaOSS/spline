@@ -128,6 +128,7 @@
                         <argument>za.co.absa.spline.model.AttributeRemoval</argument>
                         <argument>za.co.absa.spline.model.AttributeReference</argument>
                         <argument>za.co.absa.spline.model.GenericExpression</argument>
+                        <argument>za.co.absa.spline.model.AliasExpression</argument>
                         <argument>za.co.absa.spline.model.BinaryOperator</argument>
                         <argument>za.co.absa.spline.model.UserDefinedFunction</argument>
                         <argument>za.co.absa.spline.model.AliasNode</argument>

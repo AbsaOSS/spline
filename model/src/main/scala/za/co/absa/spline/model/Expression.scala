@@ -42,6 +42,10 @@ sealed trait Expression {
     * A sequence of sub-expressions
     */
   val children: Seq[Expression]
+
+  def inputAttributeNames: Seq[String] = children.flatMap(_.inputAttributeNames)
+
+  def outputAttributeNames: Seq[String] = children.flatMap(_.outputAttributeNames)
 }
 
 /**
@@ -59,6 +63,28 @@ case class GenericExpression
   dataType: DataType,
   children: Seq[Expression]
 ) extends Expression
+
+/**
+  * The case class represents renaming of an underlying expression to a specific alias.
+  *
+  * @param alias                 A final name of the expression
+  * @param textualRepresentation see [[za.co.absa.spline.model.Expression#textualRepresentation Expression.textualRepresentation]]
+  * @param dataType              see [[za.co.absa.spline.model.Expression#dataType Expression.dataType]]
+  * @param children              see [[za.co.absa.spline.model.Expression#children Expression.children]]
+  */
+case class AliasExpression
+(
+  alias: String,
+  textualRepresentation: String,
+  dataType: DataType,
+  children: Seq[Expression]
+) extends Expression
+{
+  @Persist
+  val exprType: String = "Alias"
+
+  override def outputAttributeNames: Seq[String] = Seq(alias)
+}
 
 /**
   * The case class represents binary operators like addition, multiplication, string concatenation, etc.
@@ -132,6 +158,8 @@ case class AttributeReference
 
   @Persist
   val children: Seq[Expression] = Seq.empty
+
+  override def inputAttributeNames: Seq[String] = Seq(attributeName)
 }
 
 /**
