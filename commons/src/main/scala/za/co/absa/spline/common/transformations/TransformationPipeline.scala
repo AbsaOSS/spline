@@ -28,6 +28,5 @@ class TransformationPipeline[T](transformations : Seq[Transformation[T]]) extend
     * @param input An input instance
     * @return A transformed result
     */
-  def apply(input: T): T =
-    transformations.foldLeft(input)((value, transformation) => transformation.apply(value))
+  def apply(input: T): T = Function.chain(transformations)(input)
 }
