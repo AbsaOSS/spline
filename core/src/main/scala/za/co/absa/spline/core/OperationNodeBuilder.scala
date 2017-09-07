@@ -194,8 +194,8 @@ private class ProjectionNodeBuilder(val operation: Project) extends OperationNod
     val outputAttributeNames = output map (_.seq) getOrElse Nil map (_.name) toSet
     val removedAttributeNames = inputAttributesByName.keySet diff outputAttributeNames
     val removedAttributes = inputAttributesByName filterKeys (removedAttributeNames) values
-    val removedAttributesByName =  removedAttributes.toSeq sortBy (_.name)
-    val result = removedAttributesByName map (i => AttributeRemoval(AttributeReference(i)))
+    val removedAttributesSortedByName =  removedAttributes.toSeq sortBy (_.name)
+    val result = removedAttributesSortedByName map (i => AttributeRemoval(AttributeReference(i)))
     result
   }
 }
