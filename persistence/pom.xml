@@ -21,7 +21,7 @@
     <parent>
         <groupId>za.co.absa</groupId>
         <artifactId>spline</artifactId>
-        <version>0.2.1-SNAPSHOT</version>
+        <version>0.2.1</version>
     </parent>
 
     <artifactId>spline-persistence</artifactId>
