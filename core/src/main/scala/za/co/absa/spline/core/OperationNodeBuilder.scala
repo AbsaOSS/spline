@@ -190,9 +190,17 @@ private class ProjectionNodeBuilder(val operation: Project) extends OperationNod
   }
 
   private def resolveAttributeRemovals(): Seq[Expression] = {
-    val inputAttrs = input flatMap (_.seq)
-    val outputAttrs = output map (_.seq) getOrElse Nil
-    inputAttrs diff outputAttrs map (AttributeReference(_)) map (AttributeRemoval(_))
+    val inputAttrsMap = input flatMap (_.seq) map (a => a.name -> a) toMap
+    val outputAttrsNames = output map (_.seq) getOrElse Nil map (_.name) toSet
+
+    val removedAttributeNames = inputAttrsMap.keySet diff outputAttrsNames
+
+    inputAttrsMap
+      .filterKeys(removedAttributeNames)
+      .values
+      .toSeq.sortBy(_.name)
+      .map(AttributeReference(_))
+      .map(AttributeRemoval(_))
   }
 }
 
