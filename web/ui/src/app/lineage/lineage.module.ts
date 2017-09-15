@@ -24,10 +24,10 @@ import {AttributeListComponent} from "./attribute-list/attribute-list.component"
 import {LineageDAGItemDetailsHeaderComponent} from "./lineage-dag-item-details-header.component";
 import {LineageDAGItemDetailsSectionHeader} from "./lineage-dag-item-details-section-header.component";
 import {MaterialModule} from "@angular/material";
-import "@angular/material/core/theming/prebuilt/indigo-pink.css";
 import {LineageService} from "./lineage.service";
 import {CommonModule} from "@angular/common";
 import {RouterModule} from "@angular/router";
+import {HttpModule} from "@angular/http";
 import {TreeModule} from "angular-tree-component";
 import {AttributeViewComponent} from "./attribute-view/attribute-view.component";
 import {DataTypeViewComponent} from "./data-type-view/data-type-view.component";
@@ -46,7 +46,8 @@ import "font-awesome/css/font-awesome.min.css";
         RouterModule,
         MaterialModule,
         TreeModule,
-        AccordionModule
+        AccordionModule,
+        HttpModule
     ],
     declarations: [
         LineageComponent,

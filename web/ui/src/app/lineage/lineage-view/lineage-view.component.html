@@ -17,29 +17,25 @@
 <div *ngIf="lineage">
     <md-grid-list cols="3">
         <md-grid-tile colspan="2">
-            <div class="graph">
-                <md-card>
-                    <md-card-content>
-                        <div class="graph">
-                        <graph #graph
-                               [lineage]="lineage"
-                               [selectedNodeID]="selectedNodeID"
-                               [highlightedNodeIDs]="highlightedNodeIDs"
-                               (nodeSelected)="onNodeSelected($event)">
-                        </graph>
-                    </div>
-                    </md-card-content>
-
-                    <md-card-footer color="accent">
-                        <button (click)="graph.collapseNodes()">Collapse</button>
-                        <button (click)="graph.fit()">Fit</button>
-                    </md-card-footer>
-                </md-card>
+            <graph #graph
+                   [lineage]="lineage"
+                   [selectedNodeID]="selectedNodeID"
+                   [highlightedNodeIDs]="highlightedNodeIDs"
+                   (nodeSelected)="onNodeSelected($event)">
+            </graph>
+            <div class="graph-footer">
+                <button md-icon-button (click)="graph.collapseNodes()" title="Collapse groups of nodes">
+                    <md-icon>fullscreen_exit</md-icon>
+                </button>
+                <button md-icon-button (click)="graph.fit()" title="Fit to screen">
+                    <md-icon>filter_none</md-icon>
+                </button>
             </div>
         </md-grid-tile>
         <md-grid-tile>
             <div class="details-container">
-                <md-tab-group [selectedIndex]="isNodeSelected() ? 1 : 0">
+                <md-tab-group [selectedIndex]="selectedTabIndex"
+                              (selectChange)="onTabChanged($event)">
                     <md-tab label="Job">
                         <h2>{{lineage.appName}}</h2>
                         <pre class="small">#{{lineage.id}}</pre>
@@ -47,14 +43,26 @@
                         <p>Data sources: <b>{{getDataSourceCount()}}</b></p>
                         <a class="btn btn-default __view-executions" href="javascript:alert('This feature is coming soon...')">View Job Executions</a>
                     </md-tab>
-                    <md-tab label="Operation"
-                            [disabled]="!isNodeSelected()">
+
+                    <md-tab *ngIf="getSelectedNode()">
+                        <ng-template md-tab-label>
+                            <i class="fa {{getSelectedNodeIcon()}} spl-tab-node"></i>
+                            {{getSelectedNode().mainProps.name}}
+                        </ng-template>
                         <operation-node-details
-                                *ngIf="isNodeSelected()"
-                                [node]="lineage.nodes[selectedNodeID]"
+                                [node]="getSelectedNode()"
                                 [selectedAttrIDs]="selectedAttrIDs"
-                                (attributeSelected)="onAttributeSelected($event)">
+                                (attributeSelected)="onAttributeSelected($event)"
+                                (fullAttributeSchemaRequested)="onFullAttributeSchemaRequested($event)">
                         </operation-node-details>
+                    </md-tab>
+
+                    <md-tab *ngIf="attributeToShowFullSchemaFor">
+                        <ng-template md-tab-label>
+                            <i class="fa fa-puzzle-piece spl-tab-attr"></i>
+                            {{attributeToShowFullSchemaFor.name}}
+                        </ng-template>
+                        <attribute-view [attr]="attributeToShowFullSchemaFor" [expandRoot]="true"></attribute-view>
                     </md-tab>
                 </md-tab-group>
             </div>

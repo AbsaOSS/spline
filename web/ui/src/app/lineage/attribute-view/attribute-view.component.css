@@ -26,21 +26,35 @@ data-type-view {
     display: inline-block;
 }
 
+a.show-full-schema {
+    display: block;
+    width: calc(100% - 70px);
+    text-align: center;
+    font-size: xx-small;
+    background-color: whitesmoke;
+    opacity: 0.4;
+    padding: 4px;
+}
+
 :host /deep/ .node-wrapper {
     position: relative;
+}
+
+:host /deep/ .tree-children {
+    padding-left: 20px;
 }
 
 :host /deep/ .node-content-wrapper {
     background: transparent !important;
     box-shadow: none !important;
     opacity: 1 !important;
+    padding: 5px 0 3px 0;
 }
 
 :host /deep/ tree-node-expander {
     display: none;
 }
 
-:host /deep/ tree-viewport
-{
+:host /deep/ tree-viewport {
     overflow: hidden;
 }
