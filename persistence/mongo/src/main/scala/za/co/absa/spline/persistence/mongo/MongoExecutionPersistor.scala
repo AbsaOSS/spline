@@ -42,14 +42,31 @@ class MongoExecutionPersistor(dbUrl: String, dbName: String) extends ExecutionPe
     registerGlobalKeyOverride("id", "_id")
   }
 
+  /**
+    * The method stores an execution to the persistence layer.
+    *
+    * @param execution A stored execution.
+    */
   override def store(execution: Execution): Unit = {
     val dbo = grater[Execution].asDBObject(execution)
     executionCollection.insert(dbo)
   }
 
+  /**
+    * The method loads an execution from the persistence layer.
+    *
+    * @param id An identifier of the stored execution.
+    * @return The stored execution if exists in persistence layer, otherwise None
+    */
   override def load(id: UUID): Option[Execution] =
     Option(executionCollection findOne id) map (grater[Execution].asObject(_))
 
+  /**
+    * The method gets all executions related to a specific data lineage.
+    *
+    * @param dataLineageId An identifier of the given data lineage.
+    * @return An iterator of all relevant executions
+    */
   override def list(dataLineageId: UUID): Iterator[Execution] = {
     executionCollection
       .find(MongoDBObject("dataLineageId" -> dataLineageId))

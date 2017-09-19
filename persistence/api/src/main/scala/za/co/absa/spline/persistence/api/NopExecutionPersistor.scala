@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.atlas
+package za.co.absa.spline.persistence.api
 
 import java.util.UUID
 
 import za.co.absa.spline.model.Execution
-import za.co.absa.spline.persistence.api.ExecutionPersistor
 
 /**
-  * The class represents a nop Atlas persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity.
+  * The class represents a nop persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity.
   */
-class NopAtlasExecutionPersistor extends ExecutionPersistor{
+class NopExecutionPersistor extends ExecutionPersistor{
 
   /**
     * The method stores an execution to the persistence layer.
