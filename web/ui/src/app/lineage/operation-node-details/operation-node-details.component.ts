@@ -32,6 +32,7 @@ export class OperationNodeDetailsComponent implements OnChanges {
     @Input() selectedAttrIDs: number[]
 
     @Output() attributeSelected = new EventEmitter<IAttribute>()
+    @Output() fullAttributeSchemaRequested = new EventEmitter<IAttribute>()
 
     nodeType: NodeType
 
@@ -41,6 +42,10 @@ export class OperationNodeDetailsComponent implements OnChanges {
 
     selectAttribute(attr: IAttribute) {
         this.attributeSelected.emit(attr)
+    }
+
+    showFullAttributeSchema(attr: IAttribute) {
+        this.fullAttributeSchemaRequested.emit(attr)
     }
 
     getNodeIcon() {

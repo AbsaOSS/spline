@@ -48,6 +48,7 @@
                     <attribute-list
                             [attrs]="input.seq"
                             [selectedAttrIDs]="selectedAttrIDs"
+                            (fullAttributeSchemaClicked)="showFullAttributeSchema($event)"
                             (attributeSelected)="selectAttribute($event)"></attribute-list>
                 </p-accordionTab>
             </section>
@@ -62,6 +63,7 @@
                     <attribute-list
                             [attrs]="node.mainProps.output.seq"
                             [selectedAttrIDs]="selectedAttrIDs"
+                            (fullAttributeSchemaClicked)="showFullAttributeSchema($event)"
                             (attributeSelected)="selectAttribute($event)"></attribute-list>
                 </p-accordionTab>
             </section>

@@ -28,8 +28,13 @@ export class AttributeListComponent {
     @Input() selectedAttrIDs: number[]
 
     @Output() attributeSelected = new EventEmitter<IAttribute>()
+    @Output() fullAttributeSchemaClicked = new EventEmitter<IAttribute>()
 
     isSelected(attr: IAttribute) {
         return attr.id != null && _.includes(this.selectedAttrIDs, attr.id)
+    }
+
+    showFullAttributeSchema(attr:IAttribute) {
+        this.fullAttributeSchemaClicked.emit(attr)
     }
 }

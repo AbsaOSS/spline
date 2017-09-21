@@ -17,6 +17,9 @@
 import {NgModule} from "@angular/core";
 import {BrowserModule} from "@angular/platform-browser";
 import {RouterModule, Routes, UrlSegment} from "@angular/router";
+import "hammerjs/hammer";
+import "@angular/material/prebuilt-themes/indigo-pink.css";
+import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {AppComponent} from "./app.component";
 import {LineageModule} from "./lineage/lineage.module";
 import {LineageComponent} from "./lineage/lineage.component";
@@ -48,6 +51,7 @@ const routes: Routes = [
 @NgModule({
     imports: [
         BrowserModule,
+        BrowserAnimationsModule,
         RouterModule.forRoot(routes),
         LineageModule
     ],

@@ -28,10 +28,21 @@
       height: 100%;
     }
 
-    graph, .graph, .mat-card, .mat-card-content {
+    graph {
       display: block;
       height: 100%;
       width: 100%;
+    }
+
+    .graph-footer {
+      position: absolute;
+      right: 25px;
+      bottom: 20px;
+
+      background: white;
+      opacity: 0.8;
+      border-radius: 100px;
+      box-shadow: 0 0 100px 50px white;
     }
 
     .mat-card-footer {
@@ -58,7 +69,22 @@
           float: right;
         }
 
-        .mat-tab-body-content {
+        /deep/ .mat-tab-label {
+          i {
+            font-size: x-large;
+            position: absolute;
+            left: 6px;
+
+            &.spl-tab-attr {
+              color: lightseagreen;
+            }
+            &.spl-tab-node {
+              color: steelblue;
+            }
+          }
+        }
+
+        /deep/ .mat-tab-body-content {
           height: 100%;
         }
       }

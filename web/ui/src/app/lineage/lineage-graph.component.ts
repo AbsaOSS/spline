@@ -153,7 +153,7 @@ export class LineageGraphComponent implements OnChanges {
 
         this.network.on('hoverNode', () => this.changeCursor('pointer'));
         this.network.on('blurNode', () => this.changeCursor('default'));
-        this.network.on('initRedraw', () => {console.log("initRedraw"); this.fitTimes(2)});
+        this.network.on('initRedraw', () => this.fitTimes(2));
         this.network.on("beforeDrawing", ctx => {
             this.network.getSelectedNodes().forEach(nodeId => {
                 let nodePosition = this.network.getPositions([nodeId]);

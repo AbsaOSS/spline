@@ -19,6 +19,8 @@ import {Component} from "@angular/core";
 import {IExpression} from "../../generated-ts/lineage-model";
 import * as _ from "lodash";
 import {typeOfExpr} from "./types";
+import {Inject} from '@angular/core';
+import {MD_DIALOG_DATA} from '@angular/material';
 
 @Component({
     selector: "expression-view-dialog",
@@ -43,9 +45,9 @@ export class ExpressionViewDialogComponent {
         allowDrop: _.constant(false)
     }
 
-    constructor(public dialogRef: MdDialogRef<ExpressionViewDialogComponent>) {
-        this.expr = dialogRef.config.data.expr
-        this.exprString = dialogRef.config.data.exprString
+    constructor(@Inject(MD_DIALOG_DATA) data: any) {
+        this.expr = data.expr
+        this.exprString = data.exprString
         this.exprTree = this.buildExprTree()
     }
 

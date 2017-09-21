@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import {Component, Input, OnInit} from "@angular/core";
-import {IAttribute, IDataType, IArrayType, IStructType} from "../../../generated-ts/lineage-model";
+import {Component, EventEmitter, Input, OnInit, Output} from "@angular/core";
+import {IArrayType, IAttribute, IDataType, IStructType} from "../../../generated-ts/lineage-model";
 import * as _ from "lodash";
 import {TreeNode} from "angular-tree-component";
 import {typeOfDataType} from "../types";
+import {SeeFullSchemaRefNode} from "./TreeNode";
 
 @Component({
     selector: "attribute-view",
@@ -27,20 +28,31 @@ import {typeOfDataType} from "../types";
 })
 export class AttributeViewComponent implements OnInit {
     @Input() attr: IAttribute
+    @Input() subFieldCountDisplayThreshold: number = Number.MAX_SAFE_INTEGER
+    @Input() subFieldCountDisplayThresholdRelax: number = 2
+    @Input() expandRoot: boolean = false
+
+    @Output() showFullSchemaClicked = new EventEmitter()
 
     attrTree: any[] // there is no according 'd.ts' for the input tree node in the angular tree component
 
     treeOptions = {
         allowDrag: false,
-        allowDrop: _.constant(false)
+        allowDrop: false
     }
 
     ngOnInit(): void {
         this.attrTree = this.buildAttrTree(this.attr)
     }
 
+    getTypeOfType(dt: IDataType): string {
+        return typeOfDataType(dt)
+    }
+
     private buildAttrTree(attr: IAttribute): any[] {
         let seq = 0
+        let subFieldCountDisplayThreshold = this.subFieldCountDisplayThreshold
+        let subFieldCountDisplayThresholdRelax = this.subFieldCountDisplayThresholdRelax
 
         function buildChildren(dt: IDataType): (any[] | undefined) {
             let dtt = typeOfDataType(dt)
@@ -50,23 +62,37 @@ export class AttributeViewComponent implements OnInit {
         }
 
         function buildChildrenForStructType(sdt: IStructType): any[] {
-            return sdt.fields.map(f => buildNode(f.dataType, f.name))
+            let fieldsToDisplayCount = sdt.fields.length - subFieldCountDisplayThresholdRelax > subFieldCountDisplayThreshold
+                ? subFieldCountDisplayThreshold
+                : sdt.fields.length
+            let fieldsToDisplay = _.take(sdt.fields, fieldsToDisplayCount)
+            let hiddenFieldsCount = sdt.fields.length - fieldsToDisplayCount
+            let nodes: any[] = fieldsToDisplay.map(f => buildNode(f.dataType, f.name, false))
+            if (hiddenFieldsCount > 0)
+                nodes.push(new SeeFullSchemaRefNode(seq++, hiddenFieldsCount))
+            return nodes
         }
 
-        function buildNode(dt: IDataType, name: string) {
-            return {
+        function buildNode(dt: IDataType, name: string, isExpanded:boolean): TreeNode {
+            return <any>{
                 id: seq++,
                 name: name,
                 type: dt,
-                children: buildChildren(dt)
+                children: buildChildren(dt),
+                isExpanded: isExpanded
             }
         }
 
-        return [buildNode(attr.dataType, attr.name)]
+        return [buildNode(attr.dataType, attr.name, this.expandRoot)]
     }
 
     toggleExpand(node: TreeNode, doExpand: boolean) {
         if (doExpand) node.expand()
         else node.collapse()
+    }
+
+    showFullSchema(e: Event) {
+        this.showFullSchemaClicked.emit()
+        e.stopPropagation()
     }
 }

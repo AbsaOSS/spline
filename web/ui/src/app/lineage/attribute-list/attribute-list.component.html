@@ -19,7 +19,10 @@
         [ngClass]="{active: isSelected(attr)}"
         (click)="attributeSelected.emit(attr)">
         <a href="javascript:void(0)">
-            <attribute-view [attr]="attr"></attribute-view>
+            <attribute-view [attr]="attr"
+                            [subFieldCountDisplayThreshold]="5"
+                            [subFieldCountDisplayThresholdRelax]="2"
+                            (showFullSchemaClicked)="showFullAttributeSchema(attr)"></attribute-view>
         </a>
     </li>
 </ul>

@@ -14,16 +14,36 @@
   ~ limitations under the License.
   -->
 
-<tree-root [nodes]="attrTree" [options]="treeOptions">
-    <template #treeNodeTemplate let-node="node" let-field="node.data">
-        <span class="fld-name">{{ field.name }}</span>
+
+<div [ngSwitch]="getTypeOfType(attr.dataType)">
+
+    <div *ngSwitchCase="'SimpleType'" class="node-content-wrapper">
+        <span class="fld-name">{{ attr.name }}</span>
         <div class="fld-type">
             <span>:</span>
-            <data-type-view
-                    [type]="field.type"
-                    [isExpanded]="node.isExpanded"
-                    (expanded)="toggleExpand(node, $event)">
-            </data-type-view>
+            <data-type-view [type]="attr.dataType"></data-type-view>
         </div>
-    </template>
-</tree-root>
+    </div>
+
+    <tree-root
+            *ngSwitchDefault=""
+            [nodes]="attrTree"
+            [options]="treeOptions">
+        <template #treeNodeTemplate let-node="node" let-field="node.data">
+            <div *ngIf="!field.isSeeFullSchemaRefNode">
+                <span class="fld-name">{{ field.name }}</span>
+                <div class="fld-type">
+                    <span>:</span>
+                    <data-type-view
+                            [type]="field.type"
+                            [isExpanded]="node.isExpanded"
+                            (expanded)="toggleExpand(node, $event)">
+                    </data-type-view>
+                </div>
+            </div>
+            <a *ngIf="field.isSeeFullSchemaRefNode" class="show-full-schema" (click)="showFullSchema($event)">
+                ... {{field.hiddenCount}} lines are hidden. Click to show a full attribute schema.
+            </a>
+        </template>
+    </tree-root>
+</div>
