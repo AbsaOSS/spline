@@ -24,6 +24,9 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import za.co.absa.spline.model.{DataLineage, DataLineageDescriptor, DestinationNode, OperationNode}
 import za.co.absa.spline.persistence.api.DataLineagePersistor
 import za.co.absa.spline.persistence.hdfs.serialization.JSONSerialization
+import scala.concurrent.ExecutionContext.Implicits.global
+
+import scala.concurrent.Future
 
 /**
   * The class represents persistence layer that persists the [[za.co.absa.spline.model.DataLineage DataLineage]] entity to a file on HDFS.
@@ -34,7 +37,7 @@ class HdfsDataLineagePersistor(hadoopConfiguration: Configuration, fileName : St
     *
     * @param lineage A data lineage that will be stored
     */
-  override def store(lineage: DataLineage): Unit = {
+  override def store(lineage: DataLineage): Future[Unit] = Future{
     val pathOption = getPath(lineage)
     import JSONSerialization._
     for(path <- pathOption)
@@ -63,7 +66,7 @@ class HdfsDataLineagePersistor(hadoopConfiguration: Configuration, fileName : St
 
   private def getPath(lineage: DataLineage) : Option[Path] =
     lineage.nodes.headOption.flatMap((n: OperationNode) => n match {
-      case dn:DestinationNode => Some(new Path(dn.path + "/" + fileName))
+      case dn:DestinationNode => Some(new Path(dn.path, fileName))
       case _ => None
     })
 
@@ -73,14 +76,14 @@ class HdfsDataLineagePersistor(hadoopConfiguration: Configuration, fileName : St
     * @param id An unique identifier of a data lineage
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
-  override def load(id: UUID): Option[DataLineage] = throw new UnsupportedOperationException()
+  override def load(id: UUID): Future[Option[DataLineage]] = Future.failed(new UnsupportedOperationException())
 
   /**
     * The method removes a particular data lineage from the persistence layer.
     *
     * @param id An unique identifier of a data lineage
     */
-  override def remove(id: UUID): Unit = throw new UnsupportedOperationException()
+  override def remove(id: UUID): Future[Unit] = Future.failed(new UnsupportedOperationException())
 
   /**
     * The method checks whether a particular data lineage graph already exists in the persistence layer.
@@ -88,12 +91,12 @@ class HdfsDataLineagePersistor(hadoopConfiguration: Configuration, fileName : St
     * @param lineage A checked data lineage
     * @return An identifier of the checked data lineage if the data lineage exists, otherwise None
     */
-  override def exists(lineage: DataLineage): Option[UUID] = None
+  override def exists(lineage: DataLineage): Future[Option[UUID]] = Future.successful(None)
 
   /**
     * The method gets all data lineages stored in persistence layer.
     *
     * @return Descriptors of all data lineages
     */
-  override def list(): Iterator[DataLineageDescriptor] = throw new UnsupportedOperationException()
+  override def list(): Future[Iterator[DataLineageDescriptor]] = Future.failed(new UnsupportedOperationException())
 }

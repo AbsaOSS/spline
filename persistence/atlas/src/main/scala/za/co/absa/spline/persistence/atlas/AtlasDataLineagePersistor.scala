@@ -24,6 +24,8 @@ import za.co.absa.spline.persistence.api.DataLineagePersistor
 import za.co.absa.spline.persistence.atlas.conversion.DataLineageToTypeSystemConverter
 
 import scala.collection.JavaConverters._
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 
 /**
@@ -38,7 +40,7 @@ class AtlasDataLineagePersistor extends AtlasHook with DataLineagePersistor {
     *
     * @param lineage A data lineage that will be stored
     */
-  override def store(lineage: DataLineage): Unit = {
+  override def store(lineage: DataLineage): Future[Unit] = Future{
     val entityCollections = DataLineageToTypeSystemConverter.convert(lineage)
     this.notifyEntities("Anonymous", entityCollections.asJava)
   }
@@ -49,14 +51,14 @@ class AtlasDataLineagePersistor extends AtlasHook with DataLineagePersistor {
     * @param id An unique identifier of a data lineage
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
-  override def load(id: UUID): Option[DataLineage] = throw new UnsupportedOperationException()
+  override def load(id: UUID): Future[Option[DataLineage]] = Future.failed(new UnsupportedOperationException())
 
   /**
     * The method removes a particular data lineage from the persistence layer.
     *
     * @param id An unique identifier of a data lineage
     */
-  override def remove(id: UUID): Unit = throw new UnsupportedOperationException()
+  override def remove(id: UUID): Future[Unit] = Future.failed(new UnsupportedOperationException())
 
   /**
     * The method checks whether a particular data lineage graph already exists in the persistence layer.
@@ -64,12 +66,12 @@ class AtlasDataLineagePersistor extends AtlasHook with DataLineagePersistor {
     * @param lineage A checked data lineage
     * @return An identifier of the checked data lineage if the data lineage exists, otherwise None
     */
-  override def exists(lineage: DataLineage): Option[UUID] = None
+  override def exists(lineage: DataLineage): Future[Option[UUID]] = Future.successful(None)
 
   /**
     * The method gets all data lineages stored in persistence layer.
     *
     * @return Descriptors of all data lineages
     */
-  override def list(): Iterator[DataLineageDescriptor] = throw new UnsupportedOperationException()
+  override def list(): Future[Iterator[DataLineageDescriptor]] = Future.failed(new UnsupportedOperationException())
 }

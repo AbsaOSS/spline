@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.hdfs.serialization
+package za.co.absa.spline.persistence.api.composition
 
-import org.json4s._
-import org.json4s.jackson.Serialization
-import org.json4s.jackson.Serialization.write
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
-object JSONSerialization {
-  implicit val formats = Serialization.formats(NoTypeHints) ++ org.json4s.ext.JavaTypesSerializers.all
+trait PersistorCombiner[TPersistor] {
+  protected val persistors : Set[TPersistor]
 
-  implicit class EntityToJson[T <: AnyRef](entity: T) {
-    def toJson: String = write(entity)
+  def combine[TResult](function: TPersistor => Future[TResult], combiner: Iterable[TResult] => TResult): Future[TResult] = {
+    Future.sequence(persistors.map(function)).map(combiner)
   }
 }

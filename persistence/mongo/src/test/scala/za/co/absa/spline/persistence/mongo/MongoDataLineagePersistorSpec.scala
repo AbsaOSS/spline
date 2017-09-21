@@ -20,12 +20,14 @@ import java.util.UUID
 
 import com.mongodb.casbah.Imports.MongoClientURI
 import com.mongodb.casbah.MongoClient
-import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
+import org.scalatest.{AsyncFlatSpec, BeforeAndAfterEach, Matchers}
 import za.co.absa.spline.model._
 import za.co.absa.spline.common.OptionImplicits._
 import za.co.absa.spline.model.{Attribute, Attributes}
 
-class MongoDataLineagePersistorSpec extends FlatSpec with Matchers with BeforeAndAfterEach {
+import scala.concurrent.Future
+
+class MongoDataLineagePersistorSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
 
   private val mongoPersistor = new MongoDataLineagePersistor(
     MongoTestProperties.mongoDBUri,
@@ -52,11 +54,9 @@ class MongoDataLineagePersistorSpec extends FlatSpec with Matchers with BeforeAn
       )
     )
 
-    mongoPersistor.store(lineage)
+    val storedLineage = mongoPersistor.store(lineage).flatMap(_ => mongoPersistor.load(lineage.id))
 
-    val storedLineage = mongoPersistor.load(lineage.id)
-
-    storedLineage shouldEqual Option(lineage)
+    storedLineage map(i => i shouldEqual Option(lineage))
   }
 
   "Exits method" should "return an appropriate document id." in {
@@ -69,11 +69,10 @@ class MongoDataLineagePersistorSpec extends FlatSpec with Matchers with BeforeAn
       GenericNode(mainProps = NodeProps("Filter", "desc4", Seq(attributes), attributes, Seq(0), Seq(2)))
     )
     val dataLineage = DataLineage(expectedId, "TestApp1", graph)
-    mongoPersistor.store(dataLineage)
 
-    val returnedId = mongoPersistor.exists(dataLineage)
+    val returnedId = mongoPersistor.store(dataLineage).flatMap(_ => mongoPersistor.exists(dataLineage))
 
-    returnedId shouldEqual Option(expectedId)
+    returnedId map (i => i shouldEqual Option(expectedId))
   }
 
   "List method" should "load descriptions from a database." in {
@@ -83,10 +82,8 @@ class MongoDataLineagePersistorSpec extends FlatSpec with Matchers with BeforeAn
       DataLineage(UUID.randomUUID(), "TestApp3", Seq.empty)
     )
     val expectedDescriptions = testData.map(i => DataLineageDescriptor(i.id, i.appName))
-    testData.foreach(i => mongoPersistor.store(i))
+    val descriptions = Future.sequence(testData.map(i => mongoPersistor.store(i))).flatMap(_=> mongoPersistor.list().map(_.toSeq))
 
-    val descriptions = mongoPersistor.list().toSeq
-
-    expectedDescriptions.foreach(i => descriptions should contain(i))
+    descriptions.map(i => i should contain allElementsOf  expectedDescriptions)
   }
 }

@@ -26,6 +26,9 @@ import org.springframework.web.bind.annotation.RequestMethod._
 import org.springframework.web.bind.annotation.{PathVariable, RequestMapping, ResponseBody}
 import za.co.absa.spline.persistence.api.DataLineagePersistor
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
+
 @Controller
 class LineageController @Autowired()
 (
@@ -36,9 +39,9 @@ class LineageController @Autowired()
 
   @RequestMapping(path = Array("/lineage/descriptors"), method = Array(GET))
   @ResponseBody
-  def lineageDescriptors: String = storage.list().toSeq.toJsonArray
+  def lineageDescriptors: String = Await.result(storage.list(), 10 seconds).toSeq.toJsonArray
 
   @RequestMapping(path = Array("/lineage/{id}"), method = Array(GET))
   @ResponseBody
-  def lineage(@PathVariable("id") id: UUID): String = (storage load id).get.toJson
+  def lineage(@PathVariable("id") id: UUID): String = Await.result(storage load id, 10 seconds).get.toJson
 }

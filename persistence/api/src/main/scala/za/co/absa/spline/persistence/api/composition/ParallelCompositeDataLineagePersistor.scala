@@ -21,18 +21,21 @@ import java.util.UUID
 import za.co.absa.spline.model.{DataLineage, DataLineageDescriptor}
 import za.co.absa.spline.persistence.api.DataLineagePersistor
 
-import scala.collection.parallel.ParSeq
+import scala.concurrent.Future
 
 /**
   * The class represents a parallel composition of persistence layers for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
   */
-class ParallelCompositeDataLineagePersistor(persistors: ParSeq[DataLineagePersistor]) extends DataLineagePersistor{
+class ParallelCompositeDataLineagePersistor(override protected val persistors: Set[DataLineagePersistor])
+  extends DataLineagePersistor
+  with PersistorCombiner[DataLineagePersistor]{
+
   /**
     * The method stores a particular data lineage to the underlying persistence layers.
     *
     * @param lineage A data lineage that will be stored
     */
-  override def store(lineage: DataLineage): Unit = persistors.foreach(_.store(lineage))
+  override def store(lineage: DataLineage): Future[Unit] = combine[Unit](_.store(lineage),_ => Unit)
 
   /**
     * The method loads a particular data lineage from the underlying persistence layers.
@@ -40,14 +43,14 @@ class ParallelCompositeDataLineagePersistor(persistors: ParSeq[DataLineagePersis
     * @param id An unique identifier of a data lineage
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
-  override def load(id: UUID): Option[DataLineage] = persistors.flatMap(_.load(id)).headOption
+  override def load(id: UUID): Future[Option[DataLineage]] = combine[Option[DataLineage]](_.load(id), _.flatten.headOption)
 
   /**
     * The method removes a particular data lineage from the underlying persistence layers.
     *
     * @param id An unique identifier of a data lineage
     */
-  override def remove(id: UUID): Unit = persistors.foreach(_.remove(id))
+  override def remove(id: UUID): Future[Unit] = combine[Unit](_.remove(id), _ => Unit)
 
   /**
     * The method checks whether a particular data lineage graph already exists in the underlying persistence layers.
@@ -55,12 +58,13 @@ class ParallelCompositeDataLineagePersistor(persistors: ParSeq[DataLineagePersis
     * @param lineage A checked data lineage
     * @return An identifier of the checked data lineage if the data lineage exists, otherwise None
     */
-  override def exists(lineage: DataLineage): Option[UUID] = persistors.flatMap(_.exists(lineage)).headOption
+  override def exists(lineage: DataLineage): Future[Option[UUID]] = combine[Option[UUID]](_.exists(lineage), _.flatten.headOption)
 
   /**
     * The method gets all data lineages stored in the underlying persistence layers.
     *
     * @return Descriptors of all data lineages
     */
-  override def list(): Iterator[DataLineageDescriptor] = persistors.flatMap(_.list).distinct.toIterator
+  override def list(): Future[Iterator[DataLineageDescriptor]] = combine[Iterator[DataLineageDescriptor]](_.list, _.flatten.toSeq.distinct.toIterator)
+
 }

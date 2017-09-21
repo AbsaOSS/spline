@@ -20,6 +20,8 @@ import java.util.UUID
 
 import za.co.absa.spline.model.Execution
 
+import scala.concurrent.Future
+
 /**
   * The trait represents persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity.
   */
@@ -30,7 +32,7 @@ trait ExecutionPersistor {
     *
     * @param execution A stored execution.
     */
-  def store(execution: Execution): Unit
+  def store(execution: Execution): Future[Unit]
 
   /**
     * The method loads an execution from the persistence layer.
@@ -38,7 +40,7 @@ trait ExecutionPersistor {
     * @param id An identifier of the stored execution.
     * @return The stored execution if exists in persistence layer, otherwise None
     */
-  def load(id: UUID): Option[Execution]
+  def load(id: UUID): Future[Option[Execution]]
 
   /**
     * The method gets all executions related to a specific data lineage.
@@ -46,5 +48,5 @@ trait ExecutionPersistor {
     * @param dataLineageId An identifier of the given data lineage.
     * @return An iterator of all relevant executions
     */
-  def list(dataLineageId: UUID): Iterator[Execution]
+  def list(dataLineageId: UUID): Future[Iterator[Execution]]
 }

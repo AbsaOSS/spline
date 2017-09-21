@@ -40,12 +40,12 @@ class ParallelCompositeFactory(configuration: Configuration) extends Persistence
     *
     * @return A persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  override def createDataLineagePersistor(): DataLineagePersistor = new ParallelCompositeDataLineagePersistor(factories.map(_.createDataLineagePersistor()).par)
+  override def createDataLineagePersistor(): DataLineagePersistor = new ParallelCompositeDataLineagePersistor(factories.map(_.createDataLineagePersistor()).toSet)
 
   /**
     * The method creates a parallel composition of persistence layers for the [[za.co.absa.spline.model.Execution Execution]] entity.
     *
     * @return A persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity
     */
-  override def createExecutionPersistor(): ExecutionPersistor = new ParallelCompositeExecutionPersistor(factories.map(_.createExecutionPersistor()).par)
+  override def createExecutionPersistor(): ExecutionPersistor = new ParallelCompositeExecutionPersistor(factories.map(_.createExecutionPersistor()).toSet)
 }
