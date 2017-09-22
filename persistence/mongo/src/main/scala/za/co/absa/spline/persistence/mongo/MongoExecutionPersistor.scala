@@ -24,7 +24,10 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.MongoClient
 import com.mongodb.casbah.commons.MongoDBObject
 import salat._
+
 import scala.collection.JavaConverters._
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * The class represents Mongo persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity.
@@ -42,15 +45,33 @@ class MongoExecutionPersistor(dbUrl: String, dbName: String) extends ExecutionPe
     registerGlobalKeyOverride("id", "_id")
   }
 
-  override def store(execution: Execution): Unit = {
+  /**
+    * The method stores an execution to the persistence layer.
+    *
+    * @param execution A stored execution.
+    */
+  override def store(execution: Execution): Future[Unit] = Future {
     val dbo = grater[Execution].asDBObject(execution)
     executionCollection.insert(dbo)
   }
 
-  override def load(id: UUID): Option[Execution] =
+  /**
+    * The method loads an execution from the persistence layer.
+    *
+    * @param id An identifier of the stored execution.
+    * @return The stored execution if exists in persistence layer, otherwise None
+    */
+  override def load(id: UUID): Future[Option[Execution]] = Future {
     Option(executionCollection findOne id) map (grater[Execution].asObject(_))
+  }
 
-  override def list(dataLineageId: UUID): Iterator[Execution] = {
+  /**
+    * The method gets all executions related to a specific data lineage.
+    *
+    * @param dataLineageId An identifier of the given data lineage.
+    * @return An iterator of all relevant executions
+    */
+  override def list(dataLineageId: UUID): Future[Iterator[Execution]] = Future {
     executionCollection
       .find(MongoDBObject("dataLineageId" -> dataLineageId))
       .iterator().asScala

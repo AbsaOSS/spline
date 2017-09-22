@@ -14,33 +14,36 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.api
+package za.co.absa.spline.persistence.api.composition
 
 import java.util.UUID
 
 import za.co.absa.spline.model.Execution
+import za.co.absa.spline.persistence.api.ExecutionPersistor
 
 import scala.concurrent.Future
 
 /**
-  * The trait represents persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity.
+  * The class represents a parallel composition of persistence layers for the [[za.co.absa.spline.model.Execution Execution]] entity.
   */
-trait ExecutionPersistor {
+class ParallelCompositeExecutionPersistor(override protected val persistors : Set[ExecutionPersistor])
+  extends ExecutionPersistor
+  with PersistorCombiner[ExecutionPersistor]{
 
   /**
-    * The method stores an execution to the persistence layer.
+    * The method stores an execution to the underlying persistence layers.
     *
     * @param execution A stored execution.
     */
-  def store(execution: Execution): Future[Unit]
+  override def store(execution: Execution): Future[Unit] = combine[Unit](_.store(execution), _ => Unit)
 
   /**
-    * The method loads an execution from the persistence layer.
+    * The method loads an execution from the underlying persistence layers.
     *
     * @param id An identifier of the stored execution.
     * @return The stored execution if exists in persistence layer, otherwise None
     */
-  def load(id: UUID): Future[Option[Execution]]
+  override def load(id: UUID): Future[Option[Execution]] = combine[Option[Execution]](_.load(id), _.flatten.headOption)
 
   /**
     * The method gets all executions related to a specific data lineage.
@@ -48,5 +51,5 @@ trait ExecutionPersistor {
     * @param dataLineageId An identifier of the given data lineage.
     * @return An iterator of all relevant executions
     */
-  def list(dataLineageId: UUID): Future[Iterator[Execution]]
+  override def list(dataLineageId: UUID): Future[Iterator[Execution]] = combine[Iterator[Execution]](_.list(dataLineageId), _.toSeq.flatten.distinct.toIterator)
 }

@@ -14,27 +14,25 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.atlas
+package za.co.absa.spline.persistence.api
 
 import java.util.UUID
 
 import za.co.absa.spline.model.Execution
-import za.co.absa.spline.persistence.api.ExecutionPersistor
+
+import scala.concurrent.Future
 
 /**
-  * The class represents a nop Atlas persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity.
+  * The class represents a nop persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity.
   */
-class NopAtlasExecutionPersistor extends ExecutionPersistor{
+class NopExecutionPersistor extends ExecutionPersistor{
 
   /**
     * The method stores an execution to the persistence layer.
     *
     * @param execution A stored execution.
     */
-  override def store(execution: Execution): Unit =
-  {
-    // Does not store anything
-  }
+  override def store(execution: Execution): Future[Unit] = Future.successful()
 
   /**
     * The method loads an execution from the persistence layer.
@@ -42,7 +40,7 @@ class NopAtlasExecutionPersistor extends ExecutionPersistor{
     * @param id An identifier of the stored execution.
     * @return The stored execution if exists in persistence layer, otherwise None
     */
-  override def load(id: UUID): Option[Execution] = throw new UnsupportedOperationException()
+  override def load(id: UUID): Future[Option[Execution]] = Future.failed(new UnsupportedOperationException())
 
   /**
     * The method gets all executions related to a specific data lineage.
@@ -50,5 +48,5 @@ class NopAtlasExecutionPersistor extends ExecutionPersistor{
     * @param dataLineageId An identifier of the given data lineage.
     * @return An iterator of all relevant executions
     */
-  override def list(dataLineageId: UUID): Iterator[Execution] = throw new UnsupportedOperationException()
+  override def list(dataLineageId: UUID): Future[Iterator[Execution]] = Future.failed(new UnsupportedOperationException())
 }

@@ -21,9 +21,11 @@ import java.util.UUID
 import za.co.absa.spline.model._
 import com.mongodb.casbah.Imports.MongoClientURI
 import com.mongodb.casbah.MongoClient
-import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
+import org.scalatest.{AsyncFlatSpec, BeforeAndAfterEach, Matchers}
 
-class MongoExecutionPersistorSpec extends FlatSpec with Matchers with BeforeAndAfterEach {
+import scala.concurrent.Future
+
+class MongoExecutionPersistorSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
 
   private val mongoPersistor = new MongoExecutionPersistor(
     MongoTestProperties.mongoDBUri,
@@ -40,11 +42,9 @@ class MongoExecutionPersistorSpec extends FlatSpec with Matchers with BeforeAndA
   "Store method" should "store execution to a database." in {
     val execution = Execution(UUID.randomUUID(), UUID.randomUUID(), "Test", 123L)
 
-    mongoPersistor.store(execution)
+    val storedExecution = mongoPersistor.store(execution).flatMap(_ => mongoPersistor.load(execution.id))
 
-    val storedExecution = mongoPersistor.load(execution.id)
-
-    storedExecution shouldEqual Option(execution)
+    storedExecution.map(i => i shouldEqual Option(execution))
   }
 
   "List method" should "only return executions with the given lineage ID" in {
@@ -60,10 +60,8 @@ class MongoExecutionPersistorSpec extends FlatSpec with Matchers with BeforeAndA
       Execution(UUID.randomUUID(), UUID.randomUUID(), "Testc", 3L)
     )
 
-    allExecutions foreach mongoPersistor.store
+    val relatedExecutions=Future.sequence(allExecutions map mongoPersistor.store).flatMap(_ => mongoPersistor.list(dataLineageId).map(_.toList))
 
-    val relatedExecutions = mongoPersistor.list(dataLineageId).toSeq
-
-    relatedExecutions shouldEqual Seq(execution1, execution2)
+    relatedExecutions.map(i => i shouldEqual Seq(execution1, execution2))
   }
 }

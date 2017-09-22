@@ -42,7 +42,17 @@ class MongoPersistenceFactory(configuration: Configuration) extends PersistenceF
   private lazy val dbUrl = configuration getRequiredString mongoDbUrlKey
   private lazy val dbName = configuration getRequiredString mongoDbNameKey
 
+  /**
+    * The method creates a persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
+    *
+    * @return A persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    */
   override def createDataLineagePersistor(): DataLineagePersistor = new MongoDataLineagePersistor(dbUrl, dbName)
 
+  /**
+    * The method creates a persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity.
+    *
+    * @return A persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity
+    */
   override def createExecutionPersistor(): ExecutionPersistor = new MongoExecutionPersistor(dbUrl, dbName)
 }

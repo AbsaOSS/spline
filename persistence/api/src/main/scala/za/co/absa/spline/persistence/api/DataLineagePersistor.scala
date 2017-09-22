@@ -20,6 +20,8 @@ import java.util.UUID
 
 import za.co.absa.spline.model.{DataLineage, DataLineageDescriptor}
 
+import scala.concurrent.Future
+
 /**
   * The trait represents persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
   */
@@ -30,7 +32,7 @@ trait DataLineagePersistor {
     *
     * @param lineage A data lineage that will be stored
     */
-  def store(lineage: DataLineage)
+  def store(lineage: DataLineage) : Future[Unit]
 
   /**
     * The method loads a particular data lineage from the persistence layer.
@@ -38,14 +40,14 @@ trait DataLineagePersistor {
     * @param id An unique identifier of a data lineage
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
-  def load(id: UUID): Option[DataLineage]
+  def load(id: UUID): Future[Option[DataLineage]]
 
   /**
     * The method removes a particular data lineage from the persistence layer.
     *
     * @param id An unique identifier of a data lineage
     */
-  def remove(id: UUID): Unit
+  def remove(id: UUID): Future[Unit]
 
   /**
     * The method checks whether a particular data lineage graph already exists in the persistence layer.
@@ -53,12 +55,12 @@ trait DataLineagePersistor {
     * @param lineage A checked data lineage
     * @return An identifier of the checked data lineage if the data lineage exists, otherwise None
     */
-  def exists(lineage: DataLineage): Option[UUID]
+  def exists(lineage: DataLineage): Future[Option[UUID]]
 
   /**
     * The method gets all data lineages stored in persistence layer.
     *
     * @return Descriptors of all data lineages
     */
-  def list(): Iterator[DataLineageDescriptor]
+  def list(): Future[Iterator[DataLineageDescriptor]]
 }

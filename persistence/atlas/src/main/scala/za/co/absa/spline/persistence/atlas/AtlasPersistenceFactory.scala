@@ -22,7 +22,7 @@ import java.util.Properties
 import org.apache.atlas.ApplicationProperties
 import org.apache.commons.configuration.Configuration
 import za.co.absa.spline.common.ARMImplicits
-import za.co.absa.spline.persistence.api.{DataLineagePersistor, ExecutionPersistor, PersistenceFactory}
+import za.co.absa.spline.persistence.api._
 
 
 /**
@@ -85,5 +85,5 @@ class AtlasPersistenceFactory(configuration: Configuration) extends PersistenceF
     *
     * @return A persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity
     */
-  override def createExecutionPersistor(): ExecutionPersistor = new NopAtlasExecutionPersistor
+  override def createExecutionPersistor(): ExecutionPersistor = new NopExecutionPersistor
 }
