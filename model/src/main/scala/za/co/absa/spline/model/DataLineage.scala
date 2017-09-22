@@ -18,24 +18,33 @@ package za.co.absa.spline.model
 
 import java.util.UUID
 
+import za.co.absa.spline.model.op.Operation
+
 /**
-  * The case class represents a data lineage graph of  a particular Spark application.
+  * The case class represents a partial data lineage graph of a Spark dataset(s).
   *
-  * @param id      An unique identifier of the data lineage
-  * @param appName A name of the Spark application
-  * @param nodes   - A sequence of nodes representing the data lineage graph
+  * @param id         An unique identifier of the data lineage
+  * @param appName    A name of the Spark application
+  * @param operations - A sequence of nodes representing the data lineage graph
   */
 case class DataLineage
 (
   id: UUID,
   appName: String,
-  nodes: Seq[OperationNode]
+  operations: Seq[Operation],
+  datasets: Seq[MetaDataset],
+  attributes: Seq[Attribute]
 ) {
+
+  require(operations.nonEmpty, "list of operations cannot be empty")
+  require(datasets.nonEmpty, "list of datasets cannot be empty")
 
   /**
     * A method returning the root node of a DAG.
     *
     * @return A node representing the last operation performed within data lineage graph. Usually, it describes persistence of data set to some file, database, Kafka endpoint, etc.
     */
-  def rootNode: OperationNode = nodes.head
+  def rootNode: Operation = operations.head
+
+  def rootDataset: MetaDataset = datasets.head
 }

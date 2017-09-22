@@ -18,12 +18,12 @@ package za.co.absa.spline.persistence.api
 
 import java.util.UUID
 
-import za.co.absa.spline.model.Execution
+import za.co.absa.spline.model.deprecated.Execution
 
 import scala.concurrent.Future
 
 /**
-  * The trait represents persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity.
+  * The trait represents persistence layer for the [[Execution Execution]] entity.
   */
 trait ExecutionPersistor {
 

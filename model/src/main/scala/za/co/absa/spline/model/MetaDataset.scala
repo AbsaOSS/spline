@@ -18,15 +18,8 @@ package za.co.absa.spline.model
 
 import java.util.UUID
 
-import za.co.absa.spline.model.dt.DataType
-
-/**
-  * The case class represents an attribute of a Spark data set.
-  *
-  * @param id       An unique identifier of the attribute
-  * @param name     A name of the attribute
-  * @param dataType A data type of the attribute
-  */
-case class Attribute(id: UUID, name: String, dataType: DataType)
-
-
+case class MetaDataset
+(
+  id: UUID,
+  schema: Schema
+)

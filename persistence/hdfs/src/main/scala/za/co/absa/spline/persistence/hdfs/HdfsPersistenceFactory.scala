@@ -20,6 +20,7 @@ import org.apache.commons.configuration.Configuration
 import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.fs.permission.FsPermission
 import org.apache.spark.SparkContext
+import za.co.absa.spline.model.deprecated.Execution
 import za.co.absa.spline.persistence.api._
 
 /**
@@ -53,9 +54,9 @@ class HdfsPersistenceFactory(configuration: Configuration) extends PersistenceFa
   override def createDataLineagePersistor(): DataLineagePersistor = new HdfsDataLineagePersistor(hadoopConfiguration, fileName, filePermissions)
 
   /**
-    * The method creates a persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity.
+    * The method creates a persistence layer for the [[Execution Execution]] entity.
     *
-    * @return A persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity
+    * @return A persistence layer for the [[Execution Execution]] entity
     */
   override def createExecutionPersistor(): ExecutionPersistor = new NopExecutionPersistor
 }

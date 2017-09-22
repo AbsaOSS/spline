@@ -22,6 +22,7 @@ import za.co.absa.spline.model._
 import com.mongodb.casbah.Imports.MongoClientURI
 import com.mongodb.casbah.MongoClient
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterEach, Matchers}
+import za.co.absa.spline.model.deprecated.Execution
 
 import scala.concurrent.Future
 

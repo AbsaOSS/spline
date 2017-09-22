@@ -16,14 +16,15 @@
 
 package za.co.absa.spline.persistence.mongo
 
-import java.util.UUID
+import java.util.UUID.randomUUID
 
 import com.mongodb.casbah.Imports.MongoClientURI
 import com.mongodb.casbah.MongoClient
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterEach, Matchers}
-import za.co.absa.spline.model._
 import za.co.absa.spline.common.OptionImplicits._
-import za.co.absa.spline.model.{Attribute, Attributes}
+import za.co.absa.spline.model.dt.Simple
+import za.co.absa.spline.model.op.{Generic, NodeProps}
+import za.co.absa.spline.model.{Attribute, Schema, _}
 
 import scala.concurrent.Future
 
@@ -42,48 +43,43 @@ class MongoDataLineagePersistorSpec extends AsyncFlatSpec with Matchers with Bef
   }
 
   "Store method" should "store data lineage to a database." in {
-    val attributes = Attributes(Seq(Attribute(1L, "_1", SimpleType("StringType", true)), Attribute(2L, "_2", SimpleType("StringType", true)), Attribute(3L, "_3", SimpleType("StringType", true))))
+    ???
+    /*val aSchema = Schema(Seq(
+      Attribute(1L, "_1", Simple("StringType", nullable = true)),
+      Attribute(2L, "_2", Simple("StringType", nullable = true)),
+      Attribute(3L, "_3", Simple("StringType", nullable = true))))
+
+    val md1 = MetaDataset(randomUUID, aSchema)
+    val md2 = MetaDataset(randomUUID, aSchema)
+    val md3 = MetaDataset(randomUUID, aSchema)
+    val md4 = MetaDataset(randomUUID, aSchema)
+
     val lineage = DataLineage(
-      UUID.randomUUID(),
+      randomUUID,
       "TestApp",
       Seq(
-        GenericNode(NodeProps("Union", "desc1", Seq(attributes, attributes), attributes, Seq.empty[Int], Seq(1, 3))),
-        GenericNode(NodeProps("Filter", "desc2", Seq(attributes), attributes, Seq(0), Seq(2))),
-        GenericNode(NodeProps("LogicalRDD", "desc3", Seq.empty[Attributes], attributes, Seq(1, 3), Seq.empty[Int])),
-        GenericNode(NodeProps("Filter", "desc4", Seq(attributes), attributes, Seq(0), Seq(2)))
-      )
+        Generic(NodeProps(randomUUID, "Union", "desc1", Seq(md1.id, md2.id), md3.id)),
+        Generic(NodeProps(randomUUID, "Filter", "desc2", Seq(md4.id), md2.id)),
+        Generic(NodeProps(randomUUID, "LogicalRDD", "desc3", Seq.empty, md4.id)),
+        Generic(NodeProps(randomUUID, "Filter", "desc4", Seq(md4.id), md1.id))),
+      Seq(md1, md2, md3, md4)
     )
 
     val storedLineage = mongoPersistor.store(lineage).flatMap(_ => mongoPersistor.load(lineage.id))
 
-    storedLineage map(i => i shouldEqual Option(lineage))
-  }
-
-  "Exits method" should "return an appropriate document id." in {
-    val expectedId = UUID.randomUUID()
-    val attributes = Attributes(Seq(Attribute(1L, "_1", SimpleType("StringType", true)), Attribute(2L, "_2", SimpleType("StringType", true)), Attribute(3L, "_3", SimpleType("StringType", true))))
-    val graph = Seq(
-      GenericNode(mainProps = NodeProps("Union", "desc1", Seq(attributes, attributes), attributes, Seq.empty[Int], Seq(1, 3))),
-      GenericNode(mainProps = NodeProps("Filter", "desc2", Seq(attributes), attributes, Seq(0), Seq(2))),
-      GenericNode(mainProps = NodeProps("LogicalRDD", "desc3", Seq.empty[Attributes], attributes, Seq(1, 3), Seq.empty[Int])),
-      GenericNode(mainProps = NodeProps("Filter", "desc4", Seq(attributes), attributes, Seq(0), Seq(2)))
-    )
-    val dataLineage = DataLineage(expectedId, "TestApp1", graph)
-
-    val returnedId = mongoPersistor.store(dataLineage).flatMap(_ => mongoPersistor.exists(dataLineage))
-
-    returnedId map (i => i shouldEqual Option(expectedId))
+    storedLineage map (i => i shouldEqual Option(lineage))*/
   }
 
   "List method" should "load descriptions from a database." in {
-    val testData = Seq(
-      DataLineage(UUID.randomUUID(), "TestApp1", Seq.empty),
-      DataLineage(UUID.randomUUID(), "TestApp2", Seq.empty),
-      DataLineage(UUID.randomUUID(), "TestApp3", Seq.empty)
+   /* val testData = Seq(
+      DataLineage(randomUUID, "TestApp1", Seq.empty, ???),
+      DataLineage(randomUUID, "TestApp2", Seq.empty, ???),
+      DataLineage(randomUUID, "TestApp3", Seq.empty, ???)
     )
     val expectedDescriptions = testData.map(i => DataLineageDescriptor(i.id, i.appName))
-    val descriptions = Future.sequence(testData.map(i => mongoPersistor.store(i))).flatMap(_=> mongoPersistor.list().map(_.toSeq))
+    val descriptions = Future.sequence(testData.map(i => mongoPersistor.store(i))).flatMap(_ => mongoPersistor.list().map(_.toSeq))
 
-    descriptions.map(i => i should contain allElementsOf  expectedDescriptions)
+    descriptions.map(i => i should contain allElementsOf expectedDescriptions)*/
+    ???
   }
 }

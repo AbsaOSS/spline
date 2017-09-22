@@ -16,9 +16,9 @@
 
 package za.co.absa.spline.core
 
-import za.co.absa.spline.model.StructField
 import za.co.absa.spline.model
 import org.apache.spark.sql
+import za.co.absa.spline.model.dt._
 
 /**
   * The trait represents a mapper translating Spark data types to data types specified by Spline library.
@@ -32,9 +32,9 @@ trait DataTypeMapper {
     * @param nullable      A flag specifying whether result data type will be nullable or not
     * @return A Spline data type
     */
-  def fromSparkDataType(sparkDataType: sql.types.DataType, nullable: Boolean): model.DataType = sparkDataType match {
-    case s: sql.types.StructType => model.StructType(s.fields.map(i => StructField(i.name, fromSparkDataType(i.dataType, i.nullable))), nullable)
-    case a: sql.types.ArrayType => model.ArrayType(fromSparkDataType(a.elementType, a.containsNull), nullable)
-    case x => model.SimpleType(x.typeName, nullable)
+  def fromSparkDataType(sparkDataType: sql.types.DataType, nullable: Boolean): DataType = sparkDataType match {
+    case s: sql.types.StructType => Struct(s.fields.map(i => StructField(i.name, fromSparkDataType(i.dataType, i.nullable))), nullable)
+    case a: sql.types.ArrayType => Array(fromSparkDataType(a.elementType, a.containsNull), nullable)
+    case x => Simple(x.typeName, nullable)
   }
 }

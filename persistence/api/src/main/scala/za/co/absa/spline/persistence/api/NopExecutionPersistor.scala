@@ -18,12 +18,12 @@ package za.co.absa.spline.persistence.api
 
 import java.util.UUID
 
-import za.co.absa.spline.model.Execution
+import za.co.absa.spline.model.deprecated.Execution
 
 import scala.concurrent.Future
 
 /**
-  * The class represents a nop persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity.
+  * The class represents a nop persistence layer for the [[Execution Execution]] entity.
   */
 class NopExecutionPersistor extends ExecutionPersistor{
 

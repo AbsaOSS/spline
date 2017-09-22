@@ -16,24 +16,25 @@
 
 package za.co.absa.spline.core.transformations
 
-import za.co.absa.spline.model.OperationNode
+import za.co.absa.spline.model.op.Operation
+import za.co.absa.spline.model.op.Operation.OperationMutator
 
 /**
   * The class is utilized by transformers for storing modified references of the operation node.
+  *
   * @param position A position of a node within a collection
-  * @param node A node which positions are going to be modified
+  * @param node     A node which positions are going to be modified
   */
-class OperationNodeTransformationWrapper(var position : Int, val node : OperationNode){
+class OperationNodeTransformationWrapper(var position: Int, val node: Operation) {
 
-  var parentRefs = node.mainProps.parentRefs
-  var childRefs = node.mainProps.childRefs
+  var parentRefs = ??? //node.mainProps.parentRefs
+  var childRefs = ??? //node.mainProps.childRefs
 
   /**
     * The methods creates a copy of the wrapped node with new references applied to it.
+    *
     * @return A copy of node with updated references
     */
-  def compileNodeWithNewReferences() : OperationNode =
-    node.withDifferentMainProps(
-      node.mainProps.copy(childRefs = childRefs, parentRefs = parentRefs)
-    )
+  def compileNodeWithNewReferences(): Operation = ???
+    // node.updated(_.copy(childRefs = childRefs, parentRefs = parentRefs))
 }

@@ -17,6 +17,7 @@
 package za.co.absa.spline.persistence.api.composition
 
 import org.apache.commons.configuration.Configuration
+import za.co.absa.spline.model.deprecated.Execution
 import za.co.absa.spline.persistence.api.{DataLineagePersistor, ExecutionPersistor, PersistenceFactory}
 
 object ParallelCompositeFactory{
@@ -43,9 +44,9 @@ class ParallelCompositeFactory(configuration: Configuration) extends Persistence
   override def createDataLineagePersistor(): DataLineagePersistor = new ParallelCompositeDataLineagePersistor(factories.map(_.createDataLineagePersistor()).toSet)
 
   /**
-    * The method creates a parallel composition of persistence layers for the [[za.co.absa.spline.model.Execution Execution]] entity.
+    * The method creates a parallel composition of persistence layers for the [[Execution Execution]] entity.
     *
-    * @return A persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity
+    * @return A persistence layer for the [[Execution Execution]] entity
     */
   override def createExecutionPersistor(): ExecutionPersistor = new ParallelCompositeExecutionPersistor(factories.map(_.createExecutionPersistor()).toSet)
 }

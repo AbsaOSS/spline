@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.persistence.atlas.conversion
 
-import za.co.absa.spline.model.Attributes
+import za.co.absa.spline.model.Schema
 import za.co.absa.spline.persistence.atlas.model._
 import za.co.absa.spline.persistence.atlas.model.Dataset
 
@@ -26,23 +26,25 @@ import za.co.absa.spline.persistence.atlas.model.Dataset
 object AttributeConverter {
 
   /**
-    * The method converts an options of [[za.co.absa.spline.model.Attributes Spline attributes]] to a sequence [[za.co.absa.spline.persistence.atlas.model.Attribute Atlas attributes]].
+    * The method converts an options of [[za.co.absa.spline.model.Schema Spline attributes]] to a sequence [[za.co.absa.spline.persistence.atlas.model.Attribute Atlas attributes]].
+ *
     * @param splineAttributes An Input option of Spline attributes
     * @param dataset A dataset that the attributes are part of
     * @return Sequence of Atlas attributes
     */
-  def convert(splineAttributes : Option[Attributes],  dataset : Dataset) : Seq[Attribute] = splineAttributes match {
+  def convert(splineAttributes : Option[Schema], dataset : Dataset) : Seq[Attribute] = splineAttributes match {
     case None => Seq.empty
     case Some(x) => convert(x, dataset)
   }
 
   /**
-    * The method converts [[za.co.absa.spline.model.Attributes  Spline attributes]] to a sequence [[za.co.absa.spline.persistence.atlas.model.Attribute Atlas attributes]].
+    * The method converts [[za.co.absa.spline.model.Schema  Spline attributes]] to a sequence [[za.co.absa.spline.persistence.atlas.model.Attribute Atlas attributes]].
+ *
     * @param splineAttributes Input Spline attributes
     * @param dataset A dataset that the attributes are part of
     * @return Sequence of Atlas attributes
     */
-  def convert(splineAttributes : Attributes, dataset : Dataset) : Seq[Attribute] = splineAttributes.seq.map(i => convert(i, dataset))
+  def convert(splineAttributes: Schema, dataset : Dataset) : Seq[Attribute] = splineAttributes.attrs.map(i => ??? /*convert(i, dataset)*/)
 
   /**
     * The method converts an [[za.co.absa.spline.model.Attribute Spline attribute]] to an [[za.co.absa.spline.persistence.atlas.model.Attribute Atlas attribute]].

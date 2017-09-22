@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.model
+package za.co.absa.spline.model.dt
 
 import salat.annotations.Salat
 
@@ -35,7 +35,7 @@ sealed trait DataType {
   * @param name     A name of an atomic type ("integer", "string", ...)
   * @param nullable A flag describing whether the type is nullable or not
   */
-case class SimpleType(name: String, nullable: Boolean) extends DataType
+case class Simple(name: String, nullable: Boolean) extends DataType
 
 /**
   * The case class represents custom structured types.
@@ -43,10 +43,10 @@ case class SimpleType(name: String, nullable: Boolean) extends DataType
   * @param fields   A sequence of fields that the type is compound from
   * @param nullable A flag describing whether the type is nullable or not
   */
-case class StructType(fields: Seq[StructField], nullable: Boolean) extends DataType
+case class Struct(fields: Seq[StructField], nullable: Boolean) extends DataType
 
 /**
-  * The case class represents one attribute (element) of a [[za.co.absa.spline.model.StructType StructType]]
+  * The case class represents one attribute (element) of a [[za.co.absa.spline.model.dt.Struct StructType]]
   *
   * @param name     A name of the attribute (element)
   * @param dataType A data type of the attribute (element)
@@ -59,5 +59,4 @@ case class StructField(name: String, dataType: DataType)
   * @param elementDataType A data type of any element from the array
   * @param nullable        A flag describing whether the type is nullable or not
   */
-case class ArrayType(elementDataType: DataType, nullable: Boolean) extends DataType
-
+case class Array(elementDataType: DataType, nullable: Boolean) extends DataType

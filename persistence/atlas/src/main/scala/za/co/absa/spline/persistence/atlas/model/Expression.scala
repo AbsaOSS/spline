@@ -16,8 +16,11 @@
 
 package za.co.absa.spline.persistence.atlas.model
 
+import java.util.UUID
+
 import org.apache.atlas.AtlasClient
 import org.apache.atlas.typesystem.Referenceable
+
 import scala.collection.JavaConverters._
 
 /**
@@ -99,12 +102,12 @@ class BinaryExpression
 class AttributeReferenceExpression
 (
   commonProperties: ExpressionCommonProperties,
-  attributeId: Long,
+  attributeId: UUID,
   attributeName: String
 ) extends Expression(
   commonProperties,
   SparkDataTypes.AttributeReferenceExpression,
-  Map("attributeId" -> Long.box(attributeId), "attributeName" -> attributeName)
+  Map("attributeId" -> attributeId, "attributeName" -> attributeName)
 )
 
 /**

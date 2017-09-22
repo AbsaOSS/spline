@@ -16,6 +16,8 @@
 
 package za.co.absa.spline.core
 
+import java.util.UUID.randomUUID
+
 import za.co.absa.spline.model._
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation, SaveIntoDataSourceCommand}
@@ -63,12 +65,12 @@ sealed private trait OperationNodeBuilder[OpType <: LogicalPlan] extends DataTyp
   /**
     * A collection of attributes outgoing from the produced operation node
     */
-  val output: Option[Attributes] = createOutputAttributes(operation)
+  val output: Option[Schema] = createOutputAttributes(operation)
 
   /**
     * A collection of incoming attributes
     */
-  val input: mutable.ListBuffer[Attributes] = mutable.ListBuffer[Attributes]()
+  val input: mutable.ListBuffer[Schema] = mutable.ListBuffer[Schema]()
 
   /**
     * Indexes of parent operation nodes
@@ -85,7 +87,7 @@ sealed private trait OperationNodeBuilder[OpType <: LogicalPlan] extends DataTyp
     *
     * @return An operation node
     */
-  def build(): OperationNode
+  def build(): op.Operation
 
   /**
     * Gets statistics for one operation from Spark logical plan.
@@ -105,15 +107,17 @@ sealed private trait OperationNodeBuilder[OpType <: LogicalPlan] extends DataTyp
     * @return A list of output attributes
     */
   def createOutputAttributes(operation: LogicalPlan) = Some(
-    Attributes(operation.output.map(i => Attribute(i.exprId.id, i.name, fromSparkDataType(i.dataType, i.nullable)))))
+    Schema(operation.output.map(i => ??? /*Attribute(i.exprId.id, i.name, fromSparkDataType(i.dataType, i.nullable))*/)))
 
-  protected def buildNodeProps() = NodeProps(
+  protected def buildNodeProps() = op.NodeProps(
+    randomUUID,
     operation.nodeName,
     operation.verboseString,
-    input.result,
-    output,
-    parentRefs.result,
-    childRefs.result)
+    ???, //input.result,
+    ??? //output
+    //    parentRefs.result,
+    //    childRefs.result
+  )
 
 }
 
@@ -123,7 +127,7 @@ sealed private trait OperationNodeBuilder[OpType <: LogicalPlan] extends DataTyp
   * @param operation An input Spark operation
   */
 private class GenericNodeBuilder(val operation: LogicalPlan) extends OperationNodeBuilder[LogicalPlan] {
-  def build(): OperationNode = GenericNode(buildNodeProps())
+  def build(): op.Operation = op.Generic(buildNodeProps())
 }
 
 
@@ -133,7 +137,7 @@ private class GenericNodeBuilder(val operation: LogicalPlan) extends OperationNo
   * @param operation An input Spark alias operation
   */
 private class AliasNodeBuilder(val operation: SubqueryAlias) extends OperationNodeBuilder[SubqueryAlias] {
-  def build(): OperationNode = AliasNode(buildNodeProps(), operation.alias)
+  def build(): op.Operation = op.Alias(buildNodeProps(), operation.alias)
 }
 
 /**
@@ -142,16 +146,16 @@ private class AliasNodeBuilder(val operation: SubqueryAlias) extends OperationNo
   * @param operation An input Spark load operation
   */
 private class SourceNodeBuilder(val operation: LogicalRelation, hadoopConfiguration: Configuration) extends OperationNodeBuilder[LogicalRelation] {
-  def build(): OperationNode = {
+  def build(): op.Operation = {
     val (sourceType, paths) = getRelationPaths(operation.relation)
-    SourceNode(
+    op.Source(
       buildNodeProps(),
       sourceType,
       paths.map(i => PathUtils.getQualifiedPath(hadoopConfiguration)(i))
     )
   }
 
-  private def getRelationPaths(relation: BaseRelation) : (String, Seq[String]) = relation match {
+  private def getRelationPaths(relation: BaseRelation): (String, Seq[String]) = relation match {
     case hfsr: HadoopFsRelation => (
       hfsr.fileFormat.toString,
       hfsr.location.rootPaths.map(_.toString)
@@ -169,8 +173,8 @@ private class SourceNodeBuilder(val operation: LogicalRelation, hadoopConfigurat
   * @param operation An input Spark persist operation
   */
 private class DestinationNodeBuilder(val operation: SaveIntoDataSourceCommand, hadoopConfiguration: Configuration) extends OperationNodeBuilder[SaveIntoDataSourceCommand] {
-  def build(): OperationNode = {
-    DestinationNode(
+  def build(): op.Operation = {
+    op.Destination(
       buildNodeProps() copy (output = None), // output is meaningless for a terminal node
       operation.provider,
       PathUtils.getQualifiedPath(hadoopConfiguration)(operation.options.getOrElse("path", ""))
@@ -184,24 +188,24 @@ private class DestinationNodeBuilder(val operation: SaveIntoDataSourceCommand, h
   * @param operation An input Spark project operation
   */
 private class ProjectionNodeBuilder(val operation: Project) extends OperationNodeBuilder[Project] with ExpressionMapper {
-  def build(): OperationNode = {
+  def build(): op.Operation = {
     val transformations = operation.projectList
       .map(fromSparkExpression)
-      .filterNot(_.isInstanceOf[AttributeReference])
+      .filterNot(_.isInstanceOf[expr.AttrRef])
       .union(resolveAttributeRemovals())
 
-    ProjectionNode(
+    op.Projection(
       buildNodeProps(),
       transformations)
   }
 
-  private def resolveAttributeRemovals(): Seq[Expression] = {
-    val inputAttributesByName = input flatMap (_.seq) map (a => a.name -> a) toMap
-    val outputAttributeNames = output map (_.seq) getOrElse Nil map (_.name) toSet
+  private def resolveAttributeRemovals(): Seq[expr.Expression] = {
+    val inputAttributesByName = (input flatMap (_.attrs) map (a => /*a.name -> a*/ ???)).toMap
+    val outputAttributeNames = (output map (_.attrs) getOrElse Nil map (uuid => ??? /*_.name*/)).toSet
     val removedAttributeNames = inputAttributesByName.keySet diff outputAttributeNames
-    val removedAttributes = inputAttributesByName filterKeys (removedAttributeNames) values
-    val removedAttributesSortedByName =  removedAttributes.toSeq sortBy (_.name)
-    val result = removedAttributesSortedByName map (i => AttributeRemoval(AttributeReference(i)))
+    val removedAttributes = (inputAttributesByName filterKeys removedAttributeNames).values
+    val removedAttributesSortedByName: Seq[Nothing] = ??? //removedAttributes.toSeq sortBy (_.name)
+    val result = removedAttributesSortedByName map (i => expr.AttributeRemoval(expr.AttrRef(i)))
     result
   }
 }
@@ -213,7 +217,7 @@ private class ProjectionNodeBuilder(val operation: Project) extends OperationNod
   * @param operation An input Spark filter operation
   */
 private class FilterNodeBuilder(val operation: Filter) extends OperationNodeBuilder[Filter] with ExpressionMapper {
-  def build(): OperationNode = FilterNode(
+  def build(): op.Operation = op.Filter(
     buildNodeProps(),
     operation.condition)
 }
@@ -224,8 +228,8 @@ private class FilterNodeBuilder(val operation: Filter) extends OperationNodeBuil
   * @param operation An input Spark join operation
   */
 private class JoinNodeBuilder(val operation: Join) extends OperationNodeBuilder[Join] with ExpressionMapper {
-  def build(): OperationNode = {
-    JoinNode(
+  def build(): op.Operation = {
+    op.Join(
       buildNodeProps(),
       operation.condition map fromSparkExpression,
       operation.joinType.toString)

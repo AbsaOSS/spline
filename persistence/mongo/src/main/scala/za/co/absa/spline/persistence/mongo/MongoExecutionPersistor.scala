@@ -18,19 +18,19 @@ package za.co.absa.spline.persistence.mongo
 
 import java.util.UUID
 
-import za.co.absa.spline.model.Execution
 import za.co.absa.spline.persistence.api.ExecutionPersistor
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.MongoClient
 import com.mongodb.casbah.commons.MongoDBObject
 import salat._
+import za.co.absa.spline.model.deprecated.Execution
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import za.co.absa.spline.common.FutureImplicits._
 
 /**
-  * The class represents Mongo persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity.
+  * The class represents Mongo persistence layer for the [[Execution Execution]] entity.
   */
 class MongoExecutionPersistor(dbUrl: String, dbName: String) extends ExecutionPersistor {
 

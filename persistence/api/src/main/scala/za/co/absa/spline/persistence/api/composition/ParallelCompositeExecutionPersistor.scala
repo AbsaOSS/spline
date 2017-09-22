@@ -18,13 +18,13 @@ package za.co.absa.spline.persistence.api.composition
 
 import java.util.UUID
 
-import za.co.absa.spline.model.Execution
+import za.co.absa.spline.model.deprecated.Execution
 import za.co.absa.spline.persistence.api.ExecutionPersistor
 
 import scala.concurrent.Future
 
 /**
-  * The class represents a parallel composition of persistence layers for the [[za.co.absa.spline.model.Execution Execution]] entity.
+  * The class represents a parallel composition of persistence layers for the [[Execution Execution]] entity.
   */
 class ParallelCompositeExecutionPersistor(override protected val persistors : Set[ExecutionPersistor])
   extends ExecutionPersistor

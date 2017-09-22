@@ -18,15 +18,9 @@ package za.co.absa.spline.model
 
 import java.util.UUID
 
-import za.co.absa.spline.model.dt.DataType
-
 /**
-  * The case class represents an attribute of a Spark data set.
+  * The case class represents a collection of attributes. See [[za.co.absa.spline.model.Attribute Attribute]]
   *
-  * @param id       An unique identifier of the attribute
-  * @param name     A name of the attribute
-  * @param dataType A data type of the attribute
+  * @param attrs An internal sequence of attributes (referred by attribute ID)
   */
-case class Attribute(id: UUID, name: String, dataType: DataType)
-
-
+case class Schema(attrs: Seq[UUID]) // todo: do we really need the Schema abstraction between the Dataset and a list of Attributes?

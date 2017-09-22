@@ -19,14 +19,16 @@ package za.co.absa.spline.core
 import java.util.UUID
 
 import org.apache.hadoop.conf.Configuration
-import za.co.absa.spline.model.{DataLineage, OperationNode}
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.execution.datasources.SaveIntoDataSourceCommand
 import za.co.absa.spline.common.transformations.TransformationPipeline
 import za.co.absa.spline.core.transformations.ProjectionMerger
+import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.model.op.Operation
 
 import scala.collection.mutable
+import scala.language.postfixOps
 
 /** The object is responsible for gathering lineage information from Spark internal structures (logical plan, physical plan, etc.) */
 object DataLineageHarvester {
@@ -45,11 +47,13 @@ object DataLineageHarvester {
     DataLineage(
       UUID.randomUUID,
       queryExecution.sparkSession.sparkContext.appName,
-      transformedNodes
+      transformedNodes,
+      ???,
+      ???
     )
   }
 
-  private def harvestOperationNodes(logicalPlan: LogicalPlan, hadoopConfiguration: Configuration): Seq[OperationNode] = {
+  private def harvestOperationNodes(logicalPlan: LogicalPlan, hadoopConfiguration: Configuration): Seq[Operation] = {
     val result = mutable.ArrayBuffer[OperationNodeBuilder[_]]()
     val stack = mutable.Stack[(LogicalPlan, Int)]((logicalPlan, -1))
     val visitedNodes = mutable.Map[LogicalPlan, Int]()

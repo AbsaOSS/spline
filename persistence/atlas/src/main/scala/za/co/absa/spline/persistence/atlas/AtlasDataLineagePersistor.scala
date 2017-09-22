@@ -61,14 +61,6 @@ class AtlasDataLineagePersistor extends AtlasHook with DataLineagePersistor {
   override def remove(id: UUID): Future[Unit] = Future.failed(new UnsupportedOperationException())
 
   /**
-    * The method checks whether a particular data lineage graph already exists in the persistence layer.
-    *
-    * @param lineage A checked data lineage
-    * @return An identifier of the checked data lineage if the data lineage exists, otherwise None
-    */
-  override def exists(lineage: DataLineage): Future[Option[UUID]] = Future.successful(None)
-
-  /**
     * The method gets all data lineages stored in persistence layer.
     *
     * @return Descriptors of all data lineages

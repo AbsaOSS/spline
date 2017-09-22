@@ -19,12 +19,10 @@ package za.co.absa.spline.core
 import java.util.UUID
 
 import org.apache.hadoop.conf.Configuration
-import za.co.absa.spline.model.Execution
-import za.co.absa.spline.persistence.api.PersistenceFactory
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.util.QueryExecutionListener
-import za.co.absa.spline.common.FutureImplicits._
-import scala.concurrent.Future
+import za.co.absa.spline.model.deprecated.Execution
+import za.co.absa.spline.persistence.api.PersistenceFactory
 
 /**
   * The class represents a handler listening on events that Spark triggers when an execution any action is performed. It can be considered as an entry point to Spline library.
@@ -60,15 +58,10 @@ class DataLineageListener(dataStorageFactory: PersistenceFactory, hadoopConfigur
   private def processQueryExecution(funcName: String, qe: QueryExecution): Unit = {
     if (funcName == "save") {
       val lineage = DataLineageHarvester.harvestLineage(qe, hadoopConfiguration)
-      dataLineagePersistor.exists(lineage).flatMap( lineageIdOption =>
-          lineageIdOption match
-          {
-            case None => dataLineagePersistor.store(lineage).map(_ => lineage.id)
-            case Some(x) => Future.successful(x)
-          }).flatMap(lineageId => {
-              val execution = Execution(UUID.randomUUID(), lineageId, qe.sparkSession.sparkContext.applicationId, System.currentTimeMillis())
-              executionPersistor.store(execution)
-        })
-      }
+      dataLineagePersistor store lineage
+
+      val execution = Execution(UUID.randomUUID(), lineage.id, qe.sparkSession.sparkContext.applicationId, System.currentTimeMillis())
+      executionPersistor store execution
+    }
   }
 }

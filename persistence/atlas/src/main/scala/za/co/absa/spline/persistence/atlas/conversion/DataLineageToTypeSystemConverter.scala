@@ -18,7 +18,6 @@ package za.co.absa.spline.persistence.atlas.conversion
 
 import org.apache.atlas.typesystem.Referenceable
 import za.co.absa.spline.model._
-import za.co.absa.spline.persistence.api.DataLineageHashResolver
 import za.co.absa.spline.persistence.atlas.model._
 
 /**
@@ -32,8 +31,8 @@ object DataLineageToTypeSystemConverter {
     * @return Atlas entities
     */
   def convert(lineage: DataLineage): Seq[Referenceable] = {
-    val hashSuffix = "_" + DataLineageHashResolver.resolve(lineage)
-    val nodesWithIndexes = lineage.nodes.zipWithIndex
+    val hashSuffix = "_" + ???
+    val nodesWithIndexes = lineage.operations.zipWithIndex
     val datasets = createDatasets(nodesWithIndexes, hashSuffix)
     val operations = createOperations(nodesWithIndexes, hashSuffix, datasets)
     val process = createProcess(lineage, hashSuffix, operations, datasets)
@@ -58,7 +57,7 @@ object DataLineageToTypeSystemConverter {
       outputDatasets.map(_.endpoint.getId)
     )
   }
-  private def createDatasets(nodesWithIndexes: Seq[Tuple2[OperationNode,Int]], hashSuffix: String) : Seq[Dataset] =
+  private def createDatasets(nodesWithIndexes: Seq[Tuple2[op.Operation,Int]], hashSuffix: String) : Seq[Dataset] =
     nodesWithIndexes.map(i =>
     {
       val datasetSuffix = "_Dataset"
@@ -66,17 +65,17 @@ object DataLineageToTypeSystemConverter {
       val operationIdSuffix = "_op" + i._2.toString
       val qualifiedName = name + operationIdSuffix + hashSuffix
       val dataset = i._1 match {
-        case SourceNode(m, st, paths) =>
+        case op.Source(m, st, paths) =>
           val path = paths.mkString(", ")
           new EndpointDataset(name, qualifiedName, new FileEndpoint(path, path), EndpointType.file, EndpointDirection.input, st)
-        case DestinationNode(m, dt, path) => new EndpointDataset(name, qualifiedName, new FileEndpoint(path, path), EndpointType.file, EndpointDirection.output, dt)
+        case op.Destination(m, dt, path) => new EndpointDataset(name, qualifiedName, new FileEndpoint(path, path), EndpointType.file, EndpointDirection.output, dt)
         case _ => new Dataset(name, qualifiedName)
       }
-      dataset.addAttributes(AttributeConverter.convert(i._1.mainProps.output, dataset))
+      ??? //dataset.addAttributes(AttributeConverter.convert(i._1.mainProps.output, dataset))
       dataset
     })
 
-  private def createOperations(nodesWithIndexes: Seq[Tuple2[OperationNode,Int]], hashSuffix: String, datasets : Seq[Dataset]) : Seq[Operation] = {
+  private def createOperations(nodesWithIndexes: Seq[Tuple2[op.Operation,Int]], hashSuffix: String, datasets : Seq[Dataset]) : Seq[Operation] = {
     val operations = nodesWithIndexes.map(i =>
         {
           val operationIdSuffix = "_op" + i._2
@@ -85,13 +84,13 @@ object DataLineageToTypeSystemConverter {
             i._1.mainProps.name,
             i._1.mainProps.name + operationIdSuffix + hashSuffix,
             i._1.mainProps.rawString,
-            i._1.mainProps.childRefs
+            ??? //i._1.mainProps.childRefs
           )
           i._1 match {
-            case JoinNode(_, c, t) =>  new JoinOperation(commonProperties, t, c.map(j => ExpressionConverter.convert(commonProperties.qualifiedName, j)).get)
-            case FilterNode(_, c) => new FilterOperation(commonProperties, ExpressionConverter.convert(commonProperties.qualifiedName, c))
-            case ProjectionNode(_, t) => new ProjectOperation(commonProperties, t.zipWithIndex.map(j => ExpressionConverter.convert(commonProperties.qualifiedName + "@" + j._2, j._1)))
-            case AliasNode(_, a) => new AliasOperation(commonProperties, a)
+            case op.Join(_, c, t) =>  new JoinOperation(commonProperties, t, c.map(j => ExpressionConverter.convert(commonProperties.qualifiedName, j)).get)
+            case op.Filter(_, c) => new FilterOperation(commonProperties, ExpressionConverter.convert(commonProperties.qualifiedName, c))
+            case op.Projection(_, t) => new ProjectOperation(commonProperties, t.zipWithIndex.map(j => ExpressionConverter.convert(commonProperties.qualifiedName + "@" + j._2, j._1)))
+            case op.Alias(_, a) => new AliasOperation(commonProperties, a)
             case _ => new Operation(commonProperties)
           }
         }

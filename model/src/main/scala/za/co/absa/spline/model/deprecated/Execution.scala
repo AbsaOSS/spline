@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.model
+package za.co.absa.spline.model.deprecated
 
 import java.util.UUID
 

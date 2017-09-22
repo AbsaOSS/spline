@@ -50,14 +50,6 @@ trait DataLineagePersistor {
   def remove(id: UUID): Future[Unit]
 
   /**
-    * The method checks whether a particular data lineage graph already exists in the persistence layer.
-    *
-    * @param lineage A checked data lineage
-    * @return An identifier of the checked data lineage if the data lineage exists, otherwise None
-    */
-  def exists(lineage: DataLineage): Future[Option[UUID]]
-
-  /**
     * The method gets all data lineages stored in persistence layer.
     *
     * @return Descriptors of all data lineages

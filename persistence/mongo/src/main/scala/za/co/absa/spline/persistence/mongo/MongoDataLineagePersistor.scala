@@ -22,7 +22,7 @@ import _root_.salat._
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.MongoClient
 import za.co.absa.spline.model.{DataLineage, DataLineageDescriptor}
-import za.co.absa.spline.persistence.api.{DataLineageHashResolver, DataLineagePersistor}
+import za.co.absa.spline.persistence.api.DataLineagePersistor
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -32,7 +32,7 @@ import za.co.absa.spline.common.FutureImplicits._
   * The class represents Mongo persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
   */
 class MongoDataLineagePersistor(dbUrl: String, dbName: String) extends DataLineagePersistor {
-  val dataLineageCollectionName: String = "DataSets"
+  val dataLineageCollectionName: String = "lineages"
   val LATEST_SERIAL_VERSION = 1
 
   private val client: MongoClient = MongoClient(MongoClientURI(dbUrl))
@@ -48,8 +48,6 @@ class MongoDataLineagePersistor(dbUrl: String, dbName: String) extends DataLinea
     */
   override def store(lineage: DataLineage): Future[Unit] = Future{
     val dbo = grater[DataLineage].asDBObject(lineage)
-    val hash = DataLineageHashResolver.resolve(lineage)
-    dbo.put("_hash", hash)
     dbo.put("_ver", LATEST_SERIAL_VERSION)
     dataLineageCollection.insert(dbo)
   }
@@ -71,18 +69,6 @@ class MongoDataLineagePersistor(dbUrl: String, dbName: String) extends DataLinea
     */
   override def remove(id: UUID): Future[Unit] = Future {
     dataLineageCollection remove DBObject("_id" -> id)
-  }
-
-  /**
-    * The method checks whether a particular data lineage graph already exists in the persistence layer.
-    *
-    * @param lineage A checked data lineage
-    * @return An identifier of the checked data lineage if the data lineage exists, otherwise None
-    */
-  override def exists(lineage: DataLineage): Future[Option[UUID]] = Future {
-    val hash = DataLineageHashResolver.resolve(lineage)
-    val key = DBObject("appName" -> lineage.appName, "_hash" -> hash)
-    Option(dataLineageCollection.findOne(key, DBObject("_id" -> 1))) map (_.get("_id").asInstanceOf[UUID])
   }
 
   /**

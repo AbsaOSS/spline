@@ -53,14 +53,6 @@ class ParallelCompositeDataLineagePersistor(override protected val persistors: S
   override def remove(id: UUID): Future[Unit] = combine[Unit](_.remove(id), _ => Unit)
 
   /**
-    * The method checks whether a particular data lineage graph already exists in the underlying persistence layers.
-    *
-    * @param lineage A checked data lineage
-    * @return An identifier of the checked data lineage if the data lineage exists, otherwise None
-    */
-  override def exists(lineage: DataLineage): Future[Option[UUID]] = combine[Option[UUID]](_.exists(lineage), _.flatten.headOption)
-
-  /**
     * The method gets all data lineages stored in the underlying persistence layers.
     *
     * @return Descriptors of all data lineages
