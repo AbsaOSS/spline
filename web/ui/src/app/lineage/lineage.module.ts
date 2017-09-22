@@ -23,7 +23,6 @@ import {OperationNodeDetailsComponent} from "./operation-node-details/operation-
 import {AttributeListComponent} from "./attribute-list/attribute-list.component";
 import {LineageDAGItemDetailsHeaderComponent} from "./lineage-dag-item-details-header.component";
 import {LineageDAGItemDetailsSectionHeader} from "./lineage-dag-item-details-section-header.component";
-import {MaterialModule} from "@angular/material";
 import {LineageService} from "./lineage.service";
 import {CommonModule} from "@angular/common";
 import {RouterModule} from "@angular/router";
@@ -34,6 +33,11 @@ import {DataTypeViewComponent} from "./data-type-view/data-type-view.component";
 import {ExpressionInlineViewComponent} from "./expression-inline-view.component";
 import {ExpressionViewDialogComponent} from "./expression-view-dialog.component";
 import {AccordionModule} from "primeng/components/accordion/accordion";
+
+import "@angular/material/prebuilt-themes/indigo-pink.css";
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {MaterialModule} from "../material-extension/material.module";
+
 import "primeng/resources/primeng.min.css";
 import "primeng/resources/themes/omega/theme.css";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -42,6 +46,7 @@ import "font-awesome/css/font-awesome.min.css";
 
 @NgModule({
     imports: [
+        NoopAnimationsModule,
         CommonModule,
         RouterModule,
         MaterialModule,
