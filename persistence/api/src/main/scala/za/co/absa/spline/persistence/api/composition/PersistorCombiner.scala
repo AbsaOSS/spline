@@ -17,7 +17,7 @@
 package za.co.absa.spline.persistence.api.composition
 
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import za.co.absa.spline.common.FutureImplicits._
 
 trait PersistorCombiner[TPersistor] {
   protected val persistors : Set[TPersistor]

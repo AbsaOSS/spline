@@ -25,7 +25,7 @@ import za.co.absa.spline.persistence.atlas.conversion.DataLineageToTypeSystemCon
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import za.co.absa.spline.common.FutureImplicits._
 
 
 /**

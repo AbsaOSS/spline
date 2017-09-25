@@ -18,20 +18,20 @@ package za.co.absa.spline.core
 
 import java.util.UUID
 
+import org.apache.hadoop.conf.Configuration
 import za.co.absa.spline.model.Execution
 import za.co.absa.spline.persistence.api.PersistenceFactory
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.util.QueryExecutionListener
-import scala.concurrent.ExecutionContext.Implicits.global
-
-import scala.util.Success
+import za.co.absa.spline.common.FutureImplicits._
+import scala.concurrent.Future
 
 /**
   * The class represents a handler listening on events that Spark triggers when an execution any action is performed. It can be considered as an entry point to Spline library.
   *
   * @param dataStorageFactory A factory of persistence layers
   */
-class DataLineageListener(dataStorageFactory: PersistenceFactory) extends QueryExecutionListener {
+class DataLineageListener(dataStorageFactory: PersistenceFactory, hadoopConfiguration: Configuration) extends QueryExecutionListener {
   private lazy val dataLineagePersistor = dataStorageFactory.createDataLineagePersistor()
   private lazy val executionPersistor = dataStorageFactory.createExecutionPersistor()
 
@@ -59,20 +59,16 @@ class DataLineageListener(dataStorageFactory: PersistenceFactory) extends QueryE
 
   private def processQueryExecution(funcName: String, qe: QueryExecution): Unit = {
     if (funcName == "save") {
-      val lineage = DataLineageHarvester.harvestLineage(qe)
-      dataLineagePersistor.exists(lineage).andThen{
-        case Success(lineageIdOption) => {
-          val lineageId = lineageIdOption match
+      val lineage = DataLineageHarvester.harvestLineage(qe, hadoopConfiguration)
+      dataLineagePersistor.exists(lineage).flatMap( lineageIdOption =>
+          lineageIdOption match
           {
-            case None =>
-              dataLineagePersistor.store(lineage)
-              lineage.id
-            case Some(x) => x
-          }
-          val execution = Execution(UUID.randomUUID(), lineageId, qe.sparkSession.sparkContext.applicationId, System.currentTimeMillis())
-          executionPersistor.store(execution)
-        }
+            case None => dataLineagePersistor.store(lineage).map(_ => lineage.id)
+            case Some(x) => Future.successful(x)
+          }).flatMap(lineageId => {
+              val execution = Execution(UUID.randomUUID(), lineageId, qe.sparkSession.sparkContext.applicationId, System.currentTimeMillis())
+              executionPersistor.store(execution)
+        })
       }
-    }
   }
 }

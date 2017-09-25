@@ -18,6 +18,7 @@ package za.co.absa.spline.core
 
 import java.util.UUID
 
+import org.apache.hadoop.conf.Configuration
 import za.co.absa.spline.model.{DataLineage, OperationNode}
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.QueryExecution
@@ -37,8 +38,8 @@ object DataLineageHarvester {
     * @param queryExecution An instance holding Spark internal structures (logical plan, physical plan, etc.)
     * @return A lineage representation
     */
-  def harvestLineage(queryExecution: QueryExecution): DataLineage = {
-    val nodes = harvestOperationNodes(queryExecution.analyzed)
+  def harvestLineage(queryExecution: QueryExecution, hadoopConfiguration: Configuration): DataLineage = {
+    val nodes = harvestOperationNodes(queryExecution.analyzed, hadoopConfiguration)
     val transformedNodes = transformationPipeline.apply(nodes)
 
     DataLineage(
@@ -48,7 +49,7 @@ object DataLineageHarvester {
     )
   }
 
-  private def harvestOperationNodes(logicalPlan: LogicalPlan): Seq[OperationNode] = {
+  private def harvestOperationNodes(logicalPlan: LogicalPlan, hadoopConfiguration: Configuration): Seq[OperationNode] = {
     val result = mutable.ArrayBuffer[OperationNodeBuilder[_]]()
     val stack = mutable.Stack[(LogicalPlan, Int)]((logicalPlan, -1))
     val visitedNodes = mutable.Map[LogicalPlan, Int]()
@@ -59,7 +60,7 @@ object DataLineageHarvester {
       val currentNode: OperationNodeBuilder[_] = currentPosition match {
         case Some(pos) => result(pos)
         case None =>
-          val newNode = OperationNodeBuilderFactory create currentOperation
+          val newNode = OperationNodeBuilderFactory.create(currentOperation, hadoopConfiguration)
           visitedNodes += (currentOperation -> result.size)
           currentPosition = Some(result.size)
           result += newNode

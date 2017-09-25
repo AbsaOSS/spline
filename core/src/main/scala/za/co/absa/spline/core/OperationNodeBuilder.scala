@@ -20,6 +20,7 @@ import za.co.absa.spline.model._
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation, SaveIntoDataSourceCommand}
 import com.databricks.spark.xml.XmlRelation
+import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.internal.SQLConf
 import org.apache.spark.sql.sources.BaseRelation
 
@@ -36,13 +37,13 @@ private object OperationNodeBuilderFactory {
     * @param logicalPlan An input operation from Spark logical plan
     * @return A specific node builder
     */
-  def create(logicalPlan: LogicalPlan): OperationNodeBuilder[_] = logicalPlan match {
+  def create(logicalPlan: LogicalPlan, hadoopConfiguration: Configuration): OperationNodeBuilder[_] = logicalPlan match {
     case j: Join => new JoinNodeBuilder(j)
     case p: Project => new ProjectionNodeBuilder(p)
     case f: Filter => new FilterNodeBuilder(f)
     case a: SubqueryAlias => new AliasNodeBuilder(a)
-    case sc: SaveIntoDataSourceCommand => new DestinationNodeBuilder(sc)
-    case lr: LogicalRelation => new SourceNodeBuilder(lr)
+    case sc: SaveIntoDataSourceCommand => new DestinationNodeBuilder(sc, hadoopConfiguration)
+    case lr: LogicalRelation => new SourceNodeBuilder(lr, hadoopConfiguration)
     case x => new GenericNodeBuilder(x)
   }
 }
@@ -140,10 +141,14 @@ private class AliasNodeBuilder(val operation: SubqueryAlias) extends OperationNo
   *
   * @param operation An input Spark load operation
   */
-private class SourceNodeBuilder(val operation: LogicalRelation) extends OperationNodeBuilder[LogicalRelation] {
+private class SourceNodeBuilder(val operation: LogicalRelation, hadoopConfiguration: Configuration) extends OperationNodeBuilder[LogicalRelation] {
   def build(): OperationNode = {
     val (sourceType, paths) = getRelationPaths(operation.relation)
-    SourceNode(buildNodeProps(), sourceType, paths)
+    SourceNode(
+      buildNodeProps(),
+      sourceType,
+      paths.map(i => PathUtils.getQualifiedPath(hadoopConfiguration)(i))
+    )
   }
 
   private def getRelationPaths(relation: BaseRelation) : (String, Seq[String]) = relation match {
@@ -163,12 +168,13 @@ private class SourceNodeBuilder(val operation: LogicalRelation) extends Operatio
   *
   * @param operation An input Spark persist operation
   */
-private class DestinationNodeBuilder(val operation: SaveIntoDataSourceCommand) extends OperationNodeBuilder[SaveIntoDataSourceCommand] {
+private class DestinationNodeBuilder(val operation: SaveIntoDataSourceCommand, hadoopConfiguration: Configuration) extends OperationNodeBuilder[SaveIntoDataSourceCommand] {
   def build(): OperationNode = {
     DestinationNode(
       buildNodeProps() copy (output = None), // output is meaningless for a terminal node
       operation.provider,
-      operation.options.getOrElse("path", ""))
+      PathUtils.getQualifiedPath(hadoopConfiguration)(operation.options.getOrElse("path", ""))
+    )
   }
 }
 
