@@ -26,7 +26,7 @@ import za.co.absa.spline.persistence.api.{DataLineageHashResolver, DataLineagePe
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import za.co.absa.spline.common.FutureImplicits._
 
 /**
   * The class represents Mongo persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.

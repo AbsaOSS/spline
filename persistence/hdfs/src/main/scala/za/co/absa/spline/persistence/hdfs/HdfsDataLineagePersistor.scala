@@ -23,8 +23,8 @@ import org.apache.hadoop.fs.permission.FsPermission
 import org.apache.hadoop.fs.{FileSystem, Path}
 import za.co.absa.spline.model.{DataLineage, DataLineageDescriptor, DestinationNode, OperationNode}
 import za.co.absa.spline.persistence.api.DataLineagePersistor
+import za.co.absa.spline.common.FutureImplicits._
 import za.co.absa.spline.persistence.hdfs.serialization.JSONSerialization
-import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Future
 

@@ -32,18 +32,19 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
   import sparkSession.implicits._
 
   private val initialDataFrame = sparkSession.createDataset(Seq(DataLineageHarvesterSpecTestRow(1, 2.3, "text")))
+  private val hadoopConfiguration = sparkSession.sparkContext.hadoopConfiguration
 
   "When harvest method is called with an empty data frame" should "return a data lineage with one node." in {
     assertDataLineage(
       Seq(GenericNode(NodeProps("LogicalRDD", "", Seq.empty[Attributes], Attributes(Seq.empty[Attribute]), Seq.empty[Int], Seq.empty[Int]))),
-      DataLineageHarvester.harvestLineage(sparkSession.emptyDataFrame.queryExecution))
+      DataLineageHarvester.harvestLineage(sparkSession.emptyDataFrame.queryExecution, hadoopConfiguration))
   }
 
   "When harvest method is called with a simple non-empty data frame" should "return a data lineage with one node." in {
     val df = initialDataFrame
     val expectedGraph = Seq(GenericNode(NodeProps("LocalRelation", "", Seq.empty[Attributes], Attributes(Seq(Attribute(1l, "i", SimpleType("integer", false)), Attribute(2l, "d", SimpleType("double", false)), Attribute(3l, "s", SimpleType("string", true)))), Seq.empty[Int], Seq.empty[Int])))
 
-    val givenLineage = DataLineageHarvester.harvestLineage(df.queryExecution)
+    val givenLineage = DataLineageHarvester.harvestLineage(df.queryExecution, hadoopConfiguration)
 
     assertDataLineage(expectedGraph, givenLineage)
   }
@@ -58,7 +59,7 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
       GenericNode(NodeProps("LocalRelation", "", Seq.empty[Attributes], Attributes(Seq(Attribute(1l, "i", SimpleType("integer", false)), Attribute(2l, "d", SimpleType("double", false)), Attribute(3l, "s", SimpleType("string", true)))), Seq(1), Seq.empty[Int]))
     )
 
-    val givenLineage = DataLineageHarvester.harvestLineage(df.queryExecution)
+    val givenLineage = DataLineageHarvester.harvestLineage(df.queryExecution, hadoopConfiguration)
 
     assertDataLineage(expectedGraph, givenLineage)
   }
@@ -77,7 +78,7 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
       FilterNode(NodeProps("Filter", "", Seq(attributes), attributes, Seq(0), Seq(2)), null)
     )
 
-    val givenLineage = DataLineageHarvester.harvestLineage(df.queryExecution)
+    val givenLineage = DataLineageHarvester.harvestLineage(df.queryExecution, hadoopConfiguration)
 
     assertDataLineage(expectedGraph, givenLineage)
   }
@@ -100,7 +101,7 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
       ProjectionNode(NodeProps("Project", "", Seq(initialAttributes), projectedAttributes, Seq(3), Seq(2)), null)
     )
 
-    val givenLineage = DataLineageHarvester.harvestLineage(df.queryExecution)
+    val givenLineage = DataLineageHarvester.harvestLineage(df.queryExecution, hadoopConfiguration)
 
     assertDataLineage(expectedGraph, givenLineage)
   }
