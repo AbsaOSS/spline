@@ -16,22 +16,20 @@
 
 package za.co.absa.spline.persistence.atlas
 
-import java.util.UUID
-
 import org.apache.atlas.hook.AtlasHook
-import za.co.absa.spline.model.{DataLineage, DataLineageDescriptor}
-import za.co.absa.spline.persistence.api.DataLineagePersistor
+import za.co.absa.spline.common.FutureImplicits._
+import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.persistence.api.DataLineageWriter
 import za.co.absa.spline.persistence.atlas.conversion.DataLineageToTypeSystemConverter
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
-import za.co.absa.spline.common.FutureImplicits._
 
 
 /**
   * The class represents Atlas persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
   */
-class AtlasDataLineagePersistor extends AtlasHook with DataLineagePersistor {
+class AtlasDataLineageWriter extends AtlasHook with DataLineageWriter {
 
   override def getNumberOfRetriesPropertyKey: String = "atlas.hook.spline.numRetries"
 
@@ -44,26 +42,4 @@ class AtlasDataLineagePersistor extends AtlasHook with DataLineagePersistor {
     val entityCollections = DataLineageToTypeSystemConverter.convert(lineage)
     this.notifyEntities("Anonymous", entityCollections.asJava)
   }
-
-  /**
-    * The method loads a particular data lineage from the persistence layer.
-    *
-    * @param id An unique identifier of a data lineage
-    * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
-    */
-  override def load(id: UUID): Future[Option[DataLineage]] = Future.failed(new UnsupportedOperationException())
-
-  /**
-    * The method removes a particular data lineage from the persistence layer.
-    *
-    * @param id An unique identifier of a data lineage
-    */
-  override def remove(id: UUID): Future[Unit] = Future.failed(new UnsupportedOperationException())
-
-  /**
-    * The method gets all data lineages stored in persistence layer.
-    *
-    * @return Descriptors of all data lineages
-    */
-  override def list(): Future[Iterator[DataLineageDescriptor]] = Future.failed(new UnsupportedOperationException())
 }

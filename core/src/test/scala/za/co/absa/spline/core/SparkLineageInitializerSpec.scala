@@ -26,7 +26,7 @@ class SparkLineageInitializerSpec extends FlatSpec with BeforeAndAfterEach with 
   private val jvmProps = System.getProperties
 
   jvmProps.setProperty("spark.master", "local")
-  jvmProps.setProperty(persistenceFactoryKey, classOf[MockPersistenceFactory].getName)
+  jvmProps.setProperty(persistenceFactoryKey, classOf[MockPersistenceWriterFactory].getName)
 
   override protected def afterEach(): Unit = SparkSession.builder.getOrCreate.stop
 

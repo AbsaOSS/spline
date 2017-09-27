@@ -16,13 +16,10 @@
 
 package za.co.absa.spline.core.transformations
 
-import java.util.UUID.randomUUID
-
 import org.scalatest.{FlatSpec, Matchers}
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.expr.{Alias, AttrRef, Expression, Generic}
-import za.co.absa.spline.model.op.{Join, NodeProps, Projection}
 
 class ProjectionMergerSpec extends FlatSpec with Matchers {
 

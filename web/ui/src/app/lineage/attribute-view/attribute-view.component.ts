@@ -15,7 +15,7 @@
  */
 
 import {Component, EventEmitter, Input, OnInit, Output} from "@angular/core";
-import {IArrayType, IAttribute, IDataType, IStructType} from "../../../generated-ts/lineage-model";
+import {IArray, IAttribute, IDataType, IStruct} from "../../../generated-ts/lineage-model";
 import * as _ from "lodash";
 import {TreeNode} from "angular-tree-component";
 import {typeOfDataType} from "../types";
@@ -57,11 +57,11 @@ export class AttributeViewComponent implements OnInit {
         function buildChildren(dt: IDataType): (any[] | undefined) {
             let dtt = typeOfDataType(dt)
             return (dtt == "SimpleType") ? undefined
-                : (dtt == "StructType") ? buildChildrenForStructType(<IStructType> dt)
-                    : buildChildren((<IArrayType> dt).elementDataType)
+                : (dtt == "StructType") ? buildChildrenForStructType(<IStruct> dt)
+                    : buildChildren((<IArray> dt).elementDataType)
         }
 
-        function buildChildrenForStructType(sdt: IStructType): any[] {
+        function buildChildrenForStructType(sdt: IStruct): any[] {
             let fieldsToDisplayCount = sdt.fields.length - subFieldCountDisplayThresholdRelax > subFieldCountDisplayThreshold
                 ? subFieldCountDisplayThreshold
                 : sdt.fields.length

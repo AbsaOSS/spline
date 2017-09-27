@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {IOperationNode, IExpression, IDataType} from "../../generated-ts/lineage-model";
+import {IOperation, IExpression, IDataType} from "../../generated-ts/lineage-model";
 
 export type NodeType =
     ( "ProjectionNode"
@@ -42,7 +42,7 @@ export type DataTypeType =
     )
 
 
-export function typeOfNode(node: IOperationNode): NodeType {
+export function typeOfNode(node: IOperation): NodeType {
     return typeOfAny(node)
 }
 

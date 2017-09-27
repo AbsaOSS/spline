@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.model
+package za.co.absa.spline.core
 
-import java.util.UUID
+import org.apache.commons.configuration.Configuration
+import org.scalatest.mockito.MockitoSugar
+import za.co.absa.spline.persistence.api.{DataLineageWriter, PersistenceWriterFactory}
 
-/**
-  * The case class represents a basic descriptor containing all necessary information to identify a specific data lineage.
-  *
-  * @param dataLineageId An unique identifier of the data lineage
-  * @param appId      An unique identifier of the application run
-  * @param appName    A name of the Spark application that data lineage is derived from
-  * @param timestamp  A timestamp describing when the application was executed
-  */
-case class DataLineageDescriptor
-(
-  dataLineageId: UUID,
-  appId: String,
-  appName: String,
-  timestamp: Long
-)
+class MockPersistenceWriterFactory(conf: Configuration) extends PersistenceWriterFactory(conf) with MockitoSugar {
+  private val mockDataLineageWriter = mock[DataLineageWriter]
+
+  override def createDataLineageWriter(): DataLineageWriter = mockDataLineageWriter
+}

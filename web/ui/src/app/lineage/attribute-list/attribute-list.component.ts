@@ -25,7 +25,7 @@ import * as _ from "lodash";
 })
 export class AttributeListComponent {
     @Input() attrs: IAttribute[]
-    @Input() selectedAttrIDs: number[]
+    @Input() selectedAttrIDs: string[]
 
     @Output() attributeSelected = new EventEmitter<IAttribute>()
     @Output() fullAttributeSchemaClicked = new EventEmitter<IAttribute>()

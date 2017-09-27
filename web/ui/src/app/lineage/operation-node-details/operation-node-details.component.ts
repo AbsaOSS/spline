@@ -15,7 +15,7 @@
  */
 
 import {Component, Input, OnChanges, SimpleChanges, EventEmitter, Output} from "@angular/core";
-import {IOperationNode, IAttribute, IExpression} from "../../../generated-ts/lineage-model";
+import {IOperation, IAttribute, IExpression} from "../../../generated-ts/lineage-model";
 import {NodeType, typeOfNode, typeOfExpr} from "../types";
 import {Icon} from "../icon";
 
@@ -28,7 +28,7 @@ import {Icon} from "../icon";
     ]
 })
 export class OperationNodeDetailsComponent implements OnChanges {
-    @Input() node: IOperationNode
+    @Input() node: IOperation
     @Input() selectedAttrIDs: number[]
 
     @Output() attributeSelected = new EventEmitter<IAttribute>()

@@ -20,7 +20,7 @@ import java.util.UUID
 
 import com.mongodb.casbah.Imports._
 import _root_.salat._
-import za.co.absa.spline.model.{DataLineage, DataLineageDescriptor}
+import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
 import za.co.absa.spline.persistence.api.DataLineageReader
 import scala.collection.JavaConverters._
 import za.co.absa.spline.common.FutureImplicits._
@@ -51,11 +51,11 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     *
     * @return Descriptors of all data lineages
     */
-  override def list(): Future[Iterator[DataLineageDescriptor]] = Future {
+  override def list(): Future[Iterator[PersistedDatasetDescriptor]] = Future {
     connection.dataLineageCollection
-      .find(DBObject(), DBObject("_id" -> 1, "_ver" -> 1, "appID" -> 1, "appName" -> 1, "timestamp" -> 1))
+      .find(DBObject(), DBObject("_id" -> 1, "_ver" -> 1, "appId" -> 1, "appName" -> 1, "timestamp" -> 1))
       .iterator.asScala
-      .map(withVersionCheck(grater[DataLineageDescriptor].asObject(_)))
+      .map(withVersionCheck(grater[PersistedDatasetDescriptor].asObject(_)))
   }
 
   private def withVersionCheck[T](f: DBObject => T): DBObject => T =

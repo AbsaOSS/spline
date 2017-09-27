@@ -17,8 +17,8 @@
 package za.co.absa.spline.persistence.mongo
 
 import java.util.UUID.randomUUID
+
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterEach, Matchers}
-import za.co.absa.spline.common.OptionImplicits._
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op.{Generic, OperationProps}
 import za.co.absa.spline.model.{Attribute, Schema, _}
@@ -29,7 +29,7 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFlatSpec with Ma
   protected val mongoWriter = new MongoDataLineageWriter(mongoConnection)
   protected val mongoReader = new MongoDataLineageReader(mongoConnection)
 
-  protected def createDataLineage(appID : String, appName: String) : DataLineage = {
+  protected def createDataLineage(appId : String, appName: String) : DataLineage = {
     val attributes = Seq(
       Attribute(randomUUID(), "_1", Simple("StringType", nullable = true)),
       Attribute(randomUUID(), "_2", Simple("StringType", nullable = true)),
@@ -45,7 +45,7 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFlatSpec with Ma
 
     DataLineage(
       randomUUID,
-      appID,
+      appId,
       appName,
       123L,
       Seq(

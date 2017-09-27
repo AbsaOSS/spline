@@ -16,20 +16,30 @@
 
 package za.co.absa.spline.persistence.mongo
 
-import za.co.absa.spline.model.DataLineageDescriptor
+import java.net.URL
+
+import za.co.absa.spline.model.PersistedDatasetDescriptor
+import za.co.absa.spline.model.op.Destination
 
 import scala.concurrent.Future
 
 class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase{
   "List method" should "load descriptions from a database." in {
-    val testData = Seq(
+    val testLineages = Seq(
       createDataLineage("appID1", "appName1"),
       createDataLineage("appID2", "appName2"),
       createDataLineage("appID3", "appName3")
     )
-    val expectedDescriptions = testData.map(i => DataLineageDescriptor(i.id, i.appID, i.appName, i.timestamp))
-    val descriptions = Future.sequence(testData.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.list().map(_.toSeq))
+    val expectedDescriptors = testLineages.map(l => PersistedDatasetDescriptor(
+      datasetId = l.rootDataset.id,
+      appId = l.appId,
+      appName = l.appName,
+      lineageId = l.id,
+      path = new URL(l.rootNode.asInstanceOf[Destination].path),
+      timestamp = l.timestamp))
 
-    descriptions.map(i => i should contain allElementsOf expectedDescriptions)
+    val descriptions = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.list().map(_.toSeq))
+
+    descriptions.map(i => i should contain allElementsOf expectedDescriptors)
   }
 }

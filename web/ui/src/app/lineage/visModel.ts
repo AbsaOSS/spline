@@ -15,7 +15,7 @@
  */
 
 import {
-    IOperationNode,
+    IOperation,
     IAliasNode,
     IJoinNode,
     IFilterNode,
@@ -101,14 +101,14 @@ export class HighlightedVisClusterNode extends VisClusterNode {
 
 export class VisNodeBuilder {
     id: number;
-    node: IOperationNode;
+    node: IOperation;
     caption: string;
     type: NodeType;
     alias: string;
     parents: number[];
     nodeType: VisNodeType;
 
-    constructor(id: number, originalNode: IOperationNode, nodeType: VisNodeType = VisNodeType.Regular) {
+    constructor(id: number, originalNode: IOperation, nodeType: VisNodeType = VisNodeType.Regular) {
         this.id = id;
         this.node = originalNode;
         this.caption = originalNode.mainProps.name;
