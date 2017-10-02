@@ -40,7 +40,7 @@ object AtlasPersistenceFactory {
   *
   * @param configuration A source of settings
   */
-class AtlasPersistenceFactory(configuration: Configuration) extends PersistenceFactory(configuration) {
+class AtlasPersistenceFactory(configuration: Configuration) extends PersistenceWriterFactory(configuration) {
 
   import AtlasPersistenceFactory._
 
@@ -79,12 +79,6 @@ class AtlasPersistenceFactory(configuration: Configuration) extends PersistenceF
     *
     * @return A persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  override def createDataLineagePersistor(): DataLineagePersistor = new AtlasDataLineagePersistor
+  override def createDataLineageWriter(): DataLineageWriter = new AtlasDataLineagePersistor
 
-  /**
-    * The method creates a persistence layer for the [[Execution Execution]] entity.
-    *
-    * @return A persistence layer for the [[Execution Execution]] entity
-    */
-  override def createExecutionPersistor(): ExecutionPersistor = new NopExecutionPersistor
 }
