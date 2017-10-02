@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.api.composition
+package za.co.absa.spline.persistence.mongo
 
-import scala.concurrent.Future
-import za.co.absa.spline.common.FutureImplicits._
+class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase{
+  "Store method" should "store data lineage to a database." in {
+    val lineage = createDataLineage("appID", "appName")
 
-trait PersistorCombiner[TPersistor] {
-  protected val persistors : Set[TPersistor]
+    val storedLineage = mongoWriter.store(lineage).flatMap(_ => mongoReader.load(lineage.id))
 
-  def combine[TResult](function: TPersistor => Future[TResult], combiner: Iterable[TResult] => TResult): Future[TResult] = {
-    Future.sequence(persistors.map(function)).map(combiner)
+    storedLineage map (i => i shouldEqual Option(lineage))
   }
 }

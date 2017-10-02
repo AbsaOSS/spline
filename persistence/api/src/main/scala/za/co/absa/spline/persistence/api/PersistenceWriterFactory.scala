@@ -17,26 +17,19 @@
 package za.co.absa.spline.persistence.api
 
 import org.apache.commons.configuration.Configuration
-import za.co.absa.spline.model.deprecated.Execution
 
 /**
-  * The abstract class represents a factory creating persistence layers for all main data lineage entities.
+  * The abstract class represents a factory of persistence writers for all main data lineage entities.
   *
   * @param configuration A source of settings
   */
-abstract class PersistenceFactory(protected val configuration : Configuration) {
+abstract class PersistenceWriterFactory(protected val configuration : Configuration) {
 
   /**
-    * The method creates a persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
+    * The method creates a writer to the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
-    * @return A persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    * @return A writer to the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  def createDataLineagePersistor(): DataLineagePersistor
+  def createDataLineageWriter(): DataLineageWriter
 
-  /**
-    * The method creates a persistence layer for the [[Execution Execution]] entity.
-    *
-    * @return A persistence layer for the [[Execution Execution]] entity
-    */
-  def createExecutionPersistor(): ExecutionPersistor
 }

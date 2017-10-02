@@ -16,14 +16,20 @@
 
 package za.co.absa.spline.persistence.mongo
 
-import org.apache.commons.configuration.SystemConfiguration
+import com.mongodb.casbah.Imports.MongoClientURI
+import com.mongodb.casbah.MongoClient
 
-object MongoTestProperties {
+/**
+  * The class represents a connection to a specific Mongo database
+  * @param dbUrl An url to Mongo server
+  * @param dbName A database name
+  */
+class MongoConnection(dbUrl: String, dbName: String) {
+  val dataLineageCollectionName: String = "lineages"
+  val LATEST_SERIAL_VERSION = 1
 
-  import za.co.absa.spline.common.ConfigurationImplicits._
+  private lazy val client: MongoClient = MongoClient(MongoClientURI(dbUrl))
+  private lazy val database = client.getDB(dbName)
 
-  private val mongoDBUri: String = new SystemConfiguration() getRequiredString "test.spline.mongodb.url"
-  private val mongoDBName: String = new SystemConfiguration() getRequiredString "test.spline.mongodb.name"
-
-  val mongoConnection: MongoConnection = new MongoConnection(mongoDBUri, mongoDBName)
+  lazy val dataLineageCollection = database.getCollection(dataLineageCollectionName)
 }

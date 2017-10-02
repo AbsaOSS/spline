@@ -18,6 +18,11 @@ package za.co.absa.spline.model
 
 import java.util.UUID
 
+/**
+  * The case class represents a data set descriptor
+  * @param id An unique identifier
+  * @param schema A data set schema
+  */
 case class MetaDataset
 (
   id: UUID,
