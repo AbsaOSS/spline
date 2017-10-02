@@ -33,7 +33,7 @@ case class OperationProps
   id: UUID,
   name: String,
   inputs: Seq[UUID],
-  output: Option[UUID]
+  output: UUID
 )
 
 /**

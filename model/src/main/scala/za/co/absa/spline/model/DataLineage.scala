@@ -24,7 +24,7 @@ import za.co.absa.spline.model.op.Operation
   * The case class represents a partial data lineage graph of a Spark dataset(s).
   *
   * @param id         An unique identifier of the data lineage
-  * @param appID      An unique identifier of the application run
+  * @param appId      An unique identifier of the application run
   * @param appName    A name of the Spark application
   * @param timestamp  A timestamp describing when the application was executed
   * @param operations A sequence of nodes representing the data lineage graph
@@ -34,7 +34,7 @@ import za.co.absa.spline.model.op.Operation
 case class DataLineage
 (
   id: UUID,
-  appID: String,
+  appId: String,
   appName: String,
   timestamp: Long,
   operations: Seq[Operation],
@@ -43,7 +43,6 @@ case class DataLineage
 ) {
   require(operations.nonEmpty, "list of operations cannot be empty")
   require(datasets.nonEmpty, "list of datasets cannot be empty")
-  require(attributes.nonEmpty, "list of attributes cannot be empty")
 
   /**
     * A method returning the root node of a DAG.
