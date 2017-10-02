@@ -20,13 +20,12 @@ import org.apache.commons.configuration.Configuration
 import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.fs.permission.FsPermission
 import org.apache.spark.SparkContext
-import za.co.absa.spline.model.deprecated.Execution
 import za.co.absa.spline.persistence.api._
 
 /**
-  * The object contains static information about settings needed for initialization of the HdfsPersistenceFactory class.
+  * The object contains static information about settings needed for initialization of the HdfsPersistenceWriterFactory class.
   */
-object HdfsPersistenceFactory {
+object HdfsPersistenceWriterFactory {
   val fileNameKey = "spline.hdfs.file.name"
   val filePermissionsKey = "spline.hdfs.file.permissions"
 }
@@ -36,27 +35,20 @@ object HdfsPersistenceFactory {
   *
   * @param configuration A source of settings
   */
-class HdfsPersistenceFactory(configuration: Configuration) extends PersistenceFactory(configuration){
+class HdfsPersistenceWriterFactory(configuration: Configuration) extends PersistenceWriterFactory(configuration) {
 
-  import za.co.absa.spline.common.ConfigurationImplicits._
-  import HdfsPersistenceFactory._
+  import HdfsPersistenceWriterFactory._
 
   private val hadoopConfiguration = SparkContext.getOrCreate().hadoopConfiguration
-  private lazy val fileName = configuration getString (fileNameKey, "_LINEAGE")
-  private val defaultFilePermissions = FsPermission.getFileDefault().applyUMask(FsPermission.getUMask(FileSystem.get(hadoopConfiguration).getConf))
-  private lazy val filePermissions = new FsPermission(configuration getString (filePermissionsKey, defaultFilePermissions.toShort.toString))
+  private lazy val fileName = configuration getString(fileNameKey, "_LINEAGE")
+  private val defaultFilePermissions = FsPermission.getFileDefault.applyUMask(FsPermission.getUMask(FileSystem.get(hadoopConfiguration).getConf))
+  private lazy val filePermissions = new FsPermission(configuration getString(filePermissionsKey, defaultFilePermissions.toShort.toString))
 
   /**
     * The method creates a persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
     * @return A persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  override def createDataLineagePersistor(): DataLineagePersistor = new HdfsDataLineagePersistor(hadoopConfiguration, fileName, filePermissions)
+  override def createDataLineageWriter(): DataLineageWriter = new HdfsDataLineageWriter(hadoopConfiguration, fileName, filePermissions)
 
-  /**
-    * The method creates a persistence layer for the [[Execution Execution]] entity.
-    *
-    * @return A persistence layer for the [[Execution Execution]] entity
-    */
-  override def createExecutionPersistor(): ExecutionPersistor = new NopExecutionPersistor
 }

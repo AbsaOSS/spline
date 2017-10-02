@@ -109,10 +109,9 @@ sealed private trait OperationNodeBuilder[OpType <: LogicalPlan] extends DataTyp
   def createOutputAttributes(operation: LogicalPlan) = Some(
     Schema(operation.output.map(i => ??? /*Attribute(i.exprId.id, i.name, fromSparkDataType(i.dataType, i.nullable))*/)))
 
-  protected def buildNodeProps() = op.NodeProps(
+  protected def buildOperationProps() = op.OperationProps(
     randomUUID,
     operation.nodeName,
-    operation.verboseString,
     ???, //input.result,
     ??? //output
     //    parentRefs.result,
@@ -127,7 +126,7 @@ sealed private trait OperationNodeBuilder[OpType <: LogicalPlan] extends DataTyp
   * @param operation An input Spark operation
   */
 private class GenericNodeBuilder(val operation: LogicalPlan) extends OperationNodeBuilder[LogicalPlan] {
-  def build(): op.Operation = op.Generic(buildNodeProps())
+  def build(): op.Operation = op.Generic(buildOperationProps(), ???)
 }
 
 
@@ -137,7 +136,7 @@ private class GenericNodeBuilder(val operation: LogicalPlan) extends OperationNo
   * @param operation An input Spark alias operation
   */
 private class AliasNodeBuilder(val operation: SubqueryAlias) extends OperationNodeBuilder[SubqueryAlias] {
-  def build(): op.Operation = op.Alias(buildNodeProps(), operation.alias)
+  def build(): op.Operation = op.Alias(buildOperationProps(), operation.alias)
 }
 
 /**
@@ -149,7 +148,7 @@ private class SourceNodeBuilder(val operation: LogicalRelation, hadoopConfigurat
   def build(): op.Operation = {
     val (sourceType, paths) = getRelationPaths(operation.relation)
     op.Source(
-      buildNodeProps(),
+      buildOperationProps(),
       sourceType,
       paths.map(i => PathUtils.getQualifiedPath(hadoopConfiguration)(i))
     )
@@ -175,7 +174,7 @@ private class SourceNodeBuilder(val operation: LogicalRelation, hadoopConfigurat
 private class DestinationNodeBuilder(val operation: SaveIntoDataSourceCommand, hadoopConfiguration: Configuration) extends OperationNodeBuilder[SaveIntoDataSourceCommand] {
   def build(): op.Operation = {
     op.Destination(
-      buildNodeProps() copy (output = None), // output is meaningless for a terminal node
+      buildOperationProps() copy (output = ???), // For a side effect only operation, output should be the same as input
       operation.provider,
       PathUtils.getQualifiedPath(hadoopConfiguration)(operation.options.getOrElse("path", ""))
     )
@@ -195,7 +194,7 @@ private class ProjectionNodeBuilder(val operation: Project) extends OperationNod
       .union(resolveAttributeRemovals())
 
     op.Projection(
-      buildNodeProps(),
+      buildOperationProps(),
       transformations)
   }
 
@@ -218,7 +217,7 @@ private class ProjectionNodeBuilder(val operation: Project) extends OperationNod
   */
 private class FilterNodeBuilder(val operation: Filter) extends OperationNodeBuilder[Filter] with ExpressionMapper {
   def build(): op.Operation = op.Filter(
-    buildNodeProps(),
+    buildOperationProps(),
     operation.condition)
 }
 
@@ -230,7 +229,7 @@ private class FilterNodeBuilder(val operation: Filter) extends OperationNodeBuil
 private class JoinNodeBuilder(val operation: Join) extends OperationNodeBuilder[Join] with ExpressionMapper {
   def build(): op.Operation = {
     op.Join(
-      buildNodeProps(),
+      buildOperationProps(),
       operation.condition map fromSparkExpression,
       operation.joinType.toString)
   }

@@ -83,7 +83,7 @@ object DataLineageToTypeSystemConverter {
             i._2,
             i._1.mainProps.name,
             i._1.mainProps.name + operationIdSuffix + hashSuffix,
-            i._1.mainProps.rawString,
+            ???,
             ??? //i._1.mainProps.childRefs
           )
           i._1 match {

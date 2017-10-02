@@ -15,7 +15,7 @@
  */
 
 import {Component, Input, OnChanges, SimpleChanges, ElementRef, Output, EventEmitter} from "@angular/core";
-import {IDataLineage, IOperationNode} from "../../generated-ts/lineage-model";
+import {IDataLineage, IOperation} from "../../generated-ts/lineage-model";
 import {VisNodeBuilder, VisModel, VisEdge, VisNodeType, VisClusterNodeBuilder, VisClusterNode, VisNode} from "./visModel";
 import {ClusterOptions, DataSet} from "vis";
 import {Network} from "vis";
@@ -32,7 +32,7 @@ export class LineageGraphComponent implements OnChanges {
     @Input() selectedNodeID: number;
     @Input() highlightedNodeIDs: number[];
 
-    @Output() nodeSelected = new EventEmitter<IOperationNode>();
+    @Output() nodeSelected = new EventEmitter<IOperation>();
 
     private network: Network;
     private graph: VisModel;
@@ -86,7 +86,7 @@ export class LineageGraphComponent implements OnChanges {
 
     private refreshHighlightedNodes() {
         let visNodeBuilders: VisNodeBuilder[] =
-            this.lineage.nodes.map((node, i) => {
+            this.lineage.operations.map((node, i) => {
                 let visNodeType = _.includes(this.highlightedNodeIDs, i)
                     ? VisNodeType.Highlighted
                     : VisNodeType.Regular;
@@ -147,7 +147,7 @@ export class LineageGraphComponent implements OnChanges {
                 this.network.openCluster(selectedNodeId);
                 this.refreshSelectedNode();
             }else{
-                this.nodeSelected.emit(this.lineage.nodes[selectedNodeId])
+                this.nodeSelected.emit(this.lineage.operations[selectedNodeId])
             }
         });
 
@@ -184,11 +184,11 @@ export class LineageGraphComponent implements OnChanges {
     private static lineageToGraph(lineage: IDataLineage): VisModel {
         let nodes: VisNodeBuilder[] = [];
         let edges: VisEdge[] = [];
-        for (let i = 0; i < lineage.nodes.length; i++) {
-            let originalNode = lineage.nodes[i];
+        for (let i = 0; i < lineage.operations.length; i++) {
+            let originalNode = lineage.operations[i];
             nodes.push(new VisNodeBuilder(i, originalNode));
             originalNode.mainProps.childRefs.forEach(c => {
-                let output = lineage.nodes[c].mainProps.output;
+                let output = lineage.operations[c].mainProps.output;
                 if (output) {
                     edges.push(new VisEdge(c, i, '[' + output.seq.map(i => i.name).join(', ') + ']'))
                 }

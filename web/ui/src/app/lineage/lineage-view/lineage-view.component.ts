@@ -16,7 +16,7 @@
 
 import {Component, OnInit} from "@angular/core";
 import {ActivatedRoute, Router} from "@angular/router";
-import {IAttribute, IDataLineage, IOperationNode} from "../../../generated-ts/lineage-model";
+import {IAttribute, IDataLineage, IOperation} from "../../../generated-ts/lineage-model";
 import * as _ from "lodash";
 import {typeOfNode} from "../types";
 import {LineageService} from "../lineage.service";
@@ -35,10 +35,10 @@ export class LineageViewComponent implements OnInit {
     }
 
     lineage: IDataLineage
-    selectedNodeID: number
-    selectedAttrIDs: number[]
+    selectedNodeID: string
+    selectedAttrIDs: string[]
     attributeToShowFullSchemaFor: IAttribute
-    highlightedNodeIDs: number[]
+    highlightedNodeIDs: string[]
 
     selectedTabIndex: number = 0
 
@@ -82,7 +82,7 @@ export class LineageViewComponent implements OnInit {
 
     getSelectedNode() {
         return (this.selectedNodeID >= 0)
-            ? this.lineage.nodes[this.selectedNodeID]
+            ? this.lineage.operations[this.selectedNodeID]
             : undefined
     }
 
@@ -92,7 +92,7 @@ export class LineageViewComponent implements OnInit {
     }
 
     getDataSourceCount() {
-        return this.lineage.nodes.filter(node => typeOfNode(node) == 'SourceNode').length
+        return this.lineage.operations.filter(node => typeOfNode(node) == 'SourceNode').length
     }
 
     private clearData() {
@@ -103,7 +103,7 @@ export class LineageViewComponent implements OnInit {
         this.highlightedNodeIDs = []
     }
 
-    private setData(lineage: IDataLineage, nodeId: number, attrIDs: number[], showFullSchemaForAttrID: number | undefined) {
+    private setData(lineage: IDataLineage, nodeId: string, attrIDs: string[], showFullSchemaForAttrID: string | undefined) {
         this.lineage = lineage
         this.selectedNodeID = nodeId
         this.selectedAttrIDs = attrIDs
@@ -111,7 +111,7 @@ export class LineageViewComponent implements OnInit {
         this.attributeToShowFullSchemaFor = this.findAttrByID(showFullSchemaForAttrID)
 
         this.highlightedNodeIDs =
-            _.flatMap(this.lineage.nodes, (node, i) => {
+            _.flatMap(this.lineage.operations, (node, i) => {
                 let nodeProps = node.mainProps
                 let inputAttrs: IAttribute[] = _.flatMap(nodeProps.inputs, (input => input.seq))
                 let outputAttrs: IAttribute[] = nodeProps.output ? nodeProps.output.seq : []
@@ -124,7 +124,7 @@ export class LineageViewComponent implements OnInit {
         if (_.isUndefined(attrID))
             return undefined
         else {
-            for (let node of this.lineage.nodes) {
+            for (let node of this.lineage.operations) {
                 let attr = _(node.mainProps.inputs.concat(node.mainProps.output || []))
                     .flatMap(input => input.seq)
                     .find(attr => attr.id == attrID)
@@ -142,10 +142,10 @@ export class LineageViewComponent implements OnInit {
         this.selectedTabIndex = e.index
     }
 
-    onNodeSelected(node: IOperationNode) {
+    onNodeSelected(node: IOperation) {
         this.router.navigate(
             (node)
-                ? [this.lineage.id, "node", this.lineage.nodes.indexOf(node)]
+                ? [this.lineage.id, "node", this.lineage.operations.indexOf(node)]
                 : [this.lineage.id],
             {
                 relativeTo: this.route.parent,

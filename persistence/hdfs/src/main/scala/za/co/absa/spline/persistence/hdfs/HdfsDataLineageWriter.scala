@@ -16,15 +16,13 @@
 
 package za.co.absa.spline.persistence.hdfs
 
-import java.util.UUID
-
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.permission.FsPermission
 import org.apache.hadoop.fs.{FileSystem, Path}
 import za.co.absa.spline.common.FutureImplicits._
+import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.model.op.Destination
-import za.co.absa.spline.model.{DataLineage, DataLineageDescriptor}
-import za.co.absa.spline.persistence.api.DataLineagePersistor
+import za.co.absa.spline.persistence.api.DataLineageWriter
 import za.co.absa.spline.persistence.hdfs.serialization.JSONSerialization
 
 import scala.concurrent.Future
@@ -32,7 +30,7 @@ import scala.concurrent.Future
 /**
   * The class represents persistence layer that persists the [[za.co.absa.spline.model.DataLineage DataLineage]] entity to a file on HDFS.
   */
-class HdfsDataLineagePersistor(hadoopConfiguration: Configuration, fileName: String, filePermissions: FsPermission) extends DataLineagePersistor {
+class HdfsDataLineageWriter(hadoopConfiguration: Configuration, fileName: String, filePermissions: FsPermission) extends DataLineageWriter {
   /**
     * The method stores a particular data lineage to the persistence layer.
     *
@@ -68,26 +66,4 @@ class HdfsDataLineagePersistor(hadoopConfiguration: Configuration, fileName: Str
       case dn: Destination => Some(new Path(dn.path, fileName))
       case _ => None
     }
-
-  /**
-    * The method loads a particular data lineage from the persistence layer.
-    *
-    * @param id An unique identifier of a data lineage
-    * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
-    */
-  override def load(id: UUID): Future[Option[DataLineage]] = Future.failed(new UnsupportedOperationException())
-
-  /**
-    * The method removes a particular data lineage from the persistence layer.
-    *
-    * @param id An unique identifier of a data lineage
-    */
-  override def remove(id: UUID): Future[Unit] = Future.failed(new UnsupportedOperationException())
-
-  /**
-    * The method gets all data lineages stored in persistence layer.
-    *
-    * @return Descriptors of all data lineages
-    */
-  override def list(): Future[Iterator[DataLineageDescriptor]] = Future.failed(new UnsupportedOperationException())
 }
