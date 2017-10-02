@@ -27,7 +27,7 @@ import scala.collection.JavaConverters._
 /**
   * The case case represents common properties for all expression types
   * @param qualifiedName An unique expression
-  * @param textualRepresentation A textual representation of the expression
+  * @param text A textual representation of the expression
   * @param expressionType A type of the expression
   * @param dataType A data type associated with the expression
   * @param children A sequence of sub-expressions
@@ -35,7 +35,7 @@ import scala.collection.JavaConverters._
 case class ExpressionCommonProperties
 (
   qualifiedName : String,
-  textualRepresentation: String,
+  text: String,
   expressionType: String,
   dataType: DataType,
   children: Seq[Expression]
@@ -54,9 +54,9 @@ class Expression(
 ) extends Referenceable (
   entityType,
   new java.util.HashMap[String, Object]{
-    put(AtlasClient.NAME, commonProperties.textualRepresentation)
+    put(AtlasClient.NAME, commonProperties.text)
     put(AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME, commonProperties.qualifiedName)
-    put("textualRepresentation", commonProperties.textualRepresentation)
+    put("text", commonProperties.text)
     put("expressionType", commonProperties.expressionType)
     put("dataType", commonProperties.dataType)
     put("children", commonProperties.children.asJava)

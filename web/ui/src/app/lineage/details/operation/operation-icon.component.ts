@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.api.serialization
+import {Component, Input} from "@angular/core";
+import {IOperation} from "../../../../generated-ts/lineage-model";
+import {typeOfOperation} from "../../types";
+import {Icon} from "./operation-icon.utils";
+@Component({
+    selector: "operation-icon",
+    template: "<i class='fa {{faIconCode}}'></i>",
+    styles: ["i { color: steelblue; }"]
+})
+export class OperationIconComponent {
+    faIconCode: string
 
-/**
-  * The object sets up defaults from (de)serialization of a data lineage to BSON format.
-  */
-object BSONSalatContext {
+    @Input() set operation(op: IOperation) {
+        this.faIconCode = op && Icon.getIconForNodeType(typeOfOperation(op)).name
+    }
 
-  /**
-    * An implicit context defining defaults for BSON (de)serialization.
-    */
-  implicit val ctx = new salat.Context with CommonSalatContext {
-    override val name: String = "BSON Salat Context"
 
-    registerGlobalKeyOverride("id", "_id")
-  }
 }

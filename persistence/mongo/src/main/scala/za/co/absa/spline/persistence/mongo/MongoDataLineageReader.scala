@@ -16,15 +16,16 @@
 
 package za.co.absa.spline.persistence.mongo
 
+import java.util.Arrays.asList
 import java.util.UUID
 
-import com.mongodb.casbah.Imports._
 import _root_.salat._
+import com.mongodb.casbah.Imports._
+import za.co.absa.spline.common.FutureImplicits._
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
 import za.co.absa.spline.persistence.api.DataLineageReader
-import scala.collection.JavaConverters._
-import za.co.absa.spline.common.FutureImplicits._
 
+import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
 /**
@@ -52,9 +53,24 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @return Descriptors of all data lineages
     */
   override def list(): Future[Iterator[PersistedDatasetDescriptor]] = Future {
+    val caseClassFields = classOf[PersistedDatasetDescriptor].getDeclaredFields map (_.getName)
+    val auxiliaryFields = Array("_ver")
+    val fieldsToFetch = caseClassFields ++ auxiliaryFields map (_ -> 1)
+
     connection.dataLineageCollection
-      .find(DBObject(), DBObject("_id" -> 1, "_ver" -> 1, "appId" -> 1, "appName" -> 1, "timestamp" -> 1))
-      .iterator.asScala
+      .aggregate(asList(
+        DBObject("$addFields" → DBObject(
+          "___rootDS" → DBObject("$arrayElemAt" → Array("$datasets", 0)),
+          "___rootOP" → DBObject("$arrayElemAt" → Array("$operations", 0))
+        )),
+        DBObject("$addFields" → DBObject(
+          "lineageId" → "$_id",
+          "datasetId" → "$___rootDS._id",
+          "path" → "$___rootOP.path"
+        )),
+        DBObject("$project" → DBObject(fieldsToFetch: _*))
+      ))
+      .results.iterator.asScala
       .map(withVersionCheck(grater[PersistedDatasetDescriptor].asObject(_)))
   }
 

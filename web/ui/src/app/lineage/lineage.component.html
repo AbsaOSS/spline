@@ -14,35 +14,77 @@
   ~ limitations under the License.
   -->
 
-<md-grid-list cols="4">
-    <md-grid-tile>
-        <div class="left-block">
-            <md-toolbar color="primary">
-                <button md-icon-button [mdMenuTriggerFor]="menu">
-                    <md-icon><i class="fa fa-bars main-menu"></i></md-icon>
+<div *ngIf="lineage">
+    <md-grid-list cols="3">
+        <md-grid-tile colspan="2">
+            <graph #graph
+                   [lineage]="lineage"
+                   [selectedOperationId]="selectedOperation?.mainProps.id"
+                   (operationSelected)="onOperationSelected($event)">
+                <!--[highlightedNodeIds]="highlightedNodeIds"-->
+            </graph>
+            <div class="graph-footer">
+                <button md-icon-button (click)="graph.collapseNodes()" title="Collapse groups of nodes">
+                    <md-icon>fullscreen_exit</md-icon>
                 </button>
-                <md-menu #menu="mdMenu">
-                    <button md-menu-item disabled>
-                        <md-icon><i class="fa fa-sign-in"></i></md-icon>
-                        <span>Sign in</span>
-                    </button>
-                    <a md-menu-item href="https://github.com/AbsaOSS/spline/wiki" target="_blank">
-                        <md-icon><i class="fa fa-info"></i></md-icon>
-                        <span>Spline Wiki</span>
-                    </a>
-                </md-menu>
-                <span class="spacer"></span>
-                <md-toolbar-row>
-                    <h1 class="spline-icon">
-                        <span>Data Lineage Tracking for Apache Spark&trade;</span>
-                    </h1>
-                </md-toolbar-row>
-            </md-toolbar>
-            <descriptor-list></descriptor-list>
-        </div>
-    </md-grid-tile>
-    <md-grid-tile colspan="3">
-        <router-outlet></router-outlet>
-    </md-grid-tile>
-</md-grid-list>
-<span style="position: absolute; right: 0; bottom: 0; margin: 2px 6px" class="small text-muted">Absa Spline v{{ appVersion }}</span>
+                <button md-icon-button (click)="graph.fit()" title="Fit to screen">
+                    <md-icon>filter_none</md-icon>
+                </button>
+            </div>
+        </md-grid-tile>
+        <md-grid-tile>
+            <div class="details-container">
+                <md-tab-group [selectedIndex]="selectedTabIndex"
+                              (selectChange)="onTabChanged($event)">
+
+                    <md-tab label="Summary">
+                        <h2>{{lineage.appName}}</h2>
+                        <pre class="small">#{{lineage.id}}</pre>
+                        <p>Operations: <b>{{lineage.operations.length}}</b></p>
+                        <p>Input data sources: <b>{{getDataSourceCount()}}</b></p>
+                    </md-tab>
+
+                    <md-tab *ngIf="selectedOperation">
+                        <ng-template md-tab-label>
+                            <operation-icon [operation]="selectedOperation" class="spl-tab-node"></operation-icon>
+                            {{selectedOperation.mainProps.name}}
+                        </ng-template>
+
+                        <operation-details
+                                [operation]="selectedOperation"
+                                >
+                            <!--(attributeSelected)="onAttributeSelected($event)"-->
+                            <!--[selectedAttrIDs]="selectedAttrIDs"-->
+                            <!--(fullAttributeSchemaRequested)="onFullAttributeSchemaRequested($event)"-->
+                        </operation-details>
+                    </md-tab>
+
+                    <!--
+                                        <md-tab *ngIf="attributeToShowFullSchemaFor">
+                                            <ng-template md-tab-label>
+                                                <i class="fa fa-puzzle-piece spl-tab-attr"></i>
+                                                {{attributeToShowFullSchemaFor.name}}
+                                            </ng-template>
+                                            <attribute-view [attr]="attributeToShowFullSchemaFor" [expandRoot]="true"></attribute-view>
+                                        </md-tab>
+                    -->
+                </md-tab-group>
+            </div>
+        </md-grid-tile>
+    </md-grid-list>
+</div>
+<span style="position: absolute; right: 0; bottom: 0; margin: 2px 6px" class="small text-muted">Spline v{{ appVersion }}</span>
+
+<div [ngClass]="{active: fetching}" class="status_indicator delayed">
+    <p>
+        <i class="fa fa-circle-o-notch fa-spin fa-5x"></i>
+        <span>loading, please wait</span>
+    </p>
+</div>
+
+<div [ngClass]="{active: !fetching &amp;&amp; !lineage}" class="status_indicator">
+    <p>
+        <i class="fa fa-question-circle fa-5x"></i>
+        <span>Requested lineage data is NOT FOUND</span>
+    </p>
+</div>
