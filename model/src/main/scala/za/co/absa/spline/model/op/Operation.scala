@@ -23,14 +23,17 @@ import za.co.absa.spline.model.expr.Expression
 
 /**
   * The case class represents node properties that are common for all node types.
+  * @param id An unique identifier of the operation
+  * @param name A operation name
+  * @param inputs Input datasets' IDs
+  * @param output Output dataset ID
   */
-case class NodeProps
+case class OperationProps
 (
   id: UUID,
   name: String,
-  rawString: String,
-  inputs: Seq[UUID], // input datasets' IDs
-  output: Option[UUID] // output dataset ID
+  inputs: Seq[UUID],
+  output: UUID
 )
 
 /**
@@ -41,7 +44,7 @@ sealed trait Operation {
   /**
     * Common properties of all node types.
     */
-  val mainProps: NodeProps
+  val mainProps: OperationProps
 }
 
 object Operation {
@@ -53,11 +56,11 @@ object Operation {
       * @param fn New main properties
       * @return A copy with new main properties
       */
-    def updated(fn: NodeProps => NodeProps): T = (op.asInstanceOf[Operation] match {
+    def updated(fn: OperationProps => OperationProps): T = (op.asInstanceOf[Operation] match {
       case op@Alias(mp, _) => op.copy(mainProps = fn(mp))
       case op@Destination(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Filter(mp, _) => op.copy(mainProps = fn(mp))
-      case op@Generic(mp) => op.copy(mainProps = fn(mp))
+      case op@Generic(mp, _) => op.copy(mainProps = fn(mp))
       case op@Join(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Projection(mp, _) => op.copy(mainProps = fn(mp))
       case op@Source(mp, _, _) => op.copy(mainProps = fn(mp))
@@ -70,8 +73,9 @@ object Operation {
   * The case class represents any Spark operation for which a dedicated node type hasn't been created yet.
   *
   * @param mainProps Common node properties
+  * @param rawString String representation of the node
   */
-case class Generic(mainProps: NodeProps) extends Operation
+case class Generic(mainProps: OperationProps, rawString: String) extends Operation
 
 /**
   * The case class represents Spark join operation.
@@ -81,7 +85,7 @@ case class Generic(mainProps: NodeProps) extends Operation
   * @param joinType  A string description of a join type ("inner", "left_outer", right_outer", "outer")
   */
 case class Join(
-                 mainProps: NodeProps,
+                 mainProps: OperationProps,
                  condition: Option[Expression],
                  joinType: String
                ) extends Operation
@@ -93,7 +97,7 @@ case class Join(
   * @param condition An expression deciding what records will survive filtering
   */
 case class Filter(
-                   mainProps: NodeProps,
+                   mainProps: OperationProps,
                    condition: Expression
                  ) extends Operation
 
@@ -105,7 +109,7 @@ case class Filter(
   *                        (Introduction of a new attribute, Removal of an unnecessary attribute)
   */
 case class Projection(
-                       mainProps: NodeProps,
+                       mainProps: OperationProps,
                        transformations: Seq[Expression]
                      ) extends Operation
 
@@ -116,7 +120,7 @@ case class Projection(
   * @param alias     An assigned label
   */
 case class Alias(
-                  mainProps: NodeProps,
+                  mainProps: OperationProps,
                   alias: String
                 ) extends Operation
 
@@ -128,7 +132,7 @@ case class Alias(
   * @param path            A path to the place where data set will be stored (file, table, endpoint, ...)
   */
 case class Destination(
-                        mainProps: NodeProps,
+                        mainProps: OperationProps,
                         destinationType: String,
                         path: String
                       ) extends Operation
@@ -141,7 +145,7 @@ case class Destination(
   * @param paths      A sequence of paths to data location. Multiple paths can specified since since a data set can be spread across multiple parquet files.
   */
 case class Source(
-                   mainProps: NodeProps,
+                   mainProps: OperationProps,
                    sourceType: String,
                    paths: Seq[String]
                  ) extends Operation

@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.core.conf
+package za.co.absa.spline.persistence.mongo
 
-import za.co.absa.spline.persistence.api.PersistenceWriterFactory
+import com.mongodb.casbah.Imports.MongoClientURI
+import com.mongodb.casbah.MongoClient
 
 /**
-  * The trait describes settings needed for initialization of the library.
+  * The class represents a connection to a specific Mongo database
+  * @param dbUrl An url to Mongo server
+  * @param dbName A database name
   */
-trait SplineConfigurer {
+class MongoConnection(dbUrl: String, dbName: String) {
+  val dataLineageCollectionName: String = "lineages"
+  val LATEST_SERIAL_VERSION = 1
 
-  /**
-    * The method returns a factory creating persistence writers for various data lineage entities.
-    */
-  def persistenceWriterFactory: PersistenceWriterFactory
+  private lazy val client: MongoClient = MongoClient(MongoClientURI(dbUrl))
+  private lazy val database = client.getDB(dbName)
+
+  lazy val dataLineageCollection = database.getCollection(dataLineageCollectionName)
 }

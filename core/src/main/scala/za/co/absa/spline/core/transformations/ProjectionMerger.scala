@@ -20,7 +20,7 @@ import java.util.UUID.randomUUID
 
 import za.co.absa.spline.common.transformations.Transformation
 import za.co.absa.spline.model.expr.Expression
-import za.co.absa.spline.model.op.{NodeProps, Operation, Projection}
+import za.co.absa.spline.model.op.{OperationProps, Operation, Projection}
 
 /**
   * The class is responsible for the logic that merges compatible projections into one node.
@@ -73,10 +73,9 @@ object ProjectionMerger extends Transformation[Seq[Operation]] {
     val projectNodeA = a.node.asInstanceOf[Projection]
     val projectNodeB = b.node.asInstanceOf[Projection]
     val node = Projection(
-      NodeProps(
+      OperationProps(
         randomUUID,
         mainPropsB.name,
-        mainPropsB.rawString + ", " + mainPropsA.rawString,
         mainPropsB.inputs,
         mainPropsA.output
 //        a.parentRefs,

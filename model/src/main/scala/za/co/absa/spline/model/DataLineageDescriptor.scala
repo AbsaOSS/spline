@@ -21,11 +21,15 @@ import java.util.UUID
 /**
   * The case class represents a basic descriptor containing all necessary information to identify a specific data lineage.
   *
-  * @param dataLineageID An unique identifier of the data lineage
-  * @param appName       A name of the Spark application that data lineage is derived from
+  * @param dataLineageId An unique identifier of the data lineage
+  * @param appId      An unique identifier of the application run
+  * @param appName    A name of the Spark application that data lineage is derived from
+  * @param timestamp  A timestamp describing when the application was executed
   */
 case class DataLineageDescriptor
 (
-  dataLineageID: UUID,
-  appName: String
+  dataLineageId: UUID,
+  appId: String,
+  appName: String,
+  timestamp: Long
 )

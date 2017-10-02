@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.model.deprecated
+package za.co.absa.spline.persistence.api
 
-import java.util.UUID
+import za.co.absa.spline.model.DataLineage
+
+import scala.concurrent.Future
 
 /**
-  * The case class represents one run of a particular Spark job and contains relevant metrics to the execution of a data lineage.
-  *
-  * @param id            An unique identifier of the execution
-  * @param dataLineageId An identifier of a related data lineage
-  * @param jobID         An identifier of a Spark job
-  * @param timestamp     A timestamp describing when the job was executed
+  * The trait represents a writer to a persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
   */
-case class Execution
-(
-  id: UUID,
-  dataLineageId: UUID,
-  jobID: String,
-  timestamp: Long
-)
+trait DataLineageWriter {
 
-
+  /**
+    * The method stores a particular data lineage to the persistence layer.
+    *
+    * @param lineage A data lineage that will be stored
+    */
+  def store(lineage: DataLineage) : Future[Unit]
+}

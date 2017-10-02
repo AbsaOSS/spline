@@ -23,4 +23,4 @@ import java.util.UUID
   *
   * @param attrs An internal sequence of attributes (referred by attribute ID)
   */
-case class Schema(attrs: Seq[UUID]) // todo: do we really need the Schema abstraction between the Dataset and a list of Attributes?
+case class Schema(attrs: Seq[UUID])

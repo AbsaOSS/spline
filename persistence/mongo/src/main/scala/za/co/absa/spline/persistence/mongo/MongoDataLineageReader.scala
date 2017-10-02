@@ -18,39 +18,23 @@ package za.co.absa.spline.persistence.mongo
 
 import java.util.UUID
 
-import _root_.salat._
 import com.mongodb.casbah.Imports._
-import com.mongodb.casbah.MongoClient
+import _root_.salat._
 import za.co.absa.spline.model.{DataLineage, DataLineageDescriptor}
-import za.co.absa.spline.persistence.api.DataLineagePersistor
-
+import za.co.absa.spline.persistence.api.DataLineageReader
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 import za.co.absa.spline.common.FutureImplicits._
 
-/**
-  * The class represents Mongo persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
-  */
-class MongoDataLineagePersistor(dbUrl: String, dbName: String) extends DataLineagePersistor {
-  val dataLineageCollectionName: String = "lineages"
-  val LATEST_SERIAL_VERSION = 1
+import scala.concurrent.Future
 
-  private val client: MongoClient = MongoClient(MongoClientURI(dbUrl))
-  private val database = client.getDB(dbName)
-  private val dataLineageCollection = database.getCollection(dataLineageCollectionName)
+/**
+  * The class represents Mongo persistence writer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
+  *
+  * @param connection A connection to Mongo database
+  */
+class MongoDataLineageReader(connection: MongoConnection) extends DataLineageReader {
 
   import za.co.absa.spline.persistence.api.serialization.BSONSalatContext._
-
-  /**
-    * The method stores a particular data lineage to the persistence layer.
-    *
-    * @param lineage A data lineage that will be stored
-    */
-  override def store(lineage: DataLineage): Future[Unit] = Future{
-    val dbo = grater[DataLineage].asDBObject(lineage)
-    dbo.put("_ver", LATEST_SERIAL_VERSION)
-    dataLineageCollection.insert(dbo)
-  }
 
   /**
     * The method loads a particular data lineage from the persistence layer.
@@ -59,16 +43,7 @@ class MongoDataLineagePersistor(dbUrl: String, dbName: String) extends DataLinea
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
   override def load(id: UUID): Future[Option[DataLineage]] = Future {
-    Option(dataLineageCollection findOne id) map withVersionCheck(grater[DataLineage].asObject(_))
-  }
-
-  /**
-    * The method removes a particular data lineage from the persistence layer.
-    *
-    * @param id An unique identifier of a data lineage
-    */
-  override def remove(id: UUID): Future[Unit] = Future {
-    dataLineageCollection remove DBObject("_id" -> id)
+    Option(connection.dataLineageCollection findOne id) map withVersionCheck(grater[DataLineage].asObject(_))
   }
 
   /**
@@ -77,16 +52,15 @@ class MongoDataLineagePersistor(dbUrl: String, dbName: String) extends DataLinea
     * @return Descriptors of all data lineages
     */
   override def list(): Future[Iterator[DataLineageDescriptor]] = Future {
-    dataLineageCollection
-      .find(MongoDBObject(), MongoDBObject("_id" -> 1, "_ver" -> 1, "appName" -> 1))
+    connection.dataLineageCollection
+      .find(DBObject(), DBObject("_id" -> 1, "_ver" -> 1, "appID" -> 1, "appName" -> 1, "timestamp" -> 1))
       .iterator.asScala
       .map(withVersionCheck(grater[DataLineageDescriptor].asObject(_)))
   }
 
   private def withVersionCheck[T](f: DBObject => T): DBObject => T =
     dbo => (dbo get "_ver").asInstanceOf[Int] match {
-      case LATEST_SERIAL_VERSION => f(dbo)
+      case connection.LATEST_SERIAL_VERSION => f(dbo)
       case unknownVersion => sys.error(s"Unsupported serialized lineage version: $unknownVersion")
     }
-
 }

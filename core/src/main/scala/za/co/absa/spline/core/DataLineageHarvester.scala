@@ -44,9 +44,13 @@ object DataLineageHarvester {
     val nodes = harvestOperationNodes(queryExecution.analyzed, hadoopConfiguration)
     val transformedNodes = transformationPipeline.apply(nodes)
 
+    val sparkContext = queryExecution.sparkSession.sparkContext
+
     DataLineage(
       UUID.randomUUID,
-      queryExecution.sparkSession.sparkContext.appName,
+      sparkContext.applicationId,
+      sparkContext.appName,
+      System.currentTimeMillis(),
       transformedNodes,
       ???,
       ???

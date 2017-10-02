@@ -16,44 +16,35 @@
 
 package za.co.absa.spline.persistence.mongo
 
-
-
 import org.apache.commons.configuration.Configuration
-import za.co.absa.spline.model.deprecated.Execution
 import za.co.absa.spline.persistence.api._
 
 /**
-  * The object contains static information about settings needed for initialization of the MongoPersistenceFactory class.
+  * The object contains static information about settings needed for initialization of the MongoPersistenceWriterFactory class.
   */
-object MongoPersistenceFactory{
+object MongoPersistenceWriterFactory{
   val mongoDbUrlKey = "spline.mongodb.url"
   val mongoDbNameKey = "spline.mongodb.name"
 }
 
 /**
-  * The class represents a factory creating Mongo persistence layers for all main data lineage entities.
+  * The class represents a factory creating Mongo persistence writers for all main data lineage entities.
   *
   * @param configuration A source of settings
   */
-class MongoPersistenceFactory(configuration: Configuration) extends PersistenceFactory(configuration) {
+class MongoPersistenceWriterFactory(configuration: Configuration) extends PersistenceWriterFactory(configuration) {
 
   import za.co.absa.spline.common.ConfigurationImplicits._
-  import MongoPersistenceFactory._
+  import MongoPersistenceWriterFactory._
 
   private lazy val dbUrl = configuration getRequiredString mongoDbUrlKey
   private lazy val dbName = configuration getRequiredString mongoDbNameKey
 
   /**
-    * The method creates a persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
+    * The method creates a persistence writer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
-    * @return A persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    * @return A persistence writer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  override def createDataLineagePersistor(): DataLineagePersistor = new MongoDataLineagePersistor(dbUrl, dbName)
+  override def createDataLineageWriter(): DataLineageWriter = new MongoDataLineageWriter(new MongoConnection(dbUrl, dbName))
 
-  /**
-    * The method creates a persistence layer for the [[Execution Execution]] entity.
-    *
-    * @return A persistence layer for the [[Execution Execution]] entity
-    */
-  override def createExecutionPersistor(): ExecutionPersistor = new MongoExecutionPersistor(dbUrl, dbName)
 }

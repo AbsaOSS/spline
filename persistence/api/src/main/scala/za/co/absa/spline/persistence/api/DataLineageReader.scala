@@ -23,16 +23,9 @@ import za.co.absa.spline.model.{DataLineage, DataLineageDescriptor}
 import scala.concurrent.Future
 
 /**
-  * The trait represents persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
+  * The trait represents a reader to a persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
   */
-trait DataLineagePersistor {
-
-  /**
-    * The method stores a particular data lineage to the persistence layer.
-    *
-    * @param lineage A data lineage that will be stored
-    */
-  def store(lineage: DataLineage) : Future[Unit]
+trait DataLineageReader {
 
   /**
     * The method loads a particular data lineage from the persistence layer.
@@ -41,13 +34,6 @@ trait DataLineagePersistor {
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
   def load(id: UUID): Future[Option[DataLineage]]
-
-  /**
-    * The method removes a particular data lineage from the persistence layer.
-    *
-    * @param id An unique identifier of a data lineage
-    */
-  def remove(id: UUID): Future[Unit]
 
   /**
     * The method gets all data lineages stored in persistence layer.
