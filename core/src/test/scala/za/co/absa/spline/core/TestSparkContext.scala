@@ -21,4 +21,5 @@ import org.apache.spark.sql.SparkSession
 object TestSparkContext {
   val appName = "test"
   val sparkSession : SparkSession = SparkSession.builder().master("local[4]").appName(appName).getOrCreate()
+
 }

@@ -136,7 +136,7 @@ object AttributeRemoval {
     * @param attribute A reference to an attribute that will be removed.
     * @return An instance of the case class [[za.co.absa.spline.model.expr.AttributeRemoval AttributeRemoval]].
     */
-  def apply(attribute: AttrRef): AttributeRemoval =
+  def apply(attribute: AttributeReference): AttributeRemoval =
     new AttributeRemoval("- " + attribute.text, attribute.dataType, Seq(attribute))
 }
 
@@ -148,7 +148,7 @@ object AttributeRemoval {
   * @param text     see [[za.co.absa.spline.model.expr.Expression#textualRepresentation Expression.textualRepresentation]]
   * @param dataType see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
   */
-case class AttrRef
+case class AttributeReference
 (
   refId: UUID,
   name: String,
@@ -166,28 +166,28 @@ case class AttrRef
 }
 
 /**
-  * A companion object for the case class [[za.co.absa.spline.model.expr.AttrRef AttributeReference]].
+  * A companion object for the case class [[za.co.absa.spline.model.expr.AttributeReference AttributeReference]].
   */
-object AttrRef {
+object AttributeReference {
 
   /**
-    * The method constructs an instance of the case class [[za.co.absa.spline.model.expr.AttrRef AttributeReference]].
+    * The method constructs an instance of the case class [[za.co.absa.spline.model.expr.AttributeReference AttributeReference]].
     *
-    * @param attributeId   see [[za.co.absa.spline.model.expr.AttrRef#attributeId AttributeReference.attributeId]]
-    * @param attributeName see [[za.co.absa.spline.model.expr.AttrRef#attributeName AttributeReference.attributeName]]
+    * @param attributeId   see [[za.co.absa.spline.model.expr.AttributeReference#attributeId AttributeReference.attributeId]]
+    * @param attributeName see [[za.co.absa.spline.model.expr.AttributeReference#attributeName AttributeReference.attributeName]]
     * @param dataType      see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
-    * @return An instance of the case class [[za.co.absa.spline.model.expr.AttrRef AttributeReference]].
+    * @return An instance of the case class [[za.co.absa.spline.model.expr.AttributeReference AttributeReference]].
     */
-  def apply(attributeId: UUID, attributeName: String, dataType: DataType): AttrRef =
-    new AttrRef(attributeId, attributeName, attributeName, dataType)
+  def apply(attributeId: UUID, attributeName: String, dataType: DataType): AttributeReference =
+    new AttributeReference(attributeId, attributeName, attributeName, dataType)
 
   /**
-    * The method constructs an instance of the case class [[za.co.absa.spline.model.expr.AttrRef AttributeReference]].
+    * The method constructs an instance of the case class [[za.co.absa.spline.model.expr.AttributeReference AttributeReference]].
     *
     * @param attribute An attribute object that will be referenced
-    * @return An instance of the case class [[za.co.absa.spline.model.expr.AttrRef AttributeReference]].
+    * @return An instance of the case class [[za.co.absa.spline.model.expr.AttributeReference AttributeReference]].
     */
-  def apply(attribute: Attribute): AttrRef = apply(attribute.id, attribute.name, attribute.dataType)
+  def apply(attribute: Attribute): AttributeReference = apply(attribute.id, attribute.name, attribute.dataType)
 }
 
 /**
@@ -198,7 +198,7 @@ object AttrRef {
   * @param dataType see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
   * @param children see [[za.co.absa.spline.model.expr.Expression#children Expression.children]]
   */
-case class UDF
+case class UserDefinedFunction
 (
   name: String,
   text: String,

@@ -25,7 +25,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import salat.grater
 import za.co.absa.spline.model.Attribute
 import za.co.absa.spline.model.dt.Simple
-import za.co.absa.spline.model.expr.{AttrRef, AttributeRemoval}
+import za.co.absa.spline.model.expr.{AttributeReference, AttributeRemoval}
 
 class JSONSalatContextSpec extends FlatSpec with Matchers {
 
@@ -44,8 +44,8 @@ class JSONSalatContextSpec extends FlatSpec with Matchers {
   }
 
   it should "serialize AttributeRemoval without any loss of information" in {
-    val sourceObj = AttributeRemoval(AttrRef(Attribute(randomUUID, "test", Simple("simpleType", nullable = true))))
-    val serializedObj = """{"_typeHint":"za.co.absa.spline.model.expr.AttributeRemoval","textualRepresentation":"- test","dataType":{"_typeHint":"za.co.absa.spline.model.dt.Simple","name":"simpleType","nullable":true},"children":[{"_typeHint":"za.co.absa.spline.model.expr.AttributeReference","attributeId":123,"attributeName":"test","textualRepresentation":"test","dataType":{"_typeHint":"za.co.absa.spline.model.dt.Simple","name":"simpleType","nullable":true},"children":[],"exprType":"AttributeReference"}],"exprType":"AttributeRemoval"}"""
+    val sourceObj = AttributeRemoval(AttributeReference(Attribute(UUID.fromString("0e6ec462-03dd-499f-a334-b49845a3e816"), "test", Simple("simpleType", nullable = true))))
+    val serializedObj = """{"_typeHint":"za.co.absa.spline.model.expr.AttributeRemoval","text":"- test","dataType":{"_typeHint":"za.co.absa.spline.model.dt.Simple","name":"simpleType","nullable":true},"children":[{"_typeHint":"za.co.absa.spline.model.expr.AttributeReference","refId":"0e6ec462-03dd-499f-a334-b49845a3e816","name":"test","text":"test","dataType":{"_typeHint":"za.co.absa.spline.model.dt.Simple","name":"simpleType","nullable":true},"children":[],"exprType":"AttributeReference"}],"exprType":"AttributeRemoval"}"""
 
     val json = grater[AttributeRemoval] toCompactJSON sourceObj
 
