@@ -17,17 +17,17 @@
 package za.co.absa.spline.persistence.atlas
 
 import org.apache.atlas.hook.AtlasHook
+import za.co.absa.spline.common.FutureImplicits._
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.DataLineageWriter
 import za.co.absa.spline.persistence.atlas.conversion.DataLineageToTypeSystemConverter
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
-import za.co.absa.spline.common.FutureImplicits._
 
 
 /**
-  * The class represents Atlas persistence writer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
+  * The class represents Atlas persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
   */
 class AtlasDataLineageWriter extends AtlasHook with DataLineageWriter {
 

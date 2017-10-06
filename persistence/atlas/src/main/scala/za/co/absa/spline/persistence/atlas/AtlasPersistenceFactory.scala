@@ -22,14 +22,13 @@ import java.util.Properties
 import org.apache.atlas.ApplicationProperties
 import org.apache.commons.configuration.Configuration
 import za.co.absa.spline.common.ARMImplicits
-import za.co.absa.spline.model.deprecated.Execution
 import za.co.absa.spline.persistence.api._
 
 
 /**
-  * The object contains static information about settings needed for initialization of the AtlasPersistenceFactory class.
+  * The object contains static information about settings needed for initialization of the AtlasPersistenceWriterFactory class.
   */
-object AtlasPersistenceFactory {
+object AtlasPersistenceWriterFactory {
   val atlasPropertyPrefix = "atlas"
   val atlasConfigurationDirKey = ApplicationProperties.ATLAS_CONFIGURATION_DIRECTORY_PROPERTY
   val atlasTemporaryConfigurationFileName = ApplicationProperties.APPLICATION_PROPERTIES
@@ -40,9 +39,9 @@ object AtlasPersistenceFactory {
   *
   * @param configuration A source of settings
   */
-class AtlasPersistenceFactory(configuration: Configuration) extends PersistenceWriterFactory(configuration) {
+class AtlasPersistenceWriterFactory(configuration: Configuration) extends PersistenceWriterFactory(configuration) {
 
-  import AtlasPersistenceFactory._
+  import AtlasPersistenceWriterFactory._
 
   import scala.collection.JavaConverters._
 
@@ -79,6 +78,5 @@ class AtlasPersistenceFactory(configuration: Configuration) extends PersistenceW
     *
     * @return A persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  override def createDataLineageWriter(): DataLineageWriter = new AtlasDataLineagePersistor
-
+  override def createDataLineageWriter(): DataLineageWriter = new AtlasDataLineageWriter
 }

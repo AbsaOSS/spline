@@ -18,7 +18,7 @@ package za.co.absa.spline.persistence.api
 
 import java.util.UUID
 
-import za.co.absa.spline.model.{DataLineage, DataLineageDescriptor}
+import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
 
 import scala.concurrent.Future
 
@@ -40,5 +40,5 @@ trait DataLineageReader {
     *
     * @return Descriptors of all data lineages
     */
-  def list(): Future[Iterator[DataLineageDescriptor]]
+  def list(): Future[Iterator[PersistedDatasetDescriptor]]
 }
