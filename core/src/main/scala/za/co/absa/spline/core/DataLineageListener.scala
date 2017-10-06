@@ -25,9 +25,11 @@ import za.co.absa.spline.persistence.api.PersistenceWriterFactory
   * The class represents a handler listening on events that Spark triggers when an execution any action is performed. It can be considered as an entry point to Spline library.
   *
   * @param persistenceWriterFactory A factory of persistence writers
+  * @param hadoopConfiguration A hadoop configuration
   */
 class DataLineageListener(persistenceWriterFactory: PersistenceWriterFactory, hadoopConfiguration: Configuration) extends QueryExecutionListener {
   private lazy val persistenceWriter = persistenceWriterFactory.createDataLineageWriter()
+  private lazy val harvester = new DataLineageHarvester(hadoopConfiguration)
 
   /**
     * The method is executed when an action execution is successful.
@@ -53,7 +55,7 @@ class DataLineageListener(persistenceWriterFactory: PersistenceWriterFactory, ha
 
   private def processQueryExecution(funcName: String, qe: QueryExecution): Unit = {
     if (funcName == "save") {
-      val lineage = DataLineageHarvester.harvestLineage(qe, hadoopConfiguration)
+      val lineage = harvester harvestLineage qe
       persistenceWriter store lineage
     }
   }

@@ -16,7 +16,6 @@
 
 package za.co.absa.spline.core
 
-import za.co.absa.spline.model
 import org.apache.spark.sql
 import za.co.absa.spline.model.dt._
 
