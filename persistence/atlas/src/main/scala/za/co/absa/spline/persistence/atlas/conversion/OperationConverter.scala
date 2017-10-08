@@ -31,6 +31,7 @@ object OperationConverter {
     * The method converts [[za.co.absa.spline.model.op.Operation Spline operations]] to [[za.co.absa.spline.persistence.atlas.model.Operation Atlas operations]].
     * @param operations A sequence of [[za.co.absa.spline.model.op.Operation Spline operations]]
     * @param datasetIdMap A map of Spline data set ids to Atlas ids
+    * @param attributeIdMap A map of Spline attribute ids to Atlas ids
     * @return A sequence of [[za.co.absa.spline.persistence.atlas.model.Operation Atlas operations]]
     */
   def convert(operations: Seq[op.Operation], datasetIdMap : Map[UUID, Id], attributeIdMap: Map[UUID, Id]) : Seq[Operation] =

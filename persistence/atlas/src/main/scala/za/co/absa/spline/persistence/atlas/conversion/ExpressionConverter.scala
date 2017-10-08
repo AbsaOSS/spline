@@ -32,6 +32,7 @@ object ExpressionConverter {
     *
     * @param qualifiedNamePrefix A prefix helping to ensure uniqueness of qualified names of created expressions
     * @param expression          An input Spline expression
+    * @param attributeIdMap A map of Spline attribute ids to Atlas ids
     * @return An Atlas expression
     */
   def convert(qualifiedNamePrefix: String, expression: expr.Expression, attributeIdMap: Map[UUID, Id]): Expression = {
