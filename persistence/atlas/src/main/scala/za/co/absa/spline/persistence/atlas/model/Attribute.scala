@@ -16,6 +16,8 @@
 
 package za.co.absa.spline.persistence.atlas.model
 
+import java.util.UUID
+
 import org.apache.atlas.AtlasClient
 import org.apache.atlas.typesystem.persistence.Id
 import org.apache.atlas.typesystem.{Referenceable, Struct}
@@ -25,15 +27,13 @@ import org.apache.atlas.typesystem.{Referenceable, Struct}
   * @param name A name
   * @param qualifiedName An unique identifier
   * @param dataType A data type
-  * @param dataset A data set that the attribute is part of
   */
-class Attribute(name : String, qualifiedName: String, dataType : DataType, dataset: Id) extends Referenceable(
+class Attribute(val name : String, val qualifiedName: UUID, dataType : DataType) extends Referenceable(
   SparkDataTypes.Attribute,
   new java.util.HashMap[String, Object]{
     put(AtlasClient.NAME, name)
-    put(AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME, qualifiedName)
+    put(AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME, qualifiedName.toString)
     put("type", dataType.name)
     put("typeRef", dataType)
-    put("dataset", dataset)
   }
 )

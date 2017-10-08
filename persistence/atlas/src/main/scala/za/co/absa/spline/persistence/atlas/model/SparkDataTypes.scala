@@ -21,7 +21,8 @@ package za.co.absa.spline.persistence.atlas.model
   */
 object SparkDataTypes{
   val Job : String = "spark_job"
-  val GenericOperation : String = "spark_operation"
+  val Operation : String = "spark_operation"
+  val GenericOperation : String = "spark_generic_operation"
   val JoinOperation : String = "spark_join_operation"
   val FilterOperation : String = "spark_filter_operation"
   val ProjectOperation : String = "spark_project_operation"
@@ -29,7 +30,7 @@ object SparkDataTypes{
   val Dataset : String = "spark_dataset"
   val EndpointDataset : String = "spark_endpoint_dataset"
   val FileEndpoint : String = "hdfs_path"
-  val Attribute : String = "spark_dataset_attribute"
+  val Attribute : String = "spark_attribute"
   val SimpleDataType : String = "spark_simple_data_type"
   val StructDataType : String = "spark_struct_data_type"
   val StructField : String = "spark_struct_field"

@@ -24,53 +24,53 @@ import scala.collection.JavaConverters._
 
 /**
   * The case class represents operation properties that are common for all operation types.
-  * @param order A position of the operation in a particular sequence
   * @param name A name
   * @param qualifiedName An unique identifier
-  * @param rawString An original string representation
-  * @param input A sequence of positions of input datasets
+  * @param inputs A sequence of input dataset ids
+  * @param outputs A sequence of output dataset ids
   */
 case class OperationCommonProperties
 (
-  order: Integer,
   name : String,
   qualifiedName: String,
-  rawString: String,
-  input: Seq[Int]
+  inputs: Seq[Id],
+  outputs: Seq[Id]
 )
 
 /**
-  * The class represents any Spark operation for which a dedicated class hasn't been created yet.
+  * The class represents a base for operation hierarchy
   * @param commonProperties Common properties of all operation types
   * @param operationType An Atlas entity type name
   * @param childProperties Properties that are specific for derived classes.
   */
 class Operation(
   commonProperties: OperationCommonProperties,
-  operationType: String = SparkDataTypes.GenericOperation,
+  operationType: String = SparkDataTypes.Operation,
   childProperties : Map[String, Object] = Map.empty
 ) extends Referenceable(
   operationType,
   new java.util.HashMap[String, Object]() {
     put(AtlasClient.NAME, commonProperties.name)
     put(AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME, commonProperties.qualifiedName)
-    put("rawString", commonProperties.rawString)
+    put("inputs", commonProperties.inputs)
+    put("outputs", commonProperties.outputs)
     childProperties.foreach(i => put(i._1, i._2))
   }
-){
+)
 
-  /**
-    * The method selects input datasets from a sequence passed as parameter and stores them into internal dictionary.
-    * @param datasets A sequence of datasets that the method can choose from.
-    */
-  def resolveInputDatasets(datasets: Seq[Id]) : Unit = this.set("inputs", commonProperties.input.map(i => datasets(i)).asJava)
-
-  /**
-    * The method selects output data sets from a sequence passed as parameter and stores them into internal dictionary.
-    * @param datasets A sequence of data sets that the method can choose from.
-    */
-  def resolveOutputDatasets(datasets: Seq[Id]) : Unit = this.set("outputs", Seq(datasets(commonProperties.order)).asJava)
-}
+/**
+  * The class represents an arbitrary Spark operation that doesn't have corresponding Spline operation.
+  * @param commonProperties Common properties of all operation types
+  * @param rawString A string representing the Spline operation
+  */
+class GenericOperation(
+  commonProperties: OperationCommonProperties,
+  rawString: String
+) extends Operation(
+  commonProperties,
+  SparkDataTypes.GenericOperation,
+  Map("rawString" -> rawString)
+)
 
 /**
   * The class represents Spark join operation.
