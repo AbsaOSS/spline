@@ -15,8 +15,8 @@
  */
 
 :host,
-md-grid-list,
-md-grid-tile,
+mat-grid-list,
+mat-grid-tile,
 div.left-block {
     height: 100%;
     width: 100%;
@@ -37,7 +37,7 @@ i.main-menu {
     font-size: 21px;
 }
 
-a[md-menu-item] {
+a[mat-menu-item] {
     color: inherit;
     text-decoration: inherit;
 }

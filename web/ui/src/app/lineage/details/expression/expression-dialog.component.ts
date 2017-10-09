@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {MD_DIALOG_DATA} from "@angular/material";
+import {MAT_DIALOG_DATA} from "@angular/material";
 import {Component, Inject} from "@angular/core";
 import * as _ from "lodash";
 import {typeOfExpr} from "../../types";
@@ -43,7 +43,7 @@ export class ExpressionDialogComponent {
         allowDrop: _.constant(false)
     }
 
-    constructor(@Inject(MD_DIALOG_DATA) data: any) {
+    constructor(@Inject(MAT_DIALOG_DATA) data: any) {
         this.expr = data.expr
         this.exprString = data.exprString
         this.exprTree = this.buildExprTree()

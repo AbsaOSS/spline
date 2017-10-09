@@ -15,8 +15,8 @@
   -->
 
 <div *ngIf="lineage">
-    <md-grid-list cols="3">
-        <md-grid-tile colspan="2">
+    <mat-grid-list cols="3">
+        <mat-grid-tile colspan="2">
             <graph #graph
                    [lineage]="lineage"
                    [selectedOperationId]="selectedOperation?.mainProps.id"
@@ -24,28 +24,28 @@
                 <!--[highlightedNodeIds]="highlightedNodeIds"-->
             </graph>
             <div class="graph-footer">
-                <button md-icon-button (click)="graph.collapseNodes()" title="Collapse groups of nodes">
-                    <md-icon>fullscreen_exit</md-icon>
+                <button mat-icon-button (click)="graph.collapseNodes()" title="Collapse groups of nodes">
+                    <mat-icon>fullscreen_exit</mat-icon>
                 </button>
-                <button md-icon-button (click)="graph.fit()" title="Fit to screen">
-                    <md-icon>filter_none</md-icon>
+                <button mat-icon-button (click)="graph.fit()" title="Fit to screen">
+                    <mat-icon>filter_none</mat-icon>
                 </button>
             </div>
-        </md-grid-tile>
-        <md-grid-tile>
+        </mat-grid-tile>
+        <mat-grid-tile>
             <div class="details-container">
-                <md-tab-group [selectedIndex]="selectedTabIndex"
+                <mat-tab-group [selectedIndex]="selectedTabIndex"
                               (selectChange)="onTabChanged($event)">
 
-                    <md-tab label="Summary">
+                    <mat-tab label="Summary">
                         <h2>{{lineage.appName}}</h2>
                         <pre class="small">#{{lineage.id}}</pre>
                         <p>Operations: <b>{{lineage.operations.length}}</b></p>
                         <p>Input data sources: <b>{{getDataSourceCount()}}</b></p>
-                    </md-tab>
+                    </mat-tab>
 
-                    <md-tab *ngIf="selectedOperation">
-                        <ng-template md-tab-label>
+                    <mat-tab *ngIf="selectedOperation">
+                        <ng-template mat-tab-label>
                             <operation-icon [operation]="selectedOperation" class="spl-tab-node"></operation-icon>
                             {{selectedOperation.mainProps.name}}
                         </ng-template>
@@ -57,21 +57,21 @@
                             <!--[selectedAttrIDs]="selectedAttrIDs"-->
                             <!--(fullAttributeSchemaRequested)="onFullAttributeSchemaRequested($event)"-->
                         </operation-details>
-                    </md-tab>
+                    </mat-tab>
 
                     <!--
-                                        <md-tab *ngIf="attributeToShowFullSchemaFor">
-                                            <ng-template md-tab-label>
+                                        <mat-tab *ngIf="attributeToShowFullSchemaFor">
+                                            <ng-template mat-tab-label>
                                                 <i class="fa fa-puzzle-piece spl-tab-attr"></i>
                                                 {{attributeToShowFullSchemaFor.name}}
                                             </ng-template>
                                             <attribute-view [attr]="attributeToShowFullSchemaFor" [expandRoot]="true"></attribute-view>
-                                        </md-tab>
+                                        </mat-tab>
                     -->
-                </md-tab-group>
+                </mat-tab-group>
             </div>
-        </md-grid-tile>
-    </md-grid-list>
+        </mat-grid-tile>
+    </mat-grid-list>
 </div>
 <span style="position: absolute; right: 0; bottom: 0; margin: 2px 6px" class="small text-muted">Spline v{{ appVersion }}</span>
 

@@ -15,7 +15,7 @@
  */
 
 import {Component, Input, OnChanges} from "@angular/core";
-import {MdDialog} from "@angular/material";
+import {MatDialog} from "@angular/material";
 import {ExpressionDialogComponent} from "./expression-dialog.component";
 import {IExpression} from "../../../../generated-ts/expression-model";
 
@@ -37,7 +37,7 @@ export class ExpressionInlineComponent implements OnChanges {
 
     exprString: string
 
-    constructor(private dialog: MdDialog) {
+    constructor(private dialog: MatDialog) {
     }
 
     ngOnChanges(): void {

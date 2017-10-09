@@ -20,8 +20,8 @@ import {IDataLineage, IOperation} from "../../generated-ts/lineage-model";
 import {LineageStore} from "./lineage.store";
 import {typeOfOperation} from "./types";
 import * as _ from "lodash";
-import {MdTabChangeEvent} from "@angular/material";
-// import {MdTabChangeEvent} from "@angular/material";
+import {MatTabChangeEvent} from "@angular/material";
+// import {MatTabChangeEvent} from "@angular/material";
 // import {Icon} from "icon";
 
 declare const __APP_VERSION__: string
@@ -134,10 +134,10 @@ export class LineageComponent implements OnInit {
     }
 
     /*updateSelectedTabIndex() {
-        this.selectedTabIndex = this.attributeToShowFullSchemaFor ? 2 : this.getSelectedNode() ? 1 : 0
-    }*/
+     this.selectedTabIndex = this.attributeToShowFullSchemaFor ? 2 : this.getSelectedNode() ? 1 : 0
+     }*/
 
-    onTabChanged(e: MdTabChangeEvent) {
+    onTabChanged(e: MatTabChangeEvent) {
         this.selectedTabIndex = e.index
     }
 
