@@ -29,11 +29,11 @@ object DatasetConverter {
     * The method converts [[za.co.absa.spline.model.MetaDataset Spline meta data sets]] to [[za.co.absa.spline.persistence.atlas.model.Dataset Atlas data sets]].
     * @param operations A sequence of [[za.co.absa.spline.model.op.Operation Spline operations]]
     * @param datasets A sequence of [[za.co.absa.spline.model.MetaDataset Spline meta data sets]]
-    * @param datasets A sequence of [[za.co.absa.spline.model.MetaDataset Spline meta data sets]]
+    * @param attributes A sequence of [[za.co.absa.spline.model.Attribute Spline attributes]]
     * @return A sequence of [[za.co.absa.spline.persistence.atlas.model.Dataset Atlas data sets]]
     */
-  def convert(operations: Seq[op.Operation], datasets : Seq[MetaDataset], attribute: Seq[Attribute]) : Seq[Dataset] = {
-    val attributeMap = attribute.map(a => a.id -> a).toMap
+  def convert(operations: Seq[op.Operation], datasets : Seq[MetaDataset], attributes: Seq[Attribute]) : Seq[Dataset] = {
+    val attributeMap = attributes.map(a => a.id -> a).toMap
     for (
       operation <- operations;
       dataset <- datasets.withFilter(d => d.id == operation.mainProps.output);
