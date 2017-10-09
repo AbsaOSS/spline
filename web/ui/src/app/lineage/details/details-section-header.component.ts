@@ -14,19 +14,26 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.api.serialization
+import {Component, Input, EventEmitter, Output} from "@angular/core";
+import {IAttribute} from "../../../generated-ts/lineage-model";
+import * as _ from "lodash"
 
-/**
-  * The object sets up defaults from (de)serialization of a data lineage to BSON format.
-  */
-object BSONSalatContext {
-
-  /**
-    * An implicit context defining defaults for BSON (de)serialization.
-    */
-  implicit val ctx = new salat.Context with CommonSalatContext {
-    override val name: String = "BSON Salat Context"
-
-    registerGlobalKeyOverride("id", "_id")
-  }
+@Component({
+    selector: 'details-section-header',
+    template: `
+        <div>
+            <i class="fa" [ngClass]="faIcon" [ngStyle]="{color: iconColor}"></i>
+            {{caption}}
+        </div>
+    `,
+    styles: [`
+        i {
+            padding: 0 2px 0 5px;            
+        }
+    `]
+})
+export class DetailsSectionHeaderComponent {
+    @Input() caption: string
+    @Input() faIcon: string
+    @Input() iconColor: string
 }

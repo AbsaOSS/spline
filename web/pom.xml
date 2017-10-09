@@ -103,46 +103,119 @@
                 <version>1.5.0</version>
                 <executions>
                     <execution>
+                        <id>gen-ts-model-lineage</id>
                         <phase>process-classes</phase>
                         <goals>
                             <goal>java</goal>
                         </goals>
+                        <configuration>
+                            <includeProjectDependencies>true</includeProjectDependencies>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <executableDependency>
+                                <groupId>com.github.wajda</groupId>
+                                <artifactId>scala-ts_${scala.compat.version}</artifactId>
+                            </executableDependency>
+                            <mainClass>com.mpc.scalats.CLI</mainClass>
+                            <arguments>
+                                <argument>--out</argument>
+                                <argument>${project.basedir}/ui/src/generated-ts/lineage-model.ts</argument>
+                                <argument>--emit-interfaces</argument>
+                                <argument>--option-to-nullable</argument>
+                                <argument>za.co.absa.spline.model.PersistedDatasetDescriptor</argument>
+                                <argument>za.co.absa.spline.model.DataLineage</argument>
+                                <!-- workaround for a scala-ts bug -->
+                                <argument>za.co.absa.spline.model.op.OperationProps</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>gen-ts-model-operation</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <includeProjectDependencies>true</includeProjectDependencies>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <executableDependency>
+                                <groupId>com.github.wajda</groupId>
+                                <artifactId>scala-ts_${scala.compat.version}</artifactId>
+                            </executableDependency>
+                            <mainClass>com.mpc.scalats.CLI</mainClass>
+                            <arguments>
+                                <argument>--out</argument>
+                                <argument>${project.basedir}/ui/src/generated-ts/operation-model.ts</argument>
+                                <argument>--emit-interfaces</argument>
+                                <argument>--option-to-nullable</argument>
+                                <argument>za.co.absa.spline.model.op.Operation</argument>
+                                <argument>za.co.absa.spline.model.op.Alias</argument>
+                                <argument>za.co.absa.spline.model.op.Destination</argument>
+                                <argument>za.co.absa.spline.model.op.Filter</argument>
+                                <argument>za.co.absa.spline.model.op.Generic</argument>
+                                <argument>za.co.absa.spline.model.op.Join</argument>
+                                <argument>za.co.absa.spline.model.op.Projection</argument>
+                                <argument>za.co.absa.spline.model.op.Source</argument>
+                                <!-- workaround for a scala-ts bug -->
+                                <argument>za.co.absa.spline.model.dt.DataType</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>gen-ts-model-expression</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <includeProjectDependencies>true</includeProjectDependencies>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <executableDependency>
+                                <groupId>com.github.wajda</groupId>
+                                <artifactId>scala-ts_${scala.compat.version}</artifactId>
+                            </executableDependency>
+                            <mainClass>com.mpc.scalats.CLI</mainClass>
+                            <arguments>
+                                <argument>--out</argument>
+                                <argument>${project.basedir}/ui/src/generated-ts/expression-model.ts</argument>
+                                <argument>--emit-interfaces</argument>
+                                <argument>--option-to-nullable</argument>
+                                <argument>za.co.absa.spline.model.expr.Expression</argument>
+                                <argument>za.co.absa.spline.model.expr.AttributeRemoval</argument>
+                                <argument>za.co.absa.spline.model.expr.AttributeReference</argument>
+                                <argument>za.co.absa.spline.model.expr.Generic</argument>
+                                <argument>za.co.absa.spline.model.expr.Alias</argument>
+                                <argument>za.co.absa.spline.model.expr.Binary</argument>
+                                <argument>za.co.absa.spline.model.expr.UserDefinedFunction</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>gen-ts-model-datatype</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <includeProjectDependencies>true</includeProjectDependencies>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <executableDependency>
+                                <groupId>com.github.wajda</groupId>
+                                <artifactId>scala-ts_${scala.compat.version}</artifactId>
+                            </executableDependency>
+                            <mainClass>com.mpc.scalats.CLI</mainClass>
+                            <arguments>
+                                <argument>--out</argument>
+                                <argument>${project.basedir}/ui/src/generated-ts/datatype-model.ts</argument>
+                                <argument>--emit-interfaces</argument>
+                                <argument>--option-to-nullable</argument>
+                                <argument>za.co.absa.spline.model.dt.DataType</argument>
+                                <argument>za.co.absa.spline.model.dt.Simple</argument>
+                                <argument>za.co.absa.spline.model.dt.Struct</argument>
+                                <argument>za.co.absa.spline.model.dt.Array</argument>
+                            </arguments>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <includeProjectDependencies>true</includeProjectDependencies>
-                    <includePluginDependencies>true</includePluginDependencies>
-                    <executableDependency>
-                        <groupId>com.github.wajda</groupId>
-                        <artifactId>scala-ts_${scala.compat.version}</artifactId>
-                    </executableDependency>
-                    <mainClass>com.mpc.scalats.CLI</mainClass>
-                    <arguments>
-                        <argument>--out</argument>
-                        <argument>${project.basedir}/ui/src/generated-ts/lineage-model.ts</argument>
-                        <argument>--emit-interfaces</argument>
-                        <argument>--option-to-nullable</argument>
-                        <argument>za.co.absa.spline.model.PersistedDatasetDescriptor</argument>
-                        <argument>za.co.absa.spline.model.DataLineage</argument>
-                        <argument>za.co.absa.spline.model.expr.AttributeRemoval</argument>
-                        <argument>za.co.absa.spline.model.expr.AttrRef</argument>
-                        <argument>za.co.absa.spline.model.expr.Generic</argument>
-                        <argument>za.co.absa.spline.model.expr.Alias</argument>
-                        <argument>za.co.absa.spline.model.expr.Binary</argument>
-                        <argument>za.co.absa.spline.model.expr.UDF</argument>
-                        <argument>za.co.absa.spline.model.op.Alias</argument>
-                        <argument>za.co.absa.spline.model.op.Destination</argument>
-                        <argument>za.co.absa.spline.model.op.Filter</argument>
-                        <argument>za.co.absa.spline.model.op.Generic</argument>
-                        <argument>za.co.absa.spline.model.op.Join</argument>
-                        <argument>za.co.absa.spline.model.op.Projection</argument>
-                        <argument>za.co.absa.spline.model.op.Source</argument>
-                        <argument>za.co.absa.spline.model.dt.DataType</argument>
-                        <argument>za.co.absa.spline.model.dt.Simple</argument>
-                        <argument>za.co.absa.spline.model.dt.Struct</argument>
-                        <argument>za.co.absa.spline.model.dt.Array</argument>
-                    </arguments>
-                </configuration>
                 <dependencies>
                     <dependency>
                         <groupId>com.github.wajda</groupId>
