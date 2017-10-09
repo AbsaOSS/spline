@@ -20,6 +20,7 @@ import java.util.UUID
 
 import org.apache.atlas.AtlasClient
 import org.apache.atlas.typesystem.Referenceable
+import org.apache.atlas.typesystem.persistence.Id
 
 import scala.collection.JavaConverters._
 
@@ -103,11 +104,12 @@ class AttributeReferenceExpression
 (
   commonProperties: ExpressionCommonProperties,
   attributeId: UUID,
-  attributeName: String
+  attributeName: String,
+  attribute: Id
 ) extends Expression(
   commonProperties,
   SparkDataTypes.AttributeReferenceExpression,
-  Map("attributeId" -> attributeId, "attributeName" -> attributeName)
+  Map("attributeId" -> attributeId.toString, "attributeName" -> attributeName, "attribute" -> attribute)
 )
 
 /**
