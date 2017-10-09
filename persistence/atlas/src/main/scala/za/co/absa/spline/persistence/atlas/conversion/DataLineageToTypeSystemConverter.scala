@@ -31,16 +31,14 @@ object DataLineageToTypeSystemConverter {
     * @return Atlas entities
     */
   def convert(lineage: DataLineage): Seq[Referenceable] = {
-    val attributes = lineage.attributes.map(i => AttributeConverter.convert(i))
-    val attributeIdMap = attributes.map(i => i.qualifiedName -> i.getId).toMap
-    val datasets = DatasetConverter.convert(lineage.operations, lineage.datasets, attributeIdMap)
+    val datasets = DatasetConverter.convert(lineage.operations, lineage.datasets, lineage.attributes)
     val datasetIdMap = datasets.map(i => i.qualifiedName -> i.getId).toMap
-    val operations = OperationConverter.convert(lineage.operations, datasetIdMap, attributeIdMap)
-    val process = createProcess(lineage, operations, datasets, attributes)
-    attributes ++ datasets ++ operations :+ process
+    val operations = OperationConverter.convert(lineage.operations, datasetIdMap)
+    val process = createProcess(lineage, operations, datasets)
+    datasets ++ operations :+ process
   }
 
-  private def createProcess(lineage: DataLineage, operations : Seq[Operation] , datasets : Seq[Dataset], attributes: Seq[Attribute]) : Referenceable = {
+  private def createProcess(lineage: DataLineage, operations : Seq[Operation] , datasets : Seq[Dataset]) : Referenceable = {
     val (inputDatasets, outputDatasets) = datasets
       .filter(_.isInstanceOf[EndpointDataset])
       .map(_.asInstanceOf[EndpointDataset])

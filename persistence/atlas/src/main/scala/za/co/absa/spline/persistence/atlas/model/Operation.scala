@@ -52,8 +52,8 @@ class Operation(
   new java.util.HashMap[String, Object]() {
     put(AtlasClient.NAME, commonProperties.name)
     put(AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME, commonProperties.qualifiedName)
-    put("inputs", commonProperties.inputs)
-    put("outputs", commonProperties.outputs)
+    put("inputs", commonProperties.inputs.asJava)
+    put("outputs", commonProperties.outputs.asJava)
     childProperties.foreach(i => put(i._1, i._2))
   }
 )

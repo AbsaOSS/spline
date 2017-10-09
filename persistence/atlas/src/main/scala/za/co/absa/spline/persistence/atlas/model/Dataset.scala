@@ -18,7 +18,6 @@ package za.co.absa.spline.persistence.atlas.model
 
 import org.apache.atlas.AtlasClient
 import org.apache.atlas.typesystem.Referenceable
-import org.apache.atlas.typesystem.persistence.Id
 import java.util.UUID
 
 import scala.collection.JavaConverters._
@@ -34,7 +33,7 @@ import scala.collection.JavaConverters._
 class Dataset(
   val name : String,
   val qualifiedName: UUID,
-  attributes: Seq[Id],
+  attributes: Seq[Attribute],
   datasetType: String = SparkDataTypes.Dataset,
   childProperties: Map[String, AnyRef] = Map.empty
 ) extends Referenceable(
@@ -64,7 +63,7 @@ import EndpointType._
 class EndpointDataset(
   name : String,
   qualifiedName: UUID,
-  attributes: Seq[Id],
+  attributes: Seq[Attribute],
   val endpoint : Referenceable,
   endpointType : EndpointType,
   val direction : EndpointDirection,

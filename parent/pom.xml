@@ -195,7 +195,7 @@
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
@@ -219,6 +219,11 @@
             <dependency>
                 <groupId>com.github.salat</groupId>
                 <artifactId>salat-core_${scala.compat.version}</artifactId>
+                <version>1.10.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.salat</groupId>
+                <artifactId>salat-util_${scala.compat.version}</artifactId>
                 <version>1.10.0</version>
             </dependency>
             <dependency>

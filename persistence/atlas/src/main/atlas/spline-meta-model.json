@@ -46,6 +46,34 @@
       ]
     },
     {
+      "name": "spark_dataset_attribute",
+      "superTypes": [
+        "spark_attribute"
+      ],
+      "typeVersion": "1.0",
+      "attributeDefs": [
+        {
+          "name": "dataset",
+          "typeName": "spark_dataset",
+          "cardinality": "SINGLE",
+          "constraints": [
+            {
+              "type": "inverseRef",
+              "params": {
+                "attribute": "attributes"
+              }
+            }
+          ],
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        }
+      ],
+      "options": {
+        "schemaAttributes": "[\"name\", \"type\"]"
+      }
+    },
+    {
       "name": "spark_job",
       "superTypes": [
         "Process", "spark_entity"
@@ -456,14 +484,6 @@
         {
           "name": "attributeName",
           "typeName": "string",
-          "cardinality": "SINGLE",
-          "isIndexable": false,
-          "isOptional": false,
-          "isUnique": false
-        },
-        {
-          "name": "attribute",
-          "typeName": "spark_attribute",
           "cardinality": "SINGLE",
           "isIndexable": false,
           "isOptional": false,

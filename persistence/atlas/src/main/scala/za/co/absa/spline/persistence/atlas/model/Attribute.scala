@@ -28,7 +28,7 @@ import org.apache.atlas.typesystem.{Referenceable, Struct}
   * @param qualifiedName An unique identifier
   * @param dataType A data type
   */
-class Attribute(val name : String, val qualifiedName: UUID, dataType : DataType) extends Referenceable(
+class Attribute(val name : String, val qualifiedName: String, dataType : DataType) extends Referenceable(
   SparkDataTypes.Attribute,
   new java.util.HashMap[String, Object]{
     put(AtlasClient.NAME, name)
@@ -37,3 +37,10 @@ class Attribute(val name : String, val qualifiedName: UUID, dataType : DataType)
     put("typeRef", dataType)
   }
 )
+{
+  /**
+    * The method assigns dataset to the attribute
+    * @param dataset An id of the assigned dataset
+    */
+  def assingDataset(dataset: Id) = set("dataset", dataset)
+}
