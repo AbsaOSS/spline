@@ -415,7 +415,7 @@
           "isUnique": false
         },
         {
-          "name": "textualRepresentation",
+          "name": "text",
           "typeName": "string",
           "cardinality": "SINGLE",
           "isIndexable": false,

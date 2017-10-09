@@ -14,19 +14,11 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.api.serialization
+import {Component} from "@angular/core";
 
-/**
-  * The object sets up defaults from (de)serialization of a data lineage to BSON format.
-  */
-object BSONSalatContext {
-
-  /**
-    * An implicit context defining defaults for BSON (de)serialization.
-    */
-  implicit val ctx = new salat.Context with CommonSalatContext {
-    override val name: String = "BSON Salat Context"
-
-    registerGlobalKeyOverride("id", "_id")
-  }
+@Component({
+    templateUrl: 'dashboard.component.html',
+    styleUrls: ['dashboard.component.css']
+})
+export class DashboardComponent {
 }

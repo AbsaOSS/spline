@@ -15,25 +15,20 @@
  */
 
 import {Injectable} from "@angular/core";
-import {Http, Response} from "@angular/http";
-import "rxjs";
+import {ActivatedRouteSnapshot, Resolve, RouterStateSnapshot} from "@angular/router";
 import {IDataLineage} from "../../generated-ts/lineage-model";
+import {Observable} from "rxjs/Observable";
+import {LineageService} from "./lineage.service";
 
 @Injectable()
-export class LineageService {
-    private lineagePromiseCache: { [id: string]: Promise<IDataLineage>; } = {}
+export class LineageByIdResolver implements Resolve<IDataLineage> {
 
-    constructor(private http: Http) {
+    constructor(private lineageService: LineageService) {
     }
 
-    getLineage(id: string): Promise<IDataLineage> {
-        let fetchAndCache = (id: string) => {
-            let lp = this.http.get(`rest/lineage/${id}`).map((res: Response) => res.json()).toPromise()
-            this.lineagePromiseCache[id] = lp
-            return lp
-        }
-
-        let cachedPromise = this.lineagePromiseCache[id]
-        return (cachedPromise) ? cachedPromise : fetchAndCache(id)
+    resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<IDataLineage> | Promise<IDataLineage> | IDataLineage {
+        let lineageId = route.paramMap.get('id')
+        return this.lineageService.getLineage(lineageId)
     }
+
 }

@@ -15,25 +15,21 @@
  */
 
 import {Injectable} from "@angular/core";
-import {Http, Response} from "@angular/http";
-import "rxjs";
 import {IDataLineage} from "../../generated-ts/lineage-model";
+import {Observable} from "rxjs/Observable";
+import {Subject} from "rxjs/Subject";
+import {ReplaySubject} from "rxjs/ReplaySubject";
 
 @Injectable()
-export class LineageService {
-    private lineagePromiseCache: { [id: string]: Promise<IDataLineage>; } = {}
+export class LineageStore {
 
-    constructor(private http: Http) {
+    private _lineage$: Subject<IDataLineage> = new ReplaySubject()
+
+    public get lineage$(): Observable<IDataLineage> {
+        return this._lineage$
     }
 
-    getLineage(id: string): Promise<IDataLineage> {
-        let fetchAndCache = (id: string) => {
-            let lp = this.http.get(`rest/lineage/${id}`).map((res: Response) => res.json()).toPromise()
-            this.lineagePromiseCache[id] = lp
-            return lp
-        }
-
-        let cachedPromise = this.lineagePromiseCache[id]
-        return (cachedPromise) ? cachedPromise : fetchAndCache(id)
+    public set lineage(lineage: IDataLineage) {
+        this._lineage$.next(lineage)
     }
 }

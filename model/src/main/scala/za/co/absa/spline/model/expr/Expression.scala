@@ -56,7 +56,7 @@ sealed trait Expression {
   * The case class represents Spark expressions for which a dedicated expression node type hasn't been created yet.
   *
   * @param exprType see [[za.co.absa.spline.model.expr.Expression#exprType Expression.exprType]]
-  * @param text     see [[za.co.absa.spline.model.expr.Expression#textualRepresentation Expression.textualRepresentation]]
+  * @param text     see [[za.co.absa.spline.model.expr.Expression#text Expression.text]]
   * @param dataType see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
   * @param children see [[za.co.absa.spline.model.expr.Expression#children Expression.children]]
   */
@@ -72,7 +72,7 @@ case class Generic
   * The case class represents renaming of an underlying expression to a specific alias.
   *
   * @param alias    A final name of the expression
-  * @param text     see [[za.co.absa.spline.model.expr.Expression#textualRepresentation Expression.textualRepresentation]]
+  * @param text     see [[za.co.absa.spline.model.expr.Expression#text Expression.text]]
   * @param dataType see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
   * @param children see [[za.co.absa.spline.model.expr.Expression#children Expression.children]]
   */
@@ -94,7 +94,7 @@ case class Alias
   *
   * @param exprType see [[za.co.absa.spline.model.expr.Expression#exprType Expression.exprType]]
   * @param symbol   A symbol expressing the operation (+, -, *, /, etc. )
-  * @param text     see [[za.co.absa.spline.model.expr.Expression#textualRepresentation Expression.textualRepresentation]]
+  * @param text     see [[za.co.absa.spline.model.expr.Expression#text Expression.text]]
   * @param dataType see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
   * @param children see [[za.co.absa.spline.model.expr.Expression#children Expression.children]]
   */
@@ -110,7 +110,7 @@ case class Binary
 /**
   * The case class represents a special expression for removing an attribute from a data set.
   *
-  * @param text     see [[za.co.absa.spline.model.expr.Expression#textualRepresentation Expression.textualRepresentation]]
+  * @param text     see [[za.co.absa.spline.model.expr.Expression#text Expression.text]]
   * @param dataType see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
   * @param children see [[za.co.absa.spline.model.expr.Expression#children Expression.children]]
   */
@@ -145,7 +145,7 @@ object AttributeRemoval {
   *
   * @param refId    An unique of a referenced attribute
   * @param name     A name of a referenced attribute
-  * @param text     see [[za.co.absa.spline.model.expr.Expression#textualRepresentation Expression.textualRepresentation]]
+  * @param text     see [[za.co.absa.spline.model.expr.Expression#text Expression.text]]
   * @param dataType see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
   */
 case class AttributeReference
@@ -194,7 +194,7 @@ object AttributeReference {
   * The case class represents a special expression describing an user-defined function of Spark.
   *
   * @param name     A name assigned to an user-defined function
-  * @param text     see [[za.co.absa.spline.model.expr.Expression#textualRepresentation Expression.textualRepresentation]]
+  * @param text     see [[za.co.absa.spline.model.expr.Expression#text Expression.text]]
   * @param dataType see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
   * @param children see [[za.co.absa.spline.model.expr.Expression#children Expression.children]]
   */
