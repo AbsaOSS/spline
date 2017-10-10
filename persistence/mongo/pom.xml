@@ -45,6 +45,10 @@
             <artifactId>spline-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.salat</groupId>
+            <artifactId>salat-core_${scala.compat.version}</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

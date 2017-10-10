@@ -47,19 +47,5 @@
             <groupId>commons-configuration</groupId>
             <artifactId>commons-configuration</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.github.salat</groupId>
-            <artifactId>salat-core_${scala.compat.version}</artifactId>
-        </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.scalatest</groupId>
-                <artifactId>scalatest-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>

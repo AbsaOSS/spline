@@ -19,7 +19,7 @@ package za.co.absa.spline.web.salat
 import java.util.UUID
 
 import salat.transformers.CustomTransformer
-import za.co.absa.spline.persistence.api.serialization.CommonSalatContext
+import za.co.absa.spline.persistence.mongo.serialization.CommonSalatContext
 
 object JSONSalatContext {
   implicit val ctx = new salat.Context with CommonSalatContext {

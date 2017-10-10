@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.api.serialization
+package za.co.absa.spline.persistence.mongo.serialization
 
 /**
   * The object sets up defaults from (de)serialization of a data lineage to BSON format.
