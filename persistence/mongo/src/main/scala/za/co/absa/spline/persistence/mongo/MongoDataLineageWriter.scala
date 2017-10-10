@@ -32,7 +32,7 @@ import za.co.absa.spline.common.FutureImplicits._
   */
 class MongoDataLineageWriter(connection: MongoConnection) extends DataLineageWriter {
 
-  import za.co.absa.spline.persistence.api.serialization.BSONSalatContext._
+  import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext._
 
   /**
     * The method stores a particular data lineage to the persistence layer.

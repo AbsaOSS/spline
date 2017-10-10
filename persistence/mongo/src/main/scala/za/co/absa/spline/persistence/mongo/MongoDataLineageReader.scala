@@ -35,7 +35,7 @@ import scala.concurrent.Future
   */
 class MongoDataLineageReader(connection: MongoConnection) extends DataLineageReader {
 
-  import za.co.absa.spline.persistence.api.serialization.BSONSalatContext._
+  import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext._
 
   /**
     * The method loads a particular data lineage from the persistence layer.

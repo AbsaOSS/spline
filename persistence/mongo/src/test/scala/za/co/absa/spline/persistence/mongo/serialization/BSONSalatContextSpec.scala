@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.api.serialization
+package za.co.absa.spline.persistence.mongo.serialization
 
 import java.net.URI
 import java.util.UUID
