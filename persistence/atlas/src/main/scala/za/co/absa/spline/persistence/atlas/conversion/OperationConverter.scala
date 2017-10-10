@@ -31,10 +31,9 @@ object OperationConverter {
     * The method converts [[za.co.absa.spline.model.op.Operation Spline operations]] to [[za.co.absa.spline.persistence.atlas.model.Operation Atlas operations]].
     * @param operations A sequence of [[za.co.absa.spline.model.op.Operation Spline operations]]
     * @param datasetIdMap A map of Spline data set ids to Atlas ids
-    * @param attributeIdMap A map of Spline attribute ids to Atlas ids
     * @return A sequence of [[za.co.absa.spline.persistence.atlas.model.Operation Atlas operations]]
     */
-  def convert(operations: Seq[op.Operation], datasetIdMap : Map[UUID, Id], attributeIdMap: Map[UUID, Id]) : Seq[Operation] =
+  def convert(operations: Seq[op.Operation], datasetIdMap : Map[UUID, Id]) : Seq[Operation] =
     operations.map{o =>
       val commonProperties = OperationCommonProperties(
         o.mainProps.name,
@@ -43,9 +42,9 @@ object OperationConverter {
         Seq(datasetIdMap(o.mainProps.output))
       )
       o match {
-        case op.Join(_, c, t) => new JoinOperation(commonProperties, t, c.map(j => ExpressionConverter.convert(commonProperties.qualifiedName, j, attributeIdMap)).get)
-        case op.Filter(_, c) => new FilterOperation(commonProperties, ExpressionConverter.convert(commonProperties.qualifiedName, c, attributeIdMap))
-        case op.Projection(_, t) => new ProjectOperation(commonProperties, t.zipWithIndex.map(j => ExpressionConverter.convert(commonProperties.qualifiedName + "@" + j._2, j._1, attributeIdMap)))
+        case op.Join(_, c, t) => new JoinOperation(commonProperties, t, c.map(j => ExpressionConverter.convert(commonProperties.qualifiedName, j)).get)
+        case op.Filter(_, c) => new FilterOperation(commonProperties, ExpressionConverter.convert(commonProperties.qualifiedName, c))
+        case op.Projection(_, t) => new ProjectOperation(commonProperties, t.zipWithIndex.map(j => ExpressionConverter.convert(commonProperties.qualifiedName + "@" + j._2, j._1)))
         case op.Alias(_, a) => new AliasOperation(commonProperties, a)
         case op.Generic(_, r) => new GenericOperation(commonProperties, r)
         case _ => new Operation(commonProperties)

@@ -30,7 +30,7 @@ object SparkDataTypes{
   val Dataset : String = "spark_dataset"
   val EndpointDataset : String = "spark_endpoint_dataset"
   val FileEndpoint : String = "hdfs_path"
-  val Attribute : String = "spark_attribute"
+  val Attribute : String = "spark_dataset_attribute"
   val SimpleDataType : String = "spark_simple_data_type"
   val StructDataType : String = "spark_struct_data_type"
   val StructField : String = "spark_struct_field"

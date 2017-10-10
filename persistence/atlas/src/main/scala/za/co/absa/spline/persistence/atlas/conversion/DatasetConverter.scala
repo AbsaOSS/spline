@@ -16,10 +16,7 @@
 
 package za.co.absa.spline.persistence.atlas.conversion
 
-import java.util.UUID
-
-import org.apache.atlas.typesystem.persistence.Id
-import za.co.absa.spline.model.{MetaDataset, op}
+import za.co.absa.spline.model.{MetaDataset, op, Attribute}
 import za.co.absa.spline.persistence.atlas.model._
 
 /**
@@ -32,22 +29,26 @@ object DatasetConverter {
     * The method converts [[za.co.absa.spline.model.MetaDataset Spline meta data sets]] to [[za.co.absa.spline.persistence.atlas.model.Dataset Atlas data sets]].
     * @param operations A sequence of [[za.co.absa.spline.model.op.Operation Spline operations]]
     * @param datasets A sequence of [[za.co.absa.spline.model.MetaDataset Spline meta data sets]]
-    * @param attributeIdMap A map of Spline attribute ids to Atlas ids
+    * @param attributes A sequence of [[za.co.absa.spline.model.Attribute Spline attributes]]
     * @return A sequence of [[za.co.absa.spline.persistence.atlas.model.Dataset Atlas data sets]]
     */
-  def convert(operations: Seq[op.Operation], datasets : Seq[MetaDataset], attributeIdMap: Map[UUID,Id]) : Seq[Dataset] =
-    for(
+  def convert(operations: Seq[op.Operation], datasets : Seq[MetaDataset], attributes: Seq[Attribute]) : Seq[Dataset] = {
+    val attributeMap = attributes.map(a => a.id -> a).toMap
+    for (
       operation <- operations;
       dataset <- datasets.withFilter(d => d.id == operation.mainProps.output);
       name = operation.mainProps.name + datasetSuffix;
       qualifiedName = dataset.id;
-      attributes = dataset.schema.attrs.map(i => attributeIdMap(i))
+      attributes = dataset.schema.attrs.map(i => AttributeConverter.convert(qualifiedName.toString, attributeMap(i)));
+      translated = operation match {
+        case op.Source(m, st, paths) =>
+          val path = paths.mkString(", ")
+          new EndpointDataset(name, qualifiedName, attributes, new FileEndpoint(path, path), EndpointType.file, EndpointDirection.input, st)
+        case op.Destination(m, dt, path) => new EndpointDataset(name, qualifiedName, attributes, new FileEndpoint(path, path), EndpointType.file, EndpointDirection.output, dt)
+        case _ => new Dataset(name, qualifiedName, attributes)
+      };
+      a = attributes.foreach(a => a.assingDataset(translated.getId))
     )
-    yield operation match {
-      case op.Source(m, st, paths) =>
-        val path = paths.mkString(", ")
-        new EndpointDataset(name, qualifiedName, attributes, new FileEndpoint(path, path), EndpointType.file, EndpointDirection.input, st)
-      case op.Destination(m, dt, path) => new EndpointDataset(name, qualifiedName, attributes, new FileEndpoint(path, path), EndpointType.file, EndpointDirection.output, dt)
-      case _ => new Dataset(name, qualifiedName, attributes)
-    }
+    yield translated
+  }
 }

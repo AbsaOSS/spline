@@ -25,13 +25,14 @@ object AttributeConverter {
 
   /**
     * The method converts an [[za.co.absa.spline.model.Attribute Spline attribute]] to an [[za.co.absa.spline.persistence.atlas.model.Attribute Atlas attribute]].
+    * @param uniquePrefix A prefix helping to ensure uniqueness of the attribute
     * @param splineAttribute An input Spline attribute
     * @return An Atlas attributes
     */
-  def convert(splineAttribute : za.co.absa.spline.model.Attribute) : Attribute = {
+  def convert(uniquePrefix: String, splineAttribute : za.co.absa.spline.model.Attribute) : Attribute = {
     val attributeQualifiedName = splineAttribute.id.toString
     val dataType = DataTypeConverter.convert(splineAttribute.dataType, attributeQualifiedName)
-    new Attribute(splineAttribute.name, splineAttribute.id, dataType)
+    new Attribute(splineAttribute.name, uniquePrefix + "@" + splineAttribute.id, dataType)
   }
 
 }

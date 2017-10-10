@@ -104,12 +104,11 @@ class AttributeReferenceExpression
 (
   commonProperties: ExpressionCommonProperties,
   attributeId: UUID,
-  attributeName: String,
-  attribute: Id
+  attributeName: String
 ) extends Expression(
   commonProperties,
   SparkDataTypes.AttributeReferenceExpression,
-  Map("attributeId" -> attributeId.toString, "attributeName" -> attributeName, "attribute" -> attribute)
+  Map("attributeId" -> attributeId.toString, "attributeName" -> attributeName)
 )
 
 /**

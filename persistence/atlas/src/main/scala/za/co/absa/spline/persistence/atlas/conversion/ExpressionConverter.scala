@@ -32,12 +32,11 @@ object ExpressionConverter {
     *
     * @param qualifiedNamePrefix A prefix helping to ensure uniqueness of qualified names of created expressions
     * @param expression          An input Spline expression
-    * @param attributeIdMap A map of Spline attribute ids to Atlas ids
     * @return An Atlas expression
     */
-  def convert(qualifiedNamePrefix: String, expression: expr.Expression, attributeIdMap: Map[UUID, Id]): Expression = {
+  def convert(qualifiedNamePrefix: String, expression: expr.Expression): Expression = {
     val qualifiedName = qualifiedNamePrefix + "@" + expression.text
-    val children = expression.children.zipWithIndex.map(i => convert(qualifiedName + "@" + i._2, i._1, attributeIdMap))
+    val children = expression.children.zipWithIndex.map(i => convert(qualifiedName + "@" + i._2, i._1))
     val mainProperties = ExpressionCommonProperties(
       qualifiedName,
       expression.text,
@@ -48,7 +47,7 @@ object ExpressionConverter {
 
     expression match {
       case expr.Binary(_, symbol, _, _, _) => new BinaryExpression(mainProperties, symbol)
-      case expr.AttributeReference(attributeId, attributeName, _, _) => new AttributeReferenceExpression(mainProperties, attributeId, attributeName, attributeIdMap(attributeId))
+      case expr.AttributeReference(attributeId, attributeName, _, _) => new AttributeReferenceExpression(mainProperties, attributeId, attributeName)
       case expr.UserDefinedFunction(name, _, _, _) => new UserDefinedFunctionExpression(mainProperties, name)
       case _ => new Expression(mainProperties)
     }
