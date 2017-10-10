@@ -16,7 +16,7 @@
 
 import * as vis from "vis";
 import * as _ from "lodash";
-import {HighlightedVisClusterNode, RegularVisClusterNode, VisClusterNode, VisEdge, VisNode, VisNodeType} from "./vis/vis-model";
+import {HighlightedVisClusterNode, RegularVisClusterNode, VisClusterNode, VisEdge, VisModel, VisNode, VisNodeType} from "./vis/vis-model";
 
 export class ClusterManager {
 
@@ -27,8 +27,8 @@ export class ClusterManager {
     }
 
     public rebuildClusters() {
-        let nodes = <VisNode[]> this.graph.nodes
-        let edges = <VisEdge[]> this.graph.edges
+        let nodes = (<VisModel>this.graph).nodesArray
+        let edges = (<VisModel>this.graph).edgesArray
         let result: VisClusterNodeBuilder[] = []
         nodes.forEach(n => {
             let siblingsTo = edges.filter(i => i.from == n.id).map(i => i.to)

@@ -20,14 +20,19 @@
             <graph #graph
                    [lineage]="lineage"
                    [selectedOperationId]="selectedOperation?.mainProps.id"
-                   (operationSelected)="onOperationSelected($event)">
-                <!--[highlightedNodeIds]="highlightedNodeIds"-->
+                   (operationSelected)="onOperationSelected($event)"
+                   [highlightedNodeIDs]="highlightedNodeIDs">
             </graph>
             <div class="graph-footer">
-                <button mat-icon-button (click)="graph.collapseNodes()" title="Collapse groups of nodes">
+                <button *ngIf="selectedAttrIDs.length"
+                        mat-button (click)="clearSelection()" title="Collapse groups of nodes">
+                    <mat-icon title="Clear selection">clear</mat-icon>
+                    Clear selection
+                </button>
+                <button mat-button (click)="graph.collapseNodes()" title="Collapse groups of nodes">
                     <mat-icon>fullscreen_exit</mat-icon>
                 </button>
-                <button mat-icon-button (click)="graph.fit()" title="Fit to screen">
+                <button mat-button (click)="graph.fit()" title="Fit to screen">
                     <mat-icon>filter_none</mat-icon>
                 </button>
             </div>
@@ -52,10 +57,9 @@
 
                         <operation-details
                                 [operation]="selectedOperation"
+                                [selectedAttrIDs]="selectedAttrIDs"
                                 (fullAttributeSchemaRequested)="onFullAttributeSchemaRequested($event)"
-                        >
-                            <!--<attrSelectedcted)="onAttributeSelected($event)"-->
-                            <!--[selectedAttrIDs]="selectedAttrIDs"-->
+                                (attributeSelected)="onAttributeSelected($event)">
                         </operation-details>
                     </mat-tab>
 

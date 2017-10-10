@@ -19,7 +19,7 @@ import {IAttribute, IDataLineage, IMetaDataset, IOperation} from "../../generate
 import {Observable} from "rxjs/Observable";
 import {Subject} from "rxjs/Subject";
 import {ReplaySubject} from "rxjs/ReplaySubject";
-import * as _ from "lodash"
+import * as _ from "lodash";
 
 @Injectable()
 export class LineageStore {
@@ -29,6 +29,7 @@ export class LineageStore {
     private operationById: { [id: string]: IOperation }
     private datasetById: { [id: string]: IMetaDataset }
     private attributeById: { [id: string]: IAttribute }
+    private operationIdsByAttributeId: { [id: string]: string }
 
     public get lineage$(): Observable<IDataLineage> {
         return this._lineage$
@@ -39,6 +40,16 @@ export class LineageStore {
         this.operationById = _.mapValues(_.groupBy(lineage.operations, "id"), _.first)
         this.datasetById = _.mapValues(_.groupBy(lineage.datasets, "id"), _.first)
         this.attributeById = _.mapValues(_.groupBy(lineage.attributes, "id"), _.first)
+
+        this.operationIdsByAttributeId = (<any>_(lineage.operations))
+            .flatMap((op: IOperation) => {
+                let opDatasetIds = op.mainProps.inputs.concat(op.mainProps.output)
+                let opAttrIds = _.uniq(_.flatMap(opDatasetIds, dsId => this.datasetById[dsId].schema.attrs))
+                return opAttrIds.map(attrId => [attrId, op.mainProps.id])
+            })
+            .groupBy(_.first)
+            .mapValues(_.partial(_.map, _, _.last))
+            .value()
     }
 
     public getOperation(opId: string) {
@@ -51,5 +62,9 @@ export class LineageStore {
 
     public getAttribute(attrId: string) {
         return this.attributeById[attrId]
+    }
+
+    public getOperationIdsByAnyAttributeId(...attrIds: string[]): string[] {
+        return _.uniq(_.flatMap(attrIds, attrId => this.operationIdsByAttributeId[attrId]))
     }
 }

@@ -6525,7 +6525,30 @@ module.exports = function () {
                         "inputs": ["ds-uuid-8"],
                         "output": "ds-uuid-32"
                     },
-                    "condition": undefined // todo
+                    "condition": {
+                        "_typeHint": "za.co.absa.spline.core.model.expr.Binary",
+                        "exprType": "EqualNullSafe",
+                        "symbol": "<=>",
+                        "text": "(ProductMainType#34 <=> MappingMainType#111)",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "boolean", "nullable": false},
+                        "children": [{
+                            "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
+                            "attributeId": 34,
+                            "attributeName": "ProductMainType",
+                            "exprType": "AttributeReference",
+                            "text": "ProductMainType",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
+                            "children": []
+                        }, {
+                            "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
+                            "attributeId": 111,
+                            "attributeName": "MappingMainType",
+                            "exprType": "AttributeReference",
+                            "text": "MappingMainType",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
+                            "children": []
+                        }]
+                    }
                 }]
             },
             {

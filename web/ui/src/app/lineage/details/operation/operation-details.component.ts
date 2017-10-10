@@ -32,8 +32,10 @@ export class OperationDetailsComponent implements OnChanges {
     }
 
     @Input() operation: IOperation
+    @Input() selectedAttrIDs: string[]
 
     @Output() fullAttributeSchemaRequested = new EventEmitter<IAttribute>()
+    @Output() attributeSelected = new EventEmitter<IAttribute>()
 
     private operationType: OperationType
 
@@ -55,13 +57,9 @@ export class OperationDetailsComponent implements OnChanges {
         return dataset.schema.attrs.map(attrId => this.lineageStore.getAttribute(attrId))
     }
 
-    // @Input() selectedAttrIDs: number[]
-
-    // @Output() attributeSelected = new EventEmitter<IAttribute>()
-
-    /*selectAttribute(attr: IAttribute) {
-     this.attributeSelected.emit(attr)
-     }*/
+    selectAttribute(attrId: string) {
+        this.attributeSelected.emit(this.lineageStore.getAttribute(attrId))
+    }
 
     showFullAttributeSchema(attrId: string) {
         this.fullAttributeSchemaRequested.emit(this.lineageStore.getAttribute(attrId))

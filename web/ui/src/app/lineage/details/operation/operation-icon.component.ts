@@ -18,6 +18,7 @@ import {Component, Input} from "@angular/core";
 import {IOperation} from "../../../../generated-ts/lineage-model";
 import {typeOfOperation} from "../../types";
 import {Icon} from "./operation-icon.utils";
+
 @Component({
     selector: "operation-icon",
     template: "<i class='fa {{faIconCode}}'></i>",
@@ -29,6 +30,4 @@ export class OperationIconComponent {
     @Input() set operation(op: IOperation) {
         this.faIconCode = op && Icon.getIconForNodeType(typeOfOperation(op)).name
     }
-
-
 }

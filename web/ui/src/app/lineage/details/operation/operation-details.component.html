@@ -51,9 +51,9 @@
                     </p-header>
                     <attribute-list
                             [attrs]="getDatasetAttributes(input)"
-                            (fullAttrSchemaClicked)="showFullAttributeSchema($event)">
-                        <!--[selectedAttrIDs]="selectedAttrIDs"-->
-                        <!--(attributeSelected)="selectAttribute($event)" -->
+                            [selectedAttrIDs]="selectedAttrIDs"
+                            (fullAttrSchemaClicked)="showFullAttributeSchema($event)"
+                            (attrClicked)="selectAttribute($event)">
                     </attribute-list>
                 </p-accordionTab>
             </section>
@@ -69,9 +69,9 @@
                     </p-header>
                     <attribute-list
                             [attrs]="getDatasetAttributes(operation.mainProps.output)"
-                            (fullAttrSchemaClicked)="showFullAttributeSchema($event)">
-                        <!--[selectedAttrIDs]="selectedAttrIDs"-->
-                        <!-- (attrSelectedcted)="selectAttribute($event)"-->
+                            [selectedAttrIDs]="selectedAttrIDs"
+                            (fullAttrSchemaClicked)="showFullAttributeSchema($event)"
+                            (attrClicked)="selectAttribute($event)">
                     </attribute-list>
                 </p-accordionTab>
             </section>
@@ -102,8 +102,7 @@
                     </p-header>
                     <ul>
                         <li>
-                            {{operation.condition}}
-                            <!--<expression-inline-view [expr]="operation.condition"></expression-inline-view>-->
+                            <expression-inline [expr]="operation.condition"></expression-inline>
                         </li>
                     </ul>
                 </p-accordionTab>

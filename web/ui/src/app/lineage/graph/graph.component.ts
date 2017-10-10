@@ -21,6 +21,7 @@ import {visOptions} from "./vis/vis-options";
 import {lineageToGraph} from "./graph-builder";
 import * as vis from "vis";
 import {ClusterManager} from "./cluster-manager";
+import {VisNode, VisNodeType} from "./vis/vis-model";
 
 @Component({
     selector: 'graph',
@@ -30,8 +31,7 @@ export class GraphComponent implements OnChanges {
     @Input() lineage: IDataLineage
     @Input() selectedOperationId: string
 
-    // @Input() highlightedNodeIDs: number[]
-
+    @Input() highlightedNodeIDs: number[]
     @Output() operationSelected = new EventEmitter<string>()
 
     private network: vis.Network
@@ -47,9 +47,7 @@ export class GraphComponent implements OnChanges {
     ngOnChanges(changes: SimpleChanges): void {
         if (changes["lineage"]) this.rebuildGraph()
         if (changes["selectedOperationId"]) this.refreshSelectedNode()
-
-        /*if (changes["highlightedNodeIDs"])
-         this.refreshHighlightedNodes();*/
+        if (changes["highlightedNodeIDs"]) this.refreshHighlightedNodes()
     }
 
     private rebuildGraph() {
@@ -111,27 +109,31 @@ export class GraphComponent implements OnChanges {
         }
     }
 
-    /*private refreshHighlightedNodes() {
-     let visNodeBuilders: VisNodeBuilder[] =
-     this.lineage.operations.map((node, i) => {
-     let visNodeType = _.includes(this.highlightedNodeIDs, i)
-     ? VisNodeType.Highlighted
-     : VisNodeType.Regular;
-     return new VisNodeBuilder(i, node, visNodeType)
-     });
+    private refreshHighlightedNodes() {
+        // TODO: !!!!!!!!!!
+        console.log("highlight nodes", this.highlightedNodeIDs)
+        let nodes = <vis.DataSet<VisNode>> this.graph.nodes
 
-     GraphComponent
-     .filterAliasNodesOut(
-     GraphComponent.spreadAliases(visNodeBuilders))
-     .forEach(builber =>
-     this.graph.nodes.update(builber.build()));
+        /*let visNodeBuilders: VisNode[] =
+            this.lineage.operations.map(op => {
+                let visNodeType = _.includes(this.highlightedNodeIDs, i)
+                    ? VisNodeType.Highlighted
+                    : VisNodeType.Regular;
+                return new VisNode(op, op.mainProps.id, visNodeType)
+            });
 
-     this.rebuildClusters(this.graph);
-     console.log("clustered", this.clusters);
-     this.clusters.forEach(c => {
-     if ((<any>this.network).clustering.isCluster(c.id))
-     (<any>this.network).clustering.body.nodes[c.id].setOptions(c);
-     });
-     }*/
+        GraphComponent
+            .filterAliasNodesOut(
+                GraphComponent.spreadAliases(visNodeBuilders))
+            .forEach(builber =>
+                this.graph.nodes.update(builber.build()));
+
+        this.rebuildClusters(this.graph);
+        console.log("clustered", this.clusters);
+        this.clusters.forEach(c => {
+            if ((<any>this.network).clustering.isCluster(c.id))
+                (<any>this.network).clustering.body.nodes[c.id].setOptions(c);
+        });*/
+    }
 
 }

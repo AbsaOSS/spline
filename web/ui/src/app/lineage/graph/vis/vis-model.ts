@@ -20,7 +20,13 @@ import {typeOfOperation} from "../../types";
 import {Icon} from "../../details/operation/operation-icon.utils";
 
 export class VisModel implements vis.Data {
-    constructor(public nodes: vis.Node[], public edges: vis.Edge[]) {
+
+    public nodes: vis.DataSet<vis.Node>
+    public edges: vis.DataSet<vis.Edge>
+
+    constructor(public nodesArray: VisNode[], public edgesArray: VisEdge[]) {
+        this.nodes = new vis.DataSet(nodesArray)
+        this.edges = new vis.DataSet(edgesArray)
     }
 }
 

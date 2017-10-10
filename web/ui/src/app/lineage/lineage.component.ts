@@ -22,8 +22,6 @@ import {typeOfOperation} from "./types";
 import * as _ from "lodash";
 import {MatTabChangeEvent} from "@angular/material";
 import {Tab} from "./tabs";
-// import {MatTabChangeEvent} from "@angular/material";
-// import {Icon} from "icon";
 
 declare const __APP_VERSION__: string
 
@@ -39,9 +37,8 @@ export class LineageComponent implements OnInit {
     selectedTabIndex: Tab = Tab.Summary
     selectedOperation?: IOperation
     attributeToShowFullSchemaFor?: IAttribute
-
-    // selectedAttrIDs: string[]
-    // highlightedNodeIDs: string[]
+    selectedAttrIDs: string[]
+    highlightedNodeIDs: string[]
 
     constructor(private router: Router,
                 private route: ActivatedRoute,
@@ -61,9 +58,10 @@ export class LineageComponent implements OnInit {
             this.selectedOperation = opId && _.find(this.lineage.operations, <any>{mainProps: {id: opId}})
         })
 
-        this.route.queryParams.subscribe(qps => {
-            let attrId = qps["attrSchema"]
-            this.attributeToShowFullSchemaFor = this.lineageStore.getAttribute(attrId)
+        this.route.queryParamMap.subscribe(qps => {
+            this.selectedAttrIDs = qps.getAll("attr")
+            this.highlightedNodeIDs = this.lineageStore.getOperationIdsByAnyAttributeId(...this.selectedAttrIDs)
+            this.attributeToShowFullSchemaFor = this.lineageStore.getAttribute(qps["attrSchema"])
         })
 
         this.route.fragment.subscribe(fragment => {
@@ -112,32 +110,11 @@ export class LineageComponent implements OnInit {
         return _.sumBy(this.lineage.operations, node => +(typeOfOperation(node) == 'Source'))
     }
 
-    // private setData(lineage: IDataLineage, operationId: string/*, attrIDs: string[], showFullSchemaForAttrID: string | undefined*/) {
-    // this.selectedOperationId = operationId
-    // this.selectedAttrIDs = attrIDs
-
-    // this.attributeToShowFullSchemaFor = this.findAttrByID(showFullSchemaForAttrID)
-
-    // this.highlightedNodeIDs =
-    //     _.flatMap(this.lineage.operations, (node, i) => {
-    //         let nodeProps = node.mainProps
-    //         let inputAttrs: IAttribute[] = _.flatMap(nodeProps.inputs, (input => input.seq))
-    //         let outputAttrs: IAttribute[] = nodeProps.output ? nodeProps.output.seq : []
-    //         let allAttrIDs = _.union(inputAttrs, outputAttrs).map(attr => attr.id).filter(id => id != null)
-    //         return !_.isEmpty(_.intersection(allAttrIDs, this.selectedAttrIDs)) ? [i] : []
-    //     })
-    // }
-
     onOperationSelected(opId: string) {
-        this.router.navigate((opId)
-                ? ["op", opId]
-                : ["."],
-            {
+        this.router.navigate(opId ? ["op", opId] : ["."], {
                 relativeTo: this.route.parent,
                 fragment: Tab.toFragment(Tab.Operation),
-                /*queryParams: {
-                 'attr': this.selectedAttrIDs
-                 }*/
+                queryParams: {'attr': this.selectedAttrIDs}
             }
         )
     }
@@ -145,38 +122,31 @@ export class LineageComponent implements OnInit {
     onTabChanged(e: MatTabChangeEvent) {
         this.router.navigate([], {
             fragment: Tab.toFragment(e.index),
-            preserveQueryParams: true
+            queryParamsHandling: "preserve"
         })
 
     }
 
     onFullAttributeSchemaRequested(attr: IAttribute) {
         this.router.navigate([], {
-            queryParams: {
-                // 'attr': this.selectedAttrIDs,
-                'attrSchema': attr.id
-            },
-            fragment: Tab.toFragment(Tab.Attribute)
+            fragment: Tab.toFragment(Tab.Attribute),
+            queryParams: {'attrSchema': attr.id},
+            queryParamsHandling: "merge"
         })
     }
 
-    /*getSelectedNode() {
-     return (this.selectedOperationId >= 0)
-     ? this.lineage.operations[this.selectedOperationId]
-     : undefined
-     }
+    onAttributeSelected(attr: IAttribute) {
+        this.doSelectAttribute(attr.id)
+    }
 
-     getSelectedNodeIcon() {
-     let selectedNode = this.getSelectedNode()
-     return selectedNode && Icon.getIconForNodeType(typeOfOperation(selectedNode)).name
-     }
+    clearSelection() {
+        this.doSelectAttribute()
+    }
 
-     onAttributeSelected(attr: IAttribute) {
-     this.router.navigate([], {
-     queryParams: {
-     'attr': attr.id
-     }
-     })
-     }
-     */
+    private doSelectAttribute(...attrIds: string[]) {
+        this.router.navigate([], {
+            queryParams: {'attr': attrIds},
+            preserveFragment: true
+        })
+    }
 }
