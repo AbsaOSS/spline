@@ -50,10 +50,10 @@
                                 iconColor="green"></details-section-header>
                     </p-header>
                     <attribute-list
-                            [attrs]="getDatasetAttributes(input)">
+                            [attrs]="getDatasetAttributes(input)"
+                            (fullAttrSchemaClicked)="showFullAttributeSchema($event)">
                         <!--[selectedAttrIDs]="selectedAttrIDs"-->
-                        <!--(fullAttributeSchemaClicked)="showFullAttributeSchema($event)"-->
-                        <!--(attributeSelected)="selectAttribute($event)"-->
+                        <!--(attributeSelected)="selectAttribute($event)" -->
                     </attribute-list>
                 </p-accordionTab>
             </section>
@@ -68,10 +68,10 @@
                                 iconColor="firebrick"></details-section-header>
                     </p-header>
                     <attribute-list
-                            [attrs]="getDatasetAttributes(operation.mainProps.output)">
+                            [attrs]="getDatasetAttributes(operation.mainProps.output)"
+                            (fullAttrSchemaClicked)="showFullAttributeSchema($event)">
                         <!--[selectedAttrIDs]="selectedAttrIDs"-->
-                        <!--(fullAttributeSchemaClicked)="showFullAttributeSchema($event)"-->
-                        <!--(attributeSelected)="selectAttribute($event)"-->
+                        <!-- (attrSelectedcted)="selectAttribute($event)"-->
                     </attribute-list>
                 </p-accordionTab>
             </section>

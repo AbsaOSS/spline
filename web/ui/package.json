@@ -48,6 +48,7 @@
     "reflect-metadata": "0.1.10",
     "rxjs": "5.4.3",
     "systemjs": "0.20.17",
+    "tsmonad": "0.8.0",
     "vis": "4.20.1",
     "zone.js": "0.8.17"
   },

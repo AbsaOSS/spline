@@ -17,7 +17,7 @@
 <ul class="nav nav-pills nav-stacked">
     <li *ngFor="let attr of attrs"
         [ngClass]="{active: isSelected(attr)}"
-        (click)="attributeSelected.emit(attr)">
+        (click)="attrSelected.emit(attr)">
         <a href="javascript:void(0)">
             <attribute-view [attr]="attr"
                             [subFieldCountDisplayThreshold]="5"

@@ -35,7 +35,7 @@
         <mat-grid-tile>
             <div class="details-container">
                 <mat-tab-group [selectedIndex]="selectedTabIndex"
-                              (selectChange)="onTabChanged($event)">
+                               (selectChange)="onTabChanged($event)">
 
                     <mat-tab label="Summary">
                         <h2>{{lineage.appName}}</h2>
@@ -52,22 +52,20 @@
 
                         <operation-details
                                 [operation]="selectedOperation"
-                                >
-                            <!--(attributeSelected)="onAttributeSelected($event)"-->
+                                (fullAttributeSchemaRequested)="onFullAttributeSchemaRequested($event)"
+                        >
+                            <!--<attrSelectedcted)="onAttributeSelected($event)"-->
                             <!--[selectedAttrIDs]="selectedAttrIDs"-->
-                            <!--(fullAttributeSchemaRequested)="onFullAttributeSchemaRequested($event)"-->
                         </operation-details>
                     </mat-tab>
 
-                    <!--
-                                        <mat-tab *ngIf="attributeToShowFullSchemaFor">
-                                            <ng-template mat-tab-label>
-                                                <i class="fa fa-puzzle-piece spl-tab-attr"></i>
-                                                {{attributeToShowFullSchemaFor.name}}
-                                            </ng-template>
-                                            <attribute-view [attr]="attributeToShowFullSchemaFor" [expandRoot]="true"></attribute-view>
-                                        </mat-tab>
-                    -->
+                    <mat-tab *ngIf="attributeToShowFullSchemaFor">
+                        <ng-template mat-tab-label>
+                            <i class="fa fa-puzzle-piece spl-tab-attr"></i>
+                            {{attributeToShowFullSchemaFor.name}}
+                        </ng-template>
+                        <attribute-view [attr]="attributeToShowFullSchemaFor" [expandRoot]="true"></attribute-view>
+                    </mat-tab>
                 </mat-tab-group>
             </div>
         </mat-grid-tile>

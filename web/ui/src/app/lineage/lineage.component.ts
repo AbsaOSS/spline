@@ -16,11 +16,12 @@
 
 import {Component, OnInit} from "@angular/core";
 import {ActivatedRoute, Router} from "@angular/router";
-import {IDataLineage, IOperation} from "../../generated-ts/lineage-model";
+import {IAttribute, IDataLineage, IOperation} from "../../generated-ts/lineage-model";
 import {LineageStore} from "./lineage.store";
 import {typeOfOperation} from "./types";
 import * as _ from "lodash";
 import {MatTabChangeEvent} from "@angular/material";
+import {Tab} from "./tabs";
 // import {MatTabChangeEvent} from "@angular/material";
 // import {Icon} from "icon";
 
@@ -35,11 +36,11 @@ export class LineageComponent implements OnInit {
     appVersion: string = __APP_VERSION__
 
     lineage: IDataLineage
-    selectedTabIndex: number = 0
+    selectedTabIndex: Tab = Tab.Summary
     selectedOperation?: IOperation
+    attributeToShowFullSchemaFor?: IAttribute
 
     // selectedAttrIDs: string[]
-    // attributeToShowFullSchemaFor: IAttribute
     // highlightedNodeIDs: string[]
 
     constructor(private router: Router,
@@ -56,10 +57,17 @@ export class LineageComponent implements OnInit {
         })
 
         this.route.paramMap.subscribe(pm => {
-            // assume there is no other param than "operationId" to be changed
-            const operationId = pm.get("operationId")
-            this.selectedOperation = _.find(this.lineage.operations, <any>{mainProps: {id: operationId}})
-            this.selectedTabIndex = this.selectedOperation ? 1 : 0
+            let opId = pm.get("operationId")
+            this.selectedOperation = opId && _.find(this.lineage.operations, <any>{mainProps: {id: opId}})
+        })
+
+        this.route.queryParams.subscribe(qps => {
+            let attrId = qps["attrSchema"]
+            this.attributeToShowFullSchemaFor = this.lineageStore.getAttribute(attrId)
+        })
+
+        this.route.fragment.subscribe(fragment => {
+            this.selectedTabIndex = Tab.fromFragment(fragment).valueOr(this.selectedTabIndex)
         })
 
         /*let cancelPendingRefresh: () => void = undefined
@@ -126,6 +134,7 @@ export class LineageComponent implements OnInit {
                 : ["."],
             {
                 relativeTo: this.route.parent,
+                fragment: Tab.toFragment(Tab.Operation),
                 /*queryParams: {
                  'attr': this.selectedAttrIDs
                  }*/
@@ -133,12 +142,22 @@ export class LineageComponent implements OnInit {
         )
     }
 
-    /*updateSelectedTabIndex() {
-     this.selectedTabIndex = this.attributeToShowFullSchemaFor ? 2 : this.getSelectedNode() ? 1 : 0
-     }*/
-
     onTabChanged(e: MatTabChangeEvent) {
-        this.selectedTabIndex = e.index
+        this.router.navigate([], {
+            fragment: Tab.toFragment(e.index),
+            preserveQueryParams: true
+        })
+
+    }
+
+    onFullAttributeSchemaRequested(attr: IAttribute) {
+        this.router.navigate([], {
+            queryParams: {
+                // 'attr': this.selectedAttrIDs,
+                'attrSchema': attr.id
+            },
+            fragment: Tab.toFragment(Tab.Attribute)
+        })
     }
 
     /*getSelectedNode() {
@@ -152,20 +171,6 @@ export class LineageComponent implements OnInit {
      return selectedNode && Icon.getIconForNodeType(typeOfOperation(selectedNode)).name
      }
 
-     private findAttrByID(attrID: number | undefined) {
-     if (_.isUndefined(attrID))
-     return undefined
-     else {
-     for (let node of this.lineage.operations) {
-     let attr = _(node.mainProps.inputs.concat(node.mainProps.output || []))
-     .flatMap(input => input.seq)
-     .find(attr => attr.id == attrID)
-     if (attr) return attr
-     }
-     return undefined
-     }
-     }
-
      onAttributeSelected(attr: IAttribute) {
      this.router.navigate([], {
      queryParams: {
@@ -173,13 +178,5 @@ export class LineageComponent implements OnInit {
      }
      })
      }
-
-     onFullAttributeSchemaRequested(attr: IAttribute) {
-     this.router.navigate([], {
-     queryParams: {
-     'attr': this.selectedAttrIDs,
-     'attrSchema': attr.id
-     }
-     })
-     }*/
+     */
 }
