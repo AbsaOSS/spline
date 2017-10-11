@@ -18,7 +18,6 @@
     <mat-grid-list cols="3">
         <mat-grid-tile colspan="2">
             <graph #graph
-                   [lineage]="lineage"
                    [selectedOperationId]="selectedOperation?.mainProps.id"
                    (operationSelected)="onOperationSelected($event)"
                    [highlightedNodeIDs]="highlightedNodeIDs">

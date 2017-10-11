@@ -43,19 +43,17 @@ export class LineageComponent implements OnInit {
     constructor(private router: Router,
                 private route: ActivatedRoute,
                 private lineageStore: LineageStore) {
-        lineageStore.lineage$.subscribe(lineage => {
-            this.lineage = lineage
-        })
     }
 
     ngOnInit(): void {
         this.route.data.subscribe((data: { lineage: IDataLineage }) => {
+            this.lineage = data.lineage
             this.lineageStore.lineage = data.lineage
         })
 
         this.route.paramMap.subscribe(pm => {
             let opId = pm.get("operationId")
-            this.selectedOperation = opId && _.find(this.lineage.operations, <any>{mainProps: {id: opId}})
+            this.selectedOperation = this.lineageStore.getOperation(opId)
         })
 
         this.route.queryParamMap.subscribe(qps => {
@@ -111,12 +109,20 @@ export class LineageComponent implements OnInit {
     }
 
     onOperationSelected(opId: string) {
-        this.router.navigate(opId ? ["op", opId] : ["."], {
-                relativeTo: this.route.parent,
-                fragment: Tab.toFragment(Tab.Operation),
-                queryParams: {'attr': this.selectedAttrIDs}
-            }
-        )
+        if (opId)
+            this.router.navigate(["op", opId], {
+                    relativeTo: this.route.parent,
+                    fragment: Tab.toFragment(Tab.Operation),
+                    queryParams: {'attr': this.selectedAttrIDs}
+                }
+            )
+        else
+            this.router.navigate(["."], {
+                    relativeTo: this.route.parent,
+                    fragment: Tab.toFragment(Tab.Summary),
+                    queryParams: {'attr': this.selectedAttrIDs}
+                }
+            )
     }
 
     onTabChanged(e: MatTabChangeEvent) {

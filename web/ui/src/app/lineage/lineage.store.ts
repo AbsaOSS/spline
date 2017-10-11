@@ -37,7 +37,7 @@ export class LineageStore {
 
     public set lineage(lineage: IDataLineage) {
         this._lineage$.next(lineage)
-        this.operationById = _.mapValues(_.groupBy(lineage.operations, "id"), _.first)
+        this.operationById = _.mapValues(_.groupBy(lineage.operations, "mainProps.id"), _.first)
         this.datasetById = _.mapValues(_.groupBy(lineage.datasets, "id"), _.first)
         this.attributeById = _.mapValues(_.groupBy(lineage.attributes, "id"), _.first)
 

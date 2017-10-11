@@ -20,13 +20,7 @@ import {typeOfOperation} from "../../types";
 import {Icon} from "../../details/operation/operation-icon.utils";
 
 export class VisModel implements vis.Data {
-
-    public nodes: vis.DataSet<vis.Node>
-    public edges: vis.DataSet<vis.Edge>
-
-    constructor(public nodesArray: VisNode[], public edgesArray: VisEdge[]) {
-        this.nodes = new vis.DataSet(nodesArray)
-        this.edges = new vis.DataSet(edgesArray)
+    constructor(public nodes: vis.DataSet<VisNode>, public edges: vis.DataSet<VisEdge>) {
     }
 }
 
@@ -104,9 +98,17 @@ export class RegularVisNode extends VisNode {
 }
 
 export class HighlightedVisNode extends VisNode {
-    constructor(id: string, label: string, icon: Icon) {
-        super(null, id, label, icon, VisNodeType.Highlighted);
-        this.icon = {
+    constructor(public operation: IOperation) {
+        super(
+            operation,
+            operation.mainProps.id,
+            operation.mainProps.name,
+            HighlightedVisNode.getIcon(Icon.getIconForNodeType(typeOfOperation(operation))),
+            VisNodeType.Highlighted)
+    }
+
+    static getIcon(icon: Icon) {
+        return {
             face: icon.font,
             size: 80,
             code: icon.code,

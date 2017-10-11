@@ -15,7 +15,8 @@
  */
 
 import {IAttribute, IDataLineage, IMetaDataset, IOperation} from "../../../generated-ts/lineage-model";
-import {RegularVisNode, VisEdge, VisModel} from "./vis/vis-model";
+import {RegularVisNode, VisEdge, VisModel, VisNode} from "./vis/vis-model";
+import * as vis from "vis";
 import * as _ from "lodash";
 import {typeOfOperation} from "../types";
 
@@ -28,7 +29,9 @@ export function lineageToGraph(lineage: IDataLineage): VisModel {
         visibleNodes = visibleOperations.map(op => new RegularVisNode(op)),
         visibleEdges = createVisibleEdges(lineage, hiddenOpIds)
 
-    return new VisModel(visibleNodes, visibleEdges)
+    return new VisModel(
+        new vis.DataSet<VisNode>(visibleNodes),
+        new vis.DataSet<VisEdge>(visibleEdges))
 }
 
 function createVisibleEdges(lineage: IDataLineage, hiddenOpIds: string[]): VisEdge[] {
