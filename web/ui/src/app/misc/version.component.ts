@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-import {Component, Input} from "@angular/core";
-import {IOperation} from "../../../../generated-ts/lineage-model";
-import {typeOfOperation} from "../../types";
-import {Icon} from "./operation-icon.utils";
+import {Component} from "@angular/core";
+
+declare const __APP_VERSION__: string
 
 @Component({
-    selector: "operation-icon",
-    template: "<i class='fa {{faIconCode}}'></i>",
-    styles: ["i { color: steelblue; }"]
+    selector: "version",
+    template: `
+        <span class="small text-muted">Spline v{{ appVersion }}</span>
+    `,
+    styles: [`span {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        margin: 2px 6px
+    }`]
 })
-export class OperationIconComponent {
-    faIconCode: string
-
-    @Input() set operation(op: IOperation) {
-        this.faIconCode = op && Icon.getIconForNodeType(typeOfOperation(op)).name
-    }
+export class VersionComponent {
+    appVersion: string = __APP_VERSION__
 }

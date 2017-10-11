@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Component, Input, EventEmitter, Output} from "@angular/core";
+import {Component, EventEmitter, Input, Output} from "@angular/core";
 import {IAttribute} from "../../../../generated-ts/lineage-model";
 import * as _ from "lodash";
 
@@ -27,14 +27,18 @@ export class AttributeListComponent {
     @Input() attrs: IAttribute[]
     @Input() selectedAttrIDs: string[]
 
-    @Output() attributeSelected = new EventEmitter<IAttribute>()
-    @Output() fullAttributeSchemaClicked = new EventEmitter<IAttribute>()
+    @Output() attrClicked = new EventEmitter<string>()
+    @Output() fullAttrSchemaClicked = new EventEmitter<string>()
 
     isSelected(attr: IAttribute) {
         return attr.id != null && _.includes(this.selectedAttrIDs, attr.id)
     }
 
-    showFullAttributeSchema(attr:IAttribute) {
-        this.fullAttributeSchemaClicked.emit(attr)
+    onAttrClicked(attr: IAttribute) {
+        this.attrClicked.emit(attr.id)
+    }
+
+    onFullAttrSchemaClicked(attr: IAttribute) {
+        this.fullAttrSchemaClicked.emit(attr.id)
     }
 }

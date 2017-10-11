@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-import {Component, Input} from "@angular/core";
-import {IOperation} from "../../../../generated-ts/lineage-model";
-import {typeOfOperation} from "../../types";
-import {Icon} from "./operation-icon.utils";
+import {maybe, Maybe} from "tsmonad";
 
-@Component({
-    selector: "operation-icon",
-    template: "<i class='fa {{faIconCode}}'></i>",
-    styles: ["i { color: steelblue; }"]
-})
-export class OperationIconComponent {
-    faIconCode: string
+export enum Tab { Summary, Operation, Attribute }
 
-    @Input() set operation(op: IOperation) {
-        this.faIconCode = op && Icon.getIconForNodeType(typeOfOperation(op)).name
+export module Tab {
+    export function toFragment(tab: Tab): string {
+        return "tab-" + tab
+    }
+
+    export function fromFragment(s: string): Maybe<Tab> {
+        return maybe(/^tab-(\d+)$/.exec(s)).map(groups => +groups[1])
     }
 }

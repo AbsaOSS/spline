@@ -16,34 +16,46 @@
 
 import * as vis from "vis";
 import * as _ from "lodash";
-import {HighlightedVisClusterNode, RegularVisClusterNode, VisClusterNode, VisEdge, VisNode, VisNodeType} from "./vis/vis-model";
+import {HighlightedVisClusterNode, RegularVisClusterNode, VisClusterNode, VisModel, VisNode, VisNodeType} from "./vis/vis-model";
 
 export class ClusterManager {
 
     private clusters: VisClusterNode[]
 
-    constructor(private graph: vis.Data,
+    constructor(private graph: VisModel,
                 private network: vis.Network) {
     }
 
     public rebuildClusters() {
-        let nodes = <VisNode[]> this.graph.nodes
-        let edges = <VisEdge[]> this.graph.edges
-        let result: VisClusterNodeBuilder[] = []
-        nodes.forEach(n => {
-            let siblingsTo = edges.filter(i => i.from == n.id).map(i => i.to)
-            let siblingsFrom = edges.filter(i => i.to == n.id).map(i => i.from)
+        let nodes = this.graph.nodes.get()
+        let edges = this.graph.edges.get()
+        let clusterBuilders: VisClusterNodeBuilder[] = []
+
+        nodes.forEach(node => {
+            let siblingsTo = edges.filter(e => e.from == node.id).map(e => e.to)
+            let siblingsFrom = edges.filter(e => e.to == node.id).map(e => e.from)
             if (siblingsFrom.length == 1 && siblingsTo.length == 1) {
-                let clusters = result.filter(i => i.nodes.filter(j => j.id == siblingsTo[0]).length > 0)
+                let clusters = clusterBuilders.filter(cb => _.some(cb.nodes, n => n.id == siblingsTo[0]))
                 if (clusters.length > 0) {
-                    clusters[0].nodes.push(n)
+                    clusters[0].nodes.push(node)
                 } else {
-                    result.push(new VisClusterNodeBuilder(n))
+                    clusterBuilders.push(new VisClusterNodeBuilder(node))
                 }
             }
-        });
+        })
 
-        this.clusters = result.filter(i => i.nodes.length > 1).map((v, i, a) => v.build("cluster" + i))
+        this.clusters = clusterBuilders
+            .filter(cb => cb.nodes.length > 1)
+            .map((cb, i) => cb.build("cluster" + i))
+    }
+
+    public refreshHighlightedClustersForNodes() {
+        this.rebuildClusters()
+        this.clusters.forEach(c => {
+            if (this.network.isCluster(c.id))
+            // we can't use updateClusteredNode() method as it emits "_dataChanged" event that makes the graph shaking
+                (<any>this.network).clustering.body.nodes[c.id].setOptions(c)
+        })
     }
 
     public collapseAllClusters() {
@@ -71,12 +83,11 @@ export class ClusterManager {
 
     private expandCluster(cluster: VisClusterNode) {
         try {
-            this.network["clustering"].openCluster(cluster.id)
+            this.network.openCluster(cluster.id)
         } catch (e) {
-            // todo: fix clustering rather than swallowing the error
+            // todo: fix clustering rather than swallowing this error
         }
     }
-
 }
 
 class VisClusterNodeBuilder {
@@ -88,8 +99,8 @@ class VisClusterNodeBuilder {
 
     build(id: string): VisClusterNode {
         let label = "(" + this.nodes.length + ")",
-            highlighted = this.nodes.filter(i => i.type == VisNodeType.Highlighted).length > 0
-        return highlighted
+            isHighlighted = _.some(this.nodes, n => n.type == VisNodeType.Highlighted)
+        return isHighlighted
             ? new HighlightedVisClusterNode(id, label, this.nodes)
             : new RegularVisClusterNode(id, label, this.nodes)
     }

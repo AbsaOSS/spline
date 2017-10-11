@@ -1,0 +1,47 @@
+/*
+ * Copyright 2017 Barclays Africa Group Limited
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.transform(@args) {
+  transform: @args;
+  -o-transform: @args;
+  -ms-transform: @args;
+  -moz-transform: @args;
+  -webkit-transform: @args;
+}
+
+h2 {
+  margin-bottom: 30%;
+  opacity: 0.6;
+}
+
+h5 {
+  position: relative;
+  opacity: 0.5;
+
+  .arrow {
+    display: block;
+    position: absolute;
+    top: -3px;
+    left: -100px;
+    width: 100%;
+    height: 20px;
+    background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDE3LjEuMCwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgogICAgIHZpZXdCb3g9IjUuMiA2OTkuNyA1ODAgMTUwIiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDUuMiA2OTkuNyA1ODAgMTUwIiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPGc+CiAgICA8cmVjdCBpZD0iWE1MSURfMV8iIHg9IjcuNSIgeT0iNzY3LjYiIGZpbGw9IiNBREFEQUQiIHdpZHRoPSI1NjYuOCIgaGVpZ2h0PSIxNC40Ii8+CiAgICA8ZyBpZD0iWE1MSURfNl8iPgogICAgICAgIDxwb2x5Z29uIGlkPSJYTUxJRF8zXyIgZmlsbD0iI0FEQURBRCIgcG9pbnRzPSI1MDguMiw4NDkuNiA0OTguMSw4MzkuNSA1NjIuOCw3NzQuNyA0OTguMSw3MTAuMSA1MDguMiw2OTkuOSA1ODMsNzc0LjcgICAgICAgICAiLz4KICAgIDwvZz4KPC9nPgo8L3N2Zz4K');
+    background-repeat: no-repeat;
+    background-position-x: right;
+    .transform(rotate(180deg));
+    opacity: 0.7;
+  }
+}

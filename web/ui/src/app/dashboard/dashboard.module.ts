@@ -29,23 +29,28 @@ import {HttpModule} from "@angular/http";
 import {DashboardComponent} from "./dashboard.component";
 import {DatasetBrowserComponent} from "./dataset-browser/dataset-browser.component";
 import {DatasetBrowserService} from "./dataset-browser/dataset-browser.service";
+import {WelcomeComponent} from "./welcome/welcome.component";
+import {MiscModule} from "../misc/misc.module";
 
 @NgModule({
     imports: [
         RouterModule,
         HttpModule,
         MaterialModule,
-        NoopAnimationsModule
+        NoopAnimationsModule,
+        MiscModule
     ],
     declarations: [
         DashboardComponent,
-        DatasetBrowserComponent
+        DatasetBrowserComponent,
+        WelcomeComponent
     ],
     providers: [
         DatasetBrowserService
     ],
     exports: [
-        DashboardComponent
+        DashboardComponent,
+        WelcomeComponent
     ]
 })
 export class DashboardModule {

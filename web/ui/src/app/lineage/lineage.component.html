@@ -18,16 +18,20 @@
     <mat-grid-list cols="3">
         <mat-grid-tile colspan="2">
             <graph #graph
-                   [lineage]="lineage"
                    [selectedOperationId]="selectedOperation?.mainProps.id"
-                   (operationSelected)="onOperationSelected($event)">
-                <!--[highlightedNodeIds]="highlightedNodeIds"-->
+                   (operationSelected)="onOperationSelected($event)"
+                   [highlightedNodeIDs]="highlightedNodeIDs">
             </graph>
             <div class="graph-footer">
-                <button mat-icon-button (click)="graph.collapseNodes()" title="Collapse groups of nodes">
+                <button *ngIf="selectedAttrIDs.length"
+                        mat-button (click)="clearSelection()" title="Collapse groups of nodes">
+                    <mat-icon title="Clear selection">clear</mat-icon>
+                    Clear selection
+                </button>
+                <button mat-button (click)="graph.collapseNodes()" title="Collapse groups of nodes">
                     <mat-icon>fullscreen_exit</mat-icon>
                 </button>
-                <button mat-icon-button (click)="graph.fit()" title="Fit to screen">
+                <button mat-button (click)="graph.fit()" title="Fit to screen">
                     <mat-icon>filter_none</mat-icon>
                 </button>
             </div>
@@ -35,7 +39,7 @@
         <mat-grid-tile>
             <div class="details-container">
                 <mat-tab-group [selectedIndex]="selectedTabIndex"
-                              (selectChange)="onTabChanged($event)">
+                               (selectChange)="onTabChanged($event)">
 
                     <mat-tab label="Summary">
                         <h2>{{lineage.appName}}</h2>
@@ -52,39 +56,23 @@
 
                         <operation-details
                                 [operation]="selectedOperation"
-                                >
-                            <!--(attributeSelected)="onAttributeSelected($event)"-->
-                            <!--[selectedAttrIDs]="selectedAttrIDs"-->
-                            <!--(fullAttributeSchemaRequested)="onFullAttributeSchemaRequested($event)"-->
+                                [selectedAttrIDs]="selectedAttrIDs"
+                                (fullAttributeSchemaRequested)="onFullAttributeSchemaRequested($event)"
+                                (attributeSelected)="onAttributeSelected($event)">
                         </operation-details>
                     </mat-tab>
 
-                    <!--
-                                        <mat-tab *ngIf="attributeToShowFullSchemaFor">
-                                            <ng-template mat-tab-label>
-                                                <i class="fa fa-puzzle-piece spl-tab-attr"></i>
-                                                {{attributeToShowFullSchemaFor.name}}
-                                            </ng-template>
-                                            <attribute-view [attr]="attributeToShowFullSchemaFor" [expandRoot]="true"></attribute-view>
-                                        </mat-tab>
-                    -->
+                    <mat-tab *ngIf="attributeToShowFullSchemaFor">
+                        <ng-template mat-tab-label>
+                            <i class="fa fa-puzzle-piece spl-tab-attr"></i>
+                            {{attributeToShowFullSchemaFor.name}}
+                        </ng-template>
+                        <attribute-view [attr]="attributeToShowFullSchemaFor" [expandRoot]="true"></attribute-view>
+                    </mat-tab>
                 </mat-tab-group>
             </div>
         </mat-grid-tile>
     </mat-grid-list>
 </div>
-<span style="position: absolute; right: 0; bottom: 0; margin: 2px 6px" class="small text-muted">Spline v{{ appVersion }}</span>
 
-<div [ngClass]="{active: fetching}" class="status_indicator delayed">
-    <p>
-        <i class="fa fa-circle-o-notch fa-spin fa-5x"></i>
-        <span>loading, please wait</span>
-    </p>
-</div>
-
-<div [ngClass]="{active: !fetching &amp;&amp; !lineage}" class="status_indicator">
-    <p>
-        <i class="fa fa-question-circle fa-5x"></i>
-        <span>Requested lineage data is NOT FOUND</span>
-    </p>
-</div>
+<version></version>

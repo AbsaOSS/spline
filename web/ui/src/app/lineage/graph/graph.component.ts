@@ -15,46 +15,48 @@
  */
 
 import {Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges} from "@angular/core";
-import {IDataLineage, IOperation} from "../../../generated-ts/lineage-model";
+import {IDataLineage} from "../../../generated-ts/lineage-model";
 import "vis/dist/vis.min.css";
 import {visOptions} from "./vis/vis-options";
 import {lineageToGraph} from "./graph-builder";
 import * as vis from "vis";
+import * as _ from "lodash";
 import {ClusterManager} from "./cluster-manager";
+import {HighlightedVisNode, RegularVisNode, VisModel, VisNode, VisNodeType} from "./vis/vis-model";
+import {LineageStore} from "../lineage.store";
 
 @Component({
     selector: 'graph',
     template: ''
 })
 export class GraphComponent implements OnChanges {
-    @Input() lineage: IDataLineage
-    @Input() selectedOperationId: string
-
-    // @Input() highlightedNodeIDs: number[]
+    @Input() selectedOperationId?: string
+    @Input() highlightedNodeIDs: string[]
 
     @Output() operationSelected = new EventEmitter<string>()
 
     private network: vis.Network
-    private graph: vis.Data
+    private graph: VisModel
 
     private clusterManager: ClusterManager
 
-    private fittedCount: number = 0
-
-    constructor(private container: ElementRef) {
+    constructor(private container: ElementRef, private lineageStore: LineageStore) {
+        lineageStore.lineage$.subscribe(lineage => {
+            this.rebuildGraph(lineage)
+        })
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes["lineage"]) this.rebuildGraph()
         if (changes["selectedOperationId"]) this.refreshSelectedNode()
 
-        /*if (changes["highlightedNodeIDs"])
-         this.refreshHighlightedNodes();*/
+        let highlightedNodesChange = changes["highlightedNodeIDs"]
+        if (highlightedNodesChange && !_.isEqual(highlightedNodesChange.previousValue, highlightedNodesChange.currentValue)) {
+            this.refreshHighlightedNodes()
+        }
     }
 
-    private rebuildGraph() {
-        this.fittedCount = 0
-        this.graph = lineageToGraph(this.lineage)
+    private rebuildGraph(lineage: IDataLineage) {
+        this.graph = lineageToGraph(lineage)
         this.network = new vis.Network(this.container.nativeElement, this.graph, visOptions)
         this.clusterManager = new ClusterManager(this.graph, this.network)
         this.clusterManager.rebuildClusters()
@@ -69,34 +71,23 @@ export class GraphComponent implements OnChanges {
             }
         })
 
-        this.network.on('hoverNode', () => this.changeCursor('pointer'))
-        this.network.on('blurNode', () => this.changeCursor('default'))
-        this.network.on('initRedraw', () => this.fitTimes(2))
+        let canvasElement = this.container.nativeElement.getElementsByTagName("canvas")[0]
+        this.network.on('hoverNode', () => canvasElement.style.cursor = 'pointer')
+        this.network.on('blurNode', () => canvasElement.style.cursor = 'default')
         this.network.on("beforeDrawing", ctx => {
             this.network.getSelectedNodes().forEach(nodeId => {
-                let nodePosition = this.network.getPositions([nodeId])
+                let nodePosition = this.network.getPositions(nodeId)
                 ctx.fillStyle = "#e0e0e0"
                 ctx.circle(nodePosition[nodeId].x, nodePosition[nodeId].y, 65)
                 ctx.fill()
-            });
-        });
+            })
+        })
 
         this.clusterManager.collapseAllClusters();
     }
 
     public fit() {
         this.network.fit()
-    }
-
-    private fitTimes(times: number) {
-        if (this.fittedCount < times) {
-            this.fittedCount++
-            this.fit()
-        }
-    }
-
-    private changeCursor(cursorType: string) {
-        this.container.nativeElement.getElementsByTagName("canvas")[0].style.cursor = cursorType
     }
 
     public collapseNodes() {
@@ -111,27 +102,25 @@ export class GraphComponent implements OnChanges {
         }
     }
 
-    /*private refreshHighlightedNodes() {
-     let visNodeBuilders: VisNodeBuilder[] =
-     this.lineage.operations.map((node, i) => {
-     let visNodeType = _.includes(this.highlightedNodeIDs, i)
-     ? VisNodeType.Highlighted
-     : VisNodeType.Regular;
-     return new VisNodeBuilder(i, node, visNodeType)
-     });
+    private refreshHighlightedNodes() {
+        const createNode = (id: string, type: VisNodeType): VisNode => {
+            let nodeConstructor = type == VisNodeType.Highlighted ? HighlightedVisNode : RegularVisNode
+            let operation = this.lineageStore.getOperation(id)
+            return new nodeConstructor(operation)
+        }
 
-     GraphComponent
-     .filterAliasNodesOut(
-     GraphComponent.spreadAliases(visNodeBuilders))
-     .forEach(builber =>
-     this.graph.nodes.update(builber.build()));
+        let nodeDataSet = <vis.DataSet<VisNode>> this.graph.nodes
+        let currentNodes = nodeDataSet.get()
+        let updatedNodes = currentNodes.map(node => {
+            let desiredType = _.includes(this.highlightedNodeIDs, node.id) ? VisNodeType.Highlighted : VisNodeType.Regular
+            return (node.type != desiredType)
+                ? createNode(node.id, desiredType)
+                : node
+        })
 
-     this.rebuildClusters(this.graph);
-     console.log("clustered", this.clusters);
-     this.clusters.forEach(c => {
-     if ((<any>this.network).clustering.isCluster(c.id))
-     (<any>this.network).clustering.body.nodes[c.id].setOptions(c);
-     });
-     }*/
+        nodeDataSet.update(updatedNodes)
+
+        this.clusterManager.refreshHighlightedClustersForNodes()
+    }
 
 }

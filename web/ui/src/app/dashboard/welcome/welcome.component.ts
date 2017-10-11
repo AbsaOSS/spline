@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-import {Component, Input} from "@angular/core";
-import {IOperation} from "../../../../generated-ts/lineage-model";
-import {typeOfOperation} from "../../types";
-import {Icon} from "./operation-icon.utils";
+import {Component} from "@angular/core";
 
 @Component({
-    selector: "operation-icon",
-    template: "<i class='fa {{faIconCode}}'></i>",
-    styles: ["i { color: steelblue; }"]
+    templateUrl: "welcome.component.html",
+    styleUrls: ["welcome.component.less"]
 })
-export class OperationIconComponent {
-    faIconCode: string
-
-    @Input() set operation(op: IOperation) {
-        this.faIconCode = op && Icon.getIconForNodeType(typeOfOperation(op)).name
-    }
+export class WelcomeComponent {
 }

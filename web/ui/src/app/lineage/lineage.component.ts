@@ -16,15 +16,12 @@
 
 import {Component, OnInit} from "@angular/core";
 import {ActivatedRoute, Router} from "@angular/router";
-import {IDataLineage, IOperation} from "../../generated-ts/lineage-model";
+import {IAttribute, IDataLineage, IOperation} from "../../generated-ts/lineage-model";
 import {LineageStore} from "./lineage.store";
 import {typeOfOperation} from "./types";
 import * as _ from "lodash";
 import {MatTabChangeEvent} from "@angular/material";
-// import {MatTabChangeEvent} from "@angular/material";
-// import {Icon} from "icon";
-
-declare const __APP_VERSION__: string
+import {Tab} from "./tabs";
 
 @Component({
     templateUrl: 'lineage.component.html',
@@ -32,154 +29,89 @@ declare const __APP_VERSION__: string
     providers: [LineageStore]
 })
 export class LineageComponent implements OnInit {
-    appVersion: string = __APP_VERSION__
-
     lineage: IDataLineage
-    selectedTabIndex: number = 0
+    selectedTabIndex: Tab = Tab.Summary
     selectedOperation?: IOperation
-
-    // selectedAttrIDs: string[]
-    // attributeToShowFullSchemaFor: IAttribute
-    // highlightedNodeIDs: string[]
+    attributeToShowFullSchemaFor?: IAttribute
+    selectedAttrIDs: string[]
+    highlightedNodeIDs: string[]
 
     constructor(private router: Router,
                 private route: ActivatedRoute,
                 private lineageStore: LineageStore) {
-        lineageStore.lineage$.subscribe(lineage => {
-            this.lineage = lineage
-        })
     }
 
     ngOnInit(): void {
         this.route.data.subscribe((data: { lineage: IDataLineage }) => {
+            this.lineage = data.lineage
             this.lineageStore.lineage = data.lineage
         })
 
         this.route.paramMap.subscribe(pm => {
-            // assume there is no other param than "operationId" to be changed
-            const operationId = pm.get("operationId")
-            this.selectedOperation = _.find(this.lineage.operations, <any>{mainProps: {id: operationId}})
-            this.selectedTabIndex = this.selectedOperation ? 1 : 0
+            let opId = pm.get("operationId")
+            this.selectedOperation = this.lineageStore.getOperation(opId)
         })
 
-        /*let cancelPendingRefresh: () => void = undefined
-         this.route.paramMap.subscribe((ps: ParamMap) => {
-         if (cancelPendingRefresh) cancelPendingRefresh()
+        this.route.queryParamMap.subscribe(qps => {
+            this.selectedAttrIDs = qps.getAll("attr")
+            this.highlightedNodeIDs = this.lineageStore.getOperationIdsByAnyAttributeId(...this.selectedAttrIDs)
+            this.attributeToShowFullSchemaFor = this.lineageStore.getAttribute(qps["attrSchema"])
+        })
 
-         new Promise((resolve, reject) => {
-         this.fetching = true
-         cancelPendingRefresh = reject
-
-         // this.clearData()
-
-         // let ps = this.route.snapshot.params
-
-
-         // this.lineageService.getLineage(lineageId).then(resolve, reject)
-
-         }).then((lineage: IDataLineage) => {
-         this.fetching = false
-         let ps = this.route.snapshot.params,
-         operationId = ps['operationId']
-
-         /!*let qps = this.route.snapshot.queryParams,
-         attrVals: string | string[] | undefined = qps["attr"],
-         attrIDs = attrVals && (_.isString(attrVals) ? [attrVals] : attrVals).map(parseInt),
-         showSchemaForAttrVal: string | undefined = qps["attrSchema"],
-         showSchemaForAttrID = showSchemaForAttrVal && parseInt(showSchemaForAttrVal)*!/
-
-         this.setData(lineage, operationId/!*, attrIDs, showSchemaForAttrID*!/)
-         // this.updateSelectedTabIndex()
-
-         }).catch(err => {
-         if (err) {
-         this.fetching = false
-         // todo: handle the error
-         }
-         })
-         })*/
+        this.route.fragment.subscribe(fragment => {
+            this.selectedTabIndex = Tab.fromFragment(fragment).valueOr(this.selectedTabIndex)
+        })
     }
 
     getDataSourceCount() {
         return _.sumBy(this.lineage.operations, node => +(typeOfOperation(node) == 'Source'))
     }
 
-    // private setData(lineage: IDataLineage, operationId: string/*, attrIDs: string[], showFullSchemaForAttrID: string | undefined*/) {
-    // this.selectedOperationId = operationId
-    // this.selectedAttrIDs = attrIDs
-
-    // this.attributeToShowFullSchemaFor = this.findAttrByID(showFullSchemaForAttrID)
-
-    // this.highlightedNodeIDs =
-    //     _.flatMap(this.lineage.operations, (node, i) => {
-    //         let nodeProps = node.mainProps
-    //         let inputAttrs: IAttribute[] = _.flatMap(nodeProps.inputs, (input => input.seq))
-    //         let outputAttrs: IAttribute[] = nodeProps.output ? nodeProps.output.seq : []
-    //         let allAttrIDs = _.union(inputAttrs, outputAttrs).map(attr => attr.id).filter(id => id != null)
-    //         return !_.isEmpty(_.intersection(allAttrIDs, this.selectedAttrIDs)) ? [i] : []
-    //     })
-    // }
-
     onOperationSelected(opId: string) {
-        this.router.navigate((opId)
-                ? ["op", opId]
-                : ["."],
-            {
-                relativeTo: this.route.parent,
-                /*queryParams: {
-                 'attr': this.selectedAttrIDs
-                 }*/
-            }
-        )
+        if (opId)
+            this.router.navigate(["op", opId], {
+                    relativeTo: this.route.parent,
+                    fragment: Tab.toFragment(Tab.Operation),
+                    queryParams: {'attr': this.selectedAttrIDs}
+                }
+            )
+        else
+            this.router.navigate(["."], {
+                    relativeTo: this.route.parent,
+                    fragment: Tab.toFragment(Tab.Summary),
+                    queryParams: {'attr': this.selectedAttrIDs}
+                }
+            )
     }
-
-    /*updateSelectedTabIndex() {
-     this.selectedTabIndex = this.attributeToShowFullSchemaFor ? 2 : this.getSelectedNode() ? 1 : 0
-     }*/
 
     onTabChanged(e: MatTabChangeEvent) {
-        this.selectedTabIndex = e.index
+        this.router.navigate([], {
+            fragment: Tab.toFragment(e.index),
+            queryParamsHandling: "preserve"
+        })
+
     }
 
-    /*getSelectedNode() {
-     return (this.selectedOperationId >= 0)
-     ? this.lineage.operations[this.selectedOperationId]
-     : undefined
-     }
+    onFullAttributeSchemaRequested(attr: IAttribute) {
+        this.router.navigate([], {
+            fragment: Tab.toFragment(Tab.Attribute),
+            queryParams: {'attrSchema': attr.id},
+            queryParamsHandling: "merge"
+        })
+    }
 
-     getSelectedNodeIcon() {
-     let selectedNode = this.getSelectedNode()
-     return selectedNode && Icon.getIconForNodeType(typeOfOperation(selectedNode)).name
-     }
+    onAttributeSelected(attr: IAttribute) {
+        this.doSelectAttribute(attr.id)
+    }
 
-     private findAttrByID(attrID: number | undefined) {
-     if (_.isUndefined(attrID))
-     return undefined
-     else {
-     for (let node of this.lineage.operations) {
-     let attr = _(node.mainProps.inputs.concat(node.mainProps.output || []))
-     .flatMap(input => input.seq)
-     .find(attr => attr.id == attrID)
-     if (attr) return attr
-     }
-     return undefined
-     }
-     }
+    clearSelection() {
+        this.doSelectAttribute()
+    }
 
-     onAttributeSelected(attr: IAttribute) {
-     this.router.navigate([], {
-     queryParams: {
-     'attr': attr.id
-     }
-     })
-     }
-
-     onFullAttributeSchemaRequested(attr: IAttribute) {
-     this.router.navigate([], {
-     queryParams: {
-     'attr': this.selectedAttrIDs,
-     'attrSchema': attr.id
-     }
-     })
-     }*/
+    private doSelectAttribute(...attrIds: string[]) {
+        this.router.navigate([], {
+            queryParams: {'attr': attrIds},
+            preserveFragment: true
+        })
+    }
 }

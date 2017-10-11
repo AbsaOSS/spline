@@ -50,10 +50,10 @@
                                 iconColor="green"></details-section-header>
                     </p-header>
                     <attribute-list
-                            [attrs]="getDatasetAttributes(input)">
-                        <!--[selectedAttrIDs]="selectedAttrIDs"-->
-                        <!--(fullAttributeSchemaClicked)="showFullAttributeSchema($event)"-->
-                        <!--(attributeSelected)="selectAttribute($event)"-->
+                            [attrs]="getDatasetAttributes(input)"
+                            [selectedAttrIDs]="selectedAttrIDs"
+                            (fullAttrSchemaClicked)="showFullAttributeSchema($event)"
+                            (attrClicked)="selectAttribute($event)">
                     </attribute-list>
                 </p-accordionTab>
             </section>
@@ -68,10 +68,10 @@
                                 iconColor="firebrick"></details-section-header>
                     </p-header>
                     <attribute-list
-                            [attrs]="getDatasetAttributes(operation.mainProps.output)">
-                        <!--[selectedAttrIDs]="selectedAttrIDs"-->
-                        <!--(fullAttributeSchemaClicked)="showFullAttributeSchema($event)"-->
-                        <!--(attributeSelected)="selectAttribute($event)"-->
+                            [attrs]="getDatasetAttributes(operation.mainProps.output)"
+                            [selectedAttrIDs]="selectedAttrIDs"
+                            (fullAttrSchemaClicked)="showFullAttributeSchema($event)"
+                            (attrClicked)="selectAttribute($event)">
                     </attribute-list>
                 </p-accordionTab>
             </section>
@@ -102,8 +102,7 @@
                     </p-header>
                     <ul>
                         <li>
-                            {{operation.condition}}
-                            <!--<expression-inline-view [expr]="operation.condition"></expression-inline-view>-->
+                            <expression-inline [expr]="operation.condition"></expression-inline>
                         </li>
                     </ul>
                 </p-accordionTab>

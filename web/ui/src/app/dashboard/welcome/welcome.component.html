@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <!--
   ~ Copyright 2017 Barclays Africa Group Limited
   ~
@@ -14,15 +15,11 @@
   ~ limitations under the License.
   -->
 
-<ul class="nav nav-pills nav-stacked">
-    <li *ngFor="let attr of attrs"
-        [ngClass]="{active: isSelected(attr)}"
-        (click)="onAttrClicked(attr)">
-        <a href="javascript:void(0)">
-            <attribute-view [attr]="attr"
-                            [subFieldCountDisplayThreshold]="5"
-                            [subFieldCountDisplayThresholdRelax]="2"
-                            (showFullSchemaClicked)="onFullAttrSchemaClicked(attr)"></attribute-view>
-        </a>
-    </li>
-</ul>
+<h2>Welcome to Spline - Data Lineage Tracking for Apache Spark™</h2>
+
+<h5>
+    <span class="arrow"></span>
+    Please select a dataset from the left-hand side menu to display the data lineage for.
+</h5>
+
+<version></version>

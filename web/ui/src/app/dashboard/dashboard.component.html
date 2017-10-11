@@ -15,6 +15,8 @@
   -->
 
 <mat-grid-list cols="4">
+
+    <!-- Left-side panel -->
     <mat-grid-tile>
         <div class="left-block">
             <mat-toolbar color="primary">
@@ -41,7 +43,22 @@
             <dataset-browser></dataset-browser>
         </div>
     </mat-grid-tile>
+
+    <!-- Lineage View -->
     <mat-grid-tile colspan="3">
+
         <router-outlet></router-outlet>
+
+        <!-- Loading indicator -->
+        <div [ngClass]="{active: loading}" class="status_indicator delayed">
+            <div class="background"></div>
+            <div class="foreground">
+                <p>
+                    <i class="fa fa-circle-o-notch fa-spin fa-5x"></i>
+                    <span>loading, please wait</span>
+                </p>
+            </div>
+        </div>
+
     </mat-grid-tile>
 </mat-grid-list>
