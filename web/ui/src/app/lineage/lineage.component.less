@@ -90,41 +90,4 @@
       }
     }
   }
-
-  div.status_indicator {
-    pointer-events: none;
-    position: absolute;
-    top: 0;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    opacity: 0;
-    transition: opacity 0.15s;
-    transition-delay: 0s;
-
-    &.active {
-      opacity: 1;
-
-      &.delayed {
-        transition: opacity 2s;
-        transition-delay: 1s;
-      }
-    }
-
-    p {
-      width: 100%;
-      text-align: center;
-      color: lightsteelblue;
-
-      i {
-        font-weight: 800;
-      }
-
-      span {
-        font-size: x-large;
-        display: block;
-        padding-top: 15px;
-      }
-    }
-  }
 }

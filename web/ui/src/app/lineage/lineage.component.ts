@@ -23,16 +23,12 @@ import * as _ from "lodash";
 import {MatTabChangeEvent} from "@angular/material";
 import {Tab} from "./tabs";
 
-declare const __APP_VERSION__: string
-
 @Component({
     templateUrl: 'lineage.component.html',
     styleUrls: ['lineage.component.less'],
     providers: [LineageStore]
 })
 export class LineageComponent implements OnInit {
-    appVersion: string = __APP_VERSION__
-
     lineage: IDataLineage
     selectedTabIndex: Tab = Tab.Summary
     selectedOperation?: IOperation
@@ -65,43 +61,6 @@ export class LineageComponent implements OnInit {
         this.route.fragment.subscribe(fragment => {
             this.selectedTabIndex = Tab.fromFragment(fragment).valueOr(this.selectedTabIndex)
         })
-
-        /*let cancelPendingRefresh: () => void = undefined
-         this.route.paramMap.subscribe((ps: ParamMap) => {
-         if (cancelPendingRefresh) cancelPendingRefresh()
-
-         new Promise((resolve, reject) => {
-         this.fetching = true
-         cancelPendingRefresh = reject
-
-         // this.clearData()
-
-         // let ps = this.route.snapshot.params
-
-
-         // this.lineageService.getLineage(lineageId).then(resolve, reject)
-
-         }).then((lineage: IDataLineage) => {
-         this.fetching = false
-         let ps = this.route.snapshot.params,
-         operationId = ps['operationId']
-
-         /!*let qps = this.route.snapshot.queryParams,
-         attrVals: string | string[] | undefined = qps["attr"],
-         attrIDs = attrVals && (_.isString(attrVals) ? [attrVals] : attrVals).map(parseInt),
-         showSchemaForAttrVal: string | undefined = qps["attrSchema"],
-         showSchemaForAttrID = showSchemaForAttrVal && parseInt(showSchemaForAttrVal)*!/
-
-         this.setData(lineage, operationId/!*, attrIDs, showSchemaForAttrID*!/)
-         // this.updateSelectedTabIndex()
-
-         }).catch(err => {
-         if (err) {
-         this.fetching = false
-         // todo: handle the error
-         }
-         })
-         })*/
     }
 
     getDataSourceCount() {

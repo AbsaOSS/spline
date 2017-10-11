@@ -74,18 +74,5 @@
         </mat-grid-tile>
     </mat-grid-list>
 </div>
-<span style="position: absolute; right: 0; bottom: 0; margin: 2px 6px" class="small text-muted">Spline v{{ appVersion }}</span>
 
-<div [ngClass]="{active: fetching}" class="status_indicator delayed">
-    <p>
-        <i class="fa fa-circle-o-notch fa-spin fa-5x"></i>
-        <span>loading, please wait</span>
-    </p>
-</div>
-
-<div [ngClass]="{active: !fetching &amp;&amp; !lineage}" class="status_indicator">
-    <p>
-        <i class="fa fa-question-circle fa-5x"></i>
-        <span>Requested lineage data is NOT FOUND</span>
-    </p>
-</div>
+<version></version>

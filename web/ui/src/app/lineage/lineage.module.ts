@@ -32,6 +32,7 @@ import "font-awesome/css/font-awesome.min.css";
 import {GraphComponent} from "./graph/graph.component";
 import {LineageByIdResolver} from "./lineage.resolver";
 import {DetailsModule} from "./details/details.module";
+import {MiscModule} from "../misc/misc.module";
 
 @NgModule({
     imports: [
@@ -40,18 +41,12 @@ import {DetailsModule} from "./details/details.module";
         RouterModule,
         MaterialModule,
         HttpModule,
-        DetailsModule
+        DetailsModule,
+        MiscModule
     ],
     declarations: [
         LineageComponent,
-        GraphComponent,
-        // AttributeListComponent,
-        // AttributeViewComponent,
-        // DataTypeViewComponent,
-        // ExpressionInlineComponent,
-        // ExpressionDialogComponent,
-        // LineageDAGItemDetailsHeaderComponent,
-        // LineageDAGItemDetailsSectionHeader
+        GraphComponent
     ],
     providers: [
         LineageService,

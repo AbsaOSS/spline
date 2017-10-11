@@ -24,6 +24,7 @@ import {DashboardComponent} from "./dashboard/dashboard.component";
 import {LineageComponent} from "./lineage/lineage.component";
 import {LineageModule} from "./lineage/lineage.module";
 import {LineageByIdResolver} from "./lineage/lineage.resolver";
+import {WelcomeComponent} from "./dashboard/welcome/welcome.component";
 
 
 const lineageRoute = {
@@ -52,7 +53,14 @@ const routes: Routes = [
     {
         path: 'dashboard',
         component: DashboardComponent,
-        children: [lineageByIdRoute]
+        children: [
+            {
+                path: '',
+                pathMatch: 'full',
+                component: WelcomeComponent
+            },
+            lineageByIdRoute
+        ]
     },
     /*{
         path: "dataset/:dsId",
