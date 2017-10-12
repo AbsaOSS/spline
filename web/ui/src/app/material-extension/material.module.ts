@@ -15,35 +15,35 @@
  */
 
 import {
-    MdAutocompleteModule,
-    MdButtonModule,
-    MdButtonToggleModule,
-    MdCardModule,
-    MdCheckboxModule,
-    MdChipsModule,
-    MdDatepickerModule,
-    MdDialogModule,
-    MdExpansionModule,
-    MdGridListModule,
-    MdIconModule,
-    MdInputModule,
-    MdListModule,
-    MdMenuModule,
-    MdPaginatorModule,
-    MdProgressBarModule,
-    MdProgressSpinnerModule,
-    MdRadioModule,
-    MdSelectModule,
-    MdSidenavModule,
-    MdSliderModule,
-    MdSlideToggleModule,
-    MdSnackBarModule,
-    MdSortModule,
-    MdStepperModule,
-    MdTableModule,
-    MdTabsModule,
-    MdToolbarModule,
-    MdTooltipModule
+    MatAutocompleteModule,
+    MatButtonModule,
+    MatButtonToggleModule,
+    MatCardModule,
+    MatCheckboxModule,
+    MatChipsModule,
+    MatDatepickerModule,
+    MatDialogModule,
+    MatExpansionModule,
+    MatGridListModule,
+    MatIconModule,
+    MatInputModule,
+    MatListModule,
+    MatMenuModule,
+    MatPaginatorModule,
+    MatProgressBarModule,
+    MatProgressSpinnerModule,
+    MatRadioModule,
+    MatSelectModule,
+    MatSidenavModule,
+    MatSliderModule,
+    MatSlideToggleModule,
+    MatSnackBarModule,
+    MatSortModule,
+    MatStepperModule,
+    MatTableModule,
+    MatTabsModule,
+    MatToolbarModule,
+    MatTooltipModule
 } from "@angular/material";
 
 import {NgModule} from "@angular/core";
@@ -51,45 +51,45 @@ import {NgModule} from "@angular/core";
 let materialComponentModuleBunch = [
 
     // Form Controls
-    MdAutocompleteModule,
-    MdCheckboxModule,
-    MdDatepickerModule,
-    MdInputModule,
-    MdRadioModule,
-    MdSelectModule,
-    MdSliderModule,
-    MdSlideToggleModule,
+    MatAutocompleteModule,
+    MatCheckboxModule,
+    MatDatepickerModule,
+    MatInputModule,
+    MatRadioModule,
+    MatSelectModule,
+    MatSliderModule,
+    MatSlideToggleModule,
 
     // Navigation
-    MdMenuModule,
-    MdSidenavModule,
-    MdToolbarModule,
+    MatMenuModule,
+    MatSidenavModule,
+    MatToolbarModule,
 
     // Layout
-    MdListModule,
-    MdGridListModule,
-    MdCardModule,
-    MdStepperModule,
-    MdTabsModule,
-    MdExpansionModule,
+    MatListModule,
+    MatGridListModule,
+    MatCardModule,
+    MatStepperModule,
+    MatTabsModule,
+    MatExpansionModule,
 
     // Buttons & Indicators
-    MdButtonModule,
-    MdButtonToggleModule,
-    MdChipsModule,
-    MdIconModule,
-    MdProgressSpinnerModule,
-    MdProgressBarModule,
+    MatButtonModule,
+    MatButtonToggleModule,
+    MatChipsModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatProgressBarModule,
 
     // Popups & Modals
-    MdDialogModule,
-    MdTooltipModule,
-    MdSnackBarModule,
+    MatDialogModule,
+    MatTooltipModule,
+    MatSnackBarModule,
 
     // Data table
-    MdTableModule,
-    MdSortModule,
-    MdPaginatorModule
+    MatTableModule,
+    MatSortModule,
+    MatPaginatorModule
 ]
 
 @NgModule({

@@ -17,8 +17,7 @@
 package za.co.absa.spline.web.rest.controller
 
 import za.co.absa.spline.web.logging.ErrorCode
-import za.co.absa.spline.web.salat.JSONSalatContext._
-import za.co.absa.spline.web.salat.StringJSONConverters.EntityToJson
+import za.co.absa.spline.web.json.StringJSONConverters.EntityToJson
 import org.springframework.http.HttpStatus.{INTERNAL_SERVER_ERROR, NOT_FOUND}
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.{ControllerAdvice, ExceptionHandler}

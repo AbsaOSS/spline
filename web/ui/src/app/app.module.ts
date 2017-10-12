@@ -19,37 +19,81 @@ import {BrowserModule} from "@angular/platform-browser";
 import {RouterModule, Routes, UrlSegment} from "@angular/router";
 import "hammerjs/hammer";
 import {AppComponent} from "./app.component";
-import {LineageModule} from "./lineage/lineage.module";
+import {DashboardModule} from "./dashboard/dashboard.module";
+import {DashboardComponent} from "./dashboard/dashboard.component";
 import {LineageComponent} from "./lineage/lineage.component";
-import {LineageViewComponent} from "./lineage/lineage-view/lineage-view.component";
+import {LineageModule} from "./lineage/lineage.module";
+import {LineageByIdResolver} from "./lineage/lineage.resolver";
+import {WelcomeComponent} from "./dashboard/welcome/welcome.component";
+
+
+const lineageRoute = {
+    component: LineageComponent,
+    matcher: (url: UrlSegment[]) =>
+        (url.length === 0)
+            ? {consumed: url}
+            : (url.length === 2 && url[0].path === 'op')
+            ? {consumed: url, posParams: {'operationId': url[1]}}
+            : null
+}
+
+const lineageByIdRoute = {
+    path: 'lineage/:id',
+    resolve: {lineage: LineageByIdResolver},
+    children: [lineageRoute]
+}
 
 const routes: Routes = [
     {
         path: '',
-        redirectTo: 'lineage',
-        pathMatch: 'full'
+        pathMatch: 'full',
+        redirectTo: 'dashboard'
     },
+    lineageByIdRoute,
     {
-        path: 'lineage',
-        component: LineageComponent,
+        path: 'dashboard',
+        component: DashboardComponent,
         children: [
             {
-                component: LineageViewComponent,
-                matcher: (url: UrlSegment[]) =>
-                    (url.length === 1)
-                        ? {consumed: url, posParams: {'lineageId': url[0]}}
-                        : (url.length === 3 && url[1].path === 'node')
-                            ? {consumed: url, posParams: {'lineageId': url[0], 'nodeId': url[2]}}
-                            : null
+                path: '',
+                pathMatch: 'full',
+                component: WelcomeComponent
+            },
+            lineageByIdRoute
+        ]
+    },
+    /*{
+        path: "dataset/:dsId",
+        component: DatasetLoaderComponent,
+        children: [
+            {
+                path: "lineage",
+                children: [
+                    {
+                        path: "tail",
+                        component: DSTailLineageLoaderComponent,
+                        children: [lineageRoute]
+                    },
+                    {
+                        path: "full",
+                        component: DSFullLineageLoaderComponent,
+                        children: [lineageRoute]
+                    },
+                    {
+                        path: "overview",
+                        component: DSLineageOverviewComponent
+                    }
+                ]
             }
         ]
-    }
+    }*/
 ]
 
 @NgModule({
     imports: [
         BrowserModule,
-        RouterModule.forRoot(routes),
+        RouterModule.forRoot(routes, {enableTracing: false}),
+        DashboardModule,
         LineageModule
     ],
     declarations: [AppComponent],

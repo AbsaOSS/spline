@@ -16,33 +16,23 @@
 
 import {NgModule} from "@angular/core";
 import {LineageComponent} from "./lineage.component";
-import {DescriptorListComponent} from "./descriptor-list/lineage-descriptor-list.component";
-import {LineageViewComponent} from "./lineage-view/lineage-view.component";
-import {LineageGraphComponent} from "./lineage-graph.component";
-import {OperationNodeDetailsComponent} from "./operation-node-details/operation-node-details.component";
-import {AttributeListComponent} from "./attribute-list/attribute-list.component";
-import {LineageDAGItemDetailsHeaderComponent} from "./lineage-dag-item-details-header.component";
-import {LineageDAGItemDetailsSectionHeader} from "./lineage-dag-item-details-section-header.component";
 import {LineageService} from "./lineage.service";
 import {CommonModule} from "@angular/common";
 import {RouterModule} from "@angular/router";
 import {HttpModule} from "@angular/http";
-import {TreeModule} from "angular-tree-component";
-import {AttributeViewComponent} from "./attribute-view/attribute-view.component";
-import {DataTypeViewComponent} from "./data-type-view/data-type-view.component";
-import {ExpressionInlineViewComponent} from "./expression-inline-view.component";
-import {ExpressionViewDialogComponent} from "./expression-view-dialog.component";
-import {AccordionModule} from "primeng/components/accordion/accordion";
 
 import "@angular/material/prebuilt-themes/indigo-pink.css";
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {NoopAnimationsModule} from "@angular/platform-browser/animations";
 import {MaterialModule} from "../material-extension/material.module";
 
-import "primeng/resources/primeng.min.css";
-import "primeng/resources/themes/omega/theme.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/css/bootstrap-theme.min.css";
 import "font-awesome/css/font-awesome.min.css";
+
+import {GraphComponent} from "./graph/graph.component";
+import {LineageByIdResolver} from "./lineage.resolver";
+import {DetailsModule} from "./details/details.module";
+import {MiscModule} from "../misc/misc.module";
 
 @NgModule({
     imports: [
@@ -50,32 +40,22 @@ import "font-awesome/css/font-awesome.min.css";
         CommonModule,
         RouterModule,
         MaterialModule,
-        TreeModule,
-        AccordionModule,
-        HttpModule
+        HttpModule,
+        DetailsModule,
+        MiscModule
     ],
     declarations: [
         LineageComponent,
-        DescriptorListComponent,
-        LineageViewComponent,
-        LineageGraphComponent,
-        OperationNodeDetailsComponent,
-        AttributeListComponent,
-        AttributeViewComponent,
-        DataTypeViewComponent,
-        ExpressionInlineViewComponent,
-        ExpressionViewDialogComponent,
-        LineageDAGItemDetailsHeaderComponent,
-        LineageDAGItemDetailsSectionHeader
+        GraphComponent
     ],
     providers: [
-        LineageService
+        LineageService,
+        LineageByIdResolver
     ],
     exports: [
         LineageComponent,
-        LineageViewComponent
-    ],
-    bootstrap: [ExpressionViewDialogComponent]
+        GraphComponent
+    ]
 })
 export class LineageModule {
 

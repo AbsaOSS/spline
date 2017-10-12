@@ -17,8 +17,7 @@
 package za.co.absa.spline.persistence.atlas.conversion
 
 import org.apache.atlas.typesystem.Referenceable
-import za.co.absa.spline.model._
-import za.co.absa.spline.persistence.api.DataLineageHashResolver
+import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.atlas.model._
 
 /**
@@ -32,15 +31,14 @@ object DataLineageToTypeSystemConverter {
     * @return Atlas entities
     */
   def convert(lineage: DataLineage): Seq[Referenceable] = {
-    val hashSuffix = "_" + DataLineageHashResolver.resolve(lineage)
-    val nodesWithIndexes = lineage.nodes.zipWithIndex
-    val datasets = createDatasets(nodesWithIndexes, hashSuffix)
-    val operations = createOperations(nodesWithIndexes, hashSuffix, datasets)
-    val process = createProcess(lineage, hashSuffix, operations, datasets)
-    datasets ++ operations ++ Seq(process)
+    val datasets = DatasetConverter.convert(lineage.operations, lineage.datasets, lineage.attributes)
+    val datasetIdMap = datasets.map(i => i.qualifiedName -> i.getId).toMap
+    val operations = OperationConverter.convert(lineage.operations, datasetIdMap)
+    val process = createProcess(lineage, operations, datasets)
+    datasets ++ operations :+ process
   }
 
-  private def createProcess(lineage: DataLineage, hashSuffix: String, operations : Seq[Operation] , datasets : Seq[Dataset]) : Referenceable = {
+  private def createProcess(lineage: DataLineage, operations : Seq[Operation] , datasets : Seq[Dataset]) : Referenceable = {
     val (inputDatasets, outputDatasets) = datasets
       .filter(_.isInstanceOf[EndpointDataset])
       .map(_.asInstanceOf[EndpointDataset])
@@ -49,7 +47,7 @@ object DataLineageToTypeSystemConverter {
     new Job(
       lineage.id.toString,
       lineage.appName,
-      lineage.appName + hashSuffix,
+      lineage.id.toString,
       operations.map(_.getId),
       datasets.map(_.getId),
       inputDatasets.map(_.getId),
@@ -58,52 +56,4 @@ object DataLineageToTypeSystemConverter {
       outputDatasets.map(_.endpoint.getId)
     )
   }
-  private def createDatasets(nodesWithIndexes: Seq[Tuple2[OperationNode,Int]], hashSuffix: String) : Seq[Dataset] =
-    nodesWithIndexes.map(i =>
-    {
-      val datasetSuffix = "_Dataset"
-      val name = i._1.mainProps.name + datasetSuffix
-      val operationIdSuffix = "_op" + i._2.toString
-      val qualifiedName = name + operationIdSuffix + hashSuffix
-      val dataset = i._1 match {
-        case SourceNode(m, st, paths) =>
-          val path = paths.mkString(", ")
-          new EndpointDataset(name, qualifiedName, new FileEndpoint(path, path), EndpointType.file, EndpointDirection.input, st)
-        case DestinationNode(m, dt, path) => new EndpointDataset(name, qualifiedName, new FileEndpoint(path, path), EndpointType.file, EndpointDirection.output, dt)
-        case _ => new Dataset(name, qualifiedName)
-      }
-      dataset.addAttributes(AttributeConverter.convert(i._1.mainProps.output, dataset))
-      dataset
-    })
-
-  private def createOperations(nodesWithIndexes: Seq[Tuple2[OperationNode,Int]], hashSuffix: String, datasets : Seq[Dataset]) : Seq[Operation] = {
-    val operations = nodesWithIndexes.map(i =>
-        {
-          val operationIdSuffix = "_op" + i._2
-          val commonProperties = OperationCommonProperties(
-            i._2,
-            i._1.mainProps.name,
-            i._1.mainProps.name + operationIdSuffix + hashSuffix,
-            i._1.mainProps.rawString,
-            i._1.mainProps.childRefs
-          )
-          i._1 match {
-            case JoinNode(_, c, t) =>  new JoinOperation(commonProperties, t, c.map(j => ExpressionConverter.convert(commonProperties.qualifiedName, j)).get)
-            case FilterNode(_, c) => new FilterOperation(commonProperties, ExpressionConverter.convert(commonProperties.qualifiedName, c))
-            case ProjectionNode(_, t) => new ProjectOperation(commonProperties, t.zipWithIndex.map(j => ExpressionConverter.convert(commonProperties.qualifiedName + "@" + j._2, j._1)))
-            case AliasNode(_, a) => new AliasOperation(commonProperties, a)
-            case _ => new Operation(commonProperties)
-          }
-        }
-      )
-
-    val datasetIds = datasets.map(_.getId)
-
-    for(o <- operations){
-      o.resolveInputDatasets(datasetIds)
-      o.resolveOutputDatasets(datasetIds)
-    }
-
-    operations
   }
-}

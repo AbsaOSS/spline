@@ -17,110 +17,315 @@
 package za.co.absa.spline.core.transformations
 
 import org.scalatest.{FlatSpec, Matchers}
-import za.co.absa.spline.model._
+import za.co.absa.spline.model.dt.Simple
+import za.co.absa.spline.model.expr._
+import za.co.absa.spline.model.op.{Join, OperationProps, Projection}
+import java.util.UUID.randomUUID
 
-class ProjectionMergerSpec extends FlatSpec with Matchers{
+class ProjectionMergerSpec extends FlatSpec with Matchers {
+  val attributeId = randomUUID()
 
-  private def createAttributes(numbers : Int*) : Attributes =
-  {
-    Attributes(
-      numbers.map(i => Attribute(i,i.toString, SimpleType("type", true)))
-    )
+  private def createGenericExpressions(names: String*): Seq[Expression] = {
+    names.map(n => Generic("exprType", n, Simple("type", nullable = true), Seq.empty))
   }
 
-  private def createGenericExpressions(names : String*) : Seq[Expression] =
-  {
-    names.map(n => GenericExpression("exprType",n, SimpleType("type", true), Seq.empty))
-  }
-
-  private def createCompositeExpressions(attributeNames : (String, String)*) : Seq[Expression] =
-  {
-    val simpleType = SimpleType("type", true)
-    attributeNames.map(ns => AliasExpression(ns._2,ns._2, simpleType,Seq(AttributeReference(1,ns._1, simpleType))))
+  private def createCompositeExpressions(attributeNames: (String, String)*): Seq[Expression] = {
+    val simpleType = Simple("type", nullable = true)
+    attributeNames.map(ns => Alias(ns._2, ns._2, simpleType, Seq(AttributeReference(attributeId, ns._1, simpleType))))
   }
 
   "A graph with two compatible projections" should "be joined into one node" in {
-    val input = Seq(
-      ProjectionNode(NodeProps("node2", "node2", Seq(createAttributes(3,4,5)), Some(createAttributes(4,5)), Seq.empty, Seq(1)), createGenericExpressions("c", "d")),
-      ProjectionNode(NodeProps("node1", "node1", Seq(createAttributes(1,2,3)), Some(createAttributes(3,4,5)), Seq(0), Seq.empty), createGenericExpressions("a", "b"))
-    )
-    val expectedResult = Seq(
-      ProjectionNode(NodeProps("node1", "node1, node2", Seq(createAttributes(1,2,3)), Some(createAttributes(4,5)), Seq.empty, Seq.empty), createGenericExpressions("a", "b", "c", "d"))
-    )
 
-    val result = ProjectionMerger.apply(input)
+    val metaDatasetId = randomUUID
+    val outputMetaDataset = randomUUID
 
-    result shouldEqual expectedResult
+    val inputNodes = ProjectionMerger(Seq(
+      Projection(
+        OperationProps(
+          randomUUID,
+          "node2",
+          Seq(metaDatasetId),
+          outputMetaDataset),
+        createGenericExpressions("c", "d")),
+      Projection(
+        OperationProps(
+          randomUUID,
+          "node1",
+          Seq.empty,
+          metaDatasetId),
+        createGenericExpressions("a", "b"))
+    ))
+
+    val expectedNodes = Seq(Projection(
+      OperationProps(
+        id = null,
+        "node1",
+        Seq.empty,
+        outputMetaDataset),
+      createGenericExpressions("a", "b", "c", "d")))
+
+    val result = ProjectionMerger.apply(inputNodes)
+
+    result.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes
   }
 
   "A graph with two incompatible projections" should "remain the same" in {
+    val metaDatasetId = randomUUID
+    val outputMetaDataset = randomUUID
+
     val input = Seq(
-      ProjectionNode(NodeProps("node2", "node2", Seq(createAttributes(3,4,5)), Some(createAttributes(4,5)), Seq.empty, Seq(1)), createCompositeExpressions(("b", "c"))),
-      ProjectionNode(NodeProps("node1", "node1", Seq(createAttributes(1,2,3)), Some(createAttributes(3,4,5)), Seq(0), Seq.empty), createCompositeExpressions(("a", "b")))
+      Projection(
+        OperationProps(
+          randomUUID,
+          "node2",
+          Seq(metaDatasetId),
+          outputMetaDataset),
+        createCompositeExpressions(("b", "c"))),
+      Projection(
+        OperationProps(
+          randomUUID,
+          "node1",
+          Seq(),
+          metaDatasetId),
+        createCompositeExpressions(("a", "b")))
     )
 
-    val result = ProjectionMerger.apply(input)
+    val result = ProjectionMerger(input)
 
     result shouldEqual input
   }
 
-
   "A graph with three compatible projections" should "be joined into one node" in {
-    val input = Seq(
-      ProjectionNode(NodeProps("node3", "node3", Seq(createAttributes(3,4,5)), Some(createAttributes(4,5)), Seq.empty, Seq(1)), createGenericExpressions("e", "f")),
-      ProjectionNode(NodeProps("node2", "node2", Seq(createAttributes(3,4,5,6)), Some(createAttributes(3,4,5)), Seq(0), Seq(2)), createGenericExpressions("c", "d")),
-      ProjectionNode(NodeProps("node1", "node1", Seq(createAttributes(1,2,3)), Some(createAttributes(3,4,5,6)), Seq(1), Seq.empty), createGenericExpressions("a", "b"))
-    )
-    val expectedResult = Seq(
-      ProjectionNode(NodeProps("node1", "node1, node2, node3", Seq(createAttributes(1,2,3)), Some(createAttributes(4,5)), Seq.empty, Seq.empty), createGenericExpressions("a", "b", "c", "d", "e", "f"))
+    val metaDataset1Id = randomUUID
+    val metaDataset2Id = randomUUID
+    val outputMetaDataset = randomUUID
+
+    val inputNodes = ProjectionMerger(Seq(
+      Projection(
+        OperationProps(
+          randomUUID,
+          "node3",
+          Seq(metaDataset2Id),
+          outputMetaDataset),
+        createGenericExpressions("e", "f")),
+      Projection(
+        OperationProps(
+          randomUUID,
+          "node2",
+          Seq(metaDataset1Id),
+          metaDataset2Id),
+        createGenericExpressions("c", "d")),
+      Projection(
+        OperationProps(
+          randomUUID,
+          "node1",
+          Seq.empty,
+          metaDataset1Id),
+        createGenericExpressions("a", "b"))
+    ))
+
+    val expectedNodes = Seq(Projection(
+      OperationProps(
+        id = null,
+        "node1",
+        Seq.empty,
+        outputMetaDataset),
+      createGenericExpressions("a", "b", "c", "d", "e", "f"))
     )
 
-    val result = ProjectionMerger.apply(input)
+    val result = ProjectionMerger.apply(inputNodes)
 
-    result shouldEqual expectedResult
+    result.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes
   }
 
   "A branch of compatible projections within a diamond graph" should "be joined into one node" in {
-    val input = Seq(
-      JoinNode(NodeProps("join", "join", Seq(createAttributes(4,5), createAttributes(8,9)), Some(createAttributes(4,5,8,9)), Seq.empty, Seq(1,4)), None, "inner"),
-      ProjectionNode(NodeProps("branch3", "branch3", Seq(createAttributes(3,4,5)), Some(createAttributes(4,5)), Seq(0), Seq(2)), createGenericExpressions("e", "f")),
-      ProjectionNode(NodeProps("branch2", "branch2", Seq(createAttributes(3,4,5,6)), Some(createAttributes(3,4,5)), Seq(1), Seq(3)), createGenericExpressions("c", "d")),
-      ProjectionNode(NodeProps("branch1", "branch1", Seq(createAttributes(1,2,3)), Some(createAttributes(3,4,5,6)), Seq(2), Seq(5)), createGenericExpressions("a", "b")),
-      ProjectionNode(NodeProps("anotherBranch", "anotherBranch", Seq(createAttributes(1,2,3)), Some(createAttributes(8,9)), Seq(0), Seq(5)), createGenericExpressions("n")),
-      ProjectionNode(NodeProps("root", "root", Seq(createAttributes(0,1,2,3)), Some(createAttributes(1,2,3)), Seq(3,4), Seq.empty), createGenericExpressions("r"))
-    )
-    val expectedResult = Seq(
-      JoinNode(NodeProps("join", "join", Seq(createAttributes(4,5), createAttributes(8,9)), Some(createAttributes(4,5,8,9)), Seq.empty, Seq(1,2)), None, "inner"),
-      ProjectionNode(NodeProps("branch1", "branch1, branch2, branch3", Seq(createAttributes(1,2,3)), Some(createAttributes(4,5)), Seq(0), Seq(3)), createGenericExpressions("a", "b", "c", "d", "e", "f")),
-      ProjectionNode(NodeProps("anotherBranch", "anotherBranch", Seq(createAttributes(1,2,3)), Some(createAttributes(8,9)), Seq(0), Seq(3)), createGenericExpressions("n")),
-      ProjectionNode(NodeProps("root", "root", Seq(createAttributes(0,1,2,3)), Some(createAttributes(1,2,3)), Seq(1,2), Seq.empty), createGenericExpressions("r"))
+    val metaDatasetRootId = randomUUID
+    val metaDatasetAnotherBranchId = randomUUID
+    val metaDatasetBranch1Id = randomUUID
+    val metaDatasetBranch2Id = randomUUID
+    val metaDatasetBranch3Id = randomUUID
+    val outputMetaDataset = randomUUID
+
+    val inputNodes = ProjectionMerger(Seq(
+      Join(
+        OperationProps(
+          randomUUID,
+          "join",
+          Seq(metaDatasetAnotherBranchId, metaDatasetBranch3Id),
+          outputMetaDataset),
+        None,
+        "inner"),
+      Projection(
+        OperationProps(
+          randomUUID,
+          "branch3",
+          Seq(metaDatasetBranch2Id),
+          metaDatasetBranch3Id),
+        createGenericExpressions("e", "f")),
+      Projection(
+        OperationProps(
+          randomUUID,
+          "branch2",
+          Seq(metaDatasetBranch1Id),
+          metaDatasetBranch2Id),
+        createGenericExpressions("c", "d")),
+      Projection(
+        OperationProps(
+          randomUUID,
+          "branch1",
+          Seq(metaDatasetRootId),
+          metaDatasetBranch1Id),
+        createGenericExpressions("a", "b")),
+      Projection(
+        OperationProps(
+          randomUUID,
+          "anotherBranch",
+          Seq(metaDatasetRootId),
+          metaDatasetAnotherBranchId),
+        createGenericExpressions("n")),
+      Projection(
+        OperationProps(
+          randomUUID,
+          "root",
+          Seq.empty,
+          metaDatasetRootId),
+        createGenericExpressions("r"))
+    ))
+
+    val expectedNodes = Seq(
+      Join(
+        OperationProps(
+          id = null,
+          "join",
+          Seq(metaDatasetAnotherBranchId, metaDatasetBranch3Id),
+          outputMetaDataset),
+        None,
+        "inner"),
+      Projection(
+        OperationProps(
+          id = null,
+          "branch1",
+          Seq(metaDatasetRootId),
+          metaDatasetBranch3Id),
+        createGenericExpressions("a", "b", "c", "d", "e", "f")),
+      Projection(
+        OperationProps(
+          id = null,
+          "anotherBranch",
+          Seq(metaDatasetRootId),
+          metaDatasetAnotherBranchId),
+        createGenericExpressions("n")),
+      Projection(
+        OperationProps(
+          id = null,
+          "root",
+          Seq.empty,
+          metaDatasetRootId),
+        createGenericExpressions("r"))
     )
 
-    val result = ProjectionMerger.apply(input)
+    val result = ProjectionMerger.apply(inputNodes)
 
-    result shouldEqual expectedResult
+    result.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes
   }
 
+
   "A graph with two branches of projections. Only the branch of compatible nodes" should "be merged into one node" in {
-    val input = Seq(
-      JoinNode(NodeProps("join", "join", Seq(createAttributes(1,4), createAttributes(1,5)), Some(createAttributes(4,5)), Seq.empty, Seq(1,3)), None, "inner"),
-      ProjectionNode(NodeProps("incompatible2", "incompatible2", Seq(createAttributes(1,3)), Some(createAttributes(1,5)), Seq(0), Seq(2)), createCompositeExpressions(("b", "c"))),
-      ProjectionNode(NodeProps("incompatible1", "incompatible1", Seq(createAttributes(1,2,3)), Some(createAttributes(1,3)), Seq(1), Seq(5)), createCompositeExpressions(("a", "b"))),
-      ProjectionNode(NodeProps("compatible2", "compatible2", Seq(createAttributes(1,2)), Some(createAttributes(1,4)), Seq(0), Seq(4)), createCompositeExpressions(("a", "b"))),
-      ProjectionNode(NodeProps("compatible1", "compatible1", Seq(createAttributes(1,2,3)), Some(createAttributes(1,2)), Seq(3), Seq(5)), createCompositeExpressions(("b", "c"))),
-      ProjectionNode(NodeProps("root", "root", Seq(createAttributes(0,1,2,3)), Some(createAttributes(1,2,3)), Seq(2,4), Seq.empty), createGenericExpressions("r"))
-    )
-    val expectedResult = Seq(
-      JoinNode(NodeProps("join", "join", Seq(createAttributes(1,4), createAttributes(1,5)), Some(createAttributes(4,5)), Seq.empty, Seq(1,3)), None, "inner"),
-      ProjectionNode(NodeProps("incompatible2", "incompatible2", Seq(createAttributes(1,3)), Some(createAttributes(1,5)), Seq(0), Seq(2)), createCompositeExpressions(("b", "c"))),
-      ProjectionNode(NodeProps("incompatible1", "incompatible1", Seq(createAttributes(1,2,3)), Some(createAttributes(1,3)), Seq(1), Seq(4)), createCompositeExpressions(("a", "b"))),
-      ProjectionNode(NodeProps("compatible1", "compatible1, compatible2", Seq(createAttributes(1,2,3)), Some(createAttributes(1,4)), Seq(0), Seq(4)), createCompositeExpressions(("b", "c"),("a", "b"))),
-      ProjectionNode(NodeProps("root", "root", Seq(createAttributes(0,1,2,3)), Some(createAttributes(1,2,3)), Seq(2,3), Seq.empty), createGenericExpressions("r"))
+    val metaDatasetRootId = randomUUID
+    val metaDatasetCompatible1Id = randomUUID
+    val metaDatasetCompatible2Id = randomUUID
+    val metaDatasetIncompatible1Id = randomUUID
+    val metaDatasetIncompatible2Id = randomUUID
+    val outputMetaDataset = randomUUID
+
+    val inputNodes = ProjectionMerger(Seq(
+      Join(
+        OperationProps(
+          randomUUID,
+          "join",
+          Seq(metaDatasetCompatible2Id, metaDatasetIncompatible2Id),
+          outputMetaDataset),
+        None,
+        "inner"),
+      Projection(
+        OperationProps(
+          randomUUID,
+          "incompatible2",
+          Seq(metaDatasetIncompatible1Id),
+          metaDatasetIncompatible2Id),
+        createCompositeExpressions(("b", "c"))),
+      Projection(
+        OperationProps(
+          randomUUID,
+          "incompatible1",
+          Seq(metaDatasetRootId),
+          metaDatasetIncompatible1Id),
+        createCompositeExpressions(("a", "b"))),
+      Projection(
+        OperationProps(
+          randomUUID,
+          "compatible2",
+          Seq(metaDatasetCompatible1Id),
+          metaDatasetCompatible2Id),
+        createCompositeExpressions(("a", "b"))),
+      Projection(
+        OperationProps(
+          randomUUID,
+          "compatible1",
+          Seq(metaDatasetRootId),
+          metaDatasetCompatible1Id),
+        createCompositeExpressions(("b", "c"))),
+      Projection(
+        OperationProps(
+          randomUUID,
+          "root",
+          Seq.empty,
+          metaDatasetRootId),
+        createGenericExpressions("r"))
+    ))
+
+    val expectedNodes= Seq(
+      Join(
+        OperationProps(
+          id = null,
+          "join",
+          Seq(metaDatasetCompatible2Id, metaDatasetIncompatible2Id),
+          outputMetaDataset),
+        None,
+        "inner"),
+      Projection(
+        OperationProps(
+          id = null,
+          "incompatible2",
+          Seq(metaDatasetIncompatible1Id),
+          metaDatasetIncompatible2Id),
+        createCompositeExpressions(("b", "c"))),
+      Projection(
+        OperationProps(
+          id = null,
+          "incompatible1",
+          Seq(metaDatasetRootId),
+          metaDatasetIncompatible1Id),
+        createCompositeExpressions(("a", "b"))),
+      Projection(
+        OperationProps(
+          id = null,
+          "compatible1",
+          Seq(metaDatasetRootId),
+          metaDatasetCompatible2Id),
+        createCompositeExpressions(("b", "c"), ("a", "b"))),
+      Projection(
+        OperationProps(
+          id = null,
+          "root",
+          Seq.empty,
+          metaDatasetRootId),
+        createGenericExpressions("r"))
     )
 
-    val result = ProjectionMerger.apply(input)
+    val result = ProjectionMerger.apply(inputNodes)
 
-    result shouldEqual expectedResult
+    result.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes
   }
 
 }

@@ -46,6 +46,34 @@
       ]
     },
     {
+      "name": "spark_dataset_attribute",
+      "superTypes": [
+        "spark_attribute"
+      ],
+      "typeVersion": "1.0",
+      "attributeDefs": [
+        {
+          "name": "dataset",
+          "typeName": "spark_dataset",
+          "cardinality": "SINGLE",
+          "constraints": [
+            {
+              "type": "inverseRef",
+              "params": {
+                "attribute": "attributes"
+              }
+            }
+          ],
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        }
+      ],
+      "options": {
+        "schemaAttributes": "[\"name\", \"type\"]"
+      }
+    },
+    {
       "name": "spark_job",
       "superTypes": [
         "Process", "spark_entity"
@@ -102,6 +130,14 @@
       "name": "spark_operation",
       "superTypes": [
         "Process", "spark_entity"
+      ],
+      "typeVersion": "1.0",
+      "attributeDefs": []
+    },
+    {
+      "name": "spark_generic_operation",
+      "superTypes": [
+        "Process", "spark_operation"
       ],
       "typeVersion": "1.0",
       "attributeDefs": [
@@ -200,7 +236,7 @@
       "attributeDefs": [
         {
           "name": "attributes",
-          "typeName": "array<spark_dataset_attribute>",
+          "typeName": "array<spark_attribute>",
           "cardinality": "LIST",
           "constraints": [
             {
@@ -258,34 +294,6 @@
       ],
       "options": {
         "schemaElementsAttribute": "attributes"
-      }
-    },
-    {
-      "name": "spark_dataset_attribute",
-      "superTypes": [
-        "spark_attribute"
-      ],
-      "typeVersion": "1.0",
-      "attributeDefs": [
-        {
-          "name": "dataset",
-          "typeName": "spark_dataset",
-          "cardinality": "SINGLE",
-          "constraints": [
-            {
-              "type": "inverseRef",
-              "params": {
-                "attribute": "attributes"
-              }
-            }
-          ],
-          "isIndexable": false,
-          "isOptional": true,
-          "isUnique": false
-        }
-      ],
-      "options": {
-        "schemaAttributes": "[\"name\", \"type\"]"
       }
     },
     {
@@ -407,7 +415,7 @@
           "isUnique": false
         },
         {
-          "name": "textualRepresentation",
+          "name": "text",
           "typeName": "string",
           "cardinality": "SINGLE",
           "isIndexable": false,
@@ -467,7 +475,7 @@
       "attributeDefs": [
         {
           "name": "attributeId",
-          "typeName": "long",
+          "typeName": "string",
           "cardinality": "SINGLE",
           "isIndexable": false,
           "isOptional": true,

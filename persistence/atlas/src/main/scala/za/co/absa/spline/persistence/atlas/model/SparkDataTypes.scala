@@ -21,7 +21,8 @@ package za.co.absa.spline.persistence.atlas.model
   */
 object SparkDataTypes{
   val Job : String = "spark_job"
-  val GenericOperation : String = "spark_operation"
+  val Operation : String = "spark_operation"
+  val GenericOperation : String = "spark_generic_operation"
   val JoinOperation : String = "spark_join_operation"
   val FilterOperation : String = "spark_filter_operation"
   val ProjectOperation : String = "spark_project_operation"

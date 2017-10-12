@@ -17,15 +17,19 @@
 package za.co.absa.spline.persistence.api.composition
 
 import org.apache.commons.configuration.Configuration
-import za.co.absa.spline.persistence.api.{DataLineagePersistor, ExecutionPersistor, PersistenceFactory}
+import za.co.absa.spline.persistence.api.{DataLineageWriter, PersistenceWriterFactory}
 
-object ParallelCompositeFactory{
+object ParallelCompositeWriterFactory{
   val factoriesKey = "spline.persistence.composition.factories"
 }
 
-class ParallelCompositeFactory(configuration: Configuration) extends PersistenceFactory(configuration)
+/**
+  * The class represents a parallel composition of various persistence writers.
+  * @param configuration A source of settings
+  */
+class ParallelCompositeWriterFactory(configuration: Configuration) extends PersistenceWriterFactory(configuration)
 {
-  import ParallelCompositeFactory._
+  import ParallelCompositeWriterFactory._
   import za.co.absa.spline.common.ConfigurationImplicits._
 
   private val factories = configuration
@@ -33,19 +37,13 @@ class ParallelCompositeFactory(configuration: Configuration) extends Persistence
                             .map(i => Class.forName(i.trim)
                               .getConstructor(classOf[Configuration])
                               .newInstance(configuration)
-                              .asInstanceOf[PersistenceFactory]
+                              .asInstanceOf[PersistenceWriterFactory]
                             )
   /**
-    * The method creates a parallel composition of persistence layers for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
+    * The method creates a parallel composite writer to various persistence layers for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
-    * @return A persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    * @return A parallel composite writer to various persistence layers for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  override def createDataLineagePersistor(): DataLineagePersistor = new ParallelCompositeDataLineagePersistor(factories.map(_.createDataLineagePersistor()).toSet)
+  override def createDataLineageWriter(): DataLineageWriter = new ParallelCompositeDataLineageWriter(factories.map(_.createDataLineageWriter()).toSet)
 
-  /**
-    * The method creates a parallel composition of persistence layers for the [[za.co.absa.spline.model.Execution Execution]] entity.
-    *
-    * @return A persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity
-    */
-  override def createExecutionPersistor(): ExecutionPersistor = new ParallelCompositeExecutionPersistor(factories.map(_.createExecutionPersistor()).toSet)
 }

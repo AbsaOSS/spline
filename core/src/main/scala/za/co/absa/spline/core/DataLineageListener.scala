@@ -16,24 +16,20 @@
 
 package za.co.absa.spline.core
 
-import java.util.UUID
-
 import org.apache.hadoop.conf.Configuration
-import za.co.absa.spline.model.Execution
-import za.co.absa.spline.persistence.api.PersistenceFactory
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.util.QueryExecutionListener
-import za.co.absa.spline.common.FutureImplicits._
-import scala.concurrent.Future
+import za.co.absa.spline.persistence.api.PersistenceWriterFactory
 
 /**
   * The class represents a handler listening on events that Spark triggers when an execution any action is performed. It can be considered as an entry point to Spline library.
   *
-  * @param dataStorageFactory A factory of persistence layers
+  * @param persistenceWriterFactory A factory of persistence writers
+  * @param hadoopConfiguration A hadoop configuration
   */
-class DataLineageListener(dataStorageFactory: PersistenceFactory, hadoopConfiguration: Configuration) extends QueryExecutionListener {
-  private lazy val dataLineagePersistor = dataStorageFactory.createDataLineagePersistor()
-  private lazy val executionPersistor = dataStorageFactory.createExecutionPersistor()
+class DataLineageListener(persistenceWriterFactory: PersistenceWriterFactory, hadoopConfiguration: Configuration) extends QueryExecutionListener {
+  private lazy val persistenceWriter = persistenceWriterFactory.createDataLineageWriter()
+  private lazy val harvester = new DataLineageHarvester(hadoopConfiguration)
 
   /**
     * The method is executed when an action execution is successful.
@@ -59,16 +55,8 @@ class DataLineageListener(dataStorageFactory: PersistenceFactory, hadoopConfigur
 
   private def processQueryExecution(funcName: String, qe: QueryExecution): Unit = {
     if (funcName == "save") {
-      val lineage = DataLineageHarvester.harvestLineage(qe, hadoopConfiguration)
-      dataLineagePersistor.exists(lineage).flatMap( lineageIdOption =>
-          lineageIdOption match
-          {
-            case None => dataLineagePersistor.store(lineage).map(_ => lineage.id)
-            case Some(x) => Future.successful(x)
-          }).flatMap(lineageId => {
-              val execution = Execution(UUID.randomUUID(), lineageId, qe.sparkSession.sparkContext.applicationId, System.currentTimeMillis())
-              executionPersistor.store(execution)
-        })
-      }
+      val lineage = harvester harvestLineage qe
+      persistenceWriter store lineage
+    }
   }
 }

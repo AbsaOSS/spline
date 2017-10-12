@@ -70,6 +70,9 @@
         <spark.version>2.2.0</spark.version>
         <logback.version>1.2.2</logback.version>
         <slf4j.version>1.7.25</slf4j.version>
+        <salat.version>1.11.2</salat.version>
+        <!-- Don't upgrade json4s.version to newer version. An upgrade would cause binary incompatibility of json4s between Spark and Spline. -->
+        <json4s.version>3.2.11</json4s.version>
     </properties>
 
     <build>
@@ -194,7 +197,6 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>${scala.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -206,6 +208,26 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-compiler</artifactId>
+                <version>${scala.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-reflect</artifactId>
+                <version>${scala.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-library</artifactId>
+                <version>${scala.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scalap</artifactId>
+                <version>${scala.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.apache.spark</groupId>
                 <artifactId>spark-core_${scala.compat.version}</artifactId>
@@ -219,7 +241,17 @@
             <dependency>
                 <groupId>com.github.salat</groupId>
                 <artifactId>salat-core_${scala.compat.version}</artifactId>
-                <version>1.10.0</version>
+                <version>${salat.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.salat</groupId>
+                <artifactId>salat-util_${scala.compat.version}</artifactId>
+                <version>${salat.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json4s</groupId>
+                <artifactId>json4s-ext_${scala.compat.version}</artifactId>
+                <version>${json4s.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-codec</groupId>

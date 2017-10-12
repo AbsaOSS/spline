@@ -16,13 +16,17 @@
 
 package za.co.absa.spline.core
 
-import za.co.absa.spline.model._
 import org.apache.spark.sql.catalyst.expressions
+import za.co.absa.spline.model._
+
+import scala.language.implicitConversions
 
 /**
   * The trait represents a mapper translating Spark expressions to expressions specified by Spline library.
   */
 trait ExpressionMapper extends DataTypeMapper {
+
+  val attributeFactory : AttributeFactory
 
   /**
     * The method translates a Spark expression to an expression specified by Spline library.
@@ -30,11 +34,11 @@ trait ExpressionMapper extends DataTypeMapper {
     * @param sparkExpr An input Spark expression
     * @return A Spline expression
     */
-  implicit def fromSparkExpression(sparkExpr: org.apache.spark.sql.catalyst.expressions.Expression): Expression = sparkExpr match {
-    case a: expressions.Alias => AliasExpression(a.name,a.simpleString, fromSparkDataType(a.dataType, a.nullable), a.children map fromSparkExpression)
-    case a: expressions.AttributeReference => AttributeReference(a.exprId.id, a.name, fromSparkDataType(a.dataType, a.nullable))
-    case bo: expressions.BinaryOperator => BinaryOperator(bo.nodeName, bo.symbol, bo.simpleString, fromSparkDataType(bo.dataType, bo.nullable), bo.children map fromSparkExpression)
-    case u: expressions.ScalaUDF => UserDefinedFunction(u.udfName getOrElse u.function.getClass.getName, u.simpleString, fromSparkDataType(u.dataType, u.nullable), u.children map fromSparkExpression)
-    case x => GenericExpression(x.nodeName, x.simpleString, fromSparkDataType(x.dataType, x.nullable), x.children map fromSparkExpression)
+  implicit def fromSparkExpression(sparkExpr: org.apache.spark.sql.catalyst.expressions.Expression): expr.Expression = sparkExpr match {
+    case a: expressions.Alias => expr.Alias(a.name, a.simpleString, fromSparkDataType(a.dataType, a.nullable), a.children map fromSparkExpression)
+    case a: expressions.AttributeReference => expr.AttributeReference(attributeFactory.getOrCreate(a.exprId.id, a.name, a.dataType, a.nullable), a.name, fromSparkDataType(a.dataType, a.nullable))
+    case bo: expressions.BinaryOperator => expr.Binary(bo.nodeName, bo.symbol, bo.simpleString, fromSparkDataType(bo.dataType, bo.nullable), bo.children map fromSparkExpression)
+    case u: expressions.ScalaUDF => expr.UserDefinedFunction(u.udfName getOrElse u.function.getClass.getName, u.simpleString, fromSparkDataType(u.dataType, u.nullable), u.children map fromSparkExpression)
+    case x => expr.Generic(x.nodeName, x.simpleString, fromSparkDataType(x.dataType, x.nullable), x.children map fromSparkExpression)
   }
 }

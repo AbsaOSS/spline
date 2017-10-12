@@ -19,17 +19,19 @@ package za.co.absa.spline.core
 import java.util.UUID
 
 import org.apache.hadoop.conf.Configuration
-import za.co.absa.spline.model.{DataLineage, OperationNode}
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.execution.datasources.SaveIntoDataSourceCommand
 import za.co.absa.spline.common.transformations.TransformationPipeline
-import za.co.absa.spline.core.transformations.ProjectionMerger
+import za.co.absa.spline.core.transformations.{ProjectionMerger, ReferenceConsolidator}
+import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.model.op.Operation
 
 import scala.collection.mutable
+import scala.language.postfixOps
 
-/** The object is responsible for gathering lineage information from Spark internal structures (logical plan, physical plan, etc.) */
-object DataLineageHarvester {
+/** The class is responsible for gathering lineage information from Spark internal structures (logical plan, physical plan, etc.) */
+class DataLineageHarvester(hadoopConfiguration: Configuration) {
 
   val transformationPipeline = new TransformationPipeline(Seq(ProjectionMerger))
 
@@ -38,18 +40,29 @@ object DataLineageHarvester {
     * @param queryExecution An instance holding Spark internal structures (logical plan, physical plan, etc.)
     * @return A lineage representation
     */
-  def harvestLineage(queryExecution: QueryExecution, hadoopConfiguration: Configuration): DataLineage = {
-    val nodes = harvestOperationNodes(queryExecution.analyzed, hadoopConfiguration)
+  def harvestLineage(queryExecution: QueryExecution): DataLineage = {
+    val attributeFactory = new AttributeFactory()
+    val metaDatasetFactory = new MetaDatasetFactory(attributeFactory)
+    val operationNodeBuilderFactory = new OperationNodeBuilderFactory(hadoopConfiguration, metaDatasetFactory)
+    val nodes = harvestOperationNodes(queryExecution.analyzed, operationNodeBuilderFactory)
     val transformedNodes = transformationPipeline.apply(nodes)
 
-    DataLineage(
+    val sparkContext = queryExecution.sparkSession.sparkContext
+
+    val lineage = DataLineage(
       UUID.randomUUID,
-      queryExecution.sparkSession.sparkContext.appName,
-      transformedNodes
+      sparkContext.applicationId,
+      sparkContext.appName,
+      System.currentTimeMillis(),
+      transformedNodes,
+      metaDatasetFactory.getAll(),
+      attributeFactory.getAll()
     )
+
+    ReferenceConsolidator(lineage)
   }
 
-  private def harvestOperationNodes(logicalPlan: LogicalPlan, hadoopConfiguration: Configuration): Seq[OperationNode] = {
+  private def harvestOperationNodes(logicalPlan: LogicalPlan, operationNodeBuilderFactory: OperationNodeBuilderFactory): Seq[Operation] = {
     val result = mutable.ArrayBuffer[OperationNodeBuilder[_]]()
     val stack = mutable.Stack[(LogicalPlan, Int)]((logicalPlan, -1))
     val visitedNodes = mutable.Map[LogicalPlan, Int]()
@@ -60,7 +73,7 @@ object DataLineageHarvester {
       val currentNode: OperationNodeBuilder[_] = currentPosition match {
         case Some(pos) => result(pos)
         case None =>
-          val newNode = OperationNodeBuilderFactory.create(currentOperation, hadoopConfiguration)
+          val newNode = operationNodeBuilderFactory.create(currentOperation)
           visitedNodes += (currentOperation -> result.size)
           currentPosition = Some(result.size)
           result += newNode
@@ -73,14 +86,9 @@ object DataLineageHarvester {
 
       if (parentPosition >= 0) {
         val parent = result(parentPosition)
-        parent.childRefs += currentPosition.get
-        currentNode.output foreach (parent.input +=)
-        currentNode.parentRefs += parentPosition
-
+        parent.inputMetaDatasets += currentNode.outputMetaDataset
       }
     }
     result.map(i => i.build())
   }
-
-
 }

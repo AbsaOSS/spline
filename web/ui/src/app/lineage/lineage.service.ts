@@ -15,22 +15,15 @@
  */
 
 import {Injectable} from "@angular/core";
-import {IDataLineageDescriptor, IDataLineage} from "../../generated-ts/lineage-model";
 import {Http, Response} from "@angular/http";
 import "rxjs";
+import {IDataLineage} from "../../generated-ts/lineage-model";
 
 @Injectable()
 export class LineageService {
-    private lineageDescriptors: Promise<IDataLineageDescriptor[]>
-
-    private lineagePromiseCache: {[id: string]: Promise<IDataLineage>;} = {}
+    private lineagePromiseCache: { [id: string]: Promise<IDataLineage>; } = {}
 
     constructor(private http: Http) {
-        this.lineageDescriptors = http.get("rest/lineage/descriptors").map(res => res.json()).toPromise()
-    }
-
-    getLineageDescriptors(): Promise<IDataLineageDescriptor[]> {
-        return this.lineageDescriptors
     }
 
     getLineage(id: string): Promise<IDataLineage> {

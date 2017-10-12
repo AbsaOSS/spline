@@ -1,0 +1,158 @@
+<!--
+  ~ Copyright 2017 Barclays Africa Group Limited
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<div>
+    <details-panel-header
+            [caption]="operation.mainProps.name"
+            [faIcon]="getOperationIcon()"
+            iconColor="steelblue"></details-panel-header>
+
+    <div class="body">
+        <p-accordion [multiple]="true">
+
+            <!-- Section: Source -->
+            <section *ngIf="operationType == 'Source'">
+                <p-accordionTab [selected]="true">
+                    <p-header>
+                        <details-section-header
+                                caption="Source {{ operation.sourceType }}"
+                                faIcon="fa-table"
+                                iconColor="black"></details-section-header>
+                    </p-header>
+                    <ul>
+                        <li *ngFor="let path of operation.paths"
+                            title="{{ path }}">{{ path }}
+                        </li>
+                    </ul>
+                </p-accordionTab>
+            </section>
+
+            <!-- Section: Input -->
+            <section *ngFor="let input of operation.mainProps.inputs">
+                <p-accordionTab [selected]="true">
+                    <p-header>
+                        <details-section-header
+                                caption="Input"
+                                faIcon="fa-arrow-circle-right"
+                                iconColor="green"></details-section-header>
+                    </p-header>
+                    <attribute-list
+                            [attrs]="getDatasetAttributes(input)"
+                            [selectedAttrIDs]="selectedAttrIDs"
+                            (fullAttrSchemaClicked)="showFullAttributeSchema($event)"
+                            (attrClicked)="selectAttribute($event)">
+                    </attribute-list>
+                </p-accordionTab>
+            </section>
+
+            <!-- Section: Output -->
+            <section *ngIf="operation.mainProps.output">
+                <p-accordionTab [selected]="true">
+                    <p-header>
+                        <details-section-header
+                                caption="Output"
+                                faIcon="fa-arrow-circle-left"
+                                iconColor="firebrick"></details-section-header>
+                    </p-header>
+                    <attribute-list
+                            [attrs]="getDatasetAttributes(operation.mainProps.output)"
+                            [selectedAttrIDs]="selectedAttrIDs"
+                            (fullAttrSchemaClicked)="showFullAttributeSchema($event)"
+                            (attrClicked)="selectAttribute($event)">
+                    </attribute-list>
+                </p-accordionTab>
+            </section>
+
+            <!-- Section: Destination -->
+            <section *ngIf="operationType == 'Destination'">
+                <p-accordionTab [selected]="true">
+                    <p-header>
+                        <details-section-header
+                                caption="Write to {{ operation.destinationType }}"
+                                faIcon="fa-floppy-o"
+                                iconColor="steelblue"></details-section-header>
+                    </p-header>
+                    <ul>
+                        <li title="{{ operation.path }}">{{ operation.path }}</li>
+                    </ul>
+                </p-accordionTab>
+            </section>
+
+            <!-- Section: Filter -->
+            <section *ngIf="operationType == 'Filter'">
+                <p-accordionTab [selected]="true">
+                    <p-header>
+                        <details-section-header
+                                caption="Filter by"
+                                faIcon="fa-filter"
+                                iconColor="steelblue"></details-section-header>
+                    </p-header>
+                    <ul>
+                        <li>
+                            <expression-inline [expr]="operation.condition"></expression-inline>
+                        </li>
+                    </ul>
+                </p-accordionTab>
+            </section>
+
+            <!-- Section: Projection -->
+            <section *ngIf="operationType == 'Projection'">
+                <p-accordionTab [selected]="true">
+                    <p-header>
+                        <details-section-header
+                                caption="Transformations"
+                                faIcon="fa-cogs"
+                                iconColor="steelblue"></details-section-header>
+                    </p-header>
+                    <ul>
+                        <li *ngFor="let expr of operation.transformations"
+                            [ngSwitch]="getExprType(expr)">
+                            <span *ngSwitchCase="'AttributeRemoval'"
+                                  class="expr-attr-removal"
+                                  title="Removed attribute '{{expr.children[0].attributeName}}'">
+                                <i>a</i>
+                                <span>{{ expr.children[0].attributeName }}</span>
+                            </span>
+                            <span *ngSwitchDefault
+                                  class="expr-lambda">
+                                <i title="Expression">λ=</i>
+                                <expression-inline [expr]="expr"></expression-inline>
+                            </span>
+                        </li>
+                    </ul>
+                </p-accordionTab>
+            </section>
+
+            <!-- Section: Join -->
+            <section *ngIf="operationType == 'Join'">
+                <p-accordionTab [selected]="true">
+                    <p-header>
+                        <details-section-header
+                                caption="{{ operation.joinType }} join on"
+                                faIcon="fa-code-fork"
+                                iconColor="steelblue"></details-section-header>
+                    </p-header>
+                    <ul>
+                        <li title="Expression">
+                            <expression-inline [expr]="operation.condition"></expression-inline>
+                        </li>
+                    </ul>
+                </p-accordionTab>
+            </section>
+
+        </p-accordion>
+    </div>
+</div>
