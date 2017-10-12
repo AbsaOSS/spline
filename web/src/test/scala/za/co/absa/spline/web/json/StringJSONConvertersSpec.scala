@@ -1,0 +1,103 @@
+/*
+ * Copyright 2017 Barclays Africa Group Limited
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package za.co.absa.spline.web.json
+
+import java.net.URI
+import java.util.UUID
+
+import org.json4s.native.JsonMethods._
+import org.scalatest.{FlatSpec, Matchers}
+import za.co.absa.spline.model._
+
+class StringJSONConvertersSpec extends FlatSpec with Matchers {
+
+  import StringJSONConverters._
+
+  val aUUID: UUID = UUID fromString "7d46f047-da82-42fa-8e4b-4b085a210985"
+
+  it should "serialize Foo" in {
+    val json = Foo(aUUID, new URI("http://example.com"), aUUID.toString :: Nil).toJson
+    json shouldEqual s"""{"id":"$aUUID","uri":"http://example.com","seq":["$aUUID"]}"""
+  }
+
+  it should "serialize array of Foo's" in {
+    val json = Seq(
+      Foo(aUUID, new URI("http://example.com"), aUUID.toString :: Nil),
+      Foo(aUUID, new URI("http://example.com"), aUUID.toString :: Nil)).toJsonArray
+
+    json shouldEqual
+      s"""[
+         |{"id":"$aUUID","uri":"http://example.com","seq":["$aUUID"]},
+         |{"id":"$aUUID","uri":"http://example.com","seq":["$aUUID"]}
+         |]""".stripMargin.replaceAll("[\n\r]", "")
+  }
+
+  it should "deserialize Foo" in {
+    val foo = s"""{"id":"$aUUID","uri":"http://example.com","seq":["$aUUID"]}""".fromJson[Foo]
+    foo shouldEqual Foo(aUUID, new URI("http://example.com"), aUUID.toString :: Nil)
+  }
+
+  it should "deserialize array of Foo's" in {
+    val foos = s"""[
+                  |{"id":"$aUUID","uri":"http://example.com","seq":["$aUUID"]},
+                  |{"id":"$aUUID","uri":"http://example.com","seq":["$aUUID"]}
+                  |]""".stripMargin.fromJsonArray[Foo]
+    foos shouldEqual Seq(
+      Foo(aUUID, new URI("http://example.com"), aUUID.toString :: Nil),
+      Foo(aUUID, new URI("http://example.com"), aUUID.toString :: Nil)
+    )
+  }
+
+  it should "serialize AttributeRemoval" in {
+    val sourceObj = expr.AttributeRemoval(expr.AttributeReference(Attribute(aUUID, "test", dt.Simple("simpleType", nullable = true))))
+    val serializedObj =
+      s"""
+         |{
+         |  "_typeHint":"za.co.absa.spline.model.expr.AttributeRemoval",
+         |  "text":"- test",
+         |  "dataType":{
+         |    "_typeHint":"za.co.absa.spline.model.dt.Simple",
+         |    "name":"simpleType",
+         |    "nullable":true
+         |  },
+         |  "children":[
+         |    {
+         |      "_typeHint":"za.co.absa.spline.model.expr.AttributeReference",
+         |      "refId":"$aUUID",
+         |      "name":"test",
+         |      "text":"test",
+         |      "dataType":{
+         |        "_typeHint":"za.co.absa.spline.model.dt.Simple",
+         |        "name":"simpleType",
+         |        "nullable":true
+         |      }
+         |    }
+         |  ]
+         |}""".stripMargin
+
+    parse(sourceObj.toJson) shouldEqual parse(serializedObj)
+  }
+
+  it should "serialize OperationProps" in {
+    val testProps = op.OperationProps(aUUID, "foo", Seq(aUUID), aUUID)
+    val serializedProps = s"""{"id":"$aUUID","name":"foo","inputs":["$aUUID"],"output":"$aUUID"}"""
+    parse(testProps.toJson) shouldEqual parse(serializedProps)
+  }
+
+}
+
+case class Foo(id: UUID, uri: URI, seq: Seq[String])

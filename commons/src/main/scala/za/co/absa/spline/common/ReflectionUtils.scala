@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.web.salat
+package za.co.absa.spline.common
 
-import java.util.UUID
+import scala.reflect.runtime.{universe => ru}
 
-import salat.transformers.CustomTransformer
-import za.co.absa.spline.persistence.mongo.serialization.CommonSalatContext
-
-object JSONSalatContext {
-  implicit val ctx = new salat.Context with CommonSalatContext {
-    override val name: String = "JSON Salat Context"
-
-    registerCustomTransformer(new CustomTransformer[UUID, String]() {
-      override def serialize(uuid: UUID): String = uuid.toString
-
-      override def deserialize(str: String): UUID = UUID.fromString(str)
-    })
+object ReflectionUtils {
+  def subClassesOf[T: ru.TypeTag]: List[Class[_]] = {
+    val tpe: ru.Type = ru.typeOf[T]
+    val clazz: ru.ClassSymbol = tpe.typeSymbol.asClass
+    val m: ru.Mirror = ru.runtimeMirror(getClass.getClassLoader)
+    require(clazz.isSealed && clazz.isTrait)
+    clazz.knownDirectSubclasses.toList map ((s: ru.Symbol) => m.runtimeClass(s.asClass))
   }
 }
-

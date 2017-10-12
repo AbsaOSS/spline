@@ -55,7 +55,7 @@ export class ExpressionDialogComponent {
         function buildChildren(ex: IExpression): (any[] | undefined) {
             let et = typeOfExpr(ex)
             // todo: improve expression view for specific expression types
-            return buildChildrenForGenericExpression(ex.children)
+            return buildChildrenForGenericExpression(ex.children || [])
         }
 
         function buildChildrenForGenericExpression(subExprs: IExpression[]): any[] {
@@ -67,7 +67,7 @@ export class ExpressionDialogComponent {
                 id: seq++,
                 name: _.isEmpty(expr.children)
                     ? expr.text // only use it for leaf expressions
-                    : expr.exprType,
+                    : expr.exprType, // todo: this property is not mandatory for any arbitrary expression
                 text: expr.text.replace(/#\d+/g, ""),
                 children: buildChildren(expr)
             }
