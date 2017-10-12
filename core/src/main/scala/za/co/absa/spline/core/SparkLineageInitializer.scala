@@ -45,7 +45,7 @@ object SparkLineageInitializer {
     def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfigurer(defaultSplineConfiguration)): SparkSession =
       sparkSession.synchronized {
         preventDoubleInitialization()
-        sessionState.listenerManager register new DataLineageListener(configurer.persistenceWriterFactory, sparkSession.sparkContext.hadoopConfiguration)
+        sessionState.listenerManager register new DataLineageListener(configurer.persistenceFactory, sparkSession.sparkContext.hadoopConfiguration)
         sparkSession
       }
 

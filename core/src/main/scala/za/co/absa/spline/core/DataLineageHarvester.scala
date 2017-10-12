@@ -22,18 +22,18 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.execution.datasources.SaveIntoDataSourceCommand
-import za.co.absa.spline.common.transformations.TransformationPipeline
-import za.co.absa.spline.core.transformations.{ProjectionMerger, ReferenceConsolidator}
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.model.op.Operation
 
 import scala.collection.mutable
 import scala.language.postfixOps
 
-/** The class is responsible for gathering lineage information from Spark internal structures (logical plan, physical plan, etc.) */
+/** The class is responsible for gathering lineage information from Spark internal structures (logical plan, physical plan, etc.)
+  *
+  * @param hadoopConfiguration A hadoop configuration
+  */
 class DataLineageHarvester(hadoopConfiguration: Configuration) {
 
-  val transformationPipeline = new TransformationPipeline(Seq(ProjectionMerger))
 
   /** A main method of the object that performs transformation of Spark internal structures to library lineage representation.
     *
@@ -45,21 +45,18 @@ class DataLineageHarvester(hadoopConfiguration: Configuration) {
     val metaDatasetFactory = new MetaDatasetFactory(attributeFactory)
     val operationNodeBuilderFactory = new OperationNodeBuilderFactory(hadoopConfiguration, metaDatasetFactory)
     val nodes = harvestOperationNodes(queryExecution.analyzed, operationNodeBuilderFactory)
-    val transformedNodes = transformationPipeline.apply(nodes)
 
     val sparkContext = queryExecution.sparkSession.sparkContext
 
-    val lineage = DataLineage(
+    DataLineage(
       UUID.randomUUID,
       sparkContext.applicationId,
       sparkContext.appName,
       System.currentTimeMillis(),
-      transformedNodes,
+      nodes,
       metaDatasetFactory.getAll(),
       attributeFactory.getAll()
     )
-
-    ReferenceConsolidator(lineage)
   }
 
   private def harvestOperationNodes(logicalPlan: LogicalPlan, operationNodeBuilderFactory: OperationNodeBuilderFactory): Seq[Operation] = {

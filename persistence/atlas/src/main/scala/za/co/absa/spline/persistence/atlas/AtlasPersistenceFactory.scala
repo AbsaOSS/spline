@@ -28,7 +28,7 @@ import za.co.absa.spline.persistence.api._
 /**
   * The object contains static information about settings needed for initialization of the AtlasPersistenceWriterFactory class.
   */
-object AtlasPersistenceWriterFactory {
+object AtlasPersistenceFactory {
   val atlasPropertyPrefix = "atlas"
   val atlasConfigurationDirKey = ApplicationProperties.ATLAS_CONFIGURATION_DIRECTORY_PROPERTY
   val atlasTemporaryConfigurationFileName = ApplicationProperties.APPLICATION_PROPERTIES
@@ -39,9 +39,9 @@ object AtlasPersistenceWriterFactory {
   *
   * @param configuration A source of settings
   */
-class AtlasPersistenceWriterFactory(configuration: Configuration) extends PersistenceWriterFactory(configuration) {
+class AtlasPersistenceFactory(configuration: Configuration) extends PersistenceFactory(configuration) {
 
-  import AtlasPersistenceWriterFactory._
+  import AtlasPersistenceFactory._
 
   import scala.collection.JavaConverters._
 
@@ -79,4 +79,19 @@ class AtlasPersistenceWriterFactory(configuration: Configuration) extends Persis
     * @return A persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
   override def createDataLineageWriter(): DataLineageWriter = new AtlasDataLineageWriter
+
+  /**
+    * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
+    *
+    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    */
+  override def createDataLineageReader(): DataLineageReader = throw new UnsupportedOperationException
+
+  /**
+    * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity if the factory can. Otherwise, returns default.
+    *
+    * @param default A default data lineage reader
+    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    */
+  override def createDataLineageReaderOrGetDefault(default: DataLineageReader): DataLineageReader = default
 }

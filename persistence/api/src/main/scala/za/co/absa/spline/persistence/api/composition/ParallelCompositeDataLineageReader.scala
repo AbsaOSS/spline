@@ -14,39 +14,41 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.api
+package za.co.absa.spline.persistence.api.composition
 
-import java.net.URI
 import java.util.UUID
 
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
+import za.co.absa.spline.persistence.api.DataLineageReader
+import za.co.absa.spline.common.FutureImplicits._
 
 import scala.concurrent.Future
 
 /**
-  * The trait represents a reader to a persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
+  * The class represents a parallel composite reader from various persistence layers for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
+  * @param readers a set of internal readers specific to particular persistence layers
   */
-trait DataLineageReader {
-
+class ParallelCompositeDataLineageReader(readers : Set[DataLineageReader]) extends DataLineageReader{
   /**
     * The method loads a particular data lineage from the persistence layer.
     *
     * @param id An unique identifier of a data lineage
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
-  def load(id: UUID): Future[Option[DataLineage]]
+  override def load(id: UUID): Future[Option[DataLineage]] = Future.sequence(readers.map(_.load(id))).map(_.flatten.headOption)
 
   /**
     * The method loads the latest data lineage from the persistence for a given path.
+    *
     * @param path A path for which a lineage graph is looked for
     * @return The latest data lineage
     */
-  def loadLatest(path: String): Future[Option[DataLineage]]
+  override def loadLatest(path: String): Future[Option[DataLineage]] = Future.sequence(readers.map(_.loadLatest(path))).map(_.flatten.headOption)
 
   /**
     * The method gets all data lineages stored in persistence layer.
     *
     * @return Descriptors of all data lineages
     */
-  def list(): Future[Iterator[PersistedDatasetDescriptor]]
+  override def list(): Future[Iterator[PersistedDatasetDescriptor]] = Future.sequence(readers.map(_.list())).map(_.flatten.toIterator)
 }

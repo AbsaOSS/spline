@@ -19,17 +19,21 @@ package za.co.absa.spline.core
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.util.QueryExecutionListener
-import za.co.absa.spline.persistence.api.PersistenceWriterFactory
+import za.co.absa.spline.common.transformations.TransformationPipeline
+import za.co.absa.spline.core.transformations.{ForeignMetaDatasetInjector, LineageProjectionMerger}
+import za.co.absa.spline.persistence.api.PersistenceFactory
 
 /**
   * The class represents a handler listening on events that Spark triggers when an execution any action is performed. It can be considered as an entry point to Spline library.
   *
-  * @param persistenceWriterFactory A factory of persistence writers
+  * @param persistenceFactory A factory of persistence readers and writers
   * @param hadoopConfiguration A hadoop configuration
   */
-class DataLineageListener(persistenceWriterFactory: PersistenceWriterFactory, hadoopConfiguration: Configuration) extends QueryExecutionListener {
-  private lazy val persistenceWriter = persistenceWriterFactory.createDataLineageWriter()
+class DataLineageListener(persistenceFactory: PersistenceFactory, hadoopConfiguration: Configuration) extends QueryExecutionListener {
+  private lazy val persistenceWriter = persistenceFactory.createDataLineageWriter()
+  private lazy val persistenceReader = persistenceFactory.createDataLineageReader()
   private lazy val harvester = new DataLineageHarvester(hadoopConfiguration)
+  private lazy val transformationPipeline = new TransformationPipeline(Seq(LineageProjectionMerger, new ForeignMetaDatasetInjector(persistenceReader)))
 
   /**
     * The method is executed when an action execution is successful.
@@ -56,7 +60,8 @@ class DataLineageListener(persistenceWriterFactory: PersistenceWriterFactory, ha
   private def processQueryExecution(funcName: String, qe: QueryExecution): Unit = {
     if (funcName == "save") {
       val lineage = harvester harvestLineage qe
-      persistenceWriter store lineage
+      val transformed = transformationPipeline(lineage)
+      persistenceWriter store transformed
     }
   }
 }
