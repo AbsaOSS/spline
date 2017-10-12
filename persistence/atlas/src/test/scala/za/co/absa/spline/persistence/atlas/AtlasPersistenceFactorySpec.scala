@@ -24,10 +24,10 @@ import org.apache.commons.io.FileUtils
 import org.scalatest.{FlatSpec, Matchers}
 import scala.collection.JavaConverters._
 
-class AtlasPersistenceWriterFactorySpec extends FlatSpec with Matchers {
+class AtlasPersistenceFactorySpec extends FlatSpec with Matchers {
 
   "Constructor" should "generate Atlas application config file and set a JVM property with the conf file absolute location" in {
-    new AtlasPersistenceWriterFactory(new BaseConfiguration {
+    new AtlasPersistenceFactory(new BaseConfiguration {
       setProperty("this.key.should.not.be.included", "does not matter")
       setProperty("atlas.foo", "foo")
       setProperty("atlas.complex=key:name", "a complex value :=)")

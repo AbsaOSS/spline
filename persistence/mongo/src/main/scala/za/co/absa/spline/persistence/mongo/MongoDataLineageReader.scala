@@ -48,6 +48,22 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
   }
 
   /**
+    * The method loads the latest data lineage from the persistence for a given path.
+    *
+    * @param path A path for which a lineage graph is looked for
+    * @return The latest data lineage
+    */
+  override def loadLatest(path: String): Future[Option[DataLineage]] = Future {
+    Option(
+      connection.dataLineageCollection.findOne(
+        DBObject("operations.0.path" → path),
+        DBObject(),
+        DBObject("timestamp" → -1)
+      )
+    ) map withVersionCheck(grater[DataLineage].asObject(_))
+  }
+
+  /**
     * The method gets all data lineages stored in persistence layer.
     *
     * @return Descriptors of all data lineages

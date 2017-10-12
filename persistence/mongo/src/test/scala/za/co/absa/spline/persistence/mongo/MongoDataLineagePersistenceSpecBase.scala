@@ -16,6 +16,8 @@
 
 package za.co.absa.spline.persistence.mongo
 
+import java.net.URI
+import java.sql.Timestamp
 import java.util.UUID.randomUUID
 
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterEach, Matchers}
@@ -29,7 +31,7 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFlatSpec with Ma
   protected val mongoWriter = new MongoDataLineageWriter(mongoConnection)
   protected val mongoReader = new MongoDataLineageReader(mongoConnection)
 
-  protected def createDataLineage(appId : String, appName: String) : DataLineage = {
+  protected def createDataLineage(appId : String, appName: String, timestamp: Long = 123L, path : String = "hdfs://foo/bar/path") : DataLineage = {
     val attributes = Seq(
       Attribute(randomUUID(), "_1", Simple("StringType", nullable = true)),
       Attribute(randomUUID(), "_2", Simple("StringType", nullable = true)),
@@ -47,9 +49,9 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFlatSpec with Ma
       randomUUID,
       appId,
       appName,
-      123L,
+      timestamp,
       Seq(
-        Destination(OperationProps(randomUUID, "Destination", Seq(md1.id), md1.id), "parquet", "hdfs://foo/bar/path"),
+        Destination(OperationProps(randomUUID, "Destination", Seq(md1.id), md1.id), "parquet", path),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md2.id), "rawString2"),
         Generic(OperationProps(randomUUID, "LogicalRDD", Seq.empty, md4.id), "rawString3"),

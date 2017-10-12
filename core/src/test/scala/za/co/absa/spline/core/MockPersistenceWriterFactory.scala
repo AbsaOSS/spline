@@ -18,10 +18,15 @@ package za.co.absa.spline.core
 
 import org.apache.commons.configuration.Configuration
 import org.scalatest.mockito.MockitoSugar
-import za.co.absa.spline.persistence.api.{DataLineageWriter, PersistenceWriterFactory}
+import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
 
-class MockPersistenceWriterFactory(conf: Configuration) extends PersistenceWriterFactory(conf) with MockitoSugar {
+class MockPersistenceWriterFactory(conf: Configuration) extends PersistenceFactory(conf) with MockitoSugar {
   private val mockDataLineageWriter = mock[DataLineageWriter]
+  private val mockDataLineageReader = mock[DataLineageReader]
 
   override def createDataLineageWriter(): DataLineageWriter = mockDataLineageWriter
+
+  override def createDataLineageReader(): DataLineageReader = mockDataLineageReader
+
+  override def createDataLineageReaderOrGetDefault(default: DataLineageReader): DataLineageReader = mockDataLineageReader
 }

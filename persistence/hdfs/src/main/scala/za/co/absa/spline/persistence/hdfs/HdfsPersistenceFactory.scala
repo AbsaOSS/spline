@@ -25,7 +25,7 @@ import za.co.absa.spline.persistence.api._
 /**
   * The object contains static information about settings needed for initialization of the HdfsPersistenceWriterFactory class.
   */
-object HdfsPersistenceWriterFactory {
+object HdfsPersistenceFactory {
   val fileNameKey = "spline.hdfs.file.name"
   val filePermissionsKey = "spline.hdfs.file.permissions"
 }
@@ -35,9 +35,9 @@ object HdfsPersistenceWriterFactory {
   *
   * @param configuration A source of settings
   */
-class HdfsPersistenceWriterFactory(configuration: Configuration) extends PersistenceWriterFactory(configuration) {
+class HdfsPersistenceFactory(configuration: Configuration) extends PersistenceFactory(configuration) {
 
-  import HdfsPersistenceWriterFactory._
+  import HdfsPersistenceFactory._
 
   private val hadoopConfiguration = SparkContext.getOrCreate().hadoopConfiguration
   private lazy val fileName = configuration getString(fileNameKey, "_LINEAGE")
@@ -51,4 +51,18 @@ class HdfsPersistenceWriterFactory(configuration: Configuration) extends Persist
     */
   override def createDataLineageWriter(): DataLineageWriter = new HdfsDataLineageWriter(hadoopConfiguration, fileName, filePermissions)
 
+  /**
+    * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
+    *
+    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    */
+  override def createDataLineageReader(): DataLineageReader = throw new UnsupportedOperationException
+
+  /**
+    * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity if the factory can. Otherwise, returns default.
+    *
+    * @param default A default data lineage reader
+    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    */
+  override def createDataLineageReaderOrGetDefault(default: DataLineageReader): DataLineageReader = default
 }

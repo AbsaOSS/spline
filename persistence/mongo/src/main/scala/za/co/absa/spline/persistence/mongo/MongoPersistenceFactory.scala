@@ -22,7 +22,7 @@ import za.co.absa.spline.persistence.api._
 /**
   * The object contains static information about settings needed for initialization of the MongoPersistenceWriterFactory class.
   */
-object MongoPersistenceWriterFactory{
+object MongoPersistenceFactory{
   val mongoDbUrlKey = "spline.mongodb.url"
   val mongoDbNameKey = "spline.mongodb.name"
 }
@@ -32,10 +32,10 @@ object MongoPersistenceWriterFactory{
   *
   * @param configuration A source of settings
   */
-class MongoPersistenceWriterFactory(configuration: Configuration) extends PersistenceWriterFactory(configuration) {
+class MongoPersistenceFactory(configuration: Configuration) extends PersistenceFactory(configuration) {
 
   import za.co.absa.spline.common.ConfigurationImplicits._
-  import MongoPersistenceWriterFactory._
+  import MongoPersistenceFactory._
 
   private lazy val dbUrl = configuration getRequiredString mongoDbUrlKey
   private lazy val dbName = configuration getRequiredString mongoDbNameKey
@@ -47,4 +47,18 @@ class MongoPersistenceWriterFactory(configuration: Configuration) extends Persis
     */
   override def createDataLineageWriter(): DataLineageWriter = new MongoDataLineageWriter(new MongoConnection(dbUrl, dbName))
 
+  /**
+    * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
+    *
+    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    */
+  def createDataLineageReader(): DataLineageReader = new MongoDataLineageReader(new MongoConnection(dbUrl, dbName))
+
+  /**
+    * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity if the factory can. Otherwise, returns default.
+    *
+    * @param default A default data lineage reader
+    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    */
+  def createDataLineageReaderOrGetDefault(default: DataLineageReader): DataLineageReader = createDataLineageReader()
 }

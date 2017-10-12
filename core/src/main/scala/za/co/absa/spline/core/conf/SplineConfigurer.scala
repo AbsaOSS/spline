@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.core.conf
 
-import za.co.absa.spline.persistence.api.PersistenceWriterFactory
+import za.co.absa.spline.persistence.api.PersistenceFactory
 
 /**
   * The trait describes settings needed for initialization of the library.
@@ -24,7 +24,7 @@ import za.co.absa.spline.persistence.api.PersistenceWriterFactory
 trait SplineConfigurer {
 
   /**
-    * The method returns a factory creating persistence writers for various data lineage entities.
+    * The method returns a factory creating persistence readers and writers for various data lineage entities.
     */
-  def persistenceWriterFactory: PersistenceWriterFactory
+  def persistenceFactory: PersistenceFactory
 }

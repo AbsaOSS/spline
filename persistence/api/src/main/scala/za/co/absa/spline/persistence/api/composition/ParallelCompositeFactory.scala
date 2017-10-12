@@ -17,9 +17,9 @@
 package za.co.absa.spline.persistence.api.composition
 
 import org.apache.commons.configuration.Configuration
-import za.co.absa.spline.persistence.api.{DataLineageWriter, PersistenceWriterFactory}
+import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
 
-object ParallelCompositeWriterFactory{
+object ParallelCompositeFactory{
   val factoriesKey = "spline.persistence.composition.factories"
 }
 
@@ -27,9 +27,9 @@ object ParallelCompositeWriterFactory{
   * The class represents a parallel composition of various persistence writers.
   * @param configuration A source of settings
   */
-class ParallelCompositeWriterFactory(configuration: Configuration) extends PersistenceWriterFactory(configuration)
+class ParallelCompositeFactory(configuration: Configuration) extends PersistenceFactory(configuration)
 {
-  import ParallelCompositeWriterFactory._
+  import ParallelCompositeFactory._
   import za.co.absa.spline.common.ConfigurationImplicits._
 
   private val factories = configuration
@@ -37,7 +37,7 @@ class ParallelCompositeWriterFactory(configuration: Configuration) extends Persi
                             .map(i => Class.forName(i.trim)
                               .getConstructor(classOf[Configuration])
                               .newInstance(configuration)
-                              .asInstanceOf[PersistenceWriterFactory]
+                              .asInstanceOf[PersistenceFactory]
                             )
   /**
     * The method creates a parallel composite writer to various persistence layers for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
@@ -46,4 +46,18 @@ class ParallelCompositeWriterFactory(configuration: Configuration) extends Persi
     */
   override def createDataLineageWriter(): DataLineageWriter = new ParallelCompositeDataLineageWriter(factories.map(_.createDataLineageWriter()).toSet)
 
+  /**
+    * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
+    *
+    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    */
+  override def createDataLineageReader(): DataLineageReader = new ParallelCompositeDataLineageReader(factories.map(_.createDataLineageReader()).toSet)
+
+  /**
+    * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity if the factory can. Otherwise, returns default.
+    *
+    * @param default A default data lineage reader
+    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    */
+  override def createDataLineageReaderOrGetDefault(default: DataLineageReader): DataLineageReader = new ParallelCompositeDataLineageReader(factories.map(_.createDataLineageReaderOrGetDefault(default)).toSet)
 }
