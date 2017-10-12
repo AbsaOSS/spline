@@ -83,7 +83,7 @@ case class Alias
   dataType: DataType,
   children: Seq[Expression]
 ) extends Expression {
-  @Persist
+
   val exprType: String = "Alias"
 
   override def outputAttributeNames: Seq[String] = Seq(alias)
@@ -121,7 +121,6 @@ case class AttributeRemoval
   children: Seq[Expression]
 ) extends Expression {
 
-  @Persist
   val exprType: String = "AttributeRemoval"
 }
 
@@ -156,10 +155,8 @@ case class AttributeReference
   dataType: DataType
 ) extends Expression {
 
-  @Persist
   val exprType: String = "AttributeReference"
 
-  @Persist
   val children: Seq[Expression] = Seq.empty
 
   override def inputAttributeNames: Seq[String] = Seq(name)
@@ -206,6 +203,5 @@ case class UserDefinedFunction
   children: Seq[Expression]
 ) extends Expression {
 
-  @Persist
   val exprType: String = "UserDefinedFunction"
 }

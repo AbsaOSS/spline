@@ -14,22 +14,26 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.web.salat
+package za.co.absa.spline.common
 
-import java.util.UUID
+import scala.reflect.runtime.{universe => ru}
 
-import salat.transformers.CustomTransformer
-import za.co.absa.spline.persistence.mongo.serialization.CommonSalatContext
+/**
+  * Reflection utils
+  */
+object ReflectionUtils {
 
-object JSONSalatContext {
-  implicit val ctx = new salat.Context with CommonSalatContext {
-    override val name: String = "JSON Salat Context"
+  private val mirror: ru.Mirror = ru.runtimeMirror(getClass.getClassLoader)
 
-    registerCustomTransformer(new CustomTransformer[UUID, String]() {
-      override def serialize(uuid: UUID): String = uuid.toString
-
-      override def deserialize(str: String): UUID = UUID.fromString(str)
-    })
+  /**
+    * Lists all direct sub-classes of the given trait T
+    *
+    * @tparam T sealed trait type
+    * @return List of Class[_] instances
+    */
+  def subClassesOf[T: ru.TypeTag]: List[Class[_]] = {
+    val clazz: ru.ClassSymbol = ru.typeOf[T].typeSymbol.asClass
+    require(clazz.isTrait && clazz.isSealed)
+    clazz.knownDirectSubclasses.toList map ((s: ru.Symbol) => mirror runtimeClass s.asClass)
   }
 }
-

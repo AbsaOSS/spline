@@ -21,9 +21,11 @@ import org.json4s.jackson.Serialization
 import org.json4s.jackson.Serialization.write
 
 object JSONSerialization {
-  implicit val formats = Serialization.formats(NoTypeHints) ++ org.json4s.ext.JavaTypesSerializers.all
+
+  implicit val formats: Formats = Serialization.formats(NoTypeHints) ++ org.json4s.ext.JavaTypesSerializers.all
 
   implicit class EntityToJson[T <: AnyRef](entity: T) {
     def toJson: String = write(entity)
   }
+
 }

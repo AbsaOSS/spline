@@ -17,9 +17,7 @@
 package za.co.absa.spline.web.rest.controller
 
 import java.util.UUID
-
-import za.co.absa.spline.web.salat.JSONSalatContext._
-import za.co.absa.spline.web.salat.StringJSONConverters
+import za.co.absa.spline.web.json.StringJSONConverters
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMethod._
@@ -28,6 +26,7 @@ import za.co.absa.spline.persistence.api.DataLineageReader
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.language.postfixOps
 
 @Controller
 class LineageController @Autowired()
@@ -37,7 +36,7 @@ class LineageController @Autowired()
 
   import StringJSONConverters._
 
-  @RequestMapping(path = Array("/lineage/descriptors"), method = Array(GET))
+  @RequestMapping(path = Array("/dataset/descriptors"), method = Array(GET))
   @ResponseBody
   def lineageDescriptors: String = Await.result(reader.list(), 10 seconds).toSeq.toJsonArray
 

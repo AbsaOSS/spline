@@ -25,7 +25,7 @@ import za.co.absa.spline.common.ARMImplicits
 @Controller
 class MainController {
 
-  @RequestMapping(path = Array("/", "/lineage/**"), method = Array(GET, HEAD))
+  @RequestMapping(path = Array("/", "/lineage/**", "/dashboard/**"), method = Array(GET, HEAD))
   def index = "index"
 
   @RequestMapping(path = Array("/build-info"), method = Array(GET), produces = Array("text/x-java-properties"))
