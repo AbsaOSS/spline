@@ -25,6 +25,22 @@ import za.co.absa.spline.common.ReflectionUtils.subClassesOf
 import za.co.absa.spline.common.TypeFreaks._
 import za.co.absa.spline.model._
 
+/**
+  * Implicit JSON serializer/deserializer
+  * <p>
+  * Usage examples:
+  * <code><pre>
+  * import StringJSONConverters._
+  *
+  * // Serialize object to JSON
+  * val myObject: FooBar = ???
+  * val json:String == myObject.toJson
+  *
+  * // Deserialize from JSON
+  * val jsonString: String = """{ "foo":42, "bar":777 }"""
+  * val myObject: FooBar = jsonString.fromJson[FooBar]
+  * </pre></code>
+  */
 object StringJSONConverters {
 
   object URISerializer extends CustomSerializer[URI](_ =>

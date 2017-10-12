@@ -18,12 +18,22 @@ package za.co.absa.spline.common
 
 import scala.reflect.runtime.{universe => ru}
 
+/**
+  * Reflection utils
+  */
 object ReflectionUtils {
+
+  private val mirror: ru.Mirror = ru.runtimeMirror(getClass.getClassLoader)
+
+  /**
+    * Lists all direct sub-classes of the given trait T
+    *
+    * @tparam T sealed trait type
+    * @return List of Class[_] instances
+    */
   def subClassesOf[T: ru.TypeTag]: List[Class[_]] = {
-    val tpe: ru.Type = ru.typeOf[T]
-    val clazz: ru.ClassSymbol = tpe.typeSymbol.asClass
-    val m: ru.Mirror = ru.runtimeMirror(getClass.getClassLoader)
-    require(clazz.isSealed && clazz.isTrait)
-    clazz.knownDirectSubclasses.toList map ((s: ru.Symbol) => m.runtimeClass(s.asClass))
+    val clazz: ru.ClassSymbol = ru.typeOf[T].typeSymbol.asClass
+    require(clazz.isTrait && clazz.isSealed)
+    clazz.knownDirectSubclasses.toList map ((s: ru.Symbol) => mirror runtimeClass s.asClass)
   }
 }
