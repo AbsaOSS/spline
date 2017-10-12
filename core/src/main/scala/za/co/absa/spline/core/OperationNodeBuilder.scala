@@ -160,6 +160,8 @@ private class SourceNodeBuilder(val operation: LogicalRelation, hadoopConfigurat
   */
 private class DestinationNodeBuilder(val operation: SaveIntoDataSourceCommand, hadoopConfiguration: Configuration, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[SaveIntoDataSourceCommand] {
 
+  override val outputMetaDataset: UUID = metaDatasetFactory.create(operation.query)
+
   def build(): op.Operation = {
     op.Destination(
       buildOperationProps(),
