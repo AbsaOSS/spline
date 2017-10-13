@@ -47,6 +47,23 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     Option(connection.dataLineageCollection findOne id) map withVersionCheck(grater[DataLineage].asObject(_))
   }
 
+
+  /**
+    * The method scans the persistence layer and tries to find a lineage ID for a given path and application ID.
+    *
+    * @param path A path for which a lineage ID is looked for
+    * @param applicationId An application for which a lineage ID is looked for
+    * @return An identifier of lineage graph
+    */
+  def search(path: String, applicationId: String): Future[Option[UUID]] = Future {
+    Option(
+      connection.dataLineageCollection.findOne(
+        DBObject("operations.0.path" → path, "appId" → applicationId),
+        DBObject("_id" → 1)
+      )
+    ) map (_.get("_id").asInstanceOf[UUID])
+  }
+
   /**
     * The method loads the latest data lineage from the persistence for a given path.
     *

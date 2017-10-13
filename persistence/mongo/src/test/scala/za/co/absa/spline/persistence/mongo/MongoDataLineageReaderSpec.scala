@@ -70,4 +70,34 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase{
 
     result.map(i => i shouldEqual None)
   }
+
+  "Search method" should "find the correct lineage ID according a given criteria" in {
+    val path = "hdfs://a/b/c"
+    val testLineages = Seq(
+      createDataLineage("appID1", "appName1", 1L, path),
+      createDataLineage("appID1", "appName1", 2L),
+      createDataLineage("appID2", "appName2", 30L, path),
+      createDataLineage("appID2", "appName2", 4L),
+      createDataLineage("appID3", "appName2", 5L, path)
+    )
+
+    val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.search(path, "appID2"))
+
+    result.map(i => i shouldEqual Some(testLineages(2).id))
+  }
+
+  "Search method" should "return None if there is no record for a given criteria" in {
+    val path = "hdfs://a/b/c"
+    val testLineages = Seq(
+      createDataLineage("appID1", "appName1", 1L, path),
+      createDataLineage("appID1", "appName1", 2L),
+      createDataLineage("appID2", "appName2", 30L),
+      createDataLineage("appID2", "appName2", 4L),
+      createDataLineage("appID3", "appName2", 5L, path)
+    )
+
+    val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.search(path, "appID2"))
+
+    result.map(i => i shouldEqual None)
+  }
 }
