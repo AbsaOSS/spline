@@ -33,7 +33,7 @@ class MetaDatasetFactory(val attributeFactory: AttributeFactory) {
   private val allDatasets : ListBuffer[MetaDataset] = ListBuffer[MetaDataset]()
 
   /**
-    * The method crates a meta data set for a specific Spark operation and returns its identifier.
+    * The method creates a meta data set for a specific Spark operation and returns its identifier.
     * @param operation A Spark operation
     * @return An identifier of created meta data set
     */
