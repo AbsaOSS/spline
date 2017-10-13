@@ -16,20 +16,23 @@
 
 package za.co.absa.spline.core.transformations
 
+import java.util.UUID
+
 import za.co.absa.spline.common.transformations.Transformation
-import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.model.op.Source
+import za.co.absa.spline.model.op.{MetaDataSource, Operation, Read}
+import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset}
 import za.co.absa.spline.persistence.api.DataLineageReader
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.language.postfixOps
 
 /**
   * The class injects into a lineage graph root meta data sets from related lineage graphs.
   *
   * @param reader A reader reading lineage graphs from persistence layer
   */
-class ForeignMetaDatasetInjector(reader : DataLineageReader) extends Transformation[DataLineage] {
+class ForeignMetaDatasetInjector(reader: DataLineageReader) extends Transformation[DataLineage] {
 
   /**
     * The method transforms an input instance by a custom logic.
@@ -38,13 +41,49 @@ class ForeignMetaDatasetInjector(reader : DataLineageReader) extends Transformat
     * @return A transformed result
     */
   override def apply(lineage: DataLineage): DataLineage = {
-    val sOps = lineage.operations.withFilter(_.isInstanceOf[Source]).map(_.asInstanceOf[Source])
-    val sOpsWithLineages = sOps.map(i => (i, i.paths.flatMap(j => Await.result(reader.loadLatest(j), 1 second))))
-    val newOps = sOpsWithLineages.map{case (op, lineages) => op.updated(_.copy(inputs = lineages.map(_.rootDataset.id)))}
-    val newOpsMap = newOps.map(i => i.mainProps.id -> i).toMap
-    val newDatasetsWithAllAttributes = sOpsWithLineages.flatMap{case (_, lineages) => lineages.map(i => (i.rootDataset, i.attributes))}
-    val newDatasets = newDatasetsWithAllAttributes.map{case (ds, _) => ds}
-    val newAttributes = newDatasetsWithAllAttributes.flatMap{case (ds, attrs) => attrs.filter(i => ds.schema.attrs.contains(i.id))}
+    def castIfSource(op: Operation): Option[Read] = op match {
+      case a@Read(_, _, _) => Some(a)
+      case _ => None
+    }
+
+    def selectAttributesForDataset(ds: MetaDataset, attributes: Seq[Attribute]) =
+      attributes.filter(attr => ds.schema.attrs contains attr.id)
+
+    // collect data
+
+    val sourcesWithLineages: Seq[(Read, Seq[DataLineage])] =
+      for {
+        op <- lineage.operations
+        source <- castIfSource(op)
+      } yield {
+        val sourceLineages = source.sources.flatMap {
+          case MetaDataSource(path, _ /*todo for Marek !!!!!!*/) => Await.result(reader.loadLatest(path), 1 second)
+        }
+        source -> sourceLineages
+      }
+
+    val newDatasetsWithAttributes: Seq[(MetaDataset, Seq[Attribute])] =
+      for {
+        (_, lineages) <- sourcesWithLineages
+        lineage <- lineages
+      } yield {
+        val ds = lineage.rootDataset
+        val dsAttrs = selectAttributesForDataset(ds, lineage.attributes)
+        lineage.rootDataset -> dsAttrs
+      }
+
+    // results
+
+    val newDatasets: Seq[MetaDataset] = newDatasetsWithAttributes.map(_._1)
+    val newAttributes: Seq[Attribute] = newDatasetsWithAttributes.flatMap(_._2)
+
+    val newOpsMap: Map[UUID, Read] = (
+      for ((source, lineages) <- sourcesWithLineages)
+        yield {
+          val wiredSources = source.updated(_.copy(inputs = lineages map (_.rootDataset.id)))
+          wiredSources.mainProps.id -> wiredSources
+        }
+      ).toMap
 
     lineage.copy(
       operations = lineage.operations.map(i => newOpsMap.getOrElse(i.mainProps.id, i)),

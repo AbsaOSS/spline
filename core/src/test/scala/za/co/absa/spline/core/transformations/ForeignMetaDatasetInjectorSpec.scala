@@ -17,15 +17,15 @@
 package za.co.absa.spline.core.transformations
 
 
-import org.mockito.Mockito._
 import java.util.UUID.randomUUID
 
+import org.mockito.Matchers._
+import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
-import org.mockito.Matchers._
-import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset, Schema}
 import za.co.absa.spline.model.dt.Simple
-import za.co.absa.spline.model.op.{Destination, OperationProps, Source}
+import za.co.absa.spline.model.op.{MetaDataSource, OperationProps, Read, Write}
+import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset, Schema}
 import za.co.absa.spline.persistence.api.DataLineageReader
 
 import scala.concurrent.Future
@@ -34,7 +34,7 @@ class ForeignMetaDatasetInjectorSpec extends FlatSpec with Matchers with Mockito
 
   "Apply method" should "inject correct meta data set" in {
     val dataLineageReader = mock[DataLineageReader]
-    val dataType = Simple("int", true)
+    val dataType = Simple("int", nullable = true)
     val path = "path"
 
     def getReferencedLineage = {
@@ -49,10 +49,11 @@ class ForeignMetaDatasetInjectorSpec extends FlatSpec with Matchers with Mockito
         MetaDataset(randomUUID, Schema(Seq(attributes(0).id, attributes(1).id)))
       )
       val operations = Seq(
-        Destination(OperationProps(randomUUID, "save", Seq.empty, datasets(0).id), "parquet", path)
+        Write(OperationProps(randomUUID, "save", Seq.empty, datasets(0).id), "parquet", path)
       )
       DataLineage(randomUUID, "appId1", "appName1", 1L, operations, datasets, attributes)
     }
+
     def getInputLineage = {
       val attributes = Seq(
         Attribute(randomUUID, "1", dataType),
@@ -64,7 +65,7 @@ class ForeignMetaDatasetInjectorSpec extends FlatSpec with Matchers with Mockito
 
       )
       val operations = Seq(
-        Source(OperationProps(randomUUID, "save", Seq.empty, datasets(0).id), "parquet", Seq(path))
+        Read(OperationProps(randomUUID, "read", Seq.empty, datasets.head.id), "parquet", Seq(MetaDataSource(path, None /*TODO for Marek !!!!!*/)))
       )
       DataLineage(randomUUID, "appId2", "appName2", 2L, operations, datasets, attributes)
     }
@@ -73,9 +74,9 @@ class ForeignMetaDatasetInjectorSpec extends FlatSpec with Matchers with Mockito
     when(dataLineageReader.loadLatest(any())) thenReturn Future.successful(Some(referencedLineage))
     val inputLineage = getInputLineage
     val expectedResult = inputLineage.copy(
-      operations = Seq(inputLineage.operations(0).updated(m => m.copy(inputs = Seq(referencedLineage.datasets(0).id)))),
-      datasets = inputLineage.datasets :+ referencedLineage.datasets(0),
-      attributes = inputLineage.attributes ++ Seq(referencedLineage.attributes(2),referencedLineage.attributes(3))
+      operations = Seq(inputLineage.rootOperation.updated(m => m.copy(inputs = Seq(referencedLineage.rootDataset.id)))),
+      datasets = inputLineage.datasets :+ referencedLineage.rootDataset,
+      attributes = inputLineage.attributes ++ Seq(referencedLineage.attributes(2), referencedLineage.attributes(3))
     )
 
     val sut = new ForeignMetaDatasetInjector(dataLineageReader)

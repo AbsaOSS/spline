@@ -1107,7 +1107,7 @@ module.exports = function () {
                     "schema": {"attrs": ["attr-uuid-105", "attr-uuid-106"]}
                 }],
                 "operations": [{
-                    "_typeHint": "za.co.absa.spline.core.model.op.Destination",
+                    "_typeHint": "za.co.absa.spline.core.model.op.Write",
                     "mainProps": {
                         "id": "op-uuid-1",
                         "name": "SaveIntoDataSourceCommand",
@@ -6196,7 +6196,7 @@ module.exports = function () {
                     },
                     "alias": "SourceData"
                 }, {
-                    "_typeHint": "za.co.absa.spline.core.model.op.Source",
+                    "_typeHint": "za.co.absa.spline.core.model.op.Read",
                     "mainProps": {
                         "id": "op-uuid-21",
                         "name": "LogicalRelation",
@@ -6205,7 +6205,7 @@ module.exports = function () {
                         "output": "ds-uuid-19"
                     },
                     "sourceType": "Parquet",
-                    "paths": ["file:/C:/git/lineage/sample/data/Conformance/SourceData"]
+                    "sources": [{"path":"file:/C:/git/lineage/sample/data/Conformance/SourceData"}]
                 }, {
                     "_typeHint": "za.co.absa.spline.core.model.op.Alias",
                     "mainProps": {
@@ -6310,7 +6310,7 @@ module.exports = function () {
                     },
                     "alias": "MainSubTypeMapping"
                 }, {
-                    "_typeHint": "za.co.absa.spline.core.model.op.Source",
+                    "_typeHint": "za.co.absa.spline.core.model.op.Read",
                     "mainProps": {
                         "id": "op-uuid-26",
                         "name": "LogicalRelation",
@@ -6319,7 +6319,7 @@ module.exports = function () {
                         "output": "ds-uuid-24"
                     },
                     "sourceType": "CSV",
-                    "paths": ["file:/C:/git/lineage/sample/data/Conformance/ProductMainSubTypeMapping.txt"]
+                    "sources": [{"path":"file:/C:/git/lineage/sample/data/Conformance/ProductMainSubTypeMapping.txt"}]
                 }, {
                     "_typeHint": "za.co.absa.spline.core.model.op.Alias",
                     "mainProps": {
@@ -6449,7 +6449,7 @@ module.exports = function () {
                     },
                     "alias": "EnterpriseProductMapping"
                 }, {
-                    "_typeHint": "za.co.absa.spline.core.model.op.Source",
+                    "_typeHint": "za.co.absa.spline.core.model.op.Read",
                     "mainProps": {
                         "id": "op-uuid-30",
                         "name": "LogicalRelation",
@@ -6458,7 +6458,7 @@ module.exports = function () {
                         "output": "ds-uuid-28"
                     },
                     "sourceType": "CSV",
-                    "paths": ["file:/C:/git/lineage/sample/data/Conformance/EnterpriseProductMapping.txt"]
+                    "sources": [{"path":"file:/C:/git/lineage/sample/data/Conformance/EnterpriseProductMapping.txt"}]
                 }, {
                     "_typeHint": "za.co.absa.spline.core.model.op.Alias",
                     "mainProps": {
@@ -6592,7 +6592,7 @@ module.exports = function () {
                     "schema": {"attrs": ["attr-uuid-67", "attr-uuid-68", "attr-uuid-69", "attr-uuid-70", "attr-uuid-71", "attr-uuid-72", "attr-uuid-73", "attr-uuid-74"]}
                 }],
                 operations: [{
-                    "_typeHint": "za.co.absa.spline.core.model.op.Destination",
+                    "_typeHint": "za.co.absa.spline.core.model.op.Write",
                     "mainProps": {
                         "id": "op-uuid-1-a4",
                         "name": "SaveIntoDataSourceCommand",
@@ -6603,7 +6603,7 @@ module.exports = function () {
                     "destinationType": "parquet",
                     "path": "data/Conformance/ConformedData"
                 }, {
-                    "_typeHint": "za.co.absa.spline.core.model.op.Source",
+                    "_typeHint": "za.co.absa.spline.core.model.op.Read",
                     "mainProps": {
                         "id": "op-uuid-30-a4",
                         "name": "LogicalRelation",
@@ -6612,7 +6612,7 @@ module.exports = function () {
                         "output": "ds-uuid-28"
                     },
                     "sourceType": "CSV",
-                    "paths": ["file:/C:/git/lineage/sample/data/Conformance/EnterpriseProductMapping.txt"]
+                    "sources": [{"path":"file:/C:/git/lineage/sample/data/Conformance/EnterpriseProductMapping.txt"}]
                 }]
             }
         ],

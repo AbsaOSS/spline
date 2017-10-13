@@ -19,7 +19,7 @@ package za.co.absa.spline.persistence.mongo
 import java.net.URI
 
 import za.co.absa.spline.model.PersistedDatasetDescriptor
-import za.co.absa.spline.model.op.Destination
+import za.co.absa.spline.model.op.Write
 
 import scala.concurrent.Future
 
@@ -35,7 +35,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase{
       appId = l.appId,
       appName = l.appName,
       lineageId = l.id,
-      path = new URI(l.rootNode.asInstanceOf[Destination].path),
+      path = new URI(l.rootOperation.asInstanceOf[Write].path),
       timestamp = l.timestamp))
 
     val descriptions = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.list().map(_.toSeq))

@@ -49,10 +49,11 @@ case class DataLineage
     *
     * @return A node representing the last operation performed within data lineage graph. Usually, it describes persistence of data set to some file, database, Kafka endpoint, etc.
     */
-  def rootNode: Operation = operations.head
+  def rootOperation: Operation = operations.head
 
   /**
     * A method returning a descriptor of the data set produced by the computation.
+    *
     * @return A descriptor of the data set produced by the computation.
     */
   def rootDataset: MetaDataset = datasets.head

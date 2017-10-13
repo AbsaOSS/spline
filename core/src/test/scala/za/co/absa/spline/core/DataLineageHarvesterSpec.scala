@@ -18,12 +18,11 @@ package za.co.absa.spline.core
 
 import java.util.UUID.randomUUID
 
-import za.co.absa.spline.model._
 import org.apache.spark.sql.functions._
 import org.scalatest.{FlatSpec, Matchers}
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op._
-import za.co.absa.spline.model.{Attribute, Schema}
+import za.co.absa.spline.model.{Attribute, Schema, _}
 
 import scala.language.implicitConversions
 
@@ -32,7 +31,6 @@ case class DataLineageHarvesterSpecTestRow(i: Int, d: Double, s: String)
 class DataLineageHarvesterSpec extends FlatSpec with Matchers {
 
   import TestSparkContext._
-  import za.co.absa.spline.common.OptionImplicits._
   import sparkSession.implicits._
 
   private val initialDataFrame = sparkSession.createDataset(Seq(DataLineageHarvesterSpecTestRow(1, 2.3, "text")))
@@ -53,8 +51,9 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
       case (pn: Projection) => pn copy (mainProps = strippedProps(pn), transformations = null)
       case (gn: Generic) => gn copy (mainProps = strippedProps(gn), rawString = null)
       case (an: Alias) => an copy (mainProps = strippedProps(an))
-      case (sn: Source) => sn copy (mainProps = strippedProps(sn))
-      case (dn: Destination) => dn copy (mainProps = strippedProps(dn))
+      case (sn: Read) => sn copy (mainProps = strippedProps(sn))
+      case (dn: Write) => dn copy (mainProps = strippedProps(dn))
+      case (hol: HigherOrderLineage) => hol copy (mainProps = strippedProps(hol))
     }
 
     private def strippedProps(n: Operation): OperationProps = n.mainProps.copy(id = null, inputs = null, output = null)

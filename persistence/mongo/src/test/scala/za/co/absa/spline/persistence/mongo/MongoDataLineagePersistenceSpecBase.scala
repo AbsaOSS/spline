@@ -16,13 +16,11 @@
 
 package za.co.absa.spline.persistence.mongo
 
-import java.net.URI
-import java.sql.Timestamp
 import java.util.UUID.randomUUID
 
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterEach, Matchers}
 import za.co.absa.spline.model.dt.Simple
-import za.co.absa.spline.model.op.{Destination, Generic, OperationProps}
+import za.co.absa.spline.model.op.{Generic, OperationProps, Write}
 import za.co.absa.spline.model.{Attribute, Schema, _}
 
 abstract class MongoDataLineagePersistenceSpecBase extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
@@ -51,7 +49,7 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFlatSpec with Ma
       appName,
       timestamp,
       Seq(
-        Destination(OperationProps(randomUUID, "Destination", Seq(md1.id), md1.id), "parquet", path),
+        Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md2.id), "rawString2"),
         Generic(OperationProps(randomUUID, "LogicalRDD", Seq.empty, md4.id), "rawString3"),

@@ -23,18 +23,18 @@
     <div class="body">
         <p-accordion [multiple]="true">
 
-            <!-- Section: Source -->
-            <section *ngIf="operationType == 'Source'">
+            <!-- Section: Read -->
+            <section *ngIf="operationType == 'Read'">
                 <p-accordionTab [selected]="true">
                     <p-header>
                         <details-section-header
-                                caption="Source {{ operation.sourceType }}"
+                                caption="Read {{ operation.sourceType }}"
                                 faIcon="fa-table"
                                 iconColor="black"></details-section-header>
                     </p-header>
                     <ul>
-                        <li *ngFor="let path of operation.paths"
-                            title="{{ path }}">{{ path }}
+                        <li *ngFor="let source of operation.sources"
+                            title="{{ source.path }}">{{ source.path }}
                         </li>
                     </ul>
                 </p-accordionTab>
@@ -76,8 +76,8 @@
                 </p-accordionTab>
             </section>
 
-            <!-- Section: Destination -->
-            <section *ngIf="operationType == 'Destination'">
+            <!-- Section: Write -->
+            <section *ngIf="operationType == 'Write'">
                 <p-accordionTab [selected]="true">
                     <p-header>
                         <details-section-header
