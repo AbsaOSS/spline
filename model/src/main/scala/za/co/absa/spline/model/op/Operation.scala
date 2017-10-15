@@ -151,17 +151,7 @@ case class Read(
                  mainProps: OperationProps,
                  sourceType: String,
                  sources: Seq[MetaDataSource]
-               ) extends Operation {
-
-  private val knownSourceLineagesCount = sources.count(_.datasetId.isDefined)
-  private val inputDatasetsCount = mainProps.inputs.size
-
-  require(
-    inputDatasetsCount == knownSourceLineagesCount,
-    "Inputs for 'Read' operation are datasets associated with the data sources that we know lineage of. " +
-      s"Hence the size 'inputs' collection should be the same as the count of known datasets for 'sources' field. " +
-      s"But was $inputDatasetsCount and $knownSourceLineagesCount respectively")
-}
+               ) extends Operation
 
 /**
   * Represents a persisted source data (e.g. file)
