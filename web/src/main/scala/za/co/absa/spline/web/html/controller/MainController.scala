@@ -39,13 +39,13 @@ class MainController @Autowired()
   @RequestMapping(path = Array("/", "/lineage/**", "/dashboard/**"), method = Array(GET, HEAD))
   def index = "index"
 
-  @RequestMapping(path = Array("/search"), method = Array(GET))
+  @RequestMapping(path = Array("/dataset/lineage/_search"), method = Array(GET))
   @ResponseBody
   def lineage(@RequestParam("path") path : String, @RequestParam("application_id") applicationId : String) =
-    Await.result(reader search(path, applicationId), 10 seconds) match {
+    Await.result(reader searchDataset(path, applicationId), 10 seconds) match {
       case Some(x) => {
         val headers = new HttpHeaders
-        headers.add("Location", s"/lineage/$x")
+        headers.add("Location", s"/dataset/$x/lineage/overview")
         new ResponseEntity[String](headers, HttpStatus.FOUND)
       }
       case None => ResponseEntity.notFound()

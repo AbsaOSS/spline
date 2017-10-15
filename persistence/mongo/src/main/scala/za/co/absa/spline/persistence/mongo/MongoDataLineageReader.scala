@@ -49,19 +49,21 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
 
 
   /**
-    * The method scans the persistence layer and tries to find a lineage ID for a given path and application ID.
+    * The method scans the persistence layer and tries to find a dataset ID for a given path and application ID.
     *
-    * @param path A path for which a lineage ID is looked for
-    * @param applicationId An application for which a lineage ID is looked for
-    * @return An identifier of lineage graph
+    * @param path A path for which a dataset ID is looked for
+    * @param applicationId An application for which a dataset ID is looked for
+    * @return An identifier of a meta data set
     */
-  def search(path: String, applicationId: String): Future[Option[UUID]] = Future {
-    Option(
-      connection.dataLineageCollection.findOne(
-        DBObject("operations.0.path" → path, "appId" → applicationId),
-        DBObject("_id" → 1)
+  def searchDataset(path: String, applicationId: String): Future[Option[UUID]] = Future {
+    connection.dataLineageCollection.aggregate(
+      asList(
+        DBObject("$match" → DBObject("operations.0.path" → path, "appId" → applicationId)),
+        DBObject("$addFields" → DBObject("___rootDS" → DBObject("$arrayElemAt" → Array("$datasets", 0)))),
+        DBObject("$addFields" → DBObject("datasetId" → "$___rootDS._id")),
+        DBObject("$project" → DBObject("datasetId" → 1))
       )
-    ) map (_.get("_id").asInstanceOf[UUID])
+    ).results().asScala.headOption.map(_.get("datasetId").asInstanceOf[UUID])
   }
 
   /**
