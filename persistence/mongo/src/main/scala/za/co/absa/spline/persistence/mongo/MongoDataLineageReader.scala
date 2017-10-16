@@ -22,12 +22,13 @@ import java.util.UUID
 import _root_.salat._
 import com.mongodb.casbah.Imports._
 import za.co.absa.spline.common.FutureImplicits._
-import za.co.absa.spline.model.op.Composite
+import za.co.absa.spline.model.op.CompositeWithDependencies
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
 import za.co.absa.spline.persistence.api.DataLineageReader
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
+import scala.reflect._
 
 /**
   * The class represents Mongo persistence writer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
@@ -64,19 +65,36 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     ) map withVersionCheck(grater[DataLineage].asObject(_))
   }
 
+  private def getFieldsToFetch[T : ClassTag]() = {
+    val caseClassFields = classTag[T].runtimeClass.getDeclaredFields map (_.getName)
+    val auxiliaryFields = Array("_ver")
+    val fieldsToFetch = caseClassFields ++ auxiliaryFields map (_ -> 1)
+    fieldsToFetch
+  }
+
   /**
     * The method loads a composite operation for an output datasetId.
     * @param datasetId A dataset ID for which the operation is looked for
-    * @return A composite operation satisfying the criteria
+    * @return A composite operation with dependencies satisfying the criteria
     */
-  override def loadCompositeByOutput(datasetId : UUID): Future[Option[Composite]] = ???
+  override def loadCompositeByOutput(datasetId : UUID): Future[Option[CompositeWithDependencies]] = ???/*Future{
+    val fieldsToFetch = getFieldsToFetch[Composite]
+    connection.dataLineageCollection.aggregate(
+      asList(
+        DBObject("$match" → DBObject("datasets.0.id" → datasetId)),
+        DBObject("$m")
+      )
+    )
+    .results().asScala.headOption
+    .map(withVersionCheck(grater[Composite].asObject(_)))
+  }*/
 
   /**
     * The method loads composite operations for an input datasetId.
     * @param datasetId A dataset ID for which the operation is looked for
-    * @return Composite operations satisfying the criteria
+    * @return Composite operations with dependencies satisfying the criteria
     */
-  override def loadCompositesByInput(datasetId : UUID): Future[Iterator[Composite]] = ???
+  override def loadCompositesByInput(datasetId : UUID): Future[Iterator[CompositeWithDependencies]] = ???
 
   /**
     * The method gets all data lineages stored in persistence layer.
@@ -84,9 +102,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @return Descriptors of all data lineages
     */
   override def list(): Future[Iterator[PersistedDatasetDescriptor]] = Future {
-    val caseClassFields = classOf[PersistedDatasetDescriptor].getDeclaredFields map (_.getName)
-    val auxiliaryFields = Array("_ver")
-    val fieldsToFetch = caseClassFields ++ auxiliaryFields map (_ -> 1)
+    val fieldsToFetch = getFieldsToFetch[PersistedDatasetDescriptor]
 
     connection.dataLineageCollection
       .aggregate(asList(
