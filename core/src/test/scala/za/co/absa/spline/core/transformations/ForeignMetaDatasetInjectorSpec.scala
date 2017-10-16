@@ -51,7 +51,7 @@ class ForeignMetaDatasetInjectorSpec extends FlatSpec with Matchers with Mockito
       val operations = Seq(
         Write(OperationProps(randomUUID, "save", Seq.empty, datasets(0).id), "parquet", path)
       )
-      DataLineage(randomUUID, "appId1", "appName1", 1L, operations, datasets, attributes)
+      DataLineage("appId1", "appName1", 1L, operations, datasets, attributes)
     }
 
     def getInputLineage = {
@@ -67,7 +67,7 @@ class ForeignMetaDatasetInjectorSpec extends FlatSpec with Matchers with Mockito
       val operations = Seq(
         Read(OperationProps(randomUUID, "read", Seq.empty, datasets.head.id), "parquet", Seq(MetaDataSource(path, None)))
       )
-      DataLineage(randomUUID, "appId2", "appName2", 2L, operations, datasets, attributes)
+      DataLineage("appId2", "appName2", 2L, operations, datasets, attributes)
     }
 
     val referencedLineage = getReferencedLineage

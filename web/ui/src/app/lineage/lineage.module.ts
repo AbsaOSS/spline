@@ -30,7 +30,7 @@ import "bootstrap/dist/css/bootstrap-theme.min.css";
 import "font-awesome/css/font-awesome.min.css";
 
 import {GraphComponent} from "./graph/graph.component";
-import {LineageByIdResolver} from "./lineage.resolver";
+import {LineageByDatasetIdResolver} from "./lineage.resolver";
 import {DetailsModule} from "./details/details.module";
 import {MiscModule} from "../misc/misc.module";
 
@@ -50,7 +50,7 @@ import {MiscModule} from "../misc/misc.module";
     ],
     providers: [
         LineageService,
-        LineageByIdResolver
+        LineageByDatasetIdResolver
     ],
     exports: [
         LineageComponent,

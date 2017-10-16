@@ -23,7 +23,7 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons
 import za.co.absa.spline.common.FutureImplicits._
 import za.co.absa.spline.model.op._
-import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
+import za.co.absa.spline.model.{DataLineage, DataLineageId, PersistedDatasetDescriptor}
 import za.co.absa.spline.persistence.api.DataLineageReader
 
 import scala.collection.JavaConverters._
@@ -41,11 +41,12 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
   /**
     * The method loads a particular data lineage from the persistence layer.
     *
-    * @param id An unique identifier of a data lineage
+    * @param dsId An unique identifier of a data lineage
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
-  override def load(id: UUID): Future[Option[DataLineage]] = Future {
-    Option(connection.dataLineageCollection findOne id) map withVersionCheck(grater[DataLineage].asObject(_))
+  override def loadByDatasetId(dsId: UUID): Future[Option[DataLineage]] = Future {
+    val lineageId = DataLineageId.fromDatasetId(dsId)
+    Option(connection.dataLineageCollection findOne lineageId) map withVersionCheck(grater[DataLineage].asObject(_))
   }
 
   /**
@@ -83,14 +84,13 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
 
     val composite = Composite(
       mainProps = OperationProps(
-        dataLineage.id,
+        outputDatasetId,
         dataLineage.appName,
         inputDatasetIds,
         outputDatasetId
       ),
       sources = inputSources,
       destination = outputSource,
-      dataLineage.id,
       dataLineage.timestamp,
       dataLineage.appId,
       dataLineage.appName
@@ -152,7 +152,6 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
         "___rootOP" → DBObject("$arrayElemAt" → Array("$operations", 0))
       )),
       DBObject("$addFields" → DBObject(
-        "lineageId" → "$_id",
         "datasetId" → "$___rootDS._id",
         "path" → "$___rootOP.path"
       )),

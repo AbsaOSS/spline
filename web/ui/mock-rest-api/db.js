@@ -16,9 +16,14 @@
 
 module.exports = function () {
     return {
-        "lineage": [
+
+        // --------------------------------------------
+        //   CUSTOM ROUTE RESOURCES (See routes.json)
+        // --------------------------------------------
+
+        "_lineages": [
             {
-                "id": "a142c5d6-eec5-3e78-c65c-9ea148a859a3",
+                "id": "ln_ds-uuid-1",
                 "appName": "Sample - FrontCache Conformance",
                 "attributes": [{
                     "id": "attr-uuid-0",
@@ -6552,7 +6557,7 @@ module.exports = function () {
                 }]
             },
             {
-                "id": "a142c5d6-eec5-3e78-c65c-9ea148a859a4",
+                "id": "ln_ds-uuid-28",
                 appName: "Foo Bar Application",
                 attributes: [{
                     "id": "attr-uuid-67",
@@ -6617,10 +6622,6 @@ module.exports = function () {
             }
         ],
 
-        // --------------------------------------------
-        //   CUSTOM ROUTE RESOURCES (See routes.json)
-        // --------------------------------------------
-
         "_dataset-lineage-overview": [{
             id: 0,
             operations: [],
@@ -6633,15 +6634,13 @@ module.exports = function () {
             datasetId: "ds-uuid-1",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Foo Bar Application",
-            lineageId: "a142c5d6-eec5-3e78-c65c-9ea148a859a3",
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }, {
-            id: "ds-uuid-987",
-            datasetId: "ds-uuid-987",
+            id: "ds-uuid-28",
+            datasetId: "ds-uuid-28",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
-            lineageId: "a142c5d6-eec5-3e78-c65c-9ea148a859a4",
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }, {
@@ -6649,49 +6648,42 @@ module.exports = function () {
             datasetId: "ds-uuid-988",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
-            lineageId: "a142c5d6-eec5-3e78-c65c-9ea148a859a5",
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }, {
             datasetId: "ds-uuid-989",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
-            lineageId: "a142c5d6-eec5-3e78-c65c-9ea148a859a6",
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }, {
             datasetId: "ds-uuid-990",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
-            lineageId: "a142c5d6-eec5-3e78-c65c-9ea148a859a7",
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }, {
             datasetId: "ds-uuid-991",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
-            lineageId: "a142c5d6-eec5-3e78-c65c-9ea148a859a8",
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }, {
             datasetId: "ds-uuid-992",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
-            lineageId: "a142c5d6-eec5-3e78-c65c-9ea148a859a9",
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }, {
             datasetId: "ds-uuid-993",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
-            lineageId: "a142c5d6-eec5-3e78-c65c-9ea148a859a0",
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }, {
             datasetId: "ds-uuid-994",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
-            lineageId: "a142c5d6-eec5-3e78-c65c-9ea148a859a1",
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }]

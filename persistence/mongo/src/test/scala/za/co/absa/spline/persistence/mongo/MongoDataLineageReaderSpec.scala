@@ -19,13 +19,13 @@ package za.co.absa.spline.persistence.mongo
 import java.net.URI
 import java.util.UUID.randomUUID
 
-import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model._
+import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op._
 
 import scala.concurrent.Future
 
-class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase{
+class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
   "List method" should "load descriptions from a database." in {
     val testLineages = Seq(
       createDataLineage("appID1", "appName1"),
@@ -36,7 +36,6 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase{
       datasetId = l.rootDataset.id,
       appId = l.appId,
       appName = l.appName,
-      lineageId = l.id,
       path = new URI(l.rootOperation.asInstanceOf[Write].path),
       timestamp = l.timestamp))
 
@@ -83,20 +82,18 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase{
     )
 
     val datasetId = testLineages(2).rootDataset.id
-    val lineageId = testLineages(2).id
 
     val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.loadCompositeByOutput(datasetId))
 
-    result.map{
-      case Some(CompositeWithDependencies(composite, _, _)) => {
-        composite.lineageId shouldEqual lineageId
-        composite.mainProps.id shouldEqual lineageId
-      }
+    result.map {
+      case Some(CompositeWithDependencies(composite, _, _)) =>
+        composite.mainProps.id shouldEqual datasetId
+        composite.mainProps.output shouldEqual datasetId
       case None => fail("There should be an record.")
     }
   }
 
-  protected def createDataLineageWithSources(appId : String, appName: String, sources: Seq[MetaDataSource]) : DataLineage = {
+  protected def createDataLineageWithSources(appId: String, appName: String, sources: Seq[MetaDataSource]): DataLineage = {
     val timestamp: Long = 123L
     val outputPath: String = "hdfs://foo/bar/path"
 
@@ -114,7 +111,6 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase{
     val md4 = MetaDataset(randomUUID, bSchema)
 
     DataLineage(
-      randomUUID,
       appId,
       appName,
       timestamp,
@@ -144,8 +140,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase{
       createDataLineageWithSources("appID4", "appName4", sources.tail)
     )
 
-    val datasetId = sources(0).datasetId.get
-    val lineageId = testLineages(1).id
+    val datasetId = sources.head.datasetId.get
 
     val result = Future.sequence(testLineages.map(i => mongoWriter.store(i)))
       .flatMap(_ => mongoReader.loadCompositesByInput(datasetId))
@@ -154,10 +149,9 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase{
     result.map(res => {
       res.length shouldEqual 1
       res.head match {
-        case (CompositeWithDependencies(composite, _, _)) => {
-          composite.lineageId shouldEqual lineageId
-          composite.mainProps.id shouldEqual lineageId
-        }
+        case (CompositeWithDependencies(composite, _, _)) =>
+          composite.mainProps.id shouldEqual datasetId
+          composite.mainProps.output shouldEqual datasetId
       }
     })
   }

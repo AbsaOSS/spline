@@ -44,7 +44,6 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFlatSpec with Ma
     val md4 = MetaDataset(randomUUID, bSchema)
 
     DataLineage(
-      randomUUID,
       appId,
       appName,
       timestamp,

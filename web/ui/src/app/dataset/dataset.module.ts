@@ -22,7 +22,6 @@ import "@angular/material/prebuilt-themes/indigo-pink.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/css/bootstrap-theme.min.css";
 import "font-awesome/css/font-awesome.min.css";
-import {PartialDatasetLineageRedirectComponent} from "./dataset.component";
 import {PersistentDatasetResolver} from "./dataset.resolver";
 import {DatasetService} from "./dataset.service";
 import {DatasetLineageOverviewResolver} from "./lineage-overview/lineage-overview.resolver";
@@ -34,16 +33,12 @@ import {DatasetLineageOverviewComponent} from "./lineage-overview/lineage-overvi
         HttpModule
     ],
     declarations: [
-        PartialDatasetLineageRedirectComponent,
         DatasetLineageOverviewComponent
     ],
     providers: [
         DatasetService,
         PersistentDatasetResolver,
         DatasetLineageOverviewResolver
-    ],
-    exports: [
-        PartialDatasetLineageRedirectComponent
     ]
 })
 export class DatasetModule {

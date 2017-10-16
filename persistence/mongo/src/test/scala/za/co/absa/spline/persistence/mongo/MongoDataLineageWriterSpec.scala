@@ -20,7 +20,7 @@ class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase{
   "Store method" should "store data lineage to a database." in {
     val lineage = createDataLineage("appID", "appName")
 
-    val storedLineage = mongoWriter.store(lineage).flatMap(_ => mongoReader.load(lineage.id))
+    val storedLineage = mongoWriter.store(lineage).flatMap(_ => mongoReader.loadByDatasetId(lineage.rootDataset.id))
 
     storedLineage map (i => i shouldEqual Option(lineage))
   }

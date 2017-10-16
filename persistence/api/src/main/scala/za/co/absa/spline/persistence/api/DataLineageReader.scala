@@ -31,10 +31,10 @@ trait DataLineageReader {
   /**
     * The method loads a particular data lineage from the persistence layer.
     *
-    * @param id An unique identifier of a data lineage
+    * @param dsId A unique identifier of a data lineage
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
-  def load(id: UUID): Future[Option[DataLineage]]
+  def loadByDatasetId(dsId: UUID): Future[Option[DataLineage]]
 
   /**
     * The method loads the latest data lineage from the persistence for a given path.

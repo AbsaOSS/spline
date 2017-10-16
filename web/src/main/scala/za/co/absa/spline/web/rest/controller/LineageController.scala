@@ -49,7 +49,7 @@ class LineageController @Autowired()
   @ResponseBody
   def datasetDescriptor(@PathVariable("id") id: UUID): String = Await.result(reader.getDatasetDescriptor(id), 10 seconds).toJson
 
-  @RequestMapping(Array("/lineage/{id}"))
+  @RequestMapping(Array("/dataset/{id}/lineage/partial"))
   @ResponseBody
-  def lineage(@PathVariable("id") id: UUID): String = Await.result(reader load id, 10 seconds).get.toJson
+  def datasetLineage(@PathVariable("id") id: UUID): String = Await.result(reader loadByDatasetId id, 10 seconds).get.toJson
 }

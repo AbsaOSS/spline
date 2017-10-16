@@ -34,10 +34,10 @@ class ParallelCompositeDataLineageReader(readers: Set[DataLineageReader]) extend
   /**
     * The method loads a particular data lineage from the persistence layer.
     *
-    * @param id An unique identifier of a data lineage
+    * @param dsId An unique identifier of a data lineage
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
-  override def load(id: UUID): Future[Option[DataLineage]] = Future.sequence(readers.map(_.load(id))).map(_.flatten.headOption)
+  override def loadByDatasetId(dsId: UUID): Future[Option[DataLineage]] = Future.sequence(readers.map(_.loadByDatasetId(dsId))).map(_.flatten.headOption)
 
   /**
     * The method loads the latest data lineage from the persistence for a given path.

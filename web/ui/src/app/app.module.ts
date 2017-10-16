@@ -23,10 +23,9 @@ import {DashboardModule} from "./dashboard/dashboard.module";
 import {DashboardComponent} from "./dashboard/dashboard.component";
 import {LineageComponent} from "./lineage/lineage.component";
 import {LineageModule} from "./lineage/lineage.module";
-import {LineageByIdResolver} from "./lineage/lineage.resolver";
+import {LineageByDatasetIdResolver} from "./lineage/lineage.resolver";
 import {WelcomeComponent} from "./dashboard/welcome/welcome.component";
 import {PersistentDatasetResolver} from "./dataset/dataset.resolver";
-import {PartialDatasetLineageRedirectComponent} from "./dataset/dataset.component";
 import {DatasetModule} from "./dataset/dataset.module";
 import {DatasetLineageOverviewResolver} from "./dataset/lineage-overview/lineage-overview.resolver";
 import {DatasetLineageOverviewComponent} from "./dataset/lineage-overview/lineage-overview.component";
@@ -44,7 +43,7 @@ const lineageRoute = {
 
 const lineageByIdRoute = {
     path: 'lineage/:id',
-    resolve: {lineage: LineageByIdResolver},
+    resolve: {lineage: LineageByDatasetIdResolver},
     children: [lineageRoute]
 }
 
@@ -62,7 +61,8 @@ const lineageByDatasetRoute = {
                 },
                 {
                     path: "partial",
-                    component: PartialDatasetLineageRedirectComponent
+                    resolve: {lineage: LineageByDatasetIdResolver},
+                    children: [lineageRoute]
                 }/*,
                  {
                  path: "full",
