@@ -65,7 +65,7 @@ object Operation {
       case op@Join(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Projection(mp, _) => op.copy(mainProps = fn(mp))
       case op@Read(mp, _, _) => op.copy(mainProps = fn(mp))
-      case op@HigherOrderLineage(mp, _, _, _, _, _, _) => op.copy(mainProps = fn(mp))
+      case op@Composite(mp, _, _, _, _, _, _) => op.copy(mainProps = fn(mp))
     }).asInstanceOf[T]
   }
 
@@ -193,7 +193,7 @@ case class TypedMetaDataSource(`type`: String, path: String, datasetId: Option[U
   * @param appId       related Spark application ID
   * @param appName     related Spark application name
   */
-case class HigherOrderLineage(
+case class Composite(
                                mainProps: OperationProps,
                                sources: Seq[TypedMetaDataSource],
                                destination: TypedMetaDataSource,

@@ -17,7 +17,10 @@
 package za.co.absa.spline.persistence.api
 
 import java.util.UUID
+
+import za.co.absa.spline.model.op.Composite
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
+
 import scala.concurrent.Future
 
 /**
@@ -39,6 +42,20 @@ class NopDataLineageReader extends DataLineageReader{
     * @return The latest data lineage
     */
   override def loadLatest(path: String): Future[Option[DataLineage]] = Future.successful(None)
+
+  /**
+    * The method loads a composite operation for an output datasetId.
+    * @param datasetId A dataset ID for which the operation is looked for
+    * @return A composite operation satisfying the criteria
+    */
+  override def loadCompositeByOutput(datasetId : UUID): Future[Option[Composite]] = Future.successful(None)
+
+  /**
+    * The method loads composite operations for an input datasetId.
+    * @param datasetId A dataset ID for which the operation is looked for
+    * @return Composite operations satisfying the criteria
+    */
+  override def loadCompositesByInput(datasetId : UUID): Future[Iterator[Composite]] = Future.successful(Iterator.empty)
 
   /**
     * The method gets all data lineages stored in persistence layer.
