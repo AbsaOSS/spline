@@ -75,9 +75,10 @@ class ForeignMetaDatasetInjectorSpec extends FlatSpec with Matchers with Mockito
     val inputLineage = getInputLineage
     val readOp = inputLineage.rootOperation.asInstanceOf[Read]
     val referencedDataset = referencedLineage.rootDataset.id
+    val mainProps = readOp.mainProps.copy(inputs = Seq(referencedDataset))
     val expectedResult = inputLineage.copy(
       operations = Seq(
-        readOp.updated(m => m.copy(inputs = Seq(referencedDataset))).copy(sources = Seq(MetaDataSource(path, Some(referencedDataset))))
+        readOp.copy(sources = Seq(MetaDataSource(path, Some(referencedDataset))), mainProps = mainProps)
       ),
       datasets = inputLineage.datasets :+ referencedLineage.rootDataset,
       attributes = inputLineage.attributes ++ Seq(referencedLineage.attributes(2), referencedLineage.attributes(3))

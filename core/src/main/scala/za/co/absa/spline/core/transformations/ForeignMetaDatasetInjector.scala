@@ -63,7 +63,8 @@ class ForeignMetaDatasetInjector(reader: DataLineageReader) extends Transformati
         read <- castIfRead(op)
       } yield {
         val (newSources, sourceLineages) = read.sources.map(resolveMetaDataSources).unzip
-        val newRead = read.updated(props => props.copy(inputs = newSources.flatten(s => s.datasetId))).copy(sources = newSources)
+        val newProps = read.mainProps.copy(inputs = newSources.flatten(s => s.datasetId))
+        val newRead = read.copy(sources = newSources, mainProps = newProps)
         newRead -> sourceLineages.flatten
       }
 
