@@ -21,7 +21,7 @@ import java.util.UUID
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
 import za.co.absa.spline.persistence.api.DataLineageReader
 import za.co.absa.spline.common.FutureImplicits._
-import za.co.absa.spline.model.op.Composite
+import za.co.absa.spline.model.op.CompositeWithDependencies
 
 import scala.concurrent.Future
 
@@ -49,16 +49,16 @@ class ParallelCompositeDataLineageReader(readers : Set[DataLineageReader]) exten
   /**
     * The method loads a composite operation for an output datasetId.
     * @param datasetId A dataset ID for which the operation is looked for
-    * @return A composite operation satisfying the criteria
+    * @return A composite operation with dependencies satisfying the criteria
     */
-  override def loadCompositeByOutput(datasetId : UUID): Future[Option[Composite]] = Future.sequence(readers.map(_.loadCompositeByOutput(datasetId))).map(_.flatten.headOption)
+  override def loadCompositeByOutput(datasetId : UUID): Future[Option[CompositeWithDependencies]] = Future.sequence(readers.map(_.loadCompositeByOutput(datasetId))).map(_.flatten.headOption)
 
   /**
     * The method loads composite operations for an input datasetId.
     * @param datasetId A dataset ID for which the operation is looked for
-    * @return Composite operations satisfying the criteria
+    * @return Composite operations with dependencies satisfying the criteria
     */
-  override def loadCompositesByInput(datasetId : UUID): Future[Iterator[Composite]] = Future.sequence(readers.map(_.loadCompositesByInput(datasetId))).map(_.flatten.toIterator)
+  override def loadCompositesByInput(datasetId : UUID): Future[Iterator[CompositeWithDependencies]] = Future.sequence(readers.map(_.loadCompositesByInput(datasetId))).map(_.flatten.toIterator)
 
   /**
     * The method gets all data lineages stored in persistence layer.

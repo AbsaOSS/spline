@@ -19,6 +19,7 @@ package za.co.absa.spline.model.op
 import java.util.UUID
 
 import salat.annotations.Salat
+import za.co.absa.spline.model.{Attribute, MetaDataset}
 import za.co.absa.spline.model.expr.Expression
 
 /**
@@ -194,14 +195,14 @@ case class TypedMetaDataSource(`type`: String, path: String, datasetId: Option[U
   * @param appName     related Spark application name
   */
 case class Composite(
-                               mainProps: OperationProps,
-                               sources: Seq[TypedMetaDataSource],
-                               destination: TypedMetaDataSource,
-                               lineageId: UUID,
-                               timestamp: Long,
-                               appId: String,
-                               appName: String
-                             ) extends Operation {
+                      mainProps: OperationProps,
+                      sources: Seq[TypedMetaDataSource],
+                      destination: TypedMetaDataSource,
+                      lineageId: UUID,
+                      timestamp: Long,
+                      appId: String,
+                      appName: String
+                    ) extends Operation {
   private val knownSourceLineagesCount = sources.count(_.datasetId.isDefined)
   private val inputDatasetsCount = mainProps.inputs.size
 
@@ -211,3 +212,11 @@ case class Composite(
       s"Hence the size 'inputs' collection should be the same as the count of known datasets for 'sources' field. " +
       s"But was $inputDatasetsCount and $knownSourceLineagesCount respectively")
 }
+
+/**
+  * The case class serves for associating a composite operation with its dependencies
+  * @param composite A composite operation
+  * @param datasets Referenced meta data sets
+  * @param attributes Referenced attributes
+  */
+case class CompositeWithDependencies(composite: Composite, datasets: Seq[MetaDataset], attributes: Seq[Attribute])

@@ -16,10 +16,9 @@
 
 package za.co.absa.spline.persistence.api
 
-import java.net.URI
 import java.util.UUID
 
-import za.co.absa.spline.model.op.Composite
+import za.co.absa.spline.model.op.CompositeWithDependencies
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
 
 import scala.concurrent.Future
@@ -47,16 +46,16 @@ trait DataLineageReader {
   /**
     * The method loads a composite operation for an output datasetId.
     * @param datasetId A dataset ID for which the operation is looked for
-    * @return A composite operation satisfying the criteria
+    * @return A composite operation with dependencies satisfying the criteria
     */
-  def loadCompositeByOutput(datasetId : UUID): Future[Option[Composite]]
+  def loadCompositeByOutput(datasetId : UUID): Future[Option[CompositeWithDependencies]]
 
   /**
     * The method loads composite operations for an input datasetId.
     * @param datasetId A dataset ID for which the operation is looked for
-    * @return Composite operations satisfying the criteria
+    * @return Composite operations with dependencies satisfying the criteria
     */
-  def loadCompositesByInput(datasetId : UUID): Future[Iterator[Composite]]
+  def loadCompositesByInput(datasetId : UUID): Future[Iterator[CompositeWithDependencies]]
 
   /**
     * The method gets all data lineages stored in persistence layer.
