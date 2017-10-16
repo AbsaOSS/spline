@@ -33,6 +33,15 @@ class NopDataLineageReader extends DataLineageReader{
   override def load(id: UUID): Future[Option[DataLineage]] = Future.successful(None)
 
   /**
+    * The method scans the persistence layer and tries to find a dataset ID for a given path and application ID.
+    *
+    * @param path A path for which a dataset ID is looked for
+    * @param applicationId An application for which a dataset ID is looked for
+    * @return An identifier of a meta data set
+    */
+  override def searchDataset(path: String, applicationId: String): Future[Option[UUID]] = Future.successful(None)
+
+  /**
     * The method loads the latest data lineage from the persistence for a given path.
     *
     * @param path A path for which a lineage graph is looked for
@@ -46,4 +55,5 @@ class NopDataLineageReader extends DataLineageReader{
     * @return Descriptors of all data lineages
     */
   override def list(): Future[Iterator[PersistedDatasetDescriptor]] = Future.successful(Iterator.empty)
+
 }
