@@ -38,6 +38,7 @@ trait DataLineageReader {
 
   /**
     * The method loads the latest data lineage from the persistence for a given path.
+    *
     * @param path A path for which a lineage graph is looked for
     * @return The latest data lineage
     */
@@ -63,4 +64,12 @@ trait DataLineageReader {
     * @return Descriptors of all data lineages
     */
   def list(): Future[Iterator[PersistedDatasetDescriptor]]
+
+  /**
+    * The method returns a dataset descriptor by its ID.
+    *
+    * @param id An unique identifier of a dataset
+    * @return Descriptors of all data lineages
+    */
+  def getDatasetDescriptor(id: UUID): Future[PersistedDatasetDescriptor]
 }

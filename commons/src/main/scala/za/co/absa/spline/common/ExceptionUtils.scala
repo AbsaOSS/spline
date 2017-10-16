@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-import {Injectable} from "@angular/core";
-import {ActivatedRouteSnapshot, Resolve} from "@angular/router";
-import {IDataLineage} from "../../generated-ts/lineage-model";
-import {LineageService} from "./lineage.service";
+package za.co.absa.spline.common
 
-@Injectable()
-export class LineageByIdResolver implements Resolve<IDataLineage> {
+object ExceptionUtils {
 
-    constructor(private lineageService: LineageService) {
-    }
-
-    resolve(route: ActivatedRouteSnapshot): Promise<IDataLineage> {
-        let lineageId = route.paramMap.get('id')
-        return this.lineageService.getLineage(lineageId)
-    }
+  def `not applicable`: Nothing =
+    throw new AssertionError("This statement should never be executed. If it happened then it's a clear indication of a programming mistake.")
 
 }

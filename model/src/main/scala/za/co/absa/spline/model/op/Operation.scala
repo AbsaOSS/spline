@@ -208,7 +208,7 @@ case class Composite(
 
   require(
     inputDatasetsCount == knownSourceLineagesCount,
-    "Inputs for 'HigherOrderLineage' operation are datasets associated with the data sources that we know lineage of. " +
+    "Inputs for 'Composite' operation are datasets associated with the data sources that we know lineage of. " +
       s"Hence the size 'inputs' collection should be the same as the count of known datasets for 'sources' field. " +
       s"But was $inputDatasetsCount and $knownSourceLineagesCount respectively")
 }

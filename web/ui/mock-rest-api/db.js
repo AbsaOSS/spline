@@ -6205,7 +6205,7 @@ module.exports = function () {
                         "output": "ds-uuid-19"
                     },
                     "sourceType": "Parquet",
-                    "sources": [{"path":"file:/C:/git/lineage/sample/data/Conformance/SourceData"}]
+                    "sources": [{"path": "file:/C:/git/lineage/sample/data/Conformance/SourceData"}]
                 }, {
                     "_typeHint": "za.co.absa.spline.core.model.op.Alias",
                     "mainProps": {
@@ -6319,7 +6319,7 @@ module.exports = function () {
                         "output": "ds-uuid-24"
                     },
                     "sourceType": "CSV",
-                    "sources": [{"path":"file:/C:/git/lineage/sample/data/Conformance/ProductMainSubTypeMapping.txt"}]
+                    "sources": [{"path": "file:/C:/git/lineage/sample/data/Conformance/ProductMainSubTypeMapping.txt"}]
                 }, {
                     "_typeHint": "za.co.absa.spline.core.model.op.Alias",
                     "mainProps": {
@@ -6458,7 +6458,7 @@ module.exports = function () {
                         "output": "ds-uuid-28"
                     },
                     "sourceType": "CSV",
-                    "sources": [{"path":"file:/C:/git/lineage/sample/data/Conformance/EnterpriseProductMapping.txt"}]
+                    "sources": [{"path": "file:/C:/git/lineage/sample/data/Conformance/EnterpriseProductMapping.txt"}]
                 }, {
                     "_typeHint": "za.co.absa.spline.core.model.op.Alias",
                     "mainProps": {
@@ -6612,7 +6612,7 @@ module.exports = function () {
                         "output": "ds-uuid-28"
                     },
                     "sourceType": "CSV",
-                    "sources": [{"path":"file:/C:/git/lineage/sample/data/Conformance/EnterpriseProductMapping.txt"}]
+                    "sources": [{"path": "file:/C:/git/lineage/sample/data/Conformance/EnterpriseProductMapping.txt"}]
                 }]
             }
         ],
@@ -6621,7 +6621,15 @@ module.exports = function () {
         //   CUSTOM ROUTE RESOURCES (See routes.json)
         // --------------------------------------------
 
+        "_dataset-lineage-overview": [{
+            id: 0,
+            operations: [],
+            datasets: [],
+            attributes: []
+        }],
+
         "_persisted-dataset-descriptors": [{
+            id: "ds-uuid-1",
             datasetId: "ds-uuid-1",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Foo Bar Application",
@@ -6629,6 +6637,7 @@ module.exports = function () {
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }, {
+            id: "ds-uuid-987",
             datasetId: "ds-uuid-987",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
@@ -6636,6 +6645,7 @@ module.exports = function () {
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }, {
+            id: "ds-uuid-988",
             datasetId: "ds-uuid-988",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",

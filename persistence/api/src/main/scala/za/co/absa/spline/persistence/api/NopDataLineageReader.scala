@@ -18,6 +18,8 @@ package za.co.absa.spline.persistence.api
 
 import java.util.UUID
 
+import za.co.absa.spline.common.ExceptionUtils.`not applicable`
+
 import za.co.absa.spline.model.op.CompositeWithDependencies
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
 
@@ -26,7 +28,7 @@ import scala.concurrent.Future
 /**
   * The class represents a dummy reader that does not read any data from any persistence layer.
   */
-class NopDataLineageReader extends DataLineageReader{
+class NopDataLineageReader extends DataLineageReader {
   /**
     * The method loads a particular data lineage from the persistence layer.
     *
@@ -63,4 +65,12 @@ class NopDataLineageReader extends DataLineageReader{
     * @return Descriptors of all data lineages
     */
   override def list(): Future[Iterator[PersistedDatasetDescriptor]] = Future.successful(Iterator.empty)
+
+  /**
+    * The method returns a dataset descriptor by its ID.
+    *
+    * @param id An unique identifier of a dataset
+    * @return Descriptors of all data lineages
+    */
+  override def getDatasetDescriptor(id: UUID): Future[PersistedDatasetDescriptor] = `not applicable`
 }

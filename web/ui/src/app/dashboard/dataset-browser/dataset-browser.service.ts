@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-import {Component} from "@angular/core";
+import {Injectable} from "@angular/core";
 import {IPersistedDatasetDescriptor} from "../../../generated-ts/lineage-model";
 import {Http} from "@angular/http";
 import "rxjs/add/operator/map";
 import "rxjs/add/operator/toPromise";
 
-@Component({
-    selector: "dataset-browser",
-    templateUrl: "dataset-browser.component.html",
-    styleUrls: ["dataset-browser.component.less"]
-})
+@Injectable()
 export class DatasetBrowserService {
     private datasetDescriptors: Promise<IPersistedDatasetDescriptor[]>
 

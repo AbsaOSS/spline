@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-import {Injectable} from "@angular/core";
-import {ActivatedRouteSnapshot, Resolve} from "@angular/router";
-import {IDataLineage} from "../../generated-ts/lineage-model";
-import {LineageService} from "./lineage.service";
 
-@Injectable()
-export class LineageByIdResolver implements Resolve<IDataLineage> {
+import {Component} from "@angular/core";
+import {ActivatedRoute, Router} from "@angular/router";
+import {IPersistedDatasetDescriptor} from "../../generated-ts/lineage-model";
 
-    constructor(private lineageService: LineageService) {
+@Component({template: ''})
+export class PartialDatasetLineageRedirectComponent {
+    constructor(router: Router, route: ActivatedRoute) {
+        route.data.subscribe((data: { dataset: IPersistedDatasetDescriptor }) =>
+            router.navigate(
+                [`lineage/${data.dataset.lineageId}`],
+                {relativeTo: route.parent.parent.parent}))
     }
-
-    resolve(route: ActivatedRouteSnapshot): Promise<IDataLineage> {
-        let lineageId = route.paramMap.get('id')
-        return this.lineageService.getLineage(lineageId)
-    }
-
 }

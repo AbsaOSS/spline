@@ -16,11 +16,11 @@
 
 package za.co.absa.spline.persistence.mongo
 
-import java.util.Arrays.asList
 import java.util.UUID
 
 import _root_.salat._
 import com.mongodb.casbah.Imports._
+import com.mongodb.casbah.commons
 import za.co.absa.spline.common.FutureImplicits._
 import za.co.absa.spline.model.op._
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
@@ -28,7 +28,6 @@ import za.co.absa.spline.persistence.api.DataLineageReader
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
-import scala.reflect._
 
 /**
   * The class represents Mongo persistence writer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
@@ -63,13 +62,6 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
         DBObject("timestamp" → -1)
       )
     ) map withVersionCheck(grater[DataLineage].asObject(_))
-  }
-
-  private def getFieldsToFetch[T : ClassTag]() = {
-    val caseClassFields = classTag[T].runtimeClass.getDeclaredFields map (_.getName)
-    val auxiliaryFields = Array("_ver")
-    val fieldsToFetch = caseClassFields ++ auxiliaryFields map (_ -> 1)
-    fieldsToFetch
   }
 
   private def lineageToCompositeWithDependencies(dataLineage: DataLineage) : CompositeWithDependencies = {
@@ -150,23 +142,37 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @return Descriptors of all data lineages
     */
   override def list(): Future[Iterator[PersistedDatasetDescriptor]] = Future {
-    val fieldsToFetch = getFieldsToFetch[PersistedDatasetDescriptor]
+    selectPersistedDatasets().map(withVersionCheck(grater[PersistedDatasetDescriptor].asObject(_)))
+  }
 
+  private def selectPersistedDatasets(extraPipeline: DBObject*): Iterator[DBObject] = {
+    val basicPipeline: Seq[commons.Imports.DBObject] = Seq(
+      DBObject("$addFields" → DBObject(
+        "___rootDS" → DBObject("$arrayElemAt" → Array("$datasets", 0)),
+        "___rootOP" → DBObject("$arrayElemAt" → Array("$operations", 0))
+      )),
+      DBObject("$addFields" → DBObject(
+        "lineageId" → "$_id",
+        "datasetId" → "$___rootDS._id",
+        "path" → "$___rootOP.path"
+      )),
+      DBObject("$project" → DBObject(persistedDatasetDescriptorFields: _*))
+    )
     connection.dataLineageCollection
-      .aggregate(asList(
-        DBObject("$addFields" → DBObject(
-          "___rootDS" → DBObject("$arrayElemAt" → Array("$datasets", 0)),
-          "___rootOP" → DBObject("$arrayElemAt" → Array("$operations", 0))
-        )),
-        DBObject("$addFields" → DBObject(
-          "lineageId" → "$_id",
-          "datasetId" → "$___rootDS._id",
-          "path" → "$___rootOP.path"
-        )),
-        DBObject("$project" → DBObject(fieldsToFetch: _*))
-      ))
+      .aggregate((basicPipeline ++ extraPipeline).asJava)
       .results.iterator.asScala
-      .map(withVersionCheck(grater[PersistedDatasetDescriptor].asObject(_)))
+  }
+
+  /**
+    * The method returns a dataset descriptor by its ID.
+    *
+    * @param id An unique identifier of a dataset
+    * @return Descriptors of all data lineages
+    */
+  override def getDatasetDescriptor(id: UUID): Future[PersistedDatasetDescriptor] = Future {
+    selectPersistedDatasets(DBObject("$match" → DBObject("datasetId" → id))).
+      map(withVersionCheck(grater[PersistedDatasetDescriptor].asObject(_))).
+      next
   }
 
   private def withVersionCheck[T](f: DBObject => T): DBObject => T =
@@ -174,4 +180,10 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
       case connection.LATEST_SERIAL_VERSION => f(dbo)
       case unknownVersion => sys.error(s"Unsupported serialized lineage version: $unknownVersion")
     }
+
+  private val persistedDatasetDescriptorFields = {
+    val caseClassFields = classOf[PersistedDatasetDescriptor].getDeclaredFields map (_.getName)
+    val auxiliaryFields = Array("_ver")
+    caseClassFields ++ auxiliaryFields map (_ -> 1)
+  }
 }

@@ -1,3 +1,5 @@
 {
-  "/dataset/descriptors": "/_persisted-dataset-descriptors"
+  "/dataset/descriptors": "/_persisted-dataset-descriptors",
+  "/dataset/:dsId/descriptor": "/_persisted-dataset-descriptors/:dsId",
+  "/dataset/:dsId/lineage/overview": "/_dataset-lineage-overview/0"
 }

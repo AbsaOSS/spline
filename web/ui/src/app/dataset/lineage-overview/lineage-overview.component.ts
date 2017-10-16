@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-import {Injectable} from "@angular/core";
-import {ActivatedRouteSnapshot, Resolve} from "@angular/router";
-import {IDataLineage} from "../../generated-ts/lineage-model";
-import {LineageService} from "./lineage.service";
+import {Component} from "@angular/core";
 
-@Injectable()
-export class LineageByIdResolver implements Resolve<IDataLineage> {
+@Component({
+    templateUrl: "lineage-overview.component.html"
+})
 
-    constructor(private lineageService: LineageService) {
-    }
-
-    resolve(route: ActivatedRouteSnapshot): Promise<IDataLineage> {
-        let lineageId = route.paramMap.get('id')
-        return this.lineageService.getLineage(lineageId)
-    }
+export class DatasetLineageOverviewComponent {
 
 }
+
