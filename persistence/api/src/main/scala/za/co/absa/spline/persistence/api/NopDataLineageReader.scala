@@ -55,7 +55,7 @@ class NopDataLineageReader extends DataLineageReader{
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  def loadCompositesByInput(datasetId : UUID): Future[Iterator[CompositeWithDependencies]] = Future.successful(Iterator.empty)
+  override def loadCompositesByInput(datasetId : UUID): Future[Iterator[CompositeWithDependencies]] = Future.successful(Iterator.empty)
 
   /**
     * The method gets all data lineages stored in persistence layer.

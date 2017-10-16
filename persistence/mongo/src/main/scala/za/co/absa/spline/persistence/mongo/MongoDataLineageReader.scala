@@ -22,7 +22,7 @@ import java.util.UUID
 import _root_.salat._
 import com.mongodb.casbah.Imports._
 import za.co.absa.spline.common.FutureImplicits._
-import za.co.absa.spline.model.op.CompositeWithDependencies
+import za.co.absa.spline.model.op._
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
 import za.co.absa.spline.persistence.api.DataLineageReader
 
@@ -72,29 +72,77 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     fieldsToFetch
   }
 
+  private def lineageToCompositeWithDependencies(dataLineage: DataLineage) : CompositeWithDependencies = {
+    def castIfRead(op: Operation): Option[Read] = op match {
+      case a@Read(_, _, _) => Some(a)
+      case _ => None
+    }
+    val inputSources : Seq[TypedMetaDataSource] = for {
+      read <- dataLineage.operations.flatMap(castIfRead)
+      source <- read.sources
+    } yield TypedMetaDataSource(read.sourceType, source.path, source.datasetId)
+
+    val outputWriteOperation = dataLineage.rootOperation.asInstanceOf[Write]
+    val outputSource  = TypedMetaDataSource(outputWriteOperation.destinationType, outputWriteOperation.path, Some(outputWriteOperation.mainProps.output))
+
+    val inputDatasetIds = inputSources.flatMap(_.datasetId)
+    val outputDatasetId = dataLineage.rootDataset.id
+    val datasetIds = outputDatasetId +: inputDatasetIds
+
+    val composite = Composite(
+      mainProps = OperationProps(
+        dataLineage.id,
+        dataLineage.appName,
+        inputDatasetIds,
+        outputDatasetId
+      ),
+      sources = inputSources,
+      destination = outputSource,
+      dataLineage.id,
+      dataLineage.timestamp,
+      dataLineage.appId,
+      dataLineage.appName
+    )
+
+    val datasets = dataLineage.datasets.filter(ds => datasetIds.contains(ds.id))
+    val attributes = for {
+      dataset <- datasets
+      attributeId <- dataset.schema.attrs
+      attribute <- dataLineage.attributes if attribute.id == attributeId
+    } yield attribute
+
+    CompositeWithDependencies(composite, datasets, attributes)
+  }
+
+
   /**
     * The method loads a composite operation for an output datasetId.
     * @param datasetId A dataset ID for which the operation is looked for
     * @return A composite operation with dependencies satisfying the criteria
     */
-  override def loadCompositeByOutput(datasetId : UUID): Future[Option[CompositeWithDependencies]] = ???/*Future{
-    val fieldsToFetch = getFieldsToFetch[Composite]
-    connection.dataLineageCollection.aggregate(
-      asList(
-        DBObject("$match" → DBObject("datasets.0.id" → datasetId)),
-        DBObject("$m")
+  override def loadCompositeByOutput(datasetId : UUID): Future[Option[CompositeWithDependencies]] = Future{
+    Option(
+      connection.dataLineageCollection.findOne(
+        DBObject("datasets.0._id" → datasetId)
       )
     )
-    .results().asScala.headOption
-    .map(withVersionCheck(grater[Composite].asObject(_)))
-  }*/
+    .map(withVersionCheck(grater[DataLineage].asObject(_)))
+    .map(lineageToCompositeWithDependencies)
+  }
 
   /**
     * The method loads composite operations for an input datasetId.
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  override def loadCompositesByInput(datasetId : UUID): Future[Iterator[CompositeWithDependencies]] = ???
+  override def loadCompositesByInput(datasetId : UUID): Future[Iterator[CompositeWithDependencies]] = Future{
+    connection.dataLineageCollection.find(
+      DBObject("operations.sources.datasetId" → datasetId)
+    )
+    .iterator.asScala
+    .map(withVersionCheck(grater[DataLineage].asObject(_)))
+    .map(lineageToCompositeWithDependencies)
+  }
 
   /**
     * The method gets all data lineages stored in persistence layer.
