@@ -45,8 +45,7 @@ class CompositeTraversalSpec  extends FlatSpec with Matchers with MockitoSugar {
 //  val compositeA = Serialization.read[Seq[MetaDataset]](aJson)
 
   val compositeA = CompositeWithDependencies(Composite(
-    OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affad", "SaveIntoDataSourceCommand", Seq(
-      UUID fromString "4647b1b0-425f-ce2d-b0c1-02c148c504af"), aUUID), Seq(), TypedMetaDataSource("file", "file.txt", Some(aUUID)),
+    OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affad", "SaveIntoDataSourceCommand", Seq(), aUUID), Seq(), TypedMetaDataSource("file", "file.txt", Some(aUUID)),
     xUUID1, 0, "AppId", "AppName"), Seq(MetaDataset(xUUID1, Schema(Seq(xUUID2)))), Seq(Attribute(xUUID2, "attr2", Simple("String", true) )))
 
   val compositeB = CompositeWithDependencies(Composite(
