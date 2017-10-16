@@ -141,6 +141,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
     )
 
     val datasetId = sources.head.datasetId.get
+    val lineageId = testLineages(1).id
 
     val result = Future.sequence(testLineages.map(i => mongoWriter.store(i)))
       .flatMap(_ => mongoReader.loadCompositesByInput(datasetId))
@@ -150,8 +151,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
       res.length shouldEqual 1
       res.head match {
         case (CompositeWithDependencies(composite, _, _)) =>
-          composite.mainProps.id shouldEqual datasetId
-          composite.mainProps.output shouldEqual datasetId
+          composite.mainProps.id shouldEqual DataLineageId.toDatasetId(lineageId)
       }
     })
   }
