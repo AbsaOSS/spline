@@ -54,5 +54,13 @@ export class DatasetLineageOverviewComponent {
                 fragment: node.type
             })
     }
+
+    onNodeActioned(node: GraphNode) {
+        if (node.type == "operation")
+            this.router.navigate(
+                ["dataset", node.id, "lineage", "partial"], {
+                    relativeTo: this.route.parent.parent.parent
+                })
+    }
 }
 

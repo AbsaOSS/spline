@@ -20,7 +20,8 @@
             <lineage-overview-graph #graph
                                     [lineage$]="lineage$"
                                     [selectedNode$]="selectedNode$"
-                                    (nodeSelected)="onNodeSelected($event)">
+                                    (nodeSelected)="onNodeSelected($event)"
+                                    (nodeActioned)="onNodeActioned($event)">
             </lineage-overview-graph>
             <div class="graph-footer">
                 <button mat-button (click)="graph.fit()" title="Fit to screen">

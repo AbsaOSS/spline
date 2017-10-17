@@ -34,6 +34,7 @@ export class LineageOverviewGraphComponent implements OnInit {
     @Input() selectedNode$: Observable<GraphNode>
 
     @Output() nodeSelected = new EventEmitter<GraphNode>()
+    @Output() nodeActioned = new EventEmitter<GraphNode>()
 
     private selectedNode: GraphNode
     private lineage: IDataLineage
@@ -59,23 +60,33 @@ export class LineageOverviewGraphComponent implements OnInit {
         this.network.fit()
     }
 
+    private static eventToNode(event:any): GraphNode {
+        if (event.nodes.length) {
+            let nodeIdWithPrefix = event.nodes[0],
+                nodeId = nodeIdWithPrefix.substring(ID_PREFIX_LENGTH),
+                nodePrefix = nodeIdWithPrefix.substring(0, ID_PREFIX_LENGTH),
+                nodeType: GraphNodeType = (nodePrefix == ID_PREFIXES.operation) ? "operation" : "datasource"
+            return {
+                type: nodeType,
+                id: nodeId
+            }
+        }
+        else return null
+    }
+
     private rebuildGraph(lineage: IDataLineage) {
         let graph = LineageOverviewGraphComponent.buildVisModel(lineage)
         this.network = new vis.Network(this.container.nativeElement, graph, visOptions)
 
-        this.network.on("click", (event) => {
-            if (event.nodes.length) {
-                let nodeIdWithPrefix = event.nodes[0],
-                    nodeId = nodeIdWithPrefix.substring(ID_PREFIX_LENGTH),
-                    nodePrefix = nodeIdWithPrefix.substring(0, ID_PREFIX_LENGTH),
-                    nodeType: GraphNodeType = (nodePrefix == ID_PREFIXES.operation) ? "operation" : "datasource"
-                this.nodeSelected.emit({
-                    type: nodeType,
-                    id: nodeId
-                })
-            } else {
-                this.refreshSelectedNode(this.selectedNode)
-            }
+        this.network.on("click", event => {
+            let node = LineageOverviewGraphComponent.eventToNode(event)
+            if (node) this.nodeSelected.emit(node)
+            else this.refreshSelectedNode(this.selectedNode)
+        })
+
+        this.network.on("doubleClick", event => {
+            let node = LineageOverviewGraphComponent.eventToNode(event)
+            if (node) this.nodeActioned.emit(node)
         })
 
         let canvasElement = this.container.nativeElement.getElementsByTagName("canvas")[0]
