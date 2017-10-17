@@ -37,6 +37,15 @@ trait DataLineageReader {
   def loadByDatasetId(dsId: UUID): Future[Option[DataLineage]]
 
   /**
+    * The method scans the persistence layer and tries to find a dataset ID for a given path and application ID.
+    *
+    * @param path A path for which a dataset ID is looked for
+    * @param applicationId An application for which a dataset ID is looked for
+    * @return An identifier of a meta data set
+    */
+  def searchDataset(path: String, applicationId: String): Future[Option[UUID]]
+
+  /**
     * The method loads the latest data lineage from the persistence for a given path.
     *
     * @param path A path for which a lineage graph is looked for
