@@ -26,14 +26,20 @@ import {PersistentDatasetResolver} from "./dataset.resolver";
 import {DatasetService} from "./dataset.service";
 import {DatasetLineageOverviewResolver} from "./lineage-overview/lineage-overview.resolver";
 import {DatasetLineageOverviewComponent} from "./lineage-overview/lineage-overview.component";
+import {MiscModule} from "../misc/misc.module";
+import {MaterialModule} from "../material-extension/material.module";
+import {LineageOverviewGraphComponent} from "./lineage-overview/lienage-overview-graph.component";
 
 
 @NgModule({
     imports: [
-        HttpModule
+        HttpModule,
+        MaterialModule,
+        MiscModule
     ],
     declarations: [
-        DatasetLineageOverviewComponent
+        DatasetLineageOverviewComponent,
+        LineageOverviewGraphComponent
     ],
     providers: [
         DatasetService,

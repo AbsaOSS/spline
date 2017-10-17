@@ -6624,9 +6624,205 @@ module.exports = function () {
 
         "_dataset-lineage-overview": [{
             id: 0,
-            operations: [],
-            datasets: [],
-            attributes: []
+            operations: [
+                {
+                    "_typeHint": "za.co.absa.spline.core.model.op.Composite",
+                    appName: "App A",
+                    appId: "my.app.a",
+                    timestamp: 1506696404000,
+                    destination: {
+                        datasetId: "ds-uuid-a",
+                        path: "/some/path/a",
+                        type: "parquet"
+                    },
+                    sources: [{
+                        path: "/some/path/a.csv",
+                        type: "CSV"
+                    }],
+                    mainProps: {
+                        "id": "ds-uuid-a",
+                        "name": "A",
+                        "inputs": [],
+                        "output": "ds-uuid-a"
+                    }
+                }, {
+                    "_typeHint": "za.co.absa.spline.core.model.op.Composite",
+                    appName: "App B",
+                    appId: "my.app.b",
+                    timestamp: 1506696404000,
+                    destination: {
+                        datasetId: "ds-uuid-b",
+                        path: "/some/path/b",
+                        type: "parquet"
+                    },
+                    sources: [],
+                    mainProps: {
+                        "id": "ds-uuid-b",
+                        "name": "B",
+                        "inputs": [],
+                        "output": "ds-uuid-b"
+                    }
+                }, {
+                    "_typeHint": "za.co.absa.spline.core.model.op.Composite",
+                    appName: "App C",
+                    appId: "my.app.c",
+                    timestamp: 1506696404000,
+                    destination: {
+                        datasetId: "ds-uuid-c",
+                        path: "/some/path/c",
+                        type: "parquet"
+                    },
+                    sources: [{
+                        datasetId: "ds-uuid-a",
+                        path: "/some/path/a",
+                        type: "Parquet"
+                    }, {
+                        datasetId: "ds-uuid-b",
+                        path: "/some/path/b",
+                        type: "Parquet"
+                    }, {
+                        path: "/some/path/b.csv",
+                        type: "CSV"
+                    }],
+                    mainProps: {
+                        "id": "ds-uuid-c",
+                        "name": "C",
+                        "inputs": ["ds-uuid-a", "ds-uuid-b"],
+                        "output": "ds-uuid-c"
+                    }
+                }, {
+                    "_typeHint": "za.co.absa.spline.core.model.op.Composite",
+                    appName: "App D",
+                    appId: "my.app.d",
+                    timestamp: 1506696404000,
+                    destination: {
+                        datasetId: "ds-uuid-d",
+                        path: "/some/path/d",
+                        type: "parquet"
+                    },
+                    sources: [{
+                        datasetId: "ds-uuid-a",
+                        path: "/some/path/a",
+                        type: "Parquet"
+                    }, {
+                        datasetId: "ds-uuid-b",
+                        path: "/some/path/b",
+                        type: "Parquet"
+                    }, {
+                        path: "/some/path/b.csv",
+                        type: "CSV"
+                    }],
+                    mainProps: {
+                        "id": "ds-uuid-d",
+                        "name": "D",
+                        "inputs": ["ds-uuid-a", "ds-uuid-b"],
+                        "output": "ds-uuid-d"
+                    }
+                }, {
+                    "_typeHint": "za.co.absa.spline.core.model.op.Composite",
+                    appName: "App E",
+                    appId: "my.app.e",
+                    timestamp: 1506696404000,
+                    destination: {
+                        datasetId: "ds-uuid-1",
+                        path: "/some/path/e",
+                        type: "parquet"
+                    },
+                    sources: [{
+                        datasetId: "ds-uuid-c",
+                        path: "/some/path/c",
+                        type: "Parquet"
+                    }, {
+                        datasetId: "ds-uuid-d",
+                        path: "/some/path/d",
+                        type: "Parquet"
+                    }, {
+                        path: "/some/path/e.csv",
+                        type: "CSV"
+                    }],
+                    mainProps: {
+                        "id": "ds-uuid-1",
+                        "name": "E",
+                        "inputs": ["ds-uuid-c", "ds-uuid-d"],
+                        "output": "ds-uuid-1"
+                    }
+                }, {
+                    "_typeHint": "za.co.absa.spline.core.model.op.Composite",
+                    appName: "App F",
+                    appId: "my.app.f",
+                    timestamp: 1506696404000,
+                    destination: {
+                        datasetId: "ds-uuid-28",
+                        path: "/some/path/f",
+                        type: "parquet"
+                    },
+                    sources: [{
+                        datasetId: "ds-uuid-1",
+                        path: "/some/path/1",
+                        type: "Parquet"
+                    }, {
+                        datasetId: "ds-uuid-d",
+                        path: "/some/path/d",
+                        type: "Parquet"
+                    }, {
+                        path: "/some/path/e.csv",
+                        type: "CSV"
+                    }],
+                    mainProps: {
+                        "id": "ds-uuid-28",
+                        "name": "F",
+                        "inputs": ["ds-uuid-1", "ds-uuid-d"],
+                        "output": "ds-uuid-28"
+                    }
+                }
+            ],
+            datasets: [
+                {"id": "ds-uuid-a", "schema": {"attrs": ["attr-uuid-1", "attr-uuid-2", "attr-uuid-3"]}},
+                {"id": "ds-uuid-b", "schema": {"attrs": ["attr-uuid-4", "attr-uuid-5", "attr-uuid-6"]}},
+                {"id": "ds-uuid-c", "schema": {"attrs": ["attr-uuid-1", "attr-uuid-3", "attr-uuid-6"]}},
+                {"id": "ds-uuid-d", "schema": {"attrs": ["attr-uuid-1", "attr-uuid-3", "attr-uuid-6"]}},
+                {"id": "ds-uuid-1", "schema": {"attrs": ["attr-uuid-7", "attr-uuid-8", "attr-uuid-9"]}},
+                {"id": "ds-uuid-28", "schema": {"attrs": ["attr-uuid-7", "attr-uuid-8", "attr-uuid-9"]}}
+            ],
+            attributes: [
+                {
+                    "id": "attr-uuid-1",
+                    "name": "attribute 1",
+                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                }, {
+                    "id": "attr-uuid-2",
+                    "name": "attribute 2",
+                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                }, {
+                    "id": "attr-uuid-3",
+                    "name": "attribute 3",
+                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                }, {
+                    "id": "attr-uuid-4",
+                    "name": "attribute 4",
+                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                }, {
+                    "id": "attr-uuid-5",
+                    "name": "attribute 5",
+                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                }, {
+                    "id": "attr-uuid-6",
+                    "name": "attribute 6",
+                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                }, {
+                    "id": "attr-uuid-7",
+                    "name": "attribute 7",
+                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                }, {
+                    "id": "attr-uuid-8",
+                    "name": "attribute 8",
+                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                }, {
+                    "id": "attr-uuid-9",
+                    "name": "attribute 9",
+                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                }
+            ]
         }],
 
         "_persisted-dataset-descriptors": [{
@@ -6635,57 +6831,56 @@ module.exports = function () {
             appId: "dlkjfghlskdhfjlksd",
             appName: "Foo Bar Application",
             path: "hdfs://foo/bar/baz",
-            timestamp: "1506696404000"
+            timestamp: 1506696404000
         }, {
             id: "ds-uuid-28",
             datasetId: "ds-uuid-28",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
             path: "hdfs://foo/bar/baz",
-            timestamp: "1506696404000"
+            timestamp: 1506696404000
         }, {
-            id: "ds-uuid-988",
             datasetId: "ds-uuid-988",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
             path: "hdfs://foo/bar/baz",
-            timestamp: "1506696404000"
+            timestamp: 1506696404000
         }, {
             datasetId: "ds-uuid-989",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
             path: "hdfs://foo/bar/baz",
-            timestamp: "1506696404000"
+            timestamp: 1506696404000
         }, {
             datasetId: "ds-uuid-990",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
             path: "hdfs://foo/bar/baz",
-            timestamp: "1506696404000"
+            timestamp: 1506696404000
         }, {
             datasetId: "ds-uuid-991",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
             path: "hdfs://foo/bar/baz",
-            timestamp: "1506696404000"
+            timestamp: 1506696404000
         }, {
             datasetId: "ds-uuid-992",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
             path: "hdfs://foo/bar/baz",
-            timestamp: "1506696404000"
+            timestamp: 1506696404000
         }, {
             datasetId: "ds-uuid-993",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
             path: "hdfs://foo/bar/baz",
-            timestamp: "1506696404000"
+            timestamp: 1506696404000
         }, {
             datasetId: "ds-uuid-994",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
             path: "hdfs://foo/bar/baz",
-            timestamp: "1506696404000"
+            timestamp: 1506696404000
         }]
     } // jshint ignore:line
 };
