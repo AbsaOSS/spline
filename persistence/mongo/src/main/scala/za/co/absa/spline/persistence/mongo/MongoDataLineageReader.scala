@@ -28,6 +28,7 @@ import za.co.absa.spline.persistence.api.DataLineageReader
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
+import java.util.Arrays._
 
 /**
   * The class represents Mongo persistence writer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
