@@ -139,7 +139,7 @@ class LineageService @Autowired()
       }
     }
 
-    val dataLineage: DataLineage = DataLineage(null, "appId", "appName", 0, operations.toList, datasets.toList, attributes.toList)
+    val dataLineage: DataLineage = DataLineage("appId", "appName", 0, operations.toSeq, datasets.toSeq, attributes.toSeq)
 
     Future.successful(dataLineage)
   }
