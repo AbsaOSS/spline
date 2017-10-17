@@ -24,6 +24,7 @@ import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMethod._
 import org.springframework.web.bind.annotation.{PathVariable, RequestMapping, ResponseBody}
 import za.co.absa.spline.persistence.api.DataLineageReader
+import za.co.absa.spline.web.rest.service.LineageService
 import za.co.absa.spline.web.json.StringJSONConverters
 
 import scala.concurrent.Await
@@ -36,7 +37,8 @@ import scala.language.postfixOps
   produces = Array(APPLICATION_JSON_VALUE))
 class LineageController @Autowired()
 (
-  val reader: DataLineageReader
+  val reader: DataLineageReader,
+  val service: LineageService
 ) {
 
   import StringJSONConverters._
@@ -52,4 +54,9 @@ class LineageController @Autowired()
   @RequestMapping(Array("/dataset/{id}/lineage/partial"))
   @ResponseBody
   def datasetLineage(@PathVariable("id") id: UUID): String = Await.result(reader loadByDatasetId id, 10 seconds).get.toJson
+
+  @RequestMapping(path = Array("/dataset/{id}/lineage/overview"), method = Array(GET))
+  @ResponseBody
+  def datasetLineageOverview(@PathVariable("id") id: UUID): String = Await.result(service getDatasetOverviewLineage id, 10 seconds).toJson
+
 }
