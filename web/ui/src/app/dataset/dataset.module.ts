@@ -15,48 +15,32 @@
  */
 
 import {NgModule} from "@angular/core";
-import {LineageComponent} from "./lineage.component";
-import {LineageService} from "./lineage.service";
-import {CommonModule} from "@angular/common";
-import {RouterModule} from "@angular/router";
 import {HttpModule} from "@angular/http";
 
 import "@angular/material/prebuilt-themes/indigo-pink.css";
-import {NoopAnimationsModule} from "@angular/platform-browser/animations";
-import {MaterialModule} from "../material-extension/material.module";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/css/bootstrap-theme.min.css";
 import "font-awesome/css/font-awesome.min.css";
+import {PersistentDatasetResolver} from "./dataset.resolver";
+import {DatasetService} from "./dataset.service";
+import {DatasetLineageOverviewResolver} from "./lineage-overview/lineage-overview.resolver";
+import {DatasetLineageOverviewComponent} from "./lineage-overview/lineage-overview.component";
 
-import {GraphComponent} from "./graph/graph.component";
-import {LineageByDatasetIdResolver} from "./lineage.resolver";
-import {DetailsModule} from "./details/details.module";
-import {MiscModule} from "../misc/misc.module";
 
 @NgModule({
     imports: [
-        NoopAnimationsModule,
-        CommonModule,
-        RouterModule,
-        MaterialModule,
-        HttpModule,
-        DetailsModule,
-        MiscModule
+        HttpModule
     ],
     declarations: [
-        LineageComponent,
-        GraphComponent
+        DatasetLineageOverviewComponent
     ],
     providers: [
-        LineageService,
-        LineageByDatasetIdResolver
-    ],
-    exports: [
-        LineageComponent,
-        GraphComponent
+        DatasetService,
+        PersistentDatasetResolver,
+        DatasetLineageOverviewResolver
     ]
 })
-export class LineageModule {
+export class DatasetModule {
 
 }

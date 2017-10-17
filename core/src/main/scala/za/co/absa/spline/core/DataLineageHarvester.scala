@@ -16,8 +16,6 @@
 
 package za.co.absa.spline.core
 
-import java.util.UUID
-
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.QueryExecution
@@ -49,7 +47,6 @@ class DataLineageHarvester(hadoopConfiguration: Configuration) {
     val sparkContext = queryExecution.sparkSession.sparkContext
 
     DataLineage(
-      UUID.randomUUID,
       sparkContext.applicationId,
       sparkContext.appName,
       System.currentTimeMillis(),

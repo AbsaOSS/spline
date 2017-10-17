@@ -23,8 +23,12 @@ import {DashboardModule} from "./dashboard/dashboard.module";
 import {DashboardComponent} from "./dashboard/dashboard.component";
 import {LineageComponent} from "./lineage/lineage.component";
 import {LineageModule} from "./lineage/lineage.module";
-import {LineageByIdResolver} from "./lineage/lineage.resolver";
+import {LineageByDatasetIdResolver} from "./lineage/lineage.resolver";
 import {WelcomeComponent} from "./dashboard/welcome/welcome.component";
+import {PersistentDatasetResolver} from "./dataset/dataset.resolver";
+import {DatasetModule} from "./dataset/dataset.module";
+import {DatasetLineageOverviewResolver} from "./dataset/lineage-overview/lineage-overview.resolver";
+import {DatasetLineageOverviewComponent} from "./dataset/lineage-overview/lineage-overview.component";
 
 
 const lineageRoute = {
@@ -39,8 +43,35 @@ const lineageRoute = {
 
 const lineageByIdRoute = {
     path: 'lineage/:id',
-    resolve: {lineage: LineageByIdResolver},
+    resolve: {lineage: LineageByDatasetIdResolver},
     children: [lineageRoute]
+}
+
+const lineageByDatasetRoute = {
+    path: "dataset/:id",
+    resolve: {dataset: PersistentDatasetResolver},
+    children: [
+        {
+            path: "lineage",
+            children: [
+                {
+                    path: "overview",
+                    resolve: {lineage: DatasetLineageOverviewResolver},
+                    component: DatasetLineageOverviewComponent
+                },
+                {
+                    path: "partial",
+                    resolve: {lineage: LineageByDatasetIdResolver},
+                    children: [lineageRoute]
+                }/*,
+                 {
+                 path: "full",
+                 component: DSFullLineageLoaderComponent,
+                 children: [lineageRoute]
+                 }*/
+            ]
+        }
+    ]
 }
 
 const routes: Routes = [
@@ -59,34 +90,11 @@ const routes: Routes = [
                 pathMatch: 'full',
                 component: WelcomeComponent
             },
-            lineageByIdRoute
+            lineageByIdRoute,
+            lineageByDatasetRoute
         ]
     },
-    /*{
-        path: "dataset/:dsId",
-        component: DatasetLoaderComponent,
-        children: [
-            {
-                path: "lineage",
-                children: [
-                    {
-                        path: "tail",
-                        component: DSTailLineageLoaderComponent,
-                        children: [lineageRoute]
-                    },
-                    {
-                        path: "full",
-                        component: DSFullLineageLoaderComponent,
-                        children: [lineageRoute]
-                    },
-                    {
-                        path: "overview",
-                        component: DSLineageOverviewComponent
-                    }
-                ]
-            }
-        ]
-    }*/
+    lineageByDatasetRoute
 ]
 
 @NgModule({
@@ -94,7 +102,8 @@ const routes: Routes = [
         BrowserModule,
         RouterModule.forRoot(routes, {enableTracing: false}),
         DashboardModule,
-        LineageModule
+        LineageModule,
+        DatasetModule
     ],
     declarations: [AppComponent],
     bootstrap: [AppComponent]

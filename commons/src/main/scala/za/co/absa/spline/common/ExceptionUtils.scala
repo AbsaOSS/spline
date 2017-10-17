@@ -14,21 +14,11 @@
  * limitations under the License.
  */
 
-import {Injectable} from "@angular/core";
-import {IPersistedDatasetDescriptor} from "../../../generated-ts/lineage-model";
-import {Http} from "@angular/http";
-import "rxjs/add/operator/map";
-import "rxjs/add/operator/toPromise";
+package za.co.absa.spline.common
 
-@Injectable()
-export class DatasetBrowserService {
-    private datasetDescriptors: Promise<IPersistedDatasetDescriptor[]>
+object ExceptionUtils {
 
-    constructor(private http: Http) {
-        this.datasetDescriptors = http.get("rest/dataset/descriptors").map(res => res.json()).toPromise()
-    }
+  def `not applicable`: Nothing =
+    throw new AssertionError("This statement should never be executed. If it happened then it's a clear indication of a programming mistake.")
 
-    getLineageDescriptors(): Promise<IPersistedDatasetDescriptor[]> {
-        return this.datasetDescriptors
-    }
 }

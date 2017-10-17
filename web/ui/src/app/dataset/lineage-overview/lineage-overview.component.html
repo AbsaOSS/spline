@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <!--
   ~ Copyright 2017 Barclays Africa Group Limited
   ~
@@ -14,15 +15,5 @@
   ~ limitations under the License.
   -->
 
-<ul class="nav nav-pills nav-stacked">
-    <li role="presentation"
-        *ngFor="let d of descriptors"
-        [routerLink]="'dataset/'+d.datasetId+'/lineage/partial'"
-        [routerLinkActive]="['active']">
-        <a href="javascript:void(0)">
-            <b>{{d.path}}</b>
-            <br/>
-            <span class="small" title="Spark application name">{{d.appName}}</span>
-        </a>
-    </li>
-</ul>
+<h1>DS Lineage Overview</h1>
+<h3></h3>

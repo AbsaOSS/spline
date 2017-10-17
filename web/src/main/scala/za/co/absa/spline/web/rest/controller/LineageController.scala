@@ -17,18 +17,23 @@
 package za.co.absa.spline.web.rest.controller
 
 import java.util.UUID
-import za.co.absa.spline.web.json.StringJSONConverters
+
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMethod._
 import org.springframework.web.bind.annotation.{PathVariable, RequestMapping, ResponseBody}
 import za.co.absa.spline.persistence.api.DataLineageReader
+import za.co.absa.spline.web.json.StringJSONConverters
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
 @Controller
+@RequestMapping(
+  method = Array(GET),
+  produces = Array(APPLICATION_JSON_VALUE))
 class LineageController @Autowired()
 (
   val reader: DataLineageReader
@@ -36,11 +41,15 @@ class LineageController @Autowired()
 
   import StringJSONConverters._
 
-  @RequestMapping(path = Array("/dataset/descriptors"), method = Array(GET))
+  @RequestMapping(Array("/dataset/descriptors"))
   @ResponseBody
-  def lineageDescriptors: String = Await.result(reader.list(), 10 seconds).toSeq.toJsonArray
+  def datasetDescriptors: String = Await.result(reader.list(), 10 seconds).toSeq.toJsonArray
 
-  @RequestMapping(path = Array("/lineage/{id}"), method = Array(GET))
+  @RequestMapping(Array("/dataset/{id}/descriptor"))
   @ResponseBody
-  def lineage(@PathVariable("id") id: UUID): String = Await.result(reader load id, 10 seconds).get.toJson
+  def datasetDescriptor(@PathVariable("id") id: UUID): String = Await.result(reader.getDatasetDescriptor(id), 10 seconds).toJson
+
+  @RequestMapping(Array("/dataset/{id}/lineage/partial"))
+  @ResponseBody
+  def datasetLineage(@PathVariable("id") id: UUID): String = Await.result(reader loadByDatasetId id, 10 seconds).get.toJson
 }

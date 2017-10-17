@@ -66,7 +66,7 @@ object Operation {
       case op@Join(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Projection(mp, _) => op.copy(mainProps = fn(mp))
       case op@Read(mp, _, _) => op.copy(mainProps = fn(mp))
-      case op@Composite(mp, _, _, _, _, _, _) => op.copy(mainProps = fn(mp))
+      case op@Composite(mp, _, _, _, _, _) => op.copy(mainProps = fn(mp))
     }).asInstanceOf[T]
   }
 
@@ -189,7 +189,6 @@ case class TypedMetaDataSource(`type`: String, path: String, datasetId: Option[U
   * @param mainProps   Common node properties
   * @param sources     represents the embedded [[Read]] operations
   * @param destination represents the embedded [[Write]] operation
-  * @param lineageId   output dataset detailed lineage ID
   * @param timestamp   output dataset lineage created timestamp
   * @param appId       related Spark application ID
   * @param appName     related Spark application name
@@ -198,7 +197,6 @@ case class Composite(
                       mainProps: OperationProps,
                       sources: Seq[TypedMetaDataSource],
                       destination: TypedMetaDataSource,
-                      lineageId: UUID,
                       timestamp: Long,
                       appId: String,
                       appName: String
@@ -208,15 +206,16 @@ case class Composite(
 
   require(
     inputDatasetsCount == knownSourceLineagesCount,
-    "Inputs for 'HigherOrderLineage' operation are datasets associated with the data sources that we know lineage of. " +
+    "Inputs for 'Composite' operation are datasets associated with the data sources that we know lineage of. " +
       s"Hence the size 'inputs' collection should be the same as the count of known datasets for 'sources' field. " +
       s"But was $inputDatasetsCount and $knownSourceLineagesCount respectively")
 }
 
 /**
   * The case class serves for associating a composite operation with its dependencies
-  * @param composite A composite operation
-  * @param datasets Referenced meta data sets
+  *
+  * @param composite  A composite operation
+  * @param datasets   Referenced meta data sets
   * @param attributes Referenced attributes
   */
 case class CompositeWithDependencies(composite: Composite, datasets: Seq[MetaDataset], attributes: Seq[Attribute])
