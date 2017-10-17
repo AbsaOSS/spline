@@ -51,7 +51,7 @@ class ForeignMetaDatasetInjectorSpec extends FlatSpec with Matchers with Mockito
       val operations = Seq(
         Write(OperationProps(randomUUID, "save", Seq.empty, datasets(0).id), "parquet", path)
       )
-      DataLineage(randomUUID, "appId1", "appName1", 1L, operations, datasets, attributes)
+      DataLineage("appId1", "appName1", 1L, operations, datasets, attributes)
     }
 
     def getInputLineage = {
@@ -65,16 +65,21 @@ class ForeignMetaDatasetInjectorSpec extends FlatSpec with Matchers with Mockito
 
       )
       val operations = Seq(
-        Read(OperationProps(randomUUID, "read", Seq.empty, datasets.head.id), "parquet", Seq(MetaDataSource(path, None /*TODO for Marek !!!!!*/)))
+        Read(OperationProps(randomUUID, "read", Seq.empty, datasets.head.id), "parquet", Seq(MetaDataSource(path, None)))
       )
-      DataLineage(randomUUID, "appId2", "appName2", 2L, operations, datasets, attributes)
+      DataLineage("appId2", "appName2", 2L, operations, datasets, attributes)
     }
 
     val referencedLineage = getReferencedLineage
     when(dataLineageReader.loadLatest(any())) thenReturn Future.successful(Some(referencedLineage))
     val inputLineage = getInputLineage
+    val readOp = inputLineage.rootOperation.asInstanceOf[Read]
+    val referencedDataset = referencedLineage.rootDataset.id
+    val mainProps = readOp.mainProps.copy(inputs = Seq(referencedDataset))
     val expectedResult = inputLineage.copy(
-      operations = Seq(inputLineage.rootOperation.updated(m => m.copy(inputs = Seq(referencedLineage.rootDataset.id)))),
+      operations = Seq(
+        readOp.copy(sources = Seq(MetaDataSource(path, Some(referencedDataset))), mainProps = mainProps)
+      ),
       datasets = inputLineage.datasets :+ referencedLineage.rootDataset,
       attributes = inputLineage.attributes ++ Seq(referencedLineage.attributes(2), referencedLineage.attributes(3))
     )

@@ -26,14 +26,14 @@ export class LineageService {
     constructor(private http: Http) {
     }
 
-    getLineage(id: string): Promise<IDataLineage> {
+    getLineage(dsId: string): Promise<IDataLineage> {
         let fetchAndCache = (id: string) => {
-            let lp = this.http.get(`rest/lineage/${id}`).map((res: Response) => res.json()).toPromise()
+            let lp = this.http.get(`rest/dataset/${id}/lineage/partial`).map((res: Response) => res.json()).toPromise()
             this.lineagePromiseCache[id] = lp
             return lp
         }
 
-        let cachedPromise = this.lineagePromiseCache[id]
-        return (cachedPromise) ? cachedPromise : fetchAndCache(id)
+        let cachedPromise = this.lineagePromiseCache[dsId]
+        return (cachedPromise) ? cachedPromise : fetchAndCache(dsId)
     }
 }

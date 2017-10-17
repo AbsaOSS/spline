@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.mongo
+import {Component} from "@angular/core";
 
-class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase{
-  "Store method" should "store data lineage to a database." in {
-    val lineage = createDataLineage("appID", "appName")
+@Component({
+    templateUrl: "lineage-overview.component.html"
+})
 
-    val storedLineage = mongoWriter.store(lineage).flatMap(_ => mongoReader.loadByDatasetId(lineage.rootDataset.id))
+export class DatasetLineageOverviewComponent {
 
-    storedLineage map (i => i shouldEqual Option(lineage))
-  }
 }
+

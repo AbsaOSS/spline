@@ -41,7 +41,7 @@ class ForeignMetaDatasetInjector(reader: DataLineageReader) extends Transformati
     * @return A transformed result
     */
   override def apply(lineage: DataLineage): DataLineage = {
-    def castIfSource(op: Operation): Option[Read] = op match {
+    def castIfRead(op: Operation): Option[Read] = op match {
       case a@Read(_, _, _) => Some(a)
       case _ => None
     }
@@ -51,21 +51,29 @@ class ForeignMetaDatasetInjector(reader: DataLineageReader) extends Transformati
 
     // collect data
 
-    val sourcesWithLineages: Seq[(Read, Seq[DataLineage])] =
+    def resolveMetaDataSources(mds : MetaDataSource) : (MetaDataSource, Option[DataLineage]) = {
+      val lineageOption = Await.result(reader.loadLatest(mds.path), 1 second)
+      val datasetIdOption = lineageOption.map(lineage => lineage.rootDataset.id)
+      (mds.copy(datasetId = datasetIdOption), lineageOption)
+    }
+
+    val readsWithLineages: Seq[(Read, Seq[DataLineage])] =
       for {
         op <- lineage.operations
-        source <- castIfSource(op)
+        read <- castIfRead(op)
       } yield {
-        val sourceLineages = source.sources.flatMap {
-          case MetaDataSource(path, _ /*todo for Marek !!!!!!*/) => Await.result(reader.loadLatest(path), 1 second)
-        }
-        source -> sourceLineages
+        val (newSources, sourceLineages) = read.sources.map(resolveMetaDataSources).unzip
+        val newProps = read.mainProps.copy(inputs = newSources.flatten(s => s.datasetId))
+        val newRead = read.copy(sources = newSources, mainProps = newProps)
+        newRead -> sourceLineages.flatten
       }
+
+    val (newReads, otherLineagesSeqs) = readsWithLineages.unzip
 
     val newDatasetsWithAttributes: Seq[(MetaDataset, Seq[Attribute])] =
       for {
-        (_, lineages) <- sourcesWithLineages
-        lineage <- lineages
+        lineageSeq <- otherLineagesSeqs
+        lineage <- lineageSeq
       } yield {
         val ds = lineage.rootDataset
         val dsAttrs = selectAttributesForDataset(ds, lineage.attributes)
@@ -76,17 +84,10 @@ class ForeignMetaDatasetInjector(reader: DataLineageReader) extends Transformati
 
     val newDatasets: Seq[MetaDataset] = newDatasetsWithAttributes.map(_._1)
     val newAttributes: Seq[Attribute] = newDatasetsWithAttributes.flatMap(_._2)
-
-    val newOpsMap: Map[UUID, Read] = (
-      for ((source, lineages) <- sourcesWithLineages)
-        yield {
-          val wiredSources = source.updated(_.copy(inputs = lineages map (_.rootDataset.id)))
-          wiredSources.mainProps.id -> wiredSources
-        }
-      ).toMap
+    val newReadsMap: Map[UUID, Read] = newReads.map(read => read.mainProps.id -> read).toMap
 
     lineage.copy(
-      operations = lineage.operations.map(i => newOpsMap.getOrElse(i.mainProps.id, i)),
+      operations = lineage.operations.map(i => newReadsMap.getOrElse(i.mainProps.id, i)),
       datasets = lineage.datasets ++ newDatasets,
       attributes = lineage.attributes ++ newAttributes
     )

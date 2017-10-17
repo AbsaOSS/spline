@@ -45,9 +45,9 @@ object DataLineageToTypeSystemConverter {
       .partition(_.direction == EndpointDirection.input)
 
     new Job(
-      lineage.id.toString,
+      lineage.id,
       lineage.appName,
-      lineage.id.toString,
+      lineage.id,
       operations.map(_.getId),
       datasets.map(_.getId),
       inputDatasets.map(_.getId),

@@ -16,17 +16,18 @@
 
 import {Injectable} from "@angular/core";
 import {ActivatedRouteSnapshot, Resolve} from "@angular/router";
-import {IDataLineage, IPersistedDatasetDescriptor} from "../../generated-ts/lineage-model";
-import {LineageService} from "./lineage.service";
+import {IDataLineage, IPersistedDatasetDescriptor} from "../../../generated-ts/lineage-model";
+import {DatasetService} from "../dataset.service";
 
 @Injectable()
-export class LineageByDatasetIdResolver implements Resolve<IDataLineage> {
+export class DatasetLineageOverviewResolver implements Resolve<IDataLineage> {
 
-    constructor(private lineageService: LineageService) {
+    constructor(private datasetService: DatasetService) {
     }
 
     resolve(route: ActivatedRouteSnapshot): Promise<IDataLineage> {
         let dataset: IPersistedDatasetDescriptor = route.parent.data['dataset']
-        return this.lineageService.getLineage(dataset.datasetId)
+        return this.datasetService.getLineageOverview(dataset.datasetId)
     }
+
 }
