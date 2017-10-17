@@ -89,6 +89,11 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -152,12 +157,13 @@
                                 <argument>--option-to-nullable</argument>
                                 <argument>za.co.absa.spline.model.op.Operation</argument>
                                 <argument>za.co.absa.spline.model.op.Alias</argument>
-                                <argument>za.co.absa.spline.model.op.Destination</argument>
+                                <argument>za.co.absa.spline.model.op.Write</argument>
                                 <argument>za.co.absa.spline.model.op.Filter</argument>
                                 <argument>za.co.absa.spline.model.op.Generic</argument>
                                 <argument>za.co.absa.spline.model.op.Join</argument>
                                 <argument>za.co.absa.spline.model.op.Projection</argument>
-                                <argument>za.co.absa.spline.model.op.Source</argument>
+                                <argument>za.co.absa.spline.model.op.Read</argument>
+                                <argument>za.co.absa.spline.model.op.Composite</argument>
                                 <!-- workaround for a scala-ts bug -->
                                 <argument>za.co.absa.spline.model.dt.DataType</argument>
                             </arguments>

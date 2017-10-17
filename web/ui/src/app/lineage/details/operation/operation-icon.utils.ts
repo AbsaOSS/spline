@@ -30,7 +30,7 @@ export class Icon {
         let font = "FontAwesome";
 
         switch (nodeType) {
-            case "Destination":
+            case "Write":
                 return new Icon("fa-floppy-o", "\uf0c7", font);
 
             case "Filter":
@@ -42,7 +42,7 @@ export class Icon {
             case "Projection":
                 return new Icon("fa-cogs", "\uf085", font);
 
-            case "Source":
+            case "Read":
                 return new Icon("fa-database", "\uf1c0", font);
 
             case "Alias":

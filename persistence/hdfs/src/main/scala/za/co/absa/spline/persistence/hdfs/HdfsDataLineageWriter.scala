@@ -21,7 +21,7 @@ import org.apache.hadoop.fs.permission.FsPermission
 import org.apache.hadoop.fs.{FileSystem, Path}
 import za.co.absa.spline.common.FutureImplicits._
 import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.model.op.Destination
+import za.co.absa.spline.model.op.Write
 import za.co.absa.spline.persistence.api.DataLineageWriter
 import za.co.absa.spline.persistence.hdfs.serialization.JSONSerialization
 
@@ -62,8 +62,8 @@ class HdfsDataLineageWriter(hadoopConfiguration: Configuration, fileName: String
   }
 
   private def getPath(lineage: DataLineage): Option[Path] =
-    lineage.rootNode match {
-      case dn: Destination => Some(new Path(dn.path, fileName))
+    lineage.rootOperation match {
+      case dn: Write => Some(new Path(dn.path, fileName))
       case _ => None
     }
 }

@@ -18,24 +18,26 @@ package za.co.absa.spline.persistence.api.composition
 
 import java.util.UUID
 
+import za.co.absa.spline.common.FutureImplicits._
+import za.co.absa.spline.model.op.CompositeWithDependencies
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
 import za.co.absa.spline.persistence.api.DataLineageReader
-import za.co.absa.spline.common.FutureImplicits._
 
 import scala.concurrent.Future
 
 /**
   * The class represents a parallel composite reader from various persistence layers for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
+  *
   * @param readers a set of internal readers specific to particular persistence layers
   */
-class ParallelCompositeDataLineageReader(readers : Set[DataLineageReader]) extends DataLineageReader{
+class ParallelCompositeDataLineageReader(readers: Set[DataLineageReader]) extends DataLineageReader {
   /**
     * The method loads a particular data lineage from the persistence layer.
     *
-    * @param id An unique identifier of a data lineage
+    * @param dsId An unique identifier of a data lineage
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
-  override def load(id: UUID): Future[Option[DataLineage]] = Future.sequence(readers.map(_.load(id))).map(_.flatten.headOption)
+  override def loadByDatasetId(dsId: UUID): Future[Option[DataLineage]] = Future.sequence(readers.map(_.loadByDatasetId(dsId))).map(_.flatten.headOption)
 
   /**
     * The method scans the persistence layer and tries to find a dataset ID for a given path and application ID.
@@ -55,9 +57,33 @@ class ParallelCompositeDataLineageReader(readers : Set[DataLineageReader]) exten
   override def loadLatest(path: String): Future[Option[DataLineage]] = Future.sequence(readers.map(_.loadLatest(path))).map(_.flatten.headOption)
 
   /**
+    * The method loads a composite operation for an output datasetId.
+    *
+    * @param datasetId A dataset ID for which the operation is looked for
+    * @return A composite operation with dependencies satisfying the criteria
+    */
+  override def loadCompositeByOutput(datasetId: UUID): Future[Option[CompositeWithDependencies]] = Future.sequence(readers.map(_.loadCompositeByOutput(datasetId))).map(_.flatten.headOption)
+
+  /**
+    * The method loads composite operations for an input datasetId.
+    *
+    * @param datasetId A dataset ID for which the operation is looked for
+    * @return Composite operations with dependencies satisfying the criteria
+    */
+  override def loadCompositesByInput(datasetId: UUID): Future[Iterator[CompositeWithDependencies]] = Future.sequence(readers.map(_.loadCompositesByInput(datasetId))).map(_.flatten.toIterator)
+
+  /**
     * The method gets all data lineages stored in persistence layer.
     *
     * @return Descriptors of all data lineages
     */
   override def list(): Future[Iterator[PersistedDatasetDescriptor]] = Future.sequence(readers.map(_.list())).map(_.flatten.toIterator)
+
+  /**
+    * The method returns a dataset descriptor by its ID.
+    *
+    * @param id An unique identifier of a dataset
+    * @return Descriptors of all data lineages
+    */
+  override def getDatasetDescriptor(id: UUID): Future[PersistedDatasetDescriptor] = Future.firstCompletedOf(readers.map(_.getDatasetDescriptor(id)))
 }

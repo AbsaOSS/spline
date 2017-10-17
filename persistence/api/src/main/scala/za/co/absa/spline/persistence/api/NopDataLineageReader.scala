@@ -16,8 +16,12 @@
 
 package za.co.absa.spline.persistence.api
 
+import za.co.absa.spline.common.ExceptionUtils.`not applicable`
 import java.util.UUID
+
+import za.co.absa.spline.model.op.CompositeWithDependencies
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
+
 import scala.concurrent.Future
 
 /**
@@ -27,10 +31,10 @@ class NopDataLineageReader extends DataLineageReader{
   /**
     * The method loads a particular data lineage from the persistence layer.
     *
-    * @param id An unique identifier of a data lineage
+    * @param dsId An unique identifier of a data lineage
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
-  override def load(id: UUID): Future[Option[DataLineage]] = Future.successful(None)
+  override def loadByDatasetId(dsId: UUID): Future[Option[DataLineage]] = Future.successful(None)
 
   /**
     * The method scans the persistence layer and tries to find a dataset ID for a given path and application ID.
@@ -50,10 +54,32 @@ class NopDataLineageReader extends DataLineageReader{
   override def loadLatest(path: String): Future[Option[DataLineage]] = Future.successful(None)
 
   /**
+    * The method loads a composite operation for an output datasetId.
+    * @param datasetId A dataset ID for which the operation is looked for
+    * @return A composite operation with dependencies satisfying the criteria
+    */
+  override def loadCompositeByOutput(datasetId : UUID): Future[Option[CompositeWithDependencies]] = Future.successful(None)
+
+  /**
+    * The method loads composite operations for an input datasetId.
+    * @param datasetId A dataset ID for which the operation is looked for
+    * @return Composite operations with dependencies satisfying the criteria
+    */
+  override def loadCompositesByInput(datasetId : UUID): Future[Iterator[CompositeWithDependencies]] = Future.successful(Iterator.empty)
+
+
+  /**
     * The method gets all data lineages stored in persistence layer.
     *
     * @return Descriptors of all data lineages
     */
   override def list(): Future[Iterator[PersistedDatasetDescriptor]] = Future.successful(Iterator.empty)
 
+  /**
+    * The method returns a dataset descriptor by its ID.
+    *
+    * @param id An unique identifier of a dataset
+    * @return Descriptors of all data lineages
+    */
+  override def getDatasetDescriptor(id: UUID): Future[PersistedDatasetDescriptor] = `not applicable`
 }

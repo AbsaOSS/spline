@@ -25,6 +25,7 @@ import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRela
 import com.databricks.spark.xml.XmlRelation
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.sources.BaseRelation
+import za.co.absa.spline.model.op.MetaDataSource
 
 import scala.collection.mutable
 
@@ -132,10 +133,10 @@ private class AliasNodeBuilder(val operation: SubqueryAlias, val metaDatasetFact
 private class SourceNodeBuilder(val operation: LogicalRelation, hadoopConfiguration: Configuration, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[LogicalRelation] {
   def build(): op.Operation = {
     val (sourceType, paths) = getRelationPaths(operation.relation)
-    op.Source(
+    op.Read(
       buildOperationProps(),
       sourceType,
-      paths.map(i => PathUtils.getQualifiedPath(hadoopConfiguration)(i))
+      paths.map(path => MetaDataSource(PathUtils.getQualifiedPath(hadoopConfiguration)(path), None))
     )
   }
 
@@ -163,7 +164,7 @@ private class DestinationNodeBuilder(val operation: SaveIntoDataSourceCommand, h
   override val outputMetaDataset: UUID = metaDatasetFactory.create(operation.query)
 
   def build(): op.Operation = {
-    op.Destination(
+    op.Write(
       buildOperationProps(),
       operation.provider,
       PathUtils.getQualifiedPath(hadoopConfiguration)(operation.options.getOrElse("path", ""))

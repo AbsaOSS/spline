@@ -16,9 +16,14 @@
 
 module.exports = function () {
     return {
-        "lineage": [
+
+        // --------------------------------------------
+        //   CUSTOM ROUTE RESOURCES (See routes.json)
+        // --------------------------------------------
+
+        "_lineages": [
             {
-                "id": "a142c5d6-eec5-3e78-c65c-9ea148a859a3",
+                "id": "ln_ds-uuid-1",
                 "appName": "Sample - FrontCache Conformance",
                 "attributes": [{
                     "id": "attr-uuid-0",
@@ -1107,7 +1112,7 @@ module.exports = function () {
                     "schema": {"attrs": ["attr-uuid-105", "attr-uuid-106"]}
                 }],
                 "operations": [{
-                    "_typeHint": "za.co.absa.spline.core.model.op.Destination",
+                    "_typeHint": "za.co.absa.spline.core.model.op.Write",
                     "mainProps": {
                         "id": "op-uuid-1",
                         "name": "SaveIntoDataSourceCommand",
@@ -6196,7 +6201,7 @@ module.exports = function () {
                     },
                     "alias": "SourceData"
                 }, {
-                    "_typeHint": "za.co.absa.spline.core.model.op.Source",
+                    "_typeHint": "za.co.absa.spline.core.model.op.Read",
                     "mainProps": {
                         "id": "op-uuid-21",
                         "name": "LogicalRelation",
@@ -6205,7 +6210,7 @@ module.exports = function () {
                         "output": "ds-uuid-19"
                     },
                     "sourceType": "Parquet",
-                    "paths": ["file:/C:/git/lineage/sample/data/Conformance/SourceData"]
+                    "sources": [{"path": "file:/C:/git/lineage/sample/data/Conformance/SourceData"}]
                 }, {
                     "_typeHint": "za.co.absa.spline.core.model.op.Alias",
                     "mainProps": {
@@ -6310,7 +6315,7 @@ module.exports = function () {
                     },
                     "alias": "MainSubTypeMapping"
                 }, {
-                    "_typeHint": "za.co.absa.spline.core.model.op.Source",
+                    "_typeHint": "za.co.absa.spline.core.model.op.Read",
                     "mainProps": {
                         "id": "op-uuid-26",
                         "name": "LogicalRelation",
@@ -6319,7 +6324,7 @@ module.exports = function () {
                         "output": "ds-uuid-24"
                     },
                     "sourceType": "CSV",
-                    "paths": ["file:/C:/git/lineage/sample/data/Conformance/ProductMainSubTypeMapping.txt"]
+                    "sources": [{"path": "file:/C:/git/lineage/sample/data/Conformance/ProductMainSubTypeMapping.txt"}]
                 }, {
                     "_typeHint": "za.co.absa.spline.core.model.op.Alias",
                     "mainProps": {
@@ -6449,7 +6454,7 @@ module.exports = function () {
                     },
                     "alias": "EnterpriseProductMapping"
                 }, {
-                    "_typeHint": "za.co.absa.spline.core.model.op.Source",
+                    "_typeHint": "za.co.absa.spline.core.model.op.Read",
                     "mainProps": {
                         "id": "op-uuid-30",
                         "name": "LogicalRelation",
@@ -6458,7 +6463,7 @@ module.exports = function () {
                         "output": "ds-uuid-28"
                     },
                     "sourceType": "CSV",
-                    "paths": ["file:/C:/git/lineage/sample/data/Conformance/EnterpriseProductMapping.txt"]
+                    "sources": [{"path": "file:/C:/git/lineage/sample/data/Conformance/EnterpriseProductMapping.txt"}]
                 }, {
                     "_typeHint": "za.co.absa.spline.core.model.op.Alias",
                     "mainProps": {
@@ -6552,7 +6557,7 @@ module.exports = function () {
                 }]
             },
             {
-                "id": "a142c5d6-eec5-3e78-c65c-9ea148a859a4",
+                "id": "ln_ds-uuid-28",
                 appName: "Foo Bar Application",
                 attributes: [{
                     "id": "attr-uuid-67",
@@ -6592,7 +6597,7 @@ module.exports = function () {
                     "schema": {"attrs": ["attr-uuid-67", "attr-uuid-68", "attr-uuid-69", "attr-uuid-70", "attr-uuid-71", "attr-uuid-72", "attr-uuid-73", "attr-uuid-74"]}
                 }],
                 operations: [{
-                    "_typeHint": "za.co.absa.spline.core.model.op.Destination",
+                    "_typeHint": "za.co.absa.spline.core.model.op.Write",
                     "mainProps": {
                         "id": "op-uuid-1-a4",
                         "name": "SaveIntoDataSourceCommand",
@@ -6603,7 +6608,7 @@ module.exports = function () {
                     "destinationType": "parquet",
                     "path": "data/Conformance/ConformedData"
                 }, {
-                    "_typeHint": "za.co.absa.spline.core.model.op.Source",
+                    "_typeHint": "za.co.absa.spline.core.model.op.Read",
                     "mainProps": {
                         "id": "op-uuid-30-a4",
                         "name": "LogicalRelation",
@@ -6612,76 +6617,73 @@ module.exports = function () {
                         "output": "ds-uuid-28"
                     },
                     "sourceType": "CSV",
-                    "paths": ["file:/C:/git/lineage/sample/data/Conformance/EnterpriseProductMapping.txt"]
+                    "sources": [{"path": "file:/C:/git/lineage/sample/data/Conformance/EnterpriseProductMapping.txt"}]
                 }]
             }
         ],
 
-        // --------------------------------------------
-        //   CUSTOM ROUTE RESOURCES (See routes.json)
-        // --------------------------------------------
+        "_dataset-lineage-overview": [{
+            id: 0,
+            operations: [],
+            datasets: [],
+            attributes: []
+        }],
 
         "_persisted-dataset-descriptors": [{
+            id: "ds-uuid-1",
             datasetId: "ds-uuid-1",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Foo Bar Application",
-            lineageId: "a142c5d6-eec5-3e78-c65c-9ea148a859a3",
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }, {
-            datasetId: "ds-uuid-987",
+            id: "ds-uuid-28",
+            datasetId: "ds-uuid-28",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
-            lineageId: "a142c5d6-eec5-3e78-c65c-9ea148a859a4",
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }, {
+            id: "ds-uuid-988",
             datasetId: "ds-uuid-988",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
-            lineageId: "a142c5d6-eec5-3e78-c65c-9ea148a859a5",
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }, {
             datasetId: "ds-uuid-989",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
-            lineageId: "a142c5d6-eec5-3e78-c65c-9ea148a859a6",
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }, {
             datasetId: "ds-uuid-990",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
-            lineageId: "a142c5d6-eec5-3e78-c65c-9ea148a859a7",
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }, {
             datasetId: "ds-uuid-991",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
-            lineageId: "a142c5d6-eec5-3e78-c65c-9ea148a859a8",
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }, {
             datasetId: "ds-uuid-992",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
-            lineageId: "a142c5d6-eec5-3e78-c65c-9ea148a859a9",
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }, {
             datasetId: "ds-uuid-993",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
-            lineageId: "a142c5d6-eec5-3e78-c65c-9ea148a859a0",
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }, {
             datasetId: "ds-uuid-994",
             appId: "dlkjfghlskdhfjlksd",
             appName: "Sample - FrontCache Conformance",
-            lineageId: "a142c5d6-eec5-3e78-c65c-9ea148a859a1",
             path: "hdfs://foo/bar/baz",
             timestamp: "1506696404000"
         }]

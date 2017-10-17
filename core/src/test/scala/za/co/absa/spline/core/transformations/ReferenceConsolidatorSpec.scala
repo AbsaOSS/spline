@@ -19,9 +19,9 @@ package za.co.absa.spline.core.transformations
 import java.util.UUID.randomUUID
 
 import org.scalatest.{FlatSpec, Matchers}
-import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset, Schema}
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op.{OperationProps, Projection}
+import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset, Schema}
 
 class ReferenceConsolidatorSpec extends FlatSpec with Matchers {
 
@@ -60,7 +60,6 @@ class ReferenceConsolidatorSpec extends FlatSpec with Matchers {
     )
 
     val lineage = DataLineage(
-      randomUUID,
       "appId",
       "appName",
       1L,

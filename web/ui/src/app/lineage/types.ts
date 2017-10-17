@@ -20,11 +20,11 @@ import {IDataType} from "../../generated-ts/datatype-model";
 
 export type OperationType =
     ( "Projection"
-    | "Source"
+    | "Read"
     | "Join"
     | "Generic"
     | "Filter"
-    | "Destination"
+    | "Write"
     | "Alias"
     )
 

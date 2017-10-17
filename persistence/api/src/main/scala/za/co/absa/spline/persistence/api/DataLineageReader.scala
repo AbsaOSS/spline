@@ -16,9 +16,9 @@
 
 package za.co.absa.spline.persistence.api
 
-import java.net.URI
 import java.util.UUID
 
+import za.co.absa.spline.model.op.CompositeWithDependencies
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
 
 import scala.concurrent.Future
@@ -31,10 +31,10 @@ trait DataLineageReader {
   /**
     * The method loads a particular data lineage from the persistence layer.
     *
-    * @param id An unique identifier of a data lineage
+    * @param dsId A unique identifier of a data lineage
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
-  def load(id: UUID): Future[Option[DataLineage]]
+  def loadByDatasetId(dsId: UUID): Future[Option[DataLineage]]
 
   /**
     * The method scans the persistence layer and tries to find a dataset ID for a given path and application ID.
@@ -47,10 +47,25 @@ trait DataLineageReader {
 
   /**
     * The method loads the latest data lineage from the persistence for a given path.
+    *
     * @param path A path for which a lineage graph is looked for
     * @return The latest data lineage
     */
   def loadLatest(path: String): Future[Option[DataLineage]]
+
+  /**
+    * The method loads a composite operation for an output datasetId.
+    * @param datasetId A dataset ID for which the operation is looked for
+    * @return A composite operation with dependencies satisfying the criteria
+    */
+  def loadCompositeByOutput(datasetId : UUID): Future[Option[CompositeWithDependencies]]
+
+  /**
+    * The method loads composite operations for an input datasetId.
+    * @param datasetId A dataset ID for which the operation is looked for
+    * @return Composite operations with dependencies satisfying the criteria
+    */
+  def loadCompositesByInput(datasetId : UUID): Future[Iterator[CompositeWithDependencies]]
 
   /**
     * The method gets all data lineages stored in persistence layer.
@@ -58,4 +73,12 @@ trait DataLineageReader {
     * @return Descriptors of all data lineages
     */
   def list(): Future[Iterator[PersistedDatasetDescriptor]]
+
+  /**
+    * The method returns a dataset descriptor by its ID.
+    *
+    * @param id An unique identifier of a dataset
+    * @return Descriptors of all data lineages
+    */
+  def getDatasetDescriptor(id: UUID): Future[PersistedDatasetDescriptor]
 }

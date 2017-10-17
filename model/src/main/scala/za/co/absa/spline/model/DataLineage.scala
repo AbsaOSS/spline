@@ -18,12 +18,12 @@ package za.co.absa.spline.model
 
 import java.util.UUID
 
+import salat.annotations.Persist
 import za.co.absa.spline.model.op.Operation
 
 /**
   * The case class represents a partial data lineage graph of a Spark dataset(s).
   *
-  * @param id         An unique identifier of the data lineage
   * @param appId      An unique identifier of the application run
   * @param appName    A name of the Spark application
   * @param timestamp  A timestamp describing when the application was executed
@@ -33,7 +33,6 @@ import za.co.absa.spline.model.op.Operation
   */
 case class DataLineage
 (
-  id: UUID,
   appId: String,
   appName: String,
   timestamp: Long,
@@ -45,15 +44,30 @@ case class DataLineage
   require(datasets.nonEmpty, "list of datasets cannot be empty")
 
   /**
+    * A unique identifier of the data lineage
+    */
+  @Persist
+  lazy val id: String = DataLineageId.fromDatasetId(datasets.head.id)
+
+  /**
     * A method returning the root node of a DAG.
     *
     * @return A node representing the last operation performed within data lineage graph. Usually, it describes persistence of data set to some file, database, Kafka endpoint, etc.
     */
-  def rootNode: Operation = operations.head
+  def rootOperation: Operation = operations.head
 
   /**
     * A method returning a descriptor of the data set produced by the computation.
+    *
     * @return A descriptor of the data set produced by the computation.
     */
   def rootDataset: MetaDataset = datasets.head
+}
+
+object DataLineageId {
+  private val prefix = "ln_"
+
+  def fromDatasetId(dsId: UUID): String = prefix + dsId
+
+  def toDatasetId(lnId: String): UUID = UUID.fromString(lnId.substring(prefix.length))
 }
