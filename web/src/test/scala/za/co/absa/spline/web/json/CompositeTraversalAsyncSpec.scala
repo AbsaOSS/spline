@@ -34,10 +34,10 @@ import scala.concurrent.{Await, Future}
   * This is a test suite for high order lineage construction algorithm
   * defined in LineageService
   *
-  * This test suite is for the blocking/sequential version
+  * This test suite is for the non-blocking/async version
   */
 //noinspection NameBooleanParameters,LanguageFeature
-class CompositeTraversalSpec  extends FlatSpec with Matchers with MockitoSugar {
+class CompositeTraversalAsyncSpec  extends FlatSpec with Matchers with MockitoSugar {
 
   /**
     * Composite [lineage] is a lineage viewed as an operation on datasets produced by other lineages
@@ -73,7 +73,7 @@ class CompositeTraversalSpec  extends FlatSpec with Matchers with MockitoSugar {
 
     val svc = new LineageService(readerMock)
 
-    val linf= svc.getDatasetOverviewLineage(UUIDS1)
+    val linf= svc.getDatasetOverviewLineageAsync(UUIDS1)
     val lin = Await.result(linf, 10 seconds)
 
     lin.operations.size shouldEqual 2
@@ -150,7 +150,7 @@ class CompositeTraversalSpec  extends FlatSpec with Matchers with MockitoSugar {
     val svc = new LineageService(readerMock)
     prepareBigLineageMock(readerMock)
 
-    val linf1 = svc.getDatasetOverviewLineage(aUUID)
+    val linf1 = svc.getDatasetOverviewLineageAsync(aUUID)
     val lin1 = Await.result(linf1, 10 seconds)
     lin1.operations.size shouldEqual 5
     lin1.datasets.size shouldEqual 4
@@ -162,7 +162,7 @@ class CompositeTraversalSpec  extends FlatSpec with Matchers with MockitoSugar {
     val svc = new LineageService(readerMock)
     prepareBigLineageMock(readerMock)
 
-    val linf = svc.getDatasetOverviewLineage(cUUID)
+    val linf = svc.getDatasetOverviewLineageAsync(cUUID)
     val lin = Await.result(linf, 10 seconds)
     lin.operations.size shouldEqual 5
     lin.datasets.size shouldEqual 4
@@ -174,7 +174,7 @@ class CompositeTraversalSpec  extends FlatSpec with Matchers with MockitoSugar {
     val svc = new LineageService(readerMock)
     prepareBigLineageMock(readerMock)
 
-    val linf= svc.getDatasetOverviewLineage(dUUID)
+    val linf= svc.getDatasetOverviewLineageAsync(dUUID)
     val lin = Await.result(linf, 10 seconds)
     lin.operations.size shouldEqual 5
     lin.datasets.size shouldEqual 4

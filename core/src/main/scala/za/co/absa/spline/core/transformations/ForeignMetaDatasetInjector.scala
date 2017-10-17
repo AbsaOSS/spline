@@ -52,7 +52,7 @@ class ForeignMetaDatasetInjector(reader: DataLineageReader) extends Transformati
     // collect data
 
     def resolveMetaDataSources(mds : MetaDataSource) : (MetaDataSource, Option[DataLineage]) = {
-      val lineageOption = Await.result(reader.loadLatest(mds.path), 1 second)
+      val lineageOption = Await.result(reader.loadLatest(mds.path), 10 second)
       val datasetIdOption = lineageOption.map(lineage => lineage.rootDataset.id)
       (mds.copy(datasetId = datasetIdOption), lineageOption)
     }

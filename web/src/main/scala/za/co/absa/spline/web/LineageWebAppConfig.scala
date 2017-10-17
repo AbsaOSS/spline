@@ -22,6 +22,7 @@ import za.co.absa.spline.persistence.api.DataLineageReader
 import za.co.absa.spline.persistence.mongo.{MongoConnection, MongoDataLineageReader}
 import org.apache.commons.configuration.{CompositeConfiguration, EnvironmentConfiguration, SystemConfiguration}
 import org.springframework.context.annotation.{Bean, Configuration}
+import za.co.absa.spline.web.rest.service.LineageService
 
 @Configuration
 class LineageWebAppConfig {
@@ -39,4 +40,6 @@ class LineageWebAppConfig {
       dbName = confProps getRequiredString "spline.mongodb.name"
     )
   )
+
+  @Bean def lineageService(reader: DataLineageReader): LineageService = new LineageService(reader)
 }
