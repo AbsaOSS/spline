@@ -36,14 +36,14 @@ class LineageService @Autowired()
 
   def getDatasetOverviewLineage(datasetId: UUID): Future[DataLineage] = {
 
-    var operations: mutable.Set[Operation] = new mutable.HashSet[Operation]()
-    var datasets: mutable.Set[MetaDataset] = new mutable.HashSet[MetaDataset]()
-    var attributes: mutable.Set[Attribute] = new mutable.HashSet[Attribute]()
+    val operations: mutable.Set[Operation] = new mutable.HashSet[Operation]()
+    val datasets: mutable.Set[MetaDataset] = new mutable.HashSet[MetaDataset]()
+    val attributes: mutable.Set[Attribute] = new mutable.HashSet[Attribute]()
 
-    var inputDatasetIds: mutable.Queue[UUID] = new mutable.Queue[UUID]
-    var outputDatasetIds: mutable.Queue[UUID] = new mutable.Queue[UUID]
-    var inputDatasetIdsVisited: mutable.Set[UUID] = new mutable.HashSet[UUID]()
-    var outputDatasetIdsVisited: mutable.Set[UUID] = new mutable.HashSet[UUID]()
+    val inputDatasetIds: mutable.Queue[UUID] = new mutable.Queue[UUID]
+    val outputDatasetIds: mutable.Queue[UUID] = new mutable.Queue[UUID]
+    val inputDatasetIdsVisited: mutable.Set[UUID] = new mutable.HashSet[UUID]()
+    val outputDatasetIdsVisited: mutable.Set[UUID] = new mutable.HashSet[UUID]()
 
     def enqueueInput(dsId: UUID): Unit = inputDatasetIds.synchronized {
       if (!inputDatasetIdsVisited.contains(dsId)) {

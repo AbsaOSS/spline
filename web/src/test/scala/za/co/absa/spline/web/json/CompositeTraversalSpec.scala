@@ -30,6 +30,11 @@ import za.co.absa.spline.web.rest.service.LineageService
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
+/**
+  * This is a test suite for high order lineage construction algorithm
+  * defined in LineageService
+  */
+//noinspection NameBooleanParameters,LanguageFeature
 class CompositeTraversalSpec  extends FlatSpec with Matchers with MockitoSugar {
 
   /**
@@ -124,48 +129,54 @@ class CompositeTraversalSpec  extends FlatSpec with Matchers with MockitoSugar {
       aUUID), cUUID), Seq(TypedMetaDataSource("fileA", "dileA.csv", Some(aUUID))), TypedMetaDataSource("fileC", "fileC.csv", Some(cUUID)),
     0, "AppId", "AppNameC"), Seq(MetaDataset(xUUID3, Schema(Seq(xUUID3)))), Seq(Attribute(xUUID3, "attributeA", Simple("String", true) )))
 
-  it should "be able to construst small high order lineage out of 5 composits" in {
+  def prepareBigLineageMock(readerMock: DataLineageReader): Unit = {
+    when(readerMock.loadCompositeByOutput(aUUID)) thenReturn Future.successful(Some(compositeA))
+    when(readerMock.loadCompositeByOutput(bUUID)) thenReturn Future.successful(Some(compositeB))
+    when(readerMock.loadCompositeByOutput(cUUID)) thenReturn Future.successful(Some(compositeC))
+    when(readerMock.loadCompositeByOutput(dUUID)) thenReturn Future.successful(Some(compositeD))
+    when(readerMock.loadCompositeByOutput(eUUID)) thenReturn Future.successful(Some(compositeE))
+
+    when(readerMock.loadCompositesByInput(aUUID)) thenReturn Future.successful(List(compositeB, compositeC).toIterator)
+    when(readerMock.loadCompositesByInput(bUUID)) thenReturn Future.successful(List().toIterator)
+    when(readerMock.loadCompositesByInput(cUUID)) thenReturn Future.successful(List().toIterator)
+    when(readerMock.loadCompositesByInput(dUUID)) thenReturn Future.successful(List(compositeA).toIterator)
+    when(readerMock.loadCompositesByInput(eUUID)) thenReturn Future.successful(List(compositeA).toIterator)
+  }
+
+  it should "be able to construst small high order lineage out of 5 composits, starting at point A" in {
     val readerMock: DataLineageReader = mock[DataLineageReader]
-
-    def prepareMock(): Unit = {
-      when(readerMock.loadCompositeByOutput(aUUID)) thenReturn Future.successful(Some(compositeA))
-      when(readerMock.loadCompositeByOutput(bUUID)) thenReturn Future.successful(Some(compositeB))
-      when(readerMock.loadCompositeByOutput(cUUID)) thenReturn Future.successful(Some(compositeC))
-      when(readerMock.loadCompositeByOutput(dUUID)) thenReturn Future.successful(Some(compositeD))
-      when(readerMock.loadCompositeByOutput(eUUID)) thenReturn Future.successful(Some(compositeE))
-
-      when(readerMock.loadCompositesByInput(aUUID)) thenReturn Future.successful(List(compositeB, compositeC).toIterator)
-      when(readerMock.loadCompositesByInput(bUUID)) thenReturn Future.successful(List().toIterator)
-      when(readerMock.loadCompositesByInput(cUUID)) thenReturn Future.successful(List().toIterator)
-      when(readerMock.loadCompositesByInput(dUUID)) thenReturn Future.successful(List(compositeA).toIterator)
-      when(readerMock.loadCompositesByInput(eUUID)) thenReturn Future.successful(List(compositeA).toIterator)
-    }
-
     val svc = new LineageService(readerMock)
+    prepareBigLineageMock(readerMock)
 
-    // This is a test when node A is a starting point
-    prepareMock()
-    val linf1= svc.getDatasetOverviewLineage(aUUID)
+    val linf1 = svc.getDatasetOverviewLineage(aUUID)
     val lin1 = Await.result(linf1, 10 seconds)
     lin1.operations.size shouldEqual 5
     lin1.datasets.size shouldEqual 4
     lin1.attributes.size shouldEqual 4
+  }
 
-    // This is a test when node C is a starting point
-    prepareMock()
-    val linf2= svc.getDatasetOverviewLineage(cUUID)
-    val lin2 = Await.result(linf2, 10 seconds)
-    lin2.operations.size shouldEqual 5
-    lin2.datasets.size shouldEqual 4
-    lin2.attributes.size shouldEqual 4
+  it should "be able to construst small high order lineage out of 5 composits, starting at point C" in {
+    val readerMock: DataLineageReader = mock[DataLineageReader]
+    val svc = new LineageService(readerMock)
+    prepareBigLineageMock(readerMock)
 
-    // This is a test when node D is a starting point
-    prepareMock()
-    val linf3= svc.getDatasetOverviewLineage(dUUID)
-    val lin3 = Await.result(linf3, 10 seconds)
-    lin3.operations.size shouldEqual 5
-    lin3.datasets.size shouldEqual 4
-    lin3.attributes.size shouldEqual 4
+    val linf = svc.getDatasetOverviewLineage(cUUID)
+    val lin = Await.result(linf, 10 seconds)
+    lin.operations.size shouldEqual 5
+    lin.datasets.size shouldEqual 4
+    lin.attributes.size shouldEqual 4
+  }
+
+  it should "be able to construst small high order lineage out of 5 composits, starting at point D" in {
+    val readerMock: DataLineageReader = mock[DataLineageReader]
+    val svc = new LineageService(readerMock)
+    prepareBigLineageMock(readerMock)
+
+    val linf= svc.getDatasetOverviewLineage(dUUID)
+    val lin = Await.result(linf, 10 seconds)
+    lin.operations.size shouldEqual 5
+    lin.datasets.size shouldEqual 4
+    lin.attributes.size shouldEqual 4
   }
 
 }
