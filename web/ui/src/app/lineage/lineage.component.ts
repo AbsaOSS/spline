@@ -108,6 +108,13 @@ export class LineageComponent implements OnInit {
         this.doSelectAttribute()
     }
 
+    gotoLineageOverview() {
+        this.router.navigate(["overview"], {
+            fragment: "datasource",
+            relativeTo: this.route.parent.parent
+        })
+    }
+
     private doSelectAttribute(...attrIds: string[]) {
         this.router.navigate([], {
             queryParams: {'attr': attrIds},

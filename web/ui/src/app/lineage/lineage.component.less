@@ -34,18 +34,25 @@
       width: 100%;
     }
 
-    .graph-footer {
-      position: absolute;
-      right: 25px;
-      bottom: 20px;
-
+    .graph-toolbar {
       background: white;
       opacity: 0.8;
       border-radius: 100px;
       box-shadow: 0 0 100px 50px white;
+      position: absolute;
 
       .mat-button {
         min-width: 0;
+      }
+
+      &.graph-header {
+        left: 25px;
+        top: 20px;
+      }
+
+      &.graph-footer {
+        right: 25px;
+        bottom: 20px;
       }
     }
 
