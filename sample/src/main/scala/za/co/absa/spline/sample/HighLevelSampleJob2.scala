@@ -16,13 +16,14 @@ object HighLevelSampleJob2 {
 
     val renewable = spark.read.parquet("data/results/renewableEnergyPercent")
       .select($"*", ($"2013" - $"2012") as "1yrGrowthEnergy")
+      .withColumnRenamed("country", "renew_country")
 
     val gdp = spark.read.parquet("data/results/gdpPerCapitalUSD")
       .select($"*", ($"2013" - $"2012") as "1yrGrowthGDP")
 
-    val overall = renewable.as("renew")
-      .join(gdp.as("gdp"), $"renew.country" === $"gdp.country")
-      .select($"renew.country", $"1yrGrowthEnergy", $"1yrGrowthGDP")
+    val overall = renewable
+      .join(gdp, $"renew_country" === $"country", "inner")
+      .select($"country", $"1yrGrowthEnergy", $"1yrGrowthGDP")
       .orderBy($"1yrGrowthEnergy" desc)
 
     overall.write.mode("overwrite").parquet("greenestCountries")

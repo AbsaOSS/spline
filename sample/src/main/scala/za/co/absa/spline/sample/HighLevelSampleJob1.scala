@@ -6,6 +6,7 @@ object HighLevelSampleJob1 {
   def main(args: Array[String]) {
     val spark = SparkSession.builder()
       .appName("High-level Lineage Job 1")
+      .config("spark.sql.shuffle.partitions", "4")
       .master("local[*]")
       .getOrCreate()
 
