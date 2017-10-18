@@ -37,30 +37,35 @@ export class LineageOverviewGraphComponent implements OnInit {
     @Output() nodeActioned = new EventEmitter<GraphNode>()
 
     private selectedNode: GraphNode
-    private lineage: IDataLineage
     private network: vis.Network
 
     constructor(private container: ElementRef) {
     }
 
     ngOnInit(): void {
-        this.lineage$.subscribe(lineage => {
-            if (lineage !== this.lineage) {
-                this.lineage = lineage
-                this.rebuildGraph(lineage)
+        let lineageContainsDataset = (lin: IDataLineage, dsId: string) => _.some(lin.datasets, {id: dsId}),
+            nodesEqual = (node0: GraphNode, node1: GraphNode) => node0.id == node1.id && node0.type == node1.type,
+            reactOnChange = (prevLineage: IDataLineage, nextLineage: IDataLineage, selectedNode: GraphNode) => {
+                if (!this.network || nextLineage !== prevLineage)
+                    this.rebuildGraph(nextLineage)
+                this.selectedNode = selectedNode
+                this.refreshSelectedNode(selectedNode)
             }
-        })
-        this.selectedNode$.subscribe(selectedNode => {
-            this.selectedNode = selectedNode
-            this.refreshSelectedNode(selectedNode)
-        })
+
+        let lineagePairs$ = this.lineage$.first().concat(this.lineage$).pairwise()
+
+        Observable
+            .combineLatest(lineagePairs$, this.selectedNode$)
+            .filter(([[__, lineage], selectedNode]) => lineageContainsDataset(lineage, selectedNode.id))
+            .distinctUntilChanged(([[__, lin0], node0], [[___, lin1], node1]) => lin0.id == lin1.id && nodesEqual(node0, node1))
+            .subscribe(([[prevLineage, nextLineage], selectedNode]) => reactOnChange(prevLineage, nextLineage, selectedNode))
     }
 
     public fit() {
         this.network.fit()
     }
 
-    private static eventToNode(event:any): GraphNode {
+    private static eventToNode(event: any): GraphNode {
         if (event.nodes.length) {
             let nodeIdWithPrefix = event.nodes[0],
                 nodeId = nodeIdWithPrefix.substring(ID_PREFIX_LENGTH),

@@ -22,7 +22,13 @@
                    (operationSelected)="onOperationSelected($event)"
                    [highlightedNodeIDs]="highlightedNodeIDs">
             </graph>
-            <div class="graph-footer">
+            <div class="graph-header graph-toolbar">
+                <button mat-button (click)="gotoLineageOverview()" title="Show a high level lineage graph">
+                    <mat-icon>keyboard_arrow_left</mat-icon>
+                    Lineage Overview
+                </button>
+            </div>
+            <div class="graph-footer graph-toolbar">
                 <button *ngIf="selectedAttrIDs.length"
                         mat-button (click)="clearSelection()" title="Collapse groups of nodes">
                     <mat-icon title="Clear selection">clear</mat-icon>
