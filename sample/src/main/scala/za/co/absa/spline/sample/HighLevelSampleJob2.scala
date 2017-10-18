@@ -11,9 +11,12 @@ object HighLevelSampleJob2 {
       .getOrCreate()
 
     import spark.implicits._
+
+    // Initializing library to hook up to Apache Spark
     import za.co.absa.spline.core.SparkLineageInitializer._
     spark.enableLineageTracking()
 
+    // A business logic of a spark job ...
     val renewable = spark.read.parquet("data/results/renewableEnergyPercent")
       .select($"*", ($"2013" - $"2012") as "1yrGrowthEnergy")
       .withColumnRenamed("country", "renew_country")
@@ -26,6 +29,6 @@ object HighLevelSampleJob2 {
       .select($"country", $"1yrGrowthEnergy", $"1yrGrowthGDP")
       .orderBy($"1yrGrowthEnergy" desc)
 
-    overall.write.mode("overwrite").parquet("greenestCountries")
+    overall.write.mode("overwrite").parquet("data/results/greenestCountries")
   }
 }

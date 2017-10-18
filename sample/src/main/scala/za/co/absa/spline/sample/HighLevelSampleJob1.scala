@@ -10,11 +10,13 @@ object HighLevelSampleJob1 {
       .master("local[*]")
       .getOrCreate()
 
-
     import spark.implicits._
+
+    // Initializing library to hook up to Apache Spark
     import za.co.absa.spline.core.SparkLineageInitializer._
     spark.enableLineageTracking()
 
+    // A business logic of a spark job ...
     val input = spark.read.option("header", "true").csv("data/input/highLevelLineageData.csv")
 
     val cleaned = input.select(
