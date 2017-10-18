@@ -105,7 +105,7 @@ export class GraphComponent implements OnChanges {
     private refreshHighlightedNodes() {
         const createNode = (id: string, type: VisNodeType): VisNode => {
             let nodeConstructor = type == VisNodeType.Highlighted ? HighlightedVisNode : RegularVisNode
-            let operation = this.lineageStore.getOperation(id)
+            let operation = this.lineageStore.lineageAccessors.getOperation(id)
             return new nodeConstructor(operation)
         }
 

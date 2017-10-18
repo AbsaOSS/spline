@@ -31,7 +31,53 @@
         </mat-grid-tile>
         <mat-grid-tile>
             <div class="details-container">
-                :: Selected node details ::
+
+                <!-- Data Source Info -->
+
+                <div *ngIf="selectedDataSourceDescription">
+                    <details-panel-header
+                            [caption]="selectedDataSourceDescription.source.path"
+                            faIcon="fa-file-o"
+                            iconColor="steelblue">
+                    </details-panel-header>
+                    <hr>
+                    <h5>Type: <b>{{selectedDataSourceDescription.source.type}}</b></h5>
+                    <h5>Timestamp: <b>{{selectedDataSourceDescription.timestamp | date:'medium'}}</b></h5>
+                    <hr>
+                    <div style="text-align: center">
+                        <button mat-raised-button (click)="gotoPartialLineage(selectedOperation.mainProps.id)">
+                            Show detailed lineage graph
+                        </button>
+                    </div>
+                    <hr>
+                    <attribute-list [attrs]="selectedDataSourceDescription.schema.attrs"></attribute-list>
+                </div>
+
+                <!-- Composite Operation Info -->
+
+                <div *ngIf="selectedOperation">
+                    <details-panel-header
+                            [caption]="selectedOperation.appName"
+                            faIcon="fa-cogs"
+                            iconColor="steelblue">
+                    </details-panel-header>
+                    <hr>
+                    <h5>Application ID: <b>{{selectedOperation.appId}}</b></h5>
+                    <h5>Timestamp: <b>{{selectedOperation.timestamp | date:'medium'}}</b></h5>
+                    <hr>
+                    <div style="text-align: center">
+                        <button mat-raised-button (click)="gotoPartialLineage(selectedOperation.mainProps.id)">
+                            Show detailed lineage graph
+                        </button>
+                    </div>
+                    <hr>
+                    <h3>Sources:</h3>
+                    <ul>
+                        <li *ngFor="let src of selectedOperation.sources">
+                            <b>{{src.type}}</b> : {{src.path}}
+                        </li>
+                    </ul>
+                </div>
             </div>
         </mat-grid-tile>
     </mat-grid-list>
