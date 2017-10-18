@@ -17,6 +17,7 @@
 package za.co.absa.spline.web.html.controller
 
 import java.net.URI
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import org.apache.commons.io.IOUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,6 +31,8 @@ import scala.concurrent.duration._
 import scala.concurrent.Await
 import org.springframework.http.{HttpHeaders, HttpStatus, ResponseEntity}
 
+import scala.language.postfixOps
+
 @Controller
 class MainController @Autowired()
 (
@@ -41,14 +44,18 @@ class MainController @Autowired()
 
   @RequestMapping(path = Array("/dataset/lineage/_search"), method = Array(GET))
   @ResponseBody
-  def lineage(@RequestParam("path") path : String, @RequestParam("application_id") applicationId : String) =
+  def lineage(
+               @RequestParam("path") path: String,
+               @RequestParam("application_id") applicationId: String,
+               httpReq:HttpServletRequest,
+               httpRes:HttpServletResponse
+             ): Unit =
     Await.result(reader searchDataset(path, applicationId), 10 seconds) match {
-      case Some(x) => {
-        val headers = new HttpHeaders
-        headers.add("Location", s"/dataset/$x/lineage/overview#datasource")
-        new ResponseEntity[Void](headers, HttpStatus.FOUND)
-      }
-      case None => ResponseEntity.notFound().build()
+      case Some(x) =>
+        val contextPath = httpReq.getServletContext.getContextPath
+        httpRes.sendRedirect(s"$contextPath/dataset/$x/lineage/overview#datasource")
+      case None =>
+        httpRes.setStatus(404)
     }
 
   @RequestMapping(path = Array("/build-info"), method = Array(GET), produces = Array("text/x-java-properties"))
