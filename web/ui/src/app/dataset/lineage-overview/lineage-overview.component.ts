@@ -15,12 +15,52 @@
  */
 
 import {Component} from "@angular/core";
+import {ActivatedRoute, Router} from "@angular/router";
+import {IDataLineage} from "../../../generated-ts/lineage-model";
+import {Observable} from "rxjs/Observable";
+import {GraphNode} from "./lienage-overview-graph.component";
 
 @Component({
-    templateUrl: "lineage-overview.component.html"
+    templateUrl: "lineage-overview.component.html",
+    styleUrls: ["lineage-overview.component.less"]
 })
 
 export class DatasetLineageOverviewComponent {
 
+    lineage$: Observable<IDataLineage>
+
+    selectedNode$: Observable<GraphNode>
+
+    constructor(private route: ActivatedRoute, private router: Router) {
+        this.lineage$ = route.data.map((data: { lineage: IDataLineage }) => data.lineage)
+
+        this.selectedNode$ =
+            Observable.combineLatest(
+                route.fragment,
+                route.parent.data
+            ).map(args => {
+                let [fragment, data] = args
+                return <GraphNode>{
+                    type: fragment,
+                    id: data.dataset.datasetId
+                }
+            })
+    }
+
+    onNodeSelected(node: GraphNode) {
+        this.router.navigate(
+            ["dataset", node.id, "lineage", "overview"], {
+                relativeTo: this.route.parent.parent.parent,
+                fragment: node.type
+            })
+    }
+
+    onNodeActioned(node: GraphNode) {
+        if (node.type == "operation")
+            this.router.navigate(
+                ["dataset", node.id, "lineage", "partial"], {
+                    relativeTo: this.route.parent.parent.parent
+                })
+    }
 }
 

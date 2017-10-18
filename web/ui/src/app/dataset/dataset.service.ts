@@ -42,7 +42,13 @@ export class DatasetService {
         let fetchAndCache = (id: string) => {
             let lop = this.http.get(`rest/dataset/${id}/lineage/overview`).map((res: Response) => res.json()).toPromise()
             this.overviewPromiseCache[id] = lop
-            return lop
+            return lop.then(expandCacheForAllRelatedDatasets)
+        }
+
+        let expandCacheForAllRelatedDatasets = (lineage: IDataLineage) => {
+            lineage.datasets.forEach(ds =>
+                this.overviewPromiseCache[ds.id] = Promise.resolve(lineage))
+            return lineage
         }
 
         let cachedPromise = this.overviewPromiseCache[datasetId]

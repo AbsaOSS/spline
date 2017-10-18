@@ -48,6 +48,9 @@ export class Icon {
             case "Alias":
                 return new Icon("fa-circle-thin", "\uf1db", font);
 
+            case "Composite":
+                return new Icon("fa-cogs", "\uf085", font);
+
             case "Generic":
                 return new Icon("fa-cube", "\uf1b2", font);
                 

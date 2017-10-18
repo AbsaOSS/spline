@@ -201,8 +201,8 @@ case class Composite(
                       appId: String,
                       appName: String
                     ) extends Operation {
-  private val knownSourceLineagesCount = sources.count(_.datasetId.isDefined)
-  private val inputDatasetsCount = mainProps.inputs.size
+  private def knownSourceLineagesCount = sources.count(_.datasetId.isDefined)
+  private def inputDatasetsCount = mainProps.inputs.size
 
   require(
     inputDatasetsCount == knownSourceLineagesCount,

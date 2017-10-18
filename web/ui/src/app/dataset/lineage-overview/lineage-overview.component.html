@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <!--
   ~ Copyright 2017 Barclays Africa Group Limited
   ~
@@ -15,5 +14,27 @@
   ~ limitations under the License.
   -->
 
-<h1>DS Lineage Overview</h1>
-<h3></h3>
+<div>
+    <mat-grid-list cols="3">
+        <mat-grid-tile colspan="2">
+            <lineage-overview-graph #graph
+                                    [lineage$]="lineage$"
+                                    [selectedNode$]="selectedNode$"
+                                    (nodeSelected)="onNodeSelected($event)"
+                                    (nodeActioned)="onNodeActioned($event)">
+            </lineage-overview-graph>
+            <div class="graph-footer">
+                <button mat-button (click)="graph.fit()" title="Fit to screen">
+                    <mat-icon>filter_none</mat-icon>
+                </button>
+            </div>
+        </mat-grid-tile>
+        <mat-grid-tile>
+            <div class="details-container">
+                :: Selected node details ::
+            </div>
+        </mat-grid-tile>
+    </mat-grid-list>
+</div>
+
+<version></version>
