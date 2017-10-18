@@ -46,9 +46,9 @@ class MainController @Autowired()
       case Some(x) => {
         val headers = new HttpHeaders
         headers.add("Location", s"/dataset/$x/lineage/overview")
-        new ResponseEntity[String](headers, HttpStatus.FOUND)
+        new ResponseEntity[Void](headers, HttpStatus.FOUND)
       }
-      case None => ResponseEntity.notFound()
+      case None => ResponseEntity.notFound().build()
     }
 
   @RequestMapping(path = Array("/build-info"), method = Array(GET), produces = Array("text/x-java-properties"))
