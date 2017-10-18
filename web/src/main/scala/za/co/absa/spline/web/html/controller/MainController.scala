@@ -36,7 +36,7 @@ class MainController @Autowired()
   val reader: DataLineageReader
 ) {
 
-  @RequestMapping(path = Array("/", "/lineage/**", "/dashboard/**"), method = Array(GET, HEAD))
+  @RequestMapping(path = Array("/", "/dataset/**", "/dashboard/**"), method = Array(GET, HEAD))
   def index = "index"
 
   @RequestMapping(path = Array("/dataset/lineage/_search"), method = Array(GET))
@@ -45,7 +45,7 @@ class MainController @Autowired()
     Await.result(reader searchDataset(path, applicationId), 10 seconds) match {
       case Some(x) => {
         val headers = new HttpHeaders
-        headers.add("Location", s"/dataset/$x/lineage/overview")
+        headers.add("Location", s"/dataset/$x/lineage/overview#datasource")
         new ResponseEntity[Void](headers, HttpStatus.FOUND)
       }
       case None => ResponseEntity.notFound().build()
