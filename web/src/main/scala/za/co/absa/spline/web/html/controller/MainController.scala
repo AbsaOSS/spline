@@ -16,7 +16,6 @@
 
 package za.co.absa.spline.web.html.controller
 
-import java.net.URI
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import org.apache.commons.io.IOUtils
@@ -29,7 +28,6 @@ import za.co.absa.spline.persistence.api.DataLineageReader
 
 import scala.concurrent.duration._
 import scala.concurrent.Await
-import org.springframework.http.{HttpHeaders, HttpStatus, ResponseEntity}
 
 import scala.language.postfixOps
 
