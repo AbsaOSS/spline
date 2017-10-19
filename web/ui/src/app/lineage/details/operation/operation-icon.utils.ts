@@ -40,7 +40,7 @@ export class Icon {
                 return new Icon("fa-code-fork", "\uf126", font);
 
             case "Projection":
-                return new Icon("fa-cogs", "\uf085", font);
+                return new Icon("fa-chevron-circle-down", "\uf13a", font);
 
             case "Read":
                 return new Icon("fa-database", "\uf1c0", font);

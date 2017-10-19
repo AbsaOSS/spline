@@ -122,7 +122,7 @@ export class LineageOverviewGraphComponent implements OnInit {
             datasetNodes: vis.Node[] = knownDataSources.map((src: ITypedMetaDataSource) => ({
                 id: ID_PREFIXES.datasource + src.datasetId,
                 label: src.type + ":" + src.path,
-                icon: LineageOverviewGraphComponent.getIcon(new Icon("fa-file-o", "\uf016", "FontAwesome"))
+                icon: LineageOverviewGraphComponent.getIcon(new Icon("fa-file", "\uf15b", "FontAwesome"))
             })),
             operationNodes: vis.Node[] = lineage.operations.map((op: IComposite) => ({
                 id: ID_PREFIXES.operation + op.mainProps.id,
