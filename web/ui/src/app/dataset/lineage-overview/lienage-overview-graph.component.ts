@@ -67,18 +67,18 @@ export class LineageOverviewGraphComponent implements OnInit {
         this.network.fit()
     }
 
-    private static eventToNode(event: any): GraphNode {
-        if (event.nodes.length) {
-            let nodeIdWithPrefix = event.nodes[0],
-                nodeId = nodeIdWithPrefix.substring(ID_PREFIX_LENGTH),
-                nodePrefix = nodeIdWithPrefix.substring(0, ID_PREFIX_LENGTH),
-                nodeType: GraphNodeType = (nodePrefix == ID_PREFIXES.operation) ? "operation" : "datasource"
-            return {
-                type: nodeType,
-                id: nodeId
+    private static eventToClickableNode(event: any): GraphNode {
+        let nodeIdWithPrefix = event.nodes.length && event.nodes[0]
+        return LineageOverviewGraphComponent.isClickableNodeId(nodeIdWithPrefix)
+            && {
+                id: nodeIdWithPrefix.substring(ID_PREFIX_LENGTH),
+                type: (nodeIdWithPrefix.substring(0, ID_PREFIX_LENGTH) == ID_PREFIXES.operation) ? "operation" : "datasource"
             }
-        }
-        else return null
+    }
+
+    private static isClickableNodeId(nodeId: string): boolean {
+        const nonClickablePrefix = ID_PREFIXES.datasource + ID_PREFIXES.extra
+        return nodeId && !nodeId.startsWith(nonClickablePrefix)
     }
 
     private rebuildGraph(lineage: IDataLineage) {
@@ -86,19 +86,22 @@ export class LineageOverviewGraphComponent implements OnInit {
         this.network = new vis.Network(this.container.nativeElement, graph, visOptions)
 
         this.network.on("click", event => {
-            let node = LineageOverviewGraphComponent.eventToNode(event)
+            let node = LineageOverviewGraphComponent.eventToClickableNode(event)
             if (node) this.nodeSelected.emit(node)
             else this.refreshSelectedNode(this.selectedNode)
         })
 
         this.network.on("doubleClick", event => {
-            let node = LineageOverviewGraphComponent.eventToNode(event)
+            let node = LineageOverviewGraphComponent.eventToClickableNode(event)
             if (node) this.nodeActioned.emit(node)
         })
 
         let canvasElement = this.container.nativeElement.getElementsByTagName("canvas")[0]
-        this.network.on('hoverNode', () => canvasElement.style.cursor = 'pointer')
         this.network.on('blurNode', () => canvasElement.style.cursor = 'default')
+        this.network.on('hoverNode', (event) => {
+            if (LineageOverviewGraphComponent.isClickableNodeId(event.node))
+                canvasElement.style.cursor = 'pointer'
+        })
         this.network.on("beforeDrawing", ctx => {
             this.network.getSelectedNodes().forEach(nodeId => {
                 let nodePosition = this.network.getPositions(nodeId)
@@ -115,24 +118,34 @@ export class LineageOverviewGraphComponent implements OnInit {
     }
 
     private static buildVisModel(lineage: IDataLineage): vis.Data {
-        let knownDataSources: ITypedMetaDataSource[] = (<any>_(lineage.operations))
-                .flatMap((op: IComposite) => op.sources.concat(op.destination).filter(src => src.datasetId))
+        const getIdentifiableDataSourcesOf =
+            (op: IComposite): ITypedMetaDataSource[] =>
+                op.sources.map((src, i) =>
+                    !src.datasetId
+                        ? _.assign({datasetId: ID_PREFIXES.extra + i + "_" + op.mainProps.id}, src)
+                        : src)
+
+        let dataSources = (<any>_(lineage.operations))
+                .flatMap((op: IComposite) => getIdentifiableDataSourcesOf(op).concat(op.destination))
                 .uniqBy("datasetId")
                 .value(),
-            datasetNodes: vis.Node[] = knownDataSources.map((src: ITypedMetaDataSource) => ({
+            datasetNodes: vis.Node[] = dataSources.map((src: ITypedMetaDataSource) => ({
                 id: ID_PREFIXES.datasource + src.datasetId,
-                label: src.type + ":" + src.path,
-                icon: LineageOverviewGraphComponent.getIcon(new Icon("fa-file", "\uf15b", "FontAwesome"))
+                title: src.type + ":" + src.path,
+                label: src.path.substring(src.path.lastIndexOf("/") + 1),
+                icon: LineageOverviewGraphComponent.getIcon(
+                    new Icon("fa-file", "\uf15b", "FontAwesome"),
+                    src.datasetId.startsWith(ID_PREFIXES.extra) ? "#c0cdd6" : undefined)
             })),
             operationNodes: vis.Node[] = lineage.operations.map((op: IComposite) => ({
                 id: ID_PREFIXES.operation + op.mainProps.id,
                 label: op.appName,
                 icon: LineageOverviewGraphComponent.getIcon(Icon.getIconForNodeType(typeOfOperation(op)))
             })),
-            edges: vis.Edge[] = _.flatMap(lineage.operations, op => {
+            edges: vis.Edge[] = _.flatMap(lineage.operations, (op: IComposite) => {
                 let opNodeId = ID_PREFIXES.operation + op.mainProps.id
-                let inputEdges: vis.Edge[] = op.mainProps.inputs.map(dsId => {
-                        let dsNodeId = ID_PREFIXES.datasource + dsId
+                let inputEdges: vis.Edge[] = getIdentifiableDataSourcesOf(op).map((src: ITypedMetaDataSource) => {
+                        let dsNodeId = ID_PREFIXES.datasource + src.datasetId
                         return {
                             id: dsNodeId + "_" + opNodeId,
                             from: dsNodeId,
@@ -154,12 +167,12 @@ export class LineageOverviewGraphComponent implements OnInit {
         }
     }
 
-    static getIcon(icon: Icon) {
+    static getIcon(icon: Icon, color: string = "#337ab7") {
         return {
             face: icon.font,
             size: 80,
             code: icon.code,
-            color: "#337ab7"
+            color: color
         }
     }
 }
@@ -174,7 +187,8 @@ export interface GraphNode {
 const ID_PREFIX_LENGTH = 3
 const ID_PREFIXES = {
     operation: "op_",
-    datasource: "ds_"
+    datasource: "ds_",
+    extra: "ex_"
 }
 
 const visOptions = {

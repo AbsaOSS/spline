@@ -20,7 +20,7 @@
             <lineage-overview-graph #graph
                                     [lineage$]="lineage$"
                                     [selectedNode$]="selectedNode$"
-                                    (nodeSelected)="onNodeSelected($event)"
+                                    (nodeSelected)="gotoOverviewLineage($event.id, $event.type)"
                                     (nodeActioned)="gotoPartialLineage($event.id)">
             </lineage-overview-graph>
             <div class="graph-footer">
@@ -81,8 +81,12 @@
                     <hr>
                     <h3>Sources:</h3>
                     <ul>
-                        <li *ngFor="let src of selectedOperation.sources">
-                            <b>{{src.type}}</b> : {{src.path}}
+                        <li *ngFor="let src of selectedOperation.sources"
+                            [ngSwitch]="!!src.datasetId">
+                            <a href="javascript:return false"
+                               (click)="gotoOverviewLineage(src.datasetId, 'datasource')"
+                               *ngSwitchCase="true"><b>{{src.type}}</b> : {{src.path}}</a>
+                            <span *ngSwitchDefault=""><b>{{src.type}}</b> : {{src.path}}</span>
                         </li>
                     </ul>
                 </div>

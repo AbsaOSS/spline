@@ -6657,7 +6657,7 @@ module.exports = function () {
                         path: "/some/path/b",
                         type: "parquet"
                     },
-                    sources: [],
+                    sources: [{path: "/some/path/data.csv", type: "CSV"}],
                     mainProps: {
                         "id": "ds-uuid-b",
                         "name": "B",
@@ -6741,6 +6741,15 @@ module.exports = function () {
                     }, {
                         path: "/some/path/e.csv",
                         type: "CSV"
+                    }, {
+                        path: "/some/path/e.json",
+                        type: "JSON"
+                    }, {
+                        path: "/some/path/e.txt",
+                        type: "Text"
+                    }, {
+                        path: "/some/path/e.parquet",
+                        type: "Parquet"
                     }],
                     mainProps: {
                         "id": "ds-uuid-1",
@@ -6755,7 +6764,10 @@ module.exports = function () {
                 {"id": "ds-uuid-b", "schema": {"attrs": ["attr-uuid-4", "attr-uuid-5", "attr-uuid-6"]}},
                 {"id": "ds-uuid-c", "schema": {"attrs": ["attr-uuid-1", "attr-uuid-3", "attr-uuid-6"]}},
                 {"id": "ds-uuid-d", "schema": {"attrs": ["attr-uuid-1", "attr-uuid-3", "attr-uuid-6"]}},
-                {"id": "ds-uuid-1", "schema": {"attrs": ["attr-uuid-0", "attr-uuid-1", "attr-uuid-2", "attr-uuid-3", "attr-uuid-4", "attr-uuid-5", "attr-uuid-6", "attr-uuid-7", "attr-uuid-34", "attr-uuid-35", "attr-uuid-74", "attr-uuid-106", "attr-uuid-352", "attr-uuid-111", "attr-uuid-72", "attr-uuid-71", "attr-uuid-86", "attr-uuid-85", "attr-uuid-49", "attr-uuid-32", "attr-uuid-33", "attr-uuid-30", "attr-uuid-31", "attr-uuid-67", "attr-uuid-68", "attr-uuid-69", "attr-uuid-70", "attr-uuid-73", "attr-uuid-105"]}}
+                {
+                    "id": "ds-uuid-1",
+                    "schema": {"attrs": ["attr-uuid-0", "attr-uuid-1", "attr-uuid-2", "attr-uuid-3", "attr-uuid-4", "attr-uuid-5", "attr-uuid-6", "attr-uuid-7", "attr-uuid-34", "attr-uuid-35", "attr-uuid-74", "attr-uuid-106", "attr-uuid-352", "attr-uuid-111", "attr-uuid-72", "attr-uuid-71", "attr-uuid-86", "attr-uuid-85", "attr-uuid-49", "attr-uuid-32", "attr-uuid-33", "attr-uuid-30", "attr-uuid-31", "attr-uuid-67", "attr-uuid-68", "attr-uuid-69", "attr-uuid-70", "attr-uuid-73", "attr-uuid-105"]}
+                }
             ],
             attributes: [{
                 "id": "attr-uuid-0",
@@ -7792,7 +7804,7 @@ module.exports = function () {
                             path: "/some/path/b",
                             type: "parquet"
                         },
-                        sources: [],
+                        sources: [{path: "/some/path/data.csv", type: "CSV"}],
                         mainProps: {
                             "id": "ds-uuid-b",
                             "name": "B",

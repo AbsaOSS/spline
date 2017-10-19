@@ -19,7 +19,7 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {IAttribute, IDataLineage} from "../../../generated-ts/lineage-model";
 import {Observable} from "rxjs/Observable";
 import * as _ from "lodash";
-import {GraphNode} from "./lienage-overview-graph.component";
+import {GraphNode, GraphNodeType} from "./lienage-overview-graph.component";
 import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
 import {LineageAccessors} from "../../lineage/lineage.store";
 
@@ -78,11 +78,11 @@ export class DatasetLineageOverviewComponent {
         }
     }
 
-    onNodeSelected(node: GraphNode) {
+    gotoOverviewLineage(dsId: string, dsType: GraphNodeType) {
         this.router.navigate(
-            ["dataset", node.id, "lineage", "overview"], {
+            ["dataset", dsId, "lineage", "overview"], {
                 relativeTo: this.route.parent.parent.parent,
-                fragment: node.type
+                fragment: dsType
             })
     }
 
