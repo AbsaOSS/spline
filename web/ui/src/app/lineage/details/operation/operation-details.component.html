@@ -122,9 +122,9 @@
                             [ngSwitch]="getExprType(expr)">
                             <span *ngSwitchCase="'AttributeRemoval'"
                                   class="expr-attr-removal"
-                                  title="Removed attribute '{{expr.children[0].attributeName}}'">
+                                  title="Removed attribute '{{expr.children[0].name}}'">
                                 <i>a</i>
-                                <span>{{ expr.children[0].attributeName }}</span>
+                                <span>{{ expr.children[0].name }}</span>
                             </span>
                             <span *ngSwitchDefault
                                   class="expr-lambda">
@@ -150,6 +150,19 @@
                             <expression-inline [expr]="operation.condition"></expression-inline>
                         </li>
                     </ul>
+                </p-accordionTab>
+            </section>
+
+            <!-- Section: Generic -->
+            <section *ngIf="operationType == 'Generic'">
+                <p-accordionTab [selected]="true">
+                    <p-header>
+                        <details-section-header
+                                caption="Operation source code"
+                                faIcon="fa-code"
+                                iconColor="steelblue"></details-section-header>
+                    </p-header>
+                    <code class="small" title="Internal operation representation">{{operation.rawString}}</code>
                 </p-accordionTab>
             </section>
 

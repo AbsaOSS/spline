@@ -41,13 +41,7 @@ const lineageRoute = {
             : null
 }
 
-const lineageByIdRoute = {
-    path: 'lineage/:id',
-    resolve: {lineage: LineageByDatasetIdResolver},
-    children: [lineageRoute]
-}
-
-const lineageByDatasetRoute = {
+const datasetRoute = {
     path: "dataset/:id",
     resolve: {dataset: PersistentDatasetResolver},
     children: [
@@ -63,12 +57,7 @@ const lineageByDatasetRoute = {
                     path: "partial",
                     resolve: {lineage: LineageByDatasetIdResolver},
                     children: [lineageRoute]
-                }/*,
-                 {
-                 path: "full",
-                 component: DSFullLineageLoaderComponent,
-                 children: [lineageRoute]
-                 }*/
+                }
             ]
         }
     ]
@@ -80,7 +69,6 @@ const routes: Routes = [
         pathMatch: 'full',
         redirectTo: 'dashboard'
     },
-    lineageByIdRoute,
     {
         path: 'dashboard',
         component: DashboardComponent,
@@ -90,11 +78,10 @@ const routes: Routes = [
                 pathMatch: 'full',
                 component: WelcomeComponent
             },
-            lineageByIdRoute,
-            lineageByDatasetRoute
+            datasetRoute
         ]
     },
-    lineageByDatasetRoute
+    datasetRoute
 ]
 
 @NgModule({

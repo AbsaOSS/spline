@@ -49,13 +49,13 @@ export class LineageComponent implements OnInit {
 
         this.route.paramMap.subscribe(pm => {
             let opId = pm.get("operationId")
-            this.selectedOperation = this.lineageStore.getOperation(opId)
+            this.selectedOperation = this.lineageStore.lineageAccessors.getOperation(opId)
         })
 
         this.route.queryParamMap.subscribe(qps => {
             this.selectedAttrIDs = qps.getAll("attr")
-            this.highlightedNodeIDs = this.lineageStore.getOperationIdsByAnyAttributeId(...this.selectedAttrIDs)
-            this.attributeToShowFullSchemaFor = this.lineageStore.getAttribute(qps["attrSchema"])
+            this.highlightedNodeIDs = this.lineageStore.lineageAccessors.getOperationIdsByAnyAttributeId(...this.selectedAttrIDs)
+            this.attributeToShowFullSchemaFor = this.lineageStore.lineageAccessors.getAttribute(qps.get("attrSchema"))
         })
 
         this.route.fragment.subscribe(fragment => {
@@ -106,6 +106,13 @@ export class LineageComponent implements OnInit {
 
     clearSelection() {
         this.doSelectAttribute()
+    }
+
+    gotoLineageOverview() {
+        this.router.navigate(["overview"], {
+            fragment: "datasource",
+            relativeTo: this.route.parent.parent
+        })
     }
 
     private doSelectAttribute(...attrIds: string[]) {

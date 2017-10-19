@@ -25,11 +25,7 @@ import * as _ from "lodash";
 export class LineageStore {
 
     private _lineage$: Subject<IDataLineage> = new ReplaySubject()
-
-    private operationById: { [id: string]: IOperation }
-    private datasetById: { [id: string]: IMetaDataset }
-    private attributeById: { [id: string]: IAttribute }
-    private operationIdsByAttributeId: { [id: string]: string }
+    public lineageAccessors: LineageAccessors
 
     public get lineage$(): Observable<IDataLineage> {
         return this._lineage$
@@ -37,6 +33,17 @@ export class LineageStore {
 
     public set lineage(lineage: IDataLineage) {
         this._lineage$.next(lineage)
+        this.lineageAccessors = new LineageAccessors(lineage)
+    }
+}
+
+export class LineageAccessors {
+    private operationById: { [id: string]: IOperation }
+    private datasetById: { [id: string]: IMetaDataset }
+    private attributeById: { [id: string]: IAttribute }
+    private operationIdsByAttributeId: { [id: string]: string }
+
+    constructor(public lineage: IDataLineage) {
         this.operationById = _.mapValues(_.groupBy(lineage.operations, "mainProps.id"), _.first)
         this.datasetById = _.mapValues(_.groupBy(lineage.datasets, "id"), _.first)
         this.attributeById = _.mapValues(_.groupBy(lineage.attributes, "id"), _.first)
@@ -67,4 +74,5 @@ export class LineageStore {
     public getOperationIdsByAnyAttributeId(...attrIds: string[]): string[] {
         return _.uniq(_.flatMap(attrIds, attrId => this.operationIdsByAttributeId[attrId]))
     }
+
 }

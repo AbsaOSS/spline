@@ -28,31 +28,24 @@
       height: 100%;
     }
 
-    graph {
+    lineage-overview-graph {
       display: block;
       height: 100%;
       width: 100%;
     }
 
-    .graph-toolbar {
+    .graph-footer {
+      position: absolute;
+      right: 25px;
+      bottom: 20px;
+
       background: white;
       opacity: 0.8;
       border-radius: 100px;
       box-shadow: 0 0 100px 50px white;
-      position: absolute;
 
       .mat-button {
         min-width: 0;
-      }
-
-      &.graph-header {
-        left: 25px;
-        top: 20px;
-      }
-
-      &.graph-footer {
-        right: 25px;
-        bottom: 20px;
       }
     }
 
@@ -61,39 +54,9 @@
       width: 100%;
       background: whitesmoke;
 
-      mat-tab-group {
+      > div {
         height: 100%;
-
-        operation-node-details {
-          width: 100%;
-        }
-
-        a.btn.__view-executions {
-          float: right;
-        }
-
-        /deep/ .mat-tab-header {
-          .mat-tab-label {
-            i {
-              font-size: x-large;
-              position: absolute;
-              left: 6px;
-              top: 10px;
-
-              &.spl-tab-attr {
-                color: lightseagreen;
-              }
-            }
-          }
-        }
-
-        /deep/ .mat-tab-body-wrapper {
-          height: 100%;
-
-          .mat-tab-body-content {
-            height: 100%;
-          }
-        }
+        width: 100%;
       }
     }
   }

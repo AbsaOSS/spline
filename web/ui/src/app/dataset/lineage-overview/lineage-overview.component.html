@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <!--
   ~ Copyright 2017 Barclays Africa Group Limited
   ~
@@ -15,5 +14,85 @@
   ~ limitations under the License.
   -->
 
-<h1>DS Lineage Overview</h1>
-<h3></h3>
+<div>
+    <mat-grid-list cols="3">
+        <mat-grid-tile colspan="2">
+            <lineage-overview-graph #graph
+                                    [lineage$]="lineage$"
+                                    [selectedNode$]="selectedNode$"
+                                    (nodeSelected)="gotoOverviewLineage($event.id, $event.type)"
+                                    (nodeActioned)="gotoPartialLineage($event.id)">
+            </lineage-overview-graph>
+            <div class="graph-footer">
+                <button mat-button (click)="graph.fit()" title="Fit to screen">
+                    <mat-icon>filter_none</mat-icon>
+                </button>
+            </div>
+        </mat-grid-tile>
+        <mat-grid-tile>
+            <div class="details-container">
+
+                <!-- Data Source Info -->
+
+                <div *ngIf="selectedDataSourceDescription">
+                    <div style="height: 280px">
+                        <details-panel-header
+                                [caption]="selectedDataSourceDescription.source.path"
+                                faIcon="fa-file"
+                                iconColor="steelblue">
+                        </details-panel-header>
+                        <hr>
+                        <h5>Type: <b>{{selectedDataSourceDescription.source.type}}</b></h5>
+                        <h5>Timestamp: <b>{{selectedDataSourceDescription.timestamp | date:'medium'}}</b></h5>
+                        <hr>
+                        <div style="text-align: center">
+                            <button mat-raised-button (click)="gotoPartialLineage(selectedDataSourceDescription.source.datasetId)">
+                                Show detailed lineage graph
+                            </button>
+                        </div>
+                        <hr>
+                        <h3>Schema:</h3>
+                    </div>
+                    <div style="height: calc(100% - 280px); overflow-y: auto;">
+                        <attribute-view
+                                *ngFor="let attr of selectedDataSourceDescription.schema.attrs"
+                                [attr]="attr">
+                        </attribute-view>
+                    </div>
+                </div>
+
+                <!-- Composite Operation Info -->
+
+                <div *ngIf="selectedOperation">
+                    <details-panel-header
+                            [caption]="selectedOperation.appName"
+                            faIcon="fa-cogs"
+                            iconColor="steelblue">
+                    </details-panel-header>
+                    <hr>
+                    <h5>Application ID: <b>{{selectedOperation.appId}}</b></h5>
+                    <h5>Timestamp: <b>{{selectedOperation.timestamp | date:'medium'}}</b></h5>
+                    <hr>
+                    <div style="text-align: center">
+                        <button mat-raised-button (click)="gotoPartialLineage(selectedOperation.mainProps.id)">
+                            Show detailed lineage graph
+                        </button>
+                    </div>
+                    <hr>
+                    <h3>Sources:</h3>
+                    <ul>
+                        <li *ngFor="let src of selectedOperation.sources"
+                            [ngSwitch]="!!src.datasetId">
+                            <a href="javascript:return false"
+                               (click)="gotoOverviewLineage(src.datasetId, 'datasource')"
+                               *ngSwitchCase="true"><b>{{src.type}}</b> : {{src.path}}</a>
+                            <span *ngSwitchDefault=""><b>{{src.type}}</b> : {{src.path}}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </mat-grid-tile>
+    </mat-grid-list>
+</div>
+
+<version></version>

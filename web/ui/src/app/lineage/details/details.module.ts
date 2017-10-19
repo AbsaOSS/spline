@@ -56,7 +56,9 @@ import {DataTypeViewComponent} from "./attribute-list/attribute-view/data-type-v
     exports: [
         OperationIconComponent,
         OperationDetailsComponent,
-        AttributeViewComponent
+        AttributeViewComponent,
+        AttributeListComponent,
+        DetailsPanelHeaderComponent
     ]
 })
 export class DetailsModule {

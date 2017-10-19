@@ -26,6 +26,7 @@ export type OperationType =
     | "Filter"
     | "Write"
     | "Alias"
+    | "Composite"
     )
 
 export type ExpressionType =
