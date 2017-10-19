@@ -86,11 +86,6 @@ export class DatasetLineageOverviewComponent {
             })
     }
 
-    onNodeActioned(node: GraphNode) {
-        if (node.type == "operation")
-            this.gotoPartialLineage(node.id)
-    }
-
     gotoPartialLineage(dsId: string) {
         this.router.navigate(
             ["dataset", dsId, "lineage", "partial"], {

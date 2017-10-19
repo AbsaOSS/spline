@@ -55,7 +55,7 @@ export class LineageComponent implements OnInit {
         this.route.queryParamMap.subscribe(qps => {
             this.selectedAttrIDs = qps.getAll("attr")
             this.highlightedNodeIDs = this.lineageStore.lineageAccessors.getOperationIdsByAnyAttributeId(...this.selectedAttrIDs)
-            this.attributeToShowFullSchemaFor = this.lineageStore.lineageAccessors.getAttribute(qps["attrSchema"])
+            this.attributeToShowFullSchemaFor = this.lineageStore.lineageAccessors.getAttribute(qps.get("attrSchema"))
         })
 
         this.route.fragment.subscribe(fragment => {

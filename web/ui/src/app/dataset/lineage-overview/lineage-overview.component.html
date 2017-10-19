@@ -21,7 +21,7 @@
                                     [lineage$]="lineage$"
                                     [selectedNode$]="selectedNode$"
                                     (nodeSelected)="onNodeSelected($event)"
-                                    (nodeActioned)="onNodeActioned($event)">
+                                    (nodeActioned)="gotoPartialLineage($event.id)">
             </lineage-overview-graph>
             <div class="graph-footer">
                 <button mat-button (click)="graph.fit()" title="Fit to screen">
@@ -35,22 +35,30 @@
                 <!-- Data Source Info -->
 
                 <div *ngIf="selectedDataSourceDescription">
-                    <details-panel-header
-                            [caption]="selectedDataSourceDescription.source.path"
-                            faIcon="fa-file-o"
-                            iconColor="steelblue">
-                    </details-panel-header>
-                    <hr>
-                    <h5>Type: <b>{{selectedDataSourceDescription.source.type}}</b></h5>
-                    <h5>Timestamp: <b>{{selectedDataSourceDescription.timestamp | date:'medium'}}</b></h5>
-                    <hr>
-                    <div style="text-align: center">
-                        <button mat-raised-button (click)="gotoPartialLineage(selectedOperation.mainProps.id)">
-                            Show detailed lineage graph
-                        </button>
+                    <div style="height: 280px">
+                        <details-panel-header
+                                [caption]="selectedDataSourceDescription.source.path"
+                                faIcon="fa-file-o"
+                                iconColor="steelblue">
+                        </details-panel-header>
+                        <hr>
+                        <h5>Type: <b>{{selectedDataSourceDescription.source.type}}</b></h5>
+                        <h5>Timestamp: <b>{{selectedDataSourceDescription.timestamp | date:'medium'}}</b></h5>
+                        <hr>
+                        <div style="text-align: center">
+                            <button mat-raised-button (click)="gotoPartialLineage(selectedDataSourceDescription.source.datasetId)">
+                                Show detailed lineage graph
+                            </button>
+                        </div>
+                        <hr>
+                        <h3>Schema:</h3>
                     </div>
-                    <hr>
-                    <attribute-list [attrs]="selectedDataSourceDescription.schema.attrs"></attribute-list>
+                    <div style="height: calc(100% - 280px); overflow-y: auto;">
+                        <attribute-view
+                                *ngFor="let attr of selectedDataSourceDescription.schema.attrs"
+                                [attr]="attr">
+                        </attribute-view>
+                    </div>
                 </div>
 
                 <!-- Composite Operation Info -->

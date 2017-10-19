@@ -24,6 +24,7 @@ module.exports = function () {
         "_lineages": [
             {
                 "id": "ln_ds-uuid-1",
+                "appId": "ln_ds-uuid-1",
                 "appName": "Sample - FrontCache Conformance",
                 "attributes": [{
                     "id": "attr-uuid-0",
@@ -1145,7 +1146,7 @@ module.exports = function () {
                             "children": [{
                                 "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                                 "attributeId": 106,
-                                "attributeName": "ProductCategory",
+                                "name": "ProductCategory",
                                 "exprType": "AttributeReference",
                                 "text": "ProductCategory",
                                 "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -1158,7 +1159,7 @@ module.exports = function () {
                                 "children": [{
                                     "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                                     "attributeId": 0,
-                                    "attributeName": "TradeScalar",
+                                    "name": "TradeScalar",
                                     "exprType": "AttributeReference",
                                     "text": "TradeScalar",
                                     "dataType": {
@@ -1368,7 +1369,7 @@ module.exports = function () {
                                 "children": [{
                                     "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                                     "attributeId": 0,
-                                    "attributeName": "TradeScalar",
+                                    "name": "TradeScalar",
                                     "exprType": "AttributeReference",
                                     "text": "TradeScalar",
                                     "dataType": {
@@ -1590,7 +1591,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 111,
-                            "attributeName": "MappingMainType",
+                            "name": "MappingMainType",
                             "exprType": "AttributeReference",
                             "text": "MappingMainType",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -1625,7 +1626,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 34,
-                            "attributeName": "ProductMainType",
+                            "name": "ProductMainType",
                             "exprType": "AttributeReference",
                             "text": "ProductMainType",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -1633,7 +1634,7 @@ module.exports = function () {
                         }, {
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 111,
-                            "attributeName": "MappingMainType",
+                            "name": "MappingMainType",
                             "exprType": "AttributeReference",
                             "text": "MappingMainType",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -1668,7 +1669,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 72,
-                            "attributeName": "FundingInstrumentType",
+                            "name": "FundingInstrumentType",
                             "exprType": "AttributeReference",
                             "text": "FundingInstrumentType",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -1692,7 +1693,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 71,
-                            "attributeName": "AdditionalInstrumentOverride",
+                            "name": "AdditionalInstrumentOverride",
                             "exprType": "AttributeReference",
                             "text": "AdditionalInstrumentOverride",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -1716,7 +1717,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 86,
-                            "attributeName": "MappingSubType",
+                            "name": "MappingSubType",
                             "exprType": "AttributeReference",
                             "text": "MappingSubType",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -1740,7 +1741,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 85,
-                            "attributeName": "MappingMainType",
+                            "name": "MappingMainType",
                             "exprType": "AttributeReference",
                             "text": "MappingMainType",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -1793,7 +1794,7 @@ module.exports = function () {
                                     "children": [{
                                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                                         "attributeId": 34,
-                                        "attributeName": "ProductMainType",
+                                        "name": "ProductMainType",
                                         "exprType": "AttributeReference",
                                         "text": "ProductMainType",
                                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -1801,7 +1802,7 @@ module.exports = function () {
                                     }, {
                                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                                         "attributeId": 85,
-                                        "attributeName": "MappingMainType",
+                                        "name": "MappingMainType",
                                         "exprType": "AttributeReference",
                                         "text": "MappingMainType",
                                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -1816,7 +1817,7 @@ module.exports = function () {
                                     "children": [{
                                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                                         "attributeId": 35,
-                                        "attributeName": "ProductSubType",
+                                        "name": "ProductSubType",
                                         "exprType": "AttributeReference",
                                         "text": "ProductSubType",
                                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -1824,7 +1825,7 @@ module.exports = function () {
                                     }, {
                                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                                         "attributeId": 86,
-                                        "attributeName": "MappingSubType",
+                                        "name": "MappingSubType",
                                         "exprType": "AttributeReference",
                                         "text": "MappingSubType",
                                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -1857,7 +1858,7 @@ module.exports = function () {
                                             "children": [{
                                                 "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                                                 "attributeId": 1,
-                                                "attributeName": "TradeStatic",
+                                                "name": "TradeStatic",
                                                 "exprType": "AttributeReference",
                                                 "text": "TradeStatic",
                                                 "dataType": {
@@ -2487,7 +2488,7 @@ module.exports = function () {
                                     "children": [{
                                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                                         "attributeId": 71,
-                                        "attributeName": "AdditionalInstrumentOverride",
+                                        "name": "AdditionalInstrumentOverride",
                                         "exprType": "AttributeReference",
                                         "text": "AdditionalInstrumentOverride",
                                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -2521,7 +2522,7 @@ module.exports = function () {
                                         "children": [{
                                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                                             "attributeId": 1,
-                                            "attributeName": "TradeStatic",
+                                            "name": "TradeStatic",
                                             "exprType": "AttributeReference",
                                             "text": "TradeStatic",
                                             "dataType": {
@@ -3151,7 +3152,7 @@ module.exports = function () {
                                 "children": [{
                                     "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                                     "attributeId": 72,
-                                    "attributeName": "FundingInstrumentType",
+                                    "name": "FundingInstrumentType",
                                     "exprType": "AttributeReference",
                                     "text": "FundingInstrumentType",
                                     "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -3188,7 +3189,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 49,
-                            "attributeName": "SourceSubType",
+                            "name": "SourceSubType",
                             "exprType": "AttributeReference",
                             "text": "SourceSubType",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -3212,7 +3213,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 32,
-                            "attributeName": "SourceMainType",
+                            "name": "SourceMainType",
                             "exprType": "AttributeReference",
                             "text": "SourceMainType",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -3264,7 +3265,7 @@ module.exports = function () {
                                     "children": [{
                                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                                         "attributeId": 2,
-                                        "attributeName": "Instrument",
+                                        "name": "Instrument",
                                         "exprType": "AttributeReference",
                                         "text": "Instrument",
                                         "dataType": {
@@ -4013,7 +4014,7 @@ module.exports = function () {
                                 "children": [{
                                     "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                                     "attributeId": 32,
-                                    "attributeName": "SourceMainType",
+                                    "name": "SourceMainType",
                                     "exprType": "AttributeReference",
                                     "text": "SourceMainType",
                                     "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -4046,7 +4047,7 @@ module.exports = function () {
                                         "children": [{
                                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                                             "attributeId": 2,
-                                            "attributeName": "Instrument",
+                                            "name": "Instrument",
                                             "exprType": "AttributeReference",
                                             "text": "Instrument",
                                             "dataType": {
@@ -4793,7 +4794,7 @@ module.exports = function () {
                                         "children": [{
                                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                                             "attributeId": 1,
-                                            "attributeName": "TradeStatic",
+                                            "name": "TradeStatic",
                                             "exprType": "AttributeReference",
                                             "text": "TradeStatic",
                                             "dataType": {
@@ -5420,7 +5421,7 @@ module.exports = function () {
                                         "children": [{
                                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                                             "attributeId": 2,
-                                            "attributeName": "Instrument",
+                                            "name": "Instrument",
                                             "exprType": "AttributeReference",
                                             "text": "Instrument",
                                             "dataType": {
@@ -6170,7 +6171,7 @@ module.exports = function () {
                                 "children": [{
                                     "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                                     "attributeId": 49,
-                                    "attributeName": "SourceSubType",
+                                    "name": "SourceSubType",
                                     "exprType": "AttributeReference",
                                     "text": "SourceSubType",
                                     "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -6244,7 +6245,7 @@ module.exports = function () {
                             "children": [{
                                 "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                                 "attributeId": 33,
-                                "attributeName": "SourceSubType",
+                                "name": "SourceSubType",
                                 "exprType": "AttributeReference",
                                 "text": "SourceSubType",
                                 "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -6259,7 +6260,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 33,
-                            "attributeName": "SourceSubType",
+                            "name": "SourceSubType",
                             "exprType": "AttributeReference",
                             "text": "SourceSubType",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -6283,7 +6284,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 30,
-                            "attributeName": "ProductMainSubTypeMappingId",
+                            "name": "ProductMainSubTypeMappingId",
                             "exprType": "AttributeReference",
                             "text": "ProductMainSubTypeMappingId",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -6297,7 +6298,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 31,
-                            "attributeName": "SourceSystem",
+                            "name": "SourceSystem",
                             "exprType": "AttributeReference",
                             "text": "SourceSystem",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -6352,7 +6353,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 68,
-                            "attributeName": "ProductMainType",
+                            "name": "ProductMainType",
                             "exprType": "AttributeReference",
                             "text": "ProductMainType",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -6366,7 +6367,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 69,
-                            "attributeName": "ProductSubType",
+                            "name": "ProductSubType",
                             "exprType": "AttributeReference",
                             "text": "ProductSubType",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -6380,7 +6381,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 67,
-                            "attributeName": "EnterpriseProductMappingId",
+                            "name": "EnterpriseProductMappingId",
                             "exprType": "AttributeReference",
                             "text": "EnterpriseProductMappingId",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -6394,7 +6395,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 68,
-                            "attributeName": "ProductMainType",
+                            "name": "ProductMainType",
                             "exprType": "AttributeReference",
                             "text": "ProductMainType",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -6408,7 +6409,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 69,
-                            "attributeName": "ProductSubType",
+                            "name": "ProductSubType",
                             "exprType": "AttributeReference",
                             "text": "ProductSubType",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -6422,7 +6423,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 70,
-                            "attributeName": "MoneyMarketInstrumentType",
+                            "name": "MoneyMarketInstrumentType",
                             "exprType": "AttributeReference",
                             "text": "MoneyMarketInstrumentType",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -6436,7 +6437,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 73,
-                            "attributeName": "OTCOverride",
+                            "name": "OTCOverride",
                             "exprType": "AttributeReference",
                             "text": "OTCOverride",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -6491,7 +6492,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 105,
-                            "attributeName": "MainType",
+                            "name": "MainType",
                             "exprType": "AttributeReference",
                             "text": "MainType",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -6505,7 +6506,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 105,
-                            "attributeName": "MainType",
+                            "name": "MainType",
                             "exprType": "AttributeReference",
                             "text": "MainType",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -6539,7 +6540,7 @@ module.exports = function () {
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 34,
-                            "attributeName": "ProductMainType",
+                            "name": "ProductMainType",
                             "exprType": "AttributeReference",
                             "text": "ProductMainType",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -6547,7 +6548,7 @@ module.exports = function () {
                         }, {
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
                             "attributeId": 111,
-                            "attributeName": "MappingMainType",
+                            "name": "MappingMainType",
                             "exprType": "AttributeReference",
                             "text": "MappingMainType",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
@@ -6558,6 +6559,7 @@ module.exports = function () {
             },
             {
                 "id": "ln_ds-uuid-28",
+                "appId": "ln_ds-uuid-28",
                 appName: "Foo Bar Application",
                 attributes: [{
                     "id": "attr-uuid-67",
@@ -6753,47 +6755,1009 @@ module.exports = function () {
                 {"id": "ds-uuid-b", "schema": {"attrs": ["attr-uuid-4", "attr-uuid-5", "attr-uuid-6"]}},
                 {"id": "ds-uuid-c", "schema": {"attrs": ["attr-uuid-1", "attr-uuid-3", "attr-uuid-6"]}},
                 {"id": "ds-uuid-d", "schema": {"attrs": ["attr-uuid-1", "attr-uuid-3", "attr-uuid-6"]}},
-                {"id": "ds-uuid-1", "schema": {"attrs": ["attr-uuid-7", "attr-uuid-8", "attr-uuid-9"]}}
+                {"id": "ds-uuid-1", "schema": {"attrs": ["attr-uuid-0", "attr-uuid-1", "attr-uuid-2", "attr-uuid-3", "attr-uuid-4", "attr-uuid-5", "attr-uuid-6", "attr-uuid-7", "attr-uuid-34", "attr-uuid-35", "attr-uuid-74", "attr-uuid-106", "attr-uuid-352", "attr-uuid-111", "attr-uuid-72", "attr-uuid-71", "attr-uuid-86", "attr-uuid-85", "attr-uuid-49", "attr-uuid-32", "attr-uuid-33", "attr-uuid-30", "attr-uuid-31", "attr-uuid-67", "attr-uuid-68", "attr-uuid-69", "attr-uuid-70", "attr-uuid-73", "attr-uuid-105"]}}
             ],
-            attributes: [
-                {
-                    "id": "attr-uuid-1",
-                    "name": "attribute 1",
-                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
-                }, {
-                    "id": "attr-uuid-2",
-                    "name": "attribute 2",
-                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
-                }, {
-                    "id": "attr-uuid-3",
-                    "name": "attribute 3",
-                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
-                }, {
-                    "id": "attr-uuid-4",
-                    "name": "attribute 4",
-                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
-                }, {
-                    "id": "attr-uuid-5",
-                    "name": "attribute 5",
-                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
-                }, {
-                    "id": "attr-uuid-6",
-                    "name": "attribute 6",
-                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
-                }, {
-                    "id": "attr-uuid-7",
-                    "name": "attribute 7",
-                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
-                }, {
-                    "id": "attr-uuid-8",
-                    "name": "attribute 8",
-                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
-                }, {
-                    "id": "attr-uuid-9",
-                    "name": "attribute 9",
-                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            attributes: [{
+                "id": "attr-uuid-0",
+                "name": "TradeScalar",
+                "dataType": {
+                    "_typeHint": "za.co.absa.spline.core.model.dt.Struct",
+                    "fields": [{
+                        "name": "AccruedDiscountBalanceRepCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "AccruedDiscountBalanceTxnCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "decimal(38,10)", "nullable": true}
+                    }, {
+                        "name": "AccruedInterestRepCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "decimal(38,10)", "nullable": true}
+                    }, {
+                        "name": "AccruedInterestTxnCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "decimal(38,10)", "nullable": true}
+                    }, {
+                        "name": "BaseCostDirty",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "BrokerFeesSettledRepCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "BrokerFeesSettledTxnCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "BrokerFeesUnsettledRepCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "BrokerFeesUnsettledTxnCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "BrokerageNonVatable",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "BrokerageVatable",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CallAccruedInterestRepCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CallAccruedInterestTxnCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CashBalanceRepCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CashBalanceTxnCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CashPerCurrencyZAR",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CashRepCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CashTxnCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CashflowRealDivRepCcyAmt",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "DailyExecutionFee",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "DailyExecutionFeeNoVAT",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "DailyVAT",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "DealAmount",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "DividendDivPayDay",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "Dividends",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "EndCash",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ExecutionCost",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "FaceValueRepCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "FaceValueTxnCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "Fees",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "FeesSettled",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "FeesUnsettled",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "Interest",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "InvestorProtectionLevy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "IsMidasSettlement",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ManufacturedDividendValue",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "NetConsideration",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "NominalRepCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "NominalTxnCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "Premium",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "PriceEndDate",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "PvRepCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "PvTxnCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "PvUnsettledDividends",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "RealDividendValue",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "RegulatoryNotional",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "SecurityTransferTax",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "SettledDividends",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "StartCash",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "StrikePrice",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "StrikeRate",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "SweepingPosition",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "TotalLastDividendAmount",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "TotalProfitLoss",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "TradedCleanPrice",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "TradedDirtyPrice",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "TradedInterestInRepCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "TradedInterestInTxnCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "UnderlyingForwardPrice",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "UnsettledPremiumRepCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "UnsettledPremiumTxnCcy",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "Vat",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "YieldToMaturity",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "SecuritiesTransferTax",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }],
+                    "nullable": true
                 }
-            ]
+            }, {
+                "id": "attr-uuid-1",
+                "name": "TradeStatic",
+                "dataType": {
+                    "_typeHint": "za.co.absa.spline.core.model.dt.Struct",
+                    "fields": [{
+                        "name": "AcquireDate",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "AcquirerName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "AcquirerNumber",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "AgriSiloLocation",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "AgriStatus",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "AgriTransportDifferential",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ApproximateLoadDescription",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ApproximateLoadIndicator",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ApproximateLoadPrice",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ApproximateLoadQuantity",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "BrokerBIC",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "BrokerName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "BrokerStatus",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "BuySell",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ClientFundName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ClsStatus",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ConnectedTradeNumber",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ContractTradeNumber",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CorrectionTradeNumber",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CounterpartyName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CounterpartyNumber",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CounterPortfolioName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CounterPortfolioNumber",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CountryPortfolio",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CreateDateTime",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CurrencyName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "DiscountType",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "DiscountingTypeChoiceListEntry",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ExecutionDateTime",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ExternalId",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "FundingInsType",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "FullyFunded",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "FxSubType",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "InsTypeOverrideName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "IsInternalSettlement",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "LastModifiedUserID",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "MaturityDate",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "MentisProjectNumber",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "MirrorTradeNumber",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "MmInstrumentType",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "PortfolioName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "PortfolioNumber",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "Price",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "Quantity",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "RelationshipPartyName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "RwaCounterpartyName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "SourceCounterpartyName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "SourceCounterpartyNumber",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "SourceCounterpartySystem",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "SourceTradeId",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "SourceTradeType",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ShadowRevenueType",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "SwiftMessageStatus",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "TerminatedTradeNumber",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "TradeDateTime",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "TradeKey2ChoiceListEntry",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "TradeNumber",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "TradePhase",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "TradeType",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "TraderABNo",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "TraderName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "TraderNumber",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "TradeStatus",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "TransactionTradeNumber",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "UpdateUserABNo",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "UpdateUserName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "UpdateDateTime",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ValueDate",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "VersionId",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "VolatilityStrike",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "XtpJseRef",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "XtpTradeTypeValue",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "YourRef",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ReferencePrice",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ClearedTrade",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ClrClearingBroker",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ClrBrokerTradeId",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ClearingMemberCode",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ClearingHouseId",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CentralCounterparty",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CcpStatus",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CcpClearingStatus",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CcpClearingHouseId",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "OriginalMarkitWireTradeId",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "OriginalCounterparty",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "MarkitWireTradeId",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CounterpartySdsId",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }],
+                    "nullable": true
+                }
+            }, {
+                "id": "attr-uuid-2",
+                "name": "Instrument",
+                "dataType": {
+                    "_typeHint": "za.co.absa.spline.core.model.dt.Struct",
+                    "fields": [{
+                        "name": "Barrier",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "BarrierEndDate",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "BarrierMonitoring",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "BarrierOptionType",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "BarrierStartDate",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CallPut",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ContractSize",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CommodityDeliverableChoiceListEntry",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CommodityDescriptionChoiceListEntry",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CommodityLabelChoiceListEntry",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CommoditySubAssetsChoiceListEntry",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "CurrencyName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "Digital",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "DomesticCurrencyName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "DoubleBarrier",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "EndDateTime",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ExoticBarrierRebateOnExpiry",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ExoticDigitalBarrierType",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ExoticRebateName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ExoticRebateNumber",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ExpiryDate",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ExpiryTime",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ExternalId1",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ForeignCurrencyName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "FxOptionType",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "InstrumentAddress",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "InstrumentExoticBarrierCrossedStatus",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "InstrumentName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "InstrumentType",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "IsCurrency",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "IsExpired",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "Isin",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "IssuerName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "IssuerNumber",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "Legs",
+                        "dataType": {
+                            "_typeHint": "za.co.absa.spline.core.model.dt.Array",
+                            "elementDataType": {
+                                "_typeHint": "za.co.absa.spline.core.model.dt.Struct",
+                                "fields": [{
+                                    "name": "AccruedInterestTxnCcy",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "AccruedInterestRepCcy",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "AccruedDiscountBalanceTxnCcy",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "AccruedDiscountBalanceRepCcy",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "CashTxnCcy",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "CashRepCcy",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "Carry",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "CleanConsideration",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "CurrencyName",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "CurrentRate",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "CurrentSpread",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "DayCountMethod",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "EndDate",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "FaceValueTxnCcy",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "FaceValueRepCcy",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "FixedRate",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "FloatRateReferenceName",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "FloatRateSpread",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "IsPayLeg",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "LastResetDate",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "LegFloatRateFactor",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "LegNumber",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "LegStartDate",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "LegType",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "NominalRepCcy",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "NominalTxnCcy",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "Price",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "PvTxnCcy",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "PvRepCcy",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "RepoRate",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "RollingPeriod",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }],
+                                "nullable": true
+                            },
+                            "nullable": true
+                        }
+                    }, {
+                        "name": "MmInstrumentType",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "OpenLinkUnitChoiceListEntry",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "OptionExerciseType",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "OptionExoticType",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "Otc",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "PayDayOffset",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "PayOffsetMethod",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "PayType",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "QuoteType",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "Rate",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "RealDividendValue",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "RefValue",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "Rebate",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "ReferencePrice",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "SettlementType",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "SettlementDateTime",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "SpotBankingDayOffset",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "StartDate",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "StrikeCurrencyName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "StrikeCurrencyNumber",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "TxnMaturityPeriod",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "UnderlyingInstrumentType",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "UnderlyingInstruments",
+                        "dataType": {
+                            "_typeHint": "za.co.absa.spline.core.model.dt.Array",
+                            "elementDataType": {
+                                "_typeHint": "za.co.absa.spline.core.model.dt.Struct",
+                                "fields": [{
+                                    "name": "EndDate",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "ExpiryDate",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "ExpiryTime",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "Isin",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "InstrumentAddress",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "InstrumentName",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "InstrumentType",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "IssuerName",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "IssuerNumber",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }, {
+                                    "name": "ParentInstrumentAddress",
+                                    "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                                }],
+                                "nullable": true
+                            },
+                            "nullable": true
+                        }
+                    }, {
+                        "name": "ValuationGroupName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "FixingSourceName",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "Seniority",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }, {
+                        "name": "VersionId",
+                        "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                    }],
+                    "nullable": true
+                }
+            }, {
+                "id": "attr-uuid-3",
+                "name": "Moneyflows",
+                "dataType": {
+                    "_typeHint": "za.co.absa.spline.core.model.dt.Array",
+                    "elementDataType": {
+                        "_typeHint": "za.co.absa.spline.core.model.dt.Struct",
+                        "fields": [{
+                            "name": "CreateDateTime",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "CashflowNumber",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "CounterpartyName",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "CounterpartyNumber",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "CurrencyName",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "CurrencyNumber",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "EndDate",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "FixedRate",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "ForwardRate",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "LegNumber",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "NominalFactor",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "PayDate",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "ProjectedTxnCcy",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "ProjectedRepCcy",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "PvTxnCcy",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "PvRepCcy",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "SourceObjectUpdateUserName",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "StartDate",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "Text",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "Type",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "UpdateTime",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "UpdateUserName",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }],
+                        "nullable": true
+                    },
+                    "nullable": true
+                }
+            }, {
+                "id": "attr-uuid-4",
+                "name": "SalesCredits",
+                "dataType": {
+                    "_typeHint": "za.co.absa.spline.core.model.dt.Array",
+                    "elementDataType": {
+                        "_typeHint": "za.co.absa.spline.core.model.dt.Struct",
+                        "fields": [{
+                            "name": "SalesCreditSubTeamName",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "SalesPersonName",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "StandardSalesCredit",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }, {
+                            "name": "TotalValueAddSalesCredit",
+                            "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+                        }],
+                        "nullable": true
+                    },
+                    "nullable": true
+                }
+            }, {
+                "id": "attr-uuid-5",
+                "name": "Feed",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-6",
+                "name": "IsEoD",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "boolean", "nullable": true}
+            }, {
+                "id": "attr-uuid-7",
+                "name": "ReportDate",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-34",
+                "name": "ProductMainType",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-35",
+                "name": "ProductSubType",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-74",
+                "name": "EnterpriseProduct",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-106",
+                "name": "ProductCategory",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-352",
+                "name": "Balance",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-111",
+                "name": "MappingMainType",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-72",
+                "name": "FundingInstrumentType",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-71",
+                "name": "AdditionalInstrumentOverride",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-86",
+                "name": "MappingSubType",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-85",
+                "name": "MappingMainType",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-49",
+                "name": "SourceSubType",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-32",
+                "name": "SourceMainType",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-33",
+                "name": "SourceSubType",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-30",
+                "name": "ProductMainSubTypeMappingId",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-31",
+                "name": "SourceSystem",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-67",
+                "name": "EnterpriseProductMappingId",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-68",
+                "name": "ProductMainType",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-69",
+                "name": "ProductSubType",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-70",
+                "name": "MoneyMarketInstrumentType",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-73",
+                "name": "OTCOverride",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "attr-uuid-105",
+                "name": "MainType",
+                "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true}
+            }]
         },
             {
                 id: "ds-uuid-28",
