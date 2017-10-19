@@ -20,7 +20,7 @@
 
     <groupId>za.co.absa</groupId>
     <artifactId>spline-parent</artifactId>
-    <version>0.2.2</version>
+    <version>0.2.3-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
