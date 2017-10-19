@@ -57,6 +57,6 @@ class LineageController @Autowired()
 
   @RequestMapping(path = Array("/dataset/{id}/lineage/overview"), method = Array(GET))
   @ResponseBody
-  def datasetLineageOverview(@PathVariable("id") id: UUID): String = Await.result(service getDatasetOverviewLineage id, 10 seconds).toJson
+  def datasetLineageOverview(@PathVariable("id") id: UUID): String = Await.result(service getDatasetOverviewLineageAsync id, 10 seconds).toJson
 
 }

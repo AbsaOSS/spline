@@ -20,128 +20,19 @@ import java.util.UUID
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import za.co.absa.spline.common.FutureImplicits._
 import za.co.absa.spline.model.op._
 import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset}
 import za.co.absa.spline.persistence.api.DataLineageReader
 
 import scala.collection.mutable
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
-
-import za.co.absa.spline.common.FutureImplicits._
+import scala.concurrent.Future
 
 @Service
 class LineageService @Autowired()
 (
   val reader: DataLineageReader
 ) {
-
-  /**
-    * This is blocking/sequential version of getting High Order Lineage by a dataset Id
-    *
-    * @param datasetId An output dataset Id of a Lineage
-    * @return A high order lineage of Composite operations packed in a future
-    *         This future will be available right away since the algorithm is blocking
-    */
-  def getDatasetOverviewLineage(datasetId: UUID): Future[DataLineage] = {
-
-    val operations: mutable.Set[Operation] = new mutable.HashSet[Operation]()
-    val datasets: mutable.Set[MetaDataset] = new mutable.HashSet[MetaDataset]()
-    val attributes: mutable.Set[Attribute] = new mutable.HashSet[Attribute]()
-
-    val inputDatasetIds: mutable.Queue[UUID] = new mutable.Queue[UUID]
-    val outputDatasetIds: mutable.Queue[UUID] = new mutable.Queue[UUID]
-    val inputDatasetIdsVisited: mutable.Set[UUID] = new mutable.HashSet[UUID]()
-    val outputDatasetIdsVisited: mutable.Set[UUID] = new mutable.HashSet[UUID]()
-
-    def enqueueInput(dsId: UUID): Unit = {
-      if (!inputDatasetIdsVisited.contains(dsId)) {
-        inputDatasetIds.enqueue(dsId)
-        inputDatasetIdsVisited += dsId
-      }
-    }
-
-    def enqueueOutput(dsId: UUID): Unit = {
-      if (!outputDatasetIdsVisited.contains(dsId)) {
-        outputDatasetIds.enqueue(dsId)
-        outputDatasetIdsVisited += dsId
-      }
-    }
-
-    def addVisitedComposite(dsId: UUID): Unit = {
-      outputDatasetIdsVisited += dsId
-    }
-
-    def accumulateCompositeDependencies(cd: CompositeWithDependencies): Unit = {
-      val dst = cd.composite.destination.datasetId
-      if (dst.nonEmpty) {
-        addVisitedComposite(dst.get)
-      }
-      operations += cd.composite
-      datasets ++= cd.datasets
-      attributes ++= cd.attributes
-    }
-
-    def traverseUp(dsId: UUID): Unit = {
-      val fut = reader.loadCompositeByOutput(dsId)
-      val cd = Await.result(fut, 10 seconds)
-      if (cd.nonEmpty) {
-        accumulateCompositeDependencies(cd.get)
-        cd.get.composite.sources.foreach(c => {
-          if (c.datasetId.nonEmpty) {
-            enqueueOutput(c.datasetId.get)
-          }
-        })
-        val dst = cd.get.composite.destination.datasetId
-        if (dst.nonEmpty) {
-          enqueueInput(dst.get)
-        }
-      }
-    }
-
-    def traverseDown(dsId: UUID): Unit = {
-      val fut = reader.loadCompositesByInput(dsId)
-      val cds = Await.result(fut, 10 seconds)
-      if (cds.nonEmpty) {
-        for (cd <- cds) {
-          accumulateCompositeDependencies(cd)
-          cd.composite.sources.foreach(c => {
-            if (c.datasetId.nonEmpty) {
-              enqueueOutput(c.datasetId.get)
-            }
-          })
-          if (cd.composite.destination.datasetId.nonEmpty) {
-            enqueueInput(cd.composite.destination.datasetId.get)
-          }
-        }
-      }
-    }
-
-    enqueueOutput(datasetId)
-
-    while (inputDatasetIds.nonEmpty || outputDatasetIds.nonEmpty) {
-      var dsId: Option[UUID] = None
-      if (inputDatasetIds.nonEmpty) {
-        dsId = Some(inputDatasetIds.dequeue())
-      }
-      if (dsId.nonEmpty) {
-        traverseDown(dsId.get)
-        dsId = None
-      }
-
-      if (outputDatasetIds.nonEmpty) {
-        dsId = Some(outputDatasetIds.dequeue())
-      }
-      if (dsId.nonEmpty) {
-        traverseUp(dsId.get)
-        dsId = None
-      }
-    }
-
-    val dataLineage: DataLineage = DataLineage("appId", "appName", 0, operations.toSeq, datasets.toSeq, attributes.toSeq)
-
-    Future.successful(dataLineage)
-  }
 
   /**
     * This is non-blocking version of getting High Order Lineage by a dataset Id
@@ -206,9 +97,8 @@ class LineageService @Autowired()
     }
 
     // Traverse lineage tree from an dataset Id in the direction from destination to source
-    def traverseUp(dsId: UUID): Future[Unit] = {
-      val futCompositeWithDeps = reader.loadCompositeByOutput(dsId)
-      val futLineage = futCompositeWithDeps.map {
+    def traverseUp(dsId: UUID): Future[Unit] =
+      reader.loadCompositeByOutput(dsId).flatMap {
         compositeWithDeps => {
           if (compositeWithDeps.nonEmpty) {
             accumulateCompositeDependencies(compositeWithDeps.get)
@@ -226,13 +116,10 @@ class LineageService @Autowired()
           processQueueAsync()
         }
       }
-      futLineage.flatMap(a => a)
-    }
 
     // Traverse lineage tree from an dataset Id in the direction from source to destination
-    def traverseDown(dsId: UUID): Future[Unit] = {
-      val futCompositeWithDeps = reader.loadCompositesByInput(dsId)
-      val futLineage = futCompositeWithDeps.map {
+    def traverseDown(dsId: UUID): Future[Unit] =
+      reader.loadCompositesByInput(dsId).flatMap {
         compositeList => {
           if (compositeList.nonEmpty) {
             for (compositeWithDeps <- compositeList) {
@@ -251,8 +138,6 @@ class LineageService @Autowired()
           processQueueAsync()
         }
       }
-      futLineage.flatMap(a => a)
-    }
 
     /**
       * This recursively processes the queue of unprocessed composites
@@ -278,14 +163,14 @@ class LineageService @Autowired()
         }
 
         // The queue is not empty, construct recursive call to traverseUp/Down
-        val futDown = if (dsIdDown.isEmpty) Future.successful() else traverseDown(dsIdDown.get)
-        val futUp = if (dsIdUp.isEmpty) Future.successful() else traverseUp(dsIdUp.get)
+        val futDown = dsIdDown map traverseDown getOrElse Future.successful()
+        val futUp = dsIdUp map traverseUp getOrElse Future.successful()
 
-        val f = for {
+        for {
           resDown <- futDown
           resUp <- futUp
-        } yield processQueueAsync()
-        f.flatMap(a => a)
+          f <- processQueueAsync()
+        } yield f
       }
     }
 
