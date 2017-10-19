@@ -44,7 +44,6 @@ export class LineageOverviewGraphComponent implements OnInit {
 
     ngOnInit(): void {
         let lineageContainsDataset = (lin: IDataLineage, dsId: string) => _.some(lin.datasets, {id: dsId}),
-            nodesEqual = (node0: GraphNode, node1: GraphNode) => node0.id == node1.id && node0.type == node1.type,
             reactOnChange = (prevLineage: IDataLineage, nextLineage: IDataLineage, selectedNode: GraphNode) => {
                 if (!this.network || nextLineage !== prevLineage)
                     this.rebuildGraph(nextLineage)
@@ -52,12 +51,15 @@ export class LineageOverviewGraphComponent implements OnInit {
                 this.refreshSelectedNode(selectedNode)
             }
 
-        let lineagePairs$ = this.lineage$.first().concat(this.lineage$).pairwise()
+        let lineagePairs$ =
+            this.lineage$.first()
+                .concat(this.lineage$)
+                .pairwise()
 
         Observable
             .combineLatest(lineagePairs$, this.selectedNode$)
             .filter(([[__, lineage], selectedNode]) => lineageContainsDataset(lineage, selectedNode.id))
-            .distinctUntilChanged(([[__, lin0], node0], [[___, lin1], node1]) => lin0.id == lin1.id && nodesEqual(node0, node1))
+            .distinctUntilChanged(([[__, lin0], node0], [[___, lin1], node1]) => lin0.id == lin1.id && _.isEqual(node0, node1))
             .subscribe(([[prevLineage, nextLineage], selectedNode]) => reactOnChange(prevLineage, nextLineage, selectedNode))
     }
 

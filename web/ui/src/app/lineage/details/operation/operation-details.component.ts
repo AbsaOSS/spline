@@ -53,15 +53,15 @@ export class OperationDetailsComponent implements OnChanges {
     }
 
     getDatasetAttributes(dsId: string): IAttribute[] {
-        let dataset = this.lineageStore.getDataset(dsId)
-        return dataset.schema.attrs.map(attrId => this.lineageStore.getAttribute(attrId))
+        let dataset = this.lineageStore.lineageAccessors.getDataset(dsId)
+        return dataset.schema.attrs.map(attrId => this.lineageStore.lineageAccessors.getAttribute(attrId))
     }
 
     selectAttribute(attrId: string) {
-        this.attributeSelected.emit(this.lineageStore.getAttribute(attrId))
+        this.attributeSelected.emit(this.lineageStore.lineageAccessors.getAttribute(attrId))
     }
 
     showFullAttributeSchema(attrId: string) {
-        this.fullAttributeSchemaRequested.emit(this.lineageStore.getAttribute(attrId))
+        this.fullAttributeSchemaRequested.emit(this.lineageStore.lineageAccessors.getAttribute(attrId))
     }
 }

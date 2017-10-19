@@ -29,13 +29,17 @@ import {DatasetLineageOverviewComponent} from "./lineage-overview/lineage-overvi
 import {MiscModule} from "../misc/misc.module";
 import {MaterialModule} from "../material-extension/material.module";
 import {LineageOverviewGraphComponent} from "./lineage-overview/lienage-overview-graph.component";
+import {CommonModule} from "@angular/common";
+import {DetailsModule} from "../lineage/details/details.module";
 
 
 @NgModule({
     imports: [
         HttpModule,
         MaterialModule,
-        MiscModule
+        MiscModule,
+        CommonModule,
+        DetailsModule
     ],
     declarations: [
         DatasetLineageOverviewComponent,
