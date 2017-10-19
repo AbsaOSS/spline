@@ -52,7 +52,7 @@ export class Icon {
                 return new Icon("fa-cogs", "\uf085", font);
 
             case "Generic":
-                return new Icon("fa-cube", "\uf1b2", font);
+                return new Icon("fa-question-circle", "\uf059", font);
                 
             default:
                 return null;

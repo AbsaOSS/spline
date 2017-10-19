@@ -153,6 +153,19 @@
                 </p-accordionTab>
             </section>
 
+            <!-- Section: Generic -->
+            <section *ngIf="operationType == 'Generic'">
+                <p-accordionTab [selected]="true">
+                    <p-header>
+                        <details-section-header
+                                caption="Operation source code"
+                                faIcon="fa-code"
+                                iconColor="steelblue"></details-section-header>
+                    </p-header>
+                    <code class="small" title="Internal operation representation">{{operation.rawString}}</code>
+                </p-accordionTab>
+            </section>
+
         </p-accordion>
     </div>
 </div>
