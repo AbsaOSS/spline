@@ -40,6 +40,13 @@ object ConfigurationImplicits {
     def getRequiredString: (String) => String = getRequired(conf.getString, isNotBlank)
 
     /**
+      * Gets a value of string array configuration property and checks whether the array is not empty.
+      *
+      * @return A value of string array configuration property if not empty, otherwise throws an exception.
+      */
+    def getRequiredStringArray: (String) => Array[String] = getRequired(conf.getStringArray, (i : Array[String]) => i.nonEmpty)
+
+    /**
       * Gets a value of boolean configuration property and checks whether property exists.
       *
       * @return A value of boolean configuration property if exists, otherwise throws an exception.

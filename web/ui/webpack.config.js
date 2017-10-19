@@ -27,7 +27,7 @@ var commonPlugins = [
         __APP_VERSION__: JSON.stringify(process.env.SPLINE_VERSION)
     }),
     new webpack.ContextReplacementPlugin(
-        /angular(\\|\/)core(\\|\/)(esm(\\|\/)src|src)(\\|\/)linker/,
+        /angular(\\|\/)core(\\|\/)@angular/,
         path.resolve(__dirname, 'doesnotexist/')
     ),
     new webpack.optimize.CommonsChunkPlugin({
@@ -55,7 +55,7 @@ module.exports = {
     ),
     module: {
         loaders: [
-            {test: /\.exec\.js$/, include: /src\/scripts/, loaders: ['script-loader']},
+            {test: /\.exec\.js$/, include: /src\/third-party-scripts/, loaders: ['script-loader']},
             {test: /\.ts$/, exclude: /node_modules/, loaders: ['awesome-typescript-loader', 'angular2-template-loader']},
             {test: /\.(html|css)$/, exclude: /node_modules/, loader: 'raw-loader'},
             {test: /\.less$/, exclude: /node_modules/, loader: 'raw-loader!less-loader'},

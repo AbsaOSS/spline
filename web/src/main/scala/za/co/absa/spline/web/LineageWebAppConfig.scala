@@ -18,10 +18,11 @@ package za.co.absa.spline.web
 
 import java.util.Arrays.asList
 
-import za.co.absa.spline.persistence.api.DataLineagePersistor
-import za.co.absa.spline.persistence.mongo.MongoDataLineagePersistor
+import za.co.absa.spline.persistence.api.DataLineageReader
+import za.co.absa.spline.persistence.mongo.{MongoConnection, MongoDataLineageReader}
 import org.apache.commons.configuration.{CompositeConfiguration, EnvironmentConfiguration, SystemConfiguration}
 import org.springframework.context.annotation.{Bean, Configuration}
+import za.co.absa.spline.web.rest.service.LineageService
 
 @Configuration
 class LineageWebAppConfig {
@@ -33,8 +34,12 @@ class LineageWebAppConfig {
     new EnvironmentConfiguration
   ))
 
-  @Bean def lineageStorage: DataLineagePersistor = new MongoDataLineagePersistor(
-    dbUrl = confProps getRequiredString "spline.mongodb.url",
-    dbName = confProps getRequiredString "spline.mongodb.name"
+  @Bean def lineageReader: DataLineageReader = new MongoDataLineageReader(
+    new MongoConnection(
+      dbUrl = confProps getRequiredString "spline.mongodb.url",
+      dbName = confProps getRequiredString "spline.mongodb.name"
+    )
   )
+
+  @Bean def lineageService(reader: DataLineageReader): LineageService = new LineageService(reader)
 }

@@ -22,7 +22,7 @@
         <groupId>za.co.absa</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../../parent/pom.xml</relativePath>
-        <version>0.2.0</version>
+        <version>0.2.2</version>
     </parent>
 
     <artifactId>spline-persistence-mongo</artifactId>
@@ -44,6 +44,10 @@
             <groupId>za.co.absa</groupId>
             <artifactId>spline-commons</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.salat</groupId>
+            <artifactId>salat-core_${scala.compat.version}</artifactId>
         </dependency>
     </dependencies>
 

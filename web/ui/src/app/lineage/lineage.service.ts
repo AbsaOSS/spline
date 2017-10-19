@@ -15,32 +15,25 @@
  */
 
 import {Injectable} from "@angular/core";
-import {IDataLineageDescriptor, IDataLineage} from "../../generated-ts/lineage-model";
 import {Http, Response} from "@angular/http";
 import "rxjs";
+import {IDataLineage} from "../../generated-ts/lineage-model";
 
 @Injectable()
 export class LineageService {
-    private lineageDescriptors: Promise<IDataLineageDescriptor[]>
-
-    private lineagePromiseCache: {[id: string]: Promise<IDataLineage>;} = {}
+    private lineagePromiseCache: { [id: string]: Promise<IDataLineage>; } = {}
 
     constructor(private http: Http) {
-        this.lineageDescriptors = http.get("rest/lineage/descriptors").map(res => res.json()).toPromise()
     }
 
-    getLineageDescriptors(): Promise<IDataLineageDescriptor[]> {
-        return this.lineageDescriptors
-    }
-
-    getLineage(id: string): Promise<IDataLineage> {
+    getLineage(dsId: string): Promise<IDataLineage> {
         let fetchAndCache = (id: string) => {
-            let lp = this.http.get(`rest/lineage/${id}`).map((res: Response) => res.json()).toPromise()
+            let lp = this.http.get(`rest/dataset/${id}/lineage/partial`).map((res: Response) => res.json()).toPromise()
             this.lineagePromiseCache[id] = lp
             return lp
         }
 
-        let cachedPromise = this.lineagePromiseCache[id]
-        return (cachedPromise) ? cachedPromise : fetchAndCache(id)
+        let cachedPromise = this.lineagePromiseCache[dsId]
+        return (cachedPromise) ? cachedPromise : fetchAndCache(dsId)
     }
 }

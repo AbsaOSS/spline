@@ -16,13 +16,11 @@
 
 package za.co.absa.spline.persistence.mongo
 
-
-
 import org.apache.commons.configuration.Configuration
 import za.co.absa.spline.persistence.api._
 
 /**
-  * The object contains static information about settings needed for initialization of the MongoPersistenceFactory class.
+  * The object contains static information about settings needed for initialization of the MongoPersistenceWriterFactory class.
   */
 object MongoPersistenceFactory{
   val mongoDbUrlKey = "spline.mongodb.url"
@@ -30,7 +28,7 @@ object MongoPersistenceFactory{
 }
 
 /**
-  * The class represents a factory creating Mongo persistence layers for all main data lineage entities.
+  * The class represents a factory creating Mongo persistence writers for all main data lineage entities.
   *
   * @param configuration A source of settings
   */
@@ -42,7 +40,25 @@ class MongoPersistenceFactory(configuration: Configuration) extends PersistenceF
   private lazy val dbUrl = configuration getRequiredString mongoDbUrlKey
   private lazy val dbName = configuration getRequiredString mongoDbNameKey
 
-  override def createDataLineagePersistor(): DataLineagePersistor = new MongoDataLineagePersistor(dbUrl, dbName)
+  /**
+    * The method creates a persistence writer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
+    *
+    * @return A persistence writer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    */
+  override def createDataLineageWriter(): DataLineageWriter = new MongoDataLineageWriter(new MongoConnection(dbUrl, dbName))
 
-  override def createExecutionPersistor(): ExecutionPersistor = new MongoExecutionPersistor(dbUrl, dbName)
+  /**
+    * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
+    *
+    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    */
+  def createDataLineageReader(): DataLineageReader = new MongoDataLineageReader(new MongoConnection(dbUrl, dbName))
+
+  /**
+    * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity if the factory can. Otherwise, returns default.
+    *
+    * @param default A default data lineage reader
+    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    */
+  def createDataLineageReaderOrGetDefault(default: DataLineageReader): DataLineageReader = createDataLineageReader()
 }
