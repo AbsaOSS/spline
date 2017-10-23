@@ -52,7 +52,7 @@ Our main focus is to solve the following particular problems:
 ##### Runtime
 
 * [Scala](https://www.scala-lang.org/) 2.11
-* [Spark](http://spark.apache.org/) 2.2.0 (snapshot version is available in the ASF maven [repo](https://repository.apache.org/content/groups/snapshots/))
+* [Spark](http://spark.apache.org/) 2.2.0
 * [MongoDB](https://www.mongodb.com/) 3.2
 
 ##### Build time
@@ -130,23 +130,6 @@ def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfig
 
 # Examples
 [Sample]({{ site.github.repository_url }}/tree/master/sample/) folder contains some sample Spline enabled Spark jobs.
-The jobs can be executed locally via ```SamplesRunner``` unit test class.
-
-### Running sample job
-
-First, configure Mongo database connection where Spline will store captured lineage data.
-See [Configuration](#configuration) section for details.
-
-Then run the following commands:
-
-```
-cd sample
-mvn test -Psamples -Dspline.mongodb.url={MONGO CONNECTION URL} -Dspline.mongodb.name={MONGO DATABASE NAME}
-```
-
-It will execute [SamplesRunner]({{ site.github.repository_url }}/blob/master/sample/src/test/scala/za/co/absa/spline/sample/SamplesRunner.scala) test that will run two sample jobs:
-[SampleJob1]({{ site.github.repository_url }}/blob/master/sample/src/main/scala/za/co/absa/spline/sample/SampleJob1.scala) and
-[SampleJob2]({{ site.github.repository_url }}/blob/master/sample/src/main/scala/za/co/absa/spline/sample/SampleJob2.scala)
 
 Sample jobs read data from the [/sample/data/input/]({{ site.github.repository_url }}/tree/master/sample/data/input/) folder
 and write the result into [/sample/data/results/]({{ site.github.repository_url }}/tree/master/sample/data/results/)
