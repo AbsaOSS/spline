@@ -104,6 +104,21 @@ section.
 
 1. Deploy Spline WAR file to your Java web container (tested on Tomcat 7, but other containers should also work)
 
+
+
+
+# <a name="persistence"></a> Lineage persistence
+Spline can persist harvested lineages in various ways. It uses [PersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/PersistenceFactory.scala) to obtain instances of [DataLineageReader]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/DataLineageReader.scala) and [DataLineageWriter]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/DataLineageWriter.scala) to persist and access the data lineages.
+Out of the box Spline supports three types of persistors:
+- [MongoPersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/mongo/src/main/scala/za/co/absa/spline/persistence/mongo/MongoPersistenceFactory.scala) (stores lineages to the MongoDB)
+- [HdfsPersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/hdfs/src/main/scala/za/co/absa/spline/persistence/hdfs/HdfsPersistenceFactory.scala) (stores lineages as a JSON file)
+- [AtlasPersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/atlas/src/main/scala/za/co/absa/spline/persistence/atlas/AtlasPersistenceFactory.scala) (is used for integration with Apache Atlas)
+
+There is also a [ParallelCompositeFactory]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/composition/ParallelCompositeFactory.scala) that works as a proxy and delegate work to other persistors.
+So for example, you can store the lineages to, say, Mongo and Atlas simultaneously.
+
+
+
 # <a name="configuration"></a> Configuration
 When enabling data lineage tracking for a Spark session in your Spark job a ```SparkConfigurer``` instance can be passed
 as a argument to the ```enableLineageTracking()``` method.
@@ -122,10 +137,13 @@ def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfig
 
 ### Configuration properties
 
+
 | Property | Description | Example
 | --- | --- | --- |
-| `spline.mongodb.url` | Mongo connection URL | mongodb://1.2.3.4
-| `spline.mongodb.name` | Mongo database name | my_job_lineage_data
+| `spline.persistence.factory` | Fully qualified name of the [PersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/PersistenceFactory.scala) implementation to use by Spline | za.co.absa.spline.persistence.mongo.MongoPersistenceFactory
+| `spline.mongodb.url` | Mongo connection URL <br> _(MongoPersistenceFactory only)_ | mongodb://1.2.3.4
+| `spline.mongodb.name` | Mongo database name <br> _(MongoPersistenceFactory only)_ | my_job_lineage_data
+| `spline.persistence.composition.factories` | Comma separated list of factories to delegate to <br> _(specific to ParallelCompositeFactory)_ | za.co.absa.spline.persistence.mongo.MongoPersistenceFactory, za.co.absa.spline.persistence.hdfs.HdfsPersistenceFactory
 
 
 # Examples
