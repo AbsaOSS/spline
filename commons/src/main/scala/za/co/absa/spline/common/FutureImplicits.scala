@@ -17,16 +17,24 @@
 package za.co.absa.spline.common
 
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit._
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 
 /**
-  * The object contains implicit values and methods for [[scala.concurrent.Future Futures]].
-  */
+ * The object contains implicit values and methods for [[scala.concurrent.Future Futures]].
+ */
 object FutureImplicits {
 
   /**
-    * An execution context using a dedicated cached thread pool.
-    */
-  implicit val executionContext = ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
+   * An execution context using a dedicated cached thread pool.
+   */
+  implicit val executionContext: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(Executors.newWorkStealingPool)
+
+  Runtime.getRuntime addShutdownHook new Thread() {
+    override def run(): Unit = {
+      executionContext.shutdown()
+      executionContext.awaitTermination(10, MINUTES)
+    }
+  }
 }
