@@ -24,8 +24,9 @@ import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMethod._
 import org.springframework.web.bind.annotation.{PathVariable, RequestMapping, ResponseBody}
 import za.co.absa.spline.persistence.api.DataLineageReader
-import za.co.absa.spline.web.rest.service.LineageService
+import za.co.absa.spline.web.ExecutionContextImplicit
 import za.co.absa.spline.web.json.StringJSONConverters
+import za.co.absa.spline.web.rest.service.LineageService
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -39,7 +40,7 @@ class LineageController @Autowired()
 (
   val reader: DataLineageReader,
   val service: LineageService
-) {
+) extends ExecutionContextImplicit {
 
   import StringJSONConverters._
 

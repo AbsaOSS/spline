@@ -21,6 +21,7 @@ import org.apache.commons.configuration._
 import org.apache.spark.sql.SparkSession
 
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
 import scala.util.Try
 
 /**
@@ -34,7 +35,10 @@ object SparkLineageInitializer {
     * @param sparkSession A Spark session
     */
   implicit class SparkSessionWrapper(sparkSession: SparkSession) {
+
     private val sessionState = sparkSession.sessionState
+
+    private implicit val executionContext = ExecutionContext.global
 
     /**
       * The method performs all necessary registrations and procedures for initialization of the library.

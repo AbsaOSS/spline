@@ -25,17 +25,17 @@ import org.springframework.web.bind.annotation.{RequestMapping, RequestParam, Re
 import org.springframework.web.bind.annotation.RequestMethod.{GET, HEAD}
 import za.co.absa.spline.common.ARMImplicits
 import za.co.absa.spline.persistence.api.DataLineageReader
+import za.co.absa.spline.web.ExecutionContextImplicit
 
 import scala.concurrent.duration._
-import scala.concurrent.Await
-
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor}
 import scala.language.postfixOps
 
 @Controller
 class MainController @Autowired()
 (
   val reader: DataLineageReader
-) {
+) extends ExecutionContextImplicit {
 
   @RequestMapping(path = Array("/", "/dataset/**", "/dashboard/**"), method = Array(GET, HEAD))
   def index = "index"
@@ -45,8 +45,8 @@ class MainController @Autowired()
   def lineage(
                @RequestParam("path") path: String,
                @RequestParam("application_id") applicationId: String,
-               httpReq:HttpServletRequest,
-               httpRes:HttpServletResponse
+               httpReq: HttpServletRequest,
+               httpRes: HttpServletResponse
              ): Unit =
     Await.result(reader searchDataset(path, applicationId), 10 seconds) match {
       case Some(x) =>

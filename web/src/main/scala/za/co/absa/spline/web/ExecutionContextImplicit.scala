@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.api
+package za.co.absa.spline.web
 
-import za.co.absa.spline.model.DataLineage
+import scala.concurrent.ExecutionContext
 
-import scala.concurrent.{ExecutionContext, Future}
-
-/**
-  * The trait represents a writer to a persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
-  */
-trait DataLineageWriter {
-
-  /**
-    * The method stores a particular data lineage to the persistence layer.
-    *
-    * @param lineage A data lineage that will be stored
-    */
-  def store(lineage: DataLineage)(implicit ec: ExecutionContext) : Future[Unit]
+trait ExecutionContextImplicit {
+  protected implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.global
 }

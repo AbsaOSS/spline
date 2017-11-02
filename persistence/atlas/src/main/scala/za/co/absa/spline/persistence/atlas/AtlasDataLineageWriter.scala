@@ -17,13 +17,12 @@
 package za.co.absa.spline.persistence.atlas
 
 import org.apache.atlas.hook.AtlasHook
-import za.co.absa.spline.common.FutureImplicits._
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.DataLineageWriter
 import za.co.absa.spline.persistence.atlas.conversion.DataLineageToTypeSystemConverter
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 
 /**
@@ -38,7 +37,7 @@ class AtlasDataLineageWriter extends AtlasHook with DataLineageWriter {
     *
     * @param lineage A data lineage that will be stored
     */
-  override def store(lineage: DataLineage): Future[Unit] = Future{
+  override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = Future {
     val entityCollections = DataLineageToTypeSystemConverter.convert(lineage)
     this.notifyEntities("Anonymous", entityCollections.asJava)
   }

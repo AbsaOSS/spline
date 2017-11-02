@@ -16,12 +16,32 @@
 
 package za.co.absa.spline.core
 
+import org.apache.commons.configuration.Configuration
 import org.apache.spark.sql.SparkSession
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 import za.co.absa.spline.core.SparkLineageInitializer._
 import za.co.absa.spline.core.conf.DefaultSplineConfigurer._
+import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
+
+object SparkLineageInitializerSpec {
+
+  class MockPersistenceWriterFactory(conf: Configuration) extends PersistenceFactory(conf) with MockitoSugar {
+    private val mockDataLineageWriter = mock[DataLineageWriter]
+    private val mockDataLineageReader = mock[DataLineageReader]
+
+    override def createDataLineageWriter(): DataLineageWriter = mockDataLineageWriter
+
+    override def createDataLineageReader(): DataLineageReader = mockDataLineageReader
+
+    override def createDataLineageReaderOrGetDefault(default: DataLineageReader): DataLineageReader = mockDataLineageReader
+  }
+
+}
 
 class SparkLineageInitializerSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
+
+  import SparkLineageInitializerSpec._
 
   private val jvmProps = System.getProperties
 

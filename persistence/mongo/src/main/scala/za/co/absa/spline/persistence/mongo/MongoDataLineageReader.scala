@@ -16,19 +16,18 @@
 
 package za.co.absa.spline.persistence.mongo
 
+import java.util.Arrays._
 import java.util.UUID
 
 import _root_.salat._
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons
-import za.co.absa.spline.common.FutureImplicits._
 import za.co.absa.spline.model.op._
 import za.co.absa.spline.model.{DataLineage, DataLineageId, PersistedDatasetDescriptor}
 import za.co.absa.spline.persistence.api.DataLineageReader
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
-import java.util.Arrays._
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * The class represents Mongo persistence writer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
@@ -45,7 +44,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @param dsId An unique identifier of a data lineage
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
-  override def loadByDatasetId(dsId: UUID): Future[Option[DataLineage]] = Future {
+  override def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Future[Option[DataLineage]] = Future {
     val lineageId = DataLineageId.fromDatasetId(dsId)
     Option(connection.dataLineageCollection findOne lineageId) map withVersionCheck(grater[DataLineage].asObject(_))
   }
@@ -54,11 +53,11 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
   /**
     * The method scans the persistence layer and tries to find a dataset ID for a given path and application ID.
     *
-    * @param path A path for which a dataset ID is looked for
+    * @param path          A path for which a dataset ID is looked for
     * @param applicationId An application for which a dataset ID is looked for
     * @return An identifier of a meta data set
     */
-  def searchDataset(path: String, applicationId: String): Future[Option[UUID]] = Future {
+  override def searchDataset(path: String, applicationId: String)(implicit ec: ExecutionContext): Future[Option[UUID]] = Future {
     connection.dataLineageCollection.aggregate(
       asList(
         DBObject("$match" → DBObject("operations.0.path" → path, "appId" → applicationId)),
@@ -75,7 +74,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @param path A path for which a lineage graph is looked for
     * @return The latest data lineage
     */
-  override def loadLatest(path: String): Future[Option[DataLineage]] = Future {
+  override def loadLatest(path: String)(implicit ec: ExecutionContext): Future[Option[DataLineage]] = Future {
     Option(
       connection.dataLineageCollection.findOne(
         DBObject("operations.0.path" → path),
@@ -85,18 +84,19 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     ) map withVersionCheck(grater[DataLineage].asObject(_))
   }
 
-  private def lineageToCompositeWithDependencies(dataLineage: DataLineage) : CompositeWithDependencies = {
+  private def lineageToCompositeWithDependencies(dataLineage: DataLineage): CompositeWithDependencies = {
     def castIfRead(op: Operation): Option[Read] = op match {
       case a@Read(_, _, _) => Some(a)
       case _ => None
     }
-    val inputSources : Seq[TypedMetaDataSource] = for {
+
+    val inputSources: Seq[TypedMetaDataSource] = for {
       read <- dataLineage.operations.flatMap(castIfRead)
       source <- read.sources
     } yield TypedMetaDataSource(read.sourceType, source.path, source.datasetId)
 
     val outputWriteOperation = dataLineage.rootOperation.asInstanceOf[Write]
-    val outputSource  = TypedMetaDataSource(outputWriteOperation.destinationType, outputWriteOperation.path, Some(outputWriteOperation.mainProps.output))
+    val outputSource = TypedMetaDataSource(outputWriteOperation.destinationType, outputWriteOperation.path, Some(outputWriteOperation.mainProps.output))
 
     val inputDatasetIds = inputSources.flatMap(_.datasetId)
     val outputDatasetId = dataLineage.rootDataset.id
@@ -129,31 +129,33 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
 
   /**
     * The method loads a composite operation for an output datasetId.
+    *
     * @param datasetId A dataset ID for which the operation is looked for
     * @return A composite operation with dependencies satisfying the criteria
     */
-  override def loadCompositeByOutput(datasetId : UUID): Future[Option[CompositeWithDependencies]] = Future{
+  override def loadCompositeByOutput(datasetId: UUID)(implicit ec: ExecutionContext): Future[Option[CompositeWithDependencies]] = Future {
     Option(
       connection.dataLineageCollection.findOne(
         DBObject("datasets.0._id" → datasetId)
       )
     )
-    .map(withVersionCheck(grater[DataLineage].asObject(_)))
-    .map(lineageToCompositeWithDependencies)
+      .map(withVersionCheck(grater[DataLineage].asObject(_)))
+      .map(lineageToCompositeWithDependencies)
   }
 
   /**
     * The method loads composite operations for an input datasetId.
+    *
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  override def loadCompositesByInput(datasetId : UUID): Future[Iterator[CompositeWithDependencies]] = Future{
+  override def loadCompositesByInput(datasetId: UUID)(implicit ec: ExecutionContext): Future[Iterator[CompositeWithDependencies]] = Future {
     connection.dataLineageCollection.find(
       DBObject("operations.sources.datasetId" → datasetId)
     )
-    .iterator.asScala
-    .map(withVersionCheck(grater[DataLineage].asObject(_)))
-    .map(lineageToCompositeWithDependencies)
+      .iterator.asScala
+      .map(withVersionCheck(grater[DataLineage].asObject(_)))
+      .map(lineageToCompositeWithDependencies)
   }
 
   /**
@@ -161,7 +163,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     *
     * @return Descriptors of all data lineages
     */
-  override def list(): Future[Iterator[PersistedDatasetDescriptor]] = Future {
+  override def list()(implicit ec: ExecutionContext): Future[Iterator[PersistedDatasetDescriptor]] = Future {
     selectPersistedDatasets().map(withVersionCheck(grater[PersistedDatasetDescriptor].asObject(_)))
   }
 
@@ -188,7 +190,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @param id An unique identifier of a dataset
     * @return Descriptors of all data lineages
     */
-  override def getDatasetDescriptor(id: UUID): Future[PersistedDatasetDescriptor] = Future {
+  override def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[PersistedDatasetDescriptor] = Future {
     selectPersistedDatasets(DBObject("$match" → DBObject("datasetId" → id))).
       map(withVersionCheck(grater[PersistedDatasetDescriptor].asObject(_))).
       next
