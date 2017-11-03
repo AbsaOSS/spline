@@ -14,34 +14,38 @@
  * limitations under the License.
  */
 
-import {IOperationNode, IExpression, IDataType} from "../../generated-ts/lineage-model";
+import {IOperation} from "../../generated-ts/lineage-model";
+import {IExpression} from "../../generated-ts/expression-model";
+import {IDataType} from "../../generated-ts/datatype-model";
 
-export type NodeType =
-    ( "ProjectionNode"
-    | "SourceNode"
-    | "JoinNode"
-    | "GenericNode"
-    | "FilterNode"
-    | "DestinationNode"
-    | "AliasNode"
+export type OperationType =
+    ( "Projection"
+    | "Read"
+    | "Join"
+    | "Generic"
+    | "Filter"
+    | "Write"
+    | "Alias"
+    | "Composite"
     )
 
 export type ExpressionType =
-    ( "BinaryOperator"
+    ( "Binary"
+    | "Alias"
     | "AttributeRemoval"
     | "UserDefinedFunction"
-    | "GenericExpression"
+    | "Generic"
     | "AttributeReference"
     )
 
 export type DataTypeType =
-    ( "StructType"
-    | "ArrayType"
-    | "SimpleType"
+    ( "Struct"
+    | "Array"
+    | "Simple"
     )
 
 
-export function typeOfNode(node: IOperationNode): NodeType {
+export function typeOfOperation(node: IOperation): OperationType {
     return typeOfAny(node)
 }
 

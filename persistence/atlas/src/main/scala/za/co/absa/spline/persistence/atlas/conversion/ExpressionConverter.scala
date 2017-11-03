@@ -16,36 +16,39 @@
 
 package za.co.absa.spline.persistence.atlas.conversion
 
-import za.co.absa.spline.model
-import za.co.absa.spline.model.{AttributeReference, BinaryOperator, UserDefinedFunction}
+import java.util.UUID
+
+import org.apache.atlas.typesystem.persistence.Id
+import za.co.absa.spline.model._
 import za.co.absa.spline.persistence.atlas.model._
 
 /**
-  * The object is responsible for conversion of [[za.co.absa.spline.model.Expression Spline expressions]] to [[za.co.absa.spline.persistence.atlas.model.Expression Atlas expressions]].
+  * The object is responsible for conversion of [[za.co.absa.spline.model.expr.Expression Spline expressions]] to [[za.co.absa.spline.persistence.atlas.model.Expression Atlas expressions]].
   */
 object ExpressionConverter {
 
   /**
-    * The method converts [[za.co.absa.spline.model.Expression Spline expressions]] to [[za.co.absa.spline.persistence.atlas.model.Expression Atlas expressions]].
+    * The method converts [[za.co.absa.spline.model.expr.Expression Spline expressions]] to [[za.co.absa.spline.persistence.atlas.model.Expression Atlas expressions]].
+    *
     * @param qualifiedNamePrefix A prefix helping to ensure uniqueness of qualified names of created expressions
-    * @param expression An input Spline expression
+    * @param expression          An input Spline expression
     * @return An Atlas expression
     */
-  def convert(qualifiedNamePrefix: String, expression: model.Expression) : Expression = {
-    val qualifiedName = qualifiedNamePrefix + "@" + expression.textualRepresentation
-    val children = expression.children.zipWithIndex.map(i => convert(qualifiedName + "@" + i._2,i._1))
+  def convert(qualifiedNamePrefix: String, expression: expr.Expression): Expression = {
+    val qualifiedName = qualifiedNamePrefix + "@" + expression.text
+    val children = expression.children.zipWithIndex.map(i => convert(qualifiedName + "@" + i._2, i._1))
     val mainProperties = ExpressionCommonProperties(
       qualifiedName,
-      expression.textualRepresentation,
+      expression.text,
       expression.exprType,
       DataTypeConverter.convert(expression.dataType, qualifiedName),
       children
     )
 
     expression match {
-      case BinaryOperator(_, symbol, _, _, _) => new BinaryExpression(mainProperties, symbol)
-      case AttributeReference(attributeId, attributeName, _, _) => new AttributeReferenceExpression(mainProperties, attributeId, attributeName)
-      case UserDefinedFunction(name, _, _, _) => new UserDefinedFunctionExpression(mainProperties, name)
+      case expr.Binary(_, symbol, _, _, _) => new BinaryExpression(mainProperties, symbol)
+      case expr.AttributeReference(attributeId, attributeName, _, _) => new AttributeReferenceExpression(mainProperties, attributeId, attributeName)
+      case expr.UserDefinedFunction(name, _, _, _) => new UserDefinedFunctionExpression(mainProperties, name)
       case _ => new Expression(mainProperties)
     }
   }

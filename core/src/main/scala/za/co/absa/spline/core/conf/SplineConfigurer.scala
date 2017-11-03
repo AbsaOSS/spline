@@ -24,7 +24,7 @@ import za.co.absa.spline.persistence.api.PersistenceFactory
 trait SplineConfigurer {
 
   /**
-    * The method returns a factory creating persistence layer for various data lineage entities.
+    * The method returns a factory creating persistence readers and writers for various data lineage entities.
     */
   def persistenceFactory: PersistenceFactory
 }

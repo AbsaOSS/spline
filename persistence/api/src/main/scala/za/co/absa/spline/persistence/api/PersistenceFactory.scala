@@ -19,23 +19,32 @@ package za.co.absa.spline.persistence.api
 import org.apache.commons.configuration.Configuration
 
 /**
-  * The abstract class represents a factory creating persistence layers for all main data lineage entities.
+  * The abstract class represents a factory of persistence readers and writers for all main data lineage entities.
   *
   * @param configuration A source of settings
   */
 abstract class PersistenceFactory(protected val configuration : Configuration) {
 
   /**
-    * The method creates a persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
+    * The method creates a writer to the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
-    * @return A persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    * @return A writer to the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  def createDataLineagePersistor(): DataLineagePersistor
+  def createDataLineageWriter(): DataLineageWriter
 
   /**
-    * The method creates a persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity.
+    * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
-    * @return A persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity
+    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  def createExecutionPersistor(): ExecutionPersistor
+  def createDataLineageReader(): DataLineageReader
+
+  /**
+    * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity if the factory can. Otherwise, returns default.
+    *
+    * @param default A default data lineage reader
+    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    */
+  def createDataLineageReaderOrGetDefault(default: DataLineageReader): DataLineageReader
+
 }

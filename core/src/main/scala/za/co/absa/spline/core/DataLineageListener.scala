@@ -16,21 +16,24 @@
 
 package za.co.absa.spline.core
 
-import java.util.UUID
-
-import za.co.absa.spline.model.Execution
-import za.co.absa.spline.persistence.api.PersistenceFactory
+import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.util.QueryExecutionListener
+import za.co.absa.spline.common.transformations.TransformationPipeline
+import za.co.absa.spline.core.transformations.{ForeignMetaDatasetInjector, LineageProjectionMerger}
+import za.co.absa.spline.persistence.api.PersistenceFactory
 
 /**
   * The class represents a handler listening on events that Spark triggers when an execution any action is performed. It can be considered as an entry point to Spline library.
   *
-  * @param dataStorageFactory A factory of persistence layers
+  * @param persistenceFactory A factory of persistence readers and writers
+  * @param hadoopConfiguration A hadoop configuration
   */
-class DataLineageListener(dataStorageFactory: PersistenceFactory) extends QueryExecutionListener {
-  private lazy val dataLineagePersistor = dataStorageFactory.createDataLineagePersistor()
-  private lazy val executionPersistor = dataStorageFactory.createExecutionPersistor()
+class DataLineageListener(persistenceFactory: PersistenceFactory, hadoopConfiguration: Configuration) extends QueryExecutionListener {
+  private lazy val persistenceWriter = persistenceFactory.createDataLineageWriter()
+  private lazy val persistenceReader = persistenceFactory.createDataLineageReader()
+  private lazy val harvester = new DataLineageHarvester(hadoopConfiguration)
+  private lazy val transformationPipeline = new TransformationPipeline(Seq(LineageProjectionMerger, new ForeignMetaDatasetInjector(persistenceReader)))
 
   /**
     * The method is executed when an action execution is successful.
@@ -56,16 +59,9 @@ class DataLineageListener(dataStorageFactory: PersistenceFactory) extends QueryE
 
   private def processQueryExecution(funcName: String, qe: QueryExecution): Unit = {
     if (funcName == "save") {
-      val lineage = DataLineageHarvester.harvestLineage(qe)
-      val lineageId = dataLineagePersistor.exists(lineage) match {
-        case None =>
-          dataLineagePersistor.store(lineage)
-          lineage.id
-        case Some(x) => x
-      }
-
-      val execution = Execution(UUID.randomUUID(), lineageId, qe.sparkSession.sparkContext.applicationId, System.currentTimeMillis())
-      executionPersistor.store(execution)
+      val lineage = harvester harvestLineage qe
+      val transformed = transformationPipeline(lineage)
+      persistenceWriter store transformed
     }
   }
 }

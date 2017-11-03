@@ -31,7 +31,7 @@
     <dependencies>
         <dependency>
             <groupId>com.github.salat</groupId>
-            <artifactId>salat-core_${scala.compat.version}</artifactId>
+            <artifactId>salat-util_${scala.compat.version}</artifactId>
         </dependency>
     </dependencies>
 </project>

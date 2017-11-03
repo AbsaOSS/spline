@@ -1,0 +1,64 @@
+<!--
+  ~ Copyright 2017 Barclays Africa Group Limited
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<mat-grid-list cols="4">
+
+    <!-- Left-side panel -->
+    <mat-grid-tile>
+        <div class="left-block">
+            <mat-toolbar color="primary">
+                <button mat-icon-button [matMenuTriggerFor]="menu">
+                    <mat-icon><i class="fa fa-bars main-menu"></i></mat-icon>
+                </button>
+                <mat-menu #menu="matMenu">
+                    <button mat-menu-item disabled>
+                        <mat-icon><i class="fa fa-sign-in"></i></mat-icon>
+                        <span>Sign in</span>
+                    </button>
+                    <a mat-menu-item href="https://github.com/AbsaOSS/spline/wiki" target="_blank">
+                        <mat-icon><i class="fa fa-info"></i></mat-icon>
+                        <span>Spline Wiki</span>
+                    </a>
+                </mat-menu>
+                <span class="spacer"></span>
+                <mat-toolbar-row>
+                    <h1 class="spline-icon">
+                        <span>Data Lineage Tracking for Apache Spark&trade;</span>
+                    </h1>
+                </mat-toolbar-row>
+            </mat-toolbar>
+            <dataset-browser></dataset-browser>
+        </div>
+    </mat-grid-tile>
+
+    <!-- Lineage View -->
+    <mat-grid-tile colspan="3">
+
+        <router-outlet></router-outlet>
+
+        <!-- Loading indicator -->
+        <div [ngClass]="{active: loading}" class="status_indicator delayed">
+            <div class="background"></div>
+            <div class="foreground">
+                <p>
+                    <i class="fa fa-circle-o-notch fa-spin fa-5x"></i>
+                    <span>loading, please wait</span>
+                </p>
+            </div>
+        </div>
+
+    </mat-grid-tile>
+</mat-grid-list>

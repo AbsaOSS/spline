@@ -22,11 +22,11 @@ import java.util.Properties
 import org.apache.atlas.ApplicationProperties
 import org.apache.commons.configuration.Configuration
 import za.co.absa.spline.common.ARMImplicits
-import za.co.absa.spline.persistence.api.{DataLineagePersistor, ExecutionPersistor, PersistenceFactory}
+import za.co.absa.spline.persistence.api._
 
 
 /**
-  * The object contains static information about settings needed for initialization of the AtlasPersistenceFactory class.
+  * The object contains static information about settings needed for initialization of the AtlasPersistenceWriterFactory class.
   */
 object AtlasPersistenceFactory {
   val atlasPropertyPrefix = "atlas"
@@ -78,12 +78,20 @@ class AtlasPersistenceFactory(configuration: Configuration) extends PersistenceF
     *
     * @return A persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  override def createDataLineagePersistor(): DataLineagePersistor = new AtlasDataLineagePersistor
+  override def createDataLineageWriter(): DataLineageWriter = new AtlasDataLineageWriter
 
   /**
-    * The method creates a persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity.
+    * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
-    * @return A persistence layer for the [[za.co.absa.spline.model.Execution Execution]] entity
+    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  override def createExecutionPersistor(): ExecutionPersistor = new NopAtlasExecutionPersistor
+  override def createDataLineageReader(): DataLineageReader = throw new UnsupportedOperationException
+
+  /**
+    * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity if the factory can. Otherwise, returns default.
+    *
+    * @param default A default data lineage reader
+    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    */
+  override def createDataLineageReaderOrGetDefault(default: DataLineageReader): DataLineageReader = default
 }

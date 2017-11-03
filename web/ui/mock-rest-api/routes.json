@@ -1,3 +1,6 @@
 {
-  "/lineage/descriptors": "/_lineage-descriptors"
+  "/dataset/descriptors": "/_persisted-dataset-descriptors",
+  "/dataset/:dsId/descriptor": "/_persisted-dataset-descriptors/:dsId",
+  "/dataset/:dsId/lineage/partial": "/_lineages/ln_:dsId",
+  "/dataset/:dsId/lineage/overview": "/_dataset-lineage-overview/:dsId"
 }
