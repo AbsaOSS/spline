@@ -23,7 +23,7 @@ import za.co.absa.spline.persistence.atlas.conversion.DataLineageToTypeSystemCon
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
-
+import scala.concurrent.blocking
 
 /**
   * The class represents Atlas persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
@@ -39,6 +39,8 @@ class AtlasDataLineageWriter extends AtlasHook with DataLineageWriter {
     */
   override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = Future {
     val entityCollections = DataLineageToTypeSystemConverter.convert(lineage)
-    this.notifyEntities("Anonymous", entityCollections.asJava)
+    blocking {
+      this.notifyEntities("Anonymous", entityCollections.asJava)
+    }
   }
 }

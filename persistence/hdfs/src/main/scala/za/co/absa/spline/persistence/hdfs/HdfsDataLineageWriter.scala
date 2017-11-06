@@ -24,7 +24,7 @@ import za.co.absa.spline.model.op.Write
 import za.co.absa.spline.persistence.api.DataLineageWriter
 import za.co.absa.spline.persistence.hdfs.serialization.JSONSerialization
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future, blocking}
 
 /**
   * The class represents persistence layer that persists the [[za.co.absa.spline.model.DataLineage DataLineage]] entity to a file on HDFS.
@@ -44,7 +44,7 @@ class HdfsDataLineageWriter(hadoopConfiguration: Configuration, fileName: String
     }
   }
 
-  private def persistToHdfs(content: String, path: Path): Unit = {
+  private def persistToHdfs(content: String, path: Path): Unit = blocking {
     import za.co.absa.spline.common.ARMImplicits._
     val fs = FileSystem.get(hadoopConfiguration)
     for (fos <- fs.create(

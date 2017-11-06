@@ -21,7 +21,7 @@ import _root_.salat._
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.DataLineageWriter
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future, blocking}
 
 /**
   *
@@ -41,7 +41,7 @@ class MongoDataLineageWriter(connection: MongoConnection) extends DataLineageWri
   override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = Future {
     val dbo = grater[DataLineage].asDBObject(lineage)
     dbo.put("_ver", connection.LATEST_SERIAL_VERSION)
-    connection.dataLineageCollection.insert(dbo)
+    blocking(connection.dataLineageCollection insert dbo)
   }
 
 }
