@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>za.co.absa</groupId>
+        <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../../parent/pom.xml</relativePath>
         <version>0.2.3-SNAPSHOT</version>
@@ -38,12 +38,12 @@
             <artifactId>spark-sql_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
-            <groupId>za.co.absa</groupId>
+            <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-persistence-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>za.co.absa</groupId>
+            <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-commons</artifactId>
             <version>${project.version}</version>
         </dependency>

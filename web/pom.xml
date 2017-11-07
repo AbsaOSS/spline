@@ -22,7 +22,7 @@
     <packaging>war</packaging>
 
     <parent>
-        <groupId>za.co.absa</groupId>
+        <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
         <version>0.2.3-SNAPSHOT</version>
@@ -36,22 +36,22 @@
 
     <dependencies>
         <dependency>
-            <groupId>za.co.absa</groupId>
+            <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>za.co.absa</groupId>
+            <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-model</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>za.co.absa</groupId>
+            <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-persistence-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>za.co.absa</groupId>
+            <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-persistence-mongo</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -102,7 +102,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>1.5.0</version>
                 <executions>
                     <execution>
                         <id>gen-ts-model-lineage</id>
