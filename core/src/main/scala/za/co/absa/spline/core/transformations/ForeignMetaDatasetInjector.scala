@@ -23,7 +23,7 @@ import za.co.absa.spline.model.op.{MetaDataSource, Operation, Read}
 import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset}
 import za.co.absa.spline.persistence.api.DataLineageReader
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -32,7 +32,7 @@ import scala.language.postfixOps
   *
   * @param reader A reader reading lineage graphs from persistence layer
   */
-class ForeignMetaDatasetInjector(reader: DataLineageReader) extends Transformation[DataLineage] {
+class ForeignMetaDatasetInjector(reader: DataLineageReader)(implicit val ec: ExecutionContext) extends Transformation[DataLineage] {
 
   /**
     * The method transforms an input instance by a custom logic.
@@ -51,7 +51,7 @@ class ForeignMetaDatasetInjector(reader: DataLineageReader) extends Transformati
 
     // collect data
 
-    def resolveMetaDataSources(mds : MetaDataSource) : (MetaDataSource, Option[DataLineage]) = {
+    def resolveMetaDataSources(mds: MetaDataSource): (MetaDataSource, Option[DataLineage]) = {
       val lineageOption = Await.result(reader.loadLatest(mds.path), 10 second)
       val datasetIdOption = lineageOption.map(lineage => lineage.rootDataset.id)
       (mds.copy(datasetId = datasetIdOption), lineageOption)

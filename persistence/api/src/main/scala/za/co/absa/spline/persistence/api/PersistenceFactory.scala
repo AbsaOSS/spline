@@ -23,7 +23,7 @@ import org.apache.commons.configuration.Configuration
   *
   * @param configuration A source of settings
   */
-abstract class PersistenceFactory(protected val configuration : Configuration) {
+abstract class PersistenceFactory(protected val configuration: Configuration) {
 
   /**
     * The method creates a writer to the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.

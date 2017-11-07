@@ -84,6 +84,13 @@
                     <scalaVersion>${scala.version}</scalaVersion>
                     <args>
                         <arg>-target:jvm-${java.version}</arg>
+                        <arg>-Ybackend:GenBCode</arg>
+                        <arg>-feature</arg>
+                        <arg>-deprecation</arg>
+                        <arg>-unchecked</arg>
+                        <arg>-Ywarn-numeric-widen</arg>
+                        <!--<arg>-Ywarn-dead-code</arg>-->
+                        <!--<arg>-Ywarn-value-discard</arg>-->
                     </args>
                 </configuration>
                 <executions>
