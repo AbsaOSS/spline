@@ -8,6 +8,22 @@ The project consists of two parts:
 
 # Summary
 
+### in your POM file:
+```xml
+<dependency>
+    <groupId>za.co.absa.spline</groupId>
+    <artifactId>spline-core</artifactId>
+    <version>0.2.2</version>
+</dependency>
+<dependency>
+    <groupId>za.co.absa.spline</groupId>
+    <artifactId>spline-persistence-mongo</artifactId>
+    <!-- You can use other types of persistence including your own. -->
+    <!-- See below for details. -->
+    <version>0.2.2</version>
+</dependency>
+```
+
 ### in your Spark job:
 ```scala
 // given a Spark session ...
@@ -22,7 +38,12 @@ sparkSession.enableLineageTracking()
 // configured Mongo database for further visualization by Spline Web UI
 ```
 
-### a sample lineage visualization
+### download [Spline Web UI executable JAR](https://search.maven.org/remotecontent?filepath=za/co/absa/spline/spline-web/0.2.2/spline-web-0.2.2-exec-war.jar) and run:
+```shell
+java -jar spline-web-0.2.2-exec-war.jar -Dspline.mongodb.url=... -Dspline.mongodb.name=... 
+```
+
+### in your browser open [localhost:8080](http://localhost:8080) and you will get:
 <a href="imgs/screenshot.png"><img src="imgs/screenshot.png" width="660"></a>
 
 
@@ -47,26 +68,15 @@ Our main focus is to solve the following particular problems:
 
 # Getting started
 
-### Dependencies
+### Usage
 
-##### Runtime
+##### Dependencies
 
 * [Scala](https://www.scala-lang.org/) 2.11
 * [Spark](http://spark.apache.org/) 2.2.0
-* [MongoDB](https://www.mongodb.com/) 3.2
+* [MongoDB](https://www.mongodb.com/) 3.2 (required for Spline Web UI)
 
-##### Build time
-* [Node.js](https://nodejs.org/) 6.9
-* [Maven](https://maven.apache.org) 3.0
-
-### Building
-```
-mvn install -DskipTests
-```
-
-### Installation
-
-##### In your Spark job:
+##### Setup for your Spark job:
 
 1. Include Spline core jar into your Spark job classpath (it's enough to have it in a driver only, executors don't need it)
 
@@ -85,7 +95,7 @@ There are two ways how to run Spline Web UI:
 ###### Standalone application (executable JAR)
 
 Execute: <br>
-```java -jar spline-ui-VERSION.exec.jar -Dspline.mongodb.url=... -Dspline.mongodb.name=...```
+```java -jar spline-web-0.2.2-exec-war.jar -Dspline.mongodb.url=... -Dspline.mongodb.name=...```
 and then point your browser to [http://localhost:8080](http://localhost:8080).
 
 To change the port number from *8080* to say *1234* add ```-httpPort 1234``` to the command line.
@@ -105,7 +115,15 @@ section.
 1. Deploy Spline WAR file to your Java web container (tested on Tomcat 7, but other containers should also work)
 
 
+### Build Spline from the source code
+You will need:
+* [JDK](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) 8+
+* [Maven](https://maven.apache.org) 3.0
+* [Node.js](https://nodejs.org/) 6.9
 
+```
+mvn install -DskipTests
+```
 
 # <a name="persistence"></a> Lineage persistence
 Spline can persist harvested lineages in various ways. It uses [PersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/PersistenceFactory.scala) to obtain instances of [DataLineageReader]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/DataLineageReader.scala) and [DataLineageWriter]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/DataLineageWriter.scala) to persist and access the data lineages.
