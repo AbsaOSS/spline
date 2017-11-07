@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>za.co.absa</groupId>
+        <groupId>za.co.absa.spline</groupId>
         <artifactId>spline</artifactId>
         <version>0.2.2</version>
     </parent>

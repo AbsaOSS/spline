@@ -15,10 +15,11 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>za.co.absa</groupId>
+    <groupId>za.co.absa.spline</groupId>
     <artifactId>spline</artifactId>
     <version>0.2.2</version>
 
@@ -30,6 +31,17 @@
         <developerConnection>scm:git:https://bitbucket.absa.co.za/scm/bacibbd/spline.git</developerConnection>
         <tag>release/0.2.2</tag>
     </scm>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 
     <modules>
         <module>parent</module>
@@ -80,5 +92,16 @@
                 </plugins>
             </build>
         </profile>
+
+        <profile>
+            <id>deploy</id>
+            <!-- defined in parent/pom.xml -->
+        </profile>
+
+        <profile>
+            <id>license-check</id>
+            <!-- defined in parent/pom.xml -->
+        </profile>
+
     </profiles>
 </project>
