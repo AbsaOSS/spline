@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.persistence.mongo
 
+import com.mongodb.DBCollection
 import com.mongodb.casbah.Imports.MongoClientURI
 import com.mongodb.casbah.MongoClient
 
@@ -31,5 +32,5 @@ class MongoConnection(dbUrl: String, dbName: String) {
   private lazy val client: MongoClient = MongoClient(MongoClientURI(dbUrl))
   private lazy val database = client.getDB(dbName)
 
-  lazy val dataLineageCollection = database.getCollection(dataLineageCollectionName)
+  lazy val dataLineageCollection: DBCollection = database.getCollection(dataLineageCollectionName)
 }

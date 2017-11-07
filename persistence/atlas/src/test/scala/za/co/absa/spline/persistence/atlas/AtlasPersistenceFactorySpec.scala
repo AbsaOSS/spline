@@ -21,10 +21,11 @@ import java.io.File
 import org.apache.atlas.ApplicationProperties.{APPLICATION_PROPERTIES, ATLAS_CONFIGURATION_DIRECTORY_PROPERTY}
 import org.apache.commons.configuration.BaseConfiguration
 import org.apache.commons.io.FileUtils
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{AsyncFlatSpec, Matchers}
+
 import scala.collection.JavaConverters._
 
-class AtlasPersistenceFactorySpec extends FlatSpec with Matchers {
+class AtlasPersistenceFactorySpec extends AsyncFlatSpec with Matchers {
 
   "Constructor" should "generate Atlas application config file and set a JVM property with the conf file absolute location" in {
     new AtlasPersistenceFactory(new BaseConfiguration {

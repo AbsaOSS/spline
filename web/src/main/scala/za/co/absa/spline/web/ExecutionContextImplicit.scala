@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.common
-
-import java.util.concurrent.Executors
+package za.co.absa.spline.web
 
 import scala.concurrent.ExecutionContext
 
-/**
-  * The object contains implicit values and methods for [[scala.concurrent.Future Futures]].
-  */
-object FutureImplicits {
-
-  /**
-    * An execution context using a dedicated cached thread pool.
-    */
-  implicit val executionContext = ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
+trait ExecutionContextImplicit {
+  protected implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.global
 }

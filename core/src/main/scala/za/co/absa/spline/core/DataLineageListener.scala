@@ -23,13 +23,20 @@ import za.co.absa.spline.common.transformations.TransformationPipeline
 import za.co.absa.spline.core.transformations.{ForeignMetaDatasetInjector, LineageProjectionMerger}
 import za.co.absa.spline.persistence.api.PersistenceFactory
 
+import scala.concurrent.Await
+import scala.concurrent.duration.DurationInt
+import scala.language.postfixOps
+
 /**
   * The class represents a handler listening on events that Spark triggers when an execution any action is performed. It can be considered as an entry point to Spline library.
   *
-  * @param persistenceFactory A factory of persistence readers and writers
+  * @param persistenceFactory  A factory of persistence readers and writers
   * @param hadoopConfiguration A hadoop configuration
   */
 class DataLineageListener(persistenceFactory: PersistenceFactory, hadoopConfiguration: Configuration) extends QueryExecutionListener {
+
+  import scala.concurrent.ExecutionContext.Implicits._
+
   private lazy val persistenceWriter = persistenceFactory.createDataLineageWriter()
   private lazy val persistenceReader = persistenceFactory.createDataLineageReader()
   private lazy val harvester = new DataLineageHarvester(hadoopConfiguration)
@@ -42,9 +49,8 @@ class DataLineageListener(persistenceFactory: PersistenceFactory, hadoopConfigur
     * @param qe         A Spark object holding lineage information (logical, optimized, physical plan)
     * @param durationNs Duration of the action execution [nanoseconds]
     */
-  def onSuccess(funcName: String, qe: QueryExecution, durationNs: Long): Unit = {
-    processQueryExecution(funcName, qe)
-  }
+  def onSuccess(funcName: String, qe: QueryExecution, durationNs: Long): Unit = processQueryExecution(funcName, qe)
+
 
   /**
     * The method is executed when an error occurs during an action execution.
@@ -53,15 +59,14 @@ class DataLineageListener(persistenceFactory: PersistenceFactory, hadoopConfigur
     * @param qe        A Spark object holding lineage information (logical, optimized, physical plan)
     * @param exception An exception describing the reason of the error
     */
-  def onFailure(funcName: String, qe: QueryExecution, exception: Exception): Unit = {
-    processQueryExecution(funcName, qe)
-  }
+  def onFailure(funcName: String, qe: QueryExecution, exception: Exception): Unit = processQueryExecution(funcName, qe)
+
 
   private def processQueryExecution(funcName: String, qe: QueryExecution): Unit = {
     if (funcName == "save") {
       val lineage = harvester harvestLineage qe
       val transformed = transformationPipeline(lineage)
-      persistenceWriter store transformed
+      Await.result(persistenceWriter store transformed, 10 minutes)
     }
   }
 }

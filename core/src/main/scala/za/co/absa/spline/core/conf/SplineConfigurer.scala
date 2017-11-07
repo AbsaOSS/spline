@@ -18,6 +18,8 @@ package za.co.absa.spline.core.conf
 
 import za.co.absa.spline.persistence.api.PersistenceFactory
 
+import scala.concurrent.ExecutionContext
+
 /**
   * The trait describes settings needed for initialization of the library.
   */
@@ -26,5 +28,5 @@ trait SplineConfigurer {
   /**
     * The method returns a factory creating persistence readers and writers for various data lineage entities.
     */
-  def persistenceFactory: PersistenceFactory
+  def persistenceFactory(implicit ec: ExecutionContext): PersistenceFactory
 }

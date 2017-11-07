@@ -18,6 +18,8 @@ package za.co.absa.spline.sample
 
 import org.apache.spark.sql.SparkSession
 
+import scala.language.postfixOps
+
 object MareksJob {
   def main(args: Array[String]) {
     val spark = SparkSession.builder()

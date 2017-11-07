@@ -22,7 +22,7 @@ import java.util.UUID.randomUUID
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{AsyncFlatSpec, Matchers}
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op.{MetaDataSource, OperationProps, Read, Write}
 import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset, Schema}
@@ -30,7 +30,7 @@ import za.co.absa.spline.persistence.api.DataLineageReader
 
 import scala.concurrent.Future
 
-class ForeignMetaDatasetInjectorSpec extends FlatSpec with Matchers with MockitoSugar {
+class ForeignMetaDatasetInjectorSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
 
   "Apply method" should "inject correct meta data set" in {
     val dataLineageReader = mock[DataLineageReader]
@@ -71,7 +71,7 @@ class ForeignMetaDatasetInjectorSpec extends FlatSpec with Matchers with Mockito
     }
 
     val referencedLineage = getReferencedLineage
-    when(dataLineageReader.loadLatest(any())) thenReturn Future.successful(Some(referencedLineage))
+    when(dataLineageReader.loadLatest(any())(any())) thenReturn Future.successful(Some(referencedLineage))
     val inputLineage = getInputLineage
     val readOp = inputLineage.rootOperation.asInstanceOf[Read]
     val referencedDataset = referencedLineage.rootDataset.id
