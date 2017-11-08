@@ -17,17 +17,19 @@
 package za.co.absa.spline.web
 
 import java.util.Arrays.asList
+import java.{util => ju}
 
 import org.apache.commons.configuration.{CompositeConfiguration, EnvironmentConfiguration, SystemConfiguration}
 import org.springframework.context.annotation.{Bean, Configuration}
+import org.springframework.web.method.support.HandlerMethodReturnValueHandler
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import za.co.absa.spline.persistence.api.DataLineageReader
 import za.co.absa.spline.persistence.mongo.{MongoConnection, MongoDataLineageReader}
+import za.co.absa.spline.web.handler.ScalaFutureMethodReturnValueHandler
 import za.co.absa.spline.web.rest.service.LineageService
 
-import scala.concurrent.ExecutionContext
-
 @Configuration
-class LineageWebAppConfig {
+class LineageWebAppConfig extends WebMvcConfigurerAdapter with ExecutionContextImplicit {
 
   import za.co.absa.spline.common.ConfigurationImplicits._
 
@@ -35,6 +37,10 @@ class LineageWebAppConfig {
     new SystemConfiguration,
     new EnvironmentConfiguration
   ))
+
+  override def addReturnValueHandlers(returnValueHandlers: ju.List[HandlerMethodReturnValueHandler]): Unit = {
+    returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler)
+  }
 
   @Bean def lineageReader: DataLineageReader =
     new MongoDataLineageReader(new MongoConnection(
