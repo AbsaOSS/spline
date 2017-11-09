@@ -21,7 +21,7 @@
     <packaging>jar</packaging>
 
     <parent>
-        <groupId>za.co.absa</groupId>
+        <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
         <version>0.3.0-SNAPSHOT</version>
@@ -39,22 +39,22 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>za.co.absa</groupId>
+            <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>za.co.absa</groupId>
+            <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-persistence-mongo</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>za.co.absa</groupId>
+            <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-persistence-atlas</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>za.co.absa</groupId>
+            <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-persistence-hdfs</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -107,7 +107,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-shade-plugin</artifactId>
-                        <version>2.3</version>
                         <executions>
                             <execution>
                                 <phase>package</phase>
