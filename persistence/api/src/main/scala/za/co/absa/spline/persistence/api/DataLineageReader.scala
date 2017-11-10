@@ -21,7 +21,7 @@ import java.util.UUID
 import za.co.absa.spline.model.op.CompositeWithDependencies
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * The trait represents a reader to a persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
@@ -34,16 +34,16 @@ trait DataLineageReader {
     * @param dsId A unique identifier of a data lineage
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
-  def loadByDatasetId(dsId: UUID): Future[Option[DataLineage]]
+  def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Future[Option[DataLineage]]
 
   /**
     * The method scans the persistence layer and tries to find a dataset ID for a given path and application ID.
     *
-    * @param path A path for which a dataset ID is looked for
+    * @param path          A path for which a dataset ID is looked for
     * @param applicationId An application for which a dataset ID is looked for
     * @return An identifier of a meta data set
     */
-  def searchDataset(path: String, applicationId: String): Future[Option[UUID]]
+  def searchDataset(path: String, applicationId: String)(implicit ec: ExecutionContext): Future[Option[UUID]]
 
   /**
     * The method loads the latest data lineage from the persistence for a given path.
@@ -51,28 +51,30 @@ trait DataLineageReader {
     * @param path A path for which a lineage graph is looked for
     * @return The latest data lineage
     */
-  def loadLatest(path: String): Future[Option[DataLineage]]
+  def loadLatest(path: String)(implicit ec: ExecutionContext): Future[Option[DataLineage]]
 
   /**
     * The method loads a composite operation for an output datasetId.
+    *
     * @param datasetId A dataset ID for which the operation is looked for
     * @return A composite operation with dependencies satisfying the criteria
     */
-  def loadCompositeByOutput(datasetId : UUID): Future[Option[CompositeWithDependencies]]
+  def loadCompositeByOutput(datasetId: UUID)(implicit ec: ExecutionContext): Future[Option[CompositeWithDependencies]]
 
   /**
     * The method loads composite operations for an input datasetId.
+    *
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  def loadCompositesByInput(datasetId : UUID): Future[Iterator[CompositeWithDependencies]]
+  def loadCompositesByInput(datasetId: UUID)(implicit ec: ExecutionContext): Future[Iterator[CompositeWithDependencies]]
 
   /**
     * The method gets all data lineages stored in persistence layer.
     *
     * @return Descriptors of all data lineages
     */
-  def list(): Future[Iterator[PersistedDatasetDescriptor]]
+  def list()(implicit ec: ExecutionContext): Future[Iterator[PersistedDatasetDescriptor]]
 
   /**
     * The method returns a dataset descriptor by its ID.
@@ -80,5 +82,5 @@ trait DataLineageReader {
     * @param id An unique identifier of a dataset
     * @return Descriptors of all data lineages
     */
-  def getDatasetDescriptor(id: UUID): Future[PersistedDatasetDescriptor]
+  def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[PersistedDatasetDescriptor]
 }

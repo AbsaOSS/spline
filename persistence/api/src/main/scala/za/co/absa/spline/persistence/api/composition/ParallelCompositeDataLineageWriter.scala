@@ -18,22 +18,24 @@ package za.co.absa.spline.persistence.api.composition
 
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.DataLineageWriter
-import za.co.absa.spline.common.FutureImplicits._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * The class represents a parallel composite writer to various persistence layers for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
+  *
   * @param writers a set of internal writers specific to particular  persistence layers
   */
-class ParallelCompositeDataLineageWriter(writers: Set[DataLineageWriter])
-  extends DataLineageWriter {
+class ParallelCompositeDataLineageWriter(writers: Set[DataLineageWriter]) extends DataLineageWriter {
 
   /**
     * The method stores a particular data lineage to the underlying persistence layers.
     *
     * @param lineage A data lineage that will be stored
     */
-  override def store(lineage: DataLineage): Future[Unit] = Future.sequence(writers.map(_.store(lineage))).map(_ => Unit)
+  override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = {
+    val futures = for (w <- writers) yield w.store(lineage)
+    Future.sequence(futures).map(_ => Unit)
+  }
 
 }

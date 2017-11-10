@@ -19,13 +19,12 @@ package za.co.absa.spline.persistence.hdfs
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.permission.FsPermission
 import org.apache.hadoop.fs.{FileSystem, Path}
-import za.co.absa.spline.common.FutureImplicits._
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.model.op.Write
 import za.co.absa.spline.persistence.api.DataLineageWriter
 import za.co.absa.spline.persistence.hdfs.serialization.JSONSerialization
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future, blocking}
 
 /**
   * The class represents persistence layer that persists the [[za.co.absa.spline.model.DataLineage DataLineage]] entity to a file on HDFS.
@@ -36,7 +35,7 @@ class HdfsDataLineageWriter(hadoopConfiguration: Configuration, fileName: String
     *
     * @param lineage A data lineage that will be stored
     */
-  override def store(lineage: DataLineage): Future[Unit] = Future {
+  override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = Future {
     val pathOption = getPath(lineage)
     import JSONSerialization._
     for (path <- pathOption) {
@@ -45,7 +44,7 @@ class HdfsDataLineageWriter(hadoopConfiguration: Configuration, fileName: String
     }
   }
 
-  private def persistToHdfs(content: String, path: Path): Unit = {
+  private def persistToHdfs(content: String, path: Path): Unit = blocking {
     import za.co.absa.spline.common.ARMImplicits._
     val fs = FileSystem.get(hadoopConfiguration)
     for (fos <- fs.create(

@@ -19,26 +19,29 @@ package za.co.absa.spline.persistence.api.composition
 import org.apache.commons.configuration.Configuration
 import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
 
-object ParallelCompositeFactory{
+object ParallelCompositeFactory {
   val factoriesKey = "spline.persistence.composition.factories"
 }
 
 /**
   * The class represents a parallel composition of various persistence writers.
+  *
   * @param configuration A source of settings
   */
-class ParallelCompositeFactory(configuration: Configuration) extends PersistenceFactory(configuration)
-{
+class ParallelCompositeFactory(configuration: Configuration) extends PersistenceFactory(configuration) {
+
   import ParallelCompositeFactory._
   import za.co.absa.spline.common.ConfigurationImplicits._
 
-  private val factories = configuration
-                            .getRequiredStringArray(factoriesKey)
-                            .map(i => Class.forName(i.trim)
-                              .getConstructor(classOf[Configuration])
-                              .newInstance(configuration)
-                              .asInstanceOf[PersistenceFactory]
-                            )
+  private val factories =
+    configuration
+      .getRequiredStringArray(factoriesKey)
+      .map(i => Class.forName(i.trim)
+        .getConstructor(classOf[Configuration])
+        .newInstance(configuration)
+        .asInstanceOf[PersistenceFactory]
+      )
+
   /**
     * The method creates a parallel composite writer to various persistence layers for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *

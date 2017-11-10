@@ -23,7 +23,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.{ControllerAdvice, ExceptionHandler}
 
 @ControllerAdvice(basePackageClasses = Array(classOf[_package]))
-class ErrorControllerAdvice {
+class RESTErrorControllerAdvice {
 
   @ExceptionHandler(Array(
     classOf[NoSuchElementException]

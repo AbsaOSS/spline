@@ -22,10 +22,10 @@
     <packaging>war</packaging>
 
     <parent>
-        <groupId>za.co.absa</groupId>
+        <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>0.2.2</version>
+        <version>0.2.3</version>
     </parent>
 
     <properties>
@@ -36,33 +36,28 @@
 
     <dependencies>
         <dependency>
-            <groupId>za.co.absa</groupId>
+            <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>za.co.absa</groupId>
+            <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-model</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>za.co.absa</groupId>
+            <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-persistence-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>za.co.absa</groupId>
+            <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-persistence-mongo</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
@@ -107,7 +102,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>1.5.0</version>
                 <executions>
                     <execution>
                         <id>gen-ts-model-lineage</id>

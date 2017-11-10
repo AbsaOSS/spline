@@ -24,11 +24,11 @@ import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMethod._
 import org.springframework.web.bind.annotation.{PathVariable, RequestMapping, ResponseBody}
 import za.co.absa.spline.persistence.api.DataLineageReader
-import za.co.absa.spline.web.rest.service.LineageService
+import za.co.absa.spline.web.ExecutionContextImplicit
 import za.co.absa.spline.web.json.StringJSONConverters
+import za.co.absa.spline.web.rest.service.LineageService
 
-import scala.concurrent.Await
-import scala.concurrent.duration._
+import scala.concurrent.Future
 import scala.language.postfixOps
 
 @Controller
@@ -39,24 +39,24 @@ class LineageController @Autowired()
 (
   val reader: DataLineageReader,
   val service: LineageService
-) {
+) extends ExecutionContextImplicit {
 
   import StringJSONConverters._
 
   @RequestMapping(Array("/dataset/descriptors"))
   @ResponseBody
-  def datasetDescriptors: String = Await.result(reader.list(), 10 seconds).toSeq.toJsonArray
+  def datasetDescriptors: Future[String] = reader.list.map(_.toSeq.toJsonArray)
 
   @RequestMapping(Array("/dataset/{id}/descriptor"))
   @ResponseBody
-  def datasetDescriptor(@PathVariable("id") id: UUID): String = Await.result(reader.getDatasetDescriptor(id), 10 seconds).toJson
+  def datasetDescriptor(@PathVariable("id") id: UUID): Future[String] = reader.getDatasetDescriptor(id).map(_.toJson)
 
   @RequestMapping(Array("/dataset/{id}/lineage/partial"))
   @ResponseBody
-  def datasetLineage(@PathVariable("id") id: UUID): String = Await.result(reader loadByDatasetId id, 10 seconds).get.toJson
+  def datasetLineage(@PathVariable("id") id: UUID): Future[String] = reader.loadByDatasetId(id).map(_.get.toJson)
 
   @RequestMapping(path = Array("/dataset/{id}/lineage/overview"), method = Array(GET))
   @ResponseBody
-  def datasetLineageOverview(@PathVariable("id") id: UUID): String = Await.result(service getDatasetOverviewLineageAsync id, 10 seconds).toJson
+  def datasetLineageOverview(@PathVariable("id") id: UUID): Future[String] = service.getDatasetOverviewLineageAsync(id).map(_.toJson)
 
 }

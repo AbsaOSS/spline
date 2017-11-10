@@ -20,10 +20,10 @@ import java.util.UUID
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import za.co.absa.spline.common.FutureImplicits._
 import za.co.absa.spline.model.op._
 import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset}
 import za.co.absa.spline.persistence.api.DataLineageReader
+import za.co.absa.spline.web.ExecutionContextImplicit
 
 import scala.collection.mutable
 import scala.concurrent.Future
@@ -32,7 +32,7 @@ import scala.concurrent.Future
 class LineageService @Autowired()
 (
   val reader: DataLineageReader
-) {
+) extends ExecutionContextImplicit {
 
   /**
     * This is non-blocking version of getting High Order Lineage by a dataset Id
@@ -145,7 +145,7 @@ class LineageService @Autowired()
     def processQueueAsync(): Future[Unit] = {
       if (inputDatasetIds.isEmpty && outputDatasetIds.isEmpty) {
         // The queue is empty, construct the final DataLineage
-        Future.successful()
+        Future.successful(Unit)
       }
       else {
         var dsIdUp: Option[UUID] = None
@@ -163,8 +163,8 @@ class LineageService @Autowired()
         }
 
         // The queue is not empty, construct recursive call to traverseUp/Down
-        val futDown = dsIdDown map traverseDown getOrElse Future.successful()
-        val futUp = dsIdUp map traverseUp getOrElse Future.successful()
+        val futDown = dsIdDown map traverseDown getOrElse Future.successful(Unit)
+        val futUp = dsIdUp map traverseUp getOrElse Future.successful(Unit)
 
         for {
           resDown <- futDown

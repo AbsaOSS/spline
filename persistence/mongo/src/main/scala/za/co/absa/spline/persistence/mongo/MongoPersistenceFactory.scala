@@ -22,7 +22,7 @@ import za.co.absa.spline.persistence.api._
 /**
   * The object contains static information about settings needed for initialization of the MongoPersistenceWriterFactory class.
   */
-object MongoPersistenceFactory{
+object MongoPersistenceFactory {
   val mongoDbUrlKey = "spline.mongodb.url"
   val mongoDbNameKey = "spline.mongodb.name"
 }
@@ -34,8 +34,8 @@ object MongoPersistenceFactory{
   */
 class MongoPersistenceFactory(configuration: Configuration) extends PersistenceFactory(configuration) {
 
-  import za.co.absa.spline.common.ConfigurationImplicits._
   import MongoPersistenceFactory._
+  import za.co.absa.spline.common.ConfigurationImplicits._
 
   private lazy val dbUrl = configuration getRequiredString mongoDbUrlKey
   private lazy val dbName = configuration getRequiredString mongoDbNameKey

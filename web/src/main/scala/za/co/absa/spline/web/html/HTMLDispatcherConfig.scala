@@ -17,15 +17,16 @@
 package za.co.absa.spline.web.html
 
 import org.springframework.context.annotation.{Bean, ComponentScan, Configuration}
-import org.springframework.web.servlet.config.annotation.{DefaultServletHandlerConfigurer, WebMvcConfigurationSupport}
+import org.springframework.web.servlet.config.annotation.{DefaultServletHandlerConfigurer, EnableWebMvc, WebMvcConfigurerAdapter}
 import org.thymeleaf.spring4.SpringTemplateEngine
 import org.thymeleaf.spring4.templateresolver.SpringResourceTemplateResolver
 import org.thymeleaf.spring4.view.ThymeleafViewResolver
 import org.thymeleaf.templatemode.TemplateMode.HTML
 
 @Configuration
+@EnableWebMvc
 @ComponentScan(Array("za.co.absa.spline.web.html.controller"))
-class HTMLDispatcherConfig extends WebMvcConfigurationSupport {
+class HTMLDispatcherConfig extends WebMvcConfigurerAdapter {
 
   override def configureDefaultServletHandling(configurer: DefaultServletHandlerConfigurer): Unit = configurer.enable()
 

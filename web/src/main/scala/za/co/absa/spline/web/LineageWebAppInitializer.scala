@@ -43,5 +43,6 @@ class LineageWebAppInitializer extends WebApplicationInitializer {
 
     dispatcher setLoadOnStartup 1
     dispatcher addMapping mappingPattern
+    dispatcher setAsyncSupported true
   }
 }

@@ -19,10 +19,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>za.co.absa</groupId>
+        <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../../parent/pom.xml</relativePath>
-        <version>0.2.2</version>
+        <version>0.2.3</version>
     </parent>
 
     <artifactId>spline-persistence-api</artifactId>
@@ -30,12 +30,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>za.co.absa</groupId>
+            <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-model</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>za.co.absa</groupId>
+            <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-commons</artifactId>
             <version>${project.version}</version>
         </dependency>

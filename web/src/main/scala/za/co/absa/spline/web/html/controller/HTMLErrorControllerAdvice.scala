@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.api
+package za.co.absa.spline.web.html.controller
 
-import za.co.absa.spline.model.DataLineage
+import org.springframework.http.HttpStatus.NOT_FOUND
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.{ControllerAdvice, ExceptionHandler}
 
-import scala.concurrent.{ExecutionContext, Future}
+@ControllerAdvice(basePackageClasses = Array(classOf[_package]))
+class HTMLErrorControllerAdvice {
 
-/**
-  * The trait represents a writer to a persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
-  */
-trait DataLineageWriter {
-
-  /**
-    * The method stores a particular data lineage to the persistence layer.
-    *
-    * @param lineage A data lineage that will be stored
-    */
-  def store(lineage: DataLineage)(implicit ec: ExecutionContext) : Future[Unit]
+  @ExceptionHandler(Array(
+    classOf[NoSuchElementException]
+  ))
+  def handle_404 = new ResponseEntity(NOT_FOUND)
 }

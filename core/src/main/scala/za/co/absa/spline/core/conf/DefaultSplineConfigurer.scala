@@ -19,6 +19,8 @@ package za.co.absa.spline.core.conf
 import org.apache.commons.configuration.Configuration
 import za.co.absa.spline.persistence.api.PersistenceFactory
 
+import scala.concurrent.ExecutionContext
+
 /**
   * The object contains static information about default settings needed for initialization of the library.
   */
@@ -36,12 +38,11 @@ class DefaultSplineConfigurer(configuration: Configuration) extends SplineConfig
   import DefaultSplineConfigurer._
   import za.co.absa.spline.common.ConfigurationImplicits._
 
- override lazy val persistenceFactory: PersistenceFactory = {
-   val persistenceFactoryClassName = configuration getRequiredString persistenceFactoryKey
-   Class
-     .forName(persistenceFactoryClassName)
-     .getConstructor(classOf[Configuration])
-     .newInstance(configuration)
-     .asInstanceOf[PersistenceFactory]
- }
+  override def persistenceFactory(implicit ec: ExecutionContext): PersistenceFactory = {
+    val persistenceFactoryClassName = configuration getRequiredString persistenceFactoryKey
+    Class.forName(persistenceFactoryClassName)
+      .getConstructor(classOf[Configuration])
+      .newInstance(configuration)
+      .asInstanceOf[PersistenceFactory]
+  }
 }
