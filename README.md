@@ -13,14 +13,14 @@ The project consists of two parts:
 <dependency>
     <groupId>za.co.absa.spline</groupId>
     <artifactId>spline-core</artifactId>
-    <version>0.2.2</version>
+    <version>0.2.3</version>
 </dependency>
 <dependency>
     <groupId>za.co.absa.spline</groupId>
     <artifactId>spline-persistence-mongo</artifactId>
     <!-- You can use other types of persistence including your own. -->
     <!-- See below for details. -->
-    <version>0.2.2</version>
+    <version>0.2.3</version>
 </dependency>
 ```
 
