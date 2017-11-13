@@ -19,8 +19,12 @@ package za.co.absa.spline.core
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.util.QueryExecutionListener
+import org.scalameter
+import org.scalameter.Measurer.MemoryFootprint
+import org.scalameter.Quantity
 import za.co.absa.spline.common.transformations.TransformationPipeline
 import za.co.absa.spline.core.transformations.{ForeignMetaDatasetInjector, LineageProjectionMerger}
+import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.PersistenceFactory
 
 import scala.concurrent.Await
@@ -62,11 +66,29 @@ class DataLineageListener(persistenceFactory: PersistenceFactory, hadoopConfigur
   def onFailure(funcName: String, qe: QueryExecution, exception: Exception): Unit = processQueryExecution(funcName, qe)
 
 
+  import DataLineageListener._
+
   private def processQueryExecution(funcName: String, qe: QueryExecution): Unit = {
-    if (funcName == "save") {
-      val lineage = harvester harvestLineage qe
-      val transformed = transformationPipeline(lineage)
-      Await.result(persistenceWriter store transformed, 10 minutes)
+    if (funcName == "save" || funcName == "count") {
+      memMeasurements += scalameter.config() withMeasurer new MemoryFootprint measure {
+        var lineage: DataLineage = null
+        cpuMeasurements += (org.scalameter measure {
+          lineage = harvester harvestLineage qe
+          val transformed = transformationPipeline(lineage)
+          Await.result(persistenceWriter store transformed, 10 minutes)
+        })
+        lineage
+      }
     }
+  }
+}
+
+object DataLineageListener {
+  val cpuMeasurements = scala.collection.mutable.ListBuffer.empty[Quantity[_]]
+  val memMeasurements = scala.collection.mutable.ListBuffer.empty[Quantity[_]]
+
+  def clearMeasurements() = {
+    cpuMeasurements.clear()
+    memMeasurements.clear()
   }
 }

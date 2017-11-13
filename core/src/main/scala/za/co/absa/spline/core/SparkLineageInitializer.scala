@@ -18,6 +18,7 @@ package za.co.absa.spline.core
 
 import org.apache.commons.configuration._
 import org.apache.spark
+import org.apache.spark.scheduler.{SparkListenerApplicationEnd, SparkListener}
 import org.apache.spark.sql.SparkSession
 import za.co.absa.spline.core.conf._
 
@@ -52,6 +53,19 @@ object SparkLineageInitializer {
         checkSparkVersion()
         preventDoubleInitialization()
         sessionState.listenerManager register new DataLineageListener(configurer.persistenceFactory, sparkSession.sparkContext.hadoopConfiguration)
+
+        sparkSession.sparkContext addSparkListener new SparkListener {
+          override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd): Unit = {
+            println("---------- SPLINE MEASUREMENTS -------------")
+            println(s"\ti\tTime\tMemory")
+
+            for (((cpu, mem), i) <- DataLineageListener.cpuMeasurements.zip(DataLineageListener.memMeasurements).zipWithIndex) {
+              println(s"\t$i\t$cpu\t$mem")
+            }
+            println("--------------------------------------------")
+          }
+        }
+
         sparkSession
       }
 
