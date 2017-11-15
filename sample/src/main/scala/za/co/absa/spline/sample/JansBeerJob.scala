@@ -16,48 +16,39 @@
 
 package za.co.absa.spline.sample
 
-import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.col
 
-object JansBeerJob {
-  def main(args: Array[String]) {
-    val spark = SparkSession.builder()
-      .appName("Jan's Beer Job")
-      .config("spark.sql.shuffle.partitions", "4")
-      .master("local[*]")
-      .getOrCreate()
+object JansBeerJob extends SparkApp("Jan's Beer Job", conf = Seq("spark.sql.shuffle.partitions" -> "4")) {
 
-    import spark.implicits._
+  // Initializing library to hook up to Apache Spark
+  import za.co.absa.spline.core.SparkLineageInitializer._
 
-    // Initializing library to hook up to Apache Spark
-    import za.co.absa.spline.core.SparkLineageInitializer._
-    spark.enableLineageTracking()
+  spark.enableLineageTracking()
 
-    val beerConsumption = spark.read.option("header", "true").csv("data/input/beerConsum.csv")
+  val beerConsumption = spark.read.option("header", "true").csv("data/input/beerConsum.csv")
 
-    val population = spark.read.option("header", "true").csv("data/input/population.csv")
+  val population = spark.read.option("header", "true").csv("data/input/population.csv")
 
-    def calculateConsumptionPerCapital(year : String) =
-      (col(year) * 100) / col("y" + year) as "Year" + year
+  def calculateConsumptionPerCapital(year: String) =
+    (col(year) * 100) / col("y" + year) as "Year" + year
 
 
-    val result = beerConsumption
-      .join(population, $"Code" === $"Country Code", "inner")
-      .select(
-        $"Country",
-        $"Code",
-        calculateConsumptionPerCapital("2003"),
-        calculateConsumptionPerCapital("2004"),
-        calculateConsumptionPerCapital("2005"),
-        calculateConsumptionPerCapital("2006"),
-        calculateConsumptionPerCapital("2007"),
-        calculateConsumptionPerCapital("2008"),
-        calculateConsumptionPerCapital("2009"),
-        calculateConsumptionPerCapital("2010"),
-        calculateConsumptionPerCapital("2011")
-      )
+  val result = beerConsumption
+    .join(population, $"Code" === $"Country Code", "inner")
+    .select(
+      $"Country",
+      $"Code",
+      calculateConsumptionPerCapital("2003"),
+      calculateConsumptionPerCapital("2004"),
+      calculateConsumptionPerCapital("2005"),
+      calculateConsumptionPerCapital("2006"),
+      calculateConsumptionPerCapital("2007"),
+      calculateConsumptionPerCapital("2008"),
+      calculateConsumptionPerCapital("2009"),
+      calculateConsumptionPerCapital("2010"),
+      calculateConsumptionPerCapital("2011")
+    )
 
-    result.write.mode("overwrite").parquet("data/results/beerConsCtl")
+  result.write.mode("overwrite").parquet("data/results/beerConsCtl")
 
-  }
 }

@@ -15,7 +15,8 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>spline-sample</artifactId>
     <packaging>jar</packaging>
@@ -145,18 +146,32 @@
             <properties>
                 <spline.mongodb.url><!-- passed from mvn command line --></spline.mongodb.url>
                 <spline.mongodb.name><!-- passed from mvn command line --></spline.mongodb.name>
+                <sampleClass><!-- passed from mvn command line --></sampleClass>
+                <skipTests>true</skipTests>
             </properties>
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>org.scalatest</groupId>
-                        <artifactId>scalatest-maven-plugin</artifactId>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                            </execution>
+                        </executions>
                         <configuration>
-                            <skipTests>false</skipTests>
-                            <systemProperties>
-                                <spline.mongodb.url>${spline.mongodb.url}</spline.mongodb.url>
-                                <spline.mongodb.name>${spline.mongodb.name}</spline.mongodb.name>
-                            </systemProperties>
+                            <executable>java</executable>
+                            <arguments>
+                                <argument>-Dspline.persistence.factory=za.co.absa.spline.persistence.mongo.MongoPersistenceFactory</argument>
+                                <argument>-Dspline.mongodb.url=${spline.mongodb.url}</argument>
+                                <argument>-Dspline.mongodb.name=${spline.mongodb.name}</argument>
+                                <argument>-classpath</argument>
+                                <classpath/>
+                                <argument>${sampleClass}</argument>
+                            </arguments>
                         </configuration>
                     </plugin>
                 </plugins>

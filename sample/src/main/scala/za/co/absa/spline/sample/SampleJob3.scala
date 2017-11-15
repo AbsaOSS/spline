@@ -16,40 +16,33 @@
 
 package za.co.absa.spline.sample
 
-import org.apache.spark.sql.{SaveMode, SparkSession}
+import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.functions._
 import za.co.absa.spline.core.SparkLineageInitializer._
 
-object SampleJob3 {
-  def main(args: Array[String]): Unit = {
-    val spark = SparkSession.builder
-      .appName("Sample Job 3")
-      .getOrCreate
-      .enableLineageTracking()
+object SampleJob3 extends SparkApp("Sample Job 3") {
 
-    import spark.implicits._
+  spark.enableLineageTracking()
 
-    val ds = spark.read
-      .format("com.databricks.spark.xml")
-      .option("rowTag", "dataset")
-      .option("rootTag", "datasets")
-      .load("data/input/nasa.xml")
+  val ds = spark.read
+    .format("com.databricks.spark.xml")
+    .option("rowTag", "dataset")
+    .option("rootTag", "datasets")
+    .load("data/input/nasa.xml")
 
-    val astronomySubjectsDS = ds.filter($"_subject" === lit("astronomy")).cache
-    val journalReferencesDS = astronomySubjectsDS
-      .select(explode($"reference.source.journal") as "ref")
-      .select($"ref.title" as "title", $"ref.author" as "authors")
-    val otherReferencesDS = astronomySubjectsDS
-      .select(explode($"reference.source.other") as "ref")
-      .select(monotonically_increasing_id() as "id", $"ref.title" as "title", explode($"ref.author") as "author")
-      .select($"id", $"title", struct($"author.initial", $"author.lastName") as "author")
-      .groupBy($"id", $"title").agg(collect_list($"author") as "authors")
-      .drop($"id")
+  val astronomySubjectsDS = ds.filter($"_subject" === lit("astronomy")).cache
+  val journalReferencesDS = astronomySubjectsDS
+    .select(explode($"reference.source.journal") as "ref")
+    .select($"ref.title" as "title", $"ref.author" as "authors")
+  val otherReferencesDS = astronomySubjectsDS
+    .select(explode($"reference.source.other") as "ref")
+    .select(monotonically_increasing_id() as "id", $"ref.title" as "title", explode($"ref.author") as "author")
+    .select($"id", $"title", struct($"author.initial", $"author.lastName") as "author")
+    .groupBy($"id", $"title").agg(collect_list($"author") as "authors")
+    .drop($"id")
 
-    (journalReferencesDS union otherReferencesDS).limit(100)
-      .write
-      .mode(SaveMode.Overwrite)
-      .parquet("data/results/job3_results")
-
-  }
+  (journalReferencesDS union otherReferencesDS).limit(100)
+    .write
+    .mode(SaveMode.Overwrite)
+    .parquet("data/results/job3_results")
 }

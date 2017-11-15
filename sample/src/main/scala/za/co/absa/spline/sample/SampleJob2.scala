@@ -16,35 +16,29 @@
 
 package za.co.absa.spline.sample
 
-import org.apache.spark.sql.{SaveMode, SparkSession}
+import org.apache.spark.sql.SaveMode
 import za.co.absa.spline.core.SparkLineageInitializer._
 
-object SampleJob2 {
-  def main(args: Array[String]): Unit = {
-    val spark = SparkSession.builder
-      .appName("Sample Job 2")
-      .getOrCreate
-      .enableLineageTracking()
+object SampleJob2 extends SparkApp("Sample Job 2") {
 
-    import spark.implicits._
+  spark.enableLineageTracking()
 
-    val ds = spark.read
-      .option("header", "true")
-      .option("inferSchema", "true")
-      .csv("data/input/wikidata.csv")
+  val ds = spark.read
+    .option("header", "true")
+    .option("inferSchema", "true")
+    .csv("data/input/wikidata.csv")
 
-    // Stage 1
-    val startingDS = ds.filter($"total_response_size" > 10000).cache()
-    val firstDS = startingDS.filter($"domain_code".eqNullSafe("aa"))
-    val secondDS = startingDS.filter($"count_views" > 10)
-    val stage1DS = firstDS.union(secondDS)
-    stage1DS.write.mode(SaveMode.Overwrite).parquet("data/results/job2_stage1_results")
+  // Stage 1
+  val startingDS = ds.filter($"total_response_size" > 10000).cache()
+  val firstDS = startingDS.filter($"domain_code".eqNullSafe("aa"))
+  val secondDS = startingDS.filter($"count_views" > 10)
+  val stage1DS = firstDS.union(secondDS)
+  stage1DS.write.mode(SaveMode.Overwrite).parquet("data/results/job2_stage1_results")
 
-    // Stage 2
-    val stage2DS = spark.read.parquet("data/results/job2_stage1_results")
-    stage2DS
-      .filter($"domain_code".eqNullSafe("aa"))
-      .select($"page_title".as("name"), $"count_views".as("count"))
-      .write.mode(SaveMode.Overwrite).parquet("data/results/job2_stage2_results")
-  }
+  // Stage 2
+  val stage2DS = spark.read.parquet("data/results/job2_stage1_results")
+  stage2DS
+    .filter($"domain_code".eqNullSafe("aa"))
+    .select($"page_title".as("name"), $"count_views".as("count"))
+    .write.mode(SaveMode.Overwrite).parquet("data/results/job2_stage2_results")
 }
