@@ -19,7 +19,7 @@ package za.co.absa.spline.core
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.util.QueryExecutionListener
-import za.co.absa.spline.common.transformations.TransformationPipeline
+import za.co.absa.spline.common.transformations.AsyncTransformationPipeline
 import za.co.absa.spline.core.transformations.{ForeignMetaDatasetInjector, LineageProjectionMerger}
 import za.co.absa.spline.persistence.api.PersistenceFactory
 
@@ -40,7 +40,11 @@ class DataLineageListener(persistenceFactory: PersistenceFactory, hadoopConfigur
   private lazy val persistenceWriter = persistenceFactory.createDataLineageWriter()
   private lazy val persistenceReader = persistenceFactory.createDataLineageReader()
   private lazy val harvester = new DataLineageHarvester(hadoopConfiguration)
-  private lazy val transformationPipeline = new TransformationPipeline(Seq(LineageProjectionMerger, new ForeignMetaDatasetInjector(persistenceReader)))
+  private lazy val transformationPipeline =
+    new AsyncTransformationPipeline(
+      LineageProjectionMerger,
+      new ForeignMetaDatasetInjector(persistenceReader)
+    )
 
   /**
     * The method is executed when an action execution is successful.
@@ -65,8 +69,12 @@ class DataLineageListener(persistenceFactory: PersistenceFactory, hadoopConfigur
   private def processQueryExecution(funcName: String, qe: QueryExecution): Unit = {
     if (funcName == "save") {
       val lineage = harvester harvestLineage qe
-      val transformed = transformationPipeline(lineage)
-      Await.result(persistenceWriter store transformed, 10 minutes)
+      val eventuallyStored = for {
+        transformedLineage <- transformationPipeline(lineage)
+        storeEvidence <- persistenceWriter.store(transformedLineage)
+      } yield storeEvidence
+
+      Await.result(eventuallyStored, 10 minutes)
     }
   }
 }

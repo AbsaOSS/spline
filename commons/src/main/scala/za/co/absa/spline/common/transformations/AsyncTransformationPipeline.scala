@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.core.transformations
+package za.co.absa.spline.common.transformations
 
-import za.co.absa.spline.common.transformations.Transformation
-import za.co.absa.spline.model.DataLineage
+import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future.successful
 
 /**
-  * The object is responsible for the logic that merges compatible projections into one node within lineage graph.
+  * The class represents a pipeline that gradually applies transformations onto a input instance.
+  *
+  * @param transformations A sequence of transformations
+  * @tparam T A type of a transformed instance
   */
-object LineageProjectionMerger extends Transformation[DataLineage]
-{
+class AsyncTransformationPipeline[T](transformations: AsyncTransformation[T]*) extends AsyncTransformation[T] {
+
   /**
-    * The method transforms an input instance by a custom logic.
+    * The method transforms a input instance by a logic of inner transformations.
     *
     * @param input An input instance
     * @return A transformed result
     */
-  override def apply(input: DataLineage): DataLineage = {
-    val updated = input.copy(operations = ProjectionMerger(input.operations))
-    ReferenceConsolidator(updated)
-  }
+  def apply(input: T)(implicit ec: ExecutionContext): Future[T] = (successful(input) /: transformations) (_ flatMap _.apply)
 }
