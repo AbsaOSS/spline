@@ -74,7 +74,7 @@ Our main focus is to solve the following particular problems:
 
 * [Scala](https://www.scala-lang.org/) 2.11
 * [Spark](http://spark.apache.org/) 2.2.0
-* [MongoDB](https://www.mongodb.com/) 3.2 (required for Spline Web UI)
+* [MongoDB](https://www.mongodb.com/) 3.4 (required for Spline Web UI)
 
 ##### Setup for your Spark job:
 
