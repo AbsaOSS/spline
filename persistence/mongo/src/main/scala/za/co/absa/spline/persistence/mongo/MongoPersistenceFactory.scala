@@ -37,22 +37,28 @@ class MongoPersistenceFactory(configuration: Configuration) extends PersistenceF
   import MongoPersistenceFactory._
   import za.co.absa.spline.common.ConfigurationImplicits._
 
-  private lazy val dbUrl = configuration getRequiredString mongoDbUrlKey
-  private lazy val dbName = configuration getRequiredString mongoDbNameKey
+  private val mongoConnection = {
+    val dbUrl = configuration getRequiredString mongoDbUrlKey
+    val dbName = configuration getRequiredString mongoDbNameKey
+    log debug s"Preparing connection: $dbUrl/$dbName"
+    val connection = new MongoConnection(dbUrl, dbName)
+    log info s"Connected: $dbUrl/$dbName"
+    connection
+  }
 
   /**
     * The method creates a persistence writer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
     * @return A persistence writer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  override def createDataLineageWriter(): DataLineageWriter = new MongoDataLineageWriter(new MongoConnection(dbUrl, dbName))
+  override def createDataLineageWriter(): DataLineageWriter = new MongoDataLineageWriter(mongoConnection)
 
   /**
     * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
     * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  def createDataLineageReader(): DataLineageReader = new MongoDataLineageReader(new MongoConnection(dbUrl, dbName))
+  def createDataLineageReader(): DataLineageReader = new MongoDataLineageReader(mongoConnection)
 
   /**
     * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity if the factory can. Otherwise, returns default.
