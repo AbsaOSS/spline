@@ -16,17 +16,23 @@
 
 package za.co.absa.spline.sample
 
-object OtherJob extends SparkApp("Other Job", conf = Seq("spark.sql.shuffle.partitions" -> "4")) {
+import org.apache.spark.sql.{SQLContext, SQLImplicits, SparkSession}
 
-  // Initializing library to hook up to Apache Spark
-  import za.co.absa.spline.core.SparkLineageInitializer._
+abstract class SparkApp
+(
+  name: String,
+  master: String = "local[*]",
+  conf: Seq[(String, String)] = Nil
+) extends SQLImplicits with App {
 
-  spark.enableLineageTracking()
+  private val sparkBuilder = SparkSession.builder()
 
-  // A business logic of a spark job ...
-  val beerConsumption = spark.read.parquet("data/results/beerConsCtl")
+  sparkBuilder.appName(name)
+  sparkBuilder.master(master)
 
-  val result = beerConsumption.select($"Country", $"Code", $"Year2011" as "BeerConsumption2011")
+  for ((k, v) <- conf) sparkBuilder.config(k, v)
 
-  result.write.mode("overwrite").parquet("data/results/otherJobResults")
+  val spark: SparkSession = sparkBuilder.getOrCreate()
+
+  protected override def _sqlContext: SQLContext = spark.sqlContext
 }
