@@ -14,19 +14,25 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.common.transformations
+package za.co.absa.spline.sample
 
-/**
-  * The class represents a pipeline that gradually applies transformations onto a input instance.
-  * @param transformations A sequence of transformations
-  * @tparam T A type of a transformed instance
-  */
-class TransformationPipeline[T](transformations : Seq[Transformation[T]]) extends Transformation[T]{
+import org.apache.spark.sql.{SQLContext, SQLImplicits, SparkSession}
 
-  /**
-    * The method transforms a input instance by a logic of inner transformations.
-    * @param input An input instance
-    * @return A transformed result
-    */
-  def apply(input: T): T = Function.chain(transformations)(input)
+abstract class SparkApp
+(
+  name: String,
+  master: String = "local[*]",
+  conf: Seq[(String, String)] = Nil
+) extends SQLImplicits with App {
+
+  private val sparkBuilder = SparkSession.builder()
+
+  sparkBuilder.appName(name)
+  sparkBuilder.master(master)
+
+  for ((k, v) <- conf) sparkBuilder.config(k, v)
+
+  val spark: SparkSession = sparkBuilder.getOrCreate()
+
+  protected override def _sqlContext: SQLContext = spark.sqlContext
 }

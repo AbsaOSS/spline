@@ -35,6 +35,7 @@
         <connection>scm:git:git://github.com/AbsaOSS/spline.git</connection>
         <developerConnection>scm:git:ssh://github.com:AbsaOSS/spline.git</developerConnection>
         <url>http://github.com/AbsaOSS/spline/tree/master</url>
+        <tag>HEAD</tag>
     </scm>
 
     <licenses>
@@ -186,6 +187,7 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
                     <version>1.5.0</version>
+                    <!-- version 1.6.0 is buggy -->
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

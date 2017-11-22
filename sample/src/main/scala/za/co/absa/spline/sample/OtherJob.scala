@@ -16,27 +16,17 @@
 
 package za.co.absa.spline.sample
 
-import org.apache.spark.sql.SparkSession
+object OtherJob extends SparkApp("Other Job", conf = Seq("spark.sql.shuffle.partitions" -> "4")) {
 
-object OtherJob {
-  def main(args: Array[String]) {
-    val spark = SparkSession.builder()
-      .appName("Other Job")
-      .config("spark.sql.shuffle.partitions", "4")
-      .master("local[*]")
-      .getOrCreate()
+  // Initializing library to hook up to Apache Spark
+  import za.co.absa.spline.core.SparkLineageInitializer._
 
-    import spark.implicits._
+  spark.enableLineageTracking()
 
-    // Initializing library to hook up to Apache Spark
-    import za.co.absa.spline.core.SparkLineageInitializer._
-    spark.enableLineageTracking()
+  // A business logic of a spark job ...
+  val beerConsumption = spark.read.parquet("data/results/beerConsCtl")
 
-    // A business logic of a spark job ...
-    val beerConsumtion = spark.read.parquet("data/results/beerConsCtl")
+  val result = beerConsumption.select($"Country", $"Code", $"Year2011" as "BeerConsumption2011")
 
-    val result = beerConsumtion.select($"Country", $"Code", $"Year2011" as "BeerConsumption2011")
-
-    result.write.mode("overwrite").parquet("data/results/otherJobResults")
-  }
+  result.write.mode("overwrite").parquet("data/results/otherJobResults")
 }
