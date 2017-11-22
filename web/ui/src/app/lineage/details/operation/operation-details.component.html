@@ -40,42 +40,6 @@
                 </p-accordionTab>
             </section>
 
-            <!-- Section: Input -->
-            <section *ngFor="let input of operation.mainProps.inputs">
-                <p-accordionTab [selected]="true">
-                    <p-header>
-                        <details-section-header
-                                caption="Input"
-                                faIcon="fa-arrow-circle-right"
-                                iconColor="green"></details-section-header>
-                    </p-header>
-                    <attribute-list
-                            [attrs]="getDatasetAttributes(input)"
-                            [selectedAttrIDs]="selectedAttrIDs"
-                            (fullAttrSchemaClicked)="showFullAttributeSchema($event)"
-                            (attrClicked)="selectAttribute($event)">
-                    </attribute-list>
-                </p-accordionTab>
-            </section>
-
-            <!-- Section: Output -->
-            <section *ngIf="operation.mainProps.output">
-                <p-accordionTab [selected]="true">
-                    <p-header>
-                        <details-section-header
-                                caption="Output"
-                                faIcon="fa-arrow-circle-left"
-                                iconColor="firebrick"></details-section-header>
-                    </p-header>
-                    <attribute-list
-                            [attrs]="getDatasetAttributes(operation.mainProps.output)"
-                            [selectedAttrIDs]="selectedAttrIDs"
-                            (fullAttrSchemaClicked)="showFullAttributeSchema($event)"
-                            (attrClicked)="selectAttribute($event)">
-                    </attribute-list>
-                </p-accordionTab>
-            </section>
-
             <!-- Section: Write -->
             <section *ngIf="operationType == 'Write'">
                 <p-accordionTab [selected]="true">
@@ -163,6 +127,42 @@
                                 iconColor="steelblue"></details-section-header>
                     </p-header>
                     <code class="small" title="Internal operation representation">{{operation.rawString}}</code>
+                </p-accordionTab>
+            </section>
+
+            <!-- Section: Input -->
+            <section *ngFor="let input of operation.mainProps.inputs">
+                <p-accordionTab [selected]="true">
+                    <p-header>
+                        <details-section-header
+                                caption="Input"
+                                faIcon="fa-arrow-circle-right"
+                                iconColor="green"></details-section-header>
+                    </p-header>
+                    <attribute-list
+                            [attrs]="getDatasetAttributes(input)"
+                            [selectedAttrIDs]="selectedAttrIDs"
+                            (fullAttrSchemaClicked)="showFullAttributeSchema($event)"
+                            (attrClicked)="selectAttribute($event)">
+                    </attribute-list>
+                </p-accordionTab>
+            </section>
+
+            <!-- Section: Output -->
+            <section *ngIf="operation.mainProps.output">
+                <p-accordionTab [selected]="true">
+                    <p-header>
+                        <details-section-header
+                                caption="Output"
+                                faIcon="fa-arrow-circle-left"
+                                iconColor="firebrick"></details-section-header>
+                    </p-header>
+                    <attribute-list
+                            [attrs]="getDatasetAttributes(operation.mainProps.output)"
+                            [selectedAttrIDs]="selectedAttrIDs"
+                            (fullAttrSchemaClicked)="showFullAttributeSchema($event)"
+                            (attrClicked)="selectAttribute($event)">
+                    </attribute-list>
                 </p-accordionTab>
             </section>
 
