@@ -18,31 +18,27 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <base href="/" th:href="@{/}">
+    <base href="." th:href="@{/}">
 
-    <link rel="icon" type="image/png" href="static/favicon.png" th:href="@{favicon.png(t='${timestamp}')}">
+    <link rel="icon" type="image/png" href="../static/favicon.png" th:href="@{favicon.png(t='${timestamp}')}">
 
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="../static/errors.css" th:href="@{errors.css(t='${timestamp}')}" rel="stylesheet">
 
-    <title>Spline - Lineage Visualization</title>
-
-    <style>
-        html, body {
-            height: 100%;
-            min-height: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: Roboto, sans-serif;
-        }
-    </style>
-
+    <title th:utext="'Spline - '+${message}">Spline - error message</title>
 </head>
-
 <body>
-
-<app></app>
-
-<script src="/assets/bundle.vendor.js" th:src="@{/assets/bundle.vendor.js(t='${timestamp}')}"></script>
-<script src="/assets/bundle.main.js" th:src="@{/assets/bundle.main.js(t='${timestamp}')}"></script>
+<div class="container">
+    <div class="background"></div>
+    <div class="foreground">
+        <div>
+            <h1 th:utext="${message}">Short error message</h1>
+            <p th:if="${error_code}" class="error_code">
+                <b>Error Code:</b>
+                <span th:utext="${error_code}">5004367e-b78e-4a30-92d2-b9450a0e6262</span>
+            </p>
+        </div>
+    </div>
+</div>
+<span class="version small text-muted">Spline v${project.version}</span>
 </body>
 </html>

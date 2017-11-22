@@ -292,6 +292,7 @@
                             <filtering>true</filtering>
                             <includes>
                                 <include>index.html</include>
+                                <include>errors/*.html</include>
                             </includes>
                         </resource>
                         <resource>

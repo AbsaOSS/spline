@@ -67,7 +67,7 @@ const routes: Routes = [
     {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'dashboard'
+        redirectTo: '/dashboard'
     },
     {
         path: 'dashboard',
@@ -81,7 +81,11 @@ const routes: Routes = [
             datasetRoute
         ]
     },
-    datasetRoute
+    datasetRoute,
+    {
+        path: '**',
+        redirectTo: '/dashboard'
+    },
 ]
 
 @NgModule({
