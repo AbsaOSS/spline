@@ -17,6 +17,7 @@
 package za.co.absa.spline.core.conf
 
 import org.apache.commons.configuration.Configuration
+import org.slf4s.Logging
 import za.co.absa.spline.persistence.api.PersistenceFactory
 
 import scala.concurrent.ExecutionContext
@@ -33,13 +34,16 @@ object DefaultSplineConfigurer {
   *
   * @param configuration A source of settings
   */
-class DefaultSplineConfigurer(configuration: Configuration) extends SplineConfigurer {
+class DefaultSplineConfigurer(configuration: Configuration) extends SplineConfigurer with Logging {
 
   import DefaultSplineConfigurer._
   import za.co.absa.spline.common.ConfigurationImplicits._
 
   override def persistenceFactory(implicit ec: ExecutionContext): PersistenceFactory = {
     val persistenceFactoryClassName = configuration getRequiredString persistenceFactoryKey
+
+    log debug s"Instantiating persistence factory: $persistenceFactoryClassName"
+
     Class.forName(persistenceFactoryClassName)
       .getConstructor(classOf[Configuration])
       .newInstance(configuration)

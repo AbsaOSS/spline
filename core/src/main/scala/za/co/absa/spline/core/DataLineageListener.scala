@@ -19,6 +19,7 @@ package za.co.absa.spline.core
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.util.QueryExecutionListener
+import org.slf4s.Logging
 import za.co.absa.spline.common.transformations.AsyncTransformationPipeline
 import za.co.absa.spline.core.transformations.{ForeignMetaDatasetInjector, LineageProjectionMerger}
 import za.co.absa.spline.persistence.api.PersistenceFactory
@@ -26,6 +27,7 @@ import za.co.absa.spline.persistence.api.PersistenceFactory
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
+import scala.util.Success
 
 /**
   * The class represents a handler listening on events that Spark triggers when an execution any action is performed. It can be considered as an entry point to Spline library.
@@ -33,7 +35,7 @@ import scala.language.postfixOps
   * @param persistenceFactory  A factory of persistence readers and writers
   * @param hadoopConfiguration A hadoop configuration
   */
-class DataLineageListener(persistenceFactory: PersistenceFactory, hadoopConfiguration: Configuration) extends QueryExecutionListener {
+class DataLineageListener(persistenceFactory: PersistenceFactory, hadoopConfiguration: Configuration) extends QueryExecutionListener with Logging {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
@@ -67,14 +69,22 @@ class DataLineageListener(persistenceFactory: PersistenceFactory, hadoopConfigur
 
 
   private def processQueryExecution(funcName: String, qe: QueryExecution): Unit = {
+    log debug s"Action '$funcName' execution finished"
     if (funcName == "save") {
+      log debug s"Start tracking lineage for action '$funcName'"
+      log debug s"Extracting raw lineage"
       val lineage = harvester harvestLineage qe
+      log debug s"Preparing lineage"
       val eventuallyStored = for {
-        transformedLineage <- transformationPipeline(lineage)
-        storeEvidence <- persistenceWriter.store(transformedLineage)
+        transformedLineage <- transformationPipeline(lineage) andThen { case Success(_) => log debug s"Lineage is prepared" }
+        storeEvidence <- persistenceWriter.store(transformedLineage) andThen { case Success(_) => log debug s"Lineage is persisted" }
       } yield storeEvidence
 
       Await.result(eventuallyStored, 10 minutes)
+      log debug s"Lineage tracking for action '$funcName' is done."
+    }
+    else {
+      log debug s"Skipping lineage tracking for action '$funcName'"
     }
   }
 }

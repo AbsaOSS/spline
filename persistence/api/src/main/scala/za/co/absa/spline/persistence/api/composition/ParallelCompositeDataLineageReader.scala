@@ -29,7 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
   *
   * @param readers a set of internal readers specific to particular persistence layers
   */
-class ParallelCompositeDataLineageReader(readers: Set[DataLineageReader]) extends DataLineageReader {
+class ParallelCompositeDataLineageReader(readers: Seq[DataLineageReader]) extends DataLineageReader {
   /**
     * The method loads a particular data lineage from the persistence layer.
     *

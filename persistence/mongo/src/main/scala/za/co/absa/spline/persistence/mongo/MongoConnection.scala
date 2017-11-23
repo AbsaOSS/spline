@@ -22,15 +22,18 @@ import com.mongodb.casbah.MongoClient
 
 /**
   * The class represents a connection to a specific Mongo database
-  * @param dbUrl An url to Mongo server
+  *
+  * @param dbUrl  An url to Mongo server
   * @param dbName A database name
   */
 class MongoConnection(dbUrl: String, dbName: String) {
   val dataLineageCollectionName: String = "lineages"
   val LATEST_SERIAL_VERSION = 1
 
-  private lazy val client: MongoClient = MongoClient(MongoClientURI(dbUrl))
-  private lazy val database = client.getDB(dbName)
+  private val client: MongoClient = MongoClient(MongoClientURI(dbUrl))
+  require(client.connectPoint != null) // check if the connection can be established
 
-  lazy val dataLineageCollection: DBCollection = database.getCollection(dataLineageCollectionName)
+  private val database = client.getDB(dbName)
+
+  val dataLineageCollection: DBCollection = database.getCollection(dataLineageCollectionName)
 }
