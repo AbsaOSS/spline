@@ -18,6 +18,7 @@ package za.co.absa.spline.core.transformations
 
 import java.util.UUID
 
+import org.slf4s.Logging
 import za.co.absa.spline.common.transformations.AsyncTransformation
 import za.co.absa.spline.model.op.{MetaDataSource, Operation, Read}
 import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset}
@@ -31,7 +32,7 @@ import scala.language.postfixOps
   *
   * @param reader A reader reading lineage graphs from persistence layer
   */
-class ForeignMetaDatasetInjector(reader: DataLineageReader) extends AsyncTransformation[DataLineage] {
+class ForeignMetaDatasetInjector(reader: DataLineageReader) extends AsyncTransformation[DataLineage] with Logging {
 
   /**
     * The method transforms an input instance by a custom logic.
@@ -50,11 +51,18 @@ class ForeignMetaDatasetInjector(reader: DataLineageReader) extends AsyncTransfo
 
     // collect data
 
-    def resolveMetaDataSources(mds: MetaDataSource): Future[(MetaDataSource, Option[DataLineage])] =
-      reader.loadLatest(mds.path).map(maybeLineage => {
-        val datasetIdOption = maybeLineage.map(lineage => lineage.rootDataset.id)
-        (mds.copy(datasetId = datasetIdOption), maybeLineage)
-      })
+    def resolveMetaDataSources(mds: MetaDataSource): Future[(MetaDataSource, Option[DataLineage])] = {
+      log debug s"Resolving lineage of ${mds.path}"
+      reader.loadLatest(mds.path) map {
+        case None =>
+          log debug s"Lineage of ${mds.path} NOT FOUND"
+          (mds, None)
+        case mdsLineageOpt@Some(mdsLineage) =>
+          log debug s"Lineage of ${mds.path} FOUND: ${mdsLineage.id}"
+          val updatedMds = mds.copy(datasetId = Some(mdsLineage.rootDataset.id))
+          (updatedMds, mdsLineageOpt)
+      }
+    }
 
     val eventualReadsWithLineages: Future[Seq[(Read, Seq[DataLineage])]] = Future.sequence(
       for {

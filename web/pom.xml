@@ -31,7 +31,7 @@
     <properties>
         <webui.basedir>${project.basedir}/ui</webui.basedir>
         <timestamp>${maven.build.timestamp}</timestamp>
-        <maven.build.timestamp.format>yyyyMMddHHmmssSSS</maven.build.timestamp.format>
+        <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssX</maven.build.timestamp.format>
     </properties>
 
     <dependencies>
@@ -292,6 +292,7 @@
                             <filtering>true</filtering>
                             <includes>
                                 <include>index.html</include>
+                                <include>errors/*.html</include>
                             </includes>
                         </resource>
                         <resource>

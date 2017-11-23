@@ -19,6 +19,7 @@ package za.co.absa.spline.core
 import org.apache.commons.configuration._
 import org.apache.spark
 import org.apache.spark.sql.SparkSession
+import org.slf4s.Logging
 import za.co.absa.spline.core.conf._
 
 import scala.collection.JavaConverters._
@@ -28,7 +29,7 @@ import scala.util.Try
 /**
   * The object contains logic needed for initialization of the library
   */
-object SparkLineageInitializer {
+object SparkLineageInitializer extends Logging {
 
   /**
     * The class is a wrapper around Spark session and performs all necessary registrations and procedures for initialization of the library.
@@ -39,7 +40,7 @@ object SparkLineageInitializer {
 
     private val sessionState = sparkSession.sessionState
 
-    private implicit val executionContext = ExecutionContext.global
+    private implicit val executionContext: ExecutionContext = ExecutionContext.global
 
     /**
       * The method performs all necessary registrations and procedures for initialization of the library.
@@ -49,9 +50,17 @@ object SparkLineageInitializer {
       */
     def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfigurer(defaultSplineConfiguration)): SparkSession =
       sparkSession.synchronized {
-        checkSparkVersion()
         preventDoubleInitialization()
-        sessionState.listenerManager register new DataLineageListener(configurer.persistenceFactory, sparkSession.sparkContext.hadoopConfiguration)
+        log info s"Spline v${SplineBuildInfo.version} is initializing..."
+        if (SparkVersionInfo.matchesRequirements) {
+          val hadoopConfiguration = sparkSession.sparkContext.hadoopConfiguration
+          val persistenceFactory = configurer.persistenceFactory
+          sessionState.listenerManager register new DataLineageListener(persistenceFactory, hadoopConfiguration)
+          log info s"Successfully initialized. Spark Lineage tracking is ENABLED."
+        } else {
+          log error s"Unsupported Spark version: ${spark.SPARK_VERSION}. Required version ${SparkVersionInfo.requiredVersion}"
+          log error s"Initialization failed! Spark Lineage tracking is DISABLED."
+        }
         sparkSession
       }
 
@@ -69,19 +78,12 @@ object SparkLineageInitializer {
       ).flatten.asJava)
     }
 
-    private def preventDoubleInitialization() = {
+    private def preventDoubleInitialization(): Unit = {
       val sessionConf = sessionState.conf
       if (sessionConf contains initFlagKey)
         throw new IllegalStateException("Lineage tracking is already initialized")
       sessionConf.setConfString(initFlagKey, true.toString)
     }
-
-    private def checkSparkVersion(): Unit = {
-      val SparkVersionExpression = """(\d+)\.(\d+)\.(\d+).*""".r
-      val SparkVersionExpression(ver1, ver2, _) = spark.SPARK_VERSION
-      require(ver1.toInt == 2 && ver2.toInt == 2, s"Unsupported Spark version: ${spark.SPARK_VERSION}. Should be 2.2.x")
-    }
-
   }
 
   val initFlagKey = "spline.initialized_flag"

@@ -383,6 +383,11 @@
             </dependency>
             <!-- Logging -->
             <dependency>
+                <groupId>org.slf4s</groupId>
+                <artifactId>slf4s-api_${scala.compat.version}</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.version}</version>

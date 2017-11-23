@@ -18,6 +18,7 @@ package za.co.absa.spline.persistence.mongo
 
 
 import _root_.salat._
+import org.slf4s.Logging
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.DataLineageWriter
 
@@ -29,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future, blocking}
   *
   * @param connection A connection to Mongo database
   */
-class MongoDataLineageWriter(connection: MongoConnection) extends DataLineageWriter {
+class MongoDataLineageWriter(connection: MongoConnection) extends DataLineageWriter with Logging {
 
   import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext._
 
@@ -39,6 +40,7 @@ class MongoDataLineageWriter(connection: MongoConnection) extends DataLineageWri
     * @param lineage A data lineage that will be stored
     */
   override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = Future {
+    log debug s"Storing lineage object"
     val dbo = grater[DataLineage].asDBObject(lineage)
     dbo.put("_ver", connection.LATEST_SERIAL_VERSION)
     blocking(connection.dataLineageCollection insert dbo)

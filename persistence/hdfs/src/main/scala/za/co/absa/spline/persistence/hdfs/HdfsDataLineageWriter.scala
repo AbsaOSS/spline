@@ -19,6 +19,7 @@ package za.co.absa.spline.persistence.hdfs
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.permission.FsPermission
 import org.apache.hadoop.fs.{FileSystem, Path}
+import org.slf4s.Logging
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.model.op.Write
 import za.co.absa.spline.persistence.api.DataLineageWriter
@@ -29,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future, blocking}
 /**
   * The class represents persistence layer that persists the [[za.co.absa.spline.model.DataLineage DataLineage]] entity to a file on HDFS.
   */
-class HdfsDataLineageWriter(hadoopConfiguration: Configuration, fileName: String, filePermissions: FsPermission) extends DataLineageWriter {
+class HdfsDataLineageWriter(hadoopConfiguration: Configuration, fileName: String, filePermissions: FsPermission) extends DataLineageWriter with Logging {
   /**
     * The method stores a particular data lineage to the persistence layer.
     *
@@ -47,6 +48,7 @@ class HdfsDataLineageWriter(hadoopConfiguration: Configuration, fileName: String
   private def persistToHdfs(content: String, path: Path): Unit = blocking {
     import za.co.absa.spline.common.ARMImplicits._
     val fs = FileSystem.get(hadoopConfiguration)
+    log debug s"Writing lineage to $path"
     for (fos <- fs.create(
       path,
       filePermissions,

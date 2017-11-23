@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.{RequestMapping, RequestParam, Re
 import za.co.absa.spline.common.ARMImplicits
 import za.co.absa.spline.persistence.api.DataLineageReader
 import za.co.absa.spline.web.ExecutionContextImplicit
+import za.co.absa.spline.web.exception.LineageNotFoundException
 
 import scala.concurrent.Future
 import scala.io.Source.fromInputStream
@@ -45,10 +46,10 @@ class MainController @Autowired()
                @RequestParam("application_id") applicationId: String,
                httpReq: HttpServletRequest,
                httpRes: HttpServletResponse): Future[String] =
-    for {
-      dsIdOpt <- reader.searchDataset(path, applicationId)
-      dsId = dsIdOpt.get // an exception will be translated to 404
-    } yield s"redirect:/dataset/$dsId/lineage/overview#datasource"
+    reader.searchDataset(path, applicationId) map {
+      case Some(dsId) => s"redirect:/dataset/$dsId/lineage/overview#datasource"
+      case None => throw new LineageNotFoundException(s"dataset_path=$path AND app_id=$applicationId")
+    }
 
   @RequestMapping(path = Array("/build-info"), method = Array(GET), produces = Array("text/x-java-properties"))
   @ResponseBody

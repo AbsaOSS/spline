@@ -40,6 +40,10 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.slf4s</groupId>
+            <artifactId>slf4s-api_${scala.compat.version}</artifactId>
+        </dependency>
+        <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
         </dependency>
