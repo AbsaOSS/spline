@@ -20,15 +20,26 @@
             <graph #graph
                    [selectedOperationId]="selectedOperation?.mainProps.id"
                    (operationSelected)="onOperationSelected($event)"
-                   [highlightedNodeIDs]="highlightedNodeIDs">
+                   [highlightedNodeIDs]="highlightedNodeIDs"
+                   [hiddenOperationTypes]="hiddenOperationTypes">
             </graph>
-            <div class="graph-header graph-toolbar">
+            <div class="graph-toolbar top left">
                 <button mat-button (click)="gotoLineageOverview()" title="Show a high level lineage graph">
                     <mat-icon>keyboard_arrow_left</mat-icon>
                     Lineage Overview
                 </button>
             </div>
-            <div class="graph-footer graph-toolbar">
+            <div class="graph-toolbar top right">
+                <ng-template ngFor let-opType [ngForOf]="hideableOperationTypes">
+                    <button mat-icon-button
+                            (click)="toggleOperationTypeVisibility(opType)"
+                            title="{{isOperationTypeVisible(opType) ? 'Hide' : 'Show'}} '{{opType}}' operations">
+                        <mat-icon>{{isOperationTypeVisible(opType) ? 'visibility' : 'visibility_off'}}</mat-icon>
+                        {{opType}}
+                    </button>
+                </ng-template>
+            </div>
+            <div class="graph-toolbar bottom right">
                 <button *ngIf="selectedAttrIDs.length"
                         mat-button (click)="clearSelection()" title="Collapse groups of nodes">
                     <mat-icon title="Clear selection">clear</mat-icon>

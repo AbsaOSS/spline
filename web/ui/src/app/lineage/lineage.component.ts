@@ -18,7 +18,7 @@ import {Component, OnInit} from "@angular/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {IAttribute, IDataLineage, IOperation} from "../../generated-ts/lineage-model";
 import {LineageStore} from "./lineage.store";
-import {typeOfOperation} from "./types";
+import {OperationType, typeOfOperation} from "./types";
 import * as _ from "lodash";
 import {MatTabChangeEvent} from "@angular/material";
 import {Tab} from "./tabs";
@@ -35,6 +35,20 @@ export class LineageComponent implements OnInit {
     attributeToShowFullSchemaFor?: IAttribute
     selectedAttrIDs: string[]
     highlightedNodeIDs: string[]
+
+    hideableOperationTypes: OperationType[] = ['Projection', 'Filter']
+    hiddenOperationTypes: OperationType[] = []
+
+    toggleOperationTypeVisibility(opType: OperationType) {
+        let otherHiddenOpTypes = _.without(this.hiddenOperationTypes, opType)
+        this.hiddenOperationTypes = (this.hiddenOperationTypes.length > otherHiddenOpTypes.length)
+            ? otherHiddenOpTypes
+            : this.hiddenOperationTypes.concat(opType)
+    }
+
+    isOperationTypeVisible(opType: OperationType) {
+        return this.hiddenOperationTypes.indexOf(opType) < 0
+    }
 
     constructor(private router: Router,
                 private route: ActivatedRoute,
