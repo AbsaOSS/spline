@@ -36,15 +36,15 @@ object MareksJob extends SparkApp("Marek's Job", conf = Seq("spark.sql.shuffle.p
     $"2010 [YR2010]" as "2010"
   )
 
-  val gdpPerCapital = cleaned.filter($"metric" === "GDP per capita (current US$)")
+  val gdpPerCapita = cleaned.filter($"metric" === "GDP per capita (current US$)")
 
   val beerConsumtion = spark.read.parquet("data/results/beerConsCtl")
 
   val result = beerConsumtion
-    .join(gdpPerCapital, $"country_code" === $"Code", "inner")
-    .select($"country_name", $"Year2011" as "beer_consumption", $"2011" as "gdp_per_capital")
+    .join(gdpPerCapita, $"country_code" === $"Code", "inner")
+    .select($"country_name", $"Year2011" as "beer_consumption", $"2011" as "gdp_per_capita")
     .sort($"beer_consumption" desc)
 
 
-  result.write.mode("overwrite").parquet("data/results/gdpPerCapitalUSD")
+  result.write.mode("overwrite").parquet("data/results/gdpPerCapitaUSD")
 }
