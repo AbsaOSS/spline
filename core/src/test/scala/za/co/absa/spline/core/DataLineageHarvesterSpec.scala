@@ -47,13 +47,14 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
 
     private def stripped(operation: Operation): Operation = operation match {
       case (jn: Join) => jn copy (mainProps = strippedProps(jn), condition = null)
-      case (fn: Filter) => fn copy (mainProps = strippedProps(fn), condition = null)
+      case (fr: Filter) => fr copy (mainProps = strippedProps(fr), condition = null)
+      case (st: Sort) => st copy(mainProps = strippedProps(st), orders = Nil)
       case (pn: Projection) => pn copy (mainProps = strippedProps(pn), transformations = null)
       case (gn: Generic) => gn copy (mainProps = strippedProps(gn), rawString = null)
-      case (an: Alias) => an copy (mainProps = strippedProps(an))
-      case (sn: Read) => sn copy (mainProps = strippedProps(sn))
-      case (dn: Write) => dn copy (mainProps = strippedProps(dn))
-      case (hol: Composite) => hol copy (mainProps = strippedProps(hol))
+      case (as: Alias) => as copy (mainProps = strippedProps(as))
+      case (rd: Read) => rd copy (mainProps = strippedProps(rd))
+      case (wt: Write) => wt copy (mainProps = strippedProps(wt))
+      case (cm: Composite) => cm copy (mainProps = strippedProps(cm))
     }
 
     private def strippedProps(n: Operation): OperationProps = n.mainProps.copy(id = null, inputs = null, output = null)

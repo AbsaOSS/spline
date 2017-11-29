@@ -41,7 +41,7 @@ class DataLineageHarvester(hadoopConfiguration: Configuration) {
   def harvestLineage(queryExecution: QueryExecution): DataLineage = {
     val attributeFactory = new AttributeFactory()
     val metaDatasetFactory = new MetaDatasetFactory(attributeFactory)
-    val operationNodeBuilderFactory = new OperationNodeBuilderFactory(hadoopConfiguration, metaDatasetFactory)
+    val operationNodeBuilderFactory = new OperationNodeBuilderFactory()(hadoopConfiguration, metaDatasetFactory)
     val nodes = harvestOperationNodes(queryExecution.analyzed, operationNodeBuilderFactory)
 
     val sparkContext = queryExecution.sparkSession.sparkContext

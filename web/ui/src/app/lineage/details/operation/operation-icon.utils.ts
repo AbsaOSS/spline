@@ -36,6 +36,9 @@ export class Icon {
             case "Filter":
                 return new Icon("fa-filter", "\uf0b0", font);
 
+            case "Sort":
+                return new Icon("fa-sort-amount-desc", "\uf161", font);
+
             case "Join":
                 return new Icon("fa-code-fork", "\uf126", font);
 

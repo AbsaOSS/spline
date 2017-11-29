@@ -19,8 +19,8 @@ package za.co.absa.spline.model.op
 import java.util.UUID
 
 import salat.annotations.Salat
-import za.co.absa.spline.model.{Attribute, MetaDataset}
 import za.co.absa.spline.model.expr.Expression
+import za.co.absa.spline.model.{Attribute, MetaDataset}
 
 /**
   * The case class represents node properties that are common for all node types.
@@ -62,6 +62,7 @@ object Operation {
       case op@Alias(mp, _) => op.copy(mainProps = fn(mp))
       case op@Write(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Filter(mp, _) => op.copy(mainProps = fn(mp))
+      case op@Sort(mp, _) => op.copy(mainProps = fn(mp))
       case op@Generic(mp, _) => op.copy(mainProps = fn(mp))
       case op@Join(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Projection(mp, _) => op.copy(mainProps = fn(mp))
@@ -103,6 +104,27 @@ case class Filter(
                    mainProps: OperationProps,
                    condition: Expression
                  ) extends Operation
+
+/**
+  * The case class represents Spark sort operation.
+  *
+  * @param mainProps Common node properties
+  * @param orders    Sort orders
+  */
+case class Sort(
+                 mainProps: OperationProps,
+                 orders: Seq[SortOrder]
+               ) extends Operation
+
+/**
+  * Represents a sort order expression and a direction
+  *
+  * @param expression An expression that returns values to sort on
+  * @param direction  Sorting direction
+  * @param nullOrder  Ordering for null values
+  */
+case class SortOrder(expression: Expression, direction: String, nullOrder: String)
+
 
 /**
   * The case class represents Spark projective operations (select, drop, withColumn, etc.)
@@ -202,6 +224,7 @@ case class Composite(
                       appName: String
                     ) extends Operation {
   private def knownSourceLineagesCount = sources.count(_.datasetId.isDefined)
+
   private def inputDatasetsCount = mainProps.inputs.size
 
   require(

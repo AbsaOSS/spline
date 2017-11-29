@@ -72,6 +72,24 @@
                 </p-accordionTab>
             </section>
 
+            <!-- Section: Sort -->
+            <section *ngIf="operationType == 'Sort'">
+                <p-accordionTab [selected]="true">
+                    <p-header>
+                        <details-section-header
+                                caption="Sort by"
+                                faIcon="fa-sort-amount-desc"
+                                iconColor="steelblue"></details-section-header>
+                    </p-header>
+                    <ul class="sort-orders">
+                        <li *ngFor="let order of operation.orders">
+                            <i class="fa {{order.direction == 'ASC' ? 'fa-long-arrow-down' : 'fa-long-arrow-up'}}" title="{{order.direction}}"></i>
+                            <expression-inline [expr]="order.expression"></expression-inline>
+                        </li>
+                    </ul>
+                </p-accordionTab>
+            </section>
+
             <!-- Section: Projection -->
             <section *ngIf="operationType == 'Projection'">
                 <p-accordionTab [selected]="true">

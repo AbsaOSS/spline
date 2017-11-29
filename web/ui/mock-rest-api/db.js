@@ -1111,6 +1111,9 @@ module.exports = function () {
                 }, {"id": "ds-uuid-31", "schema": {"attrs": ["attr-uuid-105", "attr-uuid-106"]}}, {
                     "id": "ds-uuid-32",
                     "schema": {"attrs": ["attr-uuid-105", "attr-uuid-106"]}
+                }, {
+                    "id": "ds-uuid-33",
+                    "schema": {"attrs": ["attr-uuid-105", "attr-uuid-106"]}
                 }],
                 "operations": [{
                     "_typeHint": "za.co.absa.spline.core.model.op.Write",
@@ -6519,7 +6522,7 @@ module.exports = function () {
                         "id": "op-uuid-33",
                         "name": "SubqueryAlias",
                         "rawString": "SubqueryAlias CategoryMapping",
-                        "inputs": ["ds-uuid-32"],
+                        "inputs": ["ds-uuid-33"],
                         "output": "ds-uuid-31"
                     },
                     "alias": "CategoryMapping"
@@ -6555,6 +6558,23 @@ module.exports = function () {
                             "children": []
                         }]
                     }
+                }, {
+                    "_typeHint": "za.co.absa.spline.model.op.Sort",
+                    "mainProps": {
+                        "id": "57767d87-909b-49dd-9800-e7dc59e95340",
+                        "name": "Sort",
+                        "inputs": ["ds-uuid-32"],
+                        "output": "ds-uuid-33"
+                    },
+                    "orders": [{
+                        "expression": {
+                            "_typeHint": "za.co.absa.spline.model.expr.AttributeReference",
+                            "refId": "bbf488a0-9ea0-43f6-8d7a-7eda9d4a6151",
+                            "name": "beer_consumption",
+                            "text": "beer_consumption",
+                            "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+                        }, "direction": "DESC", "nullOrder": "NULLS LAST"
+                    }]
                 }]
             },
             {

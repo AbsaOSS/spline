@@ -152,6 +152,7 @@
                                 <argument>za.co.absa.spline.model.op.Alias</argument>
                                 <argument>za.co.absa.spline.model.op.Write</argument>
                                 <argument>za.co.absa.spline.model.op.Filter</argument>
+                                <argument>za.co.absa.spline.model.op.Sort</argument>
                                 <argument>za.co.absa.spline.model.op.Generic</argument>
                                 <argument>za.co.absa.spline.model.op.Join</argument>
                                 <argument>za.co.absa.spline.model.op.Projection</argument>
@@ -222,7 +223,7 @@
                     <dependency>
                         <groupId>com.github.wajda</groupId>
                         <artifactId>scala-ts_${scala.compat.version}</artifactId>
-                        <version>0.3.2.2</version>
+                        <version>0.4.0.0</version>
                     </dependency>
                 </dependencies>
             </plugin>

@@ -24,6 +24,7 @@ export type OperationType =
     | "Join"
     | "Generic"
     | "Filter"
+    | "Sort"
     | "Write"
     | "Alias"
     | "Composite"

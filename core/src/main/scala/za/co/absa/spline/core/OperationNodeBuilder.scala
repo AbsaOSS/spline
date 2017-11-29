@@ -19,22 +19,24 @@ package za.co.absa.spline.core
 import java.util.UUID
 import java.util.UUID.randomUUID
 
-import za.co.absa.spline.model._
-import org.apache.spark.sql.catalyst.plans.logical._
-import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation, SaveIntoDataSourceCommand}
 import com.databricks.spark.xml.XmlRelation
 import org.apache.hadoop.conf.Configuration
+import org.apache.spark.sql.catalyst.expressions.SortOrder
+import org.apache.spark.sql.catalyst.plans.logical._
+import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation, SaveIntoDataSourceCommand}
 import org.apache.spark.sql.sources.BaseRelation
 import za.co.absa.spline.model.op.MetaDataSource
+import za.co.absa.spline.model.{op, _}
 
 import scala.collection.mutable
 
 /**
   * The class represents a factory creating a specific node builders for a particular operations from Spark logical plan.
+  *
   * @param hadoopConfiguration A hadoop configuration
-  * @param metaDatasetFactory A factory of meta data sets
+  * @param metaDatasetFactory  A factory of meta data sets
   */
-class OperationNodeBuilderFactory(hadoopConfiguration: Configuration, metaDatasetFactory: MetaDatasetFactory) {
+class OperationNodeBuilderFactory(implicit hadoopConfiguration: Configuration, metaDatasetFactory: MetaDatasetFactory) {
 
   /**
     * Creates a specific node builders for a particular operations from Spark logical plan.
@@ -43,13 +45,14 @@ class OperationNodeBuilderFactory(hadoopConfiguration: Configuration, metaDatase
     * @return A specific node builder
     */
   def create(logicalPlan: LogicalPlan): OperationNodeBuilder[_] = logicalPlan match {
-    case j: Join => new JoinNodeBuilder(j, metaDatasetFactory)
-    case p: Project => new ProjectionNodeBuilder(p, metaDatasetFactory)
-    case f: Filter => new FilterNodeBuilder(f, metaDatasetFactory)
-    case a: SubqueryAlias => new AliasNodeBuilder(a, metaDatasetFactory)
-    case sc: SaveIntoDataSourceCommand => new DestinationNodeBuilder(sc, hadoopConfiguration, metaDatasetFactory)
-    case lr: LogicalRelation => new SourceNodeBuilder(lr, hadoopConfiguration, metaDatasetFactory)
-    case x => new GenericNodeBuilder(x, metaDatasetFactory)
+    case j: Join => new JoinNodeBuilder(j)
+    case p: Project => new ProjectionNodeBuilder(p)
+    case f: Filter => new FilterNodeBuilder(f)
+    case s: Sort => new SortNodeBuilder(s)
+    case a: SubqueryAlias => new AliasNodeBuilder(a)
+    case sc: SaveIntoDataSourceCommand => new DestinationNodeBuilder(sc)
+    case lr: LogicalRelation => new SourceNodeBuilder(lr)
+    case x => new GenericNodeBuilder(x)
   }
 }
 
@@ -73,7 +76,7 @@ sealed trait OperationNodeBuilder[OpType <: LogicalPlan] extends DataTypeMapper 
   /**
     * An Attribute factory
     */
-  val attributeFactory: AttributeFactory =  metaDatasetFactory.attributeFactory
+  val attributeFactory: AttributeFactory = metaDatasetFactory.attributeFactory
 
   /**
     * ID of child meta data set
@@ -105,10 +108,11 @@ sealed trait OperationNodeBuilder[OpType <: LogicalPlan] extends DataTypeMapper 
 /**
   * The class represents a builder of generic nodes that are equivalents for Spark operations for which a specific operation node hasn't been created.
   *
-  * @param operation An input Spark operation
+  * @param operation          An input Spark operation
   * @param metaDatasetFactory A factory of meta data sets
   */
-private class GenericNodeBuilder(val operation: LogicalPlan, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[LogicalPlan] {
+private class GenericNodeBuilder(val operation: LogicalPlan)
+                                (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[LogicalPlan] {
   def build(): op.Operation = op.Generic(buildOperationProps(), operation.verboseString)
 }
 
@@ -116,21 +120,23 @@ private class GenericNodeBuilder(val operation: LogicalPlan, val metaDatasetFact
 /**
   * The class represents a builder of operations nodes dedicated for Spark alias operation.
   *
-  * @param operation An input Spark alias operation
+  * @param operation          An input Spark alias operation
   * @param metaDatasetFactory A factory of meta data sets
   */
-private class AliasNodeBuilder(val operation: SubqueryAlias, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[SubqueryAlias] {
+private class AliasNodeBuilder(val operation: SubqueryAlias)
+                              (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[SubqueryAlias] {
   def build(): op.Operation = op.Alias(buildOperationProps(), operation.alias)
 }
 
 /**
   * The class represents a builder of operations nodes dedicated for Spark load operation.
   *
-  * @param operation An input Spark load operation
+  * @param operation           An input Spark load operation
   * @param hadoopConfiguration A hadoop configuration
-  * @param metaDatasetFactory A factory of meta data sets
+  * @param metaDatasetFactory  A factory of meta data sets
   */
-private class SourceNodeBuilder(val operation: LogicalRelation, hadoopConfiguration: Configuration, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[LogicalRelation] {
+private class SourceNodeBuilder(val operation: LogicalRelation)
+                               (implicit hadoopConfiguration: Configuration, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[LogicalRelation] {
   def build(): op.Operation = {
     val (sourceType, paths) = getRelationPaths(operation.relation)
     op.Read(
@@ -155,11 +161,12 @@ private class SourceNodeBuilder(val operation: LogicalRelation, hadoopConfigurat
 /**
   * The class represents a builder of operations nodes dedicated for Spark persist operation.
   *
-  * @param operation An input Spark persist operation
+  * @param operation           An input Spark persist operation
   * @param hadoopConfiguration A hadoop configuration
-  * @param metaDatasetFactory A factory of meta data sets
+  * @param metaDatasetFactory  A factory of meta data sets
   */
-private class DestinationNodeBuilder(val operation: SaveIntoDataSourceCommand, hadoopConfiguration: Configuration, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[SaveIntoDataSourceCommand] {
+private class DestinationNodeBuilder(val operation: SaveIntoDataSourceCommand)
+                                    (implicit hadoopConfiguration: Configuration, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[SaveIntoDataSourceCommand] {
 
   override val outputMetaDataset: UUID = metaDatasetFactory.create(operation.query)
 
@@ -175,10 +182,11 @@ private class DestinationNodeBuilder(val operation: SaveIntoDataSourceCommand, h
 /**
   * The class represents a builder of operations nodes dedicated for Spark project operation.
   *
-  * @param operation An input Spark project operation
+  * @param operation          An input Spark project operation
   * @param metaDatasetFactory A factory of meta data sets
   */
-private class ProjectionNodeBuilder(val operation: Project, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[Project] with ExpressionMapper {
+private class ProjectionNodeBuilder(val operation: Project)
+                                   (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[Project] with ExpressionMapper {
   def build(): op.Operation = {
     val transformations = operation.projectList
       .map(fromSparkExpression)
@@ -191,7 +199,7 @@ private class ProjectionNodeBuilder(val operation: Project, val metaDatasetFacto
   }
 
   private def resolveAttributeRemovals(): Seq[expr.Expression] = {
-    def createAttributeByNamesMap(metaDatasetIds : Seq[UUID]) : Map[String, Attribute] = metaDatasetIds
+    def createAttributeByNamesMap(metaDatasetIds: Seq[UUID]): Map[String, Attribute] = metaDatasetIds
       .flatMap(i => metaDatasetFactory.getById(i))
       .flatMap(i => i.schema.attrs)
       .flatMap(i => attributeFactory.getById(i))
@@ -212,22 +220,39 @@ private class ProjectionNodeBuilder(val operation: Project, val metaDatasetFacto
 /**
   * The class represents a builder of operations nodes dedicated for Spark filter operation.
   *
-  * @param operation An input Spark filter operation
+  * @param operation          An input Spark filter operation
   * @param metaDatasetFactory A factory of meta data sets
   */
-private class FilterNodeBuilder(val operation: Filter, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[Filter] with ExpressionMapper {
+private class FilterNodeBuilder(val operation: Filter)
+                               (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[Filter] with ExpressionMapper {
   def build(): op.Operation = op.Filter(
     buildOperationProps(),
     operation.condition)
 }
 
 /**
-  * The class represents a builder of operations nodes dedicated for Spark join operation.
+  * The class represents a builder of operations nodes dedicated for Spark Sort operation.
   *
-  * @param operation An input Spark join operation
+  * @param operation          An input Spark sort operation
   * @param metaDatasetFactory A factory of meta data sets
   */
-private class JoinNodeBuilder(val operation: Join, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[Join] with ExpressionMapper {
+private class SortNodeBuilder(val operation: Sort)
+                             (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[Sort] with ExpressionMapper {
+  def build(): op.Operation = op.Sort(
+    buildOperationProps(),
+    for (SortOrder(expression, direction, nullOrdering, _) <- operation.order)
+      yield op.SortOrder(expression, direction.sql, nullOrdering.sql)
+  )
+}
+
+/**
+  * The class represents a builder of operations nodes dedicated for Spark join operation.
+  *
+  * @param operation          An input Spark join operation
+  * @param metaDatasetFactory A factory of meta data sets
+  */
+private class JoinNodeBuilder(val operation: Join)
+                             (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[Join] with ExpressionMapper {
   def build(): op.Operation = {
     op.Join(
       buildOperationProps(),
