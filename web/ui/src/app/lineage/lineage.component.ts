@@ -38,14 +38,7 @@ export class LineageComponent implements OnInit {
 
     hideableOperationTypes: OperationType[] = ['Projection', 'Filter']
     presentHideableOperationTypes: OperationType[]
-    hiddenOperationTypes: OperationType[] = []
-
-    toggleOperationTypeVisibility(opType: OperationType) {
-        let otherHiddenOpTypes = _.without(this.hiddenOperationTypes, opType)
-        this.hiddenOperationTypes = (this.hiddenOperationTypes.length > otherHiddenOpTypes.length)
-            ? otherHiddenOpTypes
-            : this.hiddenOperationTypes.concat(opType)
-    }
+    hiddenOperationTypes: OperationType[]
 
     isOperationTypeVisible(opType: OperationType) {
         return this.hiddenOperationTypes.indexOf(opType) < 0
@@ -75,6 +68,7 @@ export class LineageComponent implements OnInit {
             this.selectedAttrIDs = qps.getAll("attr")
             this.highlightedNodeIDs = this.lineageStore.lineageAccessors.getOperationIdsByAnyAttributeId(...this.selectedAttrIDs)
             this.attributeToShowFullSchemaFor = this.lineageStore.lineageAccessors.getAttribute(qps.get("attrSchema"))
+            this.hiddenOperationTypes = <OperationType[]> qps.getAll("hideOp")
         })
 
         this.route.fragment.subscribe(fragment => {
@@ -91,14 +85,16 @@ export class LineageComponent implements OnInit {
             this.router.navigate(["op", opId], {
                     relativeTo: this.route.parent,
                     fragment: Tab.toFragment(Tab.Operation),
-                    queryParams: {'attr': this.selectedAttrIDs}
+                    queryParams: {attrSchema: []},
+                    queryParamsHandling: "merge"
                 }
             )
         else
             this.router.navigate(["."], {
                     relativeTo: this.route.parent,
                     fragment: Tab.toFragment(Tab.Summary),
-                    queryParams: {'attr': this.selectedAttrIDs}
+                    queryParams: {attrSchema: []},
+                    queryParamsHandling: "merge"
                 }
             )
     }
@@ -137,6 +133,20 @@ export class LineageComponent implements OnInit {
     private doSelectAttribute(...attrIds: string[]) {
         this.router.navigate([], {
             queryParams: {'attr': attrIds},
+            queryParamsHandling: "merge",
+            preserveFragment: true
+        })
+    }
+
+    toggleOperationTypeVisibility(opType: OperationType) {
+        let otherHiddenOpTypes = _.without(this.hiddenOperationTypes, opType),
+            updatedHiddenOperationTypes = (this.hiddenOperationTypes.length > otherHiddenOpTypes.length)
+                ? otherHiddenOpTypes
+                : this.hiddenOperationTypes.concat(opType)
+
+        this.router.navigate([], {
+            queryParams: {'hideOp': updatedHiddenOperationTypes},
+            queryParamsHandling: "merge",
             preserveFragment: true
         })
     }
