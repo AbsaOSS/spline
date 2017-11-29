@@ -37,6 +37,7 @@ export class LineageComponent implements OnInit {
     highlightedNodeIDs: string[]
 
     hideableOperationTypes: OperationType[] = ['Projection', 'Filter']
+    presentHideableOperationTypes: OperationType[]
     hiddenOperationTypes: OperationType[] = []
 
     toggleOperationTypeVisibility(opType: OperationType) {
@@ -59,6 +60,10 @@ export class LineageComponent implements OnInit {
         this.route.data.subscribe((data: { lineage: IDataLineage }) => {
             this.lineage = data.lineage
             this.lineageStore.lineage = data.lineage
+            this.presentHideableOperationTypes =
+                _.intersection(
+                    _.uniq(data.lineage.operations.map(typeOfOperation)),
+                    this.hideableOperationTypes)
         })
 
         this.route.paramMap.subscribe(pm => {

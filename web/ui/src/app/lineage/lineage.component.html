@@ -30,7 +30,7 @@
                 </button>
             </div>
             <div class="graph-toolbar top right">
-                <ng-template ngFor let-opType [ngForOf]="hideableOperationTypes">
+                <ng-template ngFor let-opType [ngForOf]="presentHideableOperationTypes">
                     <button mat-icon-button
                             (click)="toggleOperationTypeVisibility(opType)"
                             title="{{isOperationTypeVisible(opType) ? 'Hide' : 'Show'}} '{{opType}}' operations">
