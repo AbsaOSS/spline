@@ -25,6 +25,7 @@ import org.apache.spark.sql.catalyst.expressions.SortOrder
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation, SaveIntoDataSourceCommand}
 import org.apache.spark.sql.sources.BaseRelation
+import za.co.absa.spline.model.expr.Expression
 import za.co.absa.spline.model.op.MetaDataSource
 import za.co.absa.spline.model.{op, _}
 
@@ -49,6 +50,7 @@ class OperationNodeBuilderFactory(implicit hadoopConfiguration: Configuration, m
     case p: Project => new ProjectionNodeBuilder(p)
     case f: Filter => new FilterNodeBuilder(f)
     case s: Sort => new SortNodeBuilder(s)
+    case s: Aggregate => new AggregateNodeBuilder(s)
     case a: SubqueryAlias => new AliasNodeBuilder(a)
     case sc: SaveIntoDataSourceCommand => new DestinationNodeBuilder(sc)
     case lr: LogicalRelation => new SourceNodeBuilder(lr)
@@ -242,6 +244,21 @@ private class SortNodeBuilder(val operation: Sort)
     buildOperationProps(),
     for (SortOrder(expression, direction, nullOrdering, _) <- operation.order)
       yield op.SortOrder(expression, direction.sql, nullOrdering.sql)
+  )
+}
+
+/**
+  * The class represents a builder of operations nodes dedicated for Spark Aggregate operation.
+  *
+  * @param operation          An input Spark aggregate operation
+  * @param metaDatasetFactory A factory of meta data sets
+  */
+private class AggregateNodeBuilder(val operation: Aggregate)
+                                  (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[Aggregate] with ExpressionMapper {
+  def build(): op.Operation = op.Aggregate(
+    buildOperationProps(),
+    operation.groupingExpressions map fromSparkExpression,
+    operation.aggregateExpressions.map(namedExpr => namedExpr.name -> (namedExpr: Expression)).toMap
   )
 }
 

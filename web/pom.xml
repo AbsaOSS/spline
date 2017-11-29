@@ -153,6 +153,7 @@
                                 <argument>za.co.absa.spline.model.op.Write</argument>
                                 <argument>za.co.absa.spline.model.op.Filter</argument>
                                 <argument>za.co.absa.spline.model.op.Sort</argument>
+                                <argument>za.co.absa.spline.model.op.Aggregate</argument>
                                 <argument>za.co.absa.spline.model.op.Generic</argument>
                                 <argument>za.co.absa.spline.model.op.Join</argument>
                                 <argument>za.co.absa.spline.model.op.Projection</argument>

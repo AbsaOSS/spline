@@ -90,6 +90,38 @@
                 </p-accordionTab>
             </section>
 
+            <!-- Section: Aggregate -->
+            <section *ngIf="operationType == 'Aggregate'">
+                <p-accordionTab [selected]="true">
+                    <p-header>
+                        <details-section-header
+                                caption="Group by"
+                                faIcon="fa-object-group"
+                                iconColor="steelblue"></details-section-header>
+                    </p-header>
+                    <ul>
+                        <li *ngFor="let grExpr of operation.groupings">
+                            <expression-inline [expr]="grExpr"></expression-inline>
+                        </li>
+                    </ul>
+                </p-accordionTab>
+                <p-accordionTab [selected]="true">
+                    <p-header>
+                        <details-section-header
+                                caption="Aggregations"
+                                faIcon="fa-calculator"
+                                iconColor="steelblue"></details-section-header>
+                    </p-header>
+                    <ul>
+                        <ng-template ngFor let-name [ngForOf]="keys(operation.aggregations)">
+                            <li *ngIf="getExprType(operation.aggregations[name]) != 'AttributeReference'">
+                                <expression-inline [expr]="operation.aggregations[name]"></expression-inline>
+                            </li>
+                        </ng-template>
+                    </ul>
+                </p-accordionTab>
+            </section>
+
             <!-- Section: Projection -->
             <section *ngIf="operationType == 'Projection'">
                 <p-accordionTab [selected]="true">

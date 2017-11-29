@@ -39,6 +39,9 @@ export class Icon {
             case "Sort":
                 return new Icon("fa-sort-amount-desc", "\uf161", font);
 
+            case "Aggregate":
+                return new Icon("fa-calculator", "\uf1ec", font);
+
             case "Join":
                 return new Icon("fa-code-fork", "\uf126", font);
 

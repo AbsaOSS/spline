@@ -63,6 +63,7 @@ object Operation {
       case op@Write(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Filter(mp, _) => op.copy(mainProps = fn(mp))
       case op@Sort(mp, _) => op.copy(mainProps = fn(mp))
+      case op@Aggregate(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Generic(mp, _) => op.copy(mainProps = fn(mp))
       case op@Join(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Projection(mp, _) => op.copy(mainProps = fn(mp))
@@ -104,6 +105,19 @@ case class Filter(
                    mainProps: OperationProps,
                    condition: Expression
                  ) extends Operation
+
+/**
+  * The case class represents Spark aggregation operation.
+  *
+  * @param mainProps    Common node properties
+  * @param groupings    Grouping expressions
+  * @param aggregations Aggregation expressions
+  */
+case class Aggregate(
+                      mainProps: OperationProps,
+                      groupings: Seq[Expression],
+                      aggregations: Map[String, Expression]
+                    ) extends Operation
 
 /**
   * The case class represents Spark sort operation.

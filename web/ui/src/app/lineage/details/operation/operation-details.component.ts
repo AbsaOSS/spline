@@ -39,6 +39,10 @@ export class OperationDetailsComponent implements OnChanges {
 
     private operationType: OperationType
 
+    keys(object: { [key: string]: any }) {
+        return Object.keys(object)
+    }
+
     ngOnChanges(changes: SimpleChanges): void {
         this.operationType = typeOfOperation(this.operation)
     }

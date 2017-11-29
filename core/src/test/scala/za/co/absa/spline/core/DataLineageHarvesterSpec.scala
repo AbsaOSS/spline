@@ -49,6 +49,7 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
       case (jn: Join) => jn copy (mainProps = strippedProps(jn), condition = null)
       case (fr: Filter) => fr copy (mainProps = strippedProps(fr), condition = null)
       case (st: Sort) => st copy(mainProps = strippedProps(st), orders = Nil)
+      case (ag: Aggregate) => ag copy(mainProps = strippedProps(ag), groupings = Nil, aggregations = Map.empty)
       case (pn: Projection) => pn copy (mainProps = strippedProps(pn), transformations = null)
       case (gn: Generic) => gn copy (mainProps = strippedProps(gn), rawString = null)
       case (as: Alias) => as copy (mainProps = strippedProps(as))
@@ -339,14 +340,15 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
         ),
         "LocalRelation"
       ),
-      Generic(
+      Aggregate(
         OperationProps(
           randomUUID,
           "Aggregate",
           Seq(expectedDatasets(4).id),
           expectedDatasets(3).id
         ),
-        "Aggregate"
+        Nil,
+        Map.empty
       ),
       Projection(
         OperationProps(
