@@ -24,6 +24,7 @@ import * as _ from "lodash";
 import {ClusterManager} from "./cluster-manager";
 import {HighlightedVisNode, RegularVisNode, VisModel, VisNode, VisNodeType} from "./vis/vis-model";
 import {LineageStore} from "../lineage.store";
+import {OperationType} from "../types";
 
 @Component({
     selector: 'graph',
@@ -32,6 +33,7 @@ import {LineageStore} from "../lineage.store";
 export class GraphComponent implements OnChanges {
     @Input() selectedOperationId?: string
     @Input() highlightedNodeIDs: string[]
+    @Input() hiddenOperationTypes: OperationType[]
 
     @Output() operationSelected = new EventEmitter<string>()
 
@@ -53,10 +55,16 @@ export class GraphComponent implements OnChanges {
         if (highlightedNodesChange && !_.isEqual(highlightedNodesChange.previousValue, highlightedNodesChange.currentValue)) {
             this.refreshHighlightedNodes()
         }
+
+        if (changes["hiddenOperationTypes"]) {
+            this.rebuildGraph(this.lineageStore.lineageAccessors.lineage)
+            this.refreshSelectedNode()
+            this.refreshHighlightedNodes()
+        }
     }
 
     private rebuildGraph(lineage: IDataLineage) {
-        this.graph = lineageToGraph(lineage)
+        this.graph = lineageToGraph(lineage, this.selectedOperationId, this.hiddenOperationTypes)
         this.network = new vis.Network(this.container.nativeElement, this.graph, visOptions)
         this.clusterManager = new ClusterManager(this.graph, this.network)
         this.clusterManager.rebuildClusters()
