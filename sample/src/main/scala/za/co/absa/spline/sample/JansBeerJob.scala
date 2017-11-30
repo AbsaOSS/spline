@@ -29,7 +29,7 @@ object JansBeerJob extends SparkApp("Jan's Beer Job", conf = Seq("spark.sql.shuf
 
   val population = spark.read.option("header", "true").csv("data/input/population.csv")
 
-  def calculateConsumptionPerCapital(year: String) =
+  def calculateConsumptionPerCapita(year: String) =
     (col(year) * 100) / col("y" + year) as "Year" + year
 
 
@@ -38,15 +38,15 @@ object JansBeerJob extends SparkApp("Jan's Beer Job", conf = Seq("spark.sql.shuf
     .select(
       $"Country",
       $"Code",
-      calculateConsumptionPerCapital("2003"),
-      calculateConsumptionPerCapital("2004"),
-      calculateConsumptionPerCapital("2005"),
-      calculateConsumptionPerCapital("2006"),
-      calculateConsumptionPerCapital("2007"),
-      calculateConsumptionPerCapital("2008"),
-      calculateConsumptionPerCapital("2009"),
-      calculateConsumptionPerCapital("2010"),
-      calculateConsumptionPerCapital("2011")
+      calculateConsumptionPerCapita("2003"),
+      calculateConsumptionPerCapita("2004"),
+      calculateConsumptionPerCapita("2005"),
+      calculateConsumptionPerCapita("2006"),
+      calculateConsumptionPerCapita("2007"),
+      calculateConsumptionPerCapita("2008"),
+      calculateConsumptionPerCapita("2009"),
+      calculateConsumptionPerCapita("2010"),
+      calculateConsumptionPerCapita("2011")
     )
 
   result.write.mode("overwrite").parquet("data/results/beerConsCtl")
