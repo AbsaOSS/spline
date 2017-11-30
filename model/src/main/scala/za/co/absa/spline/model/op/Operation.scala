@@ -66,6 +66,7 @@ object Operation {
       case op@Aggregate(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Generic(mp, _) => op.copy(mainProps = fn(mp))
       case op@Join(mp, _, _) => op.copy(mainProps = fn(mp))
+      case op@Union(mp) => op.copy(mainProps = fn(mp))
       case op@Projection(mp, _) => op.copy(mainProps = fn(mp))
       case op@Read(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Composite(mp, _, _, _, _, _) => op.copy(mainProps = fn(mp))
@@ -94,6 +95,13 @@ case class Join(
                  condition: Option[Expression],
                  joinType: String
                ) extends Operation
+
+/**
+  * The case class represents Spark union operation.
+  *
+  * @param mainProps Common node properties
+  */
+case class Union(mainProps: OperationProps) extends Operation
 
 /**
   * The case class represents Spark filter (where) operation.

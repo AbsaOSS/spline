@@ -45,6 +45,9 @@ export class Icon {
             case "Join":
                 return new Icon("fa-code-fork", "\uf126", font);
 
+            case "Union":
+                return new Icon("fa-bars", "\uf0c9", font);
+
             case "Projection":
                 return new Icon("fa-chevron-circle-down", "\uf13a", font);
 

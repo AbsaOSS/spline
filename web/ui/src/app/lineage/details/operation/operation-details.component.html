@@ -167,6 +167,10 @@
                 </p-accordionTab>
             </section>
 
+            <!-- Section: Union -->
+            <section *ngIf="operationType == 'Union'">
+            </section>
+
             <!-- Section: Generic -->
             <section *ngIf="operationType == 'Generic'">
                 <p-accordionTab [selected]="true">

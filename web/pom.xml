@@ -156,6 +156,7 @@
                                 <argument>za.co.absa.spline.model.op.Aggregate</argument>
                                 <argument>za.co.absa.spline.model.op.Generic</argument>
                                 <argument>za.co.absa.spline.model.op.Join</argument>
+                                <argument>za.co.absa.spline.model.op.Union</argument>
                                 <argument>za.co.absa.spline.model.op.Projection</argument>
                                 <argument>za.co.absa.spline.model.op.Read</argument>
                                 <argument>za.co.absa.spline.model.op.Composite</argument>

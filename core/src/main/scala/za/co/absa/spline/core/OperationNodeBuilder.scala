@@ -47,6 +47,7 @@ class OperationNodeBuilderFactory(implicit hadoopConfiguration: Configuration, m
     */
   def create(logicalPlan: LogicalPlan): OperationNodeBuilder[_] = logicalPlan match {
     case j: Join => new JoinNodeBuilder(j)
+    case u: Union => new UnionNodeBuilder(u)
     case p: Project => new ProjectionNodeBuilder(p)
     case f: Filter => new FilterNodeBuilder(f)
     case s: Sort => new SortNodeBuilder(s)
@@ -276,6 +277,17 @@ private class JoinNodeBuilder(val operation: Join)
       operation.condition map fromSparkExpression,
       operation.joinType.toString)
   }
+}
+
+/**
+  * The class represents a builder of operations nodes dedicated for Spark union operation.
+  *
+  * @param operation          An input Spark union operation
+  * @param metaDatasetFactory A factory of meta data sets
+  */
+private class UnionNodeBuilder(val operation: Union)
+                             (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[Union] {
+  def build(): op.Operation = op.Union(buildOperationProps())
 }
 
 

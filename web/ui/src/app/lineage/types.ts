@@ -22,6 +22,7 @@ export type OperationType =
     ( "Projection"
     | "Read"
     | "Join"
+    | "Union"
     | "Generic"
     | "Filter"
     | "Sort"
