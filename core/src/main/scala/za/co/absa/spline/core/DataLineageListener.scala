@@ -39,10 +39,10 @@ class DataLineageListener(persistenceFactory: PersistenceFactory, hadoopConfigur
 
   import scala.concurrent.ExecutionContext.Implicits._
 
-  private lazy val persistenceWriter = persistenceFactory.createDataLineageWriter()
-  private lazy val persistenceReader = persistenceFactory.createDataLineageReader()
-  private lazy val harvester = new DataLineageHarvester(hadoopConfiguration)
-  private lazy val transformationPipeline =
+  private val persistenceWriter = persistenceFactory.createDataLineageWriter()
+  private val persistenceReader = persistenceFactory.createDataLineageReader()
+  private val harvester = new DataLineageHarvester(hadoopConfiguration)
+  private val transformationPipeline =
     new AsyncTransformationPipeline(
       LineageProjectionMerger,
       new ForeignMetaDatasetInjector(persistenceReader)

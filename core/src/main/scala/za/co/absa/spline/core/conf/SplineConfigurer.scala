@@ -25,8 +25,46 @@ import scala.concurrent.ExecutionContext
   */
 trait SplineConfigurer {
 
+  import SplineConfigurer.SplineMode._
+
   /**
     * The method returns a factory creating persistence readers and writers for various data lineage entities.
     */
   def persistenceFactory(implicit ec: ExecutionContext): PersistenceFactory
+
+  /**
+    * Spline mode designates how Spline should behave in a context of a Spark application.
+    * It mostly relates to error handling. E.g. is lineage tracking a mandatory for the given Spark app or is it good to have.
+    * Should the Spark app be aborted on Spline errors or not.
+    *
+    * @see [[SplineMode]]
+    * @return [[SplineMode]]
+    */
+  def splineMode: SplineMode
+}
+
+object SplineConfigurer {
+
+  object SplineMode extends Enumeration {
+    type SplineMode = Value
+    val
+
+    /**
+      * Spline is disabled completely
+      */
+    DISABLED,
+
+    /**
+      * Abort on Spline initialization errors
+      */
+    REQUIRED,
+
+    /**
+      * If Spline initialization fails then disable Spline and continue without lineage tracking
+      */
+    BEST_EFFORT
+
+    = Value
+  }
+
 }
