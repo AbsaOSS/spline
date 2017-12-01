@@ -21,7 +21,7 @@ import org.apache.spark.sql.SparkSession
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 import za.co.absa.spline.core.SparkLineageInitializer._
-import za.co.absa.spline.core.conf.DefaultSplineConfigurer._
+import za.co.absa.spline.core.conf.DefaultSplineConfigurer.ConfProperty._
 import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
 
 object SparkLineageInitializerSpec {
@@ -46,7 +46,7 @@ class SparkLineageInitializerSpec extends FlatSpec with BeforeAndAfterEach with 
   private val jvmProps = System.getProperties
 
   jvmProps.setProperty("spark.master", "local")
-  jvmProps.setProperty(persistenceFactoryKey, classOf[MockPersistenceWriterFactory].getName)
+  jvmProps.setProperty(PERSISTENCE_FACTORY, classOf[MockPersistenceWriterFactory].getName)
 
   override protected def afterEach(): Unit = SparkSession.builder.getOrCreate.stop
 
