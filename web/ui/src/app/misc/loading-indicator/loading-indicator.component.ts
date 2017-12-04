@@ -14,11 +14,25 @@
  * limitations under the License.
  */
 
-import {Component} from "@angular/core";
+import {Component, HostBinding, Input, OnChanges, SimpleChanges} from "@angular/core";
 
 @Component({
-    templateUrl: 'dashboard.component.html',
-    styleUrls: ['dashboard.component.less']
+    selector: "loading-indicator",
+    templateUrl: "loading-indicator.component.html",
+    styleUrls: ["loading-indicator.component.less"],
 })
-export class DashboardComponent {
+export class LoadingIndicatorComponent implements OnChanges {
+    @Input("active")
+    isActive: boolean = false
+
+    @Input("delayed")
+    @HostBinding('class.delayed')
+    isDelayed: boolean = true
+
+    @HostBinding('class.active')
+    showActive: boolean = false
+
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes["isActive"]) setTimeout(() => this.showActive = this.isActive)
+    }
 }
