@@ -14,24 +14,16 @@
  * limitations under the License.
  */
 
-import {NgModule} from "@angular/core";
-import {CommonModule} from "@angular/common";
-import {VersionComponent} from "./version.component";
-import {LoadingIndicatorComponent} from "./loading-indicator/loading-indicator.component";
+package org.apache.spark.sql
 
-@NgModule({
-    imports: [
-        CommonModule
-    ],
-    declarations: [
-        VersionComponent,
-        LoadingIndicatorComponent
-    ],
-    exports: [
-        VersionComponent,
-        LoadingIndicatorComponent
-    ]
-})
+import org.apache.spark.sql.execution.datasources.jdbc.{JDBCOptions, JDBCRelation => SparkJDBCRelation}
+import org.apache.spark.sql.sources.BaseRelation
 
-export class MiscModule {
+object JDBCRelation {
+
+  def unapply(rel: BaseRelation): Option[JDBCOptions] = rel match {
+    case SparkJDBCRelation(_, jdbcOpts) => Some(jdbcOpts)
+    case _ => None
+  }
+
 }

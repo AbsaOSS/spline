@@ -36,7 +36,7 @@ export class LineageComponent implements OnInit {
     selectedAttrIDs: string[]
     highlightedNodeIDs: string[]
 
-    hideableOperationTypes: OperationType[] = ['Projection', 'Filter']
+    hideableOperationTypes: OperationType[] = ['Projection', 'Filter', 'Sort', 'Aggregate']
     presentHideableOperationTypes: OperationType[]
     hiddenOperationTypes: OperationType[]
 

@@ -20,9 +20,9 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/css/bootstrap-theme.min.css";
 import "@angular/material/prebuilt-themes/indigo-pink.css";
 import {MaterialModule} from "../material-extension/material.module";
-import {NoopAnimationsModule} from "@angular/platform-browser/animations";
 
 // Other imports
+import {CommonModule} from "@angular/common";
 import {NgModule} from "@angular/core";
 import {RouterModule} from "@angular/router";
 import {HttpModule} from "@angular/http";
@@ -34,10 +34,10 @@ import {MiscModule} from "../misc/misc.module";
 
 @NgModule({
     imports: [
+        CommonModule,
         RouterModule,
         HttpModule,
         MaterialModule,
-        NoopAnimationsModule,
         MiscModule
     ],
     declarations: [

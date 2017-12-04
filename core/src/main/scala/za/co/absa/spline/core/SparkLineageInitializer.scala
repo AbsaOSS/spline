@@ -20,11 +20,13 @@ import org.apache.commons.configuration._
 import org.apache.spark
 import org.apache.spark.sql.SparkSession
 import org.slf4s.Logging
+import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.core.conf._
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.Try
+import scala.util.control.NonFatal
 
 /**
   * The object contains logic needed for initialization of the library
@@ -48,21 +50,27 @@ object SparkLineageInitializer extends Logging {
       * @param configurer A collection of settings for the library initialization
       * @return An original Spark session
       */
-    def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfigurer(defaultSplineConfiguration)): SparkSession =
-      sparkSession.synchronized {
+    def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfigurer(defaultSplineConfiguration)): SparkSession = {
+      if (configurer.splineMode != DISABLED) sparkSession.synchronized {
         preventDoubleInitialization()
         log info s"Spline v${SplineBuildInfo.version} is initializing..."
-        if (SparkVersionInfo.matchesRequirements) {
-          val hadoopConfiguration = sparkSession.sparkContext.hadoopConfiguration
-          val persistenceFactory = configurer.persistenceFactory
-          sessionState.listenerManager register new DataLineageListener(persistenceFactory, hadoopConfiguration)
+        try {
+          attemptInitialization(configurer)
           log info s"Successfully initialized. Spark Lineage tracking is ENABLED."
-        } else {
-          log error s"Unsupported Spark version: ${spark.SPARK_VERSION}. Required version ${SparkVersionInfo.requiredVersion}"
-          log error s"Initialization failed! Spark Lineage tracking is DISABLED."
+        } catch {
+          case NonFatal(e) if configurer.splineMode == BEST_EFFORT =>
+            log.error(s"Initialization failed! Spark Lineage tracking is DISABLED.", e)
         }
-        sparkSession
       }
+      sparkSession
+    }
+
+    def attemptInitialization(configurer: SplineConfigurer): Unit = {
+      require(SparkVersionInfo.matchesRequirements, s"Unsupported Spark version: ${spark.SPARK_VERSION}. Required version ${SparkVersionInfo.requiredVersion}")
+      val hadoopConfiguration = sparkSession.sparkContext.hadoopConfiguration
+      val persistenceFactory = configurer.persistenceFactory
+      sessionState.listenerManager register new DataLineageListener(persistenceFactory, hadoopConfiguration)
+    }
 
     private[core] val defaultSplineConfiguration = {
       val splinePropertiesFileName = "spline.properties"
