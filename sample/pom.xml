@@ -15,8 +15,7 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>spline-sample</artifactId>
     <packaging>jar</packaging>
@@ -25,7 +24,7 @@
         <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>0.2.4-SNAPSHOT</version>
+        <version>0.2.4</version>
     </parent>
 
     <dependencies>
@@ -169,7 +168,7 @@
                                 <argument>-Dspline.mongodb.url=${spline.mongodb.url}</argument>
                                 <argument>-Dspline.mongodb.name=${spline.mongodb.name}</argument>
                                 <argument>-classpath</argument>
-                                <classpath/>
+                                <classpath />
                                 <argument>${sampleClass}</argument>
                             </arguments>
                         </configuration>
