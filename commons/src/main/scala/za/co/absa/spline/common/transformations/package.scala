@@ -16,9 +16,19 @@
 
 package za.co.absa.spline.common
 
+import scala.concurrent.{ExecutionContext, Future}
+
 /**
-  * An package object containing type aliases.
+  * THe package contains various lineage transformers.
   */
 package object transformations {
-  type Transformation[T] = (T) => T
+
+  /**
+    * Abstract asynchronous transformer trait.
+    * @tparam T a type of a value being transformed
+    */
+  trait AsyncTransformation[T] {
+    def apply(input: T)(implicit ec: ExecutionContext): Future[T]
+  }
+
 }

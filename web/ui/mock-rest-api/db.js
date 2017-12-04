@@ -1111,6 +1111,12 @@ module.exports = function () {
                 }, {"id": "ds-uuid-31", "schema": {"attrs": ["attr-uuid-105", "attr-uuid-106"]}}, {
                     "id": "ds-uuid-32",
                     "schema": {"attrs": ["attr-uuid-105", "attr-uuid-106"]}
+                }, {
+                    "id": "ds-uuid-33",
+                    "schema": {"attrs": ["attr-uuid-105", "attr-uuid-106"]}
+                }, {
+                    "id": "ds-uuid-34",
+                    "schema": {"attrs": ["attr-uuid-105", "attr-uuid-106"]}
                 }],
                 "operations": [{
                     "_typeHint": "za.co.absa.spline.core.model.op.Write",
@@ -6519,7 +6525,7 @@ module.exports = function () {
                         "id": "op-uuid-33",
                         "name": "SubqueryAlias",
                         "rawString": "SubqueryAlias CategoryMapping",
-                        "inputs": ["ds-uuid-32"],
+                        "inputs": ["ds-uuid-34"],
                         "output": "ds-uuid-31"
                     },
                     "alias": "CategoryMapping"
@@ -6554,6 +6560,165 @@ module.exports = function () {
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                             "children": []
                         }]
+                    }
+                }, {
+                    "_typeHint": "za.co.absa.spline.model.op.Sort",
+                    "mainProps": {
+                        "id": "57767d87-909b-49dd-9800-e7dc59e95340",
+                        "name": "Sort",
+                        "inputs": ["ds-uuid-32"],
+                        "output": "ds-uuid-33"
+                    },
+                    "orders": [{
+                        "expression": {
+                            "_typeHint": "za.co.absa.spline.model.expr.AttributeReference",
+                            "refId": "bbf488a0-9ea0-43f6-8d7a-7eda9d4a6151",
+                            "name": "beer_consumption",
+                            "text": "beer_consumption",
+                            "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+                        }, "direction": "DESC", "nullOrder": "NULLS LAST"
+                    }]
+                }, {
+                    "_typeHint": "za.co.absa.spline.model.op.Aggregate",
+                    "mainProps": {
+                        "id": "c0ec33fd-aaaa-41f6-8aa2-e610e899fb75",
+                        "name": "Aggregate",
+                        "inputs": ["ds-uuid-33"],
+                        "output": "ds-uuid-34"
+                    },
+                    "groupings": [{
+                        "_typeHint": "za.co.absa.spline.model.expr.AttributeReference",
+                        "refId": "bed05b03-276f-4861-99d9-0970c0936079",
+                        "name": "id",
+                        "text": "id",
+                        "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "long", "nullable": false}
+                    }, {
+                        "_typeHint": "za.co.absa.spline.model.expr.AttributeReference",
+                        "refId": "5cada60b-10d0-45c8-8590-957cca18c53e",
+                        "name": "title",
+                        "text": "title",
+                        "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+                    }],
+                    "aggregations": {
+                        "id": {
+                            "_typeHint": "za.co.absa.spline.model.expr.AttributeReference",
+                            "refId": "bed05b03-276f-4861-99d9-0970c0936079",
+                            "name": "id",
+                            "text": "id",
+                            "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "long", "nullable": false}
+                        },
+                        "title": {
+                            "_typeHint": "za.co.absa.spline.model.expr.AttributeReference",
+                            "refId": "5cada60b-10d0-45c8-8590-957cca18c53e",
+                            "name": "title",
+                            "text": "title",
+                            "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+                        },
+                        "authors": {
+                            "_typeHint": "za.co.absa.spline.model.expr.Alias",
+                            "alias": "authors",
+                            "text": "collect_list(author#134, 0, 0) AS authors#146",
+                            "dataType": {
+                                "_typeHint": "za.co.absa.spline.model.dt.Array",
+                                "elementDataType": {
+                                    "_typeHint": "za.co.absa.spline.model.dt.Struct",
+                                    "fields": [{
+                                        "name": "initial",
+                                        "dataType": {
+                                            "_typeHint": "za.co.absa.spline.model.dt.Array",
+                                            "elementDataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true},
+                                            "nullable": true
+                                        }
+                                    }, {
+                                        "name": "lastName",
+                                        "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+                                    }],
+                                    "nullable": true
+                                },
+                                "nullable": true
+                            },
+                            "children": [{
+                                "_typeHint": "za.co.absa.spline.model.expr.Generic",
+                                "exprType": "AggregateExpression",
+                                "text": "collect_list(author#134, 0, 0)",
+                                "dataType": {
+                                    "_typeHint": "za.co.absa.spline.model.dt.Array",
+                                    "elementDataType": {
+                                        "_typeHint": "za.co.absa.spline.model.dt.Struct",
+                                        "fields": [{
+                                            "name": "initial",
+                                            "dataType": {
+                                                "_typeHint": "za.co.absa.spline.model.dt.Array",
+                                                "elementDataType": {
+                                                    "_typeHint": "za.co.absa.spline.model.dt.Simple",
+                                                    "name": "string",
+                                                    "nullable": true
+                                                },
+                                                "nullable": true
+                                            }
+                                        }, {
+                                            "name": "lastName",
+                                            "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+                                        }],
+                                        "nullable": true
+                                    },
+                                    "nullable": true
+                                },
+                                "children": [{
+                                    "_typeHint": "za.co.absa.spline.model.expr.Generic",
+                                    "exprType": "CollectList",
+                                    "text": "collect_list(author#134, 0, 0)",
+                                    "dataType": {
+                                        "_typeHint": "za.co.absa.spline.model.dt.Array",
+                                        "elementDataType": {
+                                            "_typeHint": "za.co.absa.spline.model.dt.Struct",
+                                            "fields": [{
+                                                "name": "initial",
+                                                "dataType": {
+                                                    "_typeHint": "za.co.absa.spline.model.dt.Array",
+                                                    "elementDataType": {
+                                                        "_typeHint": "za.co.absa.spline.model.dt.Simple",
+                                                        "name": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "nullable": true
+                                                }
+                                            }, {
+                                                "name": "lastName",
+                                                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+                                            }],
+                                            "nullable": true
+                                        },
+                                        "nullable": true
+                                    },
+                                    "children": [{
+                                        "_typeHint": "za.co.absa.spline.model.expr.AttributeReference",
+                                        "refId": "53ec6b8f-20f4-48fb-9935-25971cedd009",
+                                        "name": "author",
+                                        "text": "author",
+                                        "dataType": {
+                                            "_typeHint": "za.co.absa.spline.model.dt.Struct",
+                                            "fields": [{
+                                                "name": "initial",
+                                                "dataType": {
+                                                    "_typeHint": "za.co.absa.spline.model.dt.Array",
+                                                    "elementDataType": {
+                                                        "_typeHint": "za.co.absa.spline.model.dt.Simple",
+                                                        "name": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "nullable": true
+                                                }
+                                            }, {
+                                                "name": "lastName",
+                                                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+                                            }],
+                                            "nullable": false
+                                        }
+                                    }]
+                                }]
+                            }]
+                        }
                     }
                 }]
             },

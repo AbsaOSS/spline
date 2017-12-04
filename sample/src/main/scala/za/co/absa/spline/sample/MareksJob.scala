@@ -16,45 +16,35 @@
 
 package za.co.absa.spline.sample
 
-import org.apache.spark.sql.SparkSession
-
 import scala.language.postfixOps
 
-object MareksJob {
-  def main(args: Array[String]) {
-    val spark = SparkSession.builder()
-      .appName("Marek's Job")
-      .config("spark.sql.shuffle.partitions", "4")
-      .master("local[*]")
-      .getOrCreate()
+object MareksJob extends SparkApp("Marek's Job", conf = Seq("spark.sql.shuffle.partitions" -> "4")) {
 
-    import spark.implicits._
+  // Initializing library to hook up to Apache Spark
+  import za.co.absa.spline.core.SparkLineageInitializer._
 
-    // Initializing library to hook up to Apache Spark
-    import za.co.absa.spline.core.SparkLineageInitializer._
-    spark.enableLineageTracking()
+  spark.enableLineageTracking()
 
-    // A business logic of a spark job ...
-    val input = spark.read.option("header", "true").csv("data/input/devIndicators.csv")
+  // A business logic of a spark job ...
+  val input = spark.read.option("header", "true").csv("data/input/devIndicators.csv")
 
-    val cleaned = input.select(
-      $"Country Name" as "country_name",
-      $"Country Code" as "country_code",
-      $"Series Name" as "metric",
-      $"2011 [YR2011]" as "2011",
-      $"2010 [YR2010]" as "2010"
-    )
+  val cleaned = input.select(
+    $"Country Name" as "country_name",
+    $"Country Code" as "country_code",
+    $"Series Name" as "metric",
+    $"2011 [YR2011]" as "2011",
+    $"2010 [YR2010]" as "2010"
+  )
 
-    val gdpPerCapital = cleaned.filter($"metric" === "GDP per capita (current US$)")
+  val gdpPerCapita = cleaned.filter($"metric" === "GDP per capita (current US$)")
 
-    val beerConsumtion = spark.read.parquet("data/results/beerConsCtl")
+  val beerConsumtion = spark.read.parquet("data/results/beerConsCtl")
 
-    val result = beerConsumtion
-      .join(gdpPerCapital, $"country_code" === $"Code", "inner")
-      .select($"country_name", $"Year2011" as "beer_consumption", $"2011" as "gdp_per_capital")
-      .sort($"beer_consumption" desc)
+  val result = beerConsumtion
+    .join(gdpPerCapita, $"country_code" === $"Code", "inner")
+    .select($"country_name", $"Year2011" as "beer_consumption", $"2011" as "gdp_per_capita")
+    .sort($"beer_consumption" desc)
 
 
-    result.write.mode("overwrite").parquet("data/results/gdpPerCapitalUSD")
-  }
+  result.write.mode("overwrite").parquet("data/results/gdpPerCapitaUSD")
 }

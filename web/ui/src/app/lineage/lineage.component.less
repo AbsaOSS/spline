@@ -41,18 +41,29 @@
       box-shadow: 0 0 100px 50px white;
       position: absolute;
 
+      &.top {
+        top: 20px;
+      }
+      &.left {
+        left: 25px;
+      }
+      &.right {
+        right: 25px;
+      }
+      &.bottom {
+        bottom: 20px;
+      }
+
       .mat-button {
         min-width: 0;
       }
 
-      &.graph-header {
-        left: 25px;
-        top: 20px;
-      }
-
-      &.graph-footer {
-        right: 25px;
-        bottom: 20px;
+      .mat-icon-button {
+        width: auto;
+        padding: 0 7px;
+        .mat-icon {
+          font-size: 1.4em;
+        }
       }
     }
 

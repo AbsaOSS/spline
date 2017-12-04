@@ -15,14 +15,21 @@
  */
 
 import {NgModule} from "@angular/core";
+import {CommonModule} from "@angular/common";
 import {VersionComponent} from "./version.component";
+import {LoadingIndicatorComponent} from "./loading-indicator/loading-indicator.component";
 
 @NgModule({
+    imports: [
+        CommonModule
+    ],
     declarations: [
-        VersionComponent
+        VersionComponent,
+        LoadingIndicatorComponent
     ],
     exports: [
-        VersionComponent
+        VersionComponent,
+        LoadingIndicatorComponent
     ]
 })
 

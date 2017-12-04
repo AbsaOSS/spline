@@ -17,6 +17,9 @@
 package za.co.absa.spline.core.conf
 
 import org.apache.commons.configuration.Configuration
+import org.slf4s.Logging
+import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode
+import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.persistence.api.PersistenceFactory
 
 import scala.concurrent.ExecutionContext
@@ -25,7 +28,20 @@ import scala.concurrent.ExecutionContext
   * The object contains static information about default settings needed for initialization of the library.
   */
 object DefaultSplineConfigurer {
-  val persistenceFactoryKey = "spline.persistence.factory"
+
+  //noinspection TypeAnnotation
+  object ConfProperty {
+    val PERSISTENCE_FACTORY = "spline.persistence.factory"
+
+    /**
+      * How Spline should behave.
+      *
+      * @see [[SplineMode]]
+      */
+    val MODE = "spline.mode"
+    val MODE_DEFAULT = BEST_EFFORT.toString
+  }
+
 }
 
 /**
@@ -33,16 +49,29 @@ object DefaultSplineConfigurer {
   *
   * @param configuration A source of settings
   */
-class DefaultSplineConfigurer(configuration: Configuration) extends SplineConfigurer {
+class DefaultSplineConfigurer(configuration: Configuration) extends SplineConfigurer with Logging {
 
-  import DefaultSplineConfigurer._
+  import DefaultSplineConfigurer.ConfProperty._
   import za.co.absa.spline.common.ConfigurationImplicits._
 
   override def persistenceFactory(implicit ec: ExecutionContext): PersistenceFactory = {
-    val persistenceFactoryClassName = configuration getRequiredString persistenceFactoryKey
+    val persistenceFactoryClassName = configuration getRequiredString PERSISTENCE_FACTORY
+
+    log debug s"Instantiating persistence factory: $persistenceFactoryClassName"
+
     Class.forName(persistenceFactoryClassName)
       .getConstructor(classOf[Configuration])
       .newInstance(configuration)
       .asInstanceOf[PersistenceFactory]
   }
+
+  override val splineMode: SplineMode = {
+    val modeName = configuration.getString(MODE, MODE_DEFAULT)
+    try SplineMode withName modeName
+    catch {
+      case _: NoSuchElementException => throw new IllegalArgumentException(
+        s"Invalid value for property $MODE=$modeName. Should be one of: ${SplineMode.values mkString ", "}")
+    }
+  }
+
 }

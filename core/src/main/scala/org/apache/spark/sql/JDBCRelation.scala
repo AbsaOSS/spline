@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.common.transformations
+package org.apache.spark.sql
 
-/**
-  * The class represents a pipeline that gradually applies transformations onto a input instance.
-  * @param transformations A sequence of transformations
-  * @tparam T A type of a transformed instance
-  */
-class TransformationPipeline[T](transformations : Seq[Transformation[T]]) extends Transformation[T]{
+import org.apache.spark.sql.execution.datasources.jdbc.{JDBCOptions, JDBCRelation => SparkJDBCRelation}
+import org.apache.spark.sql.sources.BaseRelation
 
-  /**
-    * The method transforms a input instance by a logic of inner transformations.
-    * @param input An input instance
-    * @return A transformed result
-    */
-  def apply(input: T): T = Function.chain(transformations)(input)
+object JDBCRelation {
+
+  def unapply(rel: BaseRelation): Option[JDBCOptions] = rel match {
+    case SparkJDBCRelation(_, jdbcOpts) => Some(jdbcOpts)
+    case _ => None
+  }
+
 }

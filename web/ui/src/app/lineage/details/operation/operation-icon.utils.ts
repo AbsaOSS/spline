@@ -36,8 +36,17 @@ export class Icon {
             case "Filter":
                 return new Icon("fa-filter", "\uf0b0", font);
 
+            case "Sort":
+                return new Icon("fa-sort-amount-desc", "\uf161", font);
+
+            case "Aggregate":
+                return new Icon("fa-calculator", "\uf1ec", font);
+
             case "Join":
                 return new Icon("fa-code-fork", "\uf126", font);
+
+            case "Union":
+                return new Icon("fa-bars", "\uf0c9", font);
 
             case "Projection":
                 return new Icon("fa-chevron-circle-down", "\uf13a", font);

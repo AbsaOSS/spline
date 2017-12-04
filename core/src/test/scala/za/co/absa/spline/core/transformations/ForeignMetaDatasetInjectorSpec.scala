@@ -35,9 +35,7 @@ class ForeignMetaDatasetInjectorSpec extends AsyncFlatSpec with Matchers with Mo
   "Apply method" should "inject correct meta data set" in {
     val dataLineageReader = mock[DataLineageReader]
     val dataType = Simple("int", nullable = true)
-    val path = "path"
-
-    def getReferencedLineage = {
+    val referencedLineage = {
       val attributes = Seq(
         Attribute(randomUUID, "a", dataType),
         Attribute(randomUUID, "b", dataType),
@@ -48,46 +46,38 @@ class ForeignMetaDatasetInjectorSpec extends AsyncFlatSpec with Matchers with Mo
         MetaDataset(randomUUID, Schema(Seq(attributes(2).id, attributes(3).id))),
         MetaDataset(randomUUID, Schema(Seq(attributes(0).id, attributes(1).id)))
       )
-      val operations = Seq(
-        Write(OperationProps(randomUUID, "save", Seq.empty, datasets(0).id), "parquet", path)
-      )
-      DataLineage("appId1", "appName1", 1L, operations, datasets, attributes)
+      DataLineage("appId1", "appName1", 1L,
+        operations = Seq(Write(OperationProps(randomUUID, "save", Seq.empty, datasets(0).id), "parquet", "some/path")),
+        datasets = datasets,
+        attributes = attributes)
     }
 
-    def getInputLineage = {
+    val inputLineage = {
       val attributes = Seq(
         Attribute(randomUUID, "1", dataType),
         Attribute(randomUUID, "2", dataType),
         Attribute(randomUUID, "3", dataType)
       )
-      val datasets = Seq(
-        MetaDataset(randomUUID, Schema(attributes.map(_.id)))
-
-      )
-      val operations = Seq(
-        Read(OperationProps(randomUUID, "read", Seq.empty, datasets.head.id), "parquet", Seq(MetaDataSource(path, None)))
-      )
-      DataLineage("appId2", "appName2", 2L, operations, datasets, attributes)
+      val dataset = MetaDataset(randomUUID, Schema(attributes.map(_.id)))
+      val operation = Read(OperationProps(randomUUID, "read", Seq.empty, dataset.id), "parquet", Seq(MetaDataSource("some/path", None)))
+      DataLineage("appId2", "appName2", 2L, Seq(operation), Seq(dataset), attributes)
     }
 
-    val referencedLineage = getReferencedLineage
     when(dataLineageReader.loadLatest(any())(any())) thenReturn Future.successful(Some(referencedLineage))
-    val inputLineage = getInputLineage
-    val readOp = inputLineage.rootOperation.asInstanceOf[Read]
-    val referencedDataset = referencedLineage.rootDataset.id
-    val mainProps = readOp.mainProps.copy(inputs = Seq(referencedDataset))
-    val expectedResult = inputLineage.copy(
-      operations = Seq(
-        readOp.copy(sources = Seq(MetaDataSource(path, Some(referencedDataset))), mainProps = mainProps)
-      ),
-      datasets = inputLineage.datasets :+ referencedLineage.rootDataset,
-      attributes = inputLineage.attributes ++ Seq(referencedLineage.attributes(2), referencedLineage.attributes(3))
-    )
 
-    val sut = new ForeignMetaDatasetInjector(dataLineageReader)
+    val expectedResult = {
+      val readOp = inputLineage.rootOperation.asInstanceOf[Read]
+      val referencedDsID = referencedLineage.rootDataset.id
+      inputLineage.copy(
+        operations = Seq(readOp.copy(
+          sources = Seq(MetaDataSource("some/path", Some(referencedDsID))),
+          mainProps = readOp.mainProps.copy(inputs = Seq(referencedDsID)))),
+        datasets = inputLineage.datasets :+ referencedLineage.rootDataset,
+        attributes = inputLineage.attributes ++ Seq(referencedLineage.attributes(2), referencedLineage.attributes(3))
+      )
+    }
 
-    val result = sut(inputLineage)
-
-    result shouldEqual expectedResult
+    for (result <- new ForeignMetaDatasetInjector(dataLineageReader)(inputLineage))
+      yield result shouldEqual expectedResult
   }
 }

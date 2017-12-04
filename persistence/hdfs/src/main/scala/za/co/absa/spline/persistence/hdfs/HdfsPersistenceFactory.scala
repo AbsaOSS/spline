@@ -40,9 +40,11 @@ class HdfsPersistenceFactory(configuration: Configuration) extends PersistenceFa
   import HdfsPersistenceFactory._
 
   private val hadoopConfiguration = SparkContext.getOrCreate().hadoopConfiguration
-  private lazy val fileName = configuration getString(fileNameKey, "_LINEAGE")
+  private val fileName = configuration getString(fileNameKey, "_LINEAGE")
   private val defaultFilePermissions = FsPermission.getFileDefault.applyUMask(FsPermission.getUMask(FileSystem.get(hadoopConfiguration).getConf))
-  private lazy val filePermissions = new FsPermission(configuration getString(filePermissionsKey, defaultFilePermissions.toShort.toString))
+  private val filePermissions = new FsPermission(configuration.getString(filePermissionsKey, defaultFilePermissions.toShort.toString))
+
+  log info s"Lineage destination path: $fileName"
 
   /**
     * The method creates a persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.

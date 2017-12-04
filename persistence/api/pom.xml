@@ -22,7 +22,7 @@
         <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../../parent/pom.xml</relativePath>
-        <version>0.2.3</version>
+        <version>0.2.4</version>
     </parent>
 
     <artifactId>spline-persistence-api</artifactId>
@@ -38,6 +38,10 @@
             <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-commons</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4s</groupId>
+            <artifactId>slf4s-api_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>

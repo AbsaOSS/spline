@@ -37,30 +37,35 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
   private val hadoopConfiguration = sparkSession.sparkContext.hadoopConfiguration
 
   implicit class OperationAssertions(operation: Operation) {
+
     import OperationAssertions._
 
-    def shouldReference(references : Seq[MetaDataset]) = new ReferenceToDatasetComparator(operation, references)
+    def shouldReference(references: Seq[MetaDataset]) = new ReferenceToDatasetComparator(operation, references)
 
-    def references(references : Seq[MetaDataset]) = shouldReference(references)
+    def references(references: Seq[MetaDataset]) = shouldReference(references)
 
     def shouldEqualStripped(anotherOperation: Operation): Unit = stripped(operation) shouldEqual stripped(anotherOperation)
 
     private def stripped(operation: Operation): Operation = operation match {
-      case (jn: Join) => jn copy (mainProps = strippedProps(jn), condition = null)
-      case (fn: Filter) => fn copy (mainProps = strippedProps(fn), condition = null)
-      case (pn: Projection) => pn copy (mainProps = strippedProps(pn), transformations = null)
-      case (gn: Generic) => gn copy (mainProps = strippedProps(gn), rawString = null)
-      case (an: Alias) => an copy (mainProps = strippedProps(an))
-      case (sn: Read) => sn copy (mainProps = strippedProps(sn))
-      case (dn: Write) => dn copy (mainProps = strippedProps(dn))
-      case (hol: Composite) => hol copy (mainProps = strippedProps(hol))
+      case (jn: Join) => jn copy(mainProps = strippedProps(jn), condition = null)
+      case (un: Union) => un copy (mainProps = strippedProps(un))
+      case (fr: Filter) => fr copy(mainProps = strippedProps(fr), condition = null)
+      case (st: Sort) => st copy(mainProps = strippedProps(st), orders = Nil)
+      case (ag: Aggregate) => ag copy(mainProps = strippedProps(ag), groupings = Nil, aggregations = Map.empty)
+      case (pn: Projection) => pn copy(mainProps = strippedProps(pn), transformations = null)
+      case (gn: Generic) => gn copy(mainProps = strippedProps(gn), rawString = null)
+      case (as: Alias) => as copy (mainProps = strippedProps(as))
+      case (rd: Read) => rd copy (mainProps = strippedProps(rd))
+      case (wt: Write) => wt copy (mainProps = strippedProps(wt))
+      case (cm: Composite) => cm copy (mainProps = strippedProps(cm))
     }
 
     private def strippedProps(n: Operation): OperationProps = n.mainProps.copy(id = null, inputs = null, output = null)
   }
+
   object OperationAssertions {
-    class ReferenceToDatasetComparator(val operation: Operation, val datasets : Seq[MetaDataset])
-    {
+
+    class ReferenceToDatasetComparator(val operation: Operation, val datasets: Seq[MetaDataset]) {
       private lazy val references = datasets.map(_.id)
 
       private def getReferenceOutputPosition = references.indexOf(operation.mainProps.output)
@@ -75,9 +80,11 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
       }
 
     }
+
   }
 
   implicit class MetaDatasetAssertions(dataset: MetaDataset) {
+
     import MetaDatasetAssertions._
 
     def shouldReference(references: Seq[Attribute]) = new ReferenceToAttributeComparator(dataset, references)
@@ -85,7 +92,8 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
     def references(references: Seq[Attribute]) = shouldReference(references)
   }
 
-  object MetaDatasetAssertions{
+  object MetaDatasetAssertions {
+
     class ReferenceToAttributeComparator(val dataset: MetaDataset, val attributes: Seq[Attribute]) {
       private lazy val references = attributes.map(_.id)
 
@@ -95,9 +103,10 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
         getReferencePositions shouldEqual anotherComparator.getReferencePositions
       }
     }
+
   }
 
-  def assertDataLineage(expectedOperations: Seq[Operation], expectedDatasets: Seq[MetaDataset], expectedAttributes : Seq[Attribute], tested: DataLineage): Unit = {
+  def assertDataLineage(expectedOperations: Seq[Operation], expectedDatasets: Seq[MetaDataset], expectedAttributes: Seq[Attribute], tested: DataLineage): Unit = {
 
     tested.operations shouldNot be(null)
     tested.operations.length shouldEqual expectedOperations.length
@@ -246,14 +255,13 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
     )
 
     val expectedOperations = Seq(
-      Generic(
+      Union(
         OperationProps(
           randomUUID,
           "Union",
           Seq(expectedDatasets(1).id, expectedDatasets(3).id),
           expectedDatasets(0).id
-        ),
-        ""
+        )
       ),
       Filter(
         OperationProps(
@@ -338,14 +346,15 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
         ),
         "LocalRelation"
       ),
-      Generic(
+      Aggregate(
         OperationProps(
           randomUUID,
           "Aggregate",
           Seq(expectedDatasets(4).id),
           expectedDatasets(3).id
         ),
-        "Aggregate"
+        Nil,
+        Map.empty
       ),
       Projection(
         OperationProps(

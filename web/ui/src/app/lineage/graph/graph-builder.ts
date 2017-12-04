@@ -18,10 +18,17 @@ import {IAttribute, IDataLineage, IMetaDataset, IOperation} from "../../../gener
 import {RegularVisNode, VisEdge, VisModel, VisNode} from "./vis/vis-model";
 import * as vis from "vis";
 import * as _ from "lodash";
-import {typeOfOperation} from "../types";
+import {OperationType, typeOfOperation} from "../types";
 
-export function lineageToGraph(lineage: IDataLineage): VisModel {
-    let operationVisibilityPredicate = (op: IOperation) => typeOfOperation(op) != "Alias",
+export function lineageToGraph(lineage: IDataLineage,
+                               selectedOperationId?: string,
+                               hiddenOperationTypes: OperationType[] = []): VisModel {
+    let operationVisibilityPredicate = (op: IOperation) => {
+            let opType = typeOfOperation(op)
+            return op.mainProps.id == selectedOperationId
+                || opType != "Alias"
+                && hiddenOperationTypes.indexOf(opType) < 0
+        },
         operationsByVisibility = _.groupBy(lineage.operations, operationVisibilityPredicate),
         visibleOperations: IOperation[] = operationsByVisibility.true,
         hiddenOperations: IOperation[] = operationsByVisibility.false,

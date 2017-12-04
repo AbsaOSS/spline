@@ -29,6 +29,7 @@ import {PersistentDatasetResolver} from "./dataset/dataset.resolver";
 import {DatasetModule} from "./dataset/dataset.module";
 import {DatasetLineageOverviewResolver} from "./dataset/lineage-overview/lineage-overview.resolver";
 import {DatasetLineageOverviewComponent} from "./dataset/lineage-overview/lineage-overview.component";
+import {MiscModule} from "./misc/misc.module";
 
 
 const lineageRoute = {
@@ -67,7 +68,7 @@ const routes: Routes = [
     {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'dashboard'
+        redirectTo: '/dashboard'
     },
     {
         path: 'dashboard',
@@ -81,7 +82,11 @@ const routes: Routes = [
             datasetRoute
         ]
     },
-    datasetRoute
+    datasetRoute,
+    {
+        path: '**',
+        redirectTo: '/dashboard'
+    },
 ]
 
 @NgModule({
@@ -90,7 +95,8 @@ const routes: Routes = [
         RouterModule.forRoot(routes, {enableTracing: false}),
         DashboardModule,
         LineageModule,
-        DatasetModule
+        DatasetModule,
+        MiscModule
     ],
     declarations: [AppComponent],
     bootstrap: [AppComponent]
