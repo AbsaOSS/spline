@@ -21,6 +21,7 @@ import java.util.UUID.randomUUID
 
 import com.databricks.spark.xml.XmlRelation
 import org.apache.hadoop.conf.Configuration
+import org.apache.spark.sql.JDBCRelation
 import org.apache.spark.sql.catalyst.expressions.SortOrder
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation, SaveIntoDataSourceCommand}
@@ -140,24 +141,32 @@ private class AliasNodeBuilder(val operation: SubqueryAlias)
   */
 private class SourceNodeBuilder(val operation: LogicalRelation)
                                (implicit hadoopConfiguration: Configuration, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[LogicalRelation] {
-  def build(): op.Operation = {
+  def build(): op.Read = {
     val (sourceType, paths) = getRelationPaths(operation.relation)
     op.Read(
       buildOperationProps(),
       sourceType,
-      paths.map(path => MetaDataSource(PathUtils.getQualifiedPath(hadoopConfiguration)(path), None))
+      paths.map(MetaDataSource(_, None))
     )
   }
 
+  private def hdfsPathQualifier = PathUtils.getQualifiedPath(hadoopConfiguration) _
+
   private def getRelationPaths(relation: BaseRelation): (String, Seq[String]) = relation match {
-    case hfsr: HadoopFsRelation => (
-      hfsr.fileFormat.toString,
-      hfsr.location.rootPaths.map(_.toString)
+    case HadoopFsRelation(loc, _, _, _, fileFormat, _) => (
+      fileFormat.toString,
+      loc.rootPaths.map(path => hdfsPathQualifier(path.toString))
     )
-    case xmlr: XmlRelation => (
+    case XmlRelation(_, loc, _, _) => (
       "XML",
-      xmlr.location.toSeq
+      loc.toSeq map hdfsPathQualifier
     )
+    case JDBCRelation(jdbcOpts) => (
+      "JDBC",
+      Seq(s"${jdbcOpts.url}/${jdbcOpts.table}")
+    )
+    case _ => // unrecognized relation type
+      (s"???: ${relation.getClass.getName}", Nil)
   }
 }
 
@@ -286,7 +295,7 @@ private class JoinNodeBuilder(val operation: Join)
   * @param metaDatasetFactory A factory of meta data sets
   */
 private class UnionNodeBuilder(val operation: Union)
-                             (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[Union] {
+                              (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[Union] {
   def build(): op.Operation = op.Union(buildOperationProps())
 }
 
