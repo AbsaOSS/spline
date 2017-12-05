@@ -13,14 +13,14 @@ The project consists of two parts:
 <dependency>
     <groupId>za.co.absa.spline</groupId>
     <artifactId>spline-core</artifactId>
-    <version>0.2.3</version>
+    <version>0.2.5</version>
 </dependency>
 <dependency>
     <groupId>za.co.absa.spline</groupId>
     <artifactId>spline-persistence-mongo</artifactId>
     <!-- You can use other types of persistence including your own. -->
     <!-- See below for details. -->
-    <version>0.2.3</version>
+    <version>0.2.5</version>
 </dependency>
 ```
 
@@ -38,9 +38,9 @@ sparkSession.enableLineageTracking()
 // configured Mongo database for further visualization by Spline Web UI
 ```
 
-### download [Spline Web UI executable JAR](https://search.maven.org/remotecontent?filepath=za/co/absa/spline/spline-web/0.2.3/spline-web-0.2.3-exec-war.jar) and run:
+### download [Spline Web UI executable JAR](https://search.maven.org/remotecontent?filepath=za/co/absa/spline/spline-web/0.2.5/spline-web-0.2.5-exec-war.jar) and run:
 ```shell
-java -jar spline-web-0.2.3-exec-war.jar -Dspline.mongodb.url=... -Dspline.mongodb.name=... 
+java -jar spline-web-0.2.5-exec-war.jar -Dspline.mongodb.url=... -Dspline.mongodb.name=...
 ```
 
 ### in your browser open [localhost:8080](http://localhost:8080) and you will get:
@@ -95,7 +95,7 @@ There are two ways how to run Spline Web UI:
 ###### Standalone application (executable JAR)
 
 Execute: <br>
-```java -jar spline-web-0.2.3-exec-war.jar -Dspline.mongodb.url=... -Dspline.mongodb.name=...```
+```java -jar spline-web-0.2.5-exec-war.jar -Dspline.mongodb.url=... -Dspline.mongodb.name=...```
 and then point your browser to [http://localhost:8080](http://localhost:8080).
 
 To change the port number from *8080* to say *1234* add ```-httpPort 1234``` to the command line.
@@ -158,6 +158,7 @@ def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfig
 
 | Property | Description | Example
 | --- | --- | --- |
+| `spline.mode` | __DISABLED__<br>Lineage tracking is completely disabled and Spline is unhooked from Spark.<br><br>__REQUIRED__<br>If Spline fails to initialize itself (e.g. wrong configuration, no db connection etc) the Spark application aborts with an error.<br><br>**BEST_EFFORT** (default)<br>Spline will try to initialize itself, but if fails it switches to _DISABLED_ mode allowing the Spark application to proceed normally without Lineage tracking. | BEST_EFFORT |
 | `spline.persistence.factory` | Fully qualified name of the [PersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/PersistenceFactory.scala) implementation to use by Spline | za.co.absa.spline.persistence.mongo.MongoPersistenceFactory
 | `spline.mongodb.url` | Mongo connection URL <br> _(MongoPersistenceFactory only)_ | mongodb://1.2.3.4
 | `spline.mongodb.name` | Mongo database name <br> _(MongoPersistenceFactory only)_ | my_job_lineage_data
