@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges} from "@angular/core";
+import {Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChange, SimpleChanges} from "@angular/core";
 import {IDataLineage} from "../../../generated-ts/lineage-model";
 import "vis/dist/vis.min.css";
 import {visOptions} from "./vis/vis-options";
@@ -25,6 +25,8 @@ import {ClusterManager} from "./cluster-manager";
 import {HighlightedVisNode, RegularVisNode, VisModel, VisNode, VisNodeType} from "./vis/vis-model";
 import {LineageStore} from "../lineage.store";
 import {OperationType} from "../types";
+
+const isDistinct = (change: SimpleChange): boolean => change && !_.isEqual(change.previousValue, change.currentValue)
 
 @Component({
     selector: 'graph',
@@ -51,12 +53,11 @@ export class GraphComponent implements OnChanges {
     ngOnChanges(changes: SimpleChanges): void {
         if (changes["selectedOperationId"]) this.refreshSelectedNode()
 
-        let highlightedNodesChange = changes["highlightedNodeIDs"]
-        if (highlightedNodesChange && !_.isEqual(highlightedNodesChange.previousValue, highlightedNodesChange.currentValue)) {
+        if (isDistinct(changes["highlightedNodeIDs"])) {
             this.refreshHighlightedNodes()
         }
 
-        if (changes["hiddenOperationTypes"]) {
+        if (isDistinct(changes["hiddenOperationTypes"])) {
             this.rebuildGraph(this.lineageStore.lineageAccessors.lineage)
             this.refreshSelectedNode()
             this.refreshHighlightedNodes()
