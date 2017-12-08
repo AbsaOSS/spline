@@ -17,6 +17,7 @@
 package za.co.absa.spline.web.rest.controller
 
 import java.util.UUID
+import javax.servlet.http.HttpServletResponse
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -44,8 +45,7 @@ class LineageController @Autowired()
   import StringJSONConverters._
 
   @RequestMapping(Array("/dataset/descriptors"))
-  @ResponseBody
-  def datasetDescriptors: Future[String] = reader.list.map(_.toSeq.toJsonArray)
+  def datasetDescriptors(response: HttpServletResponse): Future[Unit] = reader.list map (_ asJsonArrayInto response.getWriter)
 
   @RequestMapping(Array("/dataset/{id}/descriptor"))
   @ResponseBody
