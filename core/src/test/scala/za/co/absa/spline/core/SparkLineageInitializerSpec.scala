@@ -18,60 +18,127 @@ package za.co.absa.spline.core
 
 import org.apache.commons.configuration.Configuration
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.util.QueryExecutionListener
+import org.scalatest.Matchers._
 import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
+import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
 import za.co.absa.spline.core.SparkLineageInitializer._
-import za.co.absa.spline.core.conf.DefaultSplineConfigurer.ConfProperty._
+import za.co.absa.spline.core.SparkLineageInitializerSpec._
+import za.co.absa.spline.core.conf.DefaultSplineConfigurer.ConfProperty.{MODE, PERSISTENCE_FACTORY}
+import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
 
 object SparkLineageInitializerSpec {
 
-  class MockPersistenceWriterFactory(conf: Configuration) extends PersistenceFactory(conf) with MockitoSugar {
-    private val mockDataLineageWriter = mock[DataLineageWriter]
-    private val mockDataLineageReader = mock[DataLineageReader]
-
-    override def createDataLineageWriter(): DataLineageWriter = mockDataLineageWriter
-
-    override def createDataLineageReader(): DataLineageReader = mockDataLineageReader
-
-    override def createDataLineageReaderOrGetDefault(default: DataLineageReader): DataLineageReader = mockDataLineageReader
+  class MockReadWritePersistenceFactory(conf: Configuration) extends PersistenceFactory(conf) with MockitoSugar {
+    override val createDataLineageWriter: DataLineageWriter = mock[DataLineageWriter]
+    override val createDataLineageReader: Option[DataLineageReader] = Some(mock[DataLineageReader])
   }
 
+  class MockWriteOnlyPersistenceFactory(conf: Configuration) extends PersistenceFactory(conf) with MockitoSugar {
+    override val createDataLineageWriter: DataLineageWriter = mock[DataLineageWriter]
+    override val createDataLineageReader: Option[DataLineageReader] = None
+  }
+
+  class MockFailingPersistenceFactory(conf: Configuration) extends PersistenceFactory(conf) with MockitoSugar {
+    override val createDataLineageWriter: DataLineageWriter = sys.error("boom!")
+    override val createDataLineageReader: Option[DataLineageReader] = sys.error("bam!")
+  }
+
+  private[this] def sprakQueryExecutionListenerClasses: Seq[Class[_ <: QueryExecutionListener]] = {
+    val session = SparkSession.builder.getOrCreate
+    (session.listenerManager.getClass.getDeclaredFields collectFirst {
+      case f if f.getName endsWith "listeners" =>
+        f setAccessible true
+        (f get session.listenerManager).asInstanceOf[Seq[QueryExecutionListener]].map(_.getClass)
+    }).get
+  }
+
+  private def assertSplineIsEnabled() = sprakQueryExecutionListenerClasses should contain(classOf[DataLineageListener])
+
+  private def assertSplineIsDisabled() = sprakQueryExecutionListenerClasses should not contain classOf[DataLineageListener]
 }
 
-class SparkLineageInitializerSpec extends FlatSpec with BeforeAndAfterEach with Matchers {
-
-  import SparkLineageInitializerSpec._
-
+class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with Matchers {
   private val jvmProps = System.getProperties
-
   jvmProps.setProperty("spark.master", "local")
-  jvmProps.setProperty(PERSISTENCE_FACTORY, classOf[MockPersistenceWriterFactory].getName)
 
   override protected def afterEach(): Unit = SparkSession.builder.getOrCreate.stop
 
-  "enableLineageTracking()" should "not allow double initialization" in intercept[IllegalStateException] {
-    SparkSession.builder.getOrCreate
-      .enableLineageTracking() // 1st is fine
-      .enableLineageTracking() // 2nd should fail
+  describe("defaultConfiguration") {
+    it("should look through the multiple sources for the configuration properties") {
+      val sparkSession = SparkSession.builder.getOrCreate
+      sparkSession.sparkContext.hadoopConfiguration.set("key.defined.everywhere", "value from Hadoop configuration")
+
+      jvmProps.setProperty("key.defined.everywhere", "value from JVM args")
+      jvmProps.setProperty("key.defined.in_JVM_and_spline.properties", "value from JVM args")
+
+      sparkSession.defaultSplineConfiguration getString "key.defined.everywhere" shouldEqual "value from Hadoop configuration"
+      sparkSession.defaultSplineConfiguration getString "key.defined.in_JVM_and_spline.properties" shouldEqual "value from JVM args"
+      sparkSession.defaultSplineConfiguration getString "key.defined.in_spline.properties_only" shouldEqual "value from spline.properties"
+      sparkSession.defaultSplineConfiguration getString "key.undefined" shouldBe null
+    }
   }
 
-  it should "return the spark session back to the caller" in {
-    val session = SparkSession.builder.getOrCreate
-    session.enableLineageTracking() shouldBe session
+  describe("enableLineageTracking()") {
+    it("should not allow double initialization") {
+      intercept[IllegalStateException] {
+        SparkSession.builder.getOrCreate
+          .enableLineageTracking() // 1st is fine
+          .enableLineageTracking() // 2nd should fail
+      }
+    }
+
+    it("should return the spark session back to the caller") {
+      jvmProps.setProperty(PERSISTENCE_FACTORY, classOf[MockReadWritePersistenceFactory].getName)
+      val session = SparkSession.builder.getOrCreate
+      session.enableLineageTracking() shouldBe session
+    }
+
+    describe("persistence support") {
+      it("should support read/write persistence") {
+        jvmProps.setProperty(PERSISTENCE_FACTORY, classOf[MockReadWritePersistenceFactory].getName)
+        SparkSession.builder.getOrCreate.enableLineageTracking()
+        assertSplineIsEnabled()
+      }
+
+      it("should support write-only persistence") {
+        jvmProps.setProperty(PERSISTENCE_FACTORY, classOf[MockWriteOnlyPersistenceFactory].getName)
+        SparkSession.builder.getOrCreate.enableLineageTracking()
+        assertSplineIsEnabled()
+      }
+    }
+
+    describe("modes") {
+
+      it("should disable Spline and proceed, when is in BEST_EFFORT (default) mode") {
+        jvmProps.setProperty(PERSISTENCE_FACTORY, classOf[MockFailingPersistenceFactory].getName)
+        jvmProps.setProperty(MODE, BEST_EFFORT.toString)
+        SparkSession.builder.getOrCreate.enableLineageTracking()
+        assertSplineIsDisabled()
+      }
+
+      it("should disable Spline and proceed, when is in DEFAULT mode") {
+        jvmProps.setProperty(PERSISTENCE_FACTORY, classOf[MockFailingPersistenceFactory].getName)
+        jvmProps.remove(MODE) // default mode is BEST_EFFORT
+        SparkSession.builder.getOrCreate.enableLineageTracking()
+        assertSplineIsDisabled()
+      }
+
+      it("should abort application, when is in REQUIRED mode") {
+        intercept[Exception] {
+          jvmProps.setProperty(PERSISTENCE_FACTORY, classOf[MockFailingPersistenceFactory].getName)
+          jvmProps.setProperty(MODE, REQUIRED.toString)
+          SparkSession.builder.getOrCreate.enableLineageTracking()
+        }
+      }
+
+      it("should have no effect, when is in DISABLED mode") {
+        jvmProps.setProperty(PERSISTENCE_FACTORY, classOf[MockReadWritePersistenceFactory].getName)
+        jvmProps.setProperty(MODE, DISABLED.toString)
+        SparkSession.builder.getOrCreate.enableLineageTracking()
+        assertSplineIsDisabled()
+      }
+    }
   }
-
-  "defaultConfiguration" should "look through the multiple sources for the configuration properties" in {
-    val sparkSession = SparkSession.builder.getOrCreate
-    sparkSession.sparkContext.hadoopConfiguration.set("key.defined.everywhere", "value from Hadoop configuration")
-
-    jvmProps.setProperty("key.defined.everywhere", "value from JVM args")
-    jvmProps.setProperty("key.defined.in_JVM_and_spline.properties", "value from JVM args")
-
-    sparkSession.defaultSplineConfiguration getString "key.defined.everywhere" shouldEqual "value from Hadoop configuration"
-    sparkSession.defaultSplineConfiguration getString "key.defined.in_JVM_and_spline.properties" shouldEqual "value from JVM args"
-    sparkSession.defaultSplineConfiguration getString "key.defined.in_spline.properties_only" shouldEqual "value from spline.properties"
-    sparkSession.defaultSplineConfiguration getString "key.undefined" shouldBe null
-  }
-
 }

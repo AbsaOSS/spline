@@ -27,7 +27,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
   * The class represents a dummy reader that does not read any data from any persistence layer.
   */
-class NopDataLineageReader extends DataLineageReader {
+object NopDataLineageReader extends DataLineageReader {
   /**
     * The method loads a particular data lineage from the persistence layer.
     *
