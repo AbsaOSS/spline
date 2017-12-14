@@ -55,7 +55,10 @@ class DataLineageListener(persistenceFactory: PersistenceFactory, hadoopConfigur
     * @param qe         A Spark object holding lineage information (logical, optimized, physical plan)
     * @param durationNs Duration of the action execution [nanoseconds]
     */
-  def onSuccess(funcName: String, qe: QueryExecution, durationNs: Long): Unit = processQueryExecution(funcName, qe)
+  def onSuccess(funcName: String, qe: QueryExecution, durationNs: Long): Unit = {
+    log debug s"Action '$funcName' execution succeeded"
+    processQueryExecution(funcName, qe)
+  }
 
 
   /**
@@ -65,11 +68,12 @@ class DataLineageListener(persistenceFactory: PersistenceFactory, hadoopConfigur
     * @param qe        A Spark object holding lineage information (logical, optimized, physical plan)
     * @param exception An exception describing the reason of the error
     */
-  def onFailure(funcName: String, qe: QueryExecution, exception: Exception): Unit = processQueryExecution(funcName, qe)
+  def onFailure(funcName: String, qe: QueryExecution, exception: Exception): Unit = {
+    log.error(s"Action '$funcName' execution failed", exception)
+  }
 
 
   private def processQueryExecution(funcName: String, qe: QueryExecution): Unit = {
-    log debug s"Action '$funcName' execution finished"
     if (funcName == "save") {
       log debug s"Start tracking lineage for action '$funcName'"
       log debug s"Extracting raw lineage"
