@@ -25,7 +25,7 @@ import org.scalatest.{AsyncFlatSpec, Matchers}
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op.{Composite, CompositeWithDependencies, OperationProps, TypedMetaDataSource}
 import za.co.absa.spline.model.{Attribute, MetaDataset, Schema}
-import za.co.absa.spline.persistence.api.DataLineageReader
+import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
 import za.co.absa.spline.web.rest.service.LineageService
 
 import scala.concurrent.Future
@@ -70,7 +70,7 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
     when(readerMock.loadCompositeByOutput(≡(UUIDS1))(any())) thenReturn Future.successful(Some(compositeS1))
     when(readerMock.loadCompositeByOutput(≡(UUIDS2))(any())) thenReturn Future.successful(Some(compositeS2))
 
-    when(readerMock.loadCompositesByInput(≡(UUIDS1))(any())) thenReturn Future.successful(List(compositeS2).toIterator)
+    when(readerMock.loadCompositesByInput(≡(UUIDS1))(any())) thenReturn Future.successful(new CloseableIterable(Iterator(compositeS2), {}))
 
     val svc = new LineageService(readerMock)
 
@@ -138,11 +138,11 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
     when(readerMock.loadCompositeByOutput(≡(dUUID))(any())) thenReturn Future.successful(Some(compositeD))
     when(readerMock.loadCompositeByOutput(≡(eUUID))(any())) thenReturn Future.successful(Some(compositeE))
 
-    when(readerMock.loadCompositesByInput(≡(aUUID))(any())) thenReturn Future.successful(List(compositeB, compositeC).toIterator)
-    when(readerMock.loadCompositesByInput(≡(bUUID))(any())) thenReturn Future.successful(List().toIterator)
-    when(readerMock.loadCompositesByInput(≡(cUUID))(any())) thenReturn Future.successful(List().toIterator)
-    when(readerMock.loadCompositesByInput(≡(dUUID))(any())) thenReturn Future.successful(List(compositeA).toIterator)
-    when(readerMock.loadCompositesByInput(≡(eUUID))(any())) thenReturn Future.successful(List(compositeA).toIterator)
+    when(readerMock.loadCompositesByInput(≡(aUUID))(any())) thenReturn Future.successful(new CloseableIterable(Iterator(compositeB, compositeC), {}))
+    when(readerMock.loadCompositesByInput(≡(bUUID))(any())) thenReturn Future.successful(new CloseableIterable(Iterator.empty, {}))
+    when(readerMock.loadCompositesByInput(≡(cUUID))(any())) thenReturn Future.successful(new CloseableIterable(Iterator.empty, {}))
+    when(readerMock.loadCompositesByInput(≡(dUUID))(any())) thenReturn Future.successful(new CloseableIterable(Iterator(compositeA), {}))
+    when(readerMock.loadCompositesByInput(≡(eUUID))(any())) thenReturn Future.successful(new CloseableIterable(Iterator(compositeA), {}))
   }
 
   it should "be able to construst small high order lineage out of 5 composits, starting at point A" in {

@@ -118,26 +118,21 @@ class LineageService @Autowired()
       }
 
     // Traverse lineage tree from an dataset Id in the direction from source to destination
-    def traverseDown(dsId: UUID): Future[Unit] =
+    def traverseDown(dsId: UUID): Future[Unit] = {
+
       reader.loadCompositesByInput(dsId).flatMap {
-        compositeList => {
-          if (compositeList.nonEmpty) {
-            for (compositeWithDeps <- compositeList) {
-              accumulateCompositeDependencies(compositeWithDeps)
-              compositeWithDeps.composite.sources.foreach(composite => {
-                if (composite.datasetId.nonEmpty) {
-                  enqueueOutput(composite.datasetId.get)
-                }
-              })
-              if (compositeWithDeps.composite.destination.datasetId.nonEmpty) {
-                enqueueInput(compositeWithDeps.composite.destination.datasetId.get)
-              }
-            }
-          }
+        import za.co.absa.spline.common.ARMImplicits._
+        for (compositeList <- _) yield {
+          compositeList.iterator.foreach(compositeWithDeps => {
+            accumulateCompositeDependencies(compositeWithDeps)
+            compositeWithDeps.composite.sources.foreach(composite => if (composite.datasetId.nonEmpty) enqueueOutput(composite.datasetId.get))
+            if (compositeWithDeps.composite.destination.datasetId.nonEmpty) enqueueInput(compositeWithDeps.composite.destination.datasetId.get)
+          })
           // This launches parallel execution of the remaining elements of the queue
           processQueueAsync()
         }
       }
+    }
 
     /**
       * This recursively processes the queue of unprocessed composites

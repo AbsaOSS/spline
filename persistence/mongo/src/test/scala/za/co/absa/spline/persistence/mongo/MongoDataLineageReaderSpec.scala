@@ -39,7 +39,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
       path = new URI(l.rootOperation.asInstanceOf[Write].path),
       timestamp = l.timestamp))
 
-    val descriptions = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.list().map(_.toSeq))
+    val descriptions = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.list().map(_.iterator.toSeq))
 
     descriptions.map(i => i should contain allElementsOf expectedDescriptors)
   }
@@ -175,7 +175,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
 
     val result = Future.sequence(testLineages.map(i => mongoWriter.store(i)))
       .flatMap(_ => mongoReader.loadCompositesByInput(datasetId))
-      .map(_.toSeq)
+      .map(_.iterator.toSeq)
 
     result.map(res => {
       res.length shouldEqual 1
