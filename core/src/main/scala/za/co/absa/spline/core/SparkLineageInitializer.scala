@@ -48,7 +48,7 @@ object SparkLineageInitializer extends Logging {
       * @param configurer A collection of settings for the library initialization
       * @return An original Spark session
       */
-    def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfigurer(defaultSplineConfiguration)): SparkSession = {
+    def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfigurer(defaultSplineConfiguration, sparkSession)): SparkSession = {
       if (configurer.splineMode != DISABLED) sparkSession.synchronized {
         preventDoubleInitialization()
         log info s"Spline v${SplineBuildInfo.version} is initializing..."
@@ -69,9 +69,8 @@ object SparkLineageInitializer extends Logging {
       */
     def attemptInitialization(configurer: SplineConfigurer): Unit = {
       require(SparkVersionInfo.matchesRequirements, s"Unsupported Spark version: ${spark.SPARK_VERSION}. Required version ${SparkVersionInfo.requiredVersion}")
-      val assembly = new SplineAssembly(configurer, sparkSession)
-      sparkSession.listenerManager register assembly.batchListener
-      sparkSession.streams addListener assembly.structuredStreamingListener
+      sparkSession.listenerManager register configurer.batchListener
+      sparkSession.streams addListener configurer.structuredStreamingListener
     }
 
     private[core] val defaultSplineConfiguration = {

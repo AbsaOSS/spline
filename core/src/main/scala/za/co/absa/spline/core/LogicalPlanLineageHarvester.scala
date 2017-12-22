@@ -30,21 +30,19 @@ import scala.language.postfixOps
   *
   * @param hadoopConfiguration A hadoop configuration
   */
-class LogicalPlanLineageHarvester(hadoopConfiguration: Configuration) extends LineageHarvester[(SparkContext, LogicalPlan)] {
-
+class LogicalPlanLineageHarvester(hadoopConfiguration: Configuration){
 
   /** A main method of the object that performs transformation of Spark internal structures to library lineage representation.
     *
-    * @param source a spark context and analyzed plan that serve as a source for lineage information
+    * @param sparkContext a spark context
+    * @param logicalPlan a logical plan with resolved references (analyzed plan)
     * @return A lineage representation
     */
-  def harvestLineage(source: (SparkContext, LogicalPlan)): DataLineage = {
+  def harvestLineage(sparkContext: SparkContext, logicalPlan: LogicalPlan): DataLineage = {
     val attributeFactory = new AttributeFactory()
     val metaDatasetFactory = new MetaDatasetFactory(attributeFactory)
     val operationNodeBuilderFactory = new OperationNodeBuilderFactory()(hadoopConfiguration, metaDatasetFactory)
-    val nodes = harvestOperationNodes(source._2, operationNodeBuilderFactory)
-
-    val sparkContext = source._1
+    val nodes = harvestOperationNodes(logicalPlan, operationNodeBuilderFactory)
 
     DataLineage(
       sparkContext.applicationId,

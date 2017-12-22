@@ -19,7 +19,6 @@ package za.co.absa.spline.core.streaming
 import org.apache.spark.sql.execution.streaming.{StreamExecution, StreamingQueryWrapper}
 import org.apache.spark.sql.streaming.{StreamingQuery, StreamingQueryListener, StreamingQueryManager}
 import org.slf4s.Logging
-import za.co.absa.spline.core.LineageHarvester
 import za.co.absa.spline.persistence.api.DataLineageWriter
 
 import scala.concurrent.Await
@@ -33,7 +32,7 @@ import scala.language.postfixOps
   * @param harvester An harvester capturing lineage information from the stream execution
   * @param persistenceWriter A writer pushing lineage information to the underlying persistence layer
   */
-class StructuredStreamingListener(manager : StreamingQueryManager, harvester : LineageHarvester[StreamExecution], persistenceWriter: DataLineageWriter)
+class StructuredStreamingListener(manager : StreamingQueryManager, harvester : StructuredStreamingLineageHarvester, persistenceWriter: DataLineageWriter)
   extends StreamingQueryListener with Logging {
 
   import scala.concurrent.ExecutionContext.Implicits._

@@ -20,7 +20,7 @@ import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.util.QueryExecutionListener
 import org.slf4s.Logging
 import za.co.absa.spline.common.transformations.AsyncTransformation
-import za.co.absa.spline.core.LineageHarvester
+import za.co.absa.spline.core.LogicalPlanLineageHarvester
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter}
 
@@ -34,13 +34,13 @@ import scala.util.Success
   *
   * @param persistenceReader  An instance reading data lineages from a persistence layer
   * @param persistenceWriter  An instance writing data lineages to a persistence layer
-  * @param harvester An instance gathering lineage information from Spark queryExecution
+  * @param harvester An instance gathering lineage information from a Spark logical plan
   * @param lineageTransformation An instance performing modifications on harvested data lineage
   */
 class BatchListener(
   persistenceReader: DataLineageReader,
   persistenceWriter: DataLineageWriter,
-  harvester: LineageHarvester[QueryExecution],
+  harvester: LogicalPlanLineageHarvester,
   lineageTransformation: AsyncTransformation[DataLineage]
 ) extends QueryExecutionListener with Logging {
 
@@ -53,7 +53,10 @@ class BatchListener(
     * @param qe         A Spark object holding lineage information (logical, optimized, physical plan)
     * @param durationNs Duration of the action execution [nanoseconds]
     */
-  def onSuccess(funcName: String, qe: QueryExecution, durationNs: Long): Unit = processQueryExecution(funcName, qe)
+  def onSuccess(funcName: String, qe: QueryExecution, durationNs: Long): Unit = {
+    log debug s"Action '$funcName' execution succeeded"
+    processQueryExecution(funcName, qe)
+  }
 
   /**
     * The method is executed when an error occurs during an action execution.
@@ -62,7 +65,9 @@ class BatchListener(
     * @param qe        A Spark object holding lineage information (logical, optimized, physical plan)
     * @param exception An exception describing the reason of the error
     */
-  def onFailure(funcName: String, qe: QueryExecution, exception: Exception): Unit = processQueryExecution(funcName, qe)
+  def onFailure(funcName: String, qe: QueryExecution, exception: Exception): Unit = {
+    log.error(s"Action '$funcName' execution failed", exception)
+  }
 
 
   private def processQueryExecution(funcName: String, qe: QueryExecution): Unit = {
@@ -70,7 +75,7 @@ class BatchListener(
     if (funcName == "save") {
       log debug s"Start tracking lineage for action '$funcName'"
       log debug s"Extracting raw lineage"
-      val lineage = harvester harvestLineage qe
+      val lineage = harvester.harvestLineage(qe.sparkSession.sparkContext, qe.analyzed)
       log debug s"Preparing lineage"
       val eventuallyStored = for {
         transformedLineage <- lineageTransformation(lineage) andThen { case Success(_) => log debug s"Lineage is prepared" }

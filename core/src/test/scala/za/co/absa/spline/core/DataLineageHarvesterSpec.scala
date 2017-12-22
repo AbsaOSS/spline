@@ -145,7 +145,7 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
 
     val sut = new LogicalPlanLineageHarvester(hadoopConfiguration)
 
-    val result = sut.harvestLineage((sparkSession.sparkContext, sparkSession.emptyDataFrame.queryExecution.analyzed))
+    val result = sut.harvestLineage(sparkSession.sparkContext, sparkSession.emptyDataFrame.queryExecution.analyzed)
 
     assertDataLineage(expectedOperations, expectedDatasets, Seq.empty, result)
   }
@@ -177,7 +177,7 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
 
     val sut = new LogicalPlanLineageHarvester(hadoopConfiguration)
 
-    val result = sut.harvestLineage((sparkSession.sparkContext,df.queryExecution.analyzed))
+    val result = sut.harvestLineage(sparkSession.sparkContext,df.queryExecution.analyzed)
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }
@@ -228,7 +228,7 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
 
     val sut = new LogicalPlanLineageHarvester(hadoopConfiguration)
 
-    val result = sut.harvestLineage((sparkSession.sparkContext,df.queryExecution.analyzed))
+    val result = sut.harvestLineage(sparkSession.sparkContext,df.queryExecution.analyzed)
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }
@@ -294,7 +294,7 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
 
     val sut = new LogicalPlanLineageHarvester(hadoopConfiguration)
 
-    val result = sut.harvestLineage((sparkSession.sparkContext,df.queryExecution.analyzed))
+    val result = sut.harvestLineage(sparkSession.sparkContext,df.queryExecution.analyzed)
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }
@@ -369,7 +369,7 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
 
     val sut = new LogicalPlanLineageHarvester(hadoopConfiguration)
 
-    val result = sut.harvestLineage((sparkSession.sparkContext,df.queryExecution.analyzed))
+    val result = sut.harvestLineage(sparkSession.sparkContext,df.queryExecution.analyzed)
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }
