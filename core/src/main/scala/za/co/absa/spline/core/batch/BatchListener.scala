@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.core
+package za.co.absa.spline.core.batch
 
-import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.util.QueryExecutionListener
 import org.slf4s.Logging
-import za.co.absa.spline.common.transformations.AsyncTransformationPipeline
-import za.co.absa.spline.core.transformations.{ForeignMetaDatasetInjector, LineageProjectionMerger}
-import za.co.absa.spline.persistence.api.PersistenceFactory
+import za.co.absa.spline.common.transformations.AsyncTransformation
+import za.co.absa.spline.core.LineageHarvester
+import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
@@ -30,23 +30,21 @@ import scala.language.postfixOps
 import scala.util.Success
 
 /**
-  * The class represents a handler listening on events that Spark triggers when an execution any action is performed. It can be considered as an entry point to Spline library.
+  * The class represents a handler listening on events that Spark triggers when a Dataset is matariealized by an action on a DataFrameWriter.
   *
-  * @param persistenceFactory  A factory of persistence readers and writers
-  * @param hadoopConfiguration A hadoop configuration
+  * @param persistenceReader  An instance reading data lineages from a persistence layer
+  * @param persistenceWriter  An instance writing data lineages to a persistence layer
+  * @param harvester An instance gathering lineage information from Spark queryExecution
+  * @param lineageTransformation An instance performing modifications on harvested data lineage
   */
-class DataLineageListener(persistenceFactory: PersistenceFactory, hadoopConfiguration: Configuration) extends QueryExecutionListener with Logging {
+class BatchListener(
+  persistenceReader: DataLineageReader,
+  persistenceWriter: DataLineageWriter,
+  harvester: LineageHarvester[QueryExecution],
+  lineageTransformation: AsyncTransformation[DataLineage]
+) extends QueryExecutionListener with Logging {
 
   import scala.concurrent.ExecutionContext.Implicits._
-
-  private val persistenceWriter = persistenceFactory.createDataLineageWriter()
-  private val persistenceReader = persistenceFactory.createDataLineageReader()
-  private val harvester = new DataLineageHarvester(hadoopConfiguration)
-  private val transformationPipeline =
-    new AsyncTransformationPipeline(
-      LineageProjectionMerger,
-      new ForeignMetaDatasetInjector(persistenceReader)
-    )
 
   /**
     * The method is executed when an action execution is successful.
@@ -56,7 +54,6 @@ class DataLineageListener(persistenceFactory: PersistenceFactory, hadoopConfigur
     * @param durationNs Duration of the action execution [nanoseconds]
     */
   def onSuccess(funcName: String, qe: QueryExecution, durationNs: Long): Unit = processQueryExecution(funcName, qe)
-
 
   /**
     * The method is executed when an error occurs during an action execution.
@@ -76,7 +73,7 @@ class DataLineageListener(persistenceFactory: PersistenceFactory, hadoopConfigur
       val lineage = harvester harvestLineage qe
       log debug s"Preparing lineage"
       val eventuallyStored = for {
-        transformedLineage <- transformationPipeline(lineage) andThen { case Success(_) => log debug s"Lineage is prepared" }
+        transformedLineage <- lineageTransformation(lineage) andThen { case Success(_) => log debug s"Lineage is prepared" }
         storeEvidence <- persistenceWriter.store(transformedLineage) andThen { case Success(_) => log debug s"Lineage is persisted" }
       } yield storeEvidence
 

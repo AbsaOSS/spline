@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.sample
+package za.co.absa.spline.sample.batchWithDependencies
+
+import za.co.absa.spline.sample.SparkApp
 
 object OtherJob extends SparkApp("Other Job", conf = Seq("spark.sql.shuffle.partitions" -> "4")) {
 
@@ -24,9 +26,9 @@ object OtherJob extends SparkApp("Other Job", conf = Seq("spark.sql.shuffle.part
   spark.enableLineageTracking()
 
   // A business logic of a spark job ...
-  val beerConsumption = spark.read.parquet("data/results/beerConsCtl")
+  val beerConsumption = spark.read.parquet("data/results/batchWithDependencies/beerConsCtl")
 
   val result = beerConsumption.select($"Country", $"Code", $"Year2011" as "BeerConsumption2011")
 
-  result.write.mode("overwrite").parquet("data/results/otherJobResults")
+  result.write.mode("overwrite").parquet("data/results/batchWithDependencies/otherJobResults")
 }
