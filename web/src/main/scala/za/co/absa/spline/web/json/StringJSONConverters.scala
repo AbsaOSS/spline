@@ -16,6 +16,8 @@
 
 package za.co.absa.spline.web.json
 
+import java.io
+import java.io.Writer
 import java.net.URI
 
 import org.json4s.ext.UUIDSerializer
@@ -24,6 +26,7 @@ import org.json4s.{CustomSerializer, DateFormat, DefaultFormats, Formats, FullTy
 import za.co.absa.spline.common.ReflectionUtils.subClassesOf
 import za.co.absa.spline.common.TypeFreaks._
 import za.co.absa.spline.model._
+import za.co.absa.spline.persistence.api.CloseableIterable
 
 /**
   * Implicit JSON serializer/deserializer
@@ -65,7 +68,7 @@ object StringJSONConverters {
       UUIDSerializer :: URISerializer :: super.customSerializers
   }
 
-  implicit val formats: Formats = SplineFormats
+  private implicit val formats: Formats = SplineFormats
 
   implicit class JsonToModel(json: String) {
 
@@ -74,12 +77,26 @@ object StringJSONConverters {
     def fromJsonArray[T <: AnyRef : Manifest]: Seq[T] = Serialization.read[Seq[T]](json)
   }
 
-  implicit class CollectionToJson[T <: AnyRef : Manifest](xs: Traversable[T]) {
-    def toJsonArray: String = Serialization.write(xs)
+
+  implicit class CloseableIterableToJson[T <: AnyRef with io.Serializable : Manifest](ci: CloseableIterable[T]) {
+
+    import za.co.absa.spline.common.ARMImplicits._
+
+    def toJsonArray: String = for (managedCI <- ci) yield Serialization.write(managedCI.iterator.toStream)
+
+    def asJsonArrayInto(out: Writer): Unit = for (managedCI <- ci) yield Serialization.write(managedCI.iterator.toStream, out)
   }
 
-  implicit class EntityToJson[T <: AnyRef : `not a subtype of`[Traversable[_]]#λ : Manifest](entity: T) {
+  implicit class CollectionToJson[T <: AnyRef with io.Serializable : Manifest](xs: Traversable[T]) {
+    def toJsonArray: String = Serialization.write(xs)
+
+    def asJsonArrayInto(out: Writer): Unit = Serialization.write(xs, out)
+  }
+
+  implicit class EntityToJson[T <: AnyRef with io.Serializable : `not a subtype of`[Traversable[_]]#λ : Manifest](entity: T) {
     def toJson: String = Serialization.write(entity)
+
+    def asJsonInto(out: Writer): Unit = Serialization.write(entity, out)
   }
 
 

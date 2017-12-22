@@ -31,21 +31,12 @@ abstract class PersistenceFactory(protected val configuration: Configuration) ex
     *
     * @return A writer to the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  def createDataLineageWriter(): DataLineageWriter
+  def createDataLineageWriter: DataLineageWriter
 
   /**
     * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
-    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    * @return An optional reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  def createDataLineageReader(): DataLineageReader
-
-  /**
-    * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity if the factory can. Otherwise, returns default.
-    *
-    * @param default A default data lineage reader
-    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
-    */
-  def createDataLineageReaderOrGetDefault(default: DataLineageReader): DataLineageReader
-
+  def createDataLineageReader: Option[DataLineageReader]
 }

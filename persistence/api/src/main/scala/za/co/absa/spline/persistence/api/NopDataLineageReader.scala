@@ -27,7 +27,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
   * The class represents a dummy reader that does not read any data from any persistence layer.
   */
-class NopDataLineageReader extends DataLineageReader {
+object NopDataLineageReader extends DataLineageReader {
   /**
     * The method loads a particular data lineage from the persistence layer.
     *
@@ -67,7 +67,7 @@ class NopDataLineageReader extends DataLineageReader {
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  override def loadCompositesByInput(datasetId: UUID)(implicit ec: ExecutionContext): Future[Iterator[CompositeWithDependencies]] = Future.successful(Iterator.empty)
+  override def loadCompositesByInput(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[CompositeWithDependencies]] = Future.successful(CloseableIterable.empty)
 
 
   /**
@@ -75,7 +75,7 @@ class NopDataLineageReader extends DataLineageReader {
     *
     * @return Descriptors of all data lineages
     */
-  override def list()(implicit ec: ExecutionContext): Future[Iterator[PersistedDatasetDescriptor]] = Future.successful(Iterator.empty)
+  override def list()(implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]] = Future.successful(CloseableIterable.empty)
 
   /**
     * The method returns a dataset descriptor by its ID.

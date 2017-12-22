@@ -27,7 +27,7 @@ class ScalaFutureMethodReturnValueHandler(implicit ec: ExecutionContext) extends
   getAdapterMap.put(classOf[Future[_]], new ScalaFutureDeferredResultAdapter)
 
   class ScalaFutureDeferredResultAdapter[T] extends DeferredResultAdapter {
-    override def adaptToDeferredResult(returnValue: Any) = new DeferredResult[T] {
+    override def adaptToDeferredResult(returnValue: Any): DeferredResult[T] = new DeferredResult[T] {
       returnValue.asInstanceOf[Future[T]] andThen {
         case Success(value) => setResult(value)
         case Failure(error) => setErrorResult(error)

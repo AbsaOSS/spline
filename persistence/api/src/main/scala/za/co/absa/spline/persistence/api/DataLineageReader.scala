@@ -67,14 +67,14 @@ trait DataLineageReader {
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  def loadCompositesByInput(datasetId: UUID)(implicit ec: ExecutionContext): Future[Iterator[CompositeWithDependencies]]
+  def loadCompositesByInput(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[CompositeWithDependencies]]
 
   /**
     * The method gets all data lineages stored in persistence layer.
     *
     * @return Descriptors of all data lineages
     */
-  def list()(implicit ec: ExecutionContext): Future[Iterator[PersistedDatasetDescriptor]]
+  def list()(implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]]
 
   /**
     * The method returns a dataset descriptor by its ID.

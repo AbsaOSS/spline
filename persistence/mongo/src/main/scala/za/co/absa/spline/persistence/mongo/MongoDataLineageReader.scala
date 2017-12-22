@@ -18,17 +18,18 @@ package za.co.absa.spline.persistence.mongo
 
 import java.util.Arrays._
 import java.util.UUID
+import java.{util => ju}
 
 import _root_.salat._
+import com.mongodb.Cursor
+import com.mongodb.casbah.AggregationOptions.{default => aggOpts}
 import com.mongodb.casbah.Imports._
-import com.mongodb.casbah.commons
 import za.co.absa.spline.model.op._
 import za.co.absa.spline.model.{DataLineage, DataLineageId, PersistedDatasetDescriptor}
-import za.co.absa.spline.persistence.api.DataLineageReader
+import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.blocking
+import scala.concurrent.{ExecutionContext, Future, blocking}
 
 /**
   * The class represents Mongo persistence writer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
@@ -68,10 +69,13 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
       DBObject("$addFields" → DBObject("___rootDS" → DBObject("$arrayElemAt" → Array("$datasets", 0)))),
       DBObject("$addFields" → DBObject("datasetId" → "$___rootDS._id")),
       DBObject("$project" → DBObject("datasetId" → 1)))
-    blocking(connection.dataLineageCollection aggregate aggregationQuery)
-      .results.asScala
-      .headOption
-      .map(_.get("datasetId").asInstanceOf[UUID])
+
+    import za.co.absa.spline.common.ARMImplicits._
+    for (cursor <- blocking(connection.dataLineageCollection.aggregate(aggregationQuery, aggOpts)))
+      yield
+        if (cursor.hasNext) Some(cursor.next.get("datasetId").asInstanceOf[UUID])
+        else None
+
   }
 
   /**
@@ -154,11 +158,14 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  override def loadCompositesByInput(datasetId: UUID)(implicit ec: ExecutionContext): Future[Iterator[CompositeWithDependencies]] = Future {
-    blocking(connection.dataLineageCollection find DBObject("operations.sources.datasetId" → datasetId))
-      .iterator.asScala
-      .map(withVersionCheck(grater[DataLineage].asObject(_)))
-      .map(lineageToCompositeWithDependencies)
+  override def loadCompositesByInput(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[CompositeWithDependencies]] = Future {
+    val cursor = blocking(connection.dataLineageCollection find DBObject("operations.sources.datasetId" → datasetId))
+
+    new CloseableIterable[CompositeWithDependencies](
+      cursor.iterator.asScala
+        .map(withVersionCheck(grater[DataLineage].asObject(_)))
+        .map(lineageToCompositeWithDependencies),
+      cursor.close())
   }
 
   /**
@@ -166,12 +173,15 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     *
     * @return Descriptors of all data lineages
     */
-  override def list()(implicit ec: ExecutionContext): Future[Iterator[PersistedDatasetDescriptor]] = Future {
-    selectPersistedDatasets().map(withVersionCheck(grater[PersistedDatasetDescriptor].asObject(_)))
+  override def list()(implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]] = Future {
+    val cursor = selectPersistedDatasets()
+    new CloseableIterable[PersistedDatasetDescriptor](
+      (cursor: ju.Iterator[DBObject]).asScala.map(withVersionCheck(grater[PersistedDatasetDescriptor].asObject(_))),
+      cursor.close())
   }
 
-  private def selectPersistedDatasets(extraPipeline: DBObject*): Iterator[DBObject] = {
-    val basicPipeline: Seq[commons.Imports.DBObject] = Seq(
+  private def selectPersistedDatasets(extraPipeline: DBObject*): Cursor = {
+    val basicPipeline: Seq[DBObject] = Seq(
       DBObject("$addFields" → DBObject(
         "___rootDS" → DBObject("$arrayElemAt" → Array("$datasets", 0)),
         "___rootOP" → DBObject("$arrayElemAt" → Array("$operations", 0))
@@ -182,11 +192,9 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
       )),
       DBObject("$project" → DBObject(persistedDatasetDescriptorFields: _*))
     )
-    blocking {
-      connection.dataLineageCollection
-        .aggregate((basicPipeline ++ extraPipeline).asJava)
-        .results.iterator.asScala
-    }
+    blocking(
+      connection.dataLineageCollection.
+        aggregate((basicPipeline ++ extraPipeline).asJava, aggOpts))
   }
 
   /**
@@ -196,9 +204,9 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @return Descriptors of all data lineages
     */
   override def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[PersistedDatasetDescriptor] = Future {
-    selectPersistedDatasets(DBObject("$match" → DBObject("datasetId" → id))).
-      map(withVersionCheck(grater[PersistedDatasetDescriptor].asObject(_))).
-      next
+    import za.co.absa.spline.common.ARMImplicits._
+    for (cursor <- selectPersistedDatasets(DBObject("$match" → DBObject("datasetId" → id))))
+      yield withVersionCheck(grater[PersistedDatasetDescriptor].asObject(_))(cursor.next)
   }
 
   private def withVersionCheck[T](f: DBObject => T): DBObject => T =

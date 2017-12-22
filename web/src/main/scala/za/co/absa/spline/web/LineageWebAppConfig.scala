@@ -25,7 +25,7 @@ import org.springframework.web.method.support.HandlerMethodReturnValueHandler
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import za.co.absa.spline.persistence.api.DataLineageReader
 import za.co.absa.spline.persistence.mongo.{MongoConnection, MongoDataLineageReader}
-import za.co.absa.spline.web.handler.ScalaFutureMethodReturnValueHandler
+import za.co.absa.spline.web.handler.{ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
 import za.co.absa.spline.web.rest.service.LineageService
 
 @Configuration
@@ -40,6 +40,7 @@ class LineageWebAppConfig extends WebMvcConfigurerAdapter with ExecutionContextI
 
   override def addReturnValueHandlers(returnValueHandlers: ju.List[HandlerMethodReturnValueHandler]): Unit = {
     returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler)
+    returnValueHandlers.add(new UnitMethodReturnValueHandler)
   }
 
   @Bean def lineageReader: DataLineageReader =

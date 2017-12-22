@@ -51,20 +51,12 @@ class MongoPersistenceFactory(configuration: Configuration) extends PersistenceF
     *
     * @return A persistence writer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  override def createDataLineageWriter(): DataLineageWriter = new MongoDataLineageWriter(mongoConnection)
+  override def createDataLineageWriter: DataLineageWriter = new MongoDataLineageWriter(mongoConnection)
 
   /**
     * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
-    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    * @return An optional reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  def createDataLineageReader(): DataLineageReader = new MongoDataLineageReader(mongoConnection)
-
-  /**
-    * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity if the factory can. Otherwise, returns default.
-    *
-    * @param default A default data lineage reader
-    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
-    */
-  def createDataLineageReaderOrGetDefault(default: DataLineageReader): DataLineageReader = createDataLineageReader()
+  override def createDataLineageReader: Option[DataLineageReader] = Some(new MongoDataLineageReader(mongoConnection))
 }
