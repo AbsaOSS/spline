@@ -27,6 +27,9 @@ import * as _ from "lodash"
         </div>
     `,
     styles: [`
+        :host {
+            display: inline-block;
+        }
         i {
             padding: 0 2px 0 5px;            
         }

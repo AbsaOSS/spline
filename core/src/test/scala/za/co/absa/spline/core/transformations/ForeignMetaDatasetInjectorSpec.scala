@@ -19,7 +19,7 @@ package za.co.absa.spline.core.transformations
 
 import java.util.UUID.randomUUID
 
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{AsyncFlatSpec, Matchers}

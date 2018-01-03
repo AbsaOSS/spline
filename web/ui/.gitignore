@@ -58,3 +58,4 @@ jspm_packages
 /src/app/**/*.jsx.map
 /dist/
 /typings/
+package-lock.json
