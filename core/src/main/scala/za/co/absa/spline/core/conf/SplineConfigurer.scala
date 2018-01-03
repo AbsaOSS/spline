@@ -16,9 +16,8 @@
 
 package za.co.absa.spline.core.conf
 
-import za.co.absa.spline.persistence.api.PersistenceFactory
-
-import scala.concurrent.ExecutionContext
+import za.co.absa.spline.core.batch.BatchListener
+import za.co.absa.spline.core.streaming.StructuredStreamingListener
 
 /**
   * The trait describes settings needed for initialization of the library.
@@ -28,9 +27,16 @@ trait SplineConfigurer {
   import SplineConfigurer.SplineMode._
 
   /**
-    * The method returns a factory creating persistence readers and writers for various data lineage entities.
+    * A listener handling events from batch processing
+    * @return [[BatchListener]]
     */
-  def persistenceFactory(implicit ec: ExecutionContext): PersistenceFactory
+  def batchListener : BatchListener
+
+  /**
+    * A listener handling events from structured-streaming processing
+    * @return [[StructuredStreamingListener]]
+    */
+  def structuredStreamingListener : StructuredStreamingListener
 
   /**
     * Spline mode designates how Spline should behave in a context of a Spark application.

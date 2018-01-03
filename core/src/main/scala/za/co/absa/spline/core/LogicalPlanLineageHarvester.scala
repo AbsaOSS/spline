@@ -17,8 +17,8 @@
 package za.co.absa.spline.core
 
 import org.apache.hadoop.conf.Configuration
+import org.apache.spark.SparkContext
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
-import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.execution.datasources.SaveIntoDataSourceCommand
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.model.op.Operation
@@ -26,25 +26,23 @@ import za.co.absa.spline.model.op.Operation
 import scala.collection.mutable
 import scala.language.postfixOps
 
-/** The class is responsible for gathering lineage information from Spark internal structures (logical plan, physical plan, etc.)
+/** The class is responsible for gathering lineage information from Spark logical plan
   *
   * @param hadoopConfiguration A hadoop configuration
   */
-class DataLineageHarvester(hadoopConfiguration: Configuration) {
-
+class LogicalPlanLineageHarvester(hadoopConfiguration: Configuration){
 
   /** A main method of the object that performs transformation of Spark internal structures to library lineage representation.
     *
-    * @param queryExecution An instance holding Spark internal structures (logical plan, physical plan, etc.)
+    * @param sparkContext a spark context
+    * @param logicalPlan a logical plan with resolved references (analyzed plan)
     * @return A lineage representation
     */
-  def harvestLineage(queryExecution: QueryExecution): DataLineage = {
+  def harvestLineage(sparkContext: SparkContext, logicalPlan: LogicalPlan): DataLineage = {
     val attributeFactory = new AttributeFactory()
     val metaDatasetFactory = new MetaDatasetFactory(attributeFactory)
     val operationNodeBuilderFactory = new OperationNodeBuilderFactory()(hadoopConfiguration, metaDatasetFactory)
-    val nodes = harvestOperationNodes(queryExecution.analyzed, operationNodeBuilderFactory)
-
-    val sparkContext = queryExecution.sparkSession.sparkContext
+    val nodes = harvestOperationNodes(logicalPlan, operationNodeBuilderFactory)
 
     DataLineage(
       sparkContext.applicationId,

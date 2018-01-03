@@ -14,35 +14,42 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.sample
+package za.co.absa.spline.sample.streaming
 
-import org.apache.spark.sql.SaveMode
-import za.co.absa.spline.core.SparkLineageInitializer._
+import za.co.absa.spline.sample.SparkApp
 
-object SampleJob1 extends SparkApp("Sample Job 1") {
+object FileStreamingJob extends SparkApp("File Streaming Job"){
 
   // Initializing library to hook up to Apache Spark
+  import za.co.absa.spline.core.SparkLineageInitializer._
   spark.enableLineageTracking()
 
   // A business logic of a spark job ...
+  import spark.implicits._
 
-  val sourceDS = spark.read
+  val schemaImp = spark.read
+    .format("csv")
+    .option("header", true)
+    .option("inferSchema", true)
+    .load("data/input/streaming")
+    .schema
+
+  val sourceDS = spark.readStream
     .option("header", "true")
-    .option("inferSchema", "true")
-    .csv("data/input/wikidata.csv")
+    .schema(schemaImp)
+    .csv("data/input/streaming")
     .as("source")
     .filter($"total_response_size" > 1000)
     .filter($"count_views" > 10)
+    .select($"page_title" as "value")
 
-  val domainMappingDS = spark.read
-    .option("header", "true")
-    .option("inferSchema", "true")
-    .csv("data/input/domain.csv")
-    .as("mapping")
+  val sink = sourceDS
+    .writeStream
+    .format("parquet")
+    .option("checkpointLocation", "data/checkpoint")
+    .option("path", "data/results/streaming/wikidataResult")
 
-  val joinedDS = sourceDS
-    .join(domainMappingDS, $"domain_code" === $"d_code", "left_outer")
-    .select($"page_title".as("page"), $"d_name".as("domain"), $"count_views")
+  val q = sink.start()
 
-  joinedDS.write.mode(SaveMode.Overwrite).parquet("data/results/job1_results")
+  q.awaitTermination()
 }

@@ -26,14 +26,14 @@ import za.co.absa.spline.model.{Attribute, Schema, _}
 
 import scala.language.implicitConversions
 
-case class DataLineageHarvesterSpecTestRow(i: Int, d: Double, s: String)
+case class LogicalPlanLineageHarvesterSpecTestRow(i: Int, d: Double, s: String)
 
-class DataLineageHarvesterSpec extends FlatSpec with Matchers {
+class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
 
   import TestSparkContext._
   import sparkSession.implicits._
 
-  private val initialDataFrame = sparkSession.createDataset(Seq(DataLineageHarvesterSpecTestRow(1, 2.3, "text")))
+  private val initialDataFrame = sparkSession.createDataset(Seq(LogicalPlanLineageHarvesterSpecTestRow(1, 2.3, "text")))
   private val hadoopConfiguration = sparkSession.sparkContext.hadoopConfiguration
 
   implicit class OperationAssertions(operation: Operation) {
@@ -143,9 +143,9 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
       )
     )
 
-    val sut = new DataLineageHarvester(hadoopConfiguration)
+    val sut = new LogicalPlanLineageHarvester(hadoopConfiguration)
 
-    val result = sut.harvestLineage(sparkSession.emptyDataFrame.queryExecution)
+    val result = sut.harvestLineage(sparkSession.sparkContext, sparkSession.emptyDataFrame.queryExecution.analyzed)
 
     assertDataLineage(expectedOperations, expectedDatasets, Seq.empty, result)
   }
@@ -175,9 +175,9 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
       )
     )
 
-    val sut = new DataLineageHarvester(hadoopConfiguration)
+    val sut = new LogicalPlanLineageHarvester(hadoopConfiguration)
 
-    val result = sut.harvestLineage(df.queryExecution)
+    val result = sut.harvestLineage(sparkSession.sparkContext,df.queryExecution.analyzed)
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }
@@ -226,9 +226,9 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
       )
     )
 
-    val sut = new DataLineageHarvester(hadoopConfiguration)
+    val sut = new LogicalPlanLineageHarvester(hadoopConfiguration)
 
-    val result = sut.harvestLineage(df.queryExecution)
+    val result = sut.harvestLineage(sparkSession.sparkContext,df.queryExecution.analyzed)
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }
@@ -292,9 +292,9 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
       )
     )
 
-    val sut = new DataLineageHarvester(hadoopConfiguration)
+    val sut = new LogicalPlanLineageHarvester(hadoopConfiguration)
 
-    val result = sut.harvestLineage(df.queryExecution)
+    val result = sut.harvestLineage(sparkSession.sparkContext,df.queryExecution.analyzed)
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }
@@ -367,9 +367,9 @@ class DataLineageHarvesterSpec extends FlatSpec with Matchers {
       )
     )
 
-    val sut = new DataLineageHarvester(hadoopConfiguration)
+    val sut = new LogicalPlanLineageHarvester(hadoopConfiguration)
 
-    val result = sut.harvestLineage(df.queryExecution)
+    val result = sut.harvestLineage(sparkSession.sparkContext,df.queryExecution.analyzed)
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }

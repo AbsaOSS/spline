@@ -24,6 +24,7 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
 import za.co.absa.spline.core.SparkLineageInitializer._
 import za.co.absa.spline.core.SparkLineageInitializerSpec._
+import za.co.absa.spline.core.batch.BatchListener
 import za.co.absa.spline.core.conf.DefaultSplineConfigurer.ConfProperty.{MODE, PERSISTENCE_FACTORY}
 import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
@@ -45,7 +46,7 @@ object SparkLineageInitializerSpec {
     override val createDataLineageReader: Option[DataLineageReader] = sys.error("bam!")
   }
 
-  private[this] def sprakQueryExecutionListenerClasses: Seq[Class[_ <: QueryExecutionListener]] = {
+  private[this] def sparkQueryExecutionListenerClasses: Seq[Class[_ <: QueryExecutionListener]] = {
     val session = SparkSession.builder.getOrCreate
     (session.listenerManager.getClass.getDeclaredFields collectFirst {
       case f if f.getName endsWith "listeners" =>
@@ -54,9 +55,9 @@ object SparkLineageInitializerSpec {
     }).get
   }
 
-  private def assertSplineIsEnabled() = sprakQueryExecutionListenerClasses should contain(classOf[DataLineageListener])
+  private def assertSplineIsEnabled() = sparkQueryExecutionListenerClasses should contain(classOf[BatchListener])
 
-  private def assertSplineIsDisabled() = sprakQueryExecutionListenerClasses should not contain classOf[DataLineageListener]
+  private def assertSplineIsDisabled() = sparkQueryExecutionListenerClasses should not contain classOf[BatchListener]
 }
 
 class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with Matchers {
