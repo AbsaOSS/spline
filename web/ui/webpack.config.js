@@ -26,10 +26,7 @@ var commonPlugins = [
         __PRODUCTION_MODE__: isProd,
         __APP_VERSION__: JSON.stringify(process.env.SPLINE_VERSION)
     }),
-    new webpack.ContextReplacementPlugin(
-        /angular(\\|\/)core(\\|\/)@angular/,
-        path.resolve(__dirname, 'doesnotexist/')
-    ),
+    new webpack.ContextReplacementPlugin(/\@angular(\\|\/)core(\\|\/)esm5/, path.join(__dirname, './src')),
     new webpack.optimize.CommonsChunkPlugin({
         name: 'vendor',
         minChunks: function (module) {

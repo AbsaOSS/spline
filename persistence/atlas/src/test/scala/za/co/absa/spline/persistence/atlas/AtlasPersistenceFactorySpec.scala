@@ -35,7 +35,7 @@ class AtlasPersistenceFactorySpec extends AsyncFlatSpec with Matchers {
     })
 
     val confDir = new File(System.getProperty(ATLAS_CONFIGURATION_DIRECTORY_PROPERTY))
-    val confLines = FileUtils.readLines(new File(confDir, APPLICATION_PROPERTIES)).asScala
+    val confLines = FileUtils.readLines(new File(confDir, APPLICATION_PROPERTIES), "UTF-8").asScala
 
     confLines.filterNot(_ startsWith "#").sorted shouldEqual List(
       "atlas.complex\\=key\\:name=a complex value \\:\\=)",

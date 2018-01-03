@@ -18,7 +18,7 @@ package za.co.absa.spline.web.json
 
 import java.util.UUID
 
-import org.mockito.Matchers.{eq => ≡, _}
+import org.mockito.ArgumentMatchers.{eq => ≡, _}
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{AsyncFlatSpec, Matchers}

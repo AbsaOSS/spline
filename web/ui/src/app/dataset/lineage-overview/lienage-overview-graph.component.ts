@@ -219,7 +219,11 @@ const visOptions = {
     },
 
     edges: {
-        color: '#E0E0E0',
+        color: {
+            color:'#E0E0E0',
+            hover: '#E0E0E0',
+            highlight:'E0E0E0'
+        },
         shadow: false,
         width: 10,
         arrows: "to",
