@@ -20,8 +20,20 @@ import java.util.UUID
 
 import za.co.absa.spline.model.op.CompositeWithDependencies
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
+import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 
 import scala.concurrent.{ExecutionContext, Future}
+
+object DataLineageReader {
+
+  type Timestamp = Long
+
+  case class PageRequest(asAtTime: Timestamp, offset: Int, size: Int)
+  object PageRequest {
+    val EntireLatestContent = PageRequest(Long.MaxValue, 0, Int.MaxValue)
+  }
+
+}
 
 /**
   * The trait represents a reader to a persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
@@ -74,7 +86,7 @@ trait DataLineageReader {
     *
     * @return Descriptors of all data lineages
     */
-  def list()(implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]]
+  def findDatasets(text: Option[String], page: PageRequest)(implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]]
 
   /**
     * The method returns a dataset descriptor by its ID.

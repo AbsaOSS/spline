@@ -18,15 +18,19 @@ package za.co.absa.spline.persistence.mongo
 
 import java.util.Arrays._
 import java.util.UUID
+import java.util.regex.Pattern.quote
 import java.{util => ju}
 
 import _root_.salat._
 import com.mongodb.Cursor
 import com.mongodb.casbah.AggregationOptions.{default => aggOpts}
 import com.mongodb.casbah.Imports._
+import za.co.absa.spline.common.UUIDExtractors.UUIDExtractor
 import za.co.absa.spline.model.op._
 import za.co.absa.spline.model.{DataLineage, DataLineageId, PersistedDatasetDescriptor}
+import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
+import za.co.absa.spline.persistence.mongo.MongoImplicits._
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future, blocking}
@@ -136,7 +140,6 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     CompositeWithDependencies(composite, datasets, attributes)
   }
 
-
   /**
     * The method loads a composite operation for an output datasetId.
     *
@@ -173,8 +176,25 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     *
     * @return Descriptors of all data lineages
     */
-  override def list()(implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]] = Future {
-    val cursor = selectPersistedDatasets()
+  override def findDatasets(maybeText: Option[String], pageRequest: PageRequest)(implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]] = Future {
+    val paginationDeduplicationCriteria: Seq[DBObject] = Seq(
+      "timestamp" $lte pageRequest.asAtTime
+    )
+
+    val optionalTextSearchCriterion = maybeText map {
+      text =>
+        val regexMatchOnFieldsCriteria = Seq("appId", "appName", "path") map (_ $regex quote(text) $options "i")
+        val optDatasetIdMatchCriterion = UUIDExtractor unapply text.toLowerCase map (uuid => DBObject("datasetId" → uuid))
+        $or(regexMatchOnFieldsCriteria ++ optDatasetIdMatchCriterion)
+    }
+
+    val cursor = selectPersistedDatasets(
+      DBObject("$match" → $and(paginationDeduplicationCriteria ++ optionalTextSearchCriterion)),
+      DBObject("$sort" → DBObject("timestamp" → -1, "datasetId" → 1)),
+      DBObject("$skip" → pageRequest.offset),
+      DBObject("$limit" → pageRequest.size)
+    )
+
     new CloseableIterable[PersistedDatasetDescriptor](
       (cursor: ju.Iterator[DBObject]).asScala.map(withVersionCheck(grater[PersistedDatasetDescriptor].asObject(_))),
       cursor.close())

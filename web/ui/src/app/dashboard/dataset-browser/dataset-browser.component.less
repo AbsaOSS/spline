@@ -18,6 +18,36 @@
   height: 100%;
   width: 100%;
 
+  > div.search {
+    width: 100%;
+    background-color: lighten(whitesmoke, 2.5%);
+    position: relative;
+
+    input, .input-group-addon {
+      border: none;
+      outline: none;
+      box-shadow: none;
+      background: none;
+    }
+
+    input {
+      height: 35px;
+      font-size: larger;
+      padding-right: 36px;
+    }
+
+    .input-group-addon {
+      padding-right: 0;
+    }
+
+    button.cancel {
+      position: absolute;
+      top: -3px;
+      right: 0;
+      z-index: 10;
+    }
+  }
+
   > ul {
     height: 100%;
     overflow-y: auto;

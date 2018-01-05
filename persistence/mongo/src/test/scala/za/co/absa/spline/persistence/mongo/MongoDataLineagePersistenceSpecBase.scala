@@ -18,12 +18,12 @@ package za.co.absa.spline.persistence.mongo
 
 import java.util.UUID.randomUUID
 
-import org.scalatest.{AsyncFlatSpec, BeforeAndAfterEach, Matchers}
+import org.scalatest.{AsyncFunSpec, BeforeAndAfterEach, Matchers}
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op.{Generic, OperationProps, Write}
 import za.co.absa.spline.model.{Attribute, Schema, _}
 
-abstract class MongoDataLineagePersistenceSpecBase extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
+abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Matchers with BeforeAndAfterEach {
 
   private val mongoConnection = MongoTestProperties.mongoConnection
   protected val mongoWriter = new MongoDataLineageWriter(mongoConnection)

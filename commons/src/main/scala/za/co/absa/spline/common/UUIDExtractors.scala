@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.mongo
+package za.co.absa.spline.common
 
-class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase {
-  describe("store()") {
-    it("should store data lineage to a database") {
-      val lineage = createDataLineage("appID", "appName")
-      val storedLineage = mongoWriter.store(lineage).flatMap(_ => mongoReader.loadByDatasetId(lineage.rootDataset.id))
-      storedLineage map (i => i shouldEqual Option(lineage))
-    }
+import java.util.UUID
+
+object UUIDExtractors {
+
+  object UUIDExtractor {
+    def unapply(str: String): Option[UUID] =
+      try Some(UUID fromString str)
+      catch {
+        case _: IllegalArgumentException => None
+      }
   }
+
 }

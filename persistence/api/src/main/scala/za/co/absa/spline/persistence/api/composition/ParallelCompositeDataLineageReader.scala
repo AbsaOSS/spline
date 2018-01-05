@@ -21,6 +21,7 @@ import java.util.UUID
 import org.slf4s.Logging
 import za.co.absa.spline.model.op.CompositeWithDependencies
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
+import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -83,8 +84,8 @@ class ParallelCompositeDataLineageReader(readers: Seq[DataLineageReader]) extend
     *
     * @return Descriptors of all data lineages
     */
-  override def list()(implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]] =
-    Future.sequence(readers.map(_.list())) map combineResults
+  override def findDatasets(text: Option[String], page: PageRequest)(implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]] =
+    Future.sequence(readers.map(_.findDatasets(text, page))) map combineResults
 
   /**
     * The method returns a dataset descriptor by its ID.

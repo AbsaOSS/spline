@@ -15,6 +15,7 @@
  */
 
 import {Component, OnInit} from "@angular/core";
+import {FormControl} from '@angular/forms';
 import {DatasetBrowserService} from "./dataset-browser.service";
 import {IPersistedDatasetDescriptor} from "../../../generated-ts/lineage-model";
 
@@ -27,10 +28,16 @@ export class DatasetBrowserComponent implements OnInit {
 
     descriptors: IPersistedDatasetDescriptor[]
 
+    searchText = new FormControl("")
+
     constructor(private dsBrowserService: DatasetBrowserService) {
     }
 
     ngOnInit(): void {
-        this.dsBrowserService.getLineageDescriptors().then(descriptors => this.descriptors = descriptors)
+        this.searchText.valueChanges.forEach((text:string) => {
+            console.log("FIND: " + text)
+            this.dsBrowserService.getLineageDescriptors(text).then(descriptors => this.descriptors = descriptors)
+        })
+        this.searchText.setValue("")
     }
 }
