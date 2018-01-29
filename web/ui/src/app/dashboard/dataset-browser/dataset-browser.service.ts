@@ -19,18 +19,21 @@ import {IPersistedDatasetDescriptor} from "../../../generated-ts/lineage-model";
 import {HttpClient} from "@angular/common/http";
 import "rxjs/add/operator/map";
 import "rxjs/add/operator/toPromise";
+import {SearchRequest} from "./dataset-browser.model";
 
 @Injectable()
 export class DatasetBrowserService {
     constructor(private httpClient: HttpClient) {
     }
 
-    getLineageDescriptors(searchText: string): Promise<IPersistedDatasetDescriptor[]> {
+    getLineageDescriptors(searchRequest: SearchRequest): Promise<IPersistedDatasetDescriptor[]> {
         return this.httpClient.get<IPersistedDatasetDescriptor[]>(
             "rest/dataset/descriptors",
             {
                 params: {
-                    q: searchText
+                    q: searchRequest.text,
+                    since: `${searchRequest.since}`,
+                    offset: `${searchRequest.offset}`
                 }
             }
         ).toPromise()

@@ -24,7 +24,11 @@
     </button>
 </div>
 
-<ul class="nav nav-pills nav-stacked">
+<ul class="nav nav-pills nav-stacked"
+    detect-scroll
+    [bottomOffset]="300"
+    (onScroll)="onScroll($event)">
+
     <li role="presentation"
         *ngFor="let d of descriptors"
         [routerLink]="'dataset/'+d.datasetId+'/lineage/overview'"
