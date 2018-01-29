@@ -18,8 +18,9 @@ import {NgModule} from "@angular/core";
 import {LineageComponent} from "./lineage.component";
 import {LineageService} from "./lineage.service";
 import {CommonModule} from "@angular/common";
+import {HttpClientModule} from "@angular/common/http";
 import {RouterModule} from "@angular/router";
-import {HttpModule} from "@angular/http";
+
 
 import "@angular/material/prebuilt-themes/indigo-pink.css";
 import {NoopAnimationsModule} from "@angular/platform-browser/animations";
@@ -40,7 +41,7 @@ import {MiscModule} from "../misc/misc.module";
         CommonModule,
         RouterModule,
         MaterialModule,
-        HttpModule,
+        HttpClientModule,
         DetailsModule,
         MiscModule
     ],

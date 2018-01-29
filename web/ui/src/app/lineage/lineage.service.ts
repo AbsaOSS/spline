@@ -15,7 +15,7 @@
  */
 
 import {Injectable} from "@angular/core";
-import {Http, Response} from "@angular/http";
+import {HttpClient} from "@angular/common/http";
 import "rxjs";
 import {IDataLineage} from "../../generated-ts/lineage-model";
 
@@ -23,12 +23,12 @@ import {IDataLineage} from "../../generated-ts/lineage-model";
 export class LineageService {
     private lineagePromiseCache: { [id: string]: Promise<IDataLineage>; } = {}
 
-    constructor(private http: Http) {
+    constructor(private httpClient: HttpClient) {
     }
 
     getLineage(dsId: string): Promise<IDataLineage> {
         let fetchAndCache = (id: string) => {
-            let lp = this.http.get(`rest/dataset/${id}/lineage/partial`).map((res: Response) => res.json()).toPromise()
+            let lp = this.httpClient.get<IDataLineage>(`rest/dataset/${id}/lineage/partial`).toPromise()
             this.lineagePromiseCache[id] = lp
             return lp
         }

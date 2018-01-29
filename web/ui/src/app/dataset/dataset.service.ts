@@ -15,7 +15,7 @@
  */
 
 import {Injectable} from "@angular/core";
-import {Http, Response} from "@angular/http";
+import {HttpClient} from "@angular/common/http";
 import "rxjs";
 import {IDataLineage, IPersistedDatasetDescriptor} from "../../generated-ts/lineage-model";
 
@@ -24,12 +24,12 @@ export class DatasetService {
     private datasetPromiseCache: { [id: string]: Promise<IPersistedDatasetDescriptor>; } = {}
     private overviewPromiseCache: { [id: string]: Promise<IDataLineage>; } = {}
 
-    constructor(private http: Http) {
+    constructor(private http: HttpClient) {
     }
 
     getDatasetDescriptor(id: string): Promise<IPersistedDatasetDescriptor> {
         let fetchAndCache = (id: string) => {
-            let dsp = this.http.get(`rest/dataset/${id}/descriptor`).map((res: Response) => res.json()).toPromise()
+            let dsp = this.http.get<IPersistedDatasetDescriptor>(`rest/dataset/${id}/descriptor`).toPromise()
             this.datasetPromiseCache[id] = dsp
             return dsp
         }
@@ -40,7 +40,7 @@ export class DatasetService {
 
     getLineageOverview(datasetId: string): Promise<IDataLineage> {
         let fetchAndCache = (id: string) => {
-            let lop = this.http.get(`rest/dataset/${id}/lineage/overview`).map((res: Response) => res.json()).toPromise()
+            let lop = this.http.get<IDataLineage>(`rest/dataset/${id}/lineage/overview`).toPromise()
             this.overviewPromiseCache[id] = lop
             return lop.then(expandCacheForAllRelatedDatasets)
         }

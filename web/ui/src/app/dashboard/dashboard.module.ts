@@ -24,8 +24,9 @@ import {MaterialModule} from "../material-extension/material.module";
 // Other imports
 import {CommonModule} from "@angular/common";
 import {NgModule} from "@angular/core";
+import {ReactiveFormsModule} from "@angular/forms";
 import {RouterModule} from "@angular/router";
-import {HttpModule} from "@angular/http";
+import {HttpClientModule} from "@angular/common/http";
 import {DashboardComponent} from "./dashboard.component";
 import {DatasetBrowserComponent} from "./dataset-browser/dataset-browser.component";
 import {DatasetBrowserService} from "./dataset-browser/dataset-browser.service";
@@ -35,8 +36,9 @@ import {MiscModule} from "../misc/misc.module";
 @NgModule({
     imports: [
         CommonModule,
+        ReactiveFormsModule,
         RouterModule,
-        HttpModule,
+        HttpClientModule,
         MaterialModule,
         MiscModule
     ],

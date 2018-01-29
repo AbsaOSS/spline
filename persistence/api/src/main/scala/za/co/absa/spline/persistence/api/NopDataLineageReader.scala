@@ -21,6 +21,7 @@ import java.util.UUID
 import za.co.absa.spline.common.ExceptionUtils.`not applicable`
 import za.co.absa.spline.model.op.CompositeWithDependencies
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
+import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -75,7 +76,7 @@ object NopDataLineageReader extends DataLineageReader {
     *
     * @return Descriptors of all data lineages
     */
-  override def list()(implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]] = Future.successful(CloseableIterable.empty)
+  override def findDatasets(text: Option[String], page: PageRequest)(implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]] = Future.successful(CloseableIterable.empty)
 
   /**
     * The method returns a dataset descriptor by its ID.
