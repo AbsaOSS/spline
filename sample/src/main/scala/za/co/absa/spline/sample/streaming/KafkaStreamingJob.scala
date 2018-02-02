@@ -16,17 +16,15 @@
 
 package za.co.absa.spline.sample.streaming
 
-import za.co.absa.spline.sample.SparkApp
+import za.co.absa.spline.sample.{KafkaProperties, SparkApp}
 
-object FileStreamingJob extends SparkApp("File Streaming Job"){
+object KafkaStreamingJob extends SparkApp("Kafka Streaming Job") with KafkaProperties {
 
   // Initializing library to hook up to Apache Spark
   import za.co.absa.spline.core.SparkLineageInitializer._
   spark.enableLineageTracking()
 
-  // A business logic of a spark job ...
-  import spark.implicits._
-
+  // reading file
   val schemaImp = spark.read
     .format("csv")
     .option("header", true)
@@ -38,18 +36,32 @@ object FileStreamingJob extends SparkApp("File Streaming Job"){
     .option("header", "true")
     .schema(schemaImp)
     .csv("data/input/streaming")
-    .as("source")
-    .filter($"total_response_size" > 1000)
-    .filter($"count_views" > 10)
     .select($"page_title" as "value")
 
-  val sink = sourceDS
+  // writting data to kafka topic
+  sourceDS
     .writeStream
-    .format("parquet")
-    .option("checkpointLocation", "data/fileCheckpoint")
-    .option("path", "data/results/streaming/wikidataResult")
+    .format("kafka")
+    .option("kafka.bootstrap.servers", kafkaServers)
+    .option("topic", kafkaTopic)
+    .option("checkpointLocation", "data/kafkaCheckpoint")
+    .start()
+    .processAllAvailable()
 
-  val q = sink.start()
+  // reading data from kafka topic
+  val df = spark
+    .readStream
+    .format("kafka")
+    .option("kafka.bootstrap.servers", kafkaServers)
+    .option("subscribe", kafkaTopic)
+    .option("startingOffsets", "earliest")
+    .load()
 
-  q.awaitTermination()
+
+  val sink = df
+    .writeStream
+    .format("console")
+    .start()
+    .processAllAvailable()
+
 }

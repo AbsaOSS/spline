@@ -18,6 +18,12 @@ package za.co.absa.spline.sample
 
 import org.apache.spark.sql.{SQLContext, SQLImplicits, SparkSession}
 
+/**
+  * The class represents skeleton of a sample application and looks after initialization of SparkSession, etc
+  * @param name A spark application name
+  * @param master A spark master
+  * @param conf Custom properties
+  */
 abstract class SparkApp
 (
   name: String,
@@ -32,6 +38,9 @@ abstract class SparkApp
 
   for ((k, v) <- conf) sparkBuilder.config(k, v)
 
+  /**
+    * A Spark session.
+    */
   val spark: SparkSession = sparkBuilder.getOrCreate()
 
   protected override def _sqlContext: SQLContext = spark.sqlContext
