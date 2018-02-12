@@ -19,11 +19,18 @@ package org.apache.spark.sql
 import org.apache.spark.sql.execution.datasources.jdbc.{JDBCOptions, JDBCRelation => SparkJDBCRelation}
 import org.apache.spark.sql.sources.BaseRelation
 
+/**
+  * The object represents a value extractor for [[org.apache.spark.sql.execution.datasources.jdbc.JDBCRelation JDBCRelation]].
+  */
 object JDBCRelation {
 
+  /**
+    * The method extracts [[org.apache.spark.sql.execution.datasources.jdbc.JDBCOptions JDBCOptions]] from [[org.apache.spark.sql.execution.datasources.jdbc.JDBCRelation JDBCRelation]].
+    * @param rel the subject of value extraction
+    * @return An option of [[org.apache.spark.sql.execution.datasources.jdbc.JDBCOptions JDBCOptions]]
+    */
   def unapply(rel: BaseRelation): Option[JDBCOptions] = rel match {
     case SparkJDBCRelation(_, jdbcOpts) => Some(jdbcOpts)
     case _ => None
   }
-
 }

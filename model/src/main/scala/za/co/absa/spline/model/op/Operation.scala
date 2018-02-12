@@ -19,6 +19,7 @@ package za.co.absa.spline.model.op
 import java.util.UUID
 
 import salat.annotations.Salat
+import za.co.absa.spline.model.endpoint.StreamEndpoint
 import za.co.absa.spline.model.expr.Expression
 import za.co.absa.spline.model.{Attribute, MetaDataset}
 
@@ -59,8 +60,11 @@ object Operation {
       * @return A copy with new main properties
       */
     def updated(fn: OperationProps => OperationProps): T = (op.asInstanceOf[Operation] match {
-      case op@Alias(mp, _) => op.copy(mainProps = fn(mp))
+      case op@Read(mp, _, _) => op.copy(mainProps = fn(mp))
+      case op@StreamRead(mp, _) => op.copy(mainProps = fn(mp))
       case op@Write(mp, _, _) => op.copy(mainProps = fn(mp))
+      case op@StreamWrite(mp, _) => op.copy(mainProps = fn(mp))
+      case op@Alias(mp, _) => op.copy(mainProps = fn(mp))
       case op@Filter(mp, _) => op.copy(mainProps = fn(mp))
       case op@Sort(mp, _) => op.copy(mainProps = fn(mp))
       case op@Aggregate(mp, _, _) => op.copy(mainProps = fn(mp))
@@ -68,7 +72,6 @@ object Operation {
       case op@Join(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Union(mp) => op.copy(mainProps = fn(mp))
       case op@Projection(mp, _) => op.copy(mainProps = fn(mp))
-      case op@Read(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Composite(mp, _, _, _, _, _) => op.copy(mainProps = fn(mp))
     }).asInstanceOf[T]
   }
@@ -172,11 +175,11 @@ case class Alias(
                 ) extends Operation
 
 /**
-  * The case class represents Spark operations for persisting data sets to HDFS, Hive, Kafka, etc. Operations are usually performed via DataFrameWriters.
+  * The case class represents Spark operations for persisting data sets to HDFS, Hive etc. Operations are usually performed via DataFrameWriters.
   *
   * @param mainProps       Common node properties
   * @param destinationType A string description of a destination type (parquet files, csv file, avro file, Hive table, etc.)
-  * @param path            A path to the place where data set will be stored (file, table, endpoint, ...)
+  * @param path            A path to the place where data set will be stored (file, table, ...)
   */
 case class Write(
                   mainProps: OperationProps,
@@ -207,6 +210,28 @@ case class Read(
       s"Hence the size 'inputs' collection should be the same as the count of known datasets for 'sources' field. " +
       s"But was $inputDatasetsCount and $knownSourceLineagesCount respectively")
 }
+
+/**
+  * The case class represents Spark operations for loading data via structured streaming
+  * @param mainProps Common node properties
+  * @param sources A list of source endpoints
+  */
+case class StreamRead(
+                      mainProps: OperationProps,
+                      sources : Seq[StreamEndpoint]
+                     ) extends Operation
+
+/**
+  * The case class represents Spark operations for persisting data via structured streaming
+  *
+  * @param mainProps Common node properties
+  * @param destination An endpoint that data flows to
+  *
+  */
+case class StreamWrite(
+                        mainProps: OperationProps,
+                        destination: StreamEndpoint
+                      ) extends Operation
 
 /**
   * Represents a persisted source data (e.g. file)

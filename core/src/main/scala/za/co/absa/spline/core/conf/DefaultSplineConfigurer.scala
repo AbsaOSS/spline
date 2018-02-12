@@ -24,7 +24,7 @@ import za.co.absa.spline.core.LogicalPlanLineageHarvester
 import za.co.absa.spline.core.batch.BatchListener
 import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode
 import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode._
-import za.co.absa.spline.core.streaming.{StructuredStreamingLineageHarvester, StructuredStreamingListener}
+import za.co.absa.spline.core.streaming.{StreamWriteOperationHarvester, StructuredStreamingLineageHarvester, StructuredStreamingListener}
 import za.co.absa.spline.core.transformations.{ForeignMetaDatasetInjector, LineageProjectionMerger}
 import za.co.absa.spline.persistence.api.{NopDataLineageReader, PersistenceFactory}
 
@@ -100,7 +100,9 @@ class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkS
   lazy val batchListener = new BatchListener(dataLineageReader, dataLineageWriter, logicalPlanHarvester, transformationPipeline)
 
   // streaming
-  private lazy val structuredStreamingHarvester = new StructuredStreamingLineageHarvester(logicalPlanHarvester)
+  private lazy val streamWriteOperationHarvester = new StreamWriteOperationHarvester
+
+  private lazy val structuredStreamingHarvester = new StructuredStreamingLineageHarvester(logicalPlanHarvester, streamWriteOperationHarvester)
 
   lazy val structuredStreamingListener = new StructuredStreamingListener(sparkSession.streams, structuredStreamingHarvester, dataLineageWriter)
 
