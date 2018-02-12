@@ -23,8 +23,9 @@ import za.co.absa.spline.model.DataLineage
 /**
   * The class is responsible for harvesting lineage information from the [[org.apache.spark.sql.execution.streaming.StreamExecution StreamExecution]] instance holding execution plans of stream processing.
   * @param coreHarvester An harvester capturing lineage information from logical plans.
+  * @param writeOperationHarvester An harvester capturing write operation from [[org.apache.spark.sql.execution.streaming.Sink Sink]] operations
   */
-class StructuredStreamingLineageHarvester(coreHarvester : LogicalPlanLineageHarvester){
+class StructuredStreamingLineageHarvester(coreHarvester : LogicalPlanLineageHarvester, writeOperationHarvester: StreamWriteOperationHarvester){
 
   /**
     * The method harvests lineage information form an instance holding execution plans of stream processing.
@@ -34,6 +35,15 @@ class StructuredStreamingLineageHarvester(coreHarvester : LogicalPlanLineageHarv
   def harvestLineage(streamExecution: StreamExecution): DataLineage = {
     val source = streamExecution.logicalPlan
     val sparkContext = streamExecution.sparkSession.sparkContext
-    coreHarvester.harvestLineage(sparkContext, source)
+    val lineage = coreHarvester.harvestLineage(sparkContext, source)
+    writeOperationHarvester.harvest(streamExecution, lineage.rootDataset) match
+    {
+      case Some((newRootOperation, newRootDataset)) =>
+        lineage.copy(
+          operations = newRootOperation +: lineage.operations,
+          datasets = newRootDataset +: lineage.datasets
+        )
+      case None => lineage
+    }
   }
 }
