@@ -22,7 +22,7 @@ import org.apache.spark.sql.util.QueryExecutionListener
 import org.slf4s.Logging
 import za.co.absa.spline.common.transformations.AsyncTransformationPipeline
 import za.co.absa.spline.core.transformations.{ForeignMetaDatasetInjector, LineageProjectionMerger}
-import za.co.absa.spline.persistence.api.PersistenceFactory
+import za.co.absa.spline.persistence.api.{NopDataLineageReader, PersistenceFactory}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
@@ -40,7 +40,7 @@ class DataLineageListener(persistenceFactory: PersistenceFactory, hadoopConfigur
   import scala.concurrent.ExecutionContext.Implicits._
 
   private val persistenceWriter = persistenceFactory.createDataLineageWriter()
-  private val persistenceReader = persistenceFactory.createDataLineageReader()
+  private val persistenceReader = persistenceFactory.createDataLineageReaderOrGetDefault(new NopDataLineageReader)
   private val harvester = new DataLineageHarvester(hadoopConfiguration)
   private val transformationPipeline =
     new AsyncTransformationPipeline(
