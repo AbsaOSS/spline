@@ -106,12 +106,12 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     val inputSources: Seq[TypedMetaDataSource] = for {
       read <- dataLineage.operations.flatMap(castIfRead)
       source <- read.sources
-    } yield TypedMetaDataSource(read.sourceType, source.path, source.datasetId)
+    } yield TypedMetaDataSource(read.sourceType, source.path, source.datasetsIds)
 
     val outputWriteOperation = dataLineage.rootOperation.asInstanceOf[Write]
-    val outputSource = TypedMetaDataSource(outputWriteOperation.destinationType, outputWriteOperation.path, Some(outputWriteOperation.mainProps.output))
+    val outputSource = TypedMetaDataSource(outputWriteOperation.destinationType, outputWriteOperation.path, Seq(outputWriteOperation.mainProps.output))
 
-    val inputDatasetIds = inputSources.flatMap(_.datasetId)
+    val inputDatasetIds = inputSources.flatMap(_.datasetsIds)
     val outputDatasetId = dataLineage.rootDataset.id
     val datasetIds = outputDatasetId +: inputDatasetIds
 
@@ -161,7 +161,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @return Composite operations with dependencies satisfying the criteria
     */
   override def loadCompositesByInput(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[CompositeWithDependencies]] = Future {
-    val cursor = blocking(connection.dataLineageCollection find DBObject("operations.sources.datasetId" → datasetId))
+    val cursor = blocking(connection.dataLineageCollection find DBObject("operations.sources.datasetsIds" → datasetId))
 
     new CloseableIterable[CompositeWithDependencies](
       cursor.iterator.asScala

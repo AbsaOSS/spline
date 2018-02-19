@@ -201,7 +201,7 @@ case class Read(
                  sources: Seq[MetaDataSource]
                ) extends Operation {
 
-  private val knownSourceLineagesCount = sources.count(_.datasetId.isDefined)
+  private val knownSourceLineagesCount = sources.flatMap(_.datasetsIds).distinct.size
   private val inputDatasetsCount = mainProps.inputs.size
 
   require(
@@ -237,9 +237,9 @@ case class StreamWrite(
   * Represents a persisted source data (e.g. file)
   *
   * @param path      file location
-  * @param datasetId ID of an associated dataset that was read/written from/to the given data source
+  * @param datasetsIds IDs of associated dataset(s) that was read/written from/to the given data source
   */
-case class MetaDataSource(path: String, datasetId: Option[UUID])
+case class MetaDataSource(path: String, datasetsIds: Seq[UUID])
 
 /**
   * Represents a persisted source data (e.g. file).
@@ -247,9 +247,9 @@ case class MetaDataSource(path: String, datasetId: Option[UUID])
   *
   * @param `type`    source type
   * @param path      file location
-  * @param datasetId ID of an associated dataset that was read/written from/to the given data source
+  * @param datasetsIds ID of an associated dataset that was read/written from/to the given data source
   */
-case class TypedMetaDataSource(`type`: String, path: String, datasetId: Option[UUID])
+case class TypedMetaDataSource(`type`: String, path: String, datasetsIds: Seq[UUID])
 
 /**
   * The case class represents a partial data lineage at its boundary level.
@@ -270,7 +270,7 @@ case class Composite(
                       appId: String,
                       appName: String
                     ) extends Operation {
-  private def knownSourceLineagesCount = sources.count(_.datasetId.isDefined)
+  private def knownSourceLineagesCount = sources.flatMap(_.datasetsIds).distinct.size
 
   private def inputDatasetsCount = mainProps.inputs.size
 

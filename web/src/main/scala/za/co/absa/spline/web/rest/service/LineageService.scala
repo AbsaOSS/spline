@@ -23,7 +23,7 @@ import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset}
 import za.co.absa.spline.persistence.api.DataLineageReader
 import za.co.absa.spline.web.ExecutionContextImplicit
 
-import scala.collection.mutable
+import scala.collection.{GenTraversableOnce, mutable}
 import scala.concurrent.Future
 
 class LineageService
@@ -56,31 +56,31 @@ class LineageService
     val outputDatasetIdsVisited: mutable.Set[UUID] = new mutable.HashSet[UUID]()
 
     // Enqueue a dataset for processing all lineages it participates as a source dataset
-    def enqueueInput(dsId: UUID): Unit = inputDatasetIds.synchronized {
-      if (!inputDatasetIdsVisited.contains(dsId)) {
-        inputDatasetIds.enqueue(dsId)
-        inputDatasetIdsVisited += dsId
+    def enqueueInput(dsIds: Seq[UUID]): Unit = {
+      val notVisitedInputIds = dsIds.filterNot(inputDatasetIdsVisited)
+      inputDatasetIdsVisited.synchronized {
+        inputDatasetIdsVisited ++= notVisitedInputIds
+      }
+      inputDatasetIds.synchronized {
+        inputDatasetIds.enqueue(notVisitedInputIds: _*)
       }
     }
 
     // Enqueue a dataset for processing all lineages it participates as the destination dataset
-    def enqueueOutput(dsId: UUID): Unit = outputDatasetIds.synchronized {
-      if (!outputDatasetIdsVisited.contains(dsId)) {
-        outputDatasetIds.enqueue(dsId)
-        outputDatasetIdsVisited += dsId
+    def enqueueOutput(dsIds: Seq[UUID]): Unit = {
+      val notVisitedOutputIds = dsIds.filterNot(outputDatasetIdsVisited)
+      outputDatasetIdsVisited.synchronized {
+        outputDatasetIdsVisited ++= notVisitedOutputIds
       }
-    }
-
-    // Mark currenEnqueue a dataset for processing all lineages it participates as the destination dataset
-    def addVisitedComposite(dsId: UUID): Unit = outputDatasetIds.synchronized {
-      outputDatasetIdsVisited += dsId
+      outputDatasetIds.synchronized {
+        outputDatasetIds.enqueue(notVisitedOutputIds: _*)
+      }
     }
 
     // Accumulate all entities of a composite to the resulting high order lineage
     def accumulateCompositeDependencies(cd: CompositeWithDependencies): Unit = {
-      val dst = cd.composite.destination.datasetId
-      if (dst.nonEmpty) {
-        addVisitedComposite(dst.get)
+      outputDatasetIdsVisited.synchronized {
+        outputDatasetIdsVisited ++= cd.composite.destination.datasetsIds
       }
       operations.synchronized {
         operations += cd.composite
@@ -88,7 +88,7 @@ class LineageService
       datasets.synchronized {
         datasets ++= cd.datasets
       }
-      datasets.synchronized {
+      attributes.synchronized {
         attributes ++= cd.attributes
       }
     }
@@ -96,40 +96,30 @@ class LineageService
     // Traverse lineage tree from an dataset Id in the direction from destination to source
     def traverseUp(dsId: UUID): Future[Unit] =
       reader.loadCompositeByOutput(dsId).flatMap {
-        compositeWithDeps => {
-          if (compositeWithDeps.nonEmpty) {
-            accumulateCompositeDependencies(compositeWithDeps.get)
-            compositeWithDeps.get.composite.sources.foreach(c => {
-              if (c.datasetId.nonEmpty) {
-                enqueueOutput(c.datasetId.get)
-              }
-            })
-            val dst = compositeWithDeps.get.composite.destination.datasetId
-            if (dst.nonEmpty) {
-              enqueueInput(dst.get)
-            }
-          }
-          // This launches parallel execution of the remaining elements of the queue
-          processQueueAsync()
-        }
+        processAndEnqueue(_)
       }
 
     // Traverse lineage tree from an dataset Id in the direction from source to destination
     def traverseDown(dsId: UUID): Future[Unit] = {
-
+      import za.co.absa.spline.common.ARMImplicits._
       reader.loadCompositesByInput(dsId).flatMap {
-        import za.co.absa.spline.common.ARMImplicits._
-        for (compositeList <- _) yield {
-          compositeList.iterator.foreach(compositeWithDeps => {
-            accumulateCompositeDependencies(compositeWithDeps)
-            compositeWithDeps.composite.sources.foreach(composite => if (composite.datasetId.nonEmpty) enqueueOutput(composite.datasetId.get))
-            if (compositeWithDeps.composite.destination.datasetId.nonEmpty) enqueueInput(compositeWithDeps.composite.destination.datasetId.get)
-          })
-          // This launches parallel execution of the remaining elements of the queue
-          processQueueAsync()
-        }
+        for (compositeList <- _) yield
+          processAndEnqueue(compositeList.iterator)
       }
     }
+
+    def processAndEnqueue(compositesWithDeps: GenTraversableOnce[CompositeWithDependencies]) = {
+      compositesWithDeps.foreach {
+        compositeWithDeps =>
+          accumulateCompositeDependencies(compositeWithDeps)
+          val composite = compositeWithDeps.composite
+          enqueueOutput(composite.sources.flatMap(_.datasetsIds))
+          enqueueInput(composite.destination.datasetsIds)
+      }
+      // This launches parallel execution of the remaining elements of the queue
+      processQueueAsync()
+    }
+
 
     /**
       * This recursively processes the queue of unprocessed composites
@@ -159,8 +149,8 @@ class LineageService
         val futUp = dsIdUp map traverseUp getOrElse Future.successful(Unit)
 
         for {
-          resDown <- futDown
-          resUp <- futUp
+          _ <- futDown
+          _ <- futUp
           f <- processQueueAsync()
         } yield f
       }
@@ -169,7 +159,7 @@ class LineageService
     def finalGather(): DataLineage = DataLineage("appId", "appName", 0, operations.toSeq, datasets.toSeq, attributes.toSeq)
 
     // Now, just enqueue the datasetId and process it recursively
-    enqueueOutput(datasetId)
+    enqueueOutput(Seq(datasetId))
     processQueueAsync().map { _ => finalGather() }
     // Alternatively, for comprehension may be used:
     // for ( _ <- processQueueAsync() ) yield finalGather()

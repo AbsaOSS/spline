@@ -56,12 +56,12 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
   val xUUID2: UUID = UUID fromString "22222222-2222-2222-2222-222222222222"
 
   val compositeS1 = CompositeWithDependencies(Composite(
-    OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa1", "SaveIntoDataSourceCommand", Seq(), UUIDS1), Seq(), TypedMetaDataSource("fileS1", "fileS1.txt", Some(UUIDS1)),
+    OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa1", "SaveIntoDataSourceCommand", Seq(), UUIDS1), Seq(), TypedMetaDataSource("fileS1", "fileS1.txt", Seq(UUIDS1)),
     0, "AppId", "AppName"), Seq(MetaDataset(xUUID1, Schema(Seq(xUUID2)))), Seq(Attribute(xUUID2, "attr2", Simple("String", true))))
 
   val compositeS2 = CompositeWithDependencies(Composite(
     OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa2", "SaveIntoDataSourceCommand", Seq(
-      UUID fromString "4647b1b0-425f-ce2d-b0c1-02c148c504af"), UUIDS2), Seq(TypedMetaDataSource("fileS1", "fileS1.txt", Some(UUIDS1))), TypedMetaDataSource("fileOut", "fileOut.txt", None),
+      UUID fromString "4647b1b0-425f-ce2d-b0c1-02c148c504af"), UUIDS2), Seq(TypedMetaDataSource("fileS1", "fileS1.txt", Seq(UUIDS1))), TypedMetaDataSource("fileOut", "fileOut.txt", Nil),
     0, "AppId", "AppName"), Seq(MetaDataset(xUUID1, Schema(Seq(xUUID1)))), Seq(Attribute(xUUID1, "attr1", Simple("String", true))))
 
   it should "be able to construst small high order lineage out of 2 composits" in {
@@ -109,26 +109,26 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
   val operationEUUID: UUID = UUID fromString "eeeeeeee-1111-1111-1111-111111111111"
 
   val compositeD = CompositeWithDependencies(Composite(
-    OperationProps(operationDUUID, "SaveIntoDataSourceCommand", Seq(), dUUID), Seq(), TypedMetaDataSource("fileD", "fileD.csv", Some(dUUID)),
+    OperationProps(operationDUUID, "SaveIntoDataSourceCommand", Seq(), dUUID), Seq(), TypedMetaDataSource("fileD", "fileD.csv", Seq(dUUID)),
     0, "AppId", "AppNameD"), Seq(MetaDataset(xUUID1, Schema(Seq(xUUID1)))), Seq(Attribute(xUUID1, "attributeD", Simple("String", true))))
 
   val compositeE = CompositeWithDependencies(Composite(
-    OperationProps(operationEUUID, "SaveIntoDataSourceCommand", Seq(), eUUID), Seq(), TypedMetaDataSource("fileE", "fileE.csv", Some(eUUID)),
+    OperationProps(operationEUUID, "SaveIntoDataSourceCommand", Seq(), eUUID), Seq(), TypedMetaDataSource("fileE", "fileE.csv", Seq(eUUID)),
     0, "AppId", "AppNameE"), Seq(MetaDataset(xUUID2, Schema(Seq(xUUID2)))), Seq(Attribute(xUUID2, "attributeE", Simple("String", true))))
 
   val compositeA = CompositeWithDependencies(Composite(
     OperationProps(operationAUUID, "SaveIntoDataSourceCommand", Seq(
-      dUUID, eUUID), aUUID), Seq(TypedMetaDataSource("fileD", "dileD.csv", Some(dUUID)), TypedMetaDataSource("fileE", "dileE.csv", Some(eUUID))), TypedMetaDataSource("fileA", "fileA.csv", Some(aUUID)),
+      dUUID, eUUID), aUUID), Seq(TypedMetaDataSource("fileD", "dileD.csv", Seq(dUUID)), TypedMetaDataSource("fileE", "dileE.csv", Seq(eUUID))), TypedMetaDataSource("fileA", "fileA.csv", Seq(aUUID)),
     0, "AppId", "AppNameA"), Seq(MetaDataset(xUUID3, Schema(Seq(xUUID3)))), Seq(Attribute(xUUID3, "attributeA", Simple("String", true))))
 
   val compositeB = CompositeWithDependencies(Composite(
     OperationProps(operationBUUID, "SaveIntoDataSourceCommand", Seq(
-      aUUID), bUUID), Seq(TypedMetaDataSource("fileA", "dileA.csv", Some(aUUID))), TypedMetaDataSource("fileB", "fileB.csv", Some(bUUID)),
+      aUUID), bUUID), Seq(TypedMetaDataSource("fileA", "dileA.csv", Seq(aUUID))), TypedMetaDataSource("fileB", "fileB.csv", Seq(bUUID)),
     0, "AppId", "AppNameB"), Seq(MetaDataset(xUUID4, Schema(Seq(xUUID4)))), Seq(Attribute(xUUID4, "attributeB", Simple("String", true))))
 
   val compositeC = CompositeWithDependencies(Composite(
     OperationProps(operationCUUID, "SaveIntoDataSourceCommand", Seq(
-      aUUID), cUUID), Seq(TypedMetaDataSource("fileA", "dileA.csv", Some(aUUID))), TypedMetaDataSource("fileC", "fileC.csv", Some(cUUID)),
+      aUUID), cUUID), Seq(TypedMetaDataSource("fileA", "dileA.csv", Seq(aUUID))), TypedMetaDataSource("fileC", "fileC.csv", Seq(cUUID)),
     0, "AppId", "AppNameC"), Seq(MetaDataset(xUUID3, Schema(Seq(xUUID3)))), Seq(Attribute(xUUID3, "attributeA", Simple("String", true))))
 
   def prepareBigLineageMock(readerMock: DataLineageReader): Unit = {

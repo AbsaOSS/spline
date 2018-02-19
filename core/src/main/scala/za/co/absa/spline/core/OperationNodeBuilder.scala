@@ -146,7 +146,7 @@ private class SourceNodeBuilder(val operation: LogicalRelation)
     op.Read(
       buildOperationProps(),
       sourceType,
-      paths.map(MetaDataSource(_, None))
+      paths.map(MetaDataSource(_, Nil))
     )
   }
 

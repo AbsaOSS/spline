@@ -204,9 +204,9 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
   describe("loadCompositesByInput()") {
     it("should load correct composite operation with dependencies") {
       val sources = Seq(
-        MetaDataSource("path1", Some(randomUUID)),
-        MetaDataSource("path2", Some(randomUUID)),
-        MetaDataSource("path3", Some(randomUUID))
+        MetaDataSource("path1", Seq(randomUUID,randomUUID,randomUUID)),
+        MetaDataSource("path2", Seq(randomUUID,randomUUID,randomUUID)),
+        MetaDataSource("path3", Seq(randomUUID,randomUUID,randomUUID))
       )
 
       val testLineages = Seq(
@@ -216,7 +216,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         createDataLineageWithSources("appID4", "appName4", sources.tail)
       )
 
-      val datasetId = sources.head.datasetId.get
+      val datasetId = sources.head.datasetsIds.head
       val lineageId = testLineages(1).id
 
       val result = Future.sequence(testLineages.map(i => mongoWriter.store(i)))
@@ -258,7 +258,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", outputPath),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md2.id), "rawString2"),
-        Read(OperationProps(randomUUID, "Read", sources.flatMap(_.datasetId), md4.id), "rawString3", sources),
+        Read(OperationProps(randomUUID, "Read", sources.flatMap(_.datasetsIds), md4.id), "rawString3", sources),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md1.id), "rawString4")
       ),
       Seq(md1, md2, md3, md4),

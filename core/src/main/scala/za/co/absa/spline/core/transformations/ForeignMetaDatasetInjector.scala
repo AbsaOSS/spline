@@ -59,7 +59,7 @@ class ForeignMetaDatasetInjector(reader: DataLineageReader) extends AsyncTransfo
           (mds, None)
         case mdsLineageOpt@Some(mdsLineage) =>
           log debug s"Lineage of ${mds.path} FOUND: ${mdsLineage.id}"
-          val updatedMds = mds.copy(datasetId = Some(mdsLineage.rootDataset.id))
+          val updatedMds = mds.copy(datasetsIds = Seq(mdsLineage.rootDataset.id))
           (updatedMds, mdsLineageOpt)
       }
     }
@@ -72,7 +72,7 @@ class ForeignMetaDatasetInjector(reader: DataLineageReader) extends AsyncTransfo
       } yield
         eventualTuples map (sourcesWithLineages => {
           val (newSources: Seq[MetaDataSource], sourceLineages: Seq[Option[DataLineage]]) = sourcesWithLineages.unzip
-          val newProps = read.mainProps.copy(inputs = newSources.flatten(s => s.datasetId))
+          val newProps = read.mainProps.copy(inputs = newSources.flatMap(_.datasetsIds).distinct)
           val newRead = read.copy(sources = newSources, mainProps = newProps)
           newRead -> sourceLineages.flatten
         }))

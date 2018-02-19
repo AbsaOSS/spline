@@ -59,7 +59,7 @@ class ForeignMetaDatasetInjectorSpec extends AsyncFlatSpec with Matchers with Mo
         Attribute(randomUUID, "3", dataType)
       )
       val dataset = MetaDataset(randomUUID, Schema(attributes.map(_.id)))
-      val operation = Read(OperationProps(randomUUID, "read", Seq.empty, dataset.id), "parquet", Seq(MetaDataSource("some/path", None)))
+      val operation = Read(OperationProps(randomUUID, "read", Seq.empty, dataset.id), "parquet", Seq(MetaDataSource("some/path", Nil)))
       DataLineage("appId2", "appName2", 2L, Seq(operation), Seq(dataset), attributes)
     }
 
@@ -70,7 +70,7 @@ class ForeignMetaDatasetInjectorSpec extends AsyncFlatSpec with Matchers with Mo
       val referencedDsID = referencedLineage.rootDataset.id
       inputLineage.copy(
         operations = Seq(readOp.copy(
-          sources = Seq(MetaDataSource("some/path", Some(referencedDsID))),
+          sources = Seq(MetaDataSource("some/path", Seq(referencedDsID))),
           mainProps = readOp.mainProps.copy(inputs = Seq(referencedDsID)))),
         datasets = inputLineage.datasets :+ referencedLineage.rootDataset,
         attributes = inputLineage.attributes ++ Seq(referencedLineage.attributes(2), referencedLineage.attributes(3))

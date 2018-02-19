@@ -51,7 +51,7 @@ class SourceNodeBuilderSpec extends FunSpec with MockitoSugar with Matchers {
       val readOp = bldr.build()
 
       readOp.sourceType shouldEqual "JDBC"
-      readOp.sources shouldEqual Seq(MetaDataSource("jdbc:fake:sql@some_host:4242:some_database/some_table", None))
+      readOp.sources shouldEqual Seq(MetaDataSource("jdbc:fake:sql@some_host:4242:some_database/some_table", Nil))
     }
 
     it("should handle unrecognized source type") {
