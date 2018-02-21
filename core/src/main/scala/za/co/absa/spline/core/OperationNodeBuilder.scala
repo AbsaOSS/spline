@@ -23,9 +23,11 @@ import com.databricks.spark.xml.XmlRelation
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.catalyst.expressions.SortOrder
 import org.apache.spark.sql.catalyst.plans.logical._
-import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation, SaveIntoDataSourceCommand}
+import org.apache.spark.sql.execution.datasources.{DataSource, HadoopFsRelation, LogicalRelation, SaveIntoDataSourceCommand}
+import org.apache.spark.sql.execution.streaming.StreamingRelation
 import org.apache.spark.sql.sources.BaseRelation
 import org.apache.spark.sql.{JDBCRelation, SaveMode}
+import za.co.absa.spline.model.endpoint._
 import za.co.absa.spline.model.expr.Expression
 import za.co.absa.spline.model.{op, _}
 
@@ -53,8 +55,8 @@ class OperationNodeBuilderFactory(implicit hadoopConfiguration: Configuration, m
     case s: Sort => new SortNodeBuilder(s)
     case s: Aggregate => new AggregateNodeBuilder(s)
     case a: SubqueryAlias => new AliasNodeBuilder(a)
-    case sc: SaveIntoDataSourceCommand => new DestinationNodeBuilder(sc)
-    case lr: LogicalRelation => new SourceNodeBuilder(lr)
+    case sc: SaveIntoDataSourceCommand => new WriteNodeBuilder(sc)
+    case lr: LogicalRelation => new ReadNodeBuilder(lr)
     case x => new GenericNodeBuilder(x)
   }
 }
@@ -138,8 +140,8 @@ private class AliasNodeBuilder(val operation: SubqueryAlias)
   * @param hadoopConfiguration A hadoop configuration
   * @param metaDatasetFactory  A factory of meta data sets
   */
-private class SourceNodeBuilder(val operation: LogicalRelation)
-                               (implicit hadoopConfiguration: Configuration, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[LogicalRelation] {
+private class ReadNodeBuilder(val operation: LogicalRelation)
+                             (implicit hadoopConfiguration: Configuration, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[LogicalRelation] {
   def build(): op.Read = {
     val (sourceType, paths) = getRelationPaths(operation.relation)
     op.Read(
@@ -169,6 +171,27 @@ private class SourceNodeBuilder(val operation: LogicalRelation)
   }
 }
 
+private class StreamReadNodeBuilder(val operation: StreamingRelation)
+                                   (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[StreamingRelation] {
+  def build(): op.StreamRead = op.StreamRead(
+    buildOperationProps(),
+    createEndpoint(operation.dataSource)
+  )
+
+  private def createEndpoint(dataSource: DataSource): StreamEndpoint = dataSource.sourceInfo.name match {
+    case x if x startsWith "FileSource" => FileEndpoint(dataSource.className, dataSource.options.getOrElse("path", ""))
+    case "kafka" => KafkaEndpoint(
+      dataSource.options.getOrElse("kafka.bootstrap.servers", ",").split(","),
+      dataSource.options.getOrElse("subscribe", "")
+    )
+    case "textSocket" => SocketEndpoint(
+      dataSource.options.getOrElse("host", ""),
+      dataSource.options.getOrElse("port", "")
+    )
+    case _ => VirtualEndpoint
+  }
+}
+
 /**
   * The class represents a builder of operations nodes dedicated for Spark persist operation.
   *
@@ -176,8 +199,8 @@ private class SourceNodeBuilder(val operation: LogicalRelation)
   * @param hadoopConfiguration A hadoop configuration
   * @param metaDatasetFactory  A factory of meta data sets
   */
-private class DestinationNodeBuilder(val operation: SaveIntoDataSourceCommand)
-                                    (implicit hadoopConfiguration: Configuration, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[SaveIntoDataSourceCommand] {
+private class WriteNodeBuilder(val operation: SaveIntoDataSourceCommand)
+                              (implicit hadoopConfiguration: Configuration, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[SaveIntoDataSourceCommand] {
 
   override val outputMetaDataset: UUID = metaDatasetFactory.create(operation.query)
 

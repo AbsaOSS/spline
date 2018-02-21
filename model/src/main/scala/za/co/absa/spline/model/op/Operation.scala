@@ -217,11 +217,11 @@ case class Read(
   * The case class represents Spark operations for loading data via structured streaming
   *
   * @param mainProps Common node properties
-  * @param sources   A list of source endpoints
+  * @param source  An endpoint that data flows from
   */
 case class StreamRead(
-                       mainProps: OperationProps,
-                       sources: Seq[StreamEndpoint]
+                      mainProps: OperationProps,
+                      source : StreamEndpoint
                      ) extends Operation
 
 /**
