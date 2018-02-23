@@ -95,22 +95,23 @@ class LineageService
 
     // Traverse lineage tree from an dataset Id in the direction from destination to source
     def traverseUp(dsId: UUID): Future[Unit] =
-      reader.loadCompositeByOutput(dsId).flatMap {
+      reader.loadByDatasetId(dsId).flatMap {
         processAndEnqueue(_)
       }
 
     // Traverse lineage tree from an dataset Id in the direction from source to destination
     def traverseDown(dsId: UUID): Future[Unit] = {
       import za.co.absa.spline.common.ARMImplicits._
-      reader.loadCompositesByInput(dsId).flatMap {
+      reader.findByInputId(dsId).flatMap {
         for (compositeList <- _) yield
           processAndEnqueue(compositeList.iterator)
       }
     }
 
-    def processAndEnqueue(compositesWithDeps: GenTraversableOnce[CompositeWithDependencies]) = {
-      compositesWithDeps.foreach {
-        compositeWithDeps =>
+    def processAndEnqueue(lineages: GenTraversableOnce[DataLineage]) = {
+      lineages.foreach {
+        lineage =>
+          val compositeWithDeps = lineageToCompositeWithDependencies(lineage)
           accumulateCompositeDependencies(compositeWithDeps)
           val composite = compositeWithDeps.composite
           enqueueOutput(composite.sources.flatMap(_.datasetsIds))
@@ -118,6 +119,52 @@ class LineageService
       }
       // This launches parallel execution of the remaining elements of the queue
       processQueueAsync()
+    }
+
+    def lineageToCompositeWithDependencies(dataLineage: DataLineage): CompositeWithDependencies = {
+      def castIfRead(op: Operation): Option[Read] = op match {
+        case a@Read(_, _, _) => Some(a)
+        case _ => None
+      }
+
+      val readOps: Seq[Read] = dataLineage.operations.flatMap(castIfRead)
+      val inputSources: Seq[TypedMetaDataSource] = (
+        for {
+          read <- readOps
+          source <- read.sources
+        } yield
+          TypedMetaDataSource(read.sourceType, source.path, source.datasetsIds)
+        ).distinct
+
+      val outputWriteOperation = dataLineage.rootOperation.asInstanceOf[Write]
+      val outputSource = TypedMetaDataSource(outputWriteOperation.destinationType, outputWriteOperation.path, Seq(outputWriteOperation.mainProps.output))
+
+      val inputDatasetIds = readOps.flatMap(_.mainProps.inputs).distinct
+      val outputDatasetId = dataLineage.rootDataset.id
+      val datasetIds: Set[UUID] = inputDatasetIds.toSet + outputDatasetId
+
+      val composite = Composite(
+        mainProps = OperationProps(
+          outputDatasetId,
+          dataLineage.appName,
+          inputDatasetIds,
+          outputDatasetId
+        ),
+        sources = inputSources,
+        destination = outputSource,
+        dataLineage.timestamp,
+        dataLineage.appId,
+        dataLineage.appName
+      )
+
+      val datasets = dataLineage.datasets.filter(ds => datasetIds(ds.id))
+      val attributes = for {
+        dataset <- datasets
+        attributeId <- dataset.schema.attrs
+        attribute <- dataLineage.attributes if attribute.id == attributeId
+      } yield attribute
+
+      CompositeWithDependencies(composite, datasets, attributes)
     }
 
 
@@ -164,5 +211,14 @@ class LineageService
     // Alternatively, for comprehension may be used:
     // for ( _ <- processQueueAsync() ) yield finalGather()
   }
+
+  /**
+    * The case class serves for associating a composite operation with its dependencies
+    *
+    * @param composite  A composite operation
+    * @param datasets   Referenced meta data sets
+    * @param attributes Referenced attributes
+    */
+  case class CompositeWithDependencies(composite: Composite, datasets: Seq[MetaDataset], attributes: Seq[Attribute])
 
 }

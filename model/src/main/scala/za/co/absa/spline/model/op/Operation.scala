@@ -213,18 +213,19 @@ case class Read(
 
 /**
   * The case class represents Spark operations for loading data via structured streaming
+  *
   * @param mainProps Common node properties
-  * @param sources A list of source endpoints
+  * @param sources   A list of source endpoints
   */
 case class StreamRead(
-                      mainProps: OperationProps,
-                      sources : Seq[StreamEndpoint]
+                       mainProps: OperationProps,
+                       sources: Seq[StreamEndpoint]
                      ) extends Operation
 
 /**
   * The case class represents Spark operations for persisting data via structured streaming
   *
-  * @param mainProps Common node properties
+  * @param mainProps   Common node properties
   * @param destination An endpoint that data flows to
   *
   */
@@ -236,7 +237,7 @@ case class StreamWrite(
 /**
   * Represents a persisted source data (e.g. file)
   *
-  * @param path      file location
+  * @param path        file location
   * @param datasetsIds IDs of associated dataset(s) that was read/written from/to the given data source
   */
 case class MetaDataSource(path: String, datasetsIds: Seq[UUID])
@@ -245,8 +246,8 @@ case class MetaDataSource(path: String, datasetsIds: Seq[UUID])
   * Represents a persisted source data (e.g. file).
   * Same as [[MetaDataSource]] but with type
   *
-  * @param `type`    source type
-  * @param path      file location
+  * @param `type`      source type
+  * @param path        file location
   * @param datasetsIds ID of an associated dataset that was read/written from/to the given data source
   */
 case class TypedMetaDataSource(`type`: String, path: String, datasetsIds: Seq[UUID])
@@ -280,12 +281,3 @@ case class Composite(
       s"Hence the size 'inputs' collection should be the same as the count of known datasets for 'sources' field. " +
       s"But was $inputDatasetsCount and $knownSourceLineagesCount respectively")
 }
-
-/**
-  * The case class serves for associating a composite operation with its dependencies
-  *
-  * @param composite  A composite operation
-  * @param datasets   Referenced meta data sets
-  * @param attributes Referenced attributes
-  */
-case class CompositeWithDependencies(composite: Composite, datasets: Seq[MetaDataset], attributes: Seq[Attribute])

@@ -26,7 +26,6 @@ import com.mongodb.Cursor
 import com.mongodb.casbah.AggregationOptions.{default => aggOpts}
 import com.mongodb.casbah.Imports._
 import za.co.absa.spline.common.UUIDExtractors.UUIDExtractor
-import za.co.absa.spline.model.op._
 import za.co.absa.spline.model.{DataLineage, DataLineageId, PersistedDatasetDescriptor}
 import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
@@ -97,76 +96,16 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     Option(dbo) map withVersionCheck(grater[DataLineage].asObject(_))
   }
 
-  private def lineageToCompositeWithDependencies(dataLineage: DataLineage): CompositeWithDependencies = {
-    def castIfRead(op: Operation): Option[Read] = op match {
-      case a@Read(_, _, _) => Some(a)
-      case _ => None
-    }
-
-    val inputSources: Seq[TypedMetaDataSource] = for {
-      read <- dataLineage.operations.flatMap(castIfRead)
-      source <- read.sources
-    } yield TypedMetaDataSource(read.sourceType, source.path, source.datasetsIds)
-
-    val outputWriteOperation = dataLineage.rootOperation.asInstanceOf[Write]
-    val outputSource = TypedMetaDataSource(outputWriteOperation.destinationType, outputWriteOperation.path, Seq(outputWriteOperation.mainProps.output))
-
-    val inputDatasetIds = inputSources.flatMap(_.datasetsIds)
-    val outputDatasetId = dataLineage.rootDataset.id
-    val datasetIds = outputDatasetId +: inputDatasetIds
-
-    val composite = Composite(
-      mainProps = OperationProps(
-        outputDatasetId,
-        dataLineage.appName,
-        inputDatasetIds,
-        outputDatasetId
-      ),
-      sources = inputSources,
-      destination = outputSource,
-      dataLineage.timestamp,
-      dataLineage.appId,
-      dataLineage.appName
-    )
-
-    val datasets = dataLineage.datasets.filter(ds => datasetIds.contains(ds.id))
-    val attributes = for {
-      dataset <- datasets
-      attributeId <- dataset.schema.attrs
-      attribute <- dataLineage.attributes if attribute.id == attributeId
-    } yield attribute
-
-    CompositeWithDependencies(composite, datasets, attributes)
-  }
-
-  /**
-    * The method loads a composite operation for an output datasetId.
-    *
-    * @param datasetId A dataset ID for which the operation is looked for
-    * @return A composite operation with dependencies satisfying the criteria
-    */
-  override def loadCompositeByOutput(datasetId: UUID)(implicit ec: ExecutionContext): Future[Option[CompositeWithDependencies]] = Future {
-    val dbo = blocking {
-      connection.dataLineageCollection findOne DBObject("rootDataset._id" → datasetId)
-    }
-    Option(dbo)
-      .map(withVersionCheck(grater[DataLineage].asObject(_)))
-      .map(lineageToCompositeWithDependencies)
-  }
-
   /**
     * The method loads composite operations for an input datasetId.
     *
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  override def loadCompositesByInput(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[CompositeWithDependencies]] = Future {
+  override def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] = Future {
     val cursor = blocking(connection.dataLineageCollection find DBObject("operations.sources.datasetsIds" → datasetId))
-
-    new CloseableIterable[CompositeWithDependencies](
-      cursor.iterator.asScala
-        .map(withVersionCheck(grater[DataLineage].asObject(_)))
-        .map(lineageToCompositeWithDependencies),
+    new CloseableIterable[DataLineage](
+      cursor.iterator.asScala.map(withVersionCheck(grater[DataLineage].asObject(_))),
       cursor.close())
   }
 

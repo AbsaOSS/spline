@@ -176,33 +176,8 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
 
   }
 
-
-  describe("loadCompositeByOutput") {
-    it("should load correct composite operation with dependencies") {
-      val testLineages = Seq(
-        createDataLineage("appID1", "appName1", 1L),
-        createDataLineage("appID2", "appName2", 2L),
-        createDataLineage("appID3", "appName3", 3L),
-        createDataLineage("appID4", "appName4", 4L),
-        createDataLineage("appID5", "appName5", 5L)
-      )
-
-      val datasetId = testLineages(2).rootDataset.id
-
-      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.loadCompositeByOutput(datasetId))
-
-      result.map {
-        case Some(CompositeWithDependencies(composite, _, _)) =>
-          composite.mainProps.id shouldEqual datasetId
-          composite.mainProps.output shouldEqual datasetId
-        case None => fail("There should be an record.")
-      }
-    }
-
-  }
-
-  describe("loadCompositesByInput()") {
-    it("should load correct composite operation with dependencies") {
+  describe("findByInputId()") {
+    it("should load lineages having the given datasetId as an input") {
       val sources = Seq(
         MetaDataSource("path1", Seq(randomUUID,randomUUID,randomUUID)),
         MetaDataSource("path2", Seq(randomUUID,randomUUID,randomUUID)),
@@ -216,19 +191,15 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         createDataLineageWithSources("appID4", "appName4", sources.tail)
       )
 
-      val datasetId = sources.head.datasetsIds.head
-      val lineageId = testLineages(1).id
+      val datasetIdToFindBy = sources.head.datasetsIds.head
 
       val result = Future.sequence(testLineages.map(i => mongoWriter.store(i)))
-        .flatMap(_ => mongoReader.loadCompositesByInput(datasetId))
+        .flatMap(_ => mongoReader.findByInputId(datasetIdToFindBy))
         .map(_.iterator.toSeq)
 
       result.map(res => {
         res.length shouldEqual 1
-        res.head match {
-          case (CompositeWithDependencies(composite, _, _)) =>
-            composite.mainProps.id shouldEqual DataLineageId.toDatasetId(lineageId)
-        }
+        res.head shouldEqual testLineages(1)
       })
     }
   }

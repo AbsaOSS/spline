@@ -18,7 +18,6 @@ package za.co.absa.spline.persistence.api
 
 import java.util.UUID
 
-import za.co.absa.spline.model.op.CompositeWithDependencies
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
 import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 
@@ -66,20 +65,12 @@ trait DataLineageReader {
   def loadLatest(path: String)(implicit ec: ExecutionContext): Future[Option[DataLineage]]
 
   /**
-    * The method loads a composite operation for an output datasetId.
-    *
-    * @param datasetId A dataset ID for which the operation is looked for
-    * @return A composite operation with dependencies satisfying the criteria
-    */
-  def loadCompositeByOutput(datasetId: UUID)(implicit ec: ExecutionContext): Future[Option[CompositeWithDependencies]]
-
-  /**
     * The method loads composite operations for an input datasetId.
     *
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  def loadCompositesByInput(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[CompositeWithDependencies]]
+  def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]]
 
   /**
     * The method gets all data lineages stored in persistence layer.
