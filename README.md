@@ -155,14 +155,30 @@ def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfig
 
 ### Configuration properties
 
-
+#### Shared
 | Property | Description | Example
 | --- | --- | --- |
 | `spline.mode` | __DISABLED__<br>Lineage tracking is completely disabled and Spline is unhooked from Spark.<br><br>__REQUIRED__<br>If Spline fails to initialize itself (e.g. wrong configuration, no db connection etc) the Spark application aborts with an error.<br><br>**BEST_EFFORT** (default)<br>Spline will try to initialize itself, but if fails it switches to _DISABLED_ mode allowing the Spark application to proceed normally without Lineage tracking. | BEST_EFFORT |
 | `spline.persistence.factory` | Fully qualified name of the [PersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/PersistenceFactory.scala) implementation to use by Spline | za.co.absa.spline.persistence.mongo.MongoPersistenceFactory
-| `spline.mongodb.url` | Mongo connection URL <br> _(MongoPersistenceFactory only)_ | mongodb://1.2.3.4
-| `spline.mongodb.name` | Mongo database name <br> _(MongoPersistenceFactory only)_ | my_job_lineage_data
-| `spline.persistence.composition.factories` | Comma separated list of factories to delegate to <br> _(specific to ParallelCompositeFactory)_ | za.co.absa.spline.persistence.mongo.MongoPersistenceFactory, za.co.absa.spline.persistence.hdfs.HdfsPersistenceFactory
+
+#### Mongo Persistence Only
+| Property | Description | Example
+| --- | --- | --- |
+| `spline.mongodb.url` | Mongo connection URL <br> | mongodb://1.2.3.4
+| `spline.mongodb.name` | Mongo database name <br> | my_job_lineage_data
+
+#### Atlas Persistence Only
+Apart from property configuration Atlas persistence requires a copy of [spline meta model file](<https://github.com/AbsaOSS/spline/blob/master/persistence/atlas/src/main/atlas/spline-meta-model.json>) in Atlas meta model directory e.g. Hortonworks distribution in `/usr/hdp/current/atlas/models`.
+
+| Property | Description | Example
+| --- | --- | --- |
+|`atlas.kafka.bootstrap.servers` | [A list of host/port pairs to use for establishing the initial connection to the Kafka cluster.](http://kafka.apache.org/documentation.html#producerconfigs) | localhost:6667 |
+| [Other possible Kafka properties prefixed with `atlas.kafka.`](http://kafka.apache.org/documentation.html#producerconfigs) | Depends on your setup.
+
+#### Composition Factories Only
+| Property | Description | Example
+| --- | --- | --- |
+| `spline.persistence.composition.factories` | Comma separated list of factories to delegate to <br> | za.co.absa.spline.persistence.mongo.MongoPersistenceFactory, za.co.absa.spline.persistence.hdfs.HdfsPersistenceFactory
 
 
 # Examples
