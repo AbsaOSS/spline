@@ -13,14 +13,14 @@ The project consists of two parts:
 <dependency>
     <groupId>za.co.absa.spline</groupId>
     <artifactId>spline-core</artifactId>
-    <version>0.2.5</version>
+    <version>{{site.spline.version}}</version>
 </dependency>
 <dependency>
     <groupId>za.co.absa.spline</groupId>
     <artifactId>spline-persistence-mongo</artifactId>
     <!-- You can use other types of persistence including your own. -->
     <!-- See below for details. -->
-    <version>0.2.5</version>
+    <version>{{site.spline.version}}</version>
 </dependency>
 ```
 
@@ -38,9 +38,9 @@ sparkSession.enableLineageTracking()
 // configured Mongo database for further visualization by Spline Web UI
 ```
 
-### download [Spline Web UI executable JAR](https://search.maven.org/remotecontent?filepath=za/co/absa/spline/spline-web/0.2.5/spline-web-0.2.5-exec-war.jar) and run:
+### download [Spline Web UI executable JAR](https://search.maven.org/remotecontent?filepath=za/co/absa/spline/spline-web/{{site.spline.version}}/spline-web-{{site.spline.version}}-exec-war.jar) and run:
 ```shell
-java -jar spline-web-0.2.5-exec-war.jar -Dspline.mongodb.url=... -Dspline.mongodb.name=...
+java -jar spline-web-{{site.spline.version}}-exec-war.jar -Dspline.mongodb.url=... -Dspline.mongodb.name=...
 ```
 
 ### in your browser open [localhost:8080](http://localhost:8080) and you will get:
@@ -95,7 +95,7 @@ There are two ways how to run Spline Web UI:
 ###### Standalone application (executable JAR)
 
 Execute: <br>
-```java -jar spline-web-0.2.5-exec-war.jar -Dspline.mongodb.url=... -Dspline.mongodb.name=...```
+```java -jar spline-web-{{site.spline.version}}-exec-war.jar -Dspline.mongodb.url=... -Dspline.mongodb.name=...```
 and then point your browser to [http://localhost:8080](http://localhost:8080).
 
 To change the port number from *8080* to say *1234* add ```-httpPort 1234``` to the command line.
