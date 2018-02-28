@@ -8,6 +8,22 @@ The project consists of two parts:
 
 # Summary
 
+### in your POM file:
+```xml
+<dependency>
+    <groupId>za.co.absa.spline</groupId>
+    <artifactId>spline-core</artifactId>
+    <version>{{site.spline.version}}</version>
+</dependency>
+<dependency>
+    <groupId>za.co.absa.spline</groupId>
+    <artifactId>spline-persistence-mongo</artifactId>
+    <!-- You can use other types of persistence including your own. -->
+    <!-- See below for details. -->
+    <version>{{site.spline.version}}</version>
+</dependency>
+```
+
 ### in your Spark job:
 ```scala
 // given a Spark session ...
@@ -22,7 +38,12 @@ sparkSession.enableLineageTracking()
 // configured Mongo database for further visualization by Spline Web UI
 ```
 
-### a sample lineage visualization
+### download [Spline Web UI executable JAR](https://search.maven.org/remotecontent?filepath=za/co/absa/spline/spline-web/{{site.spline.version}}/spline-web-{{site.spline.version}}-exec-war.jar) and run:
+```shell
+java -jar spline-web-{{site.spline.version}}-exec-war.jar -Dspline.mongodb.url=... -Dspline.mongodb.name=...
+```
+
+### in your browser open [localhost:8080](http://localhost:8080) and you will get:
 <a href="imgs/screenshot.png"><img src="imgs/screenshot.png" width="660"></a>
 
 
@@ -47,26 +68,15 @@ Our main focus is to solve the following particular problems:
 
 # Getting started
 
-### Dependencies
+### Usage
 
-##### Runtime
+##### Dependencies
 
 * [Scala](https://www.scala-lang.org/) 2.11
-* [Spark](http://spark.apache.org/) 2.2.0 (snapshot version is available in the ASF maven [repo](https://repository.apache.org/content/groups/snapshots/))
-* [MongoDB](https://www.mongodb.com/) 3.2
+* [Spark](http://spark.apache.org/) 2.2.0
+* [MongoDB](https://www.mongodb.com/) 3.4 (required for Spline Web UI)
 
-##### Build time
-* [Node.js](https://nodejs.org/) 6.9
-* [Maven](https://maven.apache.org) 3.0
-
-### Building
-```
-mvn install -DskipTests
-```
-
-### Installation
-
-##### In your Spark job:
+##### Setup for your Spark job:
 
 1. Include Spline core jar into your Spark job classpath (it's enough to have it in a driver only, executors don't need it)
 
@@ -85,7 +95,7 @@ There are two ways how to run Spline Web UI:
 ###### Standalone application (executable JAR)
 
 Execute: <br>
-```java -jar spline-ui-VERSION.exec.jar -Dspline.mongodb.url=... -Dspline.mongodb.name=...```
+```java -jar spline-web-{{site.spline.version}}-exec-war.jar -Dspline.mongodb.url=... -Dspline.mongodb.name=...```
 and then point your browser to [http://localhost:8080](http://localhost:8080).
 
 To change the port number from *8080* to say *1234* add ```-httpPort 1234``` to the command line.
@@ -103,6 +113,29 @@ section.
     ```
 
 1. Deploy Spline WAR file to your Java web container (tested on Tomcat 7, but other containers should also work)
+
+
+### Build Spline from the source code
+You will need:
+* [JDK](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) 8+
+* [Maven](https://maven.apache.org) 3.0
+* [Node.js](https://nodejs.org/) 6.9
+
+```
+mvn install -DskipTests
+```
+
+# <a name="persistence"></a> Lineage persistence
+Spline can persist harvested lineages in various ways. It uses [PersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/PersistenceFactory.scala) to obtain instances of [DataLineageReader]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/DataLineageReader.scala) and [DataLineageWriter]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/DataLineageWriter.scala) to persist and access the data lineages.
+Out of the box Spline supports three types of persistors:
+- [MongoPersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/mongo/src/main/scala/za/co/absa/spline/persistence/mongo/MongoPersistenceFactory.scala) (stores lineages to the MongoDB)
+- [HdfsPersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/hdfs/src/main/scala/za/co/absa/spline/persistence/hdfs/HdfsPersistenceFactory.scala) (stores lineages as a JSON file)
+- [AtlasPersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/atlas/src/main/scala/za/co/absa/spline/persistence/atlas/AtlasPersistenceFactory.scala) (is used for integration with Apache Atlas)
+
+There is also a [ParallelCompositeFactory]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/composition/ParallelCompositeFactory.scala) that works as a proxy and delegate work to other persistors.
+So for example, you can store the lineages to, say, Mongo and Atlas simultaneously.
+
+
 
 # <a name="configuration"></a> Configuration
 When enabling data lineage tracking for a Spark session in your Spark job a ```SparkConfigurer``` instance can be passed
@@ -122,31 +155,34 @@ def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfig
 
 ### Configuration properties
 
+#### Shared
 | Property | Description | Example
 | --- | --- | --- |
-| `spline.mongodb.url` | Mongo connection URL | mongodb://1.2.3.4
-| `spline.mongodb.name` | Mongo database name | my_job_lineage_data
+| `spline.mode` | __DISABLED__<br>Lineage tracking is completely disabled and Spline is unhooked from Spark.<br><br>__REQUIRED__<br>If Spline fails to initialize itself (e.g. wrong configuration, no db connection etc) the Spark application aborts with an error.<br><br>**BEST_EFFORT** (default)<br>Spline will try to initialize itself, but if fails it switches to _DISABLED_ mode allowing the Spark application to proceed normally without Lineage tracking. | BEST_EFFORT |
+| `spline.persistence.factory` | Fully qualified name of the [PersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/PersistenceFactory.scala) implementation to use by Spline | za.co.absa.spline.persistence.mongo.MongoPersistenceFactory
+
+#### Mongo Persistence Only
+| Property | Description | Example
+| --- | --- | --- |
+| `spline.mongodb.url` | Mongo connection URL <br> | mongodb://1.2.3.4
+| `spline.mongodb.name` | Mongo database name <br> | my_job_lineage_data
+
+#### Atlas Persistence Only
+Apart from property configuration Atlas persistence requires a copy of [spline meta model file](<https://github.com/AbsaOSS/spline/blob/master/persistence/atlas/src/main/atlas/spline-meta-model.json>) in Atlas meta model directory e.g. Hortonworks distribution in `/usr/hdp/current/atlas/models`.
+
+| Property | Description | Example
+| --- | --- | --- |
+|`atlas.kafka.bootstrap.servers` | [A list of host/port pairs to use for establishing the initial connection to the Kafka cluster.](http://kafka.apache.org/documentation.html#producerconfigs) | localhost:6667 |
+| [Other possible Kafka properties prefixed with `atlas.kafka.`](http://kafka.apache.org/documentation.html#producerconfigs) | Depends on your setup.
+
+#### Composition Factories Only
+| Property | Description | Example
+| --- | --- | --- |
+| `spline.persistence.composition.factories` | Comma separated list of factories to delegate to <br> | za.co.absa.spline.persistence.mongo.MongoPersistenceFactory, za.co.absa.spline.persistence.hdfs.HdfsPersistenceFactory
 
 
 # Examples
 [Sample]({{ site.github.repository_url }}/tree/master/sample/) folder contains some sample Spline enabled Spark jobs.
-The jobs can be executed locally via ```SamplesRunner``` unit test class.
-
-### Running sample job
-
-First, configure Mongo database connection where Spline will store captured lineage data.
-See [Configuration](#configuration) section for details.
-
-Then run the following commands:
-
-```
-cd sample
-mvn test -Psamples -Dspline.mongodb.url={MONGO CONNECTION URL} -Dspline.mongodb.name={MONGO DATABASE NAME}
-```
-
-It will execute [SamplesRunner]({{ site.github.repository_url }}/blob/master/sample/src/test/scala/za/co/absa/spline/sample/SamplesRunner.scala) test that will run two sample jobs:
-[SampleJob1]({{ site.github.repository_url }}/blob/master/sample/src/main/scala/za/co/absa/spline/sample/SampleJob1.scala) and
-[SampleJob2]({{ site.github.repository_url }}/blob/master/sample/src/main/scala/za/co/absa/spline/sample/SampleJob2.scala)
 
 Sample jobs read data from the [/sample/data/input/]({{ site.github.repository_url }}/tree/master/sample/data/input/) folder
 and write the result into [/sample/data/results/]({{ site.github.repository_url }}/tree/master/sample/data/results/)
