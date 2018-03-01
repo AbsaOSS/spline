@@ -123,7 +123,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         createDataLineage("appID5", "appName5", 5L, path)
       )
 
-      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.loadLatest(path))
+      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestLineagesByPath(path))
 
       result.map(resultItem => resultItem shouldEqual Some(testLineages(2)))
     }
@@ -136,7 +136,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         createDataLineage("appID3", "appName3", 3L)
       )
 
-      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.loadLatest(path))
+      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestLineagesByPath(path))
 
       result.map(resultItem => resultItem shouldEqual None)
     }
@@ -226,7 +226,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
       appName,
       timestamp,
       Seq(
-        Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", outputPath),
+        Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", outputPath, append = false),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md2.id), "rawString2"),
         Read(OperationProps(randomUUID, "Read", sources.flatMap(_.datasetsIds), md4.id), "rawString3", sources),

@@ -48,7 +48,7 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
       appName,
       timestamp,
       Seq(
-        Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path),
+        Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path, append = false),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md2.id), "rawString2"),
         Generic(OperationProps(randomUUID, "LogicalRDD", Seq.empty, md4.id), "rawString3"),

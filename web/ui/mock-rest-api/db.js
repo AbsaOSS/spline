@@ -6790,6 +6790,598 @@ module.exports = function () {
         ],
 
         "_dataset-lineage-overview": [{
+            "id": "e96f2ceb-86b1-4d21-861c-4eb213229838",
+            "appId": "appId",
+            "appName": "appName",
+            "timestamp": 0,
+            "operations": [
+                {
+                    "_typeHint": "za.co.absa.spline.model.op.Composite",
+                    "mainProps": {
+                        "id": "e96f2ceb-86b1-4d21-861c-4eb213229838",
+                        "name": "Jan's Beer Job",
+                        "inputs": [],
+                        "output": "e96f2ceb-86b1-4d21-861c-4eb213229838"
+                    },
+                    "sources": [{
+                        "type": "CSV",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/input/batchWithDependencies/beerConsum.csv",
+                        "datasetsIds": []
+                    }, {
+                        "type": "CSV",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/input/batchWithDependencies/population.csv",
+                        "datasetsIds": []
+                    }],
+                    "destination": {
+                        "type": "parquet",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/beerConsCtl",
+                        "datasetsIds": ["e96f2ceb-86b1-4d21-861c-4eb213229838"]
+                    },
+                    "timestamp": 1520353917390,
+                    "appId": "local-1520353907603",
+                    "appName": "Jan's Beer Job"
+                },
+                {
+                    "_typeHint": "za.co.absa.spline.model.op.Composite",
+                    "mainProps": {
+                        "id": "65d61ba6-ae1e-4f11-8772-bbfae12df877",
+                        "name": "Crazy Job",
+                        "inputs": ["0c94f53e-bca1-4331-8ab9-f876a86b4844", "e939187e-2269-4081-b98d-4037e03e7934", "91faeeba-a893-4a8e-b126-9cad0d17cb84", "9e159943-0216-4638-a0b6-f81efce1b197"],
+                        "output": "65d61ba6-ae1e-4f11-8772-bbfae12df877"
+                    },
+                    "sources": [{
+                        "type": "Parquet",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/beerConsCtl",
+                        "datasetsIds": ["0c94f53e-bca1-4331-8ab9-f876a86b4844", "e939187e-2269-4081-b98d-4037e03e7934", "91faeeba-a893-4a8e-b126-9cad0d17cb84"]
+                    }, {
+                        "type": "Parquet",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/gdpPerCapitaUSD",
+                        "datasetsIds": ["9e159943-0216-4638-a0b6-f81efce1b197"]
+                    }],
+                    "destination": {
+                        "type": "parquet",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/crazyJobResults",
+                        "datasetsIds": ["65d61ba6-ae1e-4f11-8772-bbfae12df877"]
+                    },
+                    "timestamp": 1520429877832,
+                    "appId": "local-1520429863662",
+                    "appName": "Crazy Job"
+                }, {
+                    "_typeHint": "za.co.absa.spline.model.op.Composite",
+                    "mainProps": {
+                        "id": "0c94f53e-bca1-4331-8ab9-f876a86b4844",
+                        "name": "Jan's Beer Job",
+                        "inputs": [],
+                        "output": "0c94f53e-bca1-4331-8ab9-f876a86b4844"
+                    },
+                    "sources": [{
+                        "type": "CSV",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/input/batchWithDependencies/beerConsum.csv",
+                        "datasetsIds": []
+                    }, {
+                        "type": "CSV",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/input/batchWithDependencies/population.csv",
+                        "datasetsIds": []
+                    }],
+                    "destination": {
+                        "type": "parquet",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/beerConsCtl",
+                        "datasetsIds": ["0c94f53e-bca1-4331-8ab9-f876a86b4844"]
+                    },
+                    "timestamp": 1520429838452,
+                    "appId": "local-1520429826113",
+                    "appName": "Jan's Beer Job"
+                }, {
+                    "_typeHint": "za.co.absa.spline.model.op.Composite",
+                    "mainProps": {
+                        "id": "9e159943-0216-4638-a0b6-f81efce1b197",
+                        "name": "Marek's Job",
+                        "inputs": ["e96f2ceb-86b1-4d21-861c-4eb213229838", "33c1faf0-7daa-4157-b546-8c23ce0a8858", "2c2f3d59-e34e-4b48-b145-68fa1be84df4"],
+                        "output": "9e159943-0216-4638-a0b6-f81efce1b197"
+                    },
+                    "sources": [{
+                        "type": "Parquet",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/beerConsCtl",
+                        "datasetsIds": ["e96f2ceb-86b1-4d21-861c-4eb213229838", "33c1faf0-7daa-4157-b546-8c23ce0a8858", "2c2f3d59-e34e-4b48-b145-68fa1be84df4"]
+                    }, {
+                        "type": "CSV",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/input/batchWithDependencies/devIndicators.csv",
+                        "datasetsIds": []
+                    }],
+                    "destination": {
+                        "type": "parquet",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/gdpPerCapitaUSD",
+                        "datasetsIds": ["9e159943-0216-4638-a0b6-f81efce1b197"]
+                    },
+                    "timestamp": 1520354925057,
+                    "appId": "local-1520354914082",
+                    "appName": "Marek's Job"
+                }, {
+                    "_typeHint": "za.co.absa.spline.model.op.Composite",
+                    "mainProps": {
+                        "id": "54ad0b07-486a-437a-b00a-151def694008",
+                        "name": "Crazy Job",
+                        "inputs": ["e939187e-2269-4081-b98d-4037e03e7934", "91faeeba-a893-4a8e-b126-9cad0d17cb84", "9e159943-0216-4638-a0b6-f81efce1b197"],
+                        "output": "54ad0b07-486a-437a-b00a-151def694008"
+                    },
+                    "sources": [{
+                        "type": "Parquet",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/beerConsCtl",
+                        "datasetsIds": ["e939187e-2269-4081-b98d-4037e03e7934", "91faeeba-a893-4a8e-b126-9cad0d17cb84"]
+                    }, {
+                        "type": "Parquet",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/gdpPerCapitaUSD",
+                        "datasetsIds": ["9e159943-0216-4638-a0b6-f81efce1b197"]
+                    }],
+                    "destination": {
+                        "type": "parquet",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/crazyJobResults",
+                        "datasetsIds": ["54ad0b07-486a-437a-b00a-151def694008"]
+                    },
+                    "timestamp": 1520418845178,
+                    "appId": "local-1520418832051",
+                    "appName": "Crazy Job"
+                }, {
+                    "_typeHint": "za.co.absa.spline.model.op.Composite",
+                    "mainProps": {
+                        "id": "7d9d5108-269c-4194-99ac-fcef3857338c",
+                        "name": "Other Job",
+                        "inputs": ["e96f2ceb-86b1-4d21-861c-4eb213229838", "33c1faf0-7daa-4157-b546-8c23ce0a8858", "2c2f3d59-e34e-4b48-b145-68fa1be84df4"],
+                        "output": "7d9d5108-269c-4194-99ac-fcef3857338c"
+                    },
+                    "sources": [{
+                        "type": "Parquet",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/beerConsCtl",
+                        "datasetsIds": ["e96f2ceb-86b1-4d21-861c-4eb213229838", "33c1faf0-7daa-4157-b546-8c23ce0a8858", "2c2f3d59-e34e-4b48-b145-68fa1be84df4"]
+                    }],
+                    "destination": {
+                        "type": "parquet",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/otherJobResults",
+                        "datasetsIds": ["7d9d5108-269c-4194-99ac-fcef3857338c"]
+                    },
+                    "timestamp": 1520355415704,
+                    "appId": "local-1520355405249",
+                    "appName": "Other Job"
+                }, {
+                    "_typeHint": "za.co.absa.spline.model.op.Composite",
+                    "mainProps": {
+                        "id": "2c2f3d59-e34e-4b48-b145-68fa1be84df4",
+                        "name": "Jan's Beer Job",
+                        "inputs": [],
+                        "output": "2c2f3d59-e34e-4b48-b145-68fa1be84df4"
+                    },
+                    "sources": [{
+                        "type": "CSV",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/input/batchWithDependencies/beerConsum.csv",
+                        "datasetsIds": []
+                    }, {
+                        "type": "CSV",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/input/batchWithDependencies/population.csv",
+                        "datasetsIds": []
+                    }],
+                    "destination": {
+                        "type": "parquet",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/beerConsCtl",
+                        "datasetsIds": ["2c2f3d59-e34e-4b48-b145-68fa1be84df4"]
+                    },
+                    "timestamp": 1520353804927,
+                    "appId": "local-1520353795392",
+                    "appName": "Jan's Beer Job"
+                }, {
+                    "_typeHint": "za.co.absa.spline.model.op.Composite",
+                    "mainProps": {
+                        "id": "33c1faf0-7daa-4157-b546-8c23ce0a8858",
+                        "name": "Jan's Beer Job",
+                        "inputs": [],
+                        "output": "33c1faf0-7daa-4157-b546-8c23ce0a8858"
+                    },
+                    "sources": [{
+                        "type": "CSV",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/input/batchWithDependencies/beerConsum.csv",
+                        "datasetsIds": []
+                    }, {
+                        "type": "CSV",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/input/batchWithDependencies/population.csv",
+                        "datasetsIds": []
+                    }],
+                    "destination": {
+                        "type": "parquet",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/beerConsCtl",
+                        "datasetsIds": ["33c1faf0-7daa-4157-b546-8c23ce0a8858"]
+                    },
+                    "timestamp": 1520353897231,
+                    "appId": "local-1520353887192",
+                    "appName": "Jan's Beer Job"
+                }, {
+                    "_typeHint": "za.co.absa.spline.model.op.Composite",
+                    "mainProps": {
+                        "id": "91faeeba-a893-4a8e-b126-9cad0d17cb84",
+                        "name": "Jan's Beer Job",
+                        "inputs": [],
+                        "output": "91faeeba-a893-4a8e-b126-9cad0d17cb84"
+                    },
+                    "sources": [{
+                        "type": "CSV",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/input/batchWithDependencies/beerConsum.csv",
+                        "datasetsIds": []
+                    }, {
+                        "type": "CSV",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/input/batchWithDependencies/population.csv",
+                        "datasetsIds": []
+                    }],
+                    "destination": {
+                        "type": "parquet",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/beerConsCtl",
+                        "datasetsIds": ["91faeeba-a893-4a8e-b126-9cad0d17cb84"]
+                    },
+                    "timestamp": 1520418301725,
+                    "appId": "local-1520418290515",
+                    "appName": "Jan's Beer Job"
+                }, {
+                    "_typeHint": "za.co.absa.spline.model.op.Composite",
+                    "mainProps": {
+                        "id": "e939187e-2269-4081-b98d-4037e03e7934",
+                        "name": "Jan's Beer Job",
+                        "inputs": [],
+                        "output": "e939187e-2269-4081-b98d-4037e03e7934"
+                    },
+                    "sources": [{
+                        "type": "CSV",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/input/batchWithDependencies/beerConsum.csv",
+                        "datasetsIds": []
+                    }, {
+                        "type": "CSV",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/input/batchWithDependencies/population.csv",
+                        "datasetsIds": []
+                    }],
+                    "destination": {
+                        "type": "parquet",
+                        "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/beerConsCtl",
+                        "datasetsIds": ["e939187e-2269-4081-b98d-4037e03e7934"]
+                    },
+                    "timestamp": 1520418376121,
+                    "appId": "local-1520418365380",
+                    "appName": "Jan's Beer Job"
+                }],
+            "datasets": [{
+                "id": "0c94f53e-bca1-4331-8ab9-f876a86b4844",
+                "schema": {"attrs": ["9809a38a-3a25-492b-b01d-6439fb888a1b", "b5fd59bf-3db2-47ab-bb94-10e5fe1a8125", "505799a6-608f-47e3-8b9e-8c0a9f412fda", "1b909a70-5177-4287-ad8e-fbb4c9b2f1b3", "3c05fbe1-fc1b-4fc5-b39d-5f3f3565583b", "aeb7e8e7-55eb-43cd-ab0c-be79e7ce6e47", "37450825-1057-4223-9448-5f6743b2106d", "64ffc681-02d3-43cb-894b-3f1c4cffdb8c", "b282ab14-48f1-4edc-b63d-293228770450", "98d88590-1653-4942-886f-7d67c44d965a", "90281b4f-6474-4596-930c-50bab39c8ad6"]}
+            }, {
+                "id": "2c2f3d59-e34e-4b48-b145-68fa1be84df4",
+                "schema": {"attrs": ["e35999a4-ebf6-4d13-84dc-bb34d4c6f3fa", "dd54ec04-443a-4b20-9dcf-e23bbf1a5e50", "1273ea9f-5068-413c-94e1-0b27b9cd6857", "711e1149-2e7a-4675-963d-c3672b2bfd93", "588ef968-3308-4977-a4e0-4b60dae19a75", "d74295c1-8584-4a1e-a98e-c9b4a7260623", "7818a27a-9106-4ded-88eb-36f706650730", "046180a5-de46-4752-a495-537b33a0af27", "6abc6ec8-3b36-487c-a6e7-528420ae86f6", "c7f0187d-5b8d-4e37-9af1-bd591bf32093", "ea721f5c-1df6-4e08-9bbf-d5e615e2ffb6"]}
+            }, {
+                "id": "7d9d5108-269c-4194-99ac-fcef3857338c",
+                "schema": {"attrs": ["15354047-9f06-465f-ac21-06c1a8b2db35", "565f635e-6296-4a9d-b02f-8cb875a1f8a3", "6c858dd1-7700-483a-b875-5df7e4f161c8"]}
+            }, {
+                "id": "65d61ba6-ae1e-4f11-8772-bbfae12df877",
+                "schema": {"attrs": ["91683ae6-831f-4d39-9cd0-74a31fe99673", "8ee25cf9-6bfe-4cf9-a2f9-33a4524209e0"]}
+            }, {
+                "id": "33c1faf0-7daa-4157-b546-8c23ce0a8858",
+                "schema": {"attrs": ["26408ff1-772d-406a-a6bf-30b81b93a91a", "1939a81e-13c3-43ef-b4d7-2cfe9293d3c6", "29e6bdb0-1913-46ff-85d8-7d0d085db2c4", "8295ebcd-406c-4832-bb0b-9e7d83530093", "dfeba578-72ac-4468-9244-64a61d81c41c", "65d4d484-4dd9-45e0-998b-0e2a1149d714", "8f506759-dc65-435c-a69f-b7995f1ebc57", "1de7fb05-6f8b-4b73-bea3-0a7ec3d27c22", "25896db8-5a9d-477f-9268-4d1cfe08cb28", "23af1ad8-67fb-4dc8-b657-65e8d90a2e94", "0d5e981d-0c55-4a31-8a3e-a4490213fe4c"]}
+            }, {
+                "id": "54ad0b07-486a-437a-b00a-151def694008",
+                "schema": {"attrs": ["3acb1896-c6a9-4ae9-9c8e-8711d1a611c4", "29f57b14-98ab-4d3f-999a-a38be8a73f63"]}
+            }, {
+                "id": "91faeeba-a893-4a8e-b126-9cad0d17cb84",
+                "schema": {"attrs": ["6a09e4e7-c925-4265-b35d-a9b2a8b9a587", "b8578133-febc-4fdf-900d-6be5011dd5f5", "087a65d2-c4f7-4256-ba42-599190f2fca4", "1694c563-e7ca-4d38-a4a7-fc4fc7101f0d", "fa5fba7c-78e8-4b0e-bc7a-fa691ec45ae9", "511120e3-88ff-4367-8f75-0974256fc6cc", "1cb26df8-5e9d-4ea6-8f1a-3bc3dd6c9cb5", "039e9eee-bd8f-484d-baf5-4bc7a5c019e8", "f984f2e0-bb48-4e52-9140-03a0de4d68a4", "06ca454a-df92-4b17-adf6-94c2c99bb29f", "c2ef9157-8b61-481e-81bc-9b02914ba0a2"]}
+            }, {
+                "id": "e96f2ceb-86b1-4d21-861c-4eb213229838",
+                "schema": {"attrs": ["c24e0a51-11f9-431f-8cf1-1468f9772c49", "a1f0c1c5-da15-4c2a-8b43-ac138dd103fd", "7b4813b7-007f-4729-bf9b-362a647f8c37", "dee79c18-6432-455b-9f16-2a9c4423bdb6", "7a44f470-6006-47eb-b861-98cdf37068e3", "8501de3c-40f7-4d27-9f7c-12d8d9604927", "5a19aabb-f02b-4fea-86d1-31cfd7b5b79e", "458a4bea-3ae9-4999-851d-e74e47a92b1d", "7a748fc4-a49f-444b-a752-94163fae8dda", "ac7040a9-160a-41a8-a6cc-601deb13ee3b", "c9579865-edf0-4056-8270-9922fe6116dc"]}
+            }, {
+                "id": "e939187e-2269-4081-b98d-4037e03e7934",
+                "schema": {"attrs": ["8b41ca4e-5c43-407a-a1b5-a7ac5c998016", "79d93619-bd71-4ec6-8fcb-312251ee87b0", "3e46419b-0d19-4522-b638-e0471dbb42c6", "99f7e14c-f6a1-468d-99aa-ce02b3f68f4c", "b402637b-b89b-42a7-8723-339ba8716716", "e392386e-18d3-46c1-9c53-3434ad3a4835", "779bc299-e7a8-4f0d-8049-851f45aba22c", "6929b950-0e05-4c98-a9a8-affba125a08e", "d83e63e5-20b6-4243-83d1-d309fa0c7c34", "97172275-7023-48b7-a271-de85a36b26a0", "5744994a-dd5e-4cdd-99c8-aaae5419ad83"]}
+            }, {
+                "id": "9e159943-0216-4638-a0b6-f81efce1b197",
+                "schema": {"attrs": ["b873f7a5-eaaf-4bdb-9a69-f57f6e1727fe", "c3fb9137-d86c-46b5-899a-090b54dd3a06", "9b19f87a-fda7-4251-82fe-17d0d2f5351f"]}
+            }],
+            "attributes": [{
+                "id": "b8578133-febc-4fdf-900d-6be5011dd5f5",
+                "name": "Code",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "97172275-7023-48b7-a271-de85a36b26a0",
+                "name": "Year2010",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "fa5fba7c-78e8-4b0e-bc7a-fa691ec45ae9",
+                "name": "Year2005",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "25896db8-5a9d-477f-9268-4d1cfe08cb28",
+                "name": "Year2009",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "b402637b-b89b-42a7-8723-339ba8716716",
+                "name": "Year2005",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "6c858dd1-7700-483a-b875-5df7e4f161c8",
+                "name": "BeerConsumption2011",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "b873f7a5-eaaf-4bdb-9a69-f57f6e1727fe",
+                "name": "country_name",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "e392386e-18d3-46c1-9c53-3434ad3a4835",
+                "name": "Year2006",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "c7f0187d-5b8d-4e37-9af1-bd591bf32093",
+                "name": "Year2010",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "9809a38a-3a25-492b-b01d-6439fb888a1b",
+                "name": "Country",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "37450825-1057-4223-9448-5f6743b2106d",
+                "name": "Year2007",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "505799a6-608f-47e3-8b9e-8c0a9f412fda",
+                "name": "Year2003",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "b282ab14-48f1-4edc-b63d-293228770450",
+                "name": "Year2009",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "8295ebcd-406c-4832-bb0b-9e7d83530093",
+                "name": "Year2004",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "c3fb9137-d86c-46b5-899a-090b54dd3a06",
+                "name": "beer_consumption",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "565f635e-6296-4a9d-b02f-8cb875a1f8a3",
+                "name": "Code",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "7818a27a-9106-4ded-88eb-36f706650730",
+                "name": "Year2007",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "511120e3-88ff-4367-8f75-0974256fc6cc",
+                "name": "Year2006",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "779bc299-e7a8-4f0d-8049-851f45aba22c",
+                "name": "Year2007",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "3c05fbe1-fc1b-4fc5-b39d-5f3f3565583b",
+                "name": "Year2005",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "79d93619-bd71-4ec6-8fcb-312251ee87b0",
+                "name": "Code",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "7b4813b7-007f-4729-bf9b-362a647f8c37",
+                "name": "Year2003",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "8f506759-dc65-435c-a69f-b7995f1ebc57",
+                "name": "Year2007",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "5744994a-dd5e-4cdd-99c8-aaae5419ad83",
+                "name": "Year2011",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "c2ef9157-8b61-481e-81bc-9b02914ba0a2",
+                "name": "Year2011",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "c9579865-edf0-4056-8270-9922fe6116dc",
+                "name": "Year2011",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "65d4d484-4dd9-45e0-998b-0e2a1149d714",
+                "name": "Year2006",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "7a748fc4-a49f-444b-a752-94163fae8dda",
+                "name": "Year2009",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "06ca454a-df92-4b17-adf6-94c2c99bb29f",
+                "name": "Year2010",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "1b909a70-5177-4287-ad8e-fbb4c9b2f1b3",
+                "name": "Year2004",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "9b19f87a-fda7-4251-82fe-17d0d2f5351f",
+                "name": "gdp_per_capita",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "5a19aabb-f02b-4fea-86d1-31cfd7b5b79e",
+                "name": "Year2007",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "3e46419b-0d19-4522-b638-e0471dbb42c6",
+                "name": "Year2003",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "6a09e4e7-c925-4265-b35d-a9b2a8b9a587",
+                "name": "Country",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "dd54ec04-443a-4b20-9dcf-e23bbf1a5e50",
+                "name": "Code",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "1694c563-e7ca-4d38-a4a7-fc4fc7101f0d",
+                "name": "Year2004",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "6abc6ec8-3b36-487c-a6e7-528420ae86f6",
+                "name": "Year2009",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "dee79c18-6432-455b-9f16-2a9c4423bdb6",
+                "name": "Year2004",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "711e1149-2e7a-4675-963d-c3672b2bfd93",
+                "name": "Year2004",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "d74295c1-8584-4a1e-a98e-c9b4a7260623",
+                "name": "Year2006",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "a1f0c1c5-da15-4c2a-8b43-ac138dd103fd",
+                "name": "Code",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "8ee25cf9-6bfe-4cf9-a2f9-33a4524209e0",
+                "name": "BeerConsumption2011",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "dfeba578-72ac-4468-9244-64a61d81c41c",
+                "name": "Year2005",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "15354047-9f06-465f-ac21-06c1a8b2db35",
+                "name": "Country",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "b5fd59bf-3db2-47ab-bb94-10e5fe1a8125",
+                "name": "Code",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "087a65d2-c4f7-4256-ba42-599190f2fca4",
+                "name": "Year2003",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "046180a5-de46-4752-a495-537b33a0af27",
+                "name": "Year2008",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "1cb26df8-5e9d-4ea6-8f1a-3bc3dd6c9cb5",
+                "name": "Year2007",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "8501de3c-40f7-4d27-9f7c-12d8d9604927",
+                "name": "Year2006",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "8b41ca4e-5c43-407a-a1b5-a7ac5c998016",
+                "name": "Country",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "aeb7e8e7-55eb-43cd-ab0c-be79e7ce6e47",
+                "name": "Year2006",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "f984f2e0-bb48-4e52-9140-03a0de4d68a4",
+                "name": "Year2009",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "64ffc681-02d3-43cb-894b-3f1c4cffdb8c",
+                "name": "Year2008",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "3acb1896-c6a9-4ae9-9c8e-8711d1a611c4",
+                "name": "Country",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "6929b950-0e05-4c98-a9a8-affba125a08e",
+                "name": "Year2008",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "29f57b14-98ab-4d3f-999a-a38be8a73f63",
+                "name": "BeerConsumption2011",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "91683ae6-831f-4d39-9cd0-74a31fe99673",
+                "name": "Country",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "0d5e981d-0c55-4a31-8a3e-a4490213fe4c",
+                "name": "Year2011",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "26408ff1-772d-406a-a6bf-30b81b93a91a",
+                "name": "Country",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "1939a81e-13c3-43ef-b4d7-2cfe9293d3c6",
+                "name": "Code",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "c24e0a51-11f9-431f-8cf1-1468f9772c49",
+                "name": "Country",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+            }, {
+                "id": "98d88590-1653-4942-886f-7d67c44d965a",
+                "name": "Year2010",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "ac7040a9-160a-41a8-a6cc-601deb13ee3b",
+                "name": "Year2010",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "90281b4f-6474-4596-930c-50bab39c8ad6",
+                "name": "Year2011",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "1de7fb05-6f8b-4b73-bea3-0a7ec3d27c22",
+                "name": "Year2008",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "588ef968-3308-4977-a4e0-4b60dae19a75",
+                "name": "Year2005",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "458a4bea-3ae9-4999-851d-e74e47a92b1d",
+                "name": "Year2008",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "29e6bdb0-1913-46ff-85d8-7d0d085db2c4",
+                "name": "Year2003",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "d83e63e5-20b6-4243-83d1-d309fa0c7c34",
+                "name": "Year2009",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "23af1ad8-67fb-4dc8-b657-65e8d90a2e94",
+                "name": "Year2010",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "039e9eee-bd8f-484d-baf5-4bc7a5c019e8",
+                "name": "Year2008",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "ea721f5c-1df6-4e08-9bbf-d5e615e2ffb6",
+                "name": "Year2011",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "7a44f470-6006-47eb-b861-98cdf37068e3",
+                "name": "Year2005",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "99f7e14c-f6a1-468d-99aa-ce02b3f68f4c",
+                "name": "Year2004",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "1273ea9f-5068-413c-94e1-0b27b9cd6857",
+                "name": "Year2003",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "double", "nullable": true}
+            }, {
+                "id": "e35999a4-ebf6-4d13-84dc-bb34d4c6f3fa",
+                "name": "Country",
+                "dataType": {"_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true}
+            }
+            ]
+        },
+            {
             id: "ds-uuid-1",
             operations: [
                 {
@@ -6798,11 +7390,12 @@ module.exports = function () {
                     appId: "my.app.a",
                     timestamp: 1506696404000,
                     destination: {
-                        datasetId: "ds-uuid-a",
+                        datasetsIds: ["ds-uuid-a"],
                         path: "/some/path/a",
                         type: "parquet"
                     },
                     sources: [{
+                        datasetsIds: [],
                         path: "/some/path/a.csv",
                         type: "CSV"
                     }],
@@ -6818,11 +7411,15 @@ module.exports = function () {
                     appId: "my.app.b",
                     timestamp: 1506696404000,
                     destination: {
-                        datasetId: "ds-uuid-b",
+                        datasetsIds: ["ds-uuid-b"],
                         path: "/some/path/b",
                         type: "parquet"
                     },
-                    sources: [{path: "/some/path/data.csv", type: "CSV"}],
+                    sources: [{
+                        datasetsIds: [],
+                        path: "/some/path/data.csv",
+                        type: "CSV"
+                    }],
                     mainProps: {
                         "id": "ds-uuid-b",
                         "name": "B",
@@ -6835,19 +7432,20 @@ module.exports = function () {
                     appId: "my.app.c",
                     timestamp: 1506696404000,
                     destination: {
-                        datasetId: "ds-uuid-c",
+                        datasetsIds: ["ds-uuid-c"],
                         path: "/some/path/c",
                         type: "parquet"
                     },
                     sources: [{
-                        datasetId: "ds-uuid-a",
+                        datasetsIds: ["ds-uuid-a"],
                         path: "/some/path/a",
                         type: "Parquet"
                     }, {
-                        datasetId: "ds-uuid-b",
+                        datasetsIds: ["ds-uuid-b"],
                         path: "/some/path/b",
                         type: "Parquet"
                     }, {
+                        datasetsIds: [],
                         path: "/some/path/b.csv",
                         type: "CSV"
                     }],
@@ -6863,19 +7461,20 @@ module.exports = function () {
                     appId: "my.app.d",
                     timestamp: 1506696404000,
                     destination: {
-                        datasetId: "ds-uuid-d",
+                        datasetsIds: ["ds-uuid-d"],
                         path: "/some/path/d",
                         type: "parquet"
                     },
                     sources: [{
-                        datasetId: "ds-uuid-a",
+                        datasetsIds: ["ds-uuid-a"],
                         path: "/some/path/a",
                         type: "Parquet"
                     }, {
-                        datasetId: "ds-uuid-b",
+                        datasetsIds: ["ds-uuid-b"],
                         path: "/some/path/b",
                         type: "Parquet"
                     }, {
+                        datasetsIds: [],
                         path: "/some/path/b.csv",
                         type: "CSV"
                     }],
@@ -6891,28 +7490,32 @@ module.exports = function () {
                     appId: "my.app.e",
                     timestamp: 1506696404000,
                     destination: {
-                        datasetId: "ds-uuid-1",
+                        datasetsIds: ["ds-uuid-1"],
                         path: "/some/path/e",
                         type: "parquet"
                     },
                     sources: [{
-                        datasetId: "ds-uuid-c",
+                        datasetsIds: ["ds-uuid-c"],
                         path: "/some/path/c",
                         type: "Parquet"
                     }, {
-                        datasetId: "ds-uuid-d",
+                        datasetsIds: ["ds-uuid-d"],
                         path: "/some/path/d",
                         type: "Parquet"
                     }, {
+                        datasetsIds: [],
                         path: "/some/path/e.csv",
                         type: "CSV"
                     }, {
+                        datasetsIds: [],
                         path: "/some/path/e.json",
                         type: "JSON"
                     }, {
+                        datasetsIds: [],
                         path: "/some/path/e.txt",
                         type: "Text"
                     }, {
+                        datasetsIds: [],
                         path: "/some/path/e.parquet",
                         type: "Parquet"
                     }],
@@ -7945,11 +8548,12 @@ module.exports = function () {
                         appId: "my.app.a",
                         timestamp: 1506696404000,
                         destination: {
-                            datasetId: "ds-uuid-a",
+                            datasetsIds: ["ds-uuid-a"],
                             path: "/some/path/a",
                             type: "parquet"
                         },
                         sources: [{
+                            datasetsIds: [],
                             path: "/some/path/a.csv",
                             type: "CSV"
                         }],
@@ -7965,11 +8569,15 @@ module.exports = function () {
                         appId: "my.app.b",
                         timestamp: 1506696404000,
                         destination: {
-                            datasetId: "ds-uuid-b",
+                            datasetsIds: ["ds-uuid-b"],
                             path: "/some/path/b",
                             type: "parquet"
                         },
-                        sources: [{path: "/some/path/data.csv", type: "CSV"}],
+                        sources: [{
+                            datasetsIds: [],
+                            path: "/some/path/data.csv",
+                            type: "CSV"
+                        }],
                         mainProps: {
                             "id": "ds-uuid-b",
                             "name": "B",
@@ -7982,19 +8590,20 @@ module.exports = function () {
                         appId: "my.app.c",
                         timestamp: 1506696404000,
                         destination: {
-                            datasetId: "ds-uuid-c",
+                            datasetsIds: ["ds-uuid-c"],
                             path: "/some/path/c",
                             type: "parquet"
                         },
                         sources: [{
-                            datasetId: "ds-uuid-a",
+                            datasetsIds: ["ds-uuid-a"],
                             path: "/some/path/a",
                             type: "Parquet"
                         }, {
-                            datasetId: "ds-uuid-b",
+                            datasetsIds: ["ds-uuid-b"],
                             path: "/some/path/b",
                             type: "Parquet"
                         }, {
+                            datasetsIds: [],
                             path: "/some/path/b.csv",
                             type: "CSV"
                         }],
@@ -8010,19 +8619,20 @@ module.exports = function () {
                         appId: "my.app.d",
                         timestamp: 1506696404000,
                         destination: {
-                            datasetId: "ds-uuid-d",
+                            datasetsIds: ["ds-uuid-d"],
                             path: "/some/path/d",
                             type: "parquet"
                         },
                         sources: [{
-                            datasetId: "ds-uuid-a",
+                            datasetsIds: ["ds-uuid-a"],
                             path: "/some/path/a",
                             type: "Parquet"
                         }, {
-                            datasetId: "ds-uuid-b",
+                            datasetsIds: ["ds-uuid-b"],
                             path: "/some/path/b",
                             type: "Parquet"
                         }, {
+                            datasetsIds: [],
                             path: "/some/path/b.csv",
                             type: "CSV"
                         }],
@@ -8038,19 +8648,20 @@ module.exports = function () {
                         appId: "my.app.e",
                         timestamp: 1506696404000,
                         destination: {
-                            datasetId: "ds-uuid-1",
+                            datasetsIds: ["ds-uuid-1"],
                             path: "/some/path/e",
                             type: "parquet"
                         },
                         sources: [{
-                            datasetId: "ds-uuid-c",
+                            datasetsIds: ["ds-uuid-c"],
                             path: "/some/path/c",
                             type: "Parquet"
                         }, {
-                            datasetId: "ds-uuid-d",
+                            datasetsIds: ["ds-uuid-d"],
                             path: "/some/path/d",
                             type: "Parquet"
                         }, {
+                            datasetsIds: [],
                             path: "/some/path/e.csv",
                             type: "CSV"
                         }],
@@ -8066,19 +8677,20 @@ module.exports = function () {
                         appId: "my.app.f",
                         timestamp: 1506696404000,
                         destination: {
-                            datasetId: "ds-uuid-28",
+                            datasetsIds: ["ds-uuid-28"],
                             path: "/some/path/f",
                             type: "parquet"
                         },
                         sources: [{
-                            datasetId: "ds-uuid-1",
+                            datasetsIds: ["ds-uuid-1"],
                             path: "/some/path/1",
                             type: "Parquet"
                         }, {
-                            datasetId: "ds-uuid-d",
+                            datasetsIds: ["ds-uuid-d"],
                             path: "/some/path/d",
                             type: "Parquet"
                         }, {
+                            datasetsIds: [],
                             path: "/some/path/e.csv",
                             type: "CSV"
                         }],
@@ -8140,6 +8752,13 @@ module.exports = function () {
             }],
 
         "_persisted-dataset-descriptors": [{
+            id: "e96f2ceb-86b1-4d21-861c-4eb213229838",
+            datasetId: "e96f2ceb-86b1-4d21-861c-4eb213229838",
+            appId: "APPENDS",
+            appName: "APPENDS",
+            path: "hdfs://APPENDS",
+            timestamp: 1506696404000
+        }, {
             id: "ds-uuid-1",
             datasetId: "ds-uuid-1",
             appId: "dlkjfghlskdhfjlksd",

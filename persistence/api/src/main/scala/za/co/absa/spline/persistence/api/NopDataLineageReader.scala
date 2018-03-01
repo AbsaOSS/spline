@@ -51,7 +51,7 @@ object NopDataLineageReader extends DataLineageReader {
     * @param path A path for which a lineage graph is looked for
     * @return The latest data lineage
     */
-  override def loadLatest(path: String)(implicit ec: ExecutionContext): Future[Option[DataLineage]] = Future.successful(None)
+  override def findLatestLineagesByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] = Future.successful(CloseableIterable.empty)
 
   /**
     * The method loads composite operations for an input datasetId.

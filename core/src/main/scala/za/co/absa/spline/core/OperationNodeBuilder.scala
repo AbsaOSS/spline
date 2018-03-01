@@ -21,13 +21,12 @@ import java.util.UUID.randomUUID
 
 import com.databricks.spark.xml.XmlRelation
 import org.apache.hadoop.conf.Configuration
-import org.apache.spark.sql.JDBCRelation
 import org.apache.spark.sql.catalyst.expressions.SortOrder
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation, SaveIntoDataSourceCommand}
 import org.apache.spark.sql.sources.BaseRelation
+import org.apache.spark.sql.{JDBCRelation, SaveMode}
 import za.co.absa.spline.model.expr.Expression
-import za.co.absa.spline.model.op.MetaDataSource
 import za.co.absa.spline.model.{op, _}
 
 import scala.collection.mutable
@@ -186,7 +185,8 @@ private class DestinationNodeBuilder(val operation: SaveIntoDataSourceCommand)
     op.Write(
       buildOperationProps(),
       operation.provider,
-      PathUtils.getQualifiedPath(hadoopConfiguration)(operation.options.getOrElse("path", ""))
+      PathUtils.getQualifiedPath(hadoopConfiguration)(operation.options.getOrElse("path", "")),
+      append = operation.mode == SaveMode.Append
     )
   }
 }

@@ -19,16 +19,16 @@ package za.co.absa.spline.persistence.mongo
 import java.util.Arrays._
 import java.util.UUID
 import java.util.regex.Pattern.quote
-import java.{util => ju}
 
 import _root_.salat._
 import com.mongodb.Cursor
 import com.mongodb.casbah.AggregationOptions.{default => aggOpts}
 import com.mongodb.casbah.Imports._
 import za.co.absa.spline.common.UUIDExtractors.UUIDExtractor
-import za.co.absa.spline.model.{DataLineage, DataLineageId, PersistedDatasetDescriptor}
+import za.co.absa.spline.model._
 import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
+import za.co.absa.spline.persistence.mongo.DBSchemaVersionHelper.withVersionCheck
 import za.co.absa.spline.persistence.mongo.MongoImplicits._
 
 import scala.collection.JavaConverters._
@@ -86,14 +86,35 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @param path A path for which a lineage graph is looked for
     * @return The latest data lineage
     */
-  override def loadLatest(path: String)(implicit ec: ExecutionContext): Future[Option[DataLineage]] = Future {
-    val dbo = blocking {
-      connection.dataLineageCollection.findOne(
-        DBObject("rootOperation.path" → path),
-        DBObject(),
-        DBObject("timestamp" → -1))
-    }
-    Option(dbo) map withVersionCheck(grater[DataLineage].asObject(_))
+  override def findLatestLineagesByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] = Future {
+    import za.co.absa.spline.common.ARMImplicits._
+
+    val lastOverwriteTimestampIfExists: Option[Long] =
+      for (timestampCursor <- blocking(
+        connection.dataLineageCollection.aggregate(
+          asList(
+            DBObject("$match" → DBObject(
+              "rootOperation.path" → path,
+              "rootOperation.append" → false)),
+            DBObject("$project" → DBObject("timestamp" → 1)),
+            DBObject("$sort" → DBObject("timestamp" → -1)),
+            DBObject("$limit" → 1)),
+          aggOpts))
+      ) yield
+        if (timestampCursor.hasNext) Some(timestampCursor.next.get("timestamp").asInstanceOf[Long])
+        else None
+
+    val lineageCursor = blocking(
+      connection.dataLineageCollection.aggregate(
+        asList(
+          DBObject("$match" → (DBObject(
+            "rootOperation.path" → path)
+            ++
+            ("timestamp" $gte (lastOverwriteTimestampIfExists getOrElse 0L)))),
+          DBObject("$sort" → DBObject("timestamp" → -1))),
+        aggOpts))
+
+    new DBCursorToCloseableIterableAdapter[DataLineage](lineageCursor)
   }
 
   /**
@@ -104,9 +125,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     */
   override def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] = Future {
     val cursor = blocking(connection.dataLineageCollection find DBObject("operations.sources.datasetsIds" → datasetId))
-    new CloseableIterable[DataLineage](
-      cursor.iterator.asScala.map(withVersionCheck(grater[DataLineage].asObject(_))),
-      cursor.close())
+    new DBCursorToCloseableIterableAdapter[DataLineage](cursor)
   }
 
   /**
@@ -114,7 +133,8 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     *
     * @return Descriptors of all data lineages
     */
-  override def findDatasets(maybeText: Option[String], pageRequest: PageRequest)(implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]] = Future {
+  override def findDatasets(maybeText: Option[String], pageRequest: PageRequest)
+                           (implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]] = Future {
     val paginationDeduplicationCriteria: Seq[DBObject] = Seq(
       "timestamp" $lte pageRequest.asAtTime
     )
@@ -133,9 +153,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
       DBObject("$limit" → pageRequest.size)
     )
 
-    new CloseableIterable[PersistedDatasetDescriptor](
-      (cursor: ju.Iterator[DBObject]).asScala.map(withVersionCheck(grater[PersistedDatasetDescriptor].asObject(_))),
-      cursor.close())
+    new DBCursorToCloseableIterableAdapter[PersistedDatasetDescriptor](cursor)
   }
 
   private def selectPersistedDatasets(queryPipeline: DBObject*): Cursor = {
@@ -163,12 +181,6 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     for (cursor <- selectPersistedDatasets(DBObject("$match" → DBObject("rootDataset._id" → id))))
       yield withVersionCheck(grater[PersistedDatasetDescriptor].asObject(_))(cursor.next)
   }
-
-  private def withVersionCheck[T](f: DBObject => T): DBObject => T =
-    dbo => (dbo get "_ver").asInstanceOf[Int] match {
-      case connection.LATEST_SERIAL_VERSION => f(dbo)
-      case unknownVersion => sys.error(s"Unsupported serialized lineage version: $unknownVersion")
-    }
 
   private val persistedDatasetDescriptorFields = {
     val caseClassFields = classOf[PersistedDatasetDescriptor].getDeclaredFields map (_.getName)

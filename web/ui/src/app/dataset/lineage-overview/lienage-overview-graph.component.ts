@@ -120,38 +120,57 @@ export class LineageOverviewGraphComponent implements OnInit {
     private static buildVisModel(lineage: IDataLineage): vis.Data {
         const getIdentifiableDataSourcesOf =
             (op: IComposite): ITypedMetaDataSource[] =>
-                op.sources.map((src, i) =>
-                    !src.datasetId
-                        ? _.assign({datasetId: ID_PREFIXES.extra + i + "_" + op.mainProps.id}, src)
+                _.flatMap(op.sources, (src, i) =>
+                    _.isEmpty(src.datasetsIds)
+                        ? _.assign({}, src, {datasetsIds: [ID_PREFIXES.extra + i + "_" + op.mainProps.id]})
                         : src)
 
-        let dataSources = (<any>_(lineage.operations))
-                .flatMap((op: IComposite) => getIdentifiableDataSourcesOf(op).concat(op.destination))
-                .uniqBy("datasetId")
-                .value(),
-            datasetNodes: vis.Node[] = dataSources.map((src: ITypedMetaDataSource) => ({
-                id: ID_PREFIXES.datasource + src.datasetId,
-                title: src.type + ":" + src.path,
-                label: src.path.substring(src.path.lastIndexOf("/") + 1),
-                icon: LineageOverviewGraphComponent.getIcon(
-                    new Icon("fa-file", "\uf15b", "FontAwesome"),
-                    src.datasetId.startsWith(ID_PREFIXES.extra) ? "#c0cdd6" : undefined)
-            })),
-            operationNodes: vis.Node[] = lineage.operations.map((op: IComposite) => ({
+        const recombineByDatasetId =
+            (typedMetadataSources: ITypedMetaDataSource[]): [string, ITypedMetaDataSource][] =>
+                <any[]> _(typedMetadataSources)
+                    .flatMap((src: ITypedMetaDataSource) => src.datasetsIds.map(dsId => [dsId, src]))
+                    .groupBy(_.head).values()
+                    .map(_.head)
+                    .value()
+
+
+        let dataSources =
+                _.flatMap(lineage.operations, (op: IComposite) =>
+                    getIdentifiableDataSourcesOf(op).concat(op.destination)),
+
+            datasetNodes: vis.Node[] =
+                recombineByDatasetId(dataSources)
+                    .map(([datasetId, src]) =>
+                        ({
+                            id: ID_PREFIXES.datasource + datasetId,
+                            title: src.type + ":" + src.path,
+                            label: src.path.substring(src.path.lastIndexOf("/") + 1),
+                            icon: LineageOverviewGraphComponent.getIcon(
+                                new Icon("fa-file", "\uf15b", "FontAwesome"),
+                                datasetId.startsWith(ID_PREFIXES.extra) ? "#c0cdd6" : undefined)
+                        })
+                    ),
+
+            processNodes: vis.Node[] = lineage.operations.map((op: IComposite) => ({
                 id: ID_PREFIXES.operation + op.mainProps.id,
                 label: op.appName,
                 icon: LineageOverviewGraphComponent.getIcon(Icon.getIconForNodeType(typeOfOperation(op)))
             })),
+
+            nodes = processNodes.concat(datasetNodes),
+
             edges: vis.Edge[] = _.flatMap(lineage.operations, (op: IComposite) => {
                 let opNodeId = ID_PREFIXES.operation + op.mainProps.id
-                let inputEdges: vis.Edge[] = getIdentifiableDataSourcesOf(op).map((src: ITypedMetaDataSource) => {
-                        let dsNodeId = ID_PREFIXES.datasource + src.datasetId
-                        return {
-                            id: dsNodeId + "_" + opNodeId,
-                            from: dsNodeId,
-                            to: opNodeId
-                        }
-                    }),
+                let inputEdges: vis.Edge[] =
+                        recombineByDatasetId(getIdentifiableDataSourcesOf(op))
+                            .map(([datasetId]) => {
+                                let dsNodeId = ID_PREFIXES.datasource + datasetId
+                                return {
+                                    id: dsNodeId + "_" + opNodeId,
+                                    from: dsNodeId,
+                                    to: opNodeId
+                                }
+                            }),
                     outputDsNodeId = ID_PREFIXES.datasource + op.mainProps.output,
                     outputEdge: vis.Edge = {
                         id: opNodeId + "_" + outputDsNodeId,
@@ -162,7 +181,7 @@ export class LineageOverviewGraphComponent implements OnInit {
             })
 
         return {
-            nodes: new vis.DataSet<vis.Node>(operationNodes.concat(datasetNodes)),
+            nodes: new vis.DataSet<vis.Node>(nodes),
             edges: new vis.DataSet<vis.Edge>(edges)
         }
     }
@@ -220,9 +239,9 @@ const visOptions = {
 
     edges: {
         color: {
-            color:'#E0E0E0',
+            color: '#E0E0E0',
             hover: '#E0E0E0',
-            highlight:'E0E0E0'
+            highlight: 'E0E0E0'
         },
         shadow: false,
         width: 10,

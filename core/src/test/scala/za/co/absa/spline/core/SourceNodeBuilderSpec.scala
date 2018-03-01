@@ -19,8 +19,8 @@ package za.co.absa.spline.core
 import java.sql.{Connection, Driver, DriverManager, DriverPropertyInfo, PreparedStatement, ResultSet}
 import java.util.Properties
 import java.util.logging.Logger
-import javax.sql.rowset.RowSetMetaDataImpl
 
+import javax.sql.rowset.RowSetMetaDataImpl
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.execution.datasources.LogicalRelation
@@ -31,7 +31,7 @@ import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FunSpec, Matchers}
 import za.co.absa.spline.core.TestSparkContext.sparkSession
-import za.co.absa.spline.model.op.MetaDataSource
+import za.co.absa.spline.model.MetaDataSource
 
 class SourceNodeBuilderSpec extends FunSpec with MockitoSugar with Matchers {
   DriverManager registerDriver new FakeJDBCDriver

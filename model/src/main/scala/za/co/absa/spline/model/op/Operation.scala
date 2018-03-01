@@ -21,7 +21,7 @@ import java.util.UUID
 import salat.annotations.Salat
 import za.co.absa.spline.model.endpoint.StreamEndpoint
 import za.co.absa.spline.model.expr.Expression
-import za.co.absa.spline.model.{Attribute, MetaDataset}
+import za.co.absa.spline.model.{MetaDataSource, TypedMetaDataSource}
 
 /**
   * The case class represents node properties that are common for all node types.
@@ -62,7 +62,7 @@ object Operation {
     def updated(fn: OperationProps => OperationProps): T = (op.asInstanceOf[Operation] match {
       case op@Read(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@StreamRead(mp, _) => op.copy(mainProps = fn(mp))
-      case op@Write(mp, _, _) => op.copy(mainProps = fn(mp))
+      case op@Write(mp, _, _, _) => op.copy(mainProps = fn(mp))
       case op@StreamWrite(mp, _) => op.copy(mainProps = fn(mp))
       case op@Alias(mp, _) => op.copy(mainProps = fn(mp))
       case op@Filter(mp, _) => op.copy(mainProps = fn(mp))
@@ -180,11 +180,13 @@ case class Alias(
   * @param mainProps       Common node properties
   * @param destinationType A string description of a destination type (parquet files, csv file, avro file, Hive table, etc.)
   * @param path            A path to the place where data set will be stored (file, table, ...)
+  * @param append          `true` for "APPEND" write mode, `false` otherwise.
   */
 case class Write(
                   mainProps: OperationProps,
                   destinationType: String,
-                  path: String
+                  path: String,
+                  append: Boolean
                 ) extends Operation
 
 /**
@@ -233,24 +235,6 @@ case class StreamWrite(
                         mainProps: OperationProps,
                         destination: StreamEndpoint
                       ) extends Operation
-
-/**
-  * Represents a persisted source data (e.g. file)
-  *
-  * @param path        file location
-  * @param datasetsIds IDs of associated dataset(s) that was read/written from/to the given data source
-  */
-case class MetaDataSource(path: String, datasetsIds: Seq[UUID])
-
-/**
-  * Represents a persisted source data (e.g. file).
-  * Same as [[MetaDataSource]] but with type
-  *
-  * @param `type`      source type
-  * @param path        file location
-  * @param datasetsIds ID of an associated dataset that was read/written from/to the given data source
-  */
-case class TypedMetaDataSource(`type`: String, path: String, datasetsIds: Seq[UUID])
 
 /**
   * The case class represents a partial data lineage at its boundary level.

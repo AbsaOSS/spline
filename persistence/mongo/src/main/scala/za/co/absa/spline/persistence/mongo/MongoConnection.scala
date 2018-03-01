@@ -28,7 +28,6 @@ import com.mongodb.casbah.MongoClient
   */
 class MongoConnection(dbUrl: String, dbName: String) {
   val dataLineageCollectionName: String = "lineages"
-  val LATEST_SERIAL_VERSION = 1
 
   private val client: MongoClient = MongoClient(MongoClientURI(dbUrl))
   require(client.connectPoint != null) // check if the connection can be established

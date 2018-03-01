@@ -46,7 +46,7 @@
                         <h5>Timestamp: <b>{{selectedDataSourceDescription.timestamp | date:'medium'}}</b></h5>
                         <hr>
                         <div style="text-align: center">
-                            <button mat-raised-button (click)="gotoPartialLineage(selectedDataSourceDescription.source.datasetId)">
+                            <button mat-raised-button (click)="gotoPartialLineage(selectedDataSourceDescription.source.datasetsIds[0])">
                                 Show detailed lineage graph
                             </button>
                         </div>
@@ -81,12 +81,15 @@
                     <hr>
                     <h3>Sources:</h3>
                     <ul>
-                        <li *ngFor="let src of selectedOperation.sources"
-                            [ngSwitch]="!!src.datasetId">
-                            <a href="javascript:return false"
-                               (click)="gotoOverviewLineage(src.datasetId, 'datasource')"
-                               *ngSwitchCase="true"><b>{{src.type}}</b> : {{src.path}}</a>
-                            <span *ngSwitchDefault=""><b>{{src.type}}</b> : {{src.path}}</span>
+                        <li *ngFor="let src of selectedOperation.sources">
+                            <b>{{src.type}}</b> : {{src.path}}
+                            <div *ngIf="src.datasetsIds?.length">
+                                <a *ngFor="let dsId of src.datasetsIds"
+                                   href="javascript:void(0)"
+                                   (click)="gotoOverviewLineage(dsId, 'datasource')">
+                                    {{dsId}}<br/>
+                                </a>
+                            </div>
                         </li>
                     </ul>
                 </div>

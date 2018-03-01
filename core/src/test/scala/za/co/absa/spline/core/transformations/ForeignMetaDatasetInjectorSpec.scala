@@ -19,16 +19,12 @@ package za.co.absa.spline.core.transformations
 
 import java.util.UUID.randomUUID
 
-import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{AsyncFlatSpec, Matchers}
+import za.co.absa.spline.model._
 import za.co.absa.spline.model.dt.Simple
-import za.co.absa.spline.model.op.{MetaDataSource, OperationProps, Read, Write}
-import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset, Schema}
+import za.co.absa.spline.model.op.{OperationProps, Read, Write}
 import za.co.absa.spline.persistence.api.DataLineageReader
-
-import scala.concurrent.Future
 
 class ForeignMetaDatasetInjectorSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
 
@@ -47,7 +43,7 @@ class ForeignMetaDatasetInjectorSpec extends AsyncFlatSpec with Matchers with Mo
         MetaDataset(randomUUID, Schema(Seq(attributes(0).id, attributes(1).id)))
       )
       DataLineage("appId1", "appName1", 1L,
-        operations = Seq(Write(OperationProps(randomUUID, "save", Seq.empty, datasets(0).id), "parquet", "some/path")),
+        operations = Seq(Write(OperationProps(randomUUID, "save", Seq.empty, datasets(0).id), "parquet", "some/path", append = false)),
         datasets = datasets,
         attributes = attributes)
     }
@@ -63,7 +59,8 @@ class ForeignMetaDatasetInjectorSpec extends AsyncFlatSpec with Matchers with Mo
       DataLineage("appId2", "appName2", 2L, Seq(operation), Seq(dataset), attributes)
     }
 
-    when(dataLineageReader.loadLatest(any())(any())) thenReturn Future.successful(Some(referencedLineage))
+    ???
+//    when(dataLineageReader.findLatestLineagesByPath(any())(any())) thenReturn Future.successful(Some(referencedLineage))
 
     val expectedResult = {
       val readOp = inputLineage.rootOperation.asInstanceOf[Read]
