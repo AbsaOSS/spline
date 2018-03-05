@@ -180,6 +180,12 @@ Apart from property configuration Atlas persistence requires a copy of [spline m
 | --- | --- | --- |
 | `spline.persistence.composition.factories` | Comma separated list of factories to delegate to <br> | za.co.absa.spline.persistence.mongo.MongoPersistenceFactory, za.co.absa.spline.persistence.hdfs.HdfsPersistenceFactory
 
+#### Optional: Async Timeout
+Depending on your persistence setup and requirements you can consider increasing HTTP request timeout to avoid premature failures (`AsyncRequestTimeoutException`). You can increase Tomcat's global `asyncTimeout` property in `conf/servers.xml` from default 30 seconds to desired value e.g. to 60 seconds as in example below.
+```
+<Connector port="8080" protocol="HTTP/1.1" asyncTimeout="60000" ... />
+```
+
 
 # Examples
 [Sample]({{ site.github.repository_url }}/tree/master/sample/) folder contains some sample Spline enabled Spark jobs.
