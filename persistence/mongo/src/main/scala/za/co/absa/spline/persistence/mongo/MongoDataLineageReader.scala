@@ -69,9 +69,8 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     */
   override def searchDataset(path: String, applicationId: String)(implicit ec: ExecutionContext): Future[Option[UUID]] = Future {
     val aggregationQuery = asList(
-      DBObject("$match" → DBObject("operations.0.path" → path, "appId" → applicationId)),
-      DBObject("$addFields" → DBObject("___rootDS" → DBObject("$arrayElemAt" → Array("$datasets", 0)))),
-      DBObject("$addFields" → DBObject("datasetId" → "$___rootDS._id")),
+      DBObject("$match" → DBObject("rootOperation.path" → path, "appId" → applicationId)),
+      DBObject("$addFields" → DBObject("datasetId" → "$rootDataset._id")),
       DBObject("$project" → DBObject("datasetId" → 1)))
 
     import za.co.absa.spline.common.ARMImplicits._
@@ -91,7 +90,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
   override def loadLatest(path: String)(implicit ec: ExecutionContext): Future[Option[DataLineage]] = Future {
     val dbo = blocking {
       connection.dataLineageCollection.findOne(
-        DBObject("operations.0.path" → path),
+        DBObject("rootOperation.path" → path),
         DBObject(),
         DBObject("timestamp" → -1))
     }
@@ -148,7 +147,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     */
   override def loadCompositeByOutput(datasetId: UUID)(implicit ec: ExecutionContext): Future[Option[CompositeWithDependencies]] = Future {
     val dbo = blocking {
-      connection.dataLineageCollection findOne DBObject("datasets.0._id" → datasetId)
+      connection.dataLineageCollection findOne DBObject("rootDataset._id" → datasetId)
     }
     Option(dbo)
       .map(withVersionCheck(grater[DataLineage].asObject(_)))
@@ -203,12 +202,8 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
   private def selectPersistedDatasets(extraPipeline: DBObject*): Cursor = {
     val basicPipeline: Seq[DBObject] = Seq(
       DBObject("$addFields" → DBObject(
-        "___rootDS" → DBObject("$arrayElemAt" → Array("$datasets", 0)),
-        "___rootOP" → DBObject("$arrayElemAt" → Array("$operations", 0))
-      )),
-      DBObject("$addFields" → DBObject(
-        "datasetId" → "$___rootDS._id",
-        "path" → "$___rootOP.path"
+        "datasetId" → "$rootDataset._id",
+        "path" → "$rootOperation.path"
       )),
       DBObject("$project" → DBObject(persistedDatasetDescriptorFields: _*))
     )
