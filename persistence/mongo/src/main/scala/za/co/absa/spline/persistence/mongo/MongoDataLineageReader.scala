@@ -182,14 +182,14 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
 
     val optionalTextSearchCriterion = maybeText map {
       text =>
-        val regexMatchOnFieldsCriteria = Seq("appId", "appName", "path") map (_ $regex quote(text) $options "i")
-        val optDatasetIdMatchCriterion = UUIDExtractor unapply text.toLowerCase map (uuid => DBObject("datasetId" → uuid))
+        val regexMatchOnFieldsCriteria = Seq("appId", "appName", "rootOperation.path") map (_ $regex quote(text) $options "i")
+        val optDatasetIdMatchCriterion = UUIDExtractor unapply text.toLowerCase map (uuid => DBObject("rootDataset._id" → uuid))
         $or(regexMatchOnFieldsCriteria ++ optDatasetIdMatchCriterion)
     }
 
     val cursor = selectPersistedDatasets(
       DBObject("$match" → $and(paginationDeduplicationCriteria ++ optionalTextSearchCriterion)),
-      DBObject("$sort" → DBObject("timestamp" → -1, "datasetId" → 1)),
+      DBObject("$sort" → DBObject("timestamp" → -1, "rootDataset._id" → 1)),
       DBObject("$skip" → pageRequest.offset),
       DBObject("$limit" → pageRequest.size)
     )
@@ -199,17 +199,18 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
       cursor.close())
   }
 
-  private def selectPersistedDatasets(extraPipeline: DBObject*): Cursor = {
-    val basicPipeline: Seq[DBObject] = Seq(
+  private def selectPersistedDatasets(queryPipeline: DBObject*): Cursor = {
+    val projectionPipeline: Seq[DBObject] = Seq(
       DBObject("$addFields" → DBObject(
         "datasetId" → "$rootDataset._id",
         "path" → "$rootOperation.path"
       )),
       DBObject("$project" → DBObject(persistedDatasetDescriptorFields: _*))
     )
+    val pipeline = (queryPipeline ++ projectionPipeline).asJava
     blocking(
       connection.dataLineageCollection.
-        aggregate((basicPipeline ++ extraPipeline).asJava, aggOpts))
+        aggregate(pipeline, aggOpts))
   }
 
   /**
@@ -220,7 +221,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     */
   override def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[PersistedDatasetDescriptor] = Future {
     import za.co.absa.spline.common.ARMImplicits._
-    for (cursor <- selectPersistedDatasets(DBObject("$match" → DBObject("datasetId" → id))))
+    for (cursor <- selectPersistedDatasets(DBObject("$match" → DBObject("rootDataset._id" → id))))
       yield withVersionCheck(grater[PersistedDatasetDescriptor].asObject(_))(cursor.next)
   }
 
