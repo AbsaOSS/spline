@@ -50,7 +50,7 @@ class LineageController @Autowired()
   def datasetDescriptors
   (
     @RequestParam(name = "q", required = false) text: String,
-    @RequestParam(name = "since", required = false, defaultValue = "9223372036854775807") timestamp: Long,
+    @RequestParam(name = "asAtTime", required = false, defaultValue = "9223372036854775807") timestamp: Long,
     @RequestParam(name = "offset", required = false, defaultValue = "0") offset: Int,
     @RequestParam(name = "size", required = false, defaultValue = "2147483647") size: Int,
     response: HttpServletResponse

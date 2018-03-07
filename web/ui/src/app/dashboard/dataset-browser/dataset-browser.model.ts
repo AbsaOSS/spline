@@ -16,7 +16,7 @@
 
 export class SearchRequest {
     constructor(public readonly text: string,
-                public readonly since = Date.now(),
+                public readonly asAtTime = Date.now(),
                 public readonly offset: number = 0) {
     }
 
@@ -24,7 +24,7 @@ export class SearchRequest {
         return offset == this.offset
             ? this
             : new SearchRequest(this.text,
-                this.since,
+                this.asAtTime,
                 offset)
     }
 }
