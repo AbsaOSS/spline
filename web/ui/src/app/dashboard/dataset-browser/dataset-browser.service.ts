@@ -32,7 +32,7 @@ export class DatasetBrowserService {
             {
                 params: {
                     q: searchRequest.text,
-                    since: `${searchRequest.since}`,
+                    asAtTime: `${searchRequest.asAtTime}`,
                     offset: `${searchRequest.offset}`
                 }
             }

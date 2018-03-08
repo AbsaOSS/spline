@@ -18,8 +18,6 @@ package za.co.absa.spline.web.rest.service
 
 import java.util.UUID
 
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Service
 import za.co.absa.spline.model.op._
 import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset}
 import za.co.absa.spline.persistence.api.DataLineageReader
@@ -28,8 +26,7 @@ import za.co.absa.spline.web.ExecutionContextImplicit
 import scala.collection.mutable
 import scala.concurrent.Future
 
-@Service
-class LineageService @Autowired()
+class LineageService
 (
   val reader: DataLineageReader
 ) extends ExecutionContextImplicit {

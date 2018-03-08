@@ -22,6 +22,4 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc
 @Configuration
 @EnableWebMvc
 @ComponentScan(Array("za.co.absa.spline.web.rest.controller"))
-class RESTDispatcherConfig {
-
-}
+class RESTDispatcherConfig

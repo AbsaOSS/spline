@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-export class SearchRequest {
-    constructor(public readonly text: string,
-                public readonly asAtTime = Date.now(),
-                public readonly offset: number = 0) {
-    }
-
-    public withOffset(offset: number): SearchRequest {
-        return offset == this.offset
-            ? this
-            : new SearchRequest(this.text,
-                this.asAtTime,
-                offset)
-    }
-}
+db.lineages.aggregate(
+    [
+        {
+            $project: {
+                rootDataset: 0,
+                rootOperation: 0
+            }
+        },
+        {
+            "$out": "lineages"
+        }
+    ]
+)
+db.lineages.dropIndex({ "rootDataset._id" : 1})
+db.lineages.dropIndex({ "rootOperation.path" : 1, "appId": 1})
+db.lineages.dropIndex({ "operations.sources.datasetId" : 1})
+db.lineages.dropIndex({ "timestamp" : 1})

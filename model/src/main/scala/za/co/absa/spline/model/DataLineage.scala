@@ -50,18 +50,16 @@ case class DataLineage
   lazy val id: String = DataLineageId.fromDatasetId(datasets.head.id)
 
   /**
-    * A method returning the root node of a DAG.
-    *
-    * @return A node representing the last operation performed within data lineage graph. Usually, it describes persistence of data set to some file, database, Kafka endpoint, etc.
+    * A node representing the last operation performed within data lineage graph. Usually, it describes persistence of data set to some file, database, Kafka endpoint, etc.
     */
-  def rootOperation: Operation = operations.head
+  @Persist
+  val rootOperation: Operation = operations.head
 
   /**
-    * A method returning a descriptor of the data set produced by the computation.
-    *
-    * @return A descriptor of the data set produced by the computation.
+    * A descriptor of the data set produced by the computation.
     */
-  def rootDataset: MetaDataset = datasets.head
+  @Persist
+  val rootDataset: MetaDataset = datasets.head
 }
 
 object DataLineageId {

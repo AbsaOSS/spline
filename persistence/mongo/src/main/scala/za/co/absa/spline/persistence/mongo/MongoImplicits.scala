@@ -16,7 +16,6 @@
 
 package za.co.absa.spline.persistence.mongo
 
-import com.mongodb.casbah.query.Implicits.wrapDBObj
 import com.mongodb.casbah.query.Imports.DBObject
 import com.mongodb.casbah.query.dsl.{QueryExpressionObject, QueryOperator, ValueTestFluidQueryOperators}
 
@@ -29,7 +28,7 @@ object MongoImplicits {
     new {
       val field = nested.field
     } with ValueTestFluidQueryOperators with MongoOpsMissingFromCasbahQueryDSL {
-      dbObj = nested.getAs[DBObject](nested.field)
+      dbObj = Some(nested.get(nested.field).asInstanceOf[DBObject])
     }
 
 
