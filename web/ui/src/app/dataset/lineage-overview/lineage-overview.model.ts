@@ -17,8 +17,6 @@
 import * as vis from "vis";
 import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
 
-export type GraphNodeType = ( "operation" | "datasource" )
-
 export interface GraphNode {
     type: GraphNodeType
     id: string
@@ -61,5 +59,18 @@ export const ID_PREFIX_LENGTH = 3
 export const ID_PREFIXES = {
     operation: "op_",
     datasource: "ds_",
-    extra: "ex_"
+    extra: "ex_",
+    datasource_cluster: "cl_",
 }
+
+export const GraphNodeTypesByIdPrefixes: { [key: string]: GraphNodeType } = {
+    op_: "operation",
+    ds_: "datasource",
+    cl_: "datasource_cluster",
+}
+
+export type GraphNodeType = (
+    "operation"
+    | "datasource"
+    | "datasource_cluster"
+    )

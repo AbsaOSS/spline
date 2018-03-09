@@ -23,7 +23,10 @@ import {Observable} from "rxjs/Observable";
 import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
 import {typeOfOperation} from "../../lineage/types";
 import {visOptions} from "./vis-options";
-import {GraphNode, ID_PREFIX_LENGTH, ID_PREFIXES, VisDatasetNode, VisNode, VisNodeType, VisProcessNode} from "./lineage-overview.model";
+import {
+    GraphNode, GraphNodeTypesByIdPrefixes, ID_PREFIX_LENGTH, ID_PREFIXES, VisDatasetNode, VisNode, VisNodeType,
+    VisProcessNode
+} from "./lineage-overview.model";
 import {ClusterManager} from "../../visjs/cluster-manager";
 import {Icon, VisClusterNode, VisModel} from "../../visjs/vis-model";
 import {getIconForNodeType} from "../../lineage/details/operation/operation-icon.utils";
@@ -81,13 +84,13 @@ export class LineageOverviewGraphComponent implements OnInit {
         return LineageOverviewGraphComponent.isClickableNodeId(nodeIdWithPrefix)
             && {
                 id: nodeIdWithPrefix.substring(ID_PREFIX_LENGTH),
-                type: (nodeIdWithPrefix.substring(0, ID_PREFIX_LENGTH) == ID_PREFIXES.operation) ? "operation" : "datasource"
+                type: GraphNodeTypesByIdPrefixes[nodeIdWithPrefix.substring(0, ID_PREFIX_LENGTH)]
             }
     }
 
     private static isClickableNodeId(nodeId: string): boolean {
-        const nonClickablePrefix = ID_PREFIXES.datasource + ID_PREFIXES.extra
-        return nodeId && !nodeId.startsWith(nonClickablePrefix)
+        const nonClickablePrefixes = [ID_PREFIXES.datasource + ID_PREFIXES.extra, ID_PREFIXES.datasource_cluster]
+        return nodeId && !_.some(nonClickablePrefixes, prf => nodeId.startsWith(prf))
     }
 
     private rebuildGraph(lineage: IDataLineage) {
@@ -96,17 +99,24 @@ export class LineageOverviewGraphComponent implements OnInit {
 
         this.network.on("click", event => {
             let node = LineageOverviewGraphComponent.eventToClickableNode(event)
-            if (node) this.nodeSelected.emit(node)
-            else this.refreshSelectedNode(this.selectedNode)
+            if (node)
+                this.nodeSelected.emit(node)
+            else {
+                this.refreshSelectedNode(this.selectedNode)
+                let clickedNode = event.nodes[0]
+                if (this.network.isCluster(clickedNode)) {
+                    this.network.openCluster(clickedNode)
+                }
+            }
         })
 
         this.clusterManager = new ClusterManager<VisNode, vis.Edge>(graph, this.network, (nodes,) =>
             _(nodes)
                 .filter((node: VisNode) => node.nodeType === VisNodeType.Dataset)
                 .filter((dsNode: VisDatasetNode) => dsNode.dataSource.datasetsIds.length > 1) // means there were appends to the source
-                .groupBy((dsNode: VisDatasetNode) => dsNode.dataSource.datasetsIds[0])
+                .groupBy((dsNode: VisDatasetNode) => dsNode.dataSource.datasetsIds[0]) // the first write/overwrite followed by subsequent appends
                 .values()
-                .map((nodes, i) => new VisClusterNode("cluster:" + i, `${nodes[0].label} (${nodes.length})`, nodes))
+                .map((nodes, i) => new VisClusterNode(`${ID_PREFIXES.datasource_cluster}${i}`, `${nodes[0].label} (${nodes.length})`, nodes))
                 .value())
 
         this.clusterManager.rebuildClusters()
@@ -114,12 +124,9 @@ export class LineageOverviewGraphComponent implements OnInit {
 
         this.network.on("doubleClick", event => {
             if (event.nodes.length == 1) {
-                if (this.network.isCluster(event.nodes[0]) == true) {
-                    this.network.openCluster(event.nodes[0])
-                } else {
-                    let node = LineageOverviewGraphComponent.eventToClickableNode(event)
-                    if (node) this.nodeActioned.emit(node)
-                }
+                console.log("DOUBLE CLICK", event.nodes[0])
+                let node = LineageOverviewGraphComponent.eventToClickableNode(event)
+                if (node) this.nodeActioned.emit(node)
             }
         })
 

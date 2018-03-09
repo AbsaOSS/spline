@@ -78,12 +78,16 @@ export class DatasetLineageOverviewComponent {
         }
     }
 
-    gotoOverviewLineage(dsId: string, dsType: GraphNodeType) {
-        this.router.navigate(
-            ["dataset", dsId, "lineage", "overview"], {
-                relativeTo: this.route.parent.parent.parent,
-                fragment: dsType
-            })
+    selectNode(nodeId: string, nodeType: GraphNodeType) {
+        switch (nodeType) {
+            case "operation":
+            case "datasource":
+                this.router.navigate(
+                    ["dataset", nodeId, "lineage", "overview"], {
+                        relativeTo: this.route.parent.parent.parent,
+                        fragment: nodeType
+                    })
+        }
     }
 
     gotoPartialLineage(dsId: string) {
