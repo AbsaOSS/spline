@@ -42,6 +42,7 @@ export class LineageOverviewGraphComponent implements OnInit {
 
     private selectedNode: GraphNode
     private network: vis.Network
+    private clusterManager: ClusterManager<VisNode, vis.Edge>
 
     constructor(private container: ElementRef) {
     }
@@ -71,6 +72,10 @@ export class LineageOverviewGraphComponent implements OnInit {
         this.network.fit()
     }
 
+    public collapseNodes() {
+        this.clusterManager.collapseAllClusters()
+    }
+
     private static eventToClickableNode(event: any): GraphNode {
         let nodeIdWithPrefix = event.nodes.length && event.nodes[0]
         return LineageOverviewGraphComponent.isClickableNodeId(nodeIdWithPrefix)
@@ -95,7 +100,7 @@ export class LineageOverviewGraphComponent implements OnInit {
             else this.refreshSelectedNode(this.selectedNode)
         })
 
-        let cm = new ClusterManager<VisNode, vis.Edge>(graph, this.network, (nodes,) =>
+        this.clusterManager = new ClusterManager<VisNode, vis.Edge>(graph, this.network, (nodes,) =>
             _(nodes)
                 .filter((node: VisNode) => node.nodeType === VisNodeType.Dataset)
                 .filter((dsNode: VisDatasetNode) => dsNode.dataSource.datasetsIds.length > 1) // means there were appends to the source
@@ -104,8 +109,8 @@ export class LineageOverviewGraphComponent implements OnInit {
                 .map((nodes, i) => new VisClusterNode("cluster:" + i, `${nodes[0].label} (${nodes.length})`, nodes))
                 .value())
 
-        cm.rebuildClusters()
-        cm.collapseAllClusters()
+        this.clusterManager.rebuildClusters()
+        this.clusterManager.collapseAllClusters()
 
         this.network.on("doubleClick", event => {
             if (event.nodes.length == 1) {
