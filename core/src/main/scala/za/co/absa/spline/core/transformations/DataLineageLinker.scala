@@ -32,7 +32,7 @@ import scala.language.postfixOps
   *
   * @param reader A reader reading lineage graphs from persistence layer
   */
-class ForeignMetaDatasetInjector(reader: DataLineageReader) extends AsyncTransformation[DataLineage] with Logging {
+class DataLineageLinker(reader: DataLineageReader) extends AsyncTransformation[DataLineage] with Logging {
 
   /**
     * The method transforms an input instance by a custom logic.

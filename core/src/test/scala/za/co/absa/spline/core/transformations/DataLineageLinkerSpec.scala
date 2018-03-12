@@ -19,16 +19,20 @@ package za.co.absa.spline.core.transformations
 
 import java.util.UUID.randomUUID
 
+import org.mockito.ArgumentMatchers.{eq => ≡, _}
+import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{AsyncFlatSpec, Matchers}
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op.{OperationProps, Read, Write}
-import za.co.absa.spline.persistence.api.DataLineageReader
+import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
 
-class ForeignMetaDatasetInjectorSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
+import scala.concurrent.Future
 
-  "Apply method" should "inject correct meta data set" in {
+class DataLineageLinkerSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
+
+  "Apply method" should "resolve lineage of known input sources and link them by assigning corresponding dataset IDs" in {
     val dataLineageReader = mock[DataLineageReader]
     val dataType = Simple("int", nullable = true)
     val referencedLineage = {
@@ -59,8 +63,9 @@ class ForeignMetaDatasetInjectorSpec extends AsyncFlatSpec with Matchers with Mo
       DataLineage("appId2", "appName2", 2L, Seq(operation), Seq(dataset), attributes)
     }
 
-    ???
-//    when(dataLineageReader.findLatestLineagesByPath(any())(any())) thenReturn Future.successful(Some(referencedLineage))
+    (when(dataLineageReader.findLatestLineagesByPath(≡("some/path"))(any()))
+      thenReturn
+      Future.successful(new CloseableIterable[DataLineage](Iterator(referencedLineage), ())))
 
     val expectedResult = {
       val readOp = inputLineage.rootOperation.asInstanceOf[Read]
@@ -74,7 +79,7 @@ class ForeignMetaDatasetInjectorSpec extends AsyncFlatSpec with Matchers with Mo
       )
     }
 
-    for (result <- new ForeignMetaDatasetInjector(dataLineageReader)(inputLineage))
+    for (result <- new DataLineageLinker(dataLineageReader)(inputLineage))
       yield result shouldEqual expectedResult
   }
 }

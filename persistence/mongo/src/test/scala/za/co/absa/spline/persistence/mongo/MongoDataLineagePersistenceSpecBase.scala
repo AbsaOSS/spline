@@ -29,7 +29,13 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
   protected val mongoWriter = new MongoDataLineageWriter(mongoConnection)
   protected val mongoReader = new MongoDataLineageReader(mongoConnection)
 
-  protected def createDataLineage(appId : String, appName: String, timestamp: Long = 123L, path : String = "hdfs://foo/bar/path") : DataLineage = {
+  protected def createDataLineage(
+                                   appId: String,
+                                   appName: String,
+                                   timestamp: Long = 123L,
+                                   path: String = "hdfs://foo/bar/path",
+                                   append: Boolean = false)
+  : DataLineage = {
     val attributes = Seq(
       Attribute(randomUUID(), "_1", Simple("StringType", nullable = true)),
       Attribute(randomUUID(), "_2", Simple("StringType", nullable = true)),
@@ -48,7 +54,7 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
       appName,
       timestamp,
       Seq(
-        Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path, append = false),
+        Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path, append),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md2.id), "rawString2"),
         Generic(OperationProps(randomUUID, "LogicalRDD", Seq.empty, md4.id), "rawString3"),
