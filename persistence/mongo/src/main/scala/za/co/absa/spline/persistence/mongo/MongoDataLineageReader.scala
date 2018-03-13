@@ -111,7 +111,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
             "rootOperation.path" → path)
             ++
             ("timestamp" $gte (lastOverwriteTimestampIfExists getOrElse 0L)))),
-          DBObject("$sort" → DBObject("timestamp" → -1))),
+          DBObject("$sort" → DBObject("timestamp" → +1))),
         aggOpts))
 
     new DBCursorToCloseableIterableAdapter[DataLineage](lineageCursor)

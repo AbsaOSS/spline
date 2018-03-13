@@ -139,7 +139,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
       result.map(_.iterator shouldBe empty)
     }
 
-    it("should return a sequence of all appended lineages sorted by timestamp desc") {
+    it("should return a sequence of all appended lineages sorted by timestamp in chronological order") {
       val path = "hdfs://a/b/c"
       val testLineages = Seq(
         createDataLineage("appID1", "appName1", 1L, path, append = true),
@@ -149,7 +149,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
 
       val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestLineagesByPath(path))
 
-      result.map(resultItems => resultItems should ConsistOfItemsWithAppIds("appID3", "appID2", "appID1"))
+      result.map(resultItems => resultItems should ConsistOfItemsWithAppIds("appID1", "appID2", "appID3"))
     }
 
     it("should return a sequence of all appended lineages since the last overwrite") {
@@ -163,7 +163,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
 
       val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestLineagesByPath(path))
 
-      result.map(resultItems => resultItems should ConsistOfItemsWithAppIds("appID3", "appID2", "appID1"))
+      result.map(resultItems => resultItems should ConsistOfItemsWithAppIds("appID1", "appID2", "appID3"))
     }
 
   }
