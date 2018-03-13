@@ -24,7 +24,13 @@ import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-
 import {typeOfOperation} from "../../lineage/types";
 import {visOptions} from "./vis-options";
 import {
-    GraphNode, GraphNodeTypesByIdPrefixes, ID_PREFIX_LENGTH, ID_PREFIXES, VisDatasetNode, VisNode, VisNodeType,
+    GraphNode,
+    GraphNodeTypesByIdPrefixes,
+    ID_PREFIX_LENGTH,
+    ID_PREFIXES,
+    VisDatasetNode,
+    VisNode,
+    VisNodeType,
     VisProcessNode
 } from "./lineage-overview.model";
 import {ClusterManager} from "../../visjs/cluster-manager";
@@ -97,6 +103,18 @@ export class LineageOverviewGraphComponent implements OnInit {
         let graph = LineageOverviewGraphComponent.buildVisModel(lineage)
         this.network = new vis.Network(this.container.nativeElement, graph, visOptions)
 
+        this.clusterManager = new ClusterManager<VisNode, vis.Edge>(graph, this.network, (nodes,) =>
+            _(nodes)
+                .filter((node: VisNode) => node.nodeType === VisNodeType.Dataset)
+                .filter((dsNode: VisDatasetNode) => dsNode.dataSource.datasetsIds.length > 1) // means there were appends to the source
+                .groupBy((dsNode: VisDatasetNode) => dsNode.dataSource.datasetsIds[0]) // the first write/overwrite followed by subsequent appends
+                .values()
+                .map((nodes, i) => new VisClusterNode(`${ID_PREFIXES.datasource_cluster}${i}`, `${nodes[0].label} (${nodes.length})`, nodes))
+                .value())
+
+        this.clusterManager.rebuildClusters()
+        this.clusterManager.collapseAllClusters()
+
         this.network.on("click", event => {
             let node = LineageOverviewGraphComponent.eventToClickableNode(event)
             if (node)
@@ -109,18 +127,6 @@ export class LineageOverviewGraphComponent implements OnInit {
                 }
             }
         })
-
-        this.clusterManager = new ClusterManager<VisNode, vis.Edge>(graph, this.network, (nodes,) =>
-            _(nodes)
-                .filter((node: VisNode) => node.nodeType === VisNodeType.Dataset)
-                .filter((dsNode: VisDatasetNode) => dsNode.dataSource.datasetsIds.length > 1) // means there were appends to the source
-                .groupBy((dsNode: VisDatasetNode) => dsNode.dataSource.datasetsIds[0]) // the first write/overwrite followed by subsequent appends
-                .values()
-                .map((nodes, i) => new VisClusterNode(`${ID_PREFIXES.datasource_cluster}${i}`, `${nodes[0].label} (${nodes.length})`, nodes))
-                .value())
-
-        this.clusterManager.rebuildClusters()
-        this.clusterManager.collapseAllClusters()
 
         this.network.on("doubleClick", event => {
             if (event.nodes.length == 1) {
@@ -159,12 +165,12 @@ export class LineageOverviewGraphComponent implements OnInit {
                         ? _.assign({}, src, {datasetsIds: [ID_PREFIXES.extra + i + "_" + op.mainProps.id]})
                         : src)
 
-        const recombineByDatasetId =
+        const recombineByDatasetIdAndLongestAppendSequence =
             (typedMetadataSources: ITypedMetaDataSource[]): [string, ITypedMetaDataSource][] =>
                 <any[]> _(typedMetadataSources)
                     .flatMap((src: ITypedMetaDataSource) => src.datasetsIds.map(dsId => [dsId, src]))
                     .groupBy(_.head).values()
-                    .map(_.head)
+                    .map((pairs: [string, ITypedMetaDataSource][]) => _.sortBy(pairs, ([, src]) => -src.datasetsIds.length)[0])
                     .value()
 
 
@@ -173,7 +179,7 @@ export class LineageOverviewGraphComponent implements OnInit {
                     getIdentifiableDataSourcesOf(op).concat(op.destination)),
 
             datasetNodes: VisNode[] =
-                recombineByDatasetId(dataSources)
+                recombineByDatasetIdAndLongestAppendSequence(dataSources)
                     .map(([datasetId, src]) =>
                         new VisDatasetNode(
                             src,
@@ -198,7 +204,7 @@ export class LineageOverviewGraphComponent implements OnInit {
             edges: vis.Edge[] = _.flatMap(lineage.operations, (op: IComposite) => {
                 let opNodeId = ID_PREFIXES.operation + op.mainProps.id
                 let inputEdges: vis.Edge[] =
-                        recombineByDatasetId(getIdentifiableDataSourcesOf(op))
+                        recombineByDatasetIdAndLongestAppendSequence(getIdentifiableDataSourcesOf(op))
                             .map(([datasetId]) => {
                                 let dsNodeId = ID_PREFIXES.datasource + datasetId
                                 return {
