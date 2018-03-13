@@ -185,7 +185,7 @@
             </section>
 
             <!-- Section: Input -->
-            <section *ngFor="let input of operation.mainProps.inputs">
+            <section *ngFor="let input of operation.mainProps.inputs" >
                 <p-accordionTab [selected]="true">
                     <p-header>
                         <details-section-header
@@ -195,9 +195,8 @@
                     </p-header>
                     <attribute-list
                             [attrs]="getDatasetAttributes(input)"
-                            [selectedAttrIDs]="selectedAttrIDs"
-                            (fullAttrSchemaClicked)="showFullAttributeSchema($event)"
-                            (attrClicked)="selectAttribute($event)">
+                            (attrClicked)="selectAttribute($event)"
+                            [selectedAttrIDs]="selectedAttrIDs">
                     </attribute-list>
                 </p-accordionTab>
             </section>
@@ -213,9 +212,8 @@
                     </p-header>
                     <attribute-list
                             [attrs]="getDatasetAttributes(operation.mainProps.output)"
-                            [selectedAttrIDs]="selectedAttrIDs"
-                            (fullAttrSchemaClicked)="showFullAttributeSchema($event)"
-                            (attrClicked)="selectAttribute($event)">
+                            (attrClicked)="selectAttribute($event)"
+                            [selectedAttrIDs]="selectedAttrIDs">
                     </attribute-list>
                 </p-accordionTab>
             </section>

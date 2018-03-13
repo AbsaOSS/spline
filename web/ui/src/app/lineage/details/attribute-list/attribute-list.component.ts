@@ -14,31 +14,102 @@
  * limitations under the License.
  */
 
-import {Component, EventEmitter, Input, Output} from "@angular/core";
+import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from "@angular/core";
 import {IAttribute} from "../../../../generated-ts/lineage-model";
-import * as _ from "lodash";
+import {IArray, IDataType, IStruct} from "../../../../generated-ts/datatype-model";
+import {typeOfDataType} from "../../types";
+import {IActionMapping, ITreeOptions, TreeComponent} from "angular-tree-component";
+import {ITreeNode} from 'angular-tree-component/dist/defs/api';
+import * as _ from 'lodash';
 
 @Component({
-    selector: 'attribute-list',
-    templateUrl: 'attribute-list.component.html',
-    styleUrls: ['attribute-list.component.less']
+    selector: "attribute-list",
+    templateUrl: "attribute-list.component.html",
+    styleUrls: ["attribute-list.component.css"]
 })
-export class AttributeListComponent {
+export class AttributeListComponent implements OnInit {
+
     @Input() attrs: IAttribute[]
-    @Input() selectedAttrIDs: string[]
+
+    @Input() set selectedAttrIDs(ids: string[]) {
+        this.highlightSelected(ids)
+    }
+
+    @Input() expandRoot: boolean = false
 
     @Output() attrClicked = new EventEmitter<string>()
-    @Output() fullAttrSchemaClicked = new EventEmitter<string>()
 
-    isSelected(attr: IAttribute) {
-        return attr.id != null && _.includes(this.selectedAttrIDs, attr.id)
+    attrTree: INodeData[]
+
+    @ViewChild('tree') treeComponent: TreeComponent;
+
+    readonly actionMapping: IActionMapping = {
+        mouse: {
+            click: (tree, node, $event) => this.onNodeClicked(node)
+        }
     }
 
-    onAttrClicked(attr: IAttribute) {
-        this.attrClicked.emit(attr.id)
+    readonly treeOptions: ITreeOptions = {
+        actionMapping: this.actionMapping,
+        allowDrag: false,
+        allowDrop: false,
     }
 
-    onFullAttrSchemaClicked(attr: IAttribute) {
-        this.fullAttrSchemaClicked.emit(attr.id)
+    ngOnInit(): void {
+        this.attrTree = this.attrs.map(a => this.buildAttrTree(a))
     }
+
+    private buildAttrTree(attr: IAttribute): INodeData {
+        const attributeId = attr.id
+
+        function buildChildren(dt: IDataType): (INodeData[] | undefined) {
+            let dtt = typeOfDataType(dt)
+            return (dtt == "Simple") ? undefined
+                : (dtt == "Struct") ? buildChildrenForStructType(<IStruct> dt)
+                    : buildChildren((<IArray> dt).elementDataType)
+        }
+
+        function buildChildrenForStructType(sdt: IStruct): INodeData[] {
+            return sdt.fields.map(f => buildNode(f.dataType, f.name, false))
+        }
+
+        function buildNode(dt: IDataType, name: string, isExpanded: boolean) {
+            return {
+                attributeId: attributeId,
+                name: name,
+                type: dt,
+                children: buildChildren(dt),
+                isExpanded: isExpanded
+            }
+        }
+
+        return buildNode(attr.dataType, attr.name, this.expandRoot)
+    }
+
+    onNodeClicked(node: ITreeNode) {
+        this.attrClicked.emit(node.data.attributeId)
+    }
+
+    private highlightSelected(ids: string[]): void {
+        if (this.treeComponent && this.treeComponent.treeModel.roots) {
+            let treeModel = this.treeComponent.treeModel
+            treeModel.roots.forEach((node: ITreeNode) => {
+                node.setIsActive(this.isSelected(node, ids), true)
+            })
+        }
+    }
+
+    private isSelected(node: ITreeNode, ids: string[]): boolean {
+        let id = node.data.attributeId
+        return id != null && _.includes(ids, id)
+    }
+
+}
+
+interface INodeData {
+    name: string,
+    type: IDataType,
+    attributeId: string,
+    children: INodeData[],
+    isExpanded: boolean
 }
