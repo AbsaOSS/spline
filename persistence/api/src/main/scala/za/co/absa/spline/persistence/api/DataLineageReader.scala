@@ -18,7 +18,6 @@ package za.co.absa.spline.persistence.api
 
 import java.util.UUID
 
-import za.co.absa.spline.model.op.CompositeWithDependencies
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
 import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 
@@ -58,20 +57,13 @@ trait DataLineageReader {
   def searchDataset(path: String, applicationId: String)(implicit ec: ExecutionContext): Future[Option[UUID]]
 
   /**
-    * The method loads the latest data lineage from the persistence for a given path.
+    * The method returns lineage of all pieces of data written to the source represented by the given `path`.
+    * This includes the latest OVERWRITE followed by all subsequent APPENDs.
     *
     * @param path A path for which a lineage graph is looked for
     * @return The latest data lineage
     */
-  def loadLatest(path: String)(implicit ec: ExecutionContext): Future[Option[DataLineage]]
-
-  /**
-    * The method loads a composite operation for an output datasetId.
-    *
-    * @param datasetId A dataset ID for which the operation is looked for
-    * @return A composite operation with dependencies satisfying the criteria
-    */
-  def loadCompositeByOutput(datasetId: UUID)(implicit ec: ExecutionContext): Future[Option[CompositeWithDependencies]]
+  def findLatestLineagesByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]]
 
   /**
     * The method loads composite operations for an input datasetId.
@@ -79,7 +71,7 @@ trait DataLineageReader {
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  def loadCompositesByInput(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[CompositeWithDependencies]]
+  def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]]
 
   /**
     * The method gets all data lineages stored in persistence layer.

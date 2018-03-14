@@ -19,12 +19,10 @@ package za.co.absa.spline.persistence.mongo
 import java.net.URI
 import java.util.UUID.randomUUID
 
-import org.scalatest.matchers.{MatchResult, Matcher}
 import za.co.absa.spline.common.OptionImplicits._
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op._
-import za.co.absa.spline.persistence.api.CloseableIterable
 import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest.EntireLatestContent
 
@@ -32,7 +30,7 @@ import scala.concurrent.Future
 
 class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
 
-  import CustomMatchers._
+  import CloseableIterableMatchers._
 
   describe("findDatasets()") {
 
@@ -72,9 +70,9 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         page2 <- mongoReader.findDatasets(None, PageRequest(107, 3, 3))
         page3 <- mongoReader.findDatasets(None, PageRequest(107, 6, 3))
       } yield {
-        page1 should ConsistOfDescriptorsWithAppIds("appID7", "appID6", "appID5")
-        page2 should ConsistOfDescriptorsWithAppIds("appID4", "appID3", "appID2")
-        page3 should ConsistOfDescriptorsWithAppIds("appID1", "appID0")
+        page1 should ConsistOfItemsWithAppIds("appID7", "appID6", "appID5")
+        page2 should ConsistOfItemsWithAppIds("appID4", "appID3", "appID2")
+        page3 should ConsistOfItemsWithAppIds("appID1", "appID0")
       }
     }
 
@@ -83,7 +81,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         _ <- Future.sequence(testLineages.map(mongoWriter.store))
         page <- mongoReader.findDatasets("n", PageRequest(107, 0, 3))
       } yield {
-        page should ConsistOfDescriptorsWithAppIds("appID7", "appID1")
+        page should ConsistOfItemsWithAppIds("appID7", "appID1")
       }
     }
 
@@ -92,7 +90,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         _ <- Future.sequence(testLineages.map(mongoWriter.store))
         page <- mongoReader.findDatasets("nInE", EntireLatestContent)
       } yield {
-        page should ConsistOfDescriptorsWithAppIds("appID9")
+        page should ConsistOfItemsWithAppIds("appID9")
       }
     }
 
@@ -105,15 +103,15 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         noResultByPrefix <- mongoReader.findDatasets(searchingDatasetId take 10, EntireLatestContent)
         noResultBySuffix <- mongoReader.findDatasets(searchingDatasetId drop 10, EntireLatestContent)
       } yield {
-        foundSingleMatch should ConsistOfDescriptorsWithAppIds(searchingLineage.appId)
+        foundSingleMatch should ConsistOfItemsWithAppIds(searchingLineage.appId)
         noResultByPrefix.iterator shouldBe empty
         noResultBySuffix.iterator shouldBe empty
       }
     }
   }
 
-  describe("loadLatest()") {
-    it("should load latest lineage record from a database for a give path") {
+  describe("findLatestLineagesByPath()") {
+    it("should return latest lineage records from a database for a give path") {
       val path = "hdfs://a/b/c"
       val testLineages = Seq(
         createDataLineage("appID1", "appName1", 1L, path),
@@ -123,12 +121,12 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         createDataLineage("appID5", "appName5", 5L, path)
       )
 
-      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.loadLatest(path))
+      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestLineagesByPath(path))
 
-      result.map(resultItem => resultItem shouldEqual Some(testLineages(2)))
+      result.map(resultItems => resultItems should ConsistOfItemsWithAppIds("appID3"))
     }
 
-    it("should return None if no record exists in database in a given path") {
+    it("should return empty result if no records exists in a database for a given path") {
       val path = "hdfs://a/b/c"
       val testLineages = Seq(
         createDataLineage("appID1", "appName1", 1L),
@@ -136,9 +134,36 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         createDataLineage("appID3", "appName3", 3L)
       )
 
-      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.loadLatest(path))
+      val result = Future.sequence(testLineages map mongoWriter.store) flatMap (_ => mongoReader findLatestLineagesByPath path)
 
-      result.map(resultItem => resultItem shouldEqual None)
+      result.map(_.iterator shouldBe empty)
+    }
+
+    it("should return a sequence of all appended lineages sorted by timestamp in chronological order") {
+      val path = "hdfs://a/b/c"
+      val testLineages = Seq(
+        createDataLineage("appID1", "appName1", 1L, path, append = true),
+        createDataLineage("appID2", "appName2", 2L, path, append = true),
+        createDataLineage("appID3", "appName3", 3L, path, append = true)
+      )
+
+      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestLineagesByPath(path))
+
+      result.map(resultItems => resultItems should ConsistOfItemsWithAppIds("appID1", "appID2", "appID3"))
+    }
+
+    it("should return a sequence of all appended lineages since the last overwrite") {
+      val path = "hdfs://a/b/c"
+      val testLineages = Seq(
+        createDataLineage("appID0", "appName0", 0L, path, append = true),
+        createDataLineage("appID1", "appName1", 1L, path),
+        createDataLineage("appID2", "appName2", 2L, path, append = true),
+        createDataLineage("appID3", "appName3", 3L, path, append = true)
+      )
+
+      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestLineagesByPath(path))
+
+      result.map(resultItems => resultItems should ConsistOfItemsWithAppIds("appID1", "appID2", "appID3"))
     }
 
   }
@@ -176,37 +201,12 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
 
   }
 
-
-  describe("loadCompositeByOutput") {
-    it("should load correct composite operation with dependencies") {
-      val testLineages = Seq(
-        createDataLineage("appID1", "appName1", 1L),
-        createDataLineage("appID2", "appName2", 2L),
-        createDataLineage("appID3", "appName3", 3L),
-        createDataLineage("appID4", "appName4", 4L),
-        createDataLineage("appID5", "appName5", 5L)
-      )
-
-      val datasetId = testLineages(2).rootDataset.id
-
-      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.loadCompositeByOutput(datasetId))
-
-      result.map {
-        case Some(CompositeWithDependencies(composite, _, _)) =>
-          composite.mainProps.id shouldEqual datasetId
-          composite.mainProps.output shouldEqual datasetId
-        case None => fail("There should be an record.")
-      }
-    }
-
-  }
-
-  describe("loadCompositesByInput()") {
-    it("should load correct composite operation with dependencies") {
+  describe("findByInputId()") {
+    it("should load lineages having the given datasetId as an input") {
       val sources = Seq(
-        MetaDataSource("path1", Some(randomUUID)),
-        MetaDataSource("path2", Some(randomUUID)),
-        MetaDataSource("path3", Some(randomUUID))
+        MetaDataSource("path1", Seq(randomUUID, randomUUID, randomUUID)),
+        MetaDataSource("path2", Seq(randomUUID, randomUUID, randomUUID)),
+        MetaDataSource("path3", Seq(randomUUID, randomUUID, randomUUID))
       )
 
       val testLineages = Seq(
@@ -216,19 +216,15 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         createDataLineageWithSources("appID4", "appName4", sources.tail)
       )
 
-      val datasetId = sources.head.datasetId.get
-      val lineageId = testLineages(1).id
+      val datasetIdToFindBy = sources.head.datasetsIds.head
 
       val result = Future.sequence(testLineages.map(i => mongoWriter.store(i)))
-        .flatMap(_ => mongoReader.loadCompositesByInput(datasetId))
+        .flatMap(_ => mongoReader.findByInputId(datasetIdToFindBy))
         .map(_.iterator.toSeq)
 
       result.map(res => {
         res.length shouldEqual 1
-        res.head match {
-          case (CompositeWithDependencies(composite, _, _)) =>
-            composite.mainProps.id shouldEqual DataLineageId.toDatasetId(lineageId)
-        }
+        res.head shouldEqual testLineages(1)
       })
     }
   }
@@ -255,37 +251,14 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
       appName,
       timestamp,
       Seq(
-        Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", outputPath),
+        Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", outputPath, append = false),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md2.id), "rawString2"),
-        Read(OperationProps(randomUUID, "Read", sources.flatMap(_.datasetId), md4.id), "rawString3", sources),
+        Read(OperationProps(randomUUID, "Read", sources.flatMap(_.datasetsIds), md4.id), "rawString3", sources),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md1.id), "rawString4")
       ),
       Seq(md1, md2, md3, md4),
       attributes
     )
   }
-
-  object CustomMatchers {
-
-    class MatcherAdapter[T](matchingFn: T => MatchResult) extends Matcher[T] {
-      override def apply(left: T): MatchResult = matchingFn(left)
-    }
-
-    object ConsistOfDescriptorsWithAppIds {
-      def apply(appIds: String*) = new MatcherAdapter[CloseableIterable[PersistedDatasetDescriptor]](
-        actualDescriptors => {
-          val actualAppIds = actualDescriptors.iterator.map(_.appId).toList
-          val expectedAppIds = appIds.toList
-          MatchResult(
-            actualAppIds == expectedAppIds,
-            s"Returned list of lineage descriptors did not match expected values:" +
-              s"\n\tActual  : $actualAppIds" +
-              s"\n\tExpected: $expectedAppIds",
-            "")
-        })
-    }
-
-  }
-
 }

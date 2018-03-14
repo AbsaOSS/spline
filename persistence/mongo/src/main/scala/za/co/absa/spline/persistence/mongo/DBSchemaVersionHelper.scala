@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-import {Component, Input} from "@angular/core";
-import {IOperation} from "../../../../generated-ts/lineage-model";
-import {typeOfOperation} from "../../types";
-import {getIconForNodeType} from "./operation-icon.utils";
+package za.co.absa.spline.persistence.mongo
 
-@Component({
-    selector: "operation-icon",
-    template: "<i class='fa {{faIconCode}}'></i>",
-    styles: ["i { color: steelblue; }"]
-})
-export class OperationIconComponent {
-    faIconCode: string
+import com.mongodb.DBObject
 
-    @Input() set operation(op: IOperation) {
-        this.faIconCode = op && getIconForNodeType(typeOfOperation(op)).name
+object DBSchemaVersionHelper {
+
+  val LATEST_SERIAL_VERSION = 2
+
+  def withVersionCheck[T](f: DBObject => T): DBObject => T =
+    dbo => (dbo get "_ver").asInstanceOf[Int] match {
+      case LATEST_SERIAL_VERSION => f(dbo)
+      case unknownVersion => sys.error(s"Unsupported serialized lineage version: $unknownVersion")
     }
 }

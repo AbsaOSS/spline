@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.sample.batchWithDependencies
 
+import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.functions.col
 import za.co.absa.spline.sample.SparkApp
 
@@ -50,6 +51,6 @@ object JansBeerJob extends SparkApp("Jan's Beer Job", conf = Seq("spark.sql.shuf
       calculateConsumptionPerCapita("2011")
     )
 
-  result.write.mode("overwrite").parquet("data/results/batchWithDependencies/beerConsCtl")
+  result.write.mode(SaveMode.Append).parquet("data/results/batchWithDependencies/beerConsCtl")
 
 }

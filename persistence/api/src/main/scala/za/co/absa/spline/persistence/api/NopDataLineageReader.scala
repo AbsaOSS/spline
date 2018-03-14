@@ -19,7 +19,6 @@ package za.co.absa.spline.persistence.api
 import java.util.UUID
 
 import za.co.absa.spline.common.ExceptionUtils.`not applicable`
-import za.co.absa.spline.model.op.CompositeWithDependencies
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
 import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 
@@ -52,15 +51,7 @@ object NopDataLineageReader extends DataLineageReader {
     * @param path A path for which a lineage graph is looked for
     * @return The latest data lineage
     */
-  override def loadLatest(path: String)(implicit ec: ExecutionContext): Future[Option[DataLineage]] = Future.successful(None)
-
-  /**
-    * The method loads a composite operation for an output datasetId.
-    *
-    * @param datasetId A dataset ID for which the operation is looked for
-    * @return A composite operation with dependencies satisfying the criteria
-    */
-  override def loadCompositeByOutput(datasetId: UUID)(implicit ec: ExecutionContext): Future[Option[CompositeWithDependencies]] = Future.successful(None)
+  override def findLatestLineagesByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] = Future.successful(CloseableIterable.empty)
 
   /**
     * The method loads composite operations for an input datasetId.
@@ -68,7 +59,7 @@ object NopDataLineageReader extends DataLineageReader {
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  override def loadCompositesByInput(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[CompositeWithDependencies]] = Future.successful(CloseableIterable.empty)
+  override def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] = Future.successful(CloseableIterable.empty)
 
 
   /**

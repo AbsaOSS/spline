@@ -20,8 +20,8 @@ import java.util.UUID
 
 import org.slf4s.Logging
 import za.co.absa.spline.common.transformations.AsyncTransformation
-import za.co.absa.spline.model.op.{MetaDataSource, Operation, Read}
-import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset}
+import za.co.absa.spline.model.op.{Operation, Read}
+import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataSource, MetaDataset}
 import za.co.absa.spline.persistence.api.DataLineageReader
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,7 +32,7 @@ import scala.language.postfixOps
   *
   * @param reader A reader reading lineage graphs from persistence layer
   */
-class ForeignMetaDatasetInjector(reader: DataLineageReader) extends AsyncTransformation[DataLineage] with Logging {
+class DataLineageLinker(reader: DataLineageReader) extends AsyncTransformation[DataLineage] with Logging {
 
   /**
     * The method transforms an input instance by a custom logic.
@@ -51,17 +51,21 @@ class ForeignMetaDatasetInjector(reader: DataLineageReader) extends AsyncTransfo
 
     // collect data
 
-    def resolveMetaDataSources(mds: MetaDataSource): Future[(MetaDataSource, Option[DataLineage])] = {
+    def resolveMetaDataSources(mds: MetaDataSource): Future[(MetaDataSource, Seq[DataLineage])] = {
       log debug s"Resolving lineage of ${mds.path}"
-      reader.loadLatest(mds.path) map {
-        case None =>
-          log debug s"Lineage of ${mds.path} NOT FOUND"
-          (mds, None)
-        case mdsLineageOpt@Some(mdsLineage) =>
-          log debug s"Lineage of ${mds.path} FOUND: ${mdsLineage.id}"
-          val updatedMds = mds.copy(datasetId = Some(mdsLineage.rootDataset.id))
-          (updatedMds, mdsLineageOpt)
-      }
+
+      assume(mds.datasetsIds.isEmpty, s"a lineage of ${mds.path} is yet to be found")
+
+      reader.findLatestLineagesByPath(mds.path) map (lineagesCursor => {
+        import za.co.absa.spline.common.ARMImplicits._
+        for (_ <- lineagesCursor) yield {
+          val lineages = lineagesCursor.iterator.toList
+          if (lineages.isEmpty)
+            log.debug(s"Lineage of ${mds.path} NOT FOUND")
+          val updatedMds = mds.copy(datasetsIds = lineages.map(_.rootDataset.id))
+          (updatedMds, lineages)
+        }
+      })
     }
 
     val eventualReadsWithLineages: Future[Seq[(Read, Seq[DataLineage])]] = Future.sequence(
@@ -71,10 +75,10 @@ class ForeignMetaDatasetInjector(reader: DataLineageReader) extends AsyncTransfo
         eventualTuples = Future.sequence(read.sources map resolveMetaDataSources)
       } yield
         eventualTuples map (sourcesWithLineages => {
-          val (newSources: Seq[MetaDataSource], sourceLineages: Seq[Option[DataLineage]]) = sourcesWithLineages.unzip
-          val newProps = read.mainProps.copy(inputs = newSources.flatten(s => s.datasetId))
+          val (newSources: Seq[MetaDataSource], sourceLineages: Seq[Seq[DataLineage]]) = sourcesWithLineages.unzip
+          val newProps = read.mainProps.copy(inputs = newSources.flatMap(_.datasetsIds).distinct)
           val newRead = read.copy(sources = newSources, mainProps = newProps)
-          newRead -> sourceLineages.flatten
+          newRead -> sourceLineages.flatten.distinct
         }))
 
     eventualReadsWithLineages map (readsWithLineages => {

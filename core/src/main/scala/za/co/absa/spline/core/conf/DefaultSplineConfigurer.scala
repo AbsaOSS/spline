@@ -25,7 +25,7 @@ import za.co.absa.spline.core.batch.BatchListener
 import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode
 import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.core.streaming.{StreamWriteOperationHarvester, StructuredStreamingLineageHarvester, StructuredStreamingListener}
-import za.co.absa.spline.core.transformations.{ForeignMetaDatasetInjector, LineageProjectionMerger}
+import za.co.absa.spline.core.transformations.{DataLineageLinker, LineageProjectionMerger}
 import za.co.absa.spline.persistence.api.{NopDataLineageReader, PersistenceFactory}
 
 import scala.concurrent.ExecutionContext
@@ -93,7 +93,7 @@ class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkS
   private lazy val transformationPipeline =
     new AsyncTransformationPipeline(
       LineageProjectionMerger,
-      new ForeignMetaDatasetInjector(dataLineageReader)
+      new DataLineageLinker(dataLineageReader)
     )
 
   // batch

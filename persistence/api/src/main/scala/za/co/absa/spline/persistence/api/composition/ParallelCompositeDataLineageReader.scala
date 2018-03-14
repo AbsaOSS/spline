@@ -19,7 +19,6 @@ package za.co.absa.spline.persistence.api.composition
 import java.util.UUID
 
 import org.slf4s.Logging
-import za.co.absa.spline.model.op.CompositeWithDependencies
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
 import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
@@ -58,17 +57,9 @@ class ParallelCompositeDataLineageReader(readers: Seq[DataLineageReader]) extend
     * @param path A path for which a lineage graph is looked for
     * @return The latest data lineage
     */
-  override def loadLatest(path: String)(implicit ec: ExecutionContext): Future[Option[DataLineage]] =
-    Future.sequence(readers.map(_.loadLatest(path))).map(_.flatten.headOption)
-
-  /**
-    * The method loads a composite operation for an output datasetId.
-    *
-    * @param datasetId A dataset ID for which the operation is looked for
-    * @return A composite operation with dependencies satisfying the criteria
-    */
-  override def loadCompositeByOutput(datasetId: UUID)(implicit ec: ExecutionContext): Future[Option[CompositeWithDependencies]] =
-    Future.sequence(readers.map(_.loadCompositeByOutput(datasetId))).map(_.flatten.headOption)
+  override def findLatestLineagesByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] = {
+    Future.firstCompletedOf(readers.map(_.findLatestLineagesByPath(path)))
+  }
 
   /**
     * The method loads composite operations for an input datasetId.
@@ -76,8 +67,8 @@ class ParallelCompositeDataLineageReader(readers: Seq[DataLineageReader]) extend
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  override def loadCompositesByInput(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[CompositeWithDependencies]] =
-    Future.sequence(readers.map(_.loadCompositesByInput(datasetId))) map combineResults
+  override def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] =
+    Future.sequence(readers.map(_.findByInputId(datasetId))) map combineResults
 
   /**
     * The method gets all data lineages stored in persistence layer.

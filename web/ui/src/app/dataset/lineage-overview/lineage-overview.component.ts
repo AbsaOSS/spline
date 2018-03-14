@@ -19,7 +19,7 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {IAttribute, IDataLineage} from "../../../generated-ts/lineage-model";
 import {Observable} from "rxjs/Observable";
 import * as _ from "lodash";
-import {GraphNode, GraphNodeType} from "./lienage-overview-graph.component";
+import {GraphNode, GraphNodeType} from "./lineage-overview.model";
 import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
 import {LineageAccessors} from "../../lineage/lineage.store";
 
@@ -78,12 +78,16 @@ export class DatasetLineageOverviewComponent {
         }
     }
 
-    gotoOverviewLineage(dsId: string, dsType: GraphNodeType) {
-        this.router.navigate(
-            ["dataset", dsId, "lineage", "overview"], {
-                relativeTo: this.route.parent.parent.parent,
-                fragment: dsType
-            })
+    selectNode(nodeId: string, nodeType: GraphNodeType) {
+        switch (nodeType) {
+            case "operation":
+            case "datasource":
+                this.router.navigate(
+                    ["dataset", nodeId, "lineage", "overview"], {
+                        relativeTo: this.route.parent.parent.parent,
+                        fragment: nodeType
+                    })
+        }
     }
 
     gotoPartialLineage(dsId: string) {

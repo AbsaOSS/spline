@@ -20,9 +20,22 @@ import "vis/dist/vis.min.css";
 import * as vis from "vis";
 import * as _ from "lodash";
 import {Observable} from "rxjs/Observable";
-import {Icon} from "../../lineage/details/operation/operation-icon.utils";
 import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
 import {typeOfOperation} from "../../lineage/types";
+import {visOptions} from "./vis-options";
+import {
+    GraphNode,
+    GraphNodeTypesByIdPrefixes,
+    ID_PREFIX_LENGTH,
+    ID_PREFIXES,
+    VisDatasetNode,
+    VisNode,
+    VisNodeType,
+    VisProcessNode
+} from "./lineage-overview.model";
+import {ClusterManager} from "../../visjs/cluster-manager";
+import {Icon, VisClusterNode, VisModel} from "../../visjs/vis-model";
+import {getIconForNodeType} from "../../lineage/details/operation/operation-icon.utils";
 
 @Component({
     selector: 'lineage-overview-graph',
@@ -38,6 +51,7 @@ export class LineageOverviewGraphComponent implements OnInit {
 
     private selectedNode: GraphNode
     private network: vis.Network
+    private clusterManager: ClusterManager<VisNode, vis.Edge>
 
     constructor(private container: ElementRef) {
     }
@@ -67,33 +81,59 @@ export class LineageOverviewGraphComponent implements OnInit {
         this.network.fit()
     }
 
+    public collapseNodes() {
+        this.clusterManager.collapseAllClusters()
+    }
+
     private static eventToClickableNode(event: any): GraphNode {
         let nodeIdWithPrefix = event.nodes.length && event.nodes[0]
         return LineageOverviewGraphComponent.isClickableNodeId(nodeIdWithPrefix)
             && {
                 id: nodeIdWithPrefix.substring(ID_PREFIX_LENGTH),
-                type: (nodeIdWithPrefix.substring(0, ID_PREFIX_LENGTH) == ID_PREFIXES.operation) ? "operation" : "datasource"
+                type: GraphNodeTypesByIdPrefixes[nodeIdWithPrefix.substring(0, ID_PREFIX_LENGTH)]
             }
     }
 
     private static isClickableNodeId(nodeId: string): boolean {
-        const nonClickablePrefix = ID_PREFIXES.datasource + ID_PREFIXES.extra
-        return nodeId && !nodeId.startsWith(nonClickablePrefix)
+        const nonClickablePrefixes = [ID_PREFIXES.datasource + ID_PREFIXES.extra, ID_PREFIXES.datasource_cluster]
+        return nodeId && !_.some(nonClickablePrefixes, prf => nodeId.startsWith(prf))
     }
 
     private rebuildGraph(lineage: IDataLineage) {
         let graph = LineageOverviewGraphComponent.buildVisModel(lineage)
         this.network = new vis.Network(this.container.nativeElement, graph, visOptions)
 
+        this.clusterManager = new ClusterManager<VisNode, vis.Edge>(graph, this.network, (nodes,) =>
+            _(nodes)
+                .filter((node: VisNode) => node.nodeType === VisNodeType.Dataset)
+                .filter((dsNode: VisDatasetNode) => dsNode.dataSource.datasetsIds.length > 1) // means there were appends to the source
+                .groupBy((dsNode: VisDatasetNode) => dsNode.dataSource.datasetsIds[0]) // the first write/overwrite followed by subsequent appends
+                .values()
+                .map((nodes, i) => new VisClusterNode(`${ID_PREFIXES.datasource_cluster}${i}`, `${nodes[0].label} (${nodes.length})`, nodes))
+                .value())
+
+        this.clusterManager.rebuildClusters()
+        this.clusterManager.collapseAllClusters()
+
         this.network.on("click", event => {
             let node = LineageOverviewGraphComponent.eventToClickableNode(event)
-            if (node) this.nodeSelected.emit(node)
-            else this.refreshSelectedNode(this.selectedNode)
+            if (node)
+                this.nodeSelected.emit(node)
+            else {
+                this.refreshSelectedNode(this.selectedNode)
+                let clickedNode = event.nodes[0]
+                if (this.network.isCluster(clickedNode)) {
+                    this.network.openCluster(clickedNode)
+                }
+            }
         })
 
         this.network.on("doubleClick", event => {
-            let node = LineageOverviewGraphComponent.eventToClickableNode(event)
-            if (node) this.nodeActioned.emit(node)
+            if (event.nodes.length == 1) {
+                console.log("DOUBLE CLICK", event.nodes[0])
+                let node = LineageOverviewGraphComponent.eventToClickableNode(event)
+                if (node) this.nodeActioned.emit(node)
+            }
         })
 
         let canvasElement = this.container.nativeElement.getElementsByTagName("canvas")[0]
@@ -117,41 +157,62 @@ export class LineageOverviewGraphComponent implements OnInit {
         this.network.selectNodes([ID_PREFIXES[selectedNode.type] + selectedNode.id])
     }
 
-    private static buildVisModel(lineage: IDataLineage): vis.Data {
+    private static buildVisModel(lineage: IDataLineage): VisModel<VisNode, vis.Edge> {
         const getIdentifiableDataSourcesOf =
             (op: IComposite): ITypedMetaDataSource[] =>
-                op.sources.map((src, i) =>
-                    !src.datasetId
-                        ? _.assign({datasetId: ID_PREFIXES.extra + i + "_" + op.mainProps.id}, src)
+                _.flatMap(op.sources, (src, i) =>
+                    _.isEmpty(src.datasetsIds)
+                        ? _.assign({}, src, {datasetsIds: [ID_PREFIXES.extra + i + "_" + op.mainProps.id]})
                         : src)
 
-        let dataSources = (<any>_(lineage.operations))
-                .flatMap((op: IComposite) => getIdentifiableDataSourcesOf(op).concat(op.destination))
-                .uniqBy("datasetId")
-                .value(),
-            datasetNodes: vis.Node[] = dataSources.map((src: ITypedMetaDataSource) => ({
-                id: ID_PREFIXES.datasource + src.datasetId,
-                title: src.type + ":" + src.path,
-                label: src.path.substring(src.path.lastIndexOf("/") + 1),
-                icon: LineageOverviewGraphComponent.getIcon(
-                    new Icon("fa-file", "\uf15b", "FontAwesome"),
-                    src.datasetId.startsWith(ID_PREFIXES.extra) ? "#c0cdd6" : undefined)
-            })),
-            operationNodes: vis.Node[] = lineage.operations.map((op: IComposite) => ({
-                id: ID_PREFIXES.operation + op.mainProps.id,
-                label: op.appName,
-                icon: LineageOverviewGraphComponent.getIcon(Icon.getIconForNodeType(typeOfOperation(op)))
-            })),
+        const recombineByDatasetIdAndLongestAppendSequence =
+            (typedMetadataSources: ITypedMetaDataSource[]): [string, ITypedMetaDataSource][] =>
+                <any[]> _(typedMetadataSources)
+                    .flatMap((src: ITypedMetaDataSource) => src.datasetsIds.map(dsId => [dsId, src]))
+                    .groupBy(_.head).values()
+                    .map((pairs: [string, ITypedMetaDataSource][]) => _.sortBy(pairs, ([, src]) => -src.datasetsIds.length)[0])
+                    .value()
+
+
+        let dataSources =
+                _.flatMap(lineage.operations, (op: IComposite) =>
+                    getIdentifiableDataSourcesOf(op).concat(op.destination)),
+
+            datasetNodes: VisNode[] =
+                recombineByDatasetIdAndLongestAppendSequence(dataSources)
+                    .map(([datasetId, src]) =>
+                        new VisDatasetNode(
+                            src,
+                            ID_PREFIXES.datasource + datasetId,
+                            src.type + ":" + src.path,
+                            src.path.substring(src.path.lastIndexOf("/") + 1),
+                            LineageOverviewGraphComponent.getIcon(
+                                new Icon("fa-file", "\uf15b", "FontAwesome"),
+                                datasetId.startsWith(ID_PREFIXES.extra) ? "#c0cdd6" : undefined)
+                        )),
+
+            processNodes: VisNode[] = lineage.operations.map((op: IComposite) =>
+                new VisProcessNode(
+                    op,
+                    ID_PREFIXES.operation + op.mainProps.id,
+                    op.appName,
+                    LineageOverviewGraphComponent.getIcon(getIconForNodeType(typeOfOperation(op)))
+                )),
+
+            nodes = processNodes.concat(datasetNodes),
+
             edges: vis.Edge[] = _.flatMap(lineage.operations, (op: IComposite) => {
                 let opNodeId = ID_PREFIXES.operation + op.mainProps.id
-                let inputEdges: vis.Edge[] = getIdentifiableDataSourcesOf(op).map((src: ITypedMetaDataSource) => {
-                        let dsNodeId = ID_PREFIXES.datasource + src.datasetId
-                        return {
-                            id: dsNodeId + "_" + opNodeId,
-                            from: dsNodeId,
-                            to: opNodeId
-                        }
-                    }),
+                let inputEdges: vis.Edge[] =
+                        recombineByDatasetIdAndLongestAppendSequence(getIdentifiableDataSourcesOf(op))
+                            .map(([datasetId]) => {
+                                let dsNodeId = ID_PREFIXES.datasource + datasetId
+                                return {
+                                    id: dsNodeId + "_" + opNodeId,
+                                    from: dsNodeId,
+                                    to: opNodeId
+                                }
+                            }),
                     outputDsNodeId = ID_PREFIXES.datasource + op.mainProps.output,
                     outputEdge: vis.Edge = {
                         id: opNodeId + "_" + outputDsNodeId,
@@ -161,10 +222,10 @@ export class LineageOverviewGraphComponent implements OnInit {
                 return inputEdges.concat(outputEdge)
             })
 
-        return {
-            nodes: new vis.DataSet<vis.Node>(operationNodes.concat(datasetNodes)),
-            edges: new vis.DataSet<vis.Edge>(edges)
-        }
+        return new VisModel(
+            new vis.DataSet<VisNode>(nodes),
+            new vis.DataSet<vis.Edge>(edges)
+        )
     }
 
     static getIcon(icon: Icon, color: string = "#337ab7") {
@@ -175,74 +236,5 @@ export class LineageOverviewGraphComponent implements OnInit {
             color: color
         }
     }
-}
-
-export type GraphNodeType = ( "operation" | "datasource" )
-
-export interface GraphNode {
-    type: GraphNodeType
-    id: string
-}
-
-const ID_PREFIX_LENGTH = 3
-const ID_PREFIXES = {
-    operation: "op_",
-    datasource: "ds_",
-    extra: "ex_"
-}
-
-const visOptions = {
-    autoResize: true,
-    interaction: {
-        hover: true,
-        selectConnectedEdges: false,
-        hoverConnectedEdges: false
-    },
-    layout: {
-        hierarchical: {
-            enabled: true,
-            sortMethod: 'directed',
-            direction: 'UD',
-            parentCentralization: true,
-            nodeSpacing: 200,
-            levelSeparation: 200
-        }
-    },
-    physics: {
-        enabled: true,
-        hierarchicalRepulsion: {
-            nodeDistance: 250,
-            springLength: 150,
-            springConstant: 10,
-            damping: 1
-        }
-    },
-
-    edges: {
-        color: {
-            color:'#E0E0E0',
-            hover: '#E0E0E0',
-            highlight:'E0E0E0'
-        },
-        shadow: false,
-        width: 10,
-        arrows: "to",
-        font: {
-            color: '#343434',
-            background: '#ffffff',
-            strokeWidth: 0
-        }
-    },
-    nodes: {
-        shape: 'icon',
-        shadow: false,
-        margin: 10,
-        labelHighlightBold: false,
-        font: {
-            color: '#343434',
-            multi: false,
-            size: 20,
-        },
-    },
 }
 

@@ -15,55 +15,27 @@
  */
 
 import * as vis from "vis";
-import {IOperation} from "../../../../generated-ts/lineage-model";
-import {typeOfOperation} from "../../types";
-import {Icon} from "../../details/operation/operation-icon.utils";
-
-export class VisModel implements vis.Data {
-    constructor(public nodes: vis.DataSet<VisNode>, public edges: vis.DataSet<VisEdge>) {
-    }
-}
+import {IOperation} from "../../../generated-ts/lineage-model";
+import {typeOfOperation} from "../types";
+import {Icon, VisClusterNode} from "../../visjs/vis-model";
+import {getIconForNodeType} from "../details/operation/operation-icon.utils";
 
 export enum VisNodeType {
     Regular,
     Highlighted
 }
 
-export abstract class VisClusterNode implements vis.Node {
-    id: string;
-    label: string;
-    icon: any;
-    nodes: VisNode[];
-
+export class RegularVisClusterNode extends VisClusterNode<VisNode> {
     constructor(id: string, label: string, nodes: VisNode[]) {
-        this.id = id;
-        this.label = label;
-        this.icon = new Icon("fa-th", "\uf00a", "FontAwesome");
-        this.nodes = nodes;
+        super(id, label, nodes)
+        this.icon.color = "#a4c4df"
     }
 }
 
-export class RegularVisClusterNode extends VisClusterNode {
+export class HighlightedVisClusterNode extends VisClusterNode<VisNode> {
     constructor(id: string, label: string, nodes: VisNode[]) {
-        super(id, label, nodes);
-        this.icon = {
-            face: this.icon.font,
-            size: 80,
-            code: this.icon.code,
-            color: "#a4c4df"
-        }
-    }
-}
-
-export class HighlightedVisClusterNode extends VisClusterNode {
-    constructor(id: string, label: string, nodes: VisNode[]) {
-        super(id, label, nodes);
-        this.icon = {
-            face: this.icon.font,
-            size: 80,
-            code: this.icon.code,
-            color: "#ff6000"
-        }
+        super(id, label, nodes)
+        this.icon.color = "#ff6000"
     }
 }
 
@@ -83,7 +55,7 @@ export class RegularVisNode extends VisNode {
             operation,
             operation.mainProps.id,
             operation.mainProps.name,
-            RegularVisNode.getIcon(Icon.getIconForNodeType(typeOfOperation(operation))),
+            RegularVisNode.getIcon(getIconForNodeType(typeOfOperation(operation))),
             VisNodeType.Regular)
     }
 
@@ -103,7 +75,7 @@ export class HighlightedVisNode extends VisNode {
             operation,
             operation.mainProps.id,
             operation.mainProps.name,
-            HighlightedVisNode.getIcon(Icon.getIconForNodeType(typeOfOperation(operation))),
+            HighlightedVisNode.getIcon(getIconForNodeType(typeOfOperation(operation))),
             VisNodeType.Highlighted)
     }
 
