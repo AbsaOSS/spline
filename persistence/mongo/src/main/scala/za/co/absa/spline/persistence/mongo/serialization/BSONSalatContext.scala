@@ -16,17 +16,16 @@
 
 package za.co.absa.spline.persistence.mongo.serialization
 
-/**
-  * The object sets up defaults from (de)serialization of a data lineage to BSON format.
-  */
+import salat.Context
+
+class BSONSalatContext extends salat.Context with CommonSalatContext {
+  override val name = "BSON Salat context"
+  registerGlobalKeyOverride("id", "_id")
+}
+
 object BSONSalatContext {
-
-  /**
-    * An implicit context defining defaults for BSON (de)serialization.
-    */
-  implicit val ctx = new salat.Context with CommonSalatContext {
-    override val name: String = "BSON Salat Context"
-
-    registerGlobalKeyOverride("id", "_id")
+  implicit val ctx_with_fix_for_SL_126: Context = new BSONSalatContext {
+    override val name = "BSON Salat Context with fix for SL-126"
+    registerCustomTransformer(new AggregateOperationTransformer_SL126)
   }
 }
