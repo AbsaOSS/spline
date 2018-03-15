@@ -16,12 +16,35 @@
 
 package za.co.absa.spline.persistence.mongo
 
-class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase{
+import java.util.UUID.randomUUID
+
+import za.co.absa.spline.model.{DataLineage, dt, expr, op}
+import za.co.absa.spline.model.op.OperationProps
+
+class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase {
+
+  private val lineage = createDataLineage("appID", "appName")
+
   "Store method" should "store data lineage to a database." in {
-    val lineage = createDataLineage("appID", "appName")
+    for {
+      _ <- mongoWriter store lineage
+      storedLineage <- mongoReader loadByDatasetId lineage.rootDataset.id
+    } yield
+      storedLineage shouldEqual Option(lineage)
+  }
 
-    val storedLineage = mongoWriter.store(lineage).flatMap(_ => mongoReader.loadByDatasetId(lineage.rootDataset.id))
+  "Fields with dots" should "be stored correctly" in {
+    val lineageWithDotsAndDollar = {
+      val dummyExpression = expr.Generic("", "", dt.Simple("", nullable = true), Nil)
+      val aggregateOperationWithDotsAnd$ =
+        op.Aggregate(OperationProps(randomUUID, "aggregate", Nil, randomUUID), Nil, Map("field.with.dots.and.$" -> dummyExpression))
+      lineage.copy(operations = lineage.operations :+ aggregateOperationWithDotsAnd$)
+    }
 
-    storedLineage map (i => i shouldEqual Option(lineage))
+    for {
+      _ <- mongoWriter store lineageWithDotsAndDollar
+      storedLineage <- mongoReader loadByDatasetId lineageWithDotsAndDollar.rootDataset.id
+    } yield
+      storedLineage shouldEqual Option(lineageWithDotsAndDollar)
   }
 }
