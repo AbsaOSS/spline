@@ -31,7 +31,7 @@ class MongoConnection(dbUrl: String, dbName: String) {
   val LATEST_SERIAL_VERSION = 1
 
   private val client: MongoClient = MongoClient(MongoClientURI(dbUrl))
-  require(client.connectPoint != null) // check if the connection can be established
+  require(client.databaseNames != null) // check if the connection can be established
 
   private val database = client.getDB(dbName)
 
