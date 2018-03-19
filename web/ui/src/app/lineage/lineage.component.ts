@@ -32,7 +32,6 @@ export class LineageComponent implements OnInit {
     lineage: IDataLineage
     selectedTabIndex: Tab = Tab.Summary
     selectedOperation?: IOperation
-    attributeToShowFullSchemaFor?: IAttribute
     selectedAttrIDs: string[]
     highlightedNodeIDs: string[]
 
@@ -67,7 +66,6 @@ export class LineageComponent implements OnInit {
         this.route.queryParamMap.subscribe(qps => {
             this.selectedAttrIDs = qps.getAll("attr")
             this.highlightedNodeIDs = this.lineageStore.lineageAccessors.getOperationIdsByAnyAttributeId(...this.selectedAttrIDs)
-            this.attributeToShowFullSchemaFor = this.lineageStore.lineageAccessors.getAttribute(qps.get("attrSchema"))
             this.hiddenOperationTypes = <OperationType[]> qps.getAll("hideOp")
         })
 
@@ -85,7 +83,7 @@ export class LineageComponent implements OnInit {
             this.router.navigate(["op", opId], {
                     relativeTo: this.route.parent,
                     fragment: Tab.toFragment(Tab.Operation),
-                    queryParams: {attrSchema: []},
+                    queryParams: {},
                     queryParamsHandling: "merge"
                 }
             )
@@ -93,7 +91,7 @@ export class LineageComponent implements OnInit {
             this.router.navigate(["."], {
                     relativeTo: this.route.parent,
                     fragment: Tab.toFragment(Tab.Summary),
-                    queryParams: {attrSchema: []},
+                    queryParams: {},
                     queryParamsHandling: "merge"
                 }
             )
@@ -105,14 +103,6 @@ export class LineageComponent implements OnInit {
             queryParamsHandling: "preserve"
         })
 
-    }
-
-    onFullAttributeSchemaRequested(attr: IAttribute) {
-        this.router.navigate([], {
-            fragment: Tab.toFragment(Tab.Attribute),
-            queryParams: {'attrSchema': attr.id},
-            queryParamsHandling: "merge"
-        })
     }
 
     onAttributeSelected(attr: IAttribute) {
