@@ -25,7 +25,7 @@ import * as _ from 'lodash';
 @Component({
     selector: "attribute-list",
     templateUrl: "attribute-list.component.html",
-    styleUrls: ["attribute-list.component.css"]
+    styleUrls: ["attribute-list.component.less"]
 })
 export class AttributeListComponent implements OnInit {
 

@@ -19,7 +19,7 @@
     <div *ngSwitchCase="'Struct'" class="struct-type">
         <button class="btn btn-default btn-xs"
                 [ngClass]="{'active':node.isExpanded}"
-                (click)="node.toggleExpanded()">
+                (click)="toggleExpanded($event)">
             &#123; ... &#125;
         </button>
     </div>
@@ -30,7 +30,7 @@
         <b>[</b>
         <button class="btn btn-default btn-xs"
                 [ngClass]="{'active':node.isExpanded}"
-                (click)="node.toggleExpanded()">
+                (click)="toggleExpanded($event)">
             &#123; ... &#125;
         </button>
         <b>]</b>

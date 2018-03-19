@@ -15,49 +15,54 @@
  */
 
 .fld-type {
-    position: absolute;
-    top: 3px;
-    right: 0;
-    width: 70px;
+  position: absolute;
+  top: 3px;
+  right: 0;
+  width: 70px;
 }
 
 data-type-view {
-    width: 53px;
-    display: inline-block;
+  width: 53px;
+  display: inline-block;
 }
 
-:host /deep/ .node-wrapper {
+:host {
+  /deep/ .node-wrapper {
     position: relative;
-}
+  }
 
-:host /deep/ .tree-children {
+  /deep/ .tree-children {
     padding-left: 20px;
-}
+  }
 
-:host /deep/ .tree-node:hover {
-    color: #343434;
-    background: #f7fbff;
-    box-shadow: inset 0 0 1px #999;
-}
+  /deep/ .tree-node {
+    &:hover {
+      background-color: darken(white, 3%);
+    }
 
-:host /deep/ .node-content-wrapper {
+    &.tree-node-active {
+      color: #fff;
+      background: #337ab7;
+
+      &:hover, .tree-node:hover{
+        background-color: darken(#337ab7, 3%);
+      }
+    }
+  }
+
+  /deep/ .node-content-wrapper {
     background: transparent;
     box-shadow: none;
     opacity: 1 !important;
     padding: 5px 0 3px 0;
     cursor: pointer;
-}
+  }
 
-:host /deep/ .tree-node-active {
-    color: #fff;
-    background: #337ab7;
-    box-shadow: inset 0 0 1px #999;
-}
-
-:host /deep/ tree-node-expander {
+  /deep/ tree-node-expander {
     display: none;
-}
+  }
 
-:host /deep/ tree-viewport {
+  /deep/ tree-viewport {
     overflow: hidden;
+  }
 }
