@@ -20,7 +20,7 @@
 
     <groupId>za.co.absa.spline</groupId>
     <artifactId>spline-parent</artifactId>
-    <version>0.2.7-SNAPSHOT</version>
+    <version>0.2.7</version>
 
     <packaging>pom</packaging>
 
@@ -34,7 +34,7 @@
         <connection>scm:git:git://github.com/AbsaOSS/spline.git</connection>
         <developerConnection>scm:git:ssh://github.com:AbsaOSS/spline.git</developerConnection>
         <url>http://github.com/AbsaOSS/spline/tree/master</url>
-        <tag>HEAD</tag>
+        <tag>release/0.2.7</tag>
     </scm>
 
     <licenses>
