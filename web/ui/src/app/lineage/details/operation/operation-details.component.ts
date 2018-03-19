@@ -34,7 +34,6 @@ export class OperationDetailsComponent implements OnChanges {
     @Input() operation: IOperation
     @Input() selectedAttrIDs: string[]
 
-    @Output() fullAttributeSchemaRequested = new EventEmitter<IAttribute>()
     @Output() attributeSelected = new EventEmitter<IAttribute>()
 
     private operationType: OperationType
@@ -65,7 +64,4 @@ export class OperationDetailsComponent implements OnChanges {
         this.attributeSelected.emit(this.lineageStore.lineageAccessors.getAttribute(attrId))
     }
 
-    showFullAttributeSchema(attrId: string) {
-        this.fullAttributeSchemaRequested.emit(this.lineageStore.lineageAccessors.getAttribute(attrId))
-    }
 }

@@ -37,7 +37,7 @@
     "@angular/platform-browser": "4.4.4",
     "@angular/platform-browser-dynamic": "4.4.4",
     "@angular/router": "4.4.4",
-    "angular-tree-component": "5.0.0",
+    "angular-tree-component": "6.1.0",
     "bootstrap": "3.3.7",
     "core-js": "2.5.1",
     "es6-shim": "0.35.3",

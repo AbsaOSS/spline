@@ -74,17 +74,8 @@
                         <operation-details
                                 [operation]="selectedOperation"
                                 [selectedAttrIDs]="selectedAttrIDs"
-                                (fullAttributeSchemaRequested)="onFullAttributeSchemaRequested($event)"
                                 (attributeSelected)="onAttributeSelected($event)">
                         </operation-details>
-                    </mat-tab>
-
-                    <mat-tab *ngIf="attributeToShowFullSchemaFor">
-                        <ng-template mat-tab-label>
-                            <i class="fa fa-puzzle-piece spl-tab-attr"></i>
-                            {{attributeToShowFullSchemaFor.name}}
-                        </ng-template>
-                        <attribute-view [attr]="attributeToShowFullSchemaFor" [expandRoot]="true"></attribute-view>
                     </mat-tab>
                 </mat-tab-group>
             </div>

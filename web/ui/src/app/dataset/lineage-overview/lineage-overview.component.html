@@ -54,10 +54,8 @@
                         <h3>Schema:</h3>
                     </div>
                     <div style="height: calc(100% - 280px); overflow-y: auto;">
-                        <attribute-view
-                                *ngFor="let attr of selectedDataSourceDescription.schema.attrs"
-                                [attr]="attr">
-                        </attribute-view>
+                        <attribute-list [attrs]="selectedDataSourceDescription.schema.attrs">
+                        </attribute-list>
                     </div>
                 </div>
 

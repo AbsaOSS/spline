@@ -14,25 +14,25 @@
   ~ limitations under the License.
   -->
 
-<div [ngSwitch]="getTypeOfType(type)"
-     title="{{ type.nullable ? 'Optional' : 'Required' }}">
+<div [ngSwitch]="getTypeOfType()"
+     title="{{ node.data.type.nullable ? 'Optional' : 'Required' }}">
     <div *ngSwitchCase="'Struct'" class="struct-type">
         <button class="btn btn-default btn-xs"
-                [ngClass]="{'active':isExpanded}"
-                (click)="toggleExpand($event)">
+                [ngClass]="{'active':node.isExpanded}"
+                (click)="node.toggleExpanded()">
             &#123; ... &#125;
         </button>
     </div>
     <div *ngSwitchCase="'Simple'" class="simple-type">
-        {{ type.name }}
+        {{ node.data.type.name }}
     </div>
     <div *ngSwitchCase="'Array'" class="array-type">
         <b>[</b>
-        <data-type-view
-                [type]="type.elementDataType"
-                [isExpanded]="isExpanded"
-                (expanded)="expanded.emit($event)">
-        </data-type-view>
+        <button class="btn btn-default btn-xs"
+                [ngClass]="{'active':node.isExpanded}"
+                (click)="node.toggleExpanded()">
+            &#123; ... &#125;
+        </button>
         <b>]</b>
     </div>
 </div>
