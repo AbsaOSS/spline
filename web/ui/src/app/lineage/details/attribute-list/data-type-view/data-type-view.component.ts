@@ -30,4 +30,14 @@ export class DataTypeViewComponent {
         return typeOfDataType(this.node.data.type)
     }
 
+    toggleExpanded(e: Event) {
+        this.node.toggleExpanded()
+        DataTypeViewComponent.suppressBrowserNativeBehaviour(e)
+    }
+
+    private static suppressBrowserNativeBehaviour(event:Event) {
+        event.stopPropagation()
+        let btn = <HTMLButtonElement> event.srcElement
+        btn.blur()
+    }
 }
