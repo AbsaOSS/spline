@@ -26,16 +26,6 @@ data-type-view {
     display: inline-block;
 }
 
-a.show-full-schema {
-    display: block;
-    width: calc(100% - 70px);
-    text-align: center;
-    font-size: xx-small;
-    background-color: whitesmoke;
-    opacity: 0.4;
-    padding: 4px;
-}
-
 :host /deep/ .node-wrapper {
     position: relative;
 }
@@ -44,11 +34,24 @@ a.show-full-schema {
     padding-left: 20px;
 }
 
+:host /deep/ .tree-node:hover {
+    color: #343434;
+    background: #f7fbff;
+    box-shadow: inset 0 0 1px #999;
+}
+
 :host /deep/ .node-content-wrapper {
-    background: transparent !important;
-    box-shadow: none !important;
+    background: transparent;
+    box-shadow: none;
     opacity: 1 !important;
     padding: 5px 0 3px 0;
+    cursor: pointer;
+}
+
+:host /deep/ .tree-node-active {
+    color: #fff;
+    background: #337ab7;
+    box-shadow: inset 0 0 1px #999;
 }
 
 :host /deep/ tree-node-expander {

@@ -16,7 +16,7 @@
 
 import {maybe, Maybe} from "tsmonad";
 
-export enum Tab { Summary, Operation, Attribute }
+export enum Tab { Summary, Operation }
 
 export module Tab {
     export function toFragment(tab: Tab): string {

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {Component, Input, EventEmitter, Output} from "@angular/core";
-import {IDataType} from "../../../../../../generated-ts/datatype-model";
-import {typeOfDataType} from "../../../../types";
+import {Component, Input} from "@angular/core";
+import {TreeNode} from "angular-tree-component";
+import {typeOfDataType} from "../../../types";
 
 @Component({
     selector: "data-type-view",
@@ -24,18 +24,10 @@ import {typeOfDataType} from "../../../../types";
     styleUrls: ["data-type-view.component.less"]
 })
 export class DataTypeViewComponent {
-    @Input() type: IDataType
-    @Input() isExpanded: boolean
+    @Input() node: TreeNode
 
-    @Output() expanded = new EventEmitter<boolean>()
-
-    //noinspection JSMethodCanBeStatic
-    getTypeOfType(dt: IDataType): string {
-        return typeOfDataType(dt)
+    getTypeOfType(): string {
+        return typeOfDataType(this.node.data.type)
     }
 
-    toggleExpand(e: Event) {
-        this.expanded.emit(!this.isExpanded)
-        e.stopPropagation()
-    }
 }
