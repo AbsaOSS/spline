@@ -6,6 +6,8 @@ The project consists of two parts:
 
 ***
 
+[Spline paper](https://github.com/AbsaOSS/spline/releases/download/release%2F0.2.7/Spline_paper_IEEE_2018.pdf)
+
 # Summary
 
 ### in your POM file:
