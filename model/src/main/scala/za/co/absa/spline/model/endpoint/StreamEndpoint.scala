@@ -22,6 +22,11 @@ package za.co.absa.spline.model.endpoint
 trait StreamEndpoint {}
 
 /**
+  * The object represents an endpoint non-referring to any source of data
+  */
+case object VirtualEndpoint extends StreamEndpoint
+
+/**
   * The class represents a file-based endpoint for structured streaming
   * @param format An format of files keeping data
   * @param path A path to files keeping data
@@ -34,3 +39,10 @@ case class FileEndpoint(format: String, path: String) extends StreamEndpoint
   * @param topic A topic name
   */
 case class KafkaEndpoint(cluster: Seq[String], topic: String) extends StreamEndpoint
+
+/**
+  * The class represents a socket endpoint for structured streaming
+  * @param host A server address
+  * @param port A port number
+  */
+case class SocketEndpoint(host: String, port: String) extends StreamEndpoint

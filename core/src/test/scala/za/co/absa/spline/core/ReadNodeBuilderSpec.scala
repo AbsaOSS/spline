@@ -33,7 +33,7 @@ import org.scalatest.{FunSpec, Matchers}
 import za.co.absa.spline.core.TestSparkContext.sparkSession
 import za.co.absa.spline.model.MetaDataSource
 
-class SourceNodeBuilderSpec extends FunSpec with MockitoSugar with Matchers {
+class ReadNodeBuilderSpec extends FunSpec with MockitoSugar with Matchers {
   DriverManager registerDriver new FakeJDBCDriver
   implicit val hadoopConfiguration: Configuration = sparkSession.sparkContext.hadoopConfiguration
   implicit val metaDatasetFactory: MetaDatasetFactory = new MetaDatasetFactory(new AttributeFactory)
@@ -47,7 +47,7 @@ class SourceNodeBuilderSpec extends FunSpec with MockitoSugar with Matchers {
         option("dbtable", "some_table").
         load()
 
-      val bldr = new SourceNodeBuilder(df.queryExecution.analyzed.asInstanceOf[LogicalRelation])
+      val bldr = new ReadNodeBuilder(df.queryExecution.analyzed.asInstanceOf[LogicalRelation])
       val readOp = bldr.build()
 
       readOp.sourceType shouldEqual "JDBC"
@@ -55,7 +55,7 @@ class SourceNodeBuilderSpec extends FunSpec with MockitoSugar with Matchers {
     }
 
     it("should handle unrecognized source type") {
-      val bldr = new SourceNodeBuilder(LogicalRelation(FooBarRelation))
+      val bldr = new ReadNodeBuilder(LogicalRelation(FooBarRelation))
 
       val readOp = bldr.build()
 
