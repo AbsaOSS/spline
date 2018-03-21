@@ -24,7 +24,7 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
 import za.co.absa.spline.core.SparkLineageInitializer._
 import za.co.absa.spline.core.SparkLineageInitializerSpec._
-import za.co.absa.spline.core.batch.BatchListener
+import za.co.absa.spline.core.batch.SplineQueryExecutionListener
 import za.co.absa.spline.core.conf.DefaultSplineConfigurer.ConfProperty.{MODE, PERSISTENCE_FACTORY}
 import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
@@ -55,9 +55,9 @@ object SparkLineageInitializerSpec {
     }).get
   }
 
-  private def assertSplineIsEnabled() = sparkQueryExecutionListenerClasses should contain(classOf[BatchListener])
+  private def assertSplineIsEnabled() = sparkQueryExecutionListenerClasses should contain(classOf[SplineQueryExecutionListener])
 
-  private def assertSplineIsDisabled() = sparkQueryExecutionListenerClasses should not contain classOf[BatchListener]
+  private def assertSplineIsDisabled() = sparkQueryExecutionListenerClasses should not contain classOf[SplineQueryExecutionListener]
 }
 
 class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with Matchers {

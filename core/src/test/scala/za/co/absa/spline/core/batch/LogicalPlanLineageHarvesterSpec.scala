@@ -14,26 +14,25 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.core
+package za.co.absa.spline.core.batch
 
 import java.util.UUID.randomUUID
 
 import org.apache.spark.sql.functions._
 import org.scalatest.{FlatSpec, Matchers}
+import za.co.absa.spline.core.TestSparkContext
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op._
 import za.co.absa.spline.model.{Attribute, Schema, _}
 
 import scala.language.implicitConversions
 
-case class LogicalPlanLineageHarvesterSpecTestRow(i: Int, d: Double, s: String)
-
 class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
 
   import TestSparkContext._
   import sparkSession.implicits._
 
-  private val initialDataFrame = sparkSession.createDataset(Seq(LogicalPlanLineageHarvesterSpecTestRow(1, 2.3, "text")))
+  private val initialDataFrame = sparkSession.createDataset(Seq(LogicalPlanLineageHarvesterSpec_TestRow(1, 2.3, "text")))
   private val hadoopConfiguration = sparkSession.sparkContext.hadoopConfiguration
 
   implicit class OperationAssertions(operation: Operation) {

@@ -16,8 +16,8 @@
 
 package za.co.absa.spline.core.conf
 
-import za.co.absa.spline.core.batch.BatchListener
-import za.co.absa.spline.core.streaming.StructuredStreamingListener
+import org.apache.spark.sql.streaming.StreamingQueryListener
+import org.apache.spark.sql.util.QueryExecutionListener
 
 /**
   * The trait describes settings needed for initialization of the library.
@@ -28,15 +28,15 @@ trait SplineConfigurer {
 
   /**
     * A listener handling events from batch processing
-    * @return [[BatchListener]]
+    * @return [[QueryExecutionListener]]
     */
-  def batchListener : BatchListener
+  def queryExecutionListener : QueryExecutionListener
 
   /**
     * A listener handling events from structured-streaming processing
-    * @return [[StructuredStreamingListener]]
+    * @return [[StreamingQueryListener]]
     */
-  def structuredStreamingListener : StructuredStreamingListener
+  def streamingQueryListener : StreamingQueryListener
 
   /**
     * Spline mode designates how Spline should behave in a context of a Spark application.

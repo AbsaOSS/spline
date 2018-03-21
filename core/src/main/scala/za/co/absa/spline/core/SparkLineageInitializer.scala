@@ -69,8 +69,8 @@ object SparkLineageInitializer extends Logging {
       */
     def attemptInitialization(configurer: SplineConfigurer): Unit = {
       SparkVersionRequirement.instance.requireSupportedVersion()
-      sparkSession.listenerManager register configurer.batchListener
-      sparkSession.streams addListener configurer.structuredStreamingListener
+      sparkSession.listenerManager register configurer.queryExecutionListener
+      sparkSession.streams addListener configurer.streamingQueryListener
     }
 
     private[core] val defaultSplineConfiguration = {

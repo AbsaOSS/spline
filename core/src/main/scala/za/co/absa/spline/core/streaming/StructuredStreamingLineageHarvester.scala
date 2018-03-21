@@ -17,7 +17,7 @@
 package za.co.absa.spline.core.streaming
 
 import org.apache.spark.sql.execution.streaming.StreamExecution
-import za.co.absa.spline.core.LogicalPlanLineageHarvester
+import za.co.absa.spline.core.batch.LogicalPlanLineageHarvester
 import za.co.absa.spline.model.DataLineage
 
 /**
@@ -35,7 +35,9 @@ class StructuredStreamingLineageHarvester(coreHarvester : LogicalPlanLineageHarv
   def harvestLineage(streamExecution: StreamExecution): DataLineage = {
     val source = streamExecution.logicalPlan
     val sparkContext = streamExecution.sparkSession.sparkContext
+
     val lineage = coreHarvester.harvestLineage(sparkContext, source)
+
     writeOperationHarvester.harvest(streamExecution, lineage.rootDataset) match
     {
       case Some((newRootOperation, newRootDataset)) =>
