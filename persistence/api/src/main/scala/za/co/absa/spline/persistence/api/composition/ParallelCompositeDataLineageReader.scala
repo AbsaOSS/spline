@@ -24,7 +24,6 @@ import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 
 /**
   * The class represents a parallel composite reader from various persistence layers for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
@@ -39,7 +38,7 @@ class ParallelCompositeDataLineageReader(readers: Seq[DataLineageReader]) extend
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
   override def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Future[Option[DataLineage]] =
-    Future.sequence(readers.map(_.loadByDatasetId(dsId))).map(_.flatten.headOption)
+    firstCompletedReader(_.loadByDatasetId(dsId))
 
   /**
     * The method scans the persistence layer and tries to find a dataset ID for a given path and application ID.
@@ -49,7 +48,7 @@ class ParallelCompositeDataLineageReader(readers: Seq[DataLineageReader]) extend
     * @return An identifier of a meta data set
     */
   override def searchDataset(path: String, applicationId: String)(implicit ec: ExecutionContext): Future[Option[UUID]] =
-    Future.sequence(readers.map(_.searchDataset(path, applicationId))).map(_.flatten.headOption)
+    firstCompletedReader(_.searchDataset(path, applicationId))
 
   /**
     * The method loads the latest data lineage from the persistence for a given path.
@@ -58,7 +57,7 @@ class ParallelCompositeDataLineageReader(readers: Seq[DataLineageReader]) extend
     * @return The latest data lineage
     */
   override def findLatestLineagesByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] = {
-    Future.firstCompletedOf(readers.map(_.findLatestLineagesByPath(path)))
+    firstCompletedReader(_.findLatestLineagesByPath(path))
   }
 
   /**
@@ -68,7 +67,7 @@ class ParallelCompositeDataLineageReader(readers: Seq[DataLineageReader]) extend
     * @return Composite operations with dependencies satisfying the criteria
     */
   override def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] =
-    Future.sequence(readers.map(_.findByInputId(datasetId))) map combineResults
+    firstCompletedReader(_.findByInputId(datasetId))
 
   /**
     * The method gets all data lineages stored in persistence layer.
@@ -76,7 +75,7 @@ class ParallelCompositeDataLineageReader(readers: Seq[DataLineageReader]) extend
     * @return Descriptors of all data lineages
     */
   override def findDatasets(text: Option[String], page: PageRequest)(implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]] =
-    Future.sequence(readers.map(_.findDatasets(text, page))) map combineResults
+    firstCompletedReader(_.findDatasets(text, page))
 
   /**
     * The method returns a dataset descriptor by its ID.
@@ -85,16 +84,9 @@ class ParallelCompositeDataLineageReader(readers: Seq[DataLineageReader]) extend
     * @return Descriptors of all data lineages
     */
   override def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[PersistedDatasetDescriptor] =
-    Future.firstCompletedOf(readers.map(_.getDatasetDescriptor(id)))
+    firstCompletedReader(_.getDatasetDescriptor(id))
 
-  private def combineResults[T](seq: Seq[CloseableIterable[T]]): CloseableIterable[T] = seq.foldLeft(CloseableIterable.empty[T])(combineIterables)
-
-  private def combineIterables[T](a: CloseableIterable[T], b: CloseableIterable[T]): CloseableIterable[T] =
-    new CloseableIterable[T](
-      a.iterator ++ b.iterator,
-      () => Seq(
-        Try(a.close()),
-        Try(b.close()))
-        foreach (_ recover { case e => log.error("Error while closing iterable", e) })
-    )
+  private def firstCompletedReader[T](query: DataLineageReader => Future[T])(implicit ec: ExecutionContext): Future[T] = {
+    Future.firstCompletedOf(readers.map(query))
+  }
 }
