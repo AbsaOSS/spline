@@ -17,11 +17,11 @@
 package za.co.absa.spline.core
 
 import org.apache.commons.configuration._
-import org.apache.spark
 import org.apache.spark.sql.SparkSession
 import org.slf4s.Logging
 import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.core.conf._
+import za.co.absa.spline.coresparkadapterapi.SparkVersionRequirement
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
@@ -68,7 +68,7 @@ object SparkLineageInitializer extends Logging {
       * @param configurer External settings
       */
     def attemptInitialization(configurer: SplineConfigurer): Unit = {
-      require(SparkVersionInfo.matchesRequirements, s"Unsupported Spark version: ${spark.SPARK_VERSION}. Required version ${SparkVersionInfo.requiredVersion}")
+      SparkVersionRequirement.instance.requireSupportedVersion()
       sparkSession.listenerManager register configurer.batchListener
       sparkSession.streams addListener configurer.structuredStreamingListener
     }

@@ -47,6 +47,9 @@
         <module>commons</module>
         <module>model</module>
         <module>core</module>
+        <module>core-spark-adapter-api</module>
+        <module>core-spark-adapter-api_2_2</module>
+        <module>core-spark-adapter-api_2_3</module>
         <module>web</module>
         <module>sample</module>
         <module>persistence</module>
