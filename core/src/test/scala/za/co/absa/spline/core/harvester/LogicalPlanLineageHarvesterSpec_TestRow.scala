@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.core.batch
+package za.co.absa.spline.core.harvester
 
 case class LogicalPlanLineageHarvesterSpec_TestRow(i: Int, d: Double, s: String)

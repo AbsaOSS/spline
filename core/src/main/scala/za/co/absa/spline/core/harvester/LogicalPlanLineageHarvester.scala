@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.core.batch
+package za.co.absa.spline.core.harvester
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.SparkContext

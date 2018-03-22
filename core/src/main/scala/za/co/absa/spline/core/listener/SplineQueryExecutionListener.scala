@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.core.batch
+package za.co.absa.spline.core.listener
 
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.util.QueryExecutionListener
 import org.slf4s.Logging
 import za.co.absa.spline.core.SparkLineageProcessor
+import za.co.absa.spline.core.harvester.LogicalPlanLineageHarvester
 
 import scala.language.postfixOps
 
