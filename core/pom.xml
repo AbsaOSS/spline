@@ -41,22 +41,12 @@
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>spline-commons</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-model</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-persistence-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>spline-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -82,6 +72,12 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>spline-core-spark-adapter-2.2</artifactId>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

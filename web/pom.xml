@@ -37,11 +37,6 @@
     <dependencies>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>spline-commons</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-model</artifactId>
             <version>${project.version}</version>
         </dependency>
