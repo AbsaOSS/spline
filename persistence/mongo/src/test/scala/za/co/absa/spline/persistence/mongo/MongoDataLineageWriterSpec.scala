@@ -18,8 +18,10 @@ package za.co.absa.spline.persistence.mongo
 
 import java.util.UUID.randomUUID
 
-import za.co.absa.spline.model.{dt, expr, op}
-import za.co.absa.spline.model.op.OperationProps
+import za.co.absa.spline.model._
+import za.co.absa.spline.model.op.{Operation, OperationProps}
+
+import scala.math.Ordering
 
 class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase {
 
@@ -31,8 +33,9 @@ class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase {
       for {
         _ <- mongoWriter store lineage
         storedLineage <- mongoReader loadByDatasetId lineage.rootDataset.id
-      } yield
-        storedLineage shouldEqual Option(lineage)
+      } yield {
+        storedLineage.get shouldEqual lineage
+      }
     }
 
     it("should store fields with dots correctly") {

@@ -24,11 +24,13 @@ import _root_.salat._
 import com.mongodb.Cursor
 import com.mongodb.casbah.AggregationOptions.{default => aggOpts}
 import com.mongodb.casbah.Imports._
+import org.slf4s.Logging
 import za.co.absa.spline.common.UUIDExtractors.UUIDExtractor
 import za.co.absa.spline.model._
 import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
-import za.co.absa.spline.persistence.mongo.DBSchemaVersionHelper.withVersionCheck
+import za.co.absa.spline.persistence.mongo.DBSchemaVersionHelper._
+import za.co.absa.spline.persistence.mongo.MongoDataLineageWriter._
 import za.co.absa.spline.persistence.mongo.MongoImplicits._
 
 import scala.collection.JavaConverters._
@@ -39,9 +41,12 @@ import scala.concurrent.{ExecutionContext, Future, blocking}
   *
   * @param connection A connection to Mongo database
   */
-class MongoDataLineageReader(connection: MongoConnection) extends DataLineageReader {
+class MongoDataLineageReader(connection: MongoConnection) extends DataLineageReader with Logging {
 
+  import connection._
   import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext._
+
+  private val truncatedDataLineageReader = new TruncatedDataLineageReader(connection)
 
   /**
     * The method loads a particular data lineage from the persistence layer.
@@ -51,12 +56,9 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     */
   override def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Future[Option[DataLineage]] =
     Future {
-      val dbo = blocking {
-        val lineageId = DataLineageId.fromDatasetId(dsId)
-        connection.dataLineageCollection findOne lineageId
-      }
-      Option(dbo) map withVersionCheck(grater[DataLineage].asObject(_))
+      truncatedDataLineageReader.loadByDatasetId(dsId)
     }
+
 
 
   /**
@@ -73,7 +75,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
       DBObject("$project" → DBObject("datasetId" → 1)))
 
     import za.co.absa.spline.common.ARMImplicits._
-    for (cursor <- blocking(connection.dataLineageCollection.aggregate(aggregationQuery, aggOpts)))
+    for (cursor <- blocking(dataLineageCollection.aggregate(aggregationQuery, aggOpts)))
       yield
         if (cursor.hasNext) Some(cursor.next.get("datasetId").asInstanceOf[UUID])
         else None
@@ -91,7 +93,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
 
     val lastOverwriteTimestampIfExists: Option[Long] =
       for (timestampCursor <- blocking(
-        connection.dataLineageCollection.aggregate(
+        dataLineageCollection.aggregate(
           asList(
             DBObject("$match" → DBObject(
               "rootOperation.path" → path,
@@ -105,7 +107,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
         else None
 
     val lineageCursor = blocking(
-      connection.dataLineageCollection.aggregate(
+      dataLineageCollection.aggregate(
         asList(
           DBObject("$match" → (DBObject(
             "rootOperation.path" → path)
@@ -114,7 +116,11 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
           DBObject("$sort" → DBObject("timestamp" → +1))),
         aggOpts))
 
-    new DBCursorToCloseableIterableAdapter[DataLineage](lineageCursor)
+    new CloseableIterable[DataLineage](
+      iterator = lineageCursor.asScala
+        .map(deserializeWithVersionCheck[TruncatedDataLineage])
+        .map(truncatedDataLineageReader.enrichWithLinked),
+      closeFunction = lineageCursor.close())
   }
 
   /**
@@ -124,8 +130,14 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @return Composite operations with dependencies satisfying the criteria
     */
   override def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] = Future {
-    val cursor = blocking(connection.dataLineageCollection find DBObject("operations.sources.datasetsIds" → datasetId))
-    new DBCursorToCloseableIterableAdapter[DataLineage](cursor)
+    val cursor = blocking(operationCollection.find(DBObject("sources.datasetsIds" → datasetId)))
+    new CloseableIterable[DataLineage](iterator = cursor.asScala
+      .map(versionCheck)
+      .map(_.get(lineageIdField).asInstanceOf[String])
+      .map(DataLineageId.toDatasetId)
+      .map(truncatedDataLineageReader.loadByDatasetId)
+      .map(_.get),
+      closeFunction = cursor.close())
   }
 
   /**
@@ -166,7 +178,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     )
     val pipeline = (queryPipeline ++ projectionPipeline).asJava
     blocking(
-      connection.dataLineageCollection.
+      dataLineageCollection.
         aggregate(pipeline, aggOpts))
   }
 
