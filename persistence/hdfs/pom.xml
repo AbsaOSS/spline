@@ -30,21 +30,18 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_${scala.compat.version}</artifactId>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>2.6.5</version>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_${scala.compat.version}</artifactId>
+            <artifactId>spark-core_${scala.compat.version}</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-persistence-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>spline-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

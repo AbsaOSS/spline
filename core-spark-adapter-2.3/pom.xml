@@ -15,50 +15,57 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>spline-core-spark-adapter-2.3</artifactId>
+    <packaging>jar</packaging>
 
     <parent>
         <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
-        <relativePath>../../parent/pom.xml</relativePath>
+        <relativePath>../parent/pom.xml</relativePath>
         <version>0.3.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>spline-persistence-mongo</artifactId>
-    <packaging>jar</packaging>
-
     <properties>
-        <!-- Test properties -->
-        <test.spline.mongodb.url />
-        <test.spline.mongodb.name />
+        <timestamp>${maven.build.timestamp}</timestamp>
+        <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssX</maven.build.timestamp.format>
+        <spark.version>2.3.0</spark.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>spline-persistence-api</artifactId>
+            <artifactId>spline-core-spark-adapter-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.github.salat</groupId>
-            <artifactId>salat-core_${scala.compat.version}</artifactId>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_${scala.compat.version}</artifactId>
+            <version>${spark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.scalatest</groupId>
                 <artifactId>scalatest-maven-plugin</artifactId>
-                <configuration>
-                    <systemProperties>
-                        <test.spline.mongodb.url>${test.spline.mongodb.url}</test.spline.mongodb.url>
-                        <test.spline.mongodb.name>${test.spline.mongodb.name}</test.spline.mongodb.name>
-                    </systemProperties>
-                </configuration>
             </plugin>
         </plugins>
     </build>
-
 </project>
