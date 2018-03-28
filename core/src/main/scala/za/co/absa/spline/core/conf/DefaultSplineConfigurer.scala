@@ -73,11 +73,12 @@ class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkS
     }
   }
 
-  def queryExecutionListener: QueryExecutionListener =
+  lazy val queryExecutionListener: QueryExecutionListener =
     new SplineQueryExecutionListener(lineageHarvester, lineageProcessor)
 
-  def streamingQueryListener: StreamingQueryListener =
+  lazy val streamingQueryListener: StreamingQueryListener =
     new StructuredStreamingListener(sparkSession.streams, lineageHarvester, lineageProcessor)
+
 
   private lazy val lineageHarvester = new LogicalPlanLineageHarvester(sparkSession.sparkContext.hadoopConfiguration)
 
