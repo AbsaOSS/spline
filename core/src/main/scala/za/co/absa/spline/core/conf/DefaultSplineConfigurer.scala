@@ -18,15 +18,17 @@ package za.co.absa.spline.core.conf
 
 import org.apache.commons.configuration.Configuration
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.streaming.StreamingQueryListener
+import org.apache.spark.sql.util.QueryExecutionListener
 import org.slf4s.Logging
 import za.co.absa.spline.common.transformations.AsyncTransformationPipeline
-import za.co.absa.spline.core.LogicalPlanLineageHarvester
-import za.co.absa.spline.core.batch.BatchListener
 import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode
 import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode._
-import za.co.absa.spline.core.streaming.{StreamWriteOperationHarvester, StructuredStreamingLineageHarvester, StructuredStreamingListener}
 import za.co.absa.spline.core.transformations.{DataLineageLinker, LineageProjectionMerger}
-import za.co.absa.spline.persistence.api.{NopDataLineageReader, PersistenceFactory}
+import za.co.absa.spline.core.SparkLineageProcessor
+import za.co.absa.spline.core.harvester.LogicalPlanLineageHarvester
+import za.co.absa.spline.core.listener.{SplineQueryExecutionListener, StructuredStreamingListener}
+import za.co.absa.spline.persistence.api.{DataLineageReader, NopDataLineageReader, PersistenceFactory}
 
 import scala.concurrent.ExecutionContext
 
@@ -59,6 +61,7 @@ class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkS
 
   import DefaultSplineConfigurer.ConfProperty._
   import za.co.absa.spline.common.ConfigurationImplicits._
+
   private implicit val executionContext: ExecutionContext = ExecutionContext.global
 
   lazy val splineMode: SplineMode = {
@@ -70,7 +73,22 @@ class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkS
     }
   }
 
-  private def persistenceFactory: PersistenceFactory = {
+  lazy val queryExecutionListener: QueryExecutionListener =
+    new SplineQueryExecutionListener(lineageHarvester, lineageProcessor)
+
+  lazy val streamingQueryListener: StreamingQueryListener =
+    new StructuredStreamingListener(sparkSession.streams, lineageHarvester, lineageProcessor)
+
+
+  private lazy val lineageHarvester = new LogicalPlanLineageHarvester(sparkSession.sparkContext.hadoopConfiguration)
+
+  private lazy val lineageProcessor = {
+    val lineageReader = persistenceFactory.createDataLineageReader getOrElse NopDataLineageReader
+    val lineageWriter = persistenceFactory.createDataLineageWriter
+    new SparkLineageProcessor(lineageReader, lineageWriter, lineageTransformationPipeline(lineageReader))
+  }
+
+  private lazy val persistenceFactory: PersistenceFactory = {
     val persistenceFactoryClassName = configuration getRequiredString PERSISTENCE_FACTORY
 
     log debug s"Instantiating persistence factory: $persistenceFactoryClassName"
@@ -81,29 +99,10 @@ class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkS
       .asInstanceOf[PersistenceFactory]
   }
 
-
-
-  // commons
-  private lazy val dataLineageReader = persistenceFactory.createDataLineageReader.getOrElse(NopDataLineageReader)
-
-  private lazy val dataLineageWriter = persistenceFactory.createDataLineageWriter
-
-  private lazy val logicalPlanHarvester = new LogicalPlanLineageHarvester(sparkSession.sparkContext.hadoopConfiguration)
-
-  private lazy val transformationPipeline =
+  private def lineageTransformationPipeline(lineageReader: DataLineageReader) =
     new AsyncTransformationPipeline(
       LineageProjectionMerger,
-      new DataLineageLinker(dataLineageReader)
-    )
+      new DataLineageLinker(lineageReader))
 
-  // batch
-  lazy val batchListener = new BatchListener(dataLineageReader, dataLineageWriter, logicalPlanHarvester, transformationPipeline)
-
-  // streaming
-  private lazy val streamWriteOperationHarvester = new StreamWriteOperationHarvester
-
-  private lazy val structuredStreamingHarvester = new StructuredStreamingLineageHarvester(logicalPlanHarvester, streamWriteOperationHarvester)
-
-  lazy val structuredStreamingListener = new StructuredStreamingListener(sparkSession.streams, structuredStreamingHarvester, dataLineageWriter)
 
 }

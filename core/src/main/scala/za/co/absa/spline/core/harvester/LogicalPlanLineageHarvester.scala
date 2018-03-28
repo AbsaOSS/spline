@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.core
+package za.co.absa.spline.core.harvester
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.datasources.SaveIntoDataSourceCommand
+import za.co.absa.spline.core.{AttributeFactory, MetaDatasetFactory, OperationNodeBuilder, OperationNodeBuilderFactory}
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.model.op.Operation
 
