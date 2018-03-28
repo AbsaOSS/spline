@@ -65,12 +65,15 @@ object SparkLineageInitializer extends Logging {
 
     /**
       * The method tries to initialize the library with external settings.
+      *
       * @param configurer External settings
       */
     def attemptInitialization(configurer: SplineConfigurer): Unit = {
       SparkVersionRequirement.instance.requireSupportedVersion()
       sparkSession.listenerManager register configurer.queryExecutionListener
-      sparkSession.streams addListener configurer.streamingQueryListener
+
+      // TODO: SL-128
+      // sparkSession.streams addListener configurer.streamingQueryListener
     }
 
     private[core] val defaultSplineConfiguration = {
