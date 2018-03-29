@@ -71,3 +71,5 @@ db.lineages.createIndex({"timestamp": 1})
 db.operations.createIndex({"_lineageId": 1})
 db.operations.createIndex({"sources.datasetsIds": 1})
 
+db.datasets.createIndex({"_lineageId": 1})
+db.attributes.createIndex({"_lineageId": 1})
