@@ -42,6 +42,7 @@ db.lineages
         lineage.operations.forEach(toV3Operation)
         lineage.datasets.forEach(toV3Child)
         lineage.attributes.forEach(toV3Child)
+        lineage.operations[0].append = false
 
         db.operations.insert(lineage.operations)
         db.datasets.insert(lineage.datasets)
