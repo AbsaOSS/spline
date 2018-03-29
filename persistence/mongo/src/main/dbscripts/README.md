@@ -1,7 +1,10 @@
-# DB Migration Scripts
+# MongoDB Migration
 
-- upgrade.js: Upgrades db from previous version to current.
-- rollback.js: Rolls back to previous version.
+## Upgrade from Spline 0.2.x to 0.3.x version: 
+
+```shell
+$ mongo $DB_URL spline-0.3.upgrade.js
+```
 
 ---
 
