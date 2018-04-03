@@ -32,10 +32,8 @@ db.lineages
         function toV3Operation(o, i) {
             toV3Child(o, i)
             if (o.sources) o.sources.forEach(function (src) {
-                if (src.datasetId) {
-                    src.datasetsIds = [src.datasetId]
-                    delete src.datasetId
-                }
+                src.datasetsIds = src.datasetId ? [src.datasetId] : []
+                delete src.datasetId
             })
         }
 
