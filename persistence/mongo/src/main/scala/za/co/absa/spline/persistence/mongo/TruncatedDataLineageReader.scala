@@ -27,30 +27,31 @@ import za.co.absa.spline.persistence.mongo.DBSchemaVersionHelper.deserializeWith
 import za.co.absa.spline.persistence.mongo.MongoDataLineageWriter.{indexField, lineageIdField}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, blocking}
+import scala.concurrent.{ExecutionContext, Future, blocking}
 
 
 class TruncatedDataLineageReader(connection: MongoConnection) {
 
   import connection._
 
-  def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Option[DataLineage] = {
+  def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Option[TruncatedDataLineage] = {
     val lineageId = DataLineageId.fromDatasetId(dsId)
     Option(blocking(dataLineageCollection findOne lineageId))
       .map(deserializeWithVersionCheck[TruncatedDataLineage])
-      .map(enrichWithLinked)
   }
 
-  def enrichWithLinked(truncatedDataLineage: TruncatedDataLineage): DataLineage = {
-    val datasets = findLineageLinked[MetaDataset](datasetCollection, truncatedDataLineage)
-    val operations = findLineageLinked[Operation](operationCollection, truncatedDataLineage)
-    val attributes = findLineageLinked[Attribute](attributeCollection, truncatedDataLineage)
-    truncatedDataLineage.toDataLineage(operations, datasets, attributes)
+  def enrichWithLinked(truncatedDataLineage: TruncatedDataLineage)(implicit ec: ExecutionContext): Future[DataLineage] = {
+    for {
+      datasets <- findLineageLinked[MetaDataset](datasetCollection, truncatedDataLineage)
+      operations <- findLineageLinked[Operation](operationCollection, truncatedDataLineage)
+      attributes <- findLineageLinked[Attribute](attributeCollection, truncatedDataLineage)
+    } yield truncatedDataLineage.toDataLineage(operations, datasets, attributes)
   }
 
-  private def findLineageLinked[Y <: scala.AnyRef](dBCollection: DBCollection, truncatedDataLineage: TruncatedDataLineage)(implicit m: scala.Predef.Manifest[Y]): Seq[Y] = {
-    blocking(dBCollection.find(inLineageOp(truncatedDataLineage)).sort(sortByIndex))
-      .toArray.asScala.map(deserializeWithVersionCheck[Y])
+  private def findLineageLinked[Y <: scala.AnyRef](dBCollection: DBCollection, truncatedDataLineage: TruncatedDataLineage)(implicit m: scala.Predef.Manifest[Y], ec: ExecutionContext): Future[Seq[Y]] =
+    Future {
+      blocking(dBCollection.find(inLineageOp(truncatedDataLineage)).sort(sortByIndex))
+        .toArray.asScala.map(deserializeWithVersionCheck[Y])
   }
 
   def inLineageOp(truncatedDataLineage: TruncatedDataLineage): DBObject with QueryExpressionObject =

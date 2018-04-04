@@ -54,12 +54,13 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @param dsId An unique identifier of a data lineage
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
-  override def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Future[Option[DataLineage]] =
-    Future {
-      truncatedDataLineageReader.loadByDatasetId(dsId)
-    }
-
-
+  override def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Future[Option[DataLineage]] = {
+    val maybeEventualLineage = truncatedDataLineageReader
+      .loadByDatasetId(dsId)
+      .map(truncatedDataLineageReader.enrichWithLinked)
+    Future.sequence(Option.option2Iterable(maybeEventualLineage))
+      .map(_.headOption)
+  }
 
   /**
     * The method scans the persistence layer and tries to find a dataset ID for a given path and application ID.
@@ -79,7 +80,6 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
       yield
         if (cursor.hasNext) Some(cursor.next.get("datasetId").asInstanceOf[UUID])
         else None
-
   }
 
   /**
@@ -88,40 +88,43 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @param path A path for which a lineage graph is looked for
     * @return The latest data lineage
     */
-  override def findLatestLineagesByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] = Future {
-    import za.co.absa.spline.common.ARMImplicits._
+  override def findLatestLineagesByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] =
+    Future {
+      import za.co.absa.spline.common.ARMImplicits._
 
-    val lastOverwriteTimestampIfExists: Option[Long] =
-      for (timestampCursor <- blocking(
+      val lastOverwriteTimestampIfExists: Option[Long] =
+        for (timestampCursor <- blocking(
+          dataLineageCollection.aggregate(
+            asList(
+              DBObject("$match" → DBObject(
+                "rootOperation.path" → path,
+                "rootOperation.append" → false)),
+              DBObject("$project" → DBObject("timestamp" → 1)),
+              DBObject("$sort" → DBObject("timestamp" → -1)),
+              DBObject("$limit" → 1)),
+            aggOpts))
+        ) yield
+          if (timestampCursor.hasNext) Some(timestampCursor.next.get("timestamp").asInstanceOf[Long])
+          else None
+
+      val lineageCursor = blocking(
         dataLineageCollection.aggregate(
           asList(
-            DBObject("$match" → DBObject(
-              "rootOperation.path" → path,
-              "rootOperation.append" → false)),
-            DBObject("$project" → DBObject("timestamp" → 1)),
-            DBObject("$sort" → DBObject("timestamp" → -1)),
-            DBObject("$limit" → 1)),
+            DBObject("$match" → (DBObject(
+              "rootOperation.path" → path)
+              ++
+              ("timestamp" $gte (lastOverwriteTimestampIfExists getOrElse 0L)))),
+            DBObject("$sort" → DBObject("timestamp" → +1))),
           aggOpts))
-      ) yield
-        if (timestampCursor.hasNext) Some(timestampCursor.next.get("timestamp").asInstanceOf[Long])
-        else None
 
-    val lineageCursor = blocking(
-      dataLineageCollection.aggregate(
-        asList(
-          DBObject("$match" → (DBObject(
-            "rootOperation.path" → path)
-            ++
-            ("timestamp" $gte (lastOverwriteTimestampIfExists getOrElse 0L)))),
-          DBObject("$sort" → DBObject("timestamp" → +1))),
-        aggOpts))
-
-    new CloseableIterable[DataLineage](
-      iterator = lineageCursor.asScala
+      val futureIterator = lineageCursor.asScala
         .map(deserializeWithVersionCheck[TruncatedDataLineage])
-        .map(truncatedDataLineageReader.enrichWithLinked),
-      closeFunction = lineageCursor.close())
-  }
+        .map(truncatedDataLineageReader.enrichWithLinked)
+      Future.sequence(futureIterator)
+          .map(i => new CloseableIterable[DataLineage](
+            iterator = i,
+            closeFunction = lineageCursor.close()))
+    }.flatMap(identity)
 
   /**
     * The method loads composite operations for an input datasetId.
@@ -129,15 +132,18 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  override def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] = Future {
-    val cursor = blocking(operationCollection.find(DBObject("sources.datasetsIds" → datasetId)))
-    new CloseableIterable[DataLineage](iterator = cursor.asScala
-      .map(versionCheck)
-      .map(_.get(lineageIdField).asInstanceOf[String])
-      .map(DataLineageId.toDatasetId)
-      .map(truncatedDataLineageReader.loadByDatasetId)
-      .map(_.get),
-      closeFunction = cursor.close())
+  override def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] = {
+    Future {
+      val cursor = blocking(operationCollection.find(DBObject("sources.datasetsIds" → datasetId)))
+      Future.sequence({
+        cursor
+          .asScala
+          .map(versionCheck)
+          .map(_.get(lineageIdField).asInstanceOf[String])
+          .map(DataLineageId.toDatasetId)
+          .map(id => loadByDatasetId(id).map(_.get))
+      }).map(i => new CloseableIterable[DataLineage](iterator = i, closeFunction = cursor.close()))
+    }.flatMap(identity)
   }
 
   /**
