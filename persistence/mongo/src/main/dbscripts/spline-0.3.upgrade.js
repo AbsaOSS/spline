@@ -32,16 +32,15 @@ db.lineages
         function toV3Operation(o, i) {
             toV3Child(o, i)
             if (o.sources) o.sources.forEach(function (src) {
-                if (src.datasetId) {
-                    src.datasetsIds = [src.datasetId]
-                    delete src.datasetId
-                }
+                src.datasetsIds = src.datasetId ? [src.datasetId] : []
+                delete src.datasetId
             })
         }
 
         lineage.operations.forEach(toV3Operation)
         lineage.datasets.forEach(toV3Child)
         lineage.attributes.forEach(toV3Child)
+        lineage.operations[0].append = false
 
         db.operations.insert(lineage.operations)
         db.datasets.insert(lineage.datasets)
