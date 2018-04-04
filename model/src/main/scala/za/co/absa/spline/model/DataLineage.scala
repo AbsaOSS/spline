@@ -18,7 +18,6 @@ package za.co.absa.spline.model
 
 import java.util.UUID
 
-import salat.annotations.Persist
 import za.co.absa.spline.model.op.Operation
 
 /**
@@ -46,19 +45,16 @@ case class DataLineage
   /**
     * A unique identifier of the data lineage
     */
-  @Persist
   lazy val id: String = DataLineageId.fromDatasetId(datasets.head.id)
 
   /**
     * A node representing the last operation performed within data lineage graph. Usually, it describes persistence of data set to some file, database, Kafka endpoint, etc.
     */
-  @Persist
   val rootOperation: Operation = operations.head
 
   /**
     * A descriptor of the data set produced by the computation.
     */
-  @Persist
   val rootDataset: MetaDataset = datasets.head
 }
 

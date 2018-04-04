@@ -65,5 +65,11 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
     )
   }
 
-  override protected def afterEach(): Unit = mongoConnection.dataLineageCollection.drop()
+  override protected def afterEach(): Unit = {
+    import mongoConnection._
+    dataLineageCollection.drop()
+    operationCollection.drop()
+    attributeCollection.drop()
+    datasetCollection.drop()
+  }
 }

@@ -16,15 +16,40 @@
 
 package za.co.absa.spline.persistence.mongo
 
+import _root_.salat._
 import com.mongodb.DBObject
+import com.mongodb.casbah.Imports._
+import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext.ctx_with_fix_for_SL_126
 
 object DBSchemaVersionHelper {
 
-  val LATEST_SERIAL_VERSION = 2
+  private val LATEST_SERIAL_VERSION = 3
+  private val versionField = "_ver"
 
-  def withVersionCheck[T](f: DBObject => T): DBObject => T =
-    dbo => (dbo get "_ver").asInstanceOf[Int] match {
-      case LATEST_SERIAL_VERSION => f(dbo)
+  def versionCheck(dbo: DBObject): DBObject = {
+    dbo.get(versionField).asInstanceOf[Int] match {
+      case LATEST_SERIAL_VERSION => dbo
       case unknownVersion => sys.error(s"Unsupported serialized lineage version: $unknownVersion")
     }
+  }
+
+  def withVersionCheck[T](f: DBObject => T): DBObject => T = {
+    versionCheck _ andThen[T] f
+  }
+
+  def deserializeWithVersionCheck[Y <: scala.AnyRef](dBObject: DBObject)(implicit m : scala.Predef.Manifest[Y]): Y = {
+    versionCheck(dBObject)
+    grater[Y].asObject(dBObject)
+  }
+
+  def serializeWithVersion[Y <: scala.AnyRef](obj: Y)(implicit m : scala.Predef.Manifest[Y]): DBObject = {
+    val dBObject = grater[Y].asDBObject(obj)
+    putVersion(dBObject)
+    dBObject
+  }
+
+  private def putVersion(dbo: DBObject): DBObject = {
+    dbo.put(versionField, LATEST_SERIAL_VERSION)
+    dbo
+  }
 }
