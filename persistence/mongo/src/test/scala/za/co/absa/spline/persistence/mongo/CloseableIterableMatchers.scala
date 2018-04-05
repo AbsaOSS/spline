@@ -41,4 +41,18 @@ object CloseableIterableMatchers {
       })
   }
 
+  object ConsistOfItems {
+    def apply[T](items: T*) = new MatcherAdapter[CloseableIterable[T]](
+      iterable => {
+        val actualItems = iterable.iterator.toList
+        val expectedItems = items.toList
+        MatchResult(
+          actualItems == expectedItems,
+          s"Returned list did not match expected values:" +
+            s"\n\tActual  : $actualItems" +
+            s"\n\tExpected: $expectedItems",
+          "")
+      })
+  }
+
 }

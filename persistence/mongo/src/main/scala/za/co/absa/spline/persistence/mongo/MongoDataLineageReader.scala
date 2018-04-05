@@ -88,7 +88,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @param path A path for which a lineage graph is looked for
     * @return The latest data lineage
     */
-  override def findLatestLineagesByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] =
+  override def findLatestDatasetIDsByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[UUID]] =
     Future {
       import za.co.absa.spline.common.ARMImplicits._
 
@@ -117,14 +117,14 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
             DBObject("$sort" → DBObject("timestamp" → +1))),
           aggOpts))
 
-      val futureIterator = lineageCursor.asScala
+      val dsIdIterator = lineageCursor.asScala
         .map(deserializeWithVersionCheck[TruncatedDataLineage])
-        .map(truncatedDataLineageReader.enrichWithLinked)
-      Future.sequence(futureIterator)
-          .map(i => new CloseableIterable[DataLineage](
-            iterator = i,
-            closeFunction = lineageCursor.close()))
-    }.flatMap(identity)
+        .map(_.rootDataset.id)
+
+      new CloseableIterable[UUID](
+        iterator = dsIdIterator,
+        closeFunction = lineageCursor.close())
+    }
 
   /**
     * The method loads composite operations for an input datasetId.

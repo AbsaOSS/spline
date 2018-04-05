@@ -17,6 +17,7 @@
 package za.co.absa.spline.persistence.mongo
 
 import java.net.URI
+import java.util.UUID
 import java.util.UUID.randomUUID
 
 import za.co.absa.spline.common.OptionImplicits._
@@ -111,19 +112,25 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
   }
 
   describe("findLatestLineagesByPath()") {
+    val uuid1 = UUID.fromString("11111111-1111-1111-1111-111111111111")
+    val uuid2 = UUID.fromString("22222222-2222-2222-2222-222222222222")
+    val uuid3 = UUID.fromString("33333333-3333-3333-3333-333333333333")
+    val uuid4 = UUID.fromString("44444444-4444-4444-4444-444444444444")
+    val uuid5 = UUID.fromString("55555555-5555-5555-5555-555555555555")
+
     it("should return latest lineage records from a database for a give path") {
       val path = "hdfs://a/b/c"
       val testLineages = Seq(
-        createDataLineage("appID1", "appName1", 1L, path),
-        createDataLineage("appID2", "appName2", 2L),
-        createDataLineage("appID3", "appName3", 30L, path),
-        createDataLineage("appID4", "appName4", 4L),
-        createDataLineage("appID5", "appName5", 5L, path)
+        createDataLineage("appID1", "appName1", 1L, uuid1, path),
+        createDataLineage("appID2", "appName2", 2L, uuid2),
+        createDataLineage("appID3", "appName3", 30L, uuid3, path),
+        createDataLineage("appID4", "appName4", 4L, uuid4),
+        createDataLineage("appID5", "appName5", 5L, uuid5, path)
       )
 
-      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestLineagesByPath(path))
+      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestDatasetIDsByPath(path))
 
-      result.map(resultItems => resultItems should ConsistOfItemsWithAppIds("appID3"))
+      result.map(resultItems => resultItems should ConsistOfItems(uuid3))
     }
 
     it("should return empty result if no records exists in a database for a given path") {
@@ -134,7 +141,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         createDataLineage("appID3", "appName3", 3L)
       )
 
-      val result = Future.sequence(testLineages map mongoWriter.store) flatMap (_ => mongoReader findLatestLineagesByPath path)
+      val result = Future.sequence(testLineages map mongoWriter.store) flatMap (_ => mongoReader findLatestDatasetIDsByPath path)
 
       result.map(_.iterator shouldBe empty)
     }
@@ -142,28 +149,28 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
     it("should return a sequence of all appended lineages sorted by timestamp in chronological order") {
       val path = "hdfs://a/b/c"
       val testLineages = Seq(
-        createDataLineage("appID1", "appName1", 1L, path, append = true),
-        createDataLineage("appID2", "appName2", 2L, path, append = true),
-        createDataLineage("appID3", "appName3", 3L, path, append = true)
+        createDataLineage("appID1", "appName1", 1L, uuid1, path, append = true),
+        createDataLineage("appID2", "appName2", 2L, uuid2, path, append = true),
+        createDataLineage("appID3", "appName3", 3L, uuid3, path, append = true)
       )
 
-      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestLineagesByPath(path))
+      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestDatasetIDsByPath(path))
 
-      result.map(resultItems => resultItems should ConsistOfItemsWithAppIds("appID1", "appID2", "appID3"))
+      result.map(resultItems => resultItems should ConsistOfItems(uuid1, uuid2, uuid3))
     }
 
     it("should return a sequence of all appended lineages since the last overwrite") {
       val path = "hdfs://a/b/c"
       val testLineages = Seq(
-        createDataLineage("appID0", "appName0", 0L, path, append = true),
-        createDataLineage("appID1", "appName1", 1L, path),
-        createDataLineage("appID2", "appName2", 2L, path, append = true),
-        createDataLineage("appID3", "appName3", 3L, path, append = true)
+        createDataLineage("appID0", "appName0", 0L, randomUUID, path, append = true),
+        createDataLineage("appID1", "appName1", 1L, uuid1, path),
+        createDataLineage("appID2", "appName2", 2L, uuid2, path, append = true),
+        createDataLineage("appID3", "appName3", 3L, uuid3, path, append = true)
       )
 
-      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestLineagesByPath(path))
+      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestDatasetIDsByPath(path))
 
-      result.map(resultItems => resultItems should ConsistOfItemsWithAppIds("appID1", "appID2", "appID3"))
+      result.map(resultItems => resultItems should ConsistOfItems(uuid1, uuid2, uuid3))
     }
 
   }
@@ -172,11 +179,11 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
     it("should find the correct lineage ID according a given criteria") {
       val path = "hdfs://a/b/c"
       val testLineages = Seq(
-        createDataLineage("appID1", "appName1", 1L, path),
+        createDataLineage("appID1", "appName1", 1L, path = path),
         createDataLineage("appID1", "appName1", 2L),
-        createDataLineage("appID2", "appName2", 30L, path),
+        createDataLineage("appID2", "appName2", 30L, path = path),
         createDataLineage("appID2", "appName2", 4L),
-        createDataLineage("appID3", "appName2", 5L, path)
+        createDataLineage("appID3", "appName2", 5L, path = path)
       )
 
       val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.searchDataset(path, "appID2"))
@@ -187,11 +194,11 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
     it("should return None if there is no record for a given criteria") {
       val path = "hdfs://a/b/c"
       val testLineages = Seq(
-        createDataLineage("appID1", "appName1", 1L, path),
+        createDataLineage("appID1", "appName1", 1L, path = path),
         createDataLineage("appID1", "appName1", 2L),
         createDataLineage("appID2", "appName2", 30L),
         createDataLineage("appID2", "appName2", 4L),
-        createDataLineage("appID3", "appName2", 5L, path)
+        createDataLineage("appID3", "appName2", 5L, path = path)
       )
 
       val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.searchDataset(path, "appID2"))

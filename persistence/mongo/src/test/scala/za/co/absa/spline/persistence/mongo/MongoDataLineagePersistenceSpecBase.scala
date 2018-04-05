@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.persistence.mongo
 
+import java.util.UUID
 import java.util.UUID.randomUUID
 
 import org.scalatest.{AsyncFunSpec, BeforeAndAfterEach, Matchers}
@@ -33,6 +34,7 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
                                    appId: String,
                                    appName: String,
                                    timestamp: Long = 123L,
+                                   datasetId: UUID = randomUUID,
                                    path: String = "hdfs://foo/bar/path",
                                    append: Boolean = false)
   : DataLineage = {
@@ -44,7 +46,7 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
     val aSchema = Schema(attributes.map(_.id))
     val bSchema = Schema(attributes.map(_.id).tail)
 
-    val md1 = MetaDataset(randomUUID, aSchema)
+    val md1 = MetaDataset(datasetId, aSchema)
     val md2 = MetaDataset(randomUUID, aSchema)
     val md3 = MetaDataset(randomUUID, bSchema)
     val md4 = MetaDataset(randomUUID, bSchema)
