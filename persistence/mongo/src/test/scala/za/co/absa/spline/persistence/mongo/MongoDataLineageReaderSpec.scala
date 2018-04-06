@@ -20,6 +20,7 @@ import java.net.URI
 import java.util.UUID
 import java.util.UUID.randomUUID
 
+import com.mongodb.casbah.commons.Imports.DBObject
 import za.co.absa.spline.common.OptionImplicits._
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.dt.Simple
@@ -219,20 +220,19 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
       val testLineages = Seq(
         createDataLineageWithSources("appID1", "appName1", sources.tail),
         createDataLineageWithSources("appID2", "appName2", sources),
-        createDataLineageWithSources("appID3", "appName3", Seq.empty),
-        createDataLineageWithSources("appID4", "appName4", sources.tail)
+        createDataLineageWithSources("appID3", "appName3", sources),
+        createDataLineageWithSources("appID4", "appName4", sources),
+        createDataLineageWithSources("appID5", "appName5", Seq.empty)
       )
 
       val datasetIdToFindBy = sources.head.datasetsIds.head
 
-      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i)))
-        .flatMap(_ => mongoReader.findByInputId(datasetIdToFindBy))
-        .map(_.iterator.toSeq)
-
-      result.map(res => {
-        res.length shouldEqual 1
-        res.head shouldEqual testLineages(1)
-      })
+      Future.sequence(testLineages.map(i => mongoWriter.store(i))).
+        flatMap(_ => {
+          MongoTestProperties.mongoConnection.dataLineageCollection remove DBObject("appId" -> "appID4") // Emulate incomplete lineage #4
+          mongoReader.findByInputId(datasetIdToFindBy)
+        }).
+        map(_ should ConsistOfItemsWithAppIds("appID2", "appID3"))
     }
   }
 

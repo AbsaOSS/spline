@@ -132,19 +132,23 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  override def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] = {
-    Future {
-      val cursor = blocking(operationCollection.find(DBObject("sources.datasetsIds" → datasetId)))
-      Future.sequence({
-        cursor
-          .asScala
-          .map(versionCheck)
-          .map(_.get(lineageIdField).asInstanceOf[String])
-          .map(DataLineageId.toDatasetId)
-          .map(id => loadByDatasetId(id).map(_.get))
-      }).map(i => new CloseableIterable[DataLineage](iterator = i, closeFunction = cursor.close()))
-    }.flatMap(identity)
-  }
+  override def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] =
+    Future(blocking(operationCollection.find(DBObject("sources.datasetsIds" → datasetId)))) flatMap {
+      cursor => {
+        val eventualMaybeLineages =
+          cursor.asScala
+            .map(versionCheck)
+            .map(dBObject => {
+              val refLineageId = dBObject.get(lineageIdField).asInstanceOf[String]
+              val refDatasetId = DataLineageId.toDatasetId(refLineageId)
+              loadByDatasetId(refDatasetId)
+            })
+
+        val eventualLineages = Future.sequence(eventualMaybeLineages).map(_.flatten)
+
+        eventualLineages.map(lineages => new CloseableIterable[DataLineage](iterator = lineages, closeFunction = cursor.close()))
+      }
+    }
 
   /**
     * The method gets all data lineages stored in persistence layer.
