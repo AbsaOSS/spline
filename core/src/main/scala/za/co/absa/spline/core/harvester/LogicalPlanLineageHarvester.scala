@@ -19,8 +19,8 @@ package za.co.absa.spline.core.harvester
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
-import org.apache.spark.sql.execution.datasources.SaveIntoDataSourceCommand
 import za.co.absa.spline.core.{AttributeFactory, MetaDatasetFactory, OperationNodeBuilder, OperationNodeBuilderFactory}
+import za.co.absa.spline.coresparkadapterapi.WriteCommandParser
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.model.op.Operation
 
@@ -32,6 +32,8 @@ import scala.language.postfixOps
   * @param hadoopConfiguration A hadoop configuration
   */
 class LogicalPlanLineageHarvester(hadoopConfiguration: Configuration) {
+
+  private val writeCommandParser = WriteCommandParser.instance
 
   /** A main method of the object that performs transformation of Spark internal structures to library lineage representation.
     *
@@ -71,7 +73,7 @@ class LogicalPlanLineageHarvester(hadoopConfiguration: Configuration) {
           visitedNodes += (currentOperation -> pos)
           result += newNode
           currentOperation match {
-            case x: SaveIntoDataSourceCommand => stack.push((x.query, pos))
+            case x if writeCommandParser.matches(x) => stack.push((writeCommandParser.asWriteCommand(x).query, pos))
             case x => x.children.reverse.map(op => stack.push((op, pos)))
           }
           newNode
