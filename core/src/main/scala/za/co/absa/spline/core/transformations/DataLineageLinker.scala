@@ -51,7 +51,7 @@ class DataLineageLinker(reader: DataLineageReader) extends AsyncTransformation[D
 
       assume(mds.datasetsIds.isEmpty, s"a lineage of ${mds.path} is yet to be found")
 
-      reader.findLatestDatasetIDsByPath(mds.path) map (dsIdCursor => {
+      reader.findLatestDatasetIdsByPath(mds.path) map (dsIdCursor => {
         import za.co.absa.spline.common.ARMImplicits._
         for (_ <- dsIdCursor) yield {
           val dsIds = dsIdCursor.iterator.toList

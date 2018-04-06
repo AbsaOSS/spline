@@ -63,7 +63,7 @@ trait DataLineageReader {
     * @param path A path for which a lineage graph is looked for
     * @return The latest data lineage
     */
-  def findLatestDatasetIDsByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[UUID]]
+  def findLatestDatasetIdsByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[UUID]]
 
   /**
     * The method loads composite operations for an input datasetId.

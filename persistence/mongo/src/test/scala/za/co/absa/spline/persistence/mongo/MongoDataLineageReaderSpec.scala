@@ -129,7 +129,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         createDataLineage("appID5", "appName5", 5L, uuid5, path)
       )
 
-      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestDatasetIDsByPath(path))
+      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestDatasetIdsByPath(path))
 
       result.map(resultItems => resultItems should ConsistOfItems(uuid3))
     }
@@ -142,7 +142,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         createDataLineage("appID3", "appName3", 3L)
       )
 
-      val result = Future.sequence(testLineages map mongoWriter.store) flatMap (_ => mongoReader findLatestDatasetIDsByPath path)
+      val result = Future.sequence(testLineages map mongoWriter.store) flatMap (_ => mongoReader findLatestDatasetIdsByPath path)
 
       result.map(_.iterator shouldBe empty)
     }
@@ -155,7 +155,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         createDataLineage("appID3", "appName3", 3L, uuid3, path, append = true)
       )
 
-      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestDatasetIDsByPath(path))
+      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestDatasetIdsByPath(path))
 
       result.map(resultItems => resultItems should ConsistOfItems(uuid1, uuid2, uuid3))
     }
@@ -169,7 +169,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         createDataLineage("appID3", "appName3", 3L, uuid3, path, append = true)
       )
 
-      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestDatasetIDsByPath(path))
+      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestDatasetIdsByPath(path))
 
       result.map(resultItems => resultItems should ConsistOfItems(uuid1, uuid2, uuid3))
     }

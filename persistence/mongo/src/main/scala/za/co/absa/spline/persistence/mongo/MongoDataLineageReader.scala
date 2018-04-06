@@ -88,7 +88,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @param path A path for which a lineage graph is looked for
     * @return The latest data lineage
     */
-  override def findLatestDatasetIDsByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[UUID]] =
+  override def findLatestDatasetIdsByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[UUID]] =
     Future {
       import za.co.absa.spline.common.ARMImplicits._
 

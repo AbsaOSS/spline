@@ -47,20 +47,30 @@ class DataLineageLinkerSpec extends AsyncFlatSpec with Matchers with MockitoSuga
         Attribute(randomUUID, "3", dataType)
       )
       val dataset = MetaDataset(randomUUID, Schema(attributes.map(_.id)))
-      val operation = Read(OperationProps(randomUUID, "read", Seq.empty, dataset.id), "parquet", Seq(MetaDataSource("some/path", Nil)))
-      DataLineage("appId2", "appName2", 2L, Seq(operation), Seq(dataset), attributes)
+      val operation1 = Read(OperationProps(randomUUID, "read", Seq.empty, dataset.id), "parquet", Seq(MetaDataSource("some/path_known", Nil)))
+      val operation2 = Read(OperationProps(randomUUID, "read", Seq.empty, dataset.id), "parquet", Seq(MetaDataSource("some/path_unknown", Nil)))
+
+      DataLineage("appId2", "appName2", 2L, Seq(operation1, operation2), Seq(dataset), attributes)
     }
 
-    (when(dataLineageReader.findLatestDatasetIDsByPath(≡("some/path"))(any()))
+    (when(dataLineageReader.findLatestDatasetIdsByPath(any())(any()))
+      thenReturn
+      Future.successful(new CloseableIterable[UUID](Iterator.empty, ())))
+
+    (when(dataLineageReader.findLatestDatasetIdsByPath(≡("some/path_known"))(any()))
       thenReturn
       Future.successful(new CloseableIterable[UUID](Iterator(referencedDsID), ())))
 
     val expectedResult = {
-      val readOp = inputLineage.rootOperation.asInstanceOf[Read]
       inputLineage.copy(
-        operations = Seq(readOp.copy(
-          sources = Seq(MetaDataSource("some/path", Seq(referencedDsID))),
-          mainProps = readOp.mainProps.copy(inputs = Seq(referencedDsID)))))
+        operations = inputLineage.operations.map({
+          case Read(props, sourceType, sources) if sources.exists(_.path == "some/path_known") =>
+            Read(
+              props.copy(inputs = Seq(referencedDsID)),
+              sourceType,
+              sources.map(_.copy(datasetsIds = Seq(referencedDsID))))
+          case op => op
+        }))
     }
 
     for (result <- new DataLineageLinker(dataLineageReader)(inputLineage))
