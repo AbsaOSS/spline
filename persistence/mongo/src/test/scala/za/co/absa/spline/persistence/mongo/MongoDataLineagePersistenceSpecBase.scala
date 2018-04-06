@@ -16,16 +16,17 @@
 
 package za.co.absa.spline.persistence.mongo
 
+import java.util.UUID
 import java.util.UUID.randomUUID
 
 import org.scalatest.{AsyncFunSpec, BeforeAndAfterEach, Matchers}
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op.{Generic, OperationProps, Write}
 import za.co.absa.spline.model.{Attribute, Schema, _}
+import za.co.absa.spline.persistence.mongo.MongoTestProperties.mongoConnection
 
 abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Matchers with BeforeAndAfterEach {
 
-  private val mongoConnection = MongoTestProperties.mongoConnection
   protected val mongoWriter = new MongoDataLineageWriter(mongoConnection)
   protected val mongoReader = new MongoDataLineageReader(mongoConnection)
 
@@ -33,6 +34,7 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
                                    appId: String,
                                    appName: String,
                                    timestamp: Long = 123L,
+                                   datasetId: UUID = randomUUID,
                                    path: String = "hdfs://foo/bar/path",
                                    append: Boolean = false)
   : DataLineage = {
@@ -44,7 +46,7 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
     val aSchema = Schema(attributes.map(_.id))
     val bSchema = Schema(attributes.map(_.id).tail)
 
-    val md1 = MetaDataset(randomUUID, aSchema)
+    val md1 = MetaDataset(datasetId, aSchema)
     val md2 = MetaDataset(randomUUID, aSchema)
     val md3 = MetaDataset(randomUUID, bSchema)
     val md4 = MetaDataset(randomUUID, bSchema)

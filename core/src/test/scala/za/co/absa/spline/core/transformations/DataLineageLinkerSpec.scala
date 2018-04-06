@@ -17,6 +17,7 @@
 package za.co.absa.spline.core.transformations
 
 
+import java.util.UUID
 import java.util.UUID.randomUUID
 
 import org.mockito.ArgumentMatchers.{eq => ≡, _}
@@ -25,7 +26,7 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{AsyncFlatSpec, Matchers}
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.dt.Simple
-import za.co.absa.spline.model.op.{OperationProps, Read, Write}
+import za.co.absa.spline.model.op.{OperationProps, Read}
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
 
 import scala.concurrent.Future
@@ -35,22 +36,9 @@ class DataLineageLinkerSpec extends AsyncFlatSpec with Matchers with MockitoSuga
   "Apply method" should "resolve lineage of known input sources and link them by assigning corresponding dataset IDs" in {
     val dataLineageReader = mock[DataLineageReader]
     val dataType = Simple("int", nullable = true)
-    val referencedLineage = {
-      val attributes = Seq(
-        Attribute(randomUUID, "a", dataType),
-        Attribute(randomUUID, "b", dataType),
-        Attribute(randomUUID, "c", dataType),
-        Attribute(randomUUID, "d", dataType)
-      )
-      val datasets = Seq(
-        MetaDataset(randomUUID, Schema(Seq(attributes(2).id, attributes(3).id))),
-        MetaDataset(randomUUID, Schema(Seq(attributes(0).id, attributes(1).id)))
-      )
-      DataLineage("appId1", "appName1", 1L,
-        operations = Seq(Write(OperationProps(randomUUID, "save", Seq.empty, datasets(0).id), "parquet", "some/path", append = false)),
-        datasets = datasets,
-        attributes = attributes)
-    }
+
+    val referencedDsID = UUID.fromString("11111111-1111-1111-1111-111111111111")
+
 
     val inputLineage = {
       val attributes = Seq(
@@ -59,24 +47,30 @@ class DataLineageLinkerSpec extends AsyncFlatSpec with Matchers with MockitoSuga
         Attribute(randomUUID, "3", dataType)
       )
       val dataset = MetaDataset(randomUUID, Schema(attributes.map(_.id)))
-      val operation = Read(OperationProps(randomUUID, "read", Seq.empty, dataset.id), "parquet", Seq(MetaDataSource("some/path", Nil)))
-      DataLineage("appId2", "appName2", 2L, Seq(operation), Seq(dataset), attributes)
+      val operation1 = Read(OperationProps(randomUUID, "read", Seq.empty, dataset.id), "parquet", Seq(MetaDataSource("some/path_known", Nil)))
+      val operation2 = Read(OperationProps(randomUUID, "read", Seq.empty, dataset.id), "parquet", Seq(MetaDataSource("some/path_unknown", Nil)))
+
+      DataLineage("appId2", "appName2", 2L, Seq(operation1, operation2), Seq(dataset), attributes)
     }
 
-    (when(dataLineageReader.findLatestLineagesByPath(≡("some/path"))(any()))
+    (when(dataLineageReader.findLatestDatasetIdsByPath(any())(any()))
       thenReturn
-      Future.successful(new CloseableIterable[DataLineage](Iterator(referencedLineage), ())))
+      Future.successful(new CloseableIterable[UUID](Iterator.empty, ())))
+
+    (when(dataLineageReader.findLatestDatasetIdsByPath(≡("some/path_known"))(any()))
+      thenReturn
+      Future.successful(new CloseableIterable[UUID](Iterator(referencedDsID), ())))
 
     val expectedResult = {
-      val readOp = inputLineage.rootOperation.asInstanceOf[Read]
-      val referencedDsID = referencedLineage.rootDataset.id
       inputLineage.copy(
-        operations = Seq(readOp.copy(
-          sources = Seq(MetaDataSource("some/path", Seq(referencedDsID))),
-          mainProps = readOp.mainProps.copy(inputs = Seq(referencedDsID)))),
-        datasets = inputLineage.datasets :+ referencedLineage.rootDataset,
-        attributes = inputLineage.attributes ++ Seq(referencedLineage.attributes(2), referencedLineage.attributes(3))
-      )
+        operations = inputLineage.operations.map({
+          case Read(props, sourceType, sources) if sources.exists(_.path == "some/path_known") =>
+            Read(
+              props.copy(inputs = Seq(referencedDsID)),
+              sourceType,
+              sources.map(_.copy(datasetsIds = Seq(referencedDsID))))
+          case op => op
+        }))
     }
 
     for (result <- new DataLineageLinker(dataLineageReader)(inputLineage))

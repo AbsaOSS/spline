@@ -21,7 +21,7 @@ import java.util.UUID
 import org.slf4s.Logging
 import za.co.absa.spline.common.transformations.AsyncTransformation
 import za.co.absa.spline.model.op.{Operation, Read}
-import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataSource, MetaDataset}
+import za.co.absa.spline.model.{DataLineage, MetaDataSource}
 import za.co.absa.spline.persistence.api.DataLineageReader
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -46,63 +46,38 @@ class DataLineageLinker(reader: DataLineageReader) extends AsyncTransformation[D
       case _ => None
     }
 
-    def selectAttributesForDataset(ds: MetaDataset, attributes: Seq[Attribute]) =
-      attributes.filter(attr => ds.schema.attrs contains attr.id)
-
-    // collect data
-
-    def resolveMetaDataSources(mds: MetaDataSource): Future[(MetaDataSource, Seq[DataLineage])] = {
+    def resolveMetaDataSources(mds: MetaDataSource): Future[MetaDataSource] = {
       log debug s"Resolving lineage of ${mds.path}"
 
       assume(mds.datasetsIds.isEmpty, s"a lineage of ${mds.path} is yet to be found")
 
-      reader.findLatestLineagesByPath(mds.path) map (lineagesCursor => {
+      reader.findLatestDatasetIdsByPath(mds.path) map (dsIdCursor => {
         import za.co.absa.spline.common.ARMImplicits._
-        for (_ <- lineagesCursor) yield {
-          val lineages = lineagesCursor.iterator.toList
-          if (lineages.isEmpty)
+        for (_ <- dsIdCursor) yield {
+          val dsIds = dsIdCursor.iterator.toList
+          if (dsIds.isEmpty)
             log.debug(s"Lineage of ${mds.path} NOT FOUND")
-          val updatedMds = mds.copy(datasetsIds = lineages.map(_.rootDataset.id))
-          (updatedMds, lineages)
+          mds.copy(datasetsIds = dsIds)
         }
       })
     }
 
-    val eventualReadsWithLineages: Future[Seq[(Read, Seq[DataLineage])]] = Future.sequence(
+    val eventualReadsWithLineages: Future[Seq[Read]] = Future.sequence(
       for {
         op <- lineage.operations
         read <- castIfRead(op)
-        eventualTuples = Future.sequence(read.sources map resolveMetaDataSources)
+        eventualSources = Future.sequence(read.sources map resolveMetaDataSources)
       } yield
-        eventualTuples map (sourcesWithLineages => {
-          val (newSources: Seq[MetaDataSource], sourceLineages: Seq[Seq[DataLineage]]) = sourcesWithLineages.unzip
+        eventualSources map (newSources => {
           val newProps = read.mainProps.copy(inputs = newSources.flatMap(_.datasetsIds).distinct)
           val newRead = read.copy(sources = newSources, mainProps = newProps)
-          newRead -> sourceLineages.flatten.distinct
+          newRead
         }))
 
-    eventualReadsWithLineages map (readsWithLineages => {
-      val (newReads, otherLineagesSeqs) = readsWithLineages.unzip
-
-      val newDatasetsWithAttributes: Seq[(MetaDataset, Seq[Attribute])] =
-        for {
-          lineageSeq <- otherLineagesSeqs
-          lineage <- lineageSeq
-          ds = lineage.rootDataset
-          dsAttrs = selectAttributesForDataset(ds, lineage.attributes)
-        } yield ds -> dsAttrs
-
-      // results
-
-      val newDatasets: Seq[MetaDataset] = newDatasetsWithAttributes.map(_._1)
-      val newAttributes: Seq[Attribute] = newDatasetsWithAttributes.flatMap(_._2)
+    eventualReadsWithLineages map (newReads => {
       val newReadsMap: Map[UUID, Read] = newReads.map(read => read.mainProps.id -> read).toMap
 
-      lineage.copy(
-        operations = lineage.operations.map(i => newReadsMap.getOrElse(i.mainProps.id, i)),
-        datasets = lineage.datasets ++ newDatasets,
-        attributes = lineage.attributes ++ newAttributes
-      )
+      lineage.copy(operations = lineage.operations.map(op => newReadsMap.getOrElse(op.mainProps.id, op)))
 
     })
   }

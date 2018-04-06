@@ -56,8 +56,8 @@ class ParallelCompositeDataLineageReader(readers: Seq[DataLineageReader]) extend
     * @param path A path for which a lineage graph is looked for
     * @return The latest data lineage
     */
-  override def findLatestLineagesByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] = {
-    firstCompletedReader(_.findLatestLineagesByPath(path))
+  override def findLatestDatasetIdsByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[UUID]] = {
+    firstCompletedReader(_.findLatestDatasetIdsByPath(path))
   }
 
   /**

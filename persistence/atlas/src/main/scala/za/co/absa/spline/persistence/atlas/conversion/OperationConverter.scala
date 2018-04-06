@@ -42,7 +42,7 @@ object OperationConverter {
         Seq(datasetIdMap(o.mainProps.output))
       )
       o match {
-        case op.Join(_, c, t) => new JoinOperation(commonProperties, t, c.map(j => ExpressionConverter.convert(commonProperties.qualifiedName, j)).get)
+        case op.Join(_, c, t) => new JoinOperation(commonProperties, t, c.map(j => ExpressionConverter.convert(commonProperties.qualifiedName, j)).get) //TODO: why Option.get ???
         case op.Filter(_, c) => new FilterOperation(commonProperties, ExpressionConverter.convert(commonProperties.qualifiedName, c))
         case op.Projection(_, t) => new ProjectOperation(commonProperties, t.zipWithIndex.map(j => ExpressionConverter.convert(commonProperties.qualifiedName + "@" + j._2, j._1)))
         case op.Alias(_, a) => new AliasOperation(commonProperties, a)

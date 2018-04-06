@@ -57,13 +57,13 @@ trait DataLineageReader {
   def searchDataset(path: String, applicationId: String)(implicit ec: ExecutionContext): Future[Option[UUID]]
 
   /**
-    * The method returns lineage of all pieces of data written to the source represented by the given `path`.
+    * The method returns datasetID of all pieces of data written to the source represented by the given `path`.
     * This includes the latest OVERWRITE followed by all subsequent APPENDs.
     *
     * @param path A path for which a lineage graph is looked for
     * @return The latest data lineage
     */
-  def findLatestLineagesByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]]
+  def findLatestDatasetIdsByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[UUID]]
 
   /**
     * The method loads composite operations for an input datasetId.

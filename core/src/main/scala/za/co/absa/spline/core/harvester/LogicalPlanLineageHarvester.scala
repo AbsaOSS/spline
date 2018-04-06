@@ -31,12 +31,12 @@ import scala.language.postfixOps
   *
   * @param hadoopConfiguration A hadoop configuration
   */
-class LogicalPlanLineageHarvester(hadoopConfiguration: Configuration){
+class LogicalPlanLineageHarvester(hadoopConfiguration: Configuration) {
 
   /** A main method of the object that performs transformation of Spark internal structures to library lineage representation.
     *
     * @param sparkContext a spark context
-    * @param logicalPlan a logical plan with resolved references (analyzed plan)
+    * @param logicalPlan  a logical plan with resolved references (analyzed plan)
     * @return A lineage representation
     */
   def harvestLineage(sparkContext: SparkContext, logicalPlan: LogicalPlan): DataLineage = {
@@ -62,17 +62,17 @@ class LogicalPlanLineageHarvester(hadoopConfiguration: Configuration){
 
     while (stack.nonEmpty) {
       val (currentOperation, parentPosition) = stack.pop()
-      var currentPosition = visitedNodes get currentOperation
+      val currentPosition = visitedNodes get currentOperation
       val currentNode: OperationNodeBuilder[_] = currentPosition match {
         case Some(pos) => result(pos)
         case None =>
           val newNode = operationNodeBuilderFactory.create(currentOperation)
-          visitedNodes += (currentOperation -> result.size)
-          currentPosition = Some(result.size)
+          val pos = result.size
+          visitedNodes += (currentOperation -> pos)
           result += newNode
           currentOperation match {
-            case x: SaveIntoDataSourceCommand => stack.push((x.query, currentPosition.get))
-            case x => x.children.reverse.map(op => stack.push((op, currentPosition.get)))
+            case x: SaveIntoDataSourceCommand => stack.push((x.query, pos))
+            case x => x.children.reverse.map(op => stack.push((op, pos)))
           }
           newNode
       }
