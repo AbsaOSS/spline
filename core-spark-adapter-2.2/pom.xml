@@ -25,7 +25,7 @@
         <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>0.3.0</version>
+        <version>0.3.1-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -38,7 +38,7 @@
         <dependency>
             <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-core-spark-adapter-api</artifactId>
-            <version>0.3.0</version>
+            <version>0.3.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
