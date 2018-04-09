@@ -15,14 +15,15 @@
  */
 
 import {IAttribute, IDataLineage, IMetaDataset, IOperation} from "../../../generated-ts/lineage-model";
-import {RegularVisNode, VisEdge, VisModel, VisNode} from "./vis/vis-model";
+import {RegularVisNode, VisEdge, VisNode} from "./graph.model";
 import * as vis from "vis";
 import * as _ from "lodash";
 import {OperationType, typeOfOperation} from "../types";
+import {VisModel} from "../../visjs/vis-model";
 
 export function lineageToGraph(lineage: IDataLineage,
                                selectedOperationId?: string,
-                               hiddenOperationTypes: OperationType[] = []): VisModel {
+                               hiddenOperationTypes: OperationType[] = []): VisModel<VisNode, VisEdge> {
     let operationVisibilityPredicate = (op: IOperation) => {
             let opType = typeOfOperation(op)
             return op.mainProps.id == selectedOperationId

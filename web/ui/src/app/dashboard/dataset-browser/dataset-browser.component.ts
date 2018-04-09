@@ -15,8 +15,14 @@
  */
 
 import {Component, OnInit} from "@angular/core";
+import {FormControl} from '@angular/forms';
 import {DatasetBrowserService} from "./dataset-browser.service";
 import {IPersistedDatasetDescriptor} from "../../../generated-ts/lineage-model";
+import {SearchRequest} from "./dataset-browser.model";
+import {BehaviorSubject} from "rxjs/BehaviorSubject";
+import {ScrollEvent} from "ngx-scroll-event";
+import {timer} from "rxjs/observable/timer";
+import {identity} from "rxjs/util/identity";
 
 @Component({
     selector: "dataset-browser",
@@ -27,10 +33,37 @@ export class DatasetBrowserComponent implements OnInit {
 
     descriptors: IPersistedDatasetDescriptor[]
 
+    searchText = new FormControl()
+
+    private searchRequest$ = new BehaviorSubject<SearchRequest>(null)
+
     constructor(private dsBrowserService: DatasetBrowserService) {
     }
 
     ngOnInit(): void {
-        this.dsBrowserService.getLineageDescriptors().then(descriptors => this.descriptors = descriptors)
+        this.searchText.valueChanges
+            .debounce(v => timer(v ? 300 : 0))
+            .forEach(this.newSearch.bind(this))
+
+        this.searchRequest$
+            .distinct()
+            .filter(<any>identity)
+            .subscribe(sr =>
+                this.dsBrowserService
+                    .getLineageDescriptors(sr)
+                    .then(descriptors => this.descriptors = descriptors))
+
+        // set initial values
+        this.searchText.setValue("")
+    }
+
+    newSearch(text: string) {
+        this.searchRequest$.next(new SearchRequest(text))
+    }
+
+    onScroll(e: ScrollEvent) {
+        if (!e.isWindowEvent && e.isReachingBottom)
+            this.searchRequest$.next(
+                this.searchRequest$.getValue().withOffset(this.descriptors.length))
     }
 }

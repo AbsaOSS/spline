@@ -21,16 +21,19 @@ import java.util.UUID.randomUUID
 
 import com.databricks.spark.xml.XmlRelation
 import org.apache.hadoop.conf.Configuration
-import org.apache.spark.sql.JDBCRelation
 import org.apache.spark.sql.catalyst.expressions.SortOrder
 import org.apache.spark.sql.catalyst.plans.logical._
-import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation, SaveIntoDataSourceCommand}
+import org.apache.spark.sql.execution.datasources.{DataSource, HadoopFsRelation, LogicalRelation}
+import org.apache.spark.sql.execution.streaming.StreamingRelation
 import org.apache.spark.sql.sources.BaseRelation
+import org.apache.spark.sql.{JDBCRelation, SaveMode}
+import za.co.absa.spline.coresparkadapterapi.{WriteCommand, WriteCommandParser}
+import za.co.absa.spline.model.endpoint._
 import za.co.absa.spline.model.expr.Expression
-import za.co.absa.spline.model.op.MetaDataSource
 import za.co.absa.spline.model.{op, _}
 
 import scala.collection.mutable
+
 
 /**
   * The class represents a factory creating a specific node builders for a particular operations from Spark logical plan.
@@ -39,6 +42,8 @@ import scala.collection.mutable
   * @param metaDatasetFactory  A factory of meta data sets
   */
 class OperationNodeBuilderFactory(implicit hadoopConfiguration: Configuration, metaDatasetFactory: MetaDatasetFactory) {
+
+  private val writeCommandParser = WriteCommandParser.instance
 
   /**
     * Creates a specific node builders for a particular operations from Spark logical plan.
@@ -54,8 +59,8 @@ class OperationNodeBuilderFactory(implicit hadoopConfiguration: Configuration, m
     case s: Sort => new SortNodeBuilder(s)
     case s: Aggregate => new AggregateNodeBuilder(s)
     case a: SubqueryAlias => new AliasNodeBuilder(a)
-    case sc: SaveIntoDataSourceCommand => new DestinationNodeBuilder(sc)
-    case lr: LogicalRelation => new SourceNodeBuilder(lr)
+    case lr: LogicalRelation => new ReadNodeBuilder(lr)
+    case wc if writeCommandParser.matches(logicalPlan) => new WriteNodeBuilder(writeCommandParser.asWriteCommand(wc))
     case x => new GenericNodeBuilder(x)
   }
 }
@@ -120,7 +125,6 @@ private class GenericNodeBuilder(val operation: LogicalPlan)
   def build(): op.Operation = op.Generic(buildOperationProps(), operation.verboseString)
 }
 
-
 /**
   * The class represents a builder of operations nodes dedicated for Spark alias operation.
   *
@@ -139,14 +143,14 @@ private class AliasNodeBuilder(val operation: SubqueryAlias)
   * @param hadoopConfiguration A hadoop configuration
   * @param metaDatasetFactory  A factory of meta data sets
   */
-private class SourceNodeBuilder(val operation: LogicalRelation)
-                               (implicit hadoopConfiguration: Configuration, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[LogicalRelation] {
+private class ReadNodeBuilder(val operation: LogicalRelation)
+                             (implicit hadoopConfiguration: Configuration, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[LogicalRelation] {
   def build(): op.Read = {
     val (sourceType, paths) = getRelationPaths(operation.relation)
     op.Read(
       buildOperationProps(),
       sourceType,
-      paths.map(MetaDataSource(_, None))
+      paths.map(MetaDataSource(_, Nil))
     )
   }
 
@@ -170,6 +174,27 @@ private class SourceNodeBuilder(val operation: LogicalRelation)
   }
 }
 
+private class StreamReadNodeBuilder(val operation: StreamingRelation)
+                                   (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[StreamingRelation] {
+  def build(): op.StreamRead = op.StreamRead(
+    buildOperationProps(),
+    createEndpoint(operation.dataSource)
+  )
+
+  private def createEndpoint(dataSource: DataSource): StreamEndpoint = dataSource.sourceInfo.name match {
+    case x if x startsWith "FileSource" => FileEndpoint(dataSource.className, dataSource.options.getOrElse("path", ""))
+    case "kafka" => KafkaEndpoint(
+      dataSource.options.getOrElse("kafka.bootstrap.servers", ",").split(","),
+      dataSource.options.getOrElse("subscribe", "")
+    )
+    case "textSocket" => SocketEndpoint(
+      dataSource.options.getOrElse("host", ""),
+      dataSource.options.getOrElse("port", "")
+    )
+    case _ => VirtualEndpoint
+  }
+}
+
 /**
   * The class represents a builder of operations nodes dedicated for Spark persist operation.
   *
@@ -177,17 +202,18 @@ private class SourceNodeBuilder(val operation: LogicalRelation)
   * @param hadoopConfiguration A hadoop configuration
   * @param metaDatasetFactory  A factory of meta data sets
   */
-private class DestinationNodeBuilder(val operation: SaveIntoDataSourceCommand)
-                                    (implicit hadoopConfiguration: Configuration, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[SaveIntoDataSourceCommand] {
+private class WriteNodeBuilder(val operation: WriteCommand)
+                              (implicit hadoopConfiguration: Configuration, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[WriteCommand] {
 
   override val outputMetaDataset: UUID = metaDatasetFactory.create(operation.query)
 
   def build(): op.Operation = {
-    op.Write(
-      buildOperationProps(),
-      operation.provider,
-      PathUtils.getQualifiedPath(hadoopConfiguration)(operation.options.getOrElse("path", ""))
-    )
+        op.Write(
+          buildOperationProps(),
+          operation.format,
+          PathUtils.getQualifiedPath(hadoopConfiguration)(operation.path),
+          append = operation.mode == SaveMode.Append
+        )
   }
 }
 

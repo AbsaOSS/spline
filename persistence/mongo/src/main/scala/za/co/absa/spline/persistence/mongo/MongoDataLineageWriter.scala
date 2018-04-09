@@ -17,13 +17,15 @@
 package za.co.absa.spline.persistence.mongo
 
 
-import _root_.salat._
+import com.mongodb.{DBCollection, DBObject}
 import org.slf4s.Logging
-import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.model.op.Operation
+import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset}
 import za.co.absa.spline.persistence.api.DataLineageWriter
+import za.co.absa.spline.persistence.mongo.DBSchemaVersionHelper._
+import za.co.absa.spline.persistence.mongo.MongoDataLineageWriter._
 
 import scala.concurrent.{ExecutionContext, Future, blocking}
-
 /**
   *
   * The class represents Mongo persistence writer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
@@ -32,18 +34,75 @@ import scala.concurrent.{ExecutionContext, Future, blocking}
   */
 class MongoDataLineageWriter(connection: MongoConnection) extends DataLineageWriter with Logging {
 
-  import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext._
-
   /**
     * The method stores a particular data lineage to the persistence layer.
     *
     * @param lineage A data lineage that will be stored
     */
-  override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = Future {
-    log debug s"Storing lineage object"
-    val dbo = grater[DataLineage].asDBObject(lineage)
-    dbo.put("_ver", connection.LATEST_SERIAL_VERSION)
-    blocking(connection.dataLineageCollection insert dbo)
+  override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = {
+    log debug s"Storing lineage objects"
+    import connection._
+    Future.sequence(Seq(
+      insertAsyncSeq(operationCollection, operationDbos(lineage)),
+      insertAsyncSeq(attributeCollection, attributeDbos(lineage)),
+      insertAsyncSeq(datasetCollection, datasetDbos(lineage))))
+      .map(_ => blocking(dataLineageCollection.insert(lineageDbo(lineage))))
   }
+
+  private def insertAsyncSeq(dBCollection: DBCollection, seq: Seq[DBObject])(implicit executionContext: ExecutionContext): Future[Unit] = {
+    Future { blocking(dBCollection.insert(seq:_*)) }
+  }
+
+  private def putLineageId(dataLineage: DataLineage): DBObject => DBObject = {
+    dbo => {
+      dbo.put(lineageIdField, dataLineage.id)
+      dbo
+    }
+  }
+
+  private def index(dbos: Seq[DBObject]): Seq[DBObject] = {
+    var index = 0
+    dbos
+      .foreach(dbo => {
+        dbo.put(indexField, index)
+        index = index + 1
+      })
+    dbos
+  }
+
+  private def lineageDbo(dataLineage: DataLineage): DBObject =
+    serializeWithVersion[TruncatedDataLineage](TruncatedDataLineage(dataLineage))
+
+  private def attributeDbos(lineage: DataLineage): Seq[DBObject] = {
+    val seq = lineage.attributes
+      .map(serializeWithVersion[Attribute])
+      .map(putLineageId(lineage))
+    index(seq)
+  }
+
+  private def datasetDbos(lineage: DataLineage): Seq[DBObject] = {
+    val seq = lineage.datasets
+      .map(serializeWithVersion[MetaDataset])
+      .map(putLineageId(lineage))
+    index(seq)
+  }
+
+  private def operationDbos(lineage: DataLineage): Seq[DBObject] = {
+    val seq = lineage.operations
+      .map(op => {
+        val dbo = serializeWithVersion[Operation](op)
+        dbo.put(idField, op.mainProps.id)
+        dbo
+      })
+      .map(putLineageId(lineage))
+    index(seq)
+  }
+}
+
+object MongoDataLineageWriter {
+
+  val lineageIdField = "_lineageId"
+  val idField = "_id"
+  val indexField = "_index"
 
 }

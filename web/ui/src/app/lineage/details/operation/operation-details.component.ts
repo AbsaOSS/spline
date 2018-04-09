@@ -17,9 +17,9 @@
 import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from "@angular/core";
 import {IAttribute, IOperation} from "../../../../generated-ts/lineage-model";
 import {LineageStore} from "../../lineage.store";
-import {Icon} from "./operation-icon.utils";
 import {OperationType, typeOfExpr, typeOfOperation} from "../../types";
 import {IExpression} from "../../../../generated-ts/operation-model";
+import {getIconForNodeType} from "./operation-icon.utils";
 
 @Component({
     selector: "operation-details",
@@ -47,7 +47,7 @@ export class OperationDetailsComponent implements OnChanges {
     }
 
     getOperationIcon() {
-        return Icon.getIconForNodeType(this.operationType).name
+        return getIconForNodeType(this.operationType).name
     }
 
     //noinspection JSMethodCanBeStatic

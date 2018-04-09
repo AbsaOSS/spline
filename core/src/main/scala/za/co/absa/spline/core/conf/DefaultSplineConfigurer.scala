@@ -17,10 +17,18 @@
 package za.co.absa.spline.core.conf
 
 import org.apache.commons.configuration.Configuration
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.streaming.StreamingQueryListener
+import org.apache.spark.sql.util.QueryExecutionListener
 import org.slf4s.Logging
+import za.co.absa.spline.common.transformations.AsyncTransformationPipeline
 import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode
 import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode._
-import za.co.absa.spline.persistence.api.PersistenceFactory
+import za.co.absa.spline.core.transformations.{DataLineageLinker, LineageProjectionMerger}
+import za.co.absa.spline.core.SparkLineageProcessor
+import za.co.absa.spline.core.harvester.LogicalPlanLineageHarvester
+import za.co.absa.spline.core.listener.{SplineQueryExecutionListener, StructuredStreamingListener}
+import za.co.absa.spline.persistence.api.{DataLineageReader, NopDataLineageReader, PersistenceFactory}
 
 import scala.concurrent.ExecutionContext
 
@@ -49,12 +57,38 @@ object DefaultSplineConfigurer {
   *
   * @param configuration A source of settings
   */
-class DefaultSplineConfigurer(configuration: Configuration) extends SplineConfigurer with Logging {
+class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkSession) extends SplineConfigurer with Logging {
 
   import DefaultSplineConfigurer.ConfProperty._
   import za.co.absa.spline.common.ConfigurationImplicits._
 
-  override def persistenceFactory(implicit ec: ExecutionContext): PersistenceFactory = {
+  private implicit val executionContext: ExecutionContext = ExecutionContext.global
+
+  lazy val splineMode: SplineMode = {
+    val modeName = configuration.getString(MODE, MODE_DEFAULT)
+    try SplineMode withName modeName
+    catch {
+      case _: NoSuchElementException => throw new IllegalArgumentException(
+        s"Invalid value for property $MODE=$modeName. Should be one of: ${SplineMode.values mkString ", "}")
+    }
+  }
+
+  lazy val queryExecutionListener: QueryExecutionListener =
+    new SplineQueryExecutionListener(lineageHarvester, lineageProcessor)
+
+  lazy val streamingQueryListener: StreamingQueryListener =
+    new StructuredStreamingListener(sparkSession.streams, lineageHarvester, lineageProcessor)
+
+
+  private lazy val lineageHarvester = new LogicalPlanLineageHarvester(sparkSession.sparkContext.hadoopConfiguration)
+
+  private lazy val lineageProcessor = {
+    val lineageReader = persistenceFactory.createDataLineageReader getOrElse NopDataLineageReader
+    val lineageWriter = persistenceFactory.createDataLineageWriter
+    new SparkLineageProcessor(lineageReader, lineageWriter, lineageTransformationPipeline(lineageReader))
+  }
+
+  private lazy val persistenceFactory: PersistenceFactory = {
     val persistenceFactoryClassName = configuration getRequiredString PERSISTENCE_FACTORY
 
     log debug s"Instantiating persistence factory: $persistenceFactoryClassName"
@@ -65,13 +99,10 @@ class DefaultSplineConfigurer(configuration: Configuration) extends SplineConfig
       .asInstanceOf[PersistenceFactory]
   }
 
-  override val splineMode: SplineMode = {
-    val modeName = configuration.getString(MODE, MODE_DEFAULT)
-    try SplineMode withName modeName
-    catch {
-      case _: NoSuchElementException => throw new IllegalArgumentException(
-        s"Invalid value for property $MODE=$modeName. Should be one of: ${SplineMode.values mkString ", "}")
-    }
-  }
+  private def lineageTransformationPipeline(lineageReader: DataLineageReader) =
+    new AsyncTransformationPipeline(
+      LineageProjectionMerger,
+      new DataLineageLinker(lineageReader))
+
 
 }

@@ -19,8 +19,9 @@ package za.co.absa.spline.model.op
 import java.util.UUID
 
 import salat.annotations.Salat
+import za.co.absa.spline.model.endpoint.StreamEndpoint
 import za.co.absa.spline.model.expr.Expression
-import za.co.absa.spline.model.{Attribute, MetaDataset}
+import za.co.absa.spline.model.{MetaDataSource, TypedMetaDataSource}
 
 /**
   * The case class represents node properties that are common for all node types.
@@ -59,8 +60,11 @@ object Operation {
       * @return A copy with new main properties
       */
     def updated(fn: OperationProps => OperationProps): T = (op.asInstanceOf[Operation] match {
+      case op@Read(mp, _, _) => op.copy(mainProps = fn(mp))
+      case op@StreamRead(mp, _) => op.copy(mainProps = fn(mp))
+      case op@Write(mp, _, _, _) => op.copy(mainProps = fn(mp))
+      case op@StreamWrite(mp, _) => op.copy(mainProps = fn(mp))
       case op@Alias(mp, _) => op.copy(mainProps = fn(mp))
-      case op@Write(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Filter(mp, _) => op.copy(mainProps = fn(mp))
       case op@Sort(mp, _) => op.copy(mainProps = fn(mp))
       case op@Aggregate(mp, _, _) => op.copy(mainProps = fn(mp))
@@ -68,7 +72,6 @@ object Operation {
       case op@Join(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Union(mp) => op.copy(mainProps = fn(mp))
       case op@Projection(mp, _) => op.copy(mainProps = fn(mp))
-      case op@Read(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Composite(mp, _, _, _, _, _) => op.copy(mainProps = fn(mp))
     }).asInstanceOf[T]
   }
@@ -172,16 +175,18 @@ case class Alias(
                 ) extends Operation
 
 /**
-  * The case class represents Spark operations for persisting data sets to HDFS, Hive, Kafka, etc. Operations are usually performed via DataFrameWriters.
+  * The case class represents Spark operations for persisting data sets to HDFS, Hive etc. Operations are usually performed via DataFrameWriters.
   *
   * @param mainProps       Common node properties
   * @param destinationType A string description of a destination type (parquet files, csv file, avro file, Hive table, etc.)
-  * @param path            A path to the place where data set will be stored (file, table, endpoint, ...)
+  * @param path            A path to the place where data set will be stored (file, table, ...)
+  * @param append          `true` for "APPEND" write mode, `false` otherwise.
   */
 case class Write(
                   mainProps: OperationProps,
                   destinationType: String,
-                  path: String
+                  path: String,
+                  append: Boolean
                 ) extends Operation
 
 /**
@@ -198,7 +203,7 @@ case class Read(
                  sources: Seq[MetaDataSource]
                ) extends Operation {
 
-  private val knownSourceLineagesCount = sources.count(_.datasetId.isDefined)
+  private val knownSourceLineagesCount = sources.flatMap(_.datasetsIds).distinct.size
   private val inputDatasetsCount = mainProps.inputs.size
 
   require(
@@ -209,22 +214,27 @@ case class Read(
 }
 
 /**
-  * Represents a persisted source data (e.g. file)
+  * The case class represents Spark operations for loading data via structured streaming
   *
-  * @param path      file location
-  * @param datasetId ID of an associated dataset that was read/written from/to the given data source
+  * @param mainProps Common node properties
+  * @param source  An endpoint that data flows from
   */
-case class MetaDataSource(path: String, datasetId: Option[UUID])
+case class StreamRead(
+                      mainProps: OperationProps,
+                      source : StreamEndpoint
+                     ) extends Operation
 
 /**
-  * Represents a persisted source data (e.g. file).
-  * Same as [[MetaDataSource]] but with type
+  * The case class represents Spark operations for persisting data via structured streaming
   *
-  * @param `type`    source type
-  * @param path      file location
-  * @param datasetId ID of an associated dataset that was read/written from/to the given data source
+  * @param mainProps   Common node properties
+  * @param destination An endpoint that data flows to
+  *
   */
-case class TypedMetaDataSource(`type`: String, path: String, datasetId: Option[UUID])
+case class StreamWrite(
+                        mainProps: OperationProps,
+                        destination: StreamEndpoint
+                      ) extends Operation
 
 /**
   * The case class represents a partial data lineage at its boundary level.
@@ -245,7 +255,7 @@ case class Composite(
                       appId: String,
                       appName: String
                     ) extends Operation {
-  private def knownSourceLineagesCount = sources.count(_.datasetId.isDefined)
+  private def knownSourceLineagesCount = sources.flatMap(_.datasetsIds).distinct.size
 
   private def inputDatasetsCount = mainProps.inputs.size
 
@@ -255,12 +265,3 @@ case class Composite(
       s"Hence the size 'inputs' collection should be the same as the count of known datasets for 'sources' field. " +
       s"But was $inputDatasetsCount and $knownSourceLineagesCount respectively")
 }
-
-/**
-  * The case class serves for associating a composite operation with its dependencies
-  *
-  * @param composite  A composite operation
-  * @param datasets   Referenced meta data sets
-  * @param attributes Referenced attributes
-  */
-case class CompositeWithDependencies(composite: Composite, datasets: Seq[MetaDataset], attributes: Seq[Attribute])

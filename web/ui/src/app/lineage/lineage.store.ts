@@ -20,6 +20,7 @@ import {Observable} from "rxjs/Observable";
 import {Subject} from "rxjs/Subject";
 import {ReplaySubject} from "rxjs/ReplaySubject";
 import * as _ from "lodash";
+import {typeOfOperation} from "./types";
 
 @Injectable()
 export class LineageStore {
@@ -50,8 +51,10 @@ export class LineageAccessors {
 
         this.operationIdsByAttributeId = (<any>_(lineage.operations))
             .flatMap((op: IOperation) => {
-                let opDatasetIds = op.mainProps.inputs.concat(op.mainProps.output)
-                let opAttrIds = _.uniq(_.flatMap(opDatasetIds, dsId => this.datasetById[dsId].schema.attrs))
+                let opInputIds = typeOfOperation(op) != "Read" ? op.mainProps.inputs : [], // Read operation reads from external datasets that are not part of the current lineage and can be ignored.
+                    opOutputId = op.mainProps.output,
+                    opDatasetIds = opInputIds.concat(opOutputId),
+                    opAttrIds = _.uniq(_.flatMap(opDatasetIds, dsId => this.datasetById[dsId].schema.attrs))
                 return opAttrIds.map(attrId => [attrId, op.mainProps.id])
             })
             .groupBy(_.first)

@@ -15,7 +15,7 @@
  */
 
 import {NgModule} from "@angular/core";
-import {HttpModule} from "@angular/http";
+import {HttpClientModule} from "@angular/common/http";
 
 import "@angular/material/prebuilt-themes/indigo-pink.css";
 
@@ -35,7 +35,7 @@ import {DetailsModule} from "../lineage/details/details.module";
 
 @NgModule({
     imports: [
-        HttpModule,
+        HttpClientModule,
         MaterialModule,
         MiscModule,
         CommonModule,

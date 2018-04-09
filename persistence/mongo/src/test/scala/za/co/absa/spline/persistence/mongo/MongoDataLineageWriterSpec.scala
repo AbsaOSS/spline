@@ -18,33 +18,39 @@ package za.co.absa.spline.persistence.mongo
 
 import java.util.UUID.randomUUID
 
-import za.co.absa.spline.model.{DataLineage, dt, expr, op}
-import za.co.absa.spline.model.op.OperationProps
+import za.co.absa.spline.model._
+import za.co.absa.spline.model.op.{Operation, OperationProps}
+
+import scala.math.Ordering
 
 class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase {
 
   private val lineage = createDataLineage("appID", "appName")
 
-  "Store method" should "store data lineage to a database." in {
-    for {
-      _ <- mongoWriter store lineage
-      storedLineage <- mongoReader loadByDatasetId lineage.rootDataset.id
-    } yield
-      storedLineage shouldEqual Option(lineage)
-  }
+  describe("store()") {
 
-  "Fields with dots" should "be stored correctly" in {
-    val lineageWithDotsAndDollar = {
-      val dummyExpression = expr.Generic("", "", dt.Simple("", nullable = true), Nil)
-      val aggregateOperationWithDotsAnd$ =
-        op.Aggregate(OperationProps(randomUUID, "aggregate", Nil, randomUUID), Nil, Map("field.with.dots.and.$" -> dummyExpression))
-      lineage.copy(operations = lineage.operations :+ aggregateOperationWithDotsAnd$)
+    it("should store data lineage to a database") {
+      for {
+        _ <- mongoWriter store lineage
+        storedLineage <- mongoReader loadByDatasetId lineage.rootDataset.id
+      } yield {
+        storedLineage.get shouldEqual lineage
+      }
     }
 
-    for {
-      _ <- mongoWriter store lineageWithDotsAndDollar
-      storedLineage <- mongoReader loadByDatasetId lineageWithDotsAndDollar.rootDataset.id
-    } yield
-      storedLineage shouldEqual Option(lineageWithDotsAndDollar)
+    it("should store fields with dots correctly") {
+      val lineageWithDotsAndDollar = {
+        val dummyExpression = expr.Generic("", "", dt.Simple("", nullable = true), Nil)
+        val aggregateOperationWithDotsAnd$ =
+          op.Aggregate(OperationProps(randomUUID, "aggregate", Nil, randomUUID), Nil, Map("field.with.dots.and.$" -> dummyExpression))
+        lineage.copy(operations = lineage.operations :+ aggregateOperationWithDotsAnd$)
+      }
+
+      for {
+        _ <- mongoWriter store lineageWithDotsAndDollar
+        storedLineage <- mongoReader loadByDatasetId lineageWithDotsAndDollar.rootDataset.id
+      } yield
+        storedLineage shouldEqual Option(lineageWithDotsAndDollar)
+    }
   }
 }

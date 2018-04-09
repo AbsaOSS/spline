@@ -1,0 +1,58 @@
+/*
+ * Copyright 2017 Barclays Africa Group Limited
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package za.co.absa.spline.persistence.mongo
+
+import org.scalatest.matchers.{MatchResult, Matcher}
+import za.co.absa.spline.persistence.api.CloseableIterable
+
+import scala.language.reflectiveCalls
+
+object CloseableIterableMatchers {
+
+  class MatcherAdapter[T](matchingFn: T => MatchResult) extends Matcher[T] {
+    override def apply(left: T): MatchResult = matchingFn(left)
+  }
+
+  object ConsistOfItemsWithAppIds {
+    def apply(appIds: String*) = new MatcherAdapter[CloseableIterable[ {def appId: String}]](
+      actualDescriptors => {
+        val actualAppIds = actualDescriptors.iterator.map(_.appId).toList
+        val expectedAppIds = appIds.toList
+        MatchResult(
+          actualAppIds == expectedAppIds,
+          s"Returned list of lineage descriptors did not match expected values:" +
+            s"\n\tActual  : $actualAppIds" +
+            s"\n\tExpected: $expectedAppIds",
+          "")
+      })
+  }
+
+  object ConsistOfItems {
+    def apply[T](items: T*) = new MatcherAdapter[CloseableIterable[T]](
+      iterable => {
+        val actualItems = iterable.iterator.toList
+        val expectedItems = items.toList
+        MatchResult(
+          actualItems == expectedItems,
+          s"Returned list did not match expected values:" +
+            s"\n\tActual  : $actualItems" +
+            s"\n\tExpected: $expectedItems",
+          "")
+      })
+  }
+
+}

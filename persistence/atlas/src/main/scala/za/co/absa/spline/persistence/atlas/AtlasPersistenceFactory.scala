@@ -80,20 +80,12 @@ class AtlasPersistenceFactory(configuration: Configuration) extends PersistenceF
     *
     * @return A persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  override def createDataLineageWriter(): DataLineageWriter = new AtlasDataLineageWriter
+  override def createDataLineageWriter: DataLineageWriter = new AtlasDataLineageWriter
 
   /**
     * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
-    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    * @return An optional reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  override def createDataLineageReader(): DataLineageReader = throw new UnsupportedOperationException
-
-  /**
-    * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity if the factory can. Otherwise, returns default.
-    *
-    * @param default A default data lineage reader
-    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
-    */
-  override def createDataLineageReaderOrGetDefault(default: DataLineageReader): DataLineageReader = default
+  override def createDataLineageReader: Option[DataLineageReader] = None
 }

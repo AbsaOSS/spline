@@ -14,7 +14,21 @@
   ~ limitations under the License.
   -->
 
-<ul class="nav nav-pills nav-stacked">
+<div class="search input-group">
+    <span class="input-group-addon"><mat-icon>search</mat-icon></span>
+    <input [formControl]="searchText" class="form-control" placeholder="Search">
+    <button mat-icon-button class="cancel"
+            *ngIf="searchText.value.length"
+            (click)="searchText.reset('')">
+        <mat-icon>cancel</mat-icon>
+    </button>
+</div>
+
+<ul class="nav nav-pills nav-stacked"
+    detect-scroll
+    [bottomOffset]="300"
+    (onScroll)="onScroll($event)">
+
     <li role="presentation"
         *ngFor="let d of descriptors"
         [routerLink]="'dataset/'+d.datasetId+'/lineage/overview'"

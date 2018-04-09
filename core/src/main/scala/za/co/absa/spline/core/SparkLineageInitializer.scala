@@ -17,11 +17,11 @@
 package za.co.absa.spline.core
 
 import org.apache.commons.configuration._
-import org.apache.spark
 import org.apache.spark.sql.SparkSession
 import org.slf4s.Logging
 import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.core.conf._
+import za.co.absa.spline.coresparkadapterapi.SparkVersionRequirement
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
@@ -40,8 +40,6 @@ object SparkLineageInitializer extends Logging {
     */
   implicit class SparkSessionWrapper(sparkSession: SparkSession) {
 
-    private val sessionState = sparkSession.sessionState
-
     private implicit val executionContext: ExecutionContext = ExecutionContext.global
 
     /**
@@ -50,7 +48,7 @@ object SparkLineageInitializer extends Logging {
       * @param configurer A collection of settings for the library initialization
       * @return An original Spark session
       */
-    def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfigurer(defaultSplineConfiguration)): SparkSession = {
+    def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfigurer(defaultSplineConfiguration, sparkSession)): SparkSession = {
       if (configurer.splineMode != DISABLED) sparkSession.synchronized {
         preventDoubleInitialization()
         log info s"Spline v${SplineBuildInfo.version} is initializing..."
@@ -65,11 +63,17 @@ object SparkLineageInitializer extends Logging {
       sparkSession
     }
 
+    /**
+      * The method tries to initialize the library with external settings.
+      *
+      * @param configurer External settings
+      */
     def attemptInitialization(configurer: SplineConfigurer): Unit = {
-      require(SparkVersionInfo.matchesRequirements, s"Unsupported Spark version: ${spark.SPARK_VERSION}. Required version ${SparkVersionInfo.requiredVersion}")
-      val hadoopConfiguration = sparkSession.sparkContext.hadoopConfiguration
-      val persistenceFactory = configurer.persistenceFactory
-      sessionState.listenerManager register new DataLineageListener(persistenceFactory, hadoopConfiguration)
+      SparkVersionRequirement.instance.requireSupportedVersion()
+      sparkSession.listenerManager register configurer.queryExecutionListener
+
+      // TODO: SL-128
+      // sparkSession.streams addListener configurer.streamingQueryListener
     }
 
     private[core] val defaultSplineConfiguration = {
@@ -87,10 +91,11 @@ object SparkLineageInitializer extends Logging {
     }
 
     private def preventDoubleInitialization(): Unit = {
-      val sessionConf = sessionState.conf
-      if (sessionConf contains initFlagKey)
-        throw new IllegalStateException("Lineage tracking is already initialized")
-      sessionConf.setConfString(initFlagKey, true.toString)
+      val sessionConf = sparkSession.conf
+      sessionConf getOption initFlagKey match {
+        case Some(_) => throw new IllegalStateException("Lineage tracking is already initialized")
+        case None => sessionConf.set(initFlagKey, true.toString)
+      }
     }
   }
 

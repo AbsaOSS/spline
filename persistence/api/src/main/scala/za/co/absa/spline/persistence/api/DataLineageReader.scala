@@ -18,10 +18,21 @@ package za.co.absa.spline.persistence.api
 
 import java.util.UUID
 
-import za.co.absa.spline.model.op.CompositeWithDependencies
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
+import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 
 import scala.concurrent.{ExecutionContext, Future}
+
+object DataLineageReader {
+
+  type Timestamp = Long
+
+  case class PageRequest(asAtTime: Timestamp, offset: Int, size: Int)
+  object PageRequest {
+    val EntireLatestContent = PageRequest(Long.MaxValue, 0, Int.MaxValue)
+  }
+
+}
 
 /**
   * The trait represents a reader to a persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
@@ -46,20 +57,13 @@ trait DataLineageReader {
   def searchDataset(path: String, applicationId: String)(implicit ec: ExecutionContext): Future[Option[UUID]]
 
   /**
-    * The method loads the latest data lineage from the persistence for a given path.
+    * The method returns datasetID of all pieces of data written to the source represented by the given `path`.
+    * This includes the latest OVERWRITE followed by all subsequent APPENDs.
     *
     * @param path A path for which a lineage graph is looked for
     * @return The latest data lineage
     */
-  def loadLatest(path: String)(implicit ec: ExecutionContext): Future[Option[DataLineage]]
-
-  /**
-    * The method loads a composite operation for an output datasetId.
-    *
-    * @param datasetId A dataset ID for which the operation is looked for
-    * @return A composite operation with dependencies satisfying the criteria
-    */
-  def loadCompositeByOutput(datasetId: UUID)(implicit ec: ExecutionContext): Future[Option[CompositeWithDependencies]]
+  def findLatestDatasetIdsByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[UUID]]
 
   /**
     * The method loads composite operations for an input datasetId.
@@ -67,14 +71,14 @@ trait DataLineageReader {
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  def loadCompositesByInput(datasetId: UUID)(implicit ec: ExecutionContext): Future[Iterator[CompositeWithDependencies]]
+  def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]]
 
   /**
     * The method gets all data lineages stored in persistence layer.
     *
     * @return Descriptors of all data lineages
     */
-  def list()(implicit ec: ExecutionContext): Future[Iterator[PersistedDatasetDescriptor]]
+  def findDatasets(text: Option[String], page: PageRequest)(implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]]
 
   /**
     * The method returns a dataset descriptor by its ID.

@@ -95,3 +95,4 @@ project/boot/
 .project
 .settings/
 
+spark-warehouse/

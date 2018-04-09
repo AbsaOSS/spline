@@ -49,29 +49,20 @@ class ParallelCompositeFactory(configuration: Configuration) extends Persistence
     *
     * @return A parallel composite writer to various persistence layers for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  override def createDataLineageWriter(): DataLineageWriter =
+  override def createDataLineageWriter: DataLineageWriter =
     new ParallelCompositeDataLineageWriter(factories.map(factory => {
       log debug s"${factory.getClass.getName}: create writer"
-      factory.createDataLineageWriter()
+      factory.createDataLineageWriter
     }))
 
   /**
     * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
-    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
+    * @return An optional reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  override def createDataLineageReader(): DataLineageReader =
-    new ParallelCompositeDataLineageReader(factories.map(factory => {
-      log debug s"${factory.getClass.getName}: create reader"
-      factory.createDataLineageReader()
-    }))
-
-  /**
-    * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity if the factory can. Otherwise, returns default.
-    *
-    * @param default A default data lineage reader
-    * @return A reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
-    */
-  override def createDataLineageReaderOrGetDefault(default: DataLineageReader): DataLineageReader =
-    new ParallelCompositeDataLineageReader(factories.map(_.createDataLineageReaderOrGetDefault(default)))
+  override def createDataLineageReader: Option[DataLineageReader] = {
+    val readers = factories.flatMap(_.createDataLineageReader)
+    if (readers.isEmpty) None
+    else Some(new ParallelCompositeDataLineageReader(readers))
+  }
 }

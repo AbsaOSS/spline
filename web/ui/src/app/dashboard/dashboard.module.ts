@@ -24,21 +24,25 @@ import {MaterialModule} from "../material-extension/material.module";
 // Other imports
 import {CommonModule} from "@angular/common";
 import {NgModule} from "@angular/core";
+import {ReactiveFormsModule} from "@angular/forms";
 import {RouterModule} from "@angular/router";
-import {HttpModule} from "@angular/http";
+import {HttpClientModule} from "@angular/common/http";
 import {DashboardComponent} from "./dashboard.component";
 import {DatasetBrowserComponent} from "./dataset-browser/dataset-browser.component";
 import {DatasetBrowserService} from "./dataset-browser/dataset-browser.service";
 import {WelcomeComponent} from "./welcome/welcome.component";
 import {MiscModule} from "../misc/misc.module";
+import {ScrollEventModule} from "ngx-scroll-event";
 
 @NgModule({
     imports: [
         CommonModule,
+        ReactiveFormsModule,
         RouterModule,
-        HttpModule,
+        HttpClientModule,
         MaterialModule,
-        MiscModule
+        MiscModule,
+        ScrollEventModule
     ],
     declarations: [
         DashboardComponent,

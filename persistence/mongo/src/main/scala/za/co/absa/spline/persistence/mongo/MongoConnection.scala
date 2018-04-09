@@ -27,13 +27,13 @@ import com.mongodb.casbah.MongoClient
   * @param dbName A database name
   */
 class MongoConnection(dbUrl: String, dbName: String) {
-  val dataLineageCollectionName: String = "lineages"
-  val LATEST_SERIAL_VERSION = 1
-
   private val client: MongoClient = MongoClient(MongoClientURI(dbUrl))
   require(client.databaseNames != null) // check if the connection can be established
 
   private val database = client.getDB(dbName)
 
-  val dataLineageCollection: DBCollection = database.getCollection(dataLineageCollectionName)
+  val dataLineageCollection: DBCollection = database.getCollection("lineages")
+  val operationCollection: DBCollection = database.getCollection("operations")
+  val attributeCollection: DBCollection = database.getCollection("attributes")
+  val datasetCollection: DBCollection = database.getCollection("datasets")
 }

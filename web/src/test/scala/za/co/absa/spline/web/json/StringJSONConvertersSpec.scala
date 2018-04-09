@@ -16,14 +16,18 @@
 
 package za.co.absa.spline.web.json
 
+import java.io.StringWriter
 import java.net.URI
 import java.util.UUID
 
 import org.json4s.native.JsonMethods._
+import org.mockito.Mockito._
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
 import za.co.absa.spline.model._
+import za.co.absa.spline.persistence.api.CloseableIterable
 
-class StringJSONConvertersSpec extends FlatSpec with Matchers {
+class StringJSONConvertersSpec extends FlatSpec with Matchers with MockitoSugar {
 
   import StringJSONConverters._
 
@@ -96,6 +100,26 @@ class StringJSONConvertersSpec extends FlatSpec with Matchers {
     val testProps = op.OperationProps(aUUID, "foo", Seq(aUUID), aUUID)
     val serializedProps = s"""{"id":"$aUUID","name":"foo","inputs":["$aUUID"],"output":"$aUUID"}"""
     parse(testProps.toJson) shouldEqual parse(serializedProps)
+  }
+
+  it should "serialize objects to JSON in a stream fashion" in {
+    val writer = new StringWriter()
+    ("a" -> "b") asJsonInto writer
+    writer.toString shouldEqual """{"a":"b"}"""
+  }
+
+  it should "serialize collections to JSON Array in a stream fashion" in {
+    val writer = new StringWriter()
+    Nil asJsonArrayInto writer
+    writer.toString shouldEqual "[]"
+  }
+
+  it should "serialize CloseableIterable to JSON Array in a stream fashion and close it when done" in {
+    val writer = new StringWriter()
+    val closeObserver = mock[() => Unit]
+    new CloseableIterable(Iterator("a", "b"), closeObserver()) asJsonArrayInto writer
+    writer.toString shouldEqual """["a","b"]"""
+    verify(closeObserver)()
   }
 
 }

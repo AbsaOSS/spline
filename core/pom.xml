@@ -25,13 +25,18 @@
         <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>0.2.7</version>
+        <version>0.3.0</version>
     </parent>
+
+    <properties>
+        <timestamp>${maven.build.timestamp}</timestamp>
+        <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssX</maven.build.timestamp.format>
+    </properties>
 
     <dependencies>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>spline-commons</artifactId>
+            <artifactId>spline-core-spark-adapter-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -55,6 +60,11 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql-kafka-0-10_${scala.compat.version}</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.databricks</groupId>
             <artifactId>spark-xml_${scala.compat.version}</artifactId>
             <version>0.4.1</version>
@@ -64,13 +74,13 @@
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>spline-core-spark-adapter-2.2</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
-
-    <properties>
-        <timestamp>${maven.build.timestamp}</timestamp>
-        <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssX</maven.build.timestamp.format>
-    </properties>
 
     <build>
         <resources>

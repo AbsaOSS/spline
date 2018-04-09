@@ -59,3 +59,4 @@ package-lock.json
 /src/app/**/*.jsx.map
 /dist/
 /typings/
+package-lock.json

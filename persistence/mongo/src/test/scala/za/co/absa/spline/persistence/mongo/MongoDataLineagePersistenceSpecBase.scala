@@ -16,20 +16,28 @@
 
 package za.co.absa.spline.persistence.mongo
 
+import java.util.UUID
 import java.util.UUID.randomUUID
 
-import org.scalatest.{AsyncFlatSpec, BeforeAndAfterEach, Matchers}
+import org.scalatest.{AsyncFunSpec, BeforeAndAfterEach, Matchers}
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op.{Generic, OperationProps, Write}
 import za.co.absa.spline.model.{Attribute, Schema, _}
+import za.co.absa.spline.persistence.mongo.MongoTestProperties.mongoConnection
 
-abstract class MongoDataLineagePersistenceSpecBase extends AsyncFlatSpec with Matchers with BeforeAndAfterEach {
+abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Matchers with BeforeAndAfterEach {
 
-  private val mongoConnection = MongoTestProperties.mongoConnection
   protected val mongoWriter = new MongoDataLineageWriter(mongoConnection)
   protected val mongoReader = new MongoDataLineageReader(mongoConnection)
 
-  protected def createDataLineage(appId : String, appName: String, timestamp: Long = 123L, path : String = "hdfs://foo/bar/path") : DataLineage = {
+  protected def createDataLineage(
+                                   appId: String,
+                                   appName: String,
+                                   timestamp: Long = 123L,
+                                   datasetId: UUID = randomUUID,
+                                   path: String = "hdfs://foo/bar/path",
+                                   append: Boolean = false)
+  : DataLineage = {
     val attributes = Seq(
       Attribute(randomUUID(), "_1", Simple("StringType", nullable = true)),
       Attribute(randomUUID(), "_2", Simple("StringType", nullable = true)),
@@ -38,7 +46,7 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFlatSpec with Ma
     val aSchema = Schema(attributes.map(_.id))
     val bSchema = Schema(attributes.map(_.id).tail)
 
-    val md1 = MetaDataset(randomUUID, aSchema)
+    val md1 = MetaDataset(datasetId, aSchema)
     val md2 = MetaDataset(randomUUID, aSchema)
     val md3 = MetaDataset(randomUUID, bSchema)
     val md4 = MetaDataset(randomUUID, bSchema)
@@ -48,7 +56,7 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFlatSpec with Ma
       appName,
       timestamp,
       Seq(
-        Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path),
+        Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path, append),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md2.id), "rawString2"),
         Generic(OperationProps(randomUUID, "LogicalRDD", Seq.empty, md4.id), "rawString3"),
@@ -59,5 +67,11 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFlatSpec with Ma
     )
   }
 
-  override protected def afterEach(): Unit = mongoConnection.dataLineageCollection.drop()
+  override protected def afterEach(): Unit = {
+    import mongoConnection._
+    dataLineageCollection.drop()
+    operationCollection.drop()
+    attributeCollection.drop()
+    datasetCollection.drop()
+  }
 }

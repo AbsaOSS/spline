@@ -26,29 +26,27 @@ import za.co.absa.spline.core.SparkLineageInitializer._
 import za.co.absa.spline.core.SparkLineageInitializerSpec._
 import za.co.absa.spline.core.conf.DefaultSplineConfigurer.ConfProperty.{MODE, PERSISTENCE_FACTORY}
 import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode._
+import za.co.absa.spline.core.listener.SplineQueryExecutionListener
 import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
 
 object SparkLineageInitializerSpec {
 
   class MockReadWritePersistenceFactory(conf: Configuration) extends PersistenceFactory(conf) with MockitoSugar {
-    override def createDataLineageWriter(): DataLineageWriter = mock[DataLineageWriter]
-    override def createDataLineageReader(): DataLineageReader = mock[DataLineageReader]
-    override def createDataLineageReaderOrGetDefault(default: DataLineageReader): DataLineageReader = createDataLineageReader()
+    override val createDataLineageWriter: DataLineageWriter = mock[DataLineageWriter]
+    override val createDataLineageReader: Option[DataLineageReader] = Some(mock[DataLineageReader])
   }
 
   class MockWriteOnlyPersistenceFactory(conf: Configuration) extends PersistenceFactory(conf) with MockitoSugar {
-    override def createDataLineageWriter(): DataLineageWriter = mock[DataLineageWriter]
-    override def createDataLineageReader(): DataLineageReader = throw new UnsupportedOperationException
-    override def createDataLineageReaderOrGetDefault(default: DataLineageReader): DataLineageReader = default
+    override val createDataLineageWriter: DataLineageWriter = mock[DataLineageWriter]
+    override val createDataLineageReader: Option[DataLineageReader] = None
   }
 
   class MockFailingPersistenceFactory(conf: Configuration) extends PersistenceFactory(conf) with MockitoSugar {
-    override def createDataLineageWriter(): DataLineageWriter = sys.error("boom!")
-    override def createDataLineageReader(): DataLineageReader = sys.error("bam!")
-    override def createDataLineageReaderOrGetDefault(default: DataLineageReader): DataLineageReader = sys.error("bump!")
+    override val createDataLineageWriter: DataLineageWriter = sys.error("boom!")
+    override val createDataLineageReader: Option[DataLineageReader] = sys.error("bam!")
   }
 
-  private[this] def sprakQueryExecutionListenerClasses: Seq[Class[_ <: QueryExecutionListener]] = {
+  private[this] def sparkQueryExecutionListenerClasses: Seq[Class[_ <: QueryExecutionListener]] = {
     val session = SparkSession.builder.getOrCreate
     (session.listenerManager.getClass.getDeclaredFields collectFirst {
       case f if f.getName endsWith "listeners" =>
@@ -57,9 +55,9 @@ object SparkLineageInitializerSpec {
     }).get
   }
 
-  private def assertSplineIsEnabled() = sprakQueryExecutionListenerClasses should contain(classOf[DataLineageListener])
+  private def assertSplineIsEnabled() = sparkQueryExecutionListenerClasses should contain(classOf[SplineQueryExecutionListener])
 
-  private def assertSplineIsDisabled() = sprakQueryExecutionListenerClasses should not contain classOf[DataLineageListener]
+  private def assertSplineIsDisabled() = sparkQueryExecutionListenerClasses should not contain classOf[SplineQueryExecutionListener]
 }
 
 class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with Matchers {

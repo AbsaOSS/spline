@@ -17,14 +17,15 @@
 import {Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChange, SimpleChanges} from "@angular/core";
 import {IDataLineage} from "../../../generated-ts/lineage-model";
 import "vis/dist/vis.min.css";
-import {visOptions} from "./vis/vis-options";
+import {visOptions} from "./vis-options";
 import {lineageToGraph} from "./graph-builder";
 import * as vis from "vis";
 import * as _ from "lodash";
-import {ClusterManager} from "./cluster-manager";
-import {HighlightedVisNode, RegularVisNode, VisModel, VisNode, VisNodeType} from "./vis/vis-model";
+import {ClusterManager} from "../../visjs/cluster-manager";
+import {HighlightedVisClusterNode, HighlightedVisNode, RegularVisClusterNode, RegularVisNode, VisEdge, VisNode, VisNodeType} from "./graph.model";
 import {LineageStore} from "../lineage.store";
 import {OperationType} from "../types";
+import {VisModel} from "../../visjs/vis-model";
 
 const isDistinct = (change: SimpleChange): boolean => change && !_.isEqual(change.previousValue, change.currentValue)
 
@@ -40,9 +41,9 @@ export class GraphComponent implements OnChanges {
     @Output() operationSelected = new EventEmitter<string>()
 
     private network: vis.Network
-    private graph: VisModel
+    private graph: VisModel<VisNode, VisEdge>
 
-    private clusterManager: ClusterManager
+    private clusterManager: ClusterManager<VisNode, VisEdge>
 
     constructor(private container: ElementRef, private lineageStore: LineageStore) {
         lineageStore.lineage$.subscribe(lineage => {
@@ -67,7 +68,29 @@ export class GraphComponent implements OnChanges {
     private rebuildGraph(lineage: IDataLineage) {
         this.graph = lineageToGraph(lineage, this.selectedOperationId, this.hiddenOperationTypes)
         this.network = new vis.Network(this.container.nativeElement, this.graph, visOptions)
-        this.clusterManager = new ClusterManager(this.graph, this.network)
+
+        this.clusterManager =
+            new ClusterManager(this.graph, this.network, (nodes, edges) => {
+                let nodesGroups: VisNode[][] = []
+                nodes.forEach(node => {
+                    let siblingsTo = edges.filter(e => e.from == node.id).map(e => e.to)
+                    let siblingsFrom = edges.filter(e => e.to == node.id).map(e => e.from)
+                    if (siblingsFrom.length == 1 && siblingsTo.length == 1) {
+                        let group = nodesGroups.find(grp => _.some(grp, n => n.id == siblingsTo[0]))
+                        if (group) group.push(node)
+                        else nodesGroups.push([node])
+                    }
+                })
+                return nodesGroups.map((nodes, i) => {
+                    let id = `cluster:${i}`
+                    let label = "(" + nodes.length + ")"
+                    let isHighlighted = _.some(nodes, n => n.type == VisNodeType.Highlighted)
+                    return isHighlighted
+                        ? new HighlightedVisClusterNode(id, label, nodes)
+                        : new RegularVisClusterNode(id, label, nodes)
+                })
+            })
+
         this.clusterManager.rebuildClusters()
 
         this.network.on("click", event => {
