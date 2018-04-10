@@ -19,6 +19,12 @@ The project consists of two parts:
 </dependency>
 <dependency>
     <groupId>za.co.absa.spline</groupId>
+    <artifactId>spline-core-spark-adapter-2.2</artifactId>
+    <!-- For compatibility with Spark 2.3 change above to spline-core-spark-adapter-2.3. -->
+    <version>{{site.spline.version}}</version>
+</dependency>
+<dependency>
+    <groupId>za.co.absa.spline</groupId>
     <artifactId>spline-persistence-mongo</artifactId>
     <!-- You can use other types of persistence including your own. -->
     <!-- See below for details. -->
@@ -233,6 +239,10 @@ val joinedDS = sourceDS
 
 joinedDS.write.mode(SaveMode.Overwrite).parquet("data/results/job1_results")
 ```
+
+# Release Migration: MongoDb
+
+Please follow [instructions in readme file]({{ site.github.repository_url }}tree/master/persistence/mongo/src/main/dbscripts) to migrate your MongoDb from your current versin to desired version.
 
 # Contribution
 
