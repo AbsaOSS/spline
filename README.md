@@ -242,7 +242,7 @@ joinedDS.write.mode(SaveMode.Overwrite).parquet("data/results/job1_results")
 
 # Release Migration: MongoDb
 
-Please follow [instructions in readme file]({{ site.github.repository_url }}tree/master/persistence/mongo/src/main/dbscripts) to migrate your MongoDb from your current versin to desired version.
+Please follow [instructions in readme file]({{ site.github.repository_url }}/tree/master/persistence/mongo/src/main/dbscripts) to migrate your MongoDb from your current versin to desired version.
 
 # Contribution
 
