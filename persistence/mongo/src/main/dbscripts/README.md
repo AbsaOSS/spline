@@ -2,6 +2,8 @@
 
 ## Upgrade from Spline 0.2.x to 0.3.x version: 
 
+Please backup your database prior migration.
+
 ```shell
 $ mongo $DB_URL spline-0.3.upgrade.js
 ```
