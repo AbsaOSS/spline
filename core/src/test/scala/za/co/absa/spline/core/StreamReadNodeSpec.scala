@@ -19,7 +19,6 @@ package za.co.absa.spline.core
 import java.nio.file.Files
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.spark.sql.execution.streaming.StreamingRelation
 import org.apache.spark.sql.types.StructType
 import org.scalatest.{FlatSpec, Matchers}
 import za.co.absa.spline.core.TestSparkContext.sparkSession
@@ -28,6 +27,7 @@ import za.co.absa.spline.model.endpoint.{FileEndpoint, KafkaEndpoint, SocketEndp
 class StreamReadNodeSpec extends FlatSpec with Matchers {
   implicit val hadoopConfiguration: Configuration = sparkSession.sparkContext.hadoopConfiguration
   implicit val metaDatasetFactory: MetaDatasetFactory = new MetaDatasetFactory(new AttributeFactory)
+  import za.co.absa.spline.coresparkadapterapi.StreamingRelationAdapter.instance._
 
   behavior of "The build method"
 
@@ -37,7 +37,7 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
       .format("rate")
       .load()
 
-    val builder = new StreamReadNodeBuilder(df.queryExecution.analyzed.asInstanceOf[StreamingRelation])
+    val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
     val node = builder.build()
 
     node.source shouldEqual VirtualEndpoint
@@ -54,7 +54,7 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
       .option("port", port)
       .load()
 
-    val builder = new StreamReadNodeBuilder(df.queryExecution.analyzed.asInstanceOf[StreamingRelation])
+    val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
     val node = builder.build()
 
     node.source shouldEqual SocketEndpoint(host, port.toString)
@@ -71,7 +71,7 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
       .option("kafka.bootstrap.servers", cluster.mkString(","))
       .load()
 
-    val builder = new StreamReadNodeBuilder(df.queryExecution.analyzed.asInstanceOf[StreamingRelation])
+    val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
     val node = builder.build()
 
     node.source shouldEqual KafkaEndpoint(cluster, topic)
@@ -90,7 +90,7 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
       .schema(schema)
       .load(tempDir.getPath)
 
-    val builder = new StreamReadNodeBuilder(df.queryExecution.logical.asInstanceOf[StreamingRelation])
+    val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.logical))
     val node = builder.build()
 
     node.source shouldEqual FileEndpoint(format, tempDir.getPath)
