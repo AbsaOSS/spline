@@ -32,7 +32,8 @@ export class AttributeListComponent implements OnInit {
     @Input() attrs: IAttribute[]
 
     @Input() set selectedAttrIDs(ids: string[]) {
-        this.highlightSelected(ids)
+        this.selectedIds = ids
+        this.highlightSelected()
     }
 
     @Input() expandRoot: boolean = false
@@ -58,6 +59,16 @@ export class AttributeListComponent implements OnInit {
     ngOnInit(): void {
         this.attrTree = this.attrs.map(a => this.buildAttrTree(a))
     }
+
+    onTreeInit() {
+        this.highlightSelected()
+    }
+
+    onNodeClicked(node: ITreeNode) {
+        this.attrClicked.emit(node.data.attributeId)
+    }
+
+    private selectedIds: string[]
 
     private buildAttrTree(attr: IAttribute): INodeData {
         const attributeId = attr.id
@@ -86,15 +97,11 @@ export class AttributeListComponent implements OnInit {
         return buildNode(attr.dataType, attr.name, this.expandRoot)
     }
 
-    onNodeClicked(node: ITreeNode) {
-        this.attrClicked.emit(node.data.attributeId)
-    }
-
-    private highlightSelected(ids: string[]): void {
+    private highlightSelected(): void {
         if (this.treeComponent && this.treeComponent.treeModel.roots) {
             let treeModel = this.treeComponent.treeModel
             treeModel.roots.forEach((node: ITreeNode) => {
-                node.setIsActive(this.isSelected(node, ids), true)
+                node.setIsActive(this.isSelected(node, this.selectedIds), true)
             })
         }
     }
