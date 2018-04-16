@@ -49,6 +49,11 @@ object FileStreamingJob extends SparkApp("File Streaming Job"){
     .option("checkpointLocation", "data/fileCheckpoint")
     .option("path", "data/results/streaming/wikidataResult")
 
+  sourceDS
+    .writeStream
+    .format("console")
+    .start()
+
   val q = sink.start()
 
   q.awaitTermination()

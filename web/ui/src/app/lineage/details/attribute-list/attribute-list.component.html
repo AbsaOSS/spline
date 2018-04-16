@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<tree-root #tree [nodes]="attrTree" [options]="treeOptions">
+<tree-root #tree [nodes]="attrTree" [options]="treeOptions" (initialized)="onTreeInit()">
     <ng-template #treeNodeTemplate let-node>
         <div>
             <span class="fld-name">{{ node.data.name }}</span>

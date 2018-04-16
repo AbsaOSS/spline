@@ -76,7 +76,7 @@
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>spline-core-spark-adapter-2.2</artifactId>
+            <artifactId>spline-core-spark-adapter-${spark.compat.version}</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
