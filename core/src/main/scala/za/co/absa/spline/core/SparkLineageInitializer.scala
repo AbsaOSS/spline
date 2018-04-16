@@ -73,7 +73,7 @@ object SparkLineageInitializer extends Logging {
       sparkSession.listenerManager register configurer.queryExecutionListener
 
       // TODO: SL-128
-      // sparkSession.streams addListener configurer.streamingQueryListener
+//       sparkSession.streams addListener configurer.streamingQueryListener
     }
 
     private[core] val defaultSplineConfiguration = {
