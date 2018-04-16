@@ -17,6 +17,8 @@
 // SL-115
 // SL-38
 
+print("Starting migration to 0.3.0")
+print("Found lineages to migrate: " + db.lineages.find({_ver: 1}).count())
 db.lineages
     .find({_ver: 1})
     .forEach(function (lineage) {
@@ -42,9 +44,10 @@ db.lineages
         lineage.attributes.forEach(toV3Child)
         lineage.operations[0].append = false
 
-        db.operations.insert(lineage.operations)
-        db.datasets.insert(lineage.datasets)
-        db.attributes.insert(lineage.attributes)
+        db.operations.insertMany(lineage.operations)
+        // Save doesn't throw exception on duplicate.
+        lineage.datasets.forEach(function(i) {db.datasets.save(i)})
+        lineage.attributes.forEach(function(i) {db.attributes.save(i)})
 
         db.lineages.update(
             {_id: lineage._id},
