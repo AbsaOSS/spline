@@ -17,6 +17,8 @@
 // SL-115
 // SL-38
 
+print("Starting migration to db version 3.")
+print("Found lineages to migrate: " + db.lineages.find({_ver: 1}).count())
 db.lineages
     .find({_ver: 1})
     .forEach(function (lineage) {
@@ -42,9 +44,10 @@ db.lineages
         lineage.attributes.forEach(toV3Child)
         lineage.operations[0].append = false
 
-        db.operations.insert(lineage.operations)
-        db.datasets.insert(lineage.datasets)
-        db.attributes.insert(lineage.attributes)
+        db.operations.insertMany(lineage.operations)
+        // Save doesn't throw exception on duplicate.
+        lineage.datasets.forEach(function(i) {db.datasets.save(i)})
+        lineage.attributes.forEach(function(i) {db.attributes.save(i)})
 
         db.lineages.update(
             {_id: lineage._id},
@@ -72,3 +75,11 @@ db.operations.createIndex({"sources.datasetsIds": 1})
 
 db.datasets.createIndex({"_lineageId": 1})
 db.attributes.createIndex({"_lineageId": 1})
+
+if (db.lineages.find({ "_ver": { "$ne": 3 } }).count() != 0) {
+   throw "Not all lineages were migrated!"
+}
+print("Number of datasets: " + db.datasets.count())
+print("Number of operations: " + db.operations.count())
+print("Number of attributes: " + db.attributes.count())
+print("Migration successful.")
