@@ -17,7 +17,7 @@
 // SL-115
 // SL-38
 
-print("Starting migration to 0.3.0")
+print("Starting migration to db version 3.")
 print("Found lineages to migrate: " + db.lineages.find({_ver: 1}).count())
 db.lineages
     .find({_ver: 1})
@@ -75,3 +75,11 @@ db.operations.createIndex({"sources.datasetsIds": 1})
 
 db.datasets.createIndex({"_lineageId": 1})
 db.attributes.createIndex({"_lineageId": 1})
+
+if (db.lineages.find({ "_ver": { "$ne": 3 } }).count() != 0) {
+   throw "Not all lineages were migrated!"
+}
+print("Number of datasets: " + db.datasets.count())
+print("Number of operations: " + db.operations.count())
+print("Number of attributes: " + db.attributes.count())
+print("Migration successful.")
