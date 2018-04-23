@@ -82,7 +82,6 @@
         <java.version>1.8</java.version>
         <scala.version>2.11.12</scala.version>
         <scala.compat.version>2.11</scala.compat.version>
-        <spark.version>2.2.1</spark.version>
         <logback.version>1.2.3</logback.version>
         <slf4j.version>1.7.25</slf4j.version>
         <salat.version>1.11.2</salat.version>
@@ -219,6 +218,20 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>spark-2.2</id>
+            <properties>
+                <spark.compat.version>2.2</spark.compat.version>
+                <spark.version>2.2.1</spark.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>spark-2.3</id>
+            <properties>
+                <spark.compat.version>2.3</spark.compat.version>
+                <spark.version>2.3.0</spark.version>
+            </properties>
+        </profile>
         <profile>
             <id>license-check</id>
             <build>

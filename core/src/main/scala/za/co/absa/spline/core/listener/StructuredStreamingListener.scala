@@ -25,6 +25,7 @@ import org.apache.spark.sql.streaming.{StreamingQuery, StreamingQueryListener, S
 import org.slf4s.Logging
 import za.co.absa.spline.core.SparkLineageProcessor
 import za.co.absa.spline.core.harvester.LogicalPlanLineageHarvester
+import za.co.absa.spline.coresparkadapterapi.StructuredStreamingListenerAdapter.instance._
 import za.co.absa.spline.model.endpoint.{FileEndpoint, KafkaEndpoint}
 import za.co.absa.spline.model.op.{OperationProps, StreamWrite}
 
@@ -58,14 +59,14 @@ class StructuredStreamingListener(queryManager: StreamingQueryManager,
   }
 
   private def processExecution(se: StreamExecution): Unit = {
-    assume(se.logicalPlan.analyzed, "we harvest lineage from analyzed logic plans")
+    assume(se.logicalPlan.resolved, "we harvest lineage from analyzed logic plans")
 
     val logicalPlanLineage = lineageHarvester.harvestLineage(se.sparkSession.sparkContext, se.logicalPlan)
 
     val maybeEndpoint = se.sink match {
       case FileSinkObj(path, fileFormat) => Some(FileEndpoint(path, fileFormat.toString))
       case KafkaSinkObj(cluster, topic) => Some(KafkaEndpoint(cluster, topic.getOrElse("")))
-      case _: ConsoleSink | _: ForeachSink[_] | _: MemorySink => None // ignore these types of sink.
+      case x if Set(consoleSinkClass(), classOf[ForeachSink[_]], classOf[MemorySink]).exists(assignableFrom(_, x)) => None
       case sink => throw new IllegalArgumentException(s"Unsupported sink type: ${sink.getClass}")
     }
 
@@ -82,4 +83,9 @@ class StructuredStreamingListener(queryManager: StreamingQueryManager,
 
     lineageProcessor.process(streamingLineage)
   }
+
+  private def assignableFrom(runtimeClass: Class[_], anyRef: AnyRef) = {
+    runtimeClass.isAssignableFrom(anyRef.getClass)
+  }
+
 }
