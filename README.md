@@ -57,7 +57,7 @@ java -jar spline-web-{{site.spline.version}}-exec-war.jar -Dspline.mongodb.url=.
 
 # Motivation
 Spline should fill a big gap within [Apache Hadoop](http://hadoop.apache.org/) ecosystem.
-Spark jobs should't be treated only as magic black boxes and people should have a chance to understant what happens with their data.
+Spark jobs should't be treated only as magic black boxes and people should have a chance to understand what happens with their data.
 Our main focus is to solve the following particular problems:
 
 * **Regulatory requirement for SA banks (BCBS 239)**
@@ -135,12 +135,12 @@ mvn install -DskipTests
 
 # <a name="persistence"></a> Lineage persistence
 Spline can persist harvested lineages in various ways. It uses [PersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/PersistenceFactory.scala) to obtain instances of [DataLineageReader]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/DataLineageReader.scala) and [DataLineageWriter]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/DataLineageWriter.scala) to persist and access the data lineages.
-Out of the box Spline supports three types of persistors:
+Out of the box Spline supports three types of persisters:
 - [MongoPersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/mongo/src/main/scala/za/co/absa/spline/persistence/mongo/MongoPersistenceFactory.scala) (stores lineages to the MongoDB)
 - [HdfsPersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/hdfs/src/main/scala/za/co/absa/spline/persistence/hdfs/HdfsPersistenceFactory.scala) (stores lineages as a JSON file)
 - [AtlasPersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/atlas/src/main/scala/za/co/absa/spline/persistence/atlas/AtlasPersistenceFactory.scala) (is used for integration with Apache Atlas)
 
-There is also a [ParallelCompositeFactory]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/composition/ParallelCompositeFactory.scala) that works as a proxy and delegate work to other persistors.
+There is also a [ParallelCompositeFactory]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/composition/ParallelCompositeFactory.scala) that works as a proxy and delegate work to other persisters.
 So for example, you can store the lineages to, say, Mongo and Atlas simultaneously.
 
 
@@ -242,7 +242,7 @@ joinedDS.write.mode(SaveMode.Overwrite).parquet("data/results/job1_results")
 
 # Release Migration: MongoDb
 
-Please follow [instructions in readme file]({{ site.github.repository_url }}/tree/master/persistence/mongo/src/main/dbscripts) to migrate your MongoDb from your current versin to desired version.
+Please follow [instructions in readme file]({{ site.github.repository_url }}/tree/master/persistence/mongo/src/main/dbscripts) to migrate your MongoDb from your current version to desired version.
 
 # Contribution
 
