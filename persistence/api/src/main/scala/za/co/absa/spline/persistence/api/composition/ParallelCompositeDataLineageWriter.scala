@@ -16,9 +16,8 @@
 
 package za.co.absa.spline.persistence.api.composition
 
-import org.slf4s.Logging
 import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.persistence.api.DataLineageWriter
+import za.co.absa.spline.persistence.api.{DataLineageWriter, Logging}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -40,4 +39,7 @@ class ParallelCompositeDataLineageWriter(writers: Seq[DataLineageWriter]) extend
     Future.sequence(futures).map(_ => Unit)
   }
 
+  override def close(): Unit = {
+    writers.foreach(_.close())
+  }
 }

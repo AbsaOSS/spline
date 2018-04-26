@@ -48,12 +48,17 @@
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>spline-core</artifactId>
+            <artifactId>spline-harvester</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>spline-core-spark-adapter-${spark.compat.version}</artifactId>
+            <artifactId>spline-linker</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>spline-spark-adapter-${spark.compat.version}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

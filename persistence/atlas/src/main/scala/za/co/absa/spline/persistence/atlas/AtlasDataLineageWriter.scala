@@ -45,4 +45,8 @@ class AtlasDataLineageWriter extends AtlasHook with DataLineageWriter with Loggi
       this.notifyEntities("Anonymous", entityCollections.asJava)
     }
   }
+
+  override def close(): Unit = {
+    // Nothing to close.
+  }
 }

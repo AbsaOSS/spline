@@ -26,7 +26,7 @@ import com.mongodb.casbah.MongoClient
   * @param dbUrl  An url to Mongo server
   * @param dbName A database name
   */
-class MongoConnection(dbUrl: String, dbName: String) {
+class MongoConnection(dbUrl: String, dbName: String) extends AutoCloseable {
   private val client: MongoClient = MongoClient(MongoClientURI(dbUrl))
   require(client.databaseNames != null) // check if the connection can be established
 
@@ -36,4 +36,8 @@ class MongoConnection(dbUrl: String, dbName: String) {
   val operationCollection: DBCollection = database.getCollection("operations")
   val attributeCollection: DBCollection = database.getCollection("attributes")
   val datasetCollection: DBCollection = database.getCollection("datasets")
+
+  override def close(): Unit = {
+    client.close()
+  }
 }

@@ -28,6 +28,11 @@
     <artifactId>spline-commons</artifactId>
     <packaging>jar</packaging>
 
+    <properties>
+        <timestamp>${maven.build.timestamp}</timestamp>
+        <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssX</maven.build.timestamp.format>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>commons-configuration</groupId>
@@ -40,6 +45,12 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.scalatest</groupId>

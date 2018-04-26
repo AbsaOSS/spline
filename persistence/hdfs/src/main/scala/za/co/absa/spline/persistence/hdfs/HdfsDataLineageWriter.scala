@@ -67,4 +67,8 @@ class HdfsDataLineageWriter(hadoopConfiguration: Configuration, fileName: String
       case dn: Write => Some(new Path(dn.path, fileName))
       case _ => None
     }
+
+  override def close(): Unit = {
+    // Nothing to close.
+  }
 }
