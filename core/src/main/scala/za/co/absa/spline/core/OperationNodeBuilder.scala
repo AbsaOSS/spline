@@ -23,7 +23,7 @@ import com.databricks.spark.xml.XmlRelation
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.catalyst.expressions.SortOrder
 import org.apache.spark.sql.catalyst.plans.logical._
-import org.apache.spark.sql.execution.datasources.{DataSource, HadoopFsRelation, LogicalRelation}
+import org.apache.spark.sql.execution.datasources.{CreateTable, DataSource, HadoopFsRelation, LogicalRelation}
 import org.apache.spark.sql.execution.streaming.StreamingRelation
 import org.apache.spark.sql.sources.BaseRelation
 import org.apache.spark.sql.{JDBCRelation, SaveMode}
@@ -33,7 +33,6 @@ import za.co.absa.spline.model.expr.Expression
 import za.co.absa.spline.model.{op, _}
 
 import scala.collection.mutable
-
 
 /**
   * The class represents a factory creating a specific node builders for a particular operations from Spark logical plan.
@@ -61,6 +60,7 @@ class OperationNodeBuilderFactory(implicit hadoopConfiguration: Configuration, m
     case a: SubqueryAlias => new AliasNodeBuilder(a)
     case lr: LogicalRelation => new ReadNodeBuilder(lr)
     case wc if writeCommandParser.matches(logicalPlan) => new WriteNodeBuilder(writeCommandParser.asWriteCommand(wc))
+    case ct: CreateTable => new CreateTableNodeBuilder(ct)
     case x => new GenericNodeBuilder(x)
   }
 }
@@ -315,7 +315,7 @@ private class JoinNodeBuilder(val operation: Join)
 }
 
 /**
-  * The class represents a builder of operations nodes dedicated for Spark union operation.
+  * The class represents a builder of operations nodes dedicated for Spark CreateTable operation.
   *
   * @param operation          An input Spark union operation
   * @param metaDatasetFactory A factory of meta data sets
@@ -323,6 +323,16 @@ private class JoinNodeBuilder(val operation: Join)
 private class UnionNodeBuilder(val operation: Union)
                               (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[Union] {
   def build(): op.Operation = op.Union(buildOperationProps())
+}
+
+private class CreateTableNodeBuilder(val operation: CreateTable)
+                                    (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[CreateTable] {
+
+  override def build(): op.Operation = {
+    op.CreateTable(
+      buildOperationProps()
+    )
+  }
 }
 
 

@@ -265,3 +265,8 @@ case class Composite(
       s"Hence the size 'inputs' collection should be the same as the count of known datasets for 'sources' field. " +
       s"But was $inputDatasetsCount and $knownSourceLineagesCount respectively")
 }
+
+case class CreateTable(
+                        mainProps: OperationProps
+                      ) extends Operation {
+}
