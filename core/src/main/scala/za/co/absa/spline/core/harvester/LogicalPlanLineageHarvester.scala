@@ -19,6 +19,7 @@ package za.co.absa.spline.core.harvester
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
+import org.apache.spark.sql.execution.command.CreateDataSourceTableAsSelectCommand
 import za.co.absa.spline.core.{AttributeFactory, MetaDatasetFactory, OperationNodeBuilder, OperationNodeBuilderFactory}
 import za.co.absa.spline.coresparkadapterapi.WriteCommandParser
 import za.co.absa.spline.model.DataLineage
@@ -74,6 +75,7 @@ class LogicalPlanLineageHarvester(hadoopConfiguration: Configuration) {
           result += newNode
           currentOperation match {
             case x if writeCommandParser.matches(x) => stack.push((writeCommandParser.asWriteCommand(x).query, pos))
+            case x: CreateDataSourceTableAsSelectCommand => stack.push((x.query, pos))
             case x => x.children.reverse.map(op => stack.push((op, pos)))
           }
           newNode
