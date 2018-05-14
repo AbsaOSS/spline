@@ -23,7 +23,7 @@ import com.databricks.spark.xml.XmlRelation
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.catalyst.expressions.SortOrder
 import org.apache.spark.sql.catalyst.plans.logical._
-import org.apache.spark.sql.execution.datasources.{CreateTable, DataSource, HadoopFsRelation, LogicalRelation}
+import org.apache.spark.sql.execution.datasources.{DataSource, HadoopFsRelation, LogicalRelation}
 import org.apache.spark.sql.execution.command.CreateDataSourceTableAsSelectCommand
 import org.apache.spark.sql.execution.streaming.StreamingRelation
 import org.apache.spark.sql.sources.BaseRelation
@@ -316,7 +316,7 @@ private class JoinNodeBuilder(val operation: Join)
 }
 
 /**
-  * The class represents a builder of operations nodes dedicated for Spark CreateTable operation.
+  * The class represents a builder of operations nodes dedicated for Spark union operation.
   *
   * @param operation          An input Spark union operation
   * @param metaDatasetFactory A factory of meta data sets
@@ -326,6 +326,12 @@ private class UnionNodeBuilder(val operation: Union)
   def build(): op.Operation = op.Union(buildOperationProps())
 }
 
+/**
+  * The class represents a builder of operations nodes dedicated for Spark CreateTable operation.
+  *
+  * @param operation          An input Spark union operation
+  * @param metaDatasetFactory A factory of meta data sets
+  */
 private class CTASNodeBuilder(val operation: CreateDataSourceTableAsSelectCommand)
                              (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[CreateDataSourceTableAsSelectCommand] {
 
