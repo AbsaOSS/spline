@@ -73,6 +73,7 @@ object Operation {
       case op@Union(mp) => op.copy(mainProps = fn(mp))
       case op@Projection(mp, _) => op.copy(mainProps = fn(mp))
       case op@Composite(mp, _, _, _, _, _) => op.copy(mainProps = fn(mp))
+      case op@CTAS(mp) => op.copy(mainProps = fn(mp))
     }).asInstanceOf[T]
   }
 
@@ -266,7 +267,4 @@ case class Composite(
       s"But was $inputDatasetsCount and $knownSourceLineagesCount respectively")
 }
 
-case class CreateTable(
-                        mainProps: OperationProps
-                      ) extends Operation {
-}
+case class CTAS(mainProps: OperationProps) extends Operation

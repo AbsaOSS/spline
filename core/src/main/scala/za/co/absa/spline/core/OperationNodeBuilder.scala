@@ -24,6 +24,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.catalyst.expressions.SortOrder
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.{CreateTable, DataSource, HadoopFsRelation, LogicalRelation}
+import org.apache.spark.sql.execution.command.CreateDataSourceTableAsSelectCommand
 import org.apache.spark.sql.execution.streaming.StreamingRelation
 import org.apache.spark.sql.sources.BaseRelation
 import org.apache.spark.sql.{JDBCRelation, SaveMode}
@@ -60,7 +61,7 @@ class OperationNodeBuilderFactory(implicit hadoopConfiguration: Configuration, m
     case a: SubqueryAlias => new AliasNodeBuilder(a)
     case lr: LogicalRelation => new ReadNodeBuilder(lr)
     case wc if writeCommandParser.matches(logicalPlan) => new WriteNodeBuilder(writeCommandParser.asWriteCommand(wc))
-    case ct: CreateTable => new CreateTableNodeBuilder(ct)
+    case ctas: CreateDataSourceTableAsSelectCommand => new CTASNodeBuilder(ctas)
     case x => new GenericNodeBuilder(x)
   }
 }
@@ -325,11 +326,11 @@ private class UnionNodeBuilder(val operation: Union)
   def build(): op.Operation = op.Union(buildOperationProps())
 }
 
-private class CreateTableNodeBuilder(val operation: CreateTable)
-                                    (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[CreateTable] {
+private class CTASNodeBuilder(val operation: CreateDataSourceTableAsSelectCommand)
+                             (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[CreateDataSourceTableAsSelectCommand] {
 
   override def build(): op.Operation = {
-    op.CreateTable(
+    op.CTAS(
       buildOperationProps()
     )
   }
