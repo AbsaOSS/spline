@@ -36,7 +36,7 @@ class SplineQueryExecutionListener(harvester: LogicalPlanLineageHarvester, linea
   def onSuccess(funcName: String, qe: QueryExecution, durationNs: Long): Unit = {
     log debug s"Action '$funcName' execution succeeded"
 
-    if (funcName == "save") {
+    if (funcName == "save" && funcName == "saveAsTable") {
       log debug s"Start tracking lineage for action '$funcName'"
 
       val rawLineage = harvester.harvestLineage(qe.sparkSession.sparkContext, qe.analyzed)
