@@ -16,40 +16,20 @@
 
 package za.co.absa.spline.persistence.atlas
 
+import java.util.UUID
 import java.util.UUID.randomUUID
 
 import org.apache.atlas.typesystem.json.InstanceSerialization
 import org.scalatest.{FlatSpec, Matchers}
-import za.co.absa.spline.common.OptionImplicits._
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.dt.Simple
+import za.co.absa.spline.model.op.{Generic, OperationProps, Write}
 import za.co.absa.spline.persistence.atlas.conversion.DataLineageToTypeSystemConverter
 
 class DataLineageToTypeSystemMapperSpec extends FlatSpec with Matchers{
-/*
   "A simple lineage graph with several nodes" should "be serializable to JSON via Atlas API" in {
     // Arrange
-    val aSchema = Schema(Seq(
-      Attribute(1L, "_1", Simple("StringType", nullable = true)),
-      Attribute(2L, "_2", Simple("StringType", nullable = true)),
-      Attribute(3L, "_3", Simple("StringType", nullable = true))))
-
-    val md1 = MetaDataset(randomUUID, aSchema)
-    val md2 = MetaDataset(randomUUID, aSchema)
-    val md3 = MetaDataset(randomUUID, aSchema)
-    val md4 = MetaDataset(randomUUID, aSchema)
-
-    val lineage = DataLineage(
-      randomUUID,
-      "TestApp",
-      Seq(
-        Generic(NodeProps(randomUUID, "Union", "desc1", Seq(md1.id, md2.id), md3.id)),
-        Generic(NodeProps(randomUUID, "Filter", "desc2", Seq(md4.id), md2.id)),
-        Generic(NodeProps(randomUUID, "LogicalRDD", "desc3", Seq.empty, md4.id)),
-        Generic(NodeProps(randomUUID, "Filter", "desc4", Seq(md4.id), md1.id))),
-      Seq(md1, md2, md3, md4)
-    )
-
+    val lineage = createDataLineage("app1", "app1")
     // Act
     val entities = DataLineageToTypeSystemConverter.convert(lineage)
     val jsonObjects = entities.map(i => InstanceSerialization.toJson(i, withBigDecimals = true))
@@ -58,6 +38,42 @@ class DataLineageToTypeSystemMapperSpec extends FlatSpec with Matchers{
     entities.length shouldEqual jsonObjects.length
     jsonObjects.length shouldEqual jsonObjects.count(o => o != null && o.length > 0)
   }
-*/
+
+  protected def createDataLineage(
+                                   appId: String,
+                                   appName: String,
+                                   timestamp: Long = 123L,
+                                   datasetId: UUID = randomUUID,
+                                   path: String = "hdfs://foo/bar/path",
+                                   append: Boolean = false)
+  : DataLineage = {
+    val attributes = Seq(
+      Attribute(randomUUID(), "_1", Simple("StringType", nullable = true)),
+      Attribute(randomUUID(), "_2", Simple("StringType", nullable = true)),
+      Attribute(randomUUID(), "_3", Simple("StringType", nullable = true))
+    )
+    val aSchema = Schema(attributes.map(_.id))
+    val bSchema = Schema(attributes.map(_.id).tail)
+
+    val md1 = MetaDataset(datasetId, aSchema)
+    val md2 = MetaDataset(randomUUID, aSchema)
+    val md3 = MetaDataset(randomUUID, bSchema)
+    val md4 = MetaDataset(randomUUID, bSchema)
+
+    DataLineage(
+      appId,
+      appName,
+      timestamp,
+      Seq(
+        Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path, append),
+        Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
+        Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md2.id), "rawString2"),
+        Generic(OperationProps(randomUUID, "LogicalRDD", Seq.empty, md4.id), "rawString3"),
+        Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md1.id), "rawString4")
+      ),
+      Seq(md1, md2, md3, md4),
+      attributes
+    )
+  }
 
 }
