@@ -19,15 +19,19 @@ import {Component, Inject} from "@angular/core";
 import * as _ from "lodash";
 import {typeOfExpr} from "../../types";
 import {IExpression} from "../../../../generated-ts/expression-model";
+import {ITreeNode} from 'angular-tree-component/dist/defs/api';
+import {IActionMapping, ITreeOptions} from 'angular-tree-component';
 
 @Component({
     selector: "expression-dialog",
+    styleUrls: ["expression-dialog.component.less"],
     template: `
         <code>{{ exprString }}</code>
         <hr>
-        <tree-root [nodes]="exprTree" [options]="treeOptions">
-            <ng-template #treeNodeTemplate let-expr="node.data">
-                <span title="{{ expr.text }}">{{ expr.name }}</span>
+        <tree-root #tree [nodes]="exprTree" [options]="treeOptions">
+            <ng-template #treeNodeTemplate let-node>
+                <div *ngIf="!node.isExpanded">{{ node.data.text }}</div>
+                <div *ngIf="node.isExpanded">{{ node.data.name }}</div>
             </ng-template>
         </tree-root>
     `
@@ -38,9 +42,16 @@ export class ExpressionDialogComponent {
     exprString: string
     exprTree: any[]
 
-    treeOptions = {
+    readonly actionMapping: IActionMapping = {
+        mouse: {
+            click: (tree, node) => ExpressionDialogComponent.onNodeClicked(node)
+        }
+    }
+
+    readonly treeOptions: ITreeOptions = {
+        actionMapping: this.actionMapping,
         allowDrag: false,
-        allowDrop: _.constant(false)
+        allowDrop: false,
     }
 
     constructor(@Inject(MAT_DIALOG_DATA) data: any) {
@@ -74,6 +85,10 @@ export class ExpressionDialogComponent {
         }
 
         return [buildNode(this.expr)]
+    }
+
+    static onNodeClicked(node: ITreeNode) {
+        node.toggleExpanded()
     }
 
 }
