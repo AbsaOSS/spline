@@ -18,13 +18,14 @@ package za.co.absa.spline.persistence.mongo
 
 import org.apache.commons.configuration.Configuration
 import za.co.absa.spline.persistence.api._
+import za.co.absa.spline.common.ConfigurationImplicits._
 
 /**
   * The object contains static information about settings needed for initialization of the MongoPersistenceWriterFactory class.
   */
 object MongoPersistenceFactory {
-  val mongoDbUrlKey = "spline.mongodb.url"
-  val mongoDbNameKey = "spline.mongodb.name"
+  val MongoDbUrlKey = "spline.mongodb.url"
+  val MongoDbNameKey = "spline.mongodb.name"
 }
 
 /**
@@ -35,11 +36,12 @@ object MongoPersistenceFactory {
 class MongoPersistenceFactory(configuration: Configuration) extends PersistenceFactory(configuration) {
 
   import MongoPersistenceFactory._
-  import za.co.absa.spline.common.ConfigurationImplicits._
 
-  private val mongoConnection = {
-    val dbUrl = configuration getRequiredString mongoDbUrlKey
-    val dbName = configuration getRequiredString mongoDbNameKey
+  protected lazy val mongoConnection: MongoConnection = connect(MongoDbUrlKey, MongoDbNameKey)
+
+  protected def connect(dbUrlKey: String, dbNameKey: String): MongoConnection = {
+    val dbUrl = configuration getRequiredString dbUrlKey
+    val dbName = configuration getRequiredString dbNameKey
     log debug s"Preparing connection: $dbUrl/$dbName"
     val connection = new MongoConnection(dbUrl, dbName)
     log info s"Connected: $dbUrl/$dbName"

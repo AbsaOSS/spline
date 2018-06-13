@@ -32,7 +32,7 @@ import scala.concurrent.{ExecutionContext, Future, blocking}
   *
   * @param connection A connection to Mongo database
   */
-class MongoDataLineageWriter(connection: MongoConnection) extends DataLineageWriter with Logging {
+class MongoDataLineageWriter(connection: MongoConnection) extends DataLineageWriter with AutoCloseable with Logging {
 
   /**
     * The method stores a particular data lineage to the persistence layer.
@@ -96,6 +96,10 @@ class MongoDataLineageWriter(connection: MongoConnection) extends DataLineageWri
       })
       .map(putLineageId(lineage))
     index(seq)
+  }
+
+  override def close(): Unit = {
+    connection.close()
   }
 }
 

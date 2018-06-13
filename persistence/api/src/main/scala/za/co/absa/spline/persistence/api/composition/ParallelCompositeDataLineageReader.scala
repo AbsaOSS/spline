@@ -18,10 +18,9 @@ package za.co.absa.spline.persistence.api.composition
 
 import java.util.UUID
 
-import org.slf4s.Logging
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
 import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
-import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
+import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader, Logging}
 
 import scala.concurrent.{ExecutionContext, Future}
 

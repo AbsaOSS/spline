@@ -17,7 +17,6 @@
 package za.co.absa.spline.persistence.api
 
 import org.apache.commons.configuration.Configuration
-import org.slf4s.Logging
 
 /**
   * The abstract class represents a factory of persistence readers and writers for all main data lineage entities.
@@ -39,4 +38,20 @@ abstract class PersistenceFactory(protected val configuration: Configuration) ex
     * @return An optional reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
   def createDataLineageReader: Option[DataLineageReader]
+}
+
+object PersistenceFactory extends Logging {
+
+  val PersistenceFactoryPropName = "spline.persistence.factory"
+
+  import za.co.absa.spline.common.ConfigurationImplicits._
+
+  def create(configuration: Configuration): PersistenceFactory = {
+    val persistenceFactoryClassName = configuration.getRequiredString(PersistenceFactoryPropName)
+    log debug s"Instantiating persistence factory: $persistenceFactoryClassName"
+    Class.forName(persistenceFactoryClassName)
+      .getConstructor(classOf[Configuration])
+      .newInstance(configuration)
+      .asInstanceOf[PersistenceFactory]
+  }
 }

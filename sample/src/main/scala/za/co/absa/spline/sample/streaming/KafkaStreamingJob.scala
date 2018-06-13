@@ -21,7 +21,7 @@ import za.co.absa.spline.sample.{KafkaProperties, SparkApp}
 object KafkaStreamingJob extends SparkApp("Kafka Streaming Job") with KafkaProperties {
 
   // Initializing library to hook up to Apache Spark
-  import za.co.absa.spline.core.SparkLineageInitializer._
+  import za.co.absa.spline.harvester.SparkLineageInitializer._
   spark.enableLineageTracking()
 
   // reading file
