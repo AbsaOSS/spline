@@ -18,7 +18,7 @@ package za.co.absa.spline.persistence.atlas
 
 import org.apache.atlas.hook.AtlasHook
 import org.slf4s.Logging
-import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.model.{DataLineage, LinkedLineage}
 import za.co.absa.spline.persistence.api.DataLineageWriter
 import za.co.absa.spline.persistence.atlas.conversion.DataLineageToTypeSystemConverter
 
@@ -39,10 +39,19 @@ class AtlasDataLineageWriter extends AtlasHook with DataLineageWriter with Loggi
     * @param lineage A data lineage that will be stored
     */
   override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = Future {
-    val entityCollections = DataLineageToTypeSystemConverter.convert(lineage)
+    val entityCollections = DataLineageToTypeSystemConverter.convert(unlinkedLineage(lineage))
     blocking {
       log debug s"Sending lineage entries (${entityCollections.length})"
       this.notifyEntities("Anonymous", entityCollections.asJava)
+    }
+  }
+
+  private def unlinkedLineage(lineage: DataLineage) = {
+    lineage match {
+      case linked: LinkedLineage =>
+        linked.original
+      case _ =>
+        lineage
     }
   }
 }
