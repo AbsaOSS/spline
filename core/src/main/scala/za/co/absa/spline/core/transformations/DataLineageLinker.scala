@@ -21,7 +21,7 @@ import java.util.UUID
 import org.slf4s.Logging
 import za.co.absa.spline.common.transformations.AsyncTransformation
 import za.co.absa.spline.model.op.{Operation, Read}
-import za.co.absa.spline.model.{DataLineage, MetaDataSource}
+import za.co.absa.spline.model.{DataLineage, LinkedLineage, MetaDataSource}
 import za.co.absa.spline.persistence.api.DataLineageReader
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -77,8 +77,9 @@ class DataLineageLinker(reader: DataLineageReader) extends AsyncTransformation[D
     eventualReadsWithLineages map (newReads => {
       val newReadsMap: Map[UUID, Read] = newReads.map(read => read.mainProps.id -> read).toMap
 
-      lineage.copy(operations = lineage.operations.map(op => newReadsMap.getOrElse(op.mainProps.id, op)))
-
+      val linked = lineage.copy(operations = lineage.operations.map(op => newReadsMap.getOrElse(op.mainProps.id, op)))
+      new LinkedLineage(linked, lineage)
     })
   }
 }
+
