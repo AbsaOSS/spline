@@ -20,7 +20,7 @@ package za.co.absa.spline.persistence.mongo
 import com.mongodb.{DBCollection, DBObject}
 import org.slf4s.Logging
 import za.co.absa.spline.model.op.Operation
-import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset}
+import za.co.absa.spline.model.{Attribute, DataLineage, LinkedLineage, MetaDataset}
 import za.co.absa.spline.persistence.api.DataLineageWriter
 import za.co.absa.spline.persistence.mongo.DBSchemaVersionHelper._
 import za.co.absa.spline.persistence.mongo.MongoDataLineageWriter._
@@ -32,14 +32,14 @@ import scala.concurrent.{ExecutionContext, Future, blocking}
   *
   * @param connection A connection to Mongo database
   */
-class MongoDataLineageWriter(connection: MongoConnection) extends DataLineageWriter with Logging {
+class MongoDataLineageWriter(connection: MongoConnection) extends DataLineageWriter with AutoCloseable with Logging {
 
   /**
     * The method stores a particular data lineage to the persistence layer.
     *
     * @param lineage A data lineage that will be stored
     */
-  override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = {
+  override def store(lineage: LinkedLineage)(implicit ec: ExecutionContext): Future[Unit] = {
     log debug s"Storing lineage objects"
     import connection._
     Future.sequence(Seq(
@@ -96,6 +96,10 @@ class MongoDataLineageWriter(connection: MongoConnection) extends DataLineageWri
       })
       .map(putLineageId(lineage))
     index(seq)
+  }
+
+  override def close(): Unit = {
+    connection.close()
   }
 }
 

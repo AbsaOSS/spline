@@ -236,7 +236,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
     }
   }
 
-  protected def createDataLineageWithSources(appId: String, appName: String, sources: Seq[MetaDataSource]): DataLineage = {
+  protected def createDataLineageWithSources(appId: String, appName: String, sources: Seq[MetaDataSource]): LinkedLineage = {
     val timestamp: Long = 123L
     val outputPath: String = "hdfs://foo/bar/path"
 
@@ -253,7 +253,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
     val md3 = MetaDataset(randomUUID, bSchema)
     val md4 = MetaDataset(randomUUID, bSchema)
 
-    DataLineage(
+    val lineage = DataLineage(
       appId,
       appName,
       timestamp,
@@ -267,5 +267,6 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
       Seq(md1, md2, md3, md4),
       attributes
     )
+    new LinkedLineage(lineage, lineage)
   }
 }

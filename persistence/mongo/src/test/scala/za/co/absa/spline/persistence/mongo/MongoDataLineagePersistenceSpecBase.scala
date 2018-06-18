@@ -37,7 +37,7 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
                                    datasetId: UUID = randomUUID,
                                    path: String = "hdfs://foo/bar/path",
                                    append: Boolean = false)
-  : DataLineage = {
+  : LinkedLineage = {
     val attributes = Seq(
       Attribute(randomUUID(), "_1", Simple("StringType", nullable = true)),
       Attribute(randomUUID(), "_2", Simple("StringType", nullable = true)),
@@ -51,7 +51,7 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
     val md3 = MetaDataset(randomUUID, bSchema)
     val md4 = MetaDataset(randomUUID, bSchema)
 
-    DataLineage(
+    val lineage = DataLineage(
       appId,
       appName,
       timestamp,
@@ -65,6 +65,7 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
       Seq(md1, md2, md3, md4),
       attributes
     )
+    new LinkedLineage(lineage, lineage)
   }
 
   override protected def afterEach(): Unit = {

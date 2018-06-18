@@ -21,7 +21,7 @@ import za.co.absa.spline.sample.SparkApp
 object FileStreamingJob extends SparkApp("File Streaming Job"){
 
   // Initializing library to hook up to Apache Spark
-  import za.co.absa.spline.core.SparkLineageInitializer._
+  import za.co.absa.spline.harvester.SparkLineageInitializer._
   spark.enableLineageTracking()
 
   // A business logic of a spark job ...
