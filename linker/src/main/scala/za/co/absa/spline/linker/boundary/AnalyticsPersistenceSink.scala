@@ -2,7 +2,7 @@ package za.co.absa.spline.linker.boundary
 
 import com.mongodb.DuplicateKeyException
 import org.apache.spark.sql.ForeachWriter
-import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.model.LinkedLineage
 import za.co.absa.spline.persistence.api.{DataLineageWriter, Logging, PersistenceFactory}
 
 import scala.concurrent.{Await, ExecutionContext}
@@ -26,7 +26,7 @@ import scala.concurrent.{Await, ExecutionContext}
 /**
   * Handles duplicate insert via duplicate key exception ignore.
   */
-class AnalyticsPersistenceSink(configMap: Map[String, Object]) extends ForeachWriter[DataLineage] with Logging {
+class AnalyticsPersistenceSink(configMap: Map[String, Object]) extends ForeachWriter[LinkedLineage] with Logging {
 
   private implicit lazy val executionContext: ExecutionContext = ExecutionContext.global
   private var analyticsWriter: DataLineageWriter = _
@@ -34,7 +34,7 @@ class AnalyticsPersistenceSink(configMap: Map[String, Object]) extends ForeachWr
   /**
     * FIXME Method is missing coherent and general duplicate storage support.
     */
-  override def process(rawLineage: DataLineage): Unit = {
+  override def process(rawLineage: LinkedLineage): Unit = {
     log debug s"Processing raw lineage"
     try {
       import scala.concurrent.duration.DurationInt

@@ -20,7 +20,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.permission.FsPermission
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.slf4s.Logging
-import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.model.{DataLineage, LinkedLineage}
 import za.co.absa.spline.model.op.Write
 import za.co.absa.spline.persistence.api.DataLineageWriter
 import za.co.absa.spline.persistence.hdfs.serialization.JSONSerialization
@@ -36,8 +36,8 @@ class HdfsDataLineageWriter(hadoopConfiguration: Configuration, fileName: String
     *
     * @param lineage A data lineage that will be stored
     */
-  override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = Future {
-    val pathOption = getPath(lineage)
+  override def store(lineage: LinkedLineage)(implicit ec: ExecutionContext): Future[Unit] = Future {
+    val pathOption = getPath(lineage.linked)
     import JSONSerialization._
     for (path <- pathOption) {
       val content = lineage.toJson

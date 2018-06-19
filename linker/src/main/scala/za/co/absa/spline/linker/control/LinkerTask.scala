@@ -1,7 +1,7 @@
 package za.co.absa.spline.linker.control
 
 import org.apache.spark.api.java.function.MapFunction
-import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.model.{DataLineage, LinkedLineage}
 import za.co.absa.spline.persistence.api.{Logging, PersistenceFactory}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -24,20 +24,20 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import ConfigMapConverter._
 import scala.concurrent.duration.DurationInt
 
-class LinkerTask(configMap: Map[String, Object]) extends MapFunction[DataLineage, DataLineage] with Logging {
+class LinkerTask(configMap: Map[String, Object]) extends MapFunction[DataLineage, LinkedLineage] with Logging {
 
   private implicit lazy val executionContext: ExecutionContext = ExecutionContext.global
-  private lazy val transformation: DataLineage => Future[DataLineage] = {
+  private lazy val transformation: DataLineage => Future[LinkedLineage] = {
     val configuration = toConfiguration(configMap)
     val factory = PersistenceFactory.create(configuration)
     if (factory.createDataLineageReader.isDefined) {
       new DataLineageLinker(factory.createDataLineageReader.get).apply
     } else {
-      dataLineage => Future { dataLineage }
+      dataLineage => Future { new LinkedLineage(dataLineage, dataLineage) }
     }
   }
 
-  override def call(rawLineage: DataLineage): DataLineage = {
+  override def call(rawLineage: DataLineage): LinkedLineage = {
     log debug s"Processing raw lineage"
     Await.result(transformation(rawLineage), 10 minutes)
   }

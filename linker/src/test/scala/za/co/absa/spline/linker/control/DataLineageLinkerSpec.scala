@@ -74,6 +74,6 @@ class DataLineageLinkerSpec extends AsyncFlatSpec with Matchers with MockitoSuga
     }
 
     for (result <- new DataLineageLinker(dataLineageReader)(inputLineage))
-      yield result shouldEqual expectedResult
+      yield result.linked shouldEqual expectedResult
   }
 }

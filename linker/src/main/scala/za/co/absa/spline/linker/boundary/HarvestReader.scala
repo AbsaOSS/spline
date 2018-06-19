@@ -18,11 +18,12 @@ package za.co.absa.spline.linker.boundary
 
 import org.apache.commons.configuration.Configuration
 import org.apache.spark.sql._
-import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.model.{DataLineage, LinkedLineage}
 
 object HarvestReader {
 
-  implicit val encoder: Encoder[DataLineage] = Encoders.kryo[DataLineage]
+  implicit val LineageEncoder: Encoder[DataLineage] = Encoders.kryo[DataLineage]
+  implicit val LinkedLineageEncoder: Encoder[LinkedLineage] = Encoders.kryo[LinkedLineage]
 
   val HarvesterServersProperty = "harvester.kafka.servers"
   val HarvesterTopicProperty = "harvester.topic"

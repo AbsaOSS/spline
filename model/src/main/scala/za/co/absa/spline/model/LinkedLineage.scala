@@ -1,3 +1,5 @@
+package za.co.absa.spline.model
+
 /*
  * Copyright 2017 Barclays Africa Group Limited
  *
@@ -13,22 +15,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package za.co.absa.spline.persistence.api
-
-import za.co.absa.spline.model.{DataLineage, LinkedLineage}
-
-import scala.concurrent.{ExecutionContext, Future}
-
-/**
-  * The trait represents a writer to a persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
-  */
-trait DataLineageWriter extends AutoCloseable {
-
-  /**
-    * The method stores a particular data lineage to the persistence layer.
-    *
-    * @param lineage A data lineage that will be stored
-    */
-  def store(lineage: LinkedLineage)(implicit ec: ExecutionContext) : Future[Unit]
-}
+class LinkedLineage(val linked: DataLineage, val original: DataLineage)

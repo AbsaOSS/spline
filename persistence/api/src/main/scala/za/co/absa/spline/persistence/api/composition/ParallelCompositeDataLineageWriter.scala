@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.persistence.api.composition
 
-import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.model.{DataLineage, LinkedLineage}
 import za.co.absa.spline.persistence.api.{DataLineageWriter, Logging}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,7 +33,7 @@ class ParallelCompositeDataLineageWriter(writers: Seq[DataLineageWriter]) extend
     *
     * @param lineage A data lineage that will be stored
     */
-  override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = {
+  override def store(lineage: LinkedLineage)(implicit ec: ExecutionContext): Future[Unit] = {
     log debug s"Calling underlying writers (${writers.length})"
     val futures = for (w <- writers) yield w.store(lineage)
     Future.sequence(futures).map(_ => Unit)
