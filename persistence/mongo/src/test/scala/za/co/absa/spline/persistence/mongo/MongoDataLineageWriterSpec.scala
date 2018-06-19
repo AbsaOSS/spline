@@ -25,13 +25,14 @@ import scala.math.Ordering
 
 class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase {
 
-  private val lineage = createDataLineage("appID", "appName")
+  private val linkedLineage = createDataLineage("appID", "appName")
+  private val lineage = linkedLineage.linked
 
   describe("store()") {
 
     it("should store data lineage to a database") {
       for {
-        _ <- mongoWriter store lineage
+        _ <- mongoWriter store linkedLineage
         storedLineage <- mongoReader loadByDatasetId lineage.rootDataset.id
       } yield {
         storedLineage.get shouldEqual lineage
@@ -44,11 +45,11 @@ class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase {
         val aggregateOperationWithDotsAnd$ =
           op.Aggregate(OperationProps(randomUUID, "aggregate", Nil, randomUUID), Nil, Map("field.with.dots.and.$" -> dummyExpression))
         val resultLineage = lineage.copy(operations = lineage.operations :+ aggregateOperationWithDotsAnd$)
-        new LinkedLineage(resultLineage, resultLineage)
+        resultLineage
       }
 
       for {
-        _ <- mongoWriter store lineageWithDotsAndDollar
+        _ <- mongoWriter store new LinkedLineage(lineageWithDotsAndDollar, lineageWithDotsAndDollar)
         storedLineage <- mongoReader loadByDatasetId lineageWithDotsAndDollar.rootDataset.id
       } yield
         storedLineage shouldEqual Option(lineageWithDotsAndDollar)

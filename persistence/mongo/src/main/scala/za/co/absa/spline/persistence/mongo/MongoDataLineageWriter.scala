@@ -40,13 +40,14 @@ class MongoDataLineageWriter(connection: MongoConnection) extends DataLineageWri
     * @param lineage A data lineage that will be stored
     */
   override def store(lineage: LinkedLineage)(implicit ec: ExecutionContext): Future[Unit] = {
+    val linked = lineage.linked
     log debug s"Storing lineage objects"
     import connection._
     Future.sequence(Seq(
-      insertAsyncSeq(operationCollection, operationDbos(lineage)),
-      insertAsyncSeq(attributeCollection, attributeDbos(lineage)),
-      insertAsyncSeq(datasetCollection, datasetDbos(lineage))))
-      .map(_ => blocking(dataLineageCollection.insert(lineageDbo(lineage))))
+      insertAsyncSeq(operationCollection, operationDbos(linked)),
+      insertAsyncSeq(attributeCollection, attributeDbos(linked)),
+      insertAsyncSeq(datasetCollection, datasetDbos(linked))))
+      .map(_ => blocking(dataLineageCollection.insert(lineageDbo(linked))))
   }
 
   private def insertAsyncSeq(dBCollection: DBCollection, seq: Seq[DBObject])(implicit executionContext: ExecutionContext): Future[Unit] = {

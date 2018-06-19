@@ -50,7 +50,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
     )
 
     it("should load descriptions from a database.") {
-      val expectedDescriptors = testLineages.reverse.map(l => PersistedDatasetDescriptor(
+      val expectedDescriptors = testLineages.reverse.map(_.linked).map(l => PersistedDatasetDescriptor(
         datasetId = l.rootDataset.id,
         appId = l.appId,
         appName = l.appName,
@@ -99,7 +99,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
     it("should search by ID fully matched") {
       for {
         _ <- Future.sequence(testLineages.map(mongoWriter.store))
-        searchingLineage = testLineages.head
+        searchingLineage = testLineages.head.linked
         searchingDatasetId = searchingLineage.rootDataset.id.toString
         foundSingleMatch <- mongoReader.findDatasets(searchingDatasetId, EntireLatestContent)
         noResultByPrefix <- mongoReader.findDatasets(searchingDatasetId take 10, EntireLatestContent)
@@ -189,7 +189,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
 
       val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.searchDataset(path, "appID2"))
 
-      result.map(resultItem => resultItem shouldEqual Some(testLineages(2).rootDataset.id))
+      result.map(resultItem => resultItem shouldEqual Some(testLineages(2).linked.rootDataset.id))
     }
 
     it("should return None if there is no record for a given criteria") {

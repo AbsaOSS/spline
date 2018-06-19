@@ -84,10 +84,11 @@ class MockPersistenceFactory(configuration: Configuration) extends PersistenceFa
     new DataLineageWriter {
 
       override def store(lineage: LinkedLineage)(implicit ec: ExecutionContext): Future[Unit] = {
+        val linked = lineage.linked
         Future {
           // Prevents duplicate storage.
-          if (!MockPersistenceFactory.Stored.exists(l => l.id == lineage.id)) {
-            MockPersistenceFactory.Stored += lineage
+          if (!MockPersistenceFactory.Stored.exists(l => l.id == linked.id)) {
+            MockPersistenceFactory.Stored += linked
           }
         }
       }

@@ -37,7 +37,7 @@ class HdfsDataLineageWriter(hadoopConfiguration: Configuration, fileName: String
     * @param lineage A data lineage that will be stored
     */
   override def store(lineage: LinkedLineage)(implicit ec: ExecutionContext): Future[Unit] = Future {
-    val pathOption = getPath(lineage)
+    val pathOption = getPath(lineage.linked)
     import JSONSerialization._
     for (path <- pathOption) {
       val content = lineage.toJson
