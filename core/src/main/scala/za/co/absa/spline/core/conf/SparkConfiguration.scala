@@ -18,23 +18,23 @@ package za.co.absa.spline.core.conf
 
 import java.util
 
-import org.apache.hadoop.conf.{Configuration => SparkHadoopConf}
+import org.apache.spark.SparkConf
 
 import scala.collection.JavaConverters._
 
 
 /**
- * {@link org.apache.hadoop.conf.Configuration} to {@link org.apache.commons.configuration.Configuration} adapter
+ * {@link org.apache.spark.SparkConf} to {@link org.apache.commons.configuration.Configuration} adapter
  *
- * @param shc A source of Hadoop configuration
+ * @param conf A source of Spark configuration
  */
-class HadoopConfiguration(shc: SparkHadoopConf) extends ReadOnlyConfiguration {
+class SparkConfiguration(conf: SparkConf) extends ReadOnlyConfiguration {
 
-  override def getProperty(key: String): AnyRef = shc get key
+  override def getProperty(key: String): AnyRef = conf get key
 
-  override def getKeys: util.Iterator[String] = shc.iterator.asScala.map(_.getKey).asJava
+  override def getKeys: util.Iterator[String] = conf.getAll.iterator.map(_._1).asJava
 
-  override def containsKey(key: String): Boolean = Option(shc get key).isDefined
+  override def containsKey(key: String): Boolean = conf contains key
 
-  override def isEmpty: Boolean = shc.size < 1
+  override def isEmpty: Boolean = conf.getAll.isEmpty
 }

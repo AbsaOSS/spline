@@ -82,9 +82,11 @@ object SparkLineageInitializer extends Logging {
       val systemConfOpt = Some(new SystemConfiguration)
       val propFileConfOpt = Try(new PropertiesConfiguration(splinePropertiesFileName)).toOption
       val hadoopConfOpt = Some(new HadoopConfiguration(sparkSession.sparkContext.hadoopConfiguration))
+      val sparkConfOpt = Some(new SparkConfiguration(sparkSession.sparkContext.getConf))
 
       new CompositeConfiguration(Seq(
         hadoopConfOpt,
+        sparkConfOpt,
         systemConfOpt,
         propFileConfOpt
       ).flatten.asJava)
