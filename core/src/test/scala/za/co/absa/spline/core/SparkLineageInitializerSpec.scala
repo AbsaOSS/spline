@@ -89,7 +89,7 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
       for (key <- Some(keyDefinedEverywhere)) {
         jvmProps.setProperty(key, valueFromJVM)
         hadoopConf.set(key, valueFromHadoop)
-        sparkConf.set(key, valueFromSpark)
+        sparkConf.set(s"spark.$key", valueFromSpark)
         // skip setting spline prop as it's already hardcoded in spline.properties
       }
 
@@ -105,11 +105,11 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
 
       for (key <- Some(keyDefinedInHadoopAndSpark)) {
         hadoopConf.set(key, valueFromHadoop)
-        sparkConf.set(key, valueFromSpark)
+        sparkConf.set(s"spark.$key", valueFromSpark)
       }
 
       for (key <- Some(keyDefinedInSparkAndSpline)) {
-        sparkConf.set(key, valueFromSpark)
+        sparkConf.set(s"spark.$key", valueFromSpark)
         // skip setting spline prop as it's already hardcoded in spline.properties
       }
 
