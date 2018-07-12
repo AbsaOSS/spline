@@ -53,6 +53,7 @@
         <module>web</module>
         <module>sample</module>
         <module>persistence</module>
+        <module>integration-tests</module>
     </modules>
 
     <profiles>
