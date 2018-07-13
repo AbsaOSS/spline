@@ -16,11 +16,18 @@
 
 package za.co.absa.spline.persistence.mongo.serialization
 
+import org.apache.spark.sql.Column
+import org.apache.spark.sql.types.IntegerType
 import org.scalatest._
+import org.slf4s.Logging
 import za.co.absa.spline.common.ByteUnits._
 import za.co.absa.spline.fixture.SparkAndSplineFixture
 
-class LineageToBSONSerializationSpec extends FlatSpec with Matchers with SparkAndSplineFixture {
+class LineageToBSONSerializationSpec
+  extends FlatSpec
+    with Matchers
+    with SparkAndSplineFixture
+    with Logging {
 
   import spark.implicits._
 
@@ -32,5 +39,38 @@ class LineageToBSONSerializationSpec extends FlatSpec with Matchers with SparkAn
 
     smallLineage.operations.length shouldBe 3
     smallLineage.asBSON.length should be < 5.kb
+  }
+
+  it should "serialize big lineage" in {
+    import org.apache.spark.sql.functions.{col, lit, when, size => arraySize}
+
+    val columnNames = 0 until 2000 map "c".+
+
+    def aComplexExpression(colName: String): Column = {
+      val c = col(colName)
+      val sz =
+        arraySize(
+          when(c.isNull, Array.empty[Int])
+            otherwise (
+            when(c.isNotNull && c.cast(IntegerType).isNull, Array.empty[Int])
+              otherwise Array.empty[Int]))
+
+      (when(sz === 0 && c.isNotNull, c cast IntegerType)
+        otherwise (
+        when(sz === 0, lit(null) cast IntegerType)
+          otherwise 0)) as colName
+    }
+
+    val bigLineage = spark
+      .createDataFrame(Seq.empty[Tuple1[Int]])
+      .select((List.empty[Column] /: columnNames) ((cs, c) => (lit(0) as c) :: cs): _*)
+      .select(columnNames map aComplexExpression: _*)
+      .lineage
+
+    val bsonSize = bigLineage.asBSON.length
+
+    log.info(f"BSON size is ${bsonSize.toDouble / 1.mb}%.2f mb")
+
+    bsonSize should be < 16.mb
   }
 }
