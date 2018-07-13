@@ -35,7 +35,7 @@ trait ExpressionMapper extends DataTypeMapper {
     * @return A Spline expression
     */
   implicit def fromSparkExpression(sparkExpr: org.apache.spark.sql.catalyst.expressions.Expression): expr.Expression = sparkExpr match {
-    case a: expressions.Alias => expr.Alias(a.name, a.simpleString, fromSparkDataType(a.dataType, a.nullable), a.children map fromSparkExpression)
+    case a: expressions.Alias => expr.Alias(a.name, fromSparkDataType(a.dataType, a.nullable), a.children map fromSparkExpression)
     case a: expressions.AttributeReference => expr.AttributeReference(attributeFactory.getOrCreate(a.exprId.id, a.name, a.dataType, a.nullable), a.name, fromSparkDataType(a.dataType, a.nullable))
     case bo: expressions.BinaryOperator => expr.Binary(bo.nodeName, bo.symbol, bo.simpleString, fromSparkDataType(bo.dataType, bo.nullable), bo.children map fromSparkExpression)
     case u: expressions.ScalaUDF => expr.UserDefinedFunction(u.udfName getOrElse u.function.getClass.getName, u.simpleString, fromSparkDataType(u.dataType, u.nullable), u.children map fromSparkExpression)

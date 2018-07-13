@@ -88,7 +88,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers {
 
     def createCompositeExpressions(attributeNames: (String, String)*): Seq[Expression] = {
       val simpleType = Simple("type", nullable = true)
-      attributeNames.map(ns => Alias(ns._2, ns._2, simpleType, Seq(AttributeReference(attributeId, ns._1, simpleType))))
+      attributeNames.map(ns => Alias(ns._2, simpleType, Seq(AttributeReference(attributeId, ns._1, simpleType))))
     }
 
     it("should join two compatible projections into one node") {

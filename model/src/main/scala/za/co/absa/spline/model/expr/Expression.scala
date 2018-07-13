@@ -35,7 +35,7 @@ sealed trait Expression {
   /**
     * A textual representation of an expression node including sub-expressions
     */
-  val text: String
+  def text: String
 
   /**
     * A data type of an expression node
@@ -56,7 +56,7 @@ sealed trait Expression {
   * The case class represents Spark expressions for which a dedicated expression node type hasn't been created yet.
   *
   * @param exprType see [[za.co.absa.spline.model.expr.Expression#exprType Expression.exprType]]
-  * @param text     see [[za.co.absa.spline.model.expr.Expression#text Expression.text]]
+  * @param text     A textual representation of an expression node including sub-expressions
   * @param dataType see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
   * @param children see [[za.co.absa.spline.model.expr.Expression#children Expression.children]]
   */
@@ -72,14 +72,12 @@ case class Generic
   * The case class represents renaming of an underlying expression to a specific alias.
   *
   * @param alias    A final name of the expression
-  * @param text     see [[za.co.absa.spline.model.expr.Expression#text Expression.text]]
   * @param dataType see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
   * @param children see [[za.co.absa.spline.model.expr.Expression#children Expression.children]]
   */
 case class Alias
 (
   alias: String,
-  text: String,
   dataType: DataType,
   children: Seq[Expression]
 ) extends Expression {
@@ -87,6 +85,8 @@ case class Alias
   val exprType: String = "Alias"
 
   override def outputAttributeNames: Seq[String] = Seq(alias)
+
+  override def text: String = s"$alias: $dataType"
 }
 
 /**

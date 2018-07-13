@@ -17,10 +17,10 @@
 import {MAT_DIALOG_DATA} from "@angular/material";
 import {Component, Inject} from "@angular/core";
 import * as _ from "lodash";
-import {typeOfExpr} from "../../types";
 import {IExpression} from "../../../../generated-ts/expression-model";
 import {ITreeNode} from 'angular-tree-component/dist/defs/api';
 import {IActionMapping, ITreeOptions} from 'angular-tree-component';
+import {ExpressionUtils} from "./expression-utils";
 
 @Component({
     selector: "expression-dialog",
@@ -62,29 +62,23 @@ export class ExpressionDialogComponent {
 
     private buildExprTree(): any[] {
         let seq = 0
-
-        function buildChildren(ex: IExpression): (any[] | undefined) {
-            let et = typeOfExpr(ex)
-            // todo: improve expression view for specific expression types
-            return buildChildrenForGenericExpression(ex.children || [])
-        }
-
-        function buildChildrenForGenericExpression(subExprs: IExpression[]): any[] {
-            return subExprs.map(buildNode)
-        }
+        return [buildNode(this.expr)]
 
         function buildNode(expr: IExpression) {
+            let exprText = ExpressionUtils.getText(expr)
             return {
                 id: seq++,
                 name: _.isEmpty(expr.children)
-                    ? expr.text // only use it for leaf expressions
+                    ? exprText // only use it for leaf expressions
                     : expr.exprType, // todo: this property is not mandatory for any arbitrary expression
-                text: expr.text.replace(/#\d+/g, ""),
-                children: buildChildren(expr)
+                text: exprText.replace(/#\d+/g, ""),
+                children: buildChildrenNodes(expr)
             }
         }
 
-        return [buildNode(this.expr)]
+        function buildChildrenNodes(ex: IExpression): (any[] | undefined) {
+            return (ex.children || []).map(buildNode)
+        }
     }
 
     static onNodeClicked(node: ITreeNode) {

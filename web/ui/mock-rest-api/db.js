@@ -6617,7 +6617,6 @@ module.exports = function () {
                         "authors": {
                             "_typeHint": "za.co.absa.spline.model.expr.Alias",
                             "alias": "authors",
-                            "text": "collect_list(author#134, 0, 0) AS authors#146",
                             "dataType": {
                                 "_typeHint": "za.co.absa.spline.model.dt.Array",
                                 "elementDataType": {
