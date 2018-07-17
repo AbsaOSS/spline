@@ -20,20 +20,22 @@ import za.co.absa.spline.model.{Attribute, MetaDataset, op}
 import za.co.absa.spline.persistence.atlas.model._
 
 /**
-  * The object is responsible for conversion of [[za.co.absa.spline.model.MetaDataset Spline meta data sets]] to [[za.co.absa.spline.persistence.atlas.model.Dataset Atlas data sets]].
-  */
-object DatasetConverter {
+ * The object is responsible for conversion of [[za.co.absa.spline.model.MetaDataset Spline meta data sets]] to [[za.co.absa.spline.persistence.atlas.model.Dataset Atlas data sets]].
+ */
+trait DatasetConverter {
+  this: AttributeConverter =>
+
   val datasetSuffix = "_Dataset"
 
   /**
-    * The method converts [[za.co.absa.spline.model.MetaDataset Spline meta data sets]] to [[za.co.absa.spline.persistence.atlas.model.Dataset Atlas data sets]].
-    *
-    * @param operations A sequence of [[za.co.absa.spline.model.op.Operation Spline operations]]
-    * @param datasets   A sequence of [[za.co.absa.spline.model.MetaDataset Spline meta data sets]]
-    * @param attributes A sequence of [[za.co.absa.spline.model.Attribute Spline attributes]]
-    * @return A sequence of [[za.co.absa.spline.persistence.atlas.model.Dataset Atlas data sets]]
-    */
-  def convert(operations: Seq[op.Operation], datasets: Seq[MetaDataset], attributes: Seq[Attribute]): Seq[Dataset] = {
+   * The method converts [[za.co.absa.spline.model.MetaDataset Spline meta data sets]] to [[za.co.absa.spline.persistence.atlas.model.Dataset Atlas data sets]].
+   *
+   * @param operations A sequence of [[za.co.absa.spline.model.op.Operation Spline operations]]
+   * @param datasets   A sequence of [[za.co.absa.spline.model.MetaDataset Spline meta data sets]]
+   * @param attributes A sequence of [[za.co.absa.spline.model.Attribute Spline attributes]]
+   * @return A sequence of [[za.co.absa.spline.persistence.atlas.model.Dataset Atlas data sets]]
+   */
+  def convertDataset(operations: Seq[op.Operation], datasets: Seq[MetaDataset], attributes: Seq[Attribute]): Seq[Dataset] = {
     val attributeMap = attributes.map(a => a.id -> a).toMap
     for {
       operation <- operations
@@ -41,7 +43,7 @@ object DatasetConverter {
     } yield {
       val name = operation.mainProps.name + datasetSuffix
       val qualifiedName = dataset.id
-      val attributes = dataset.schema.attrs.map(i => AttributeConverter.convert(qualifiedName.toString, attributeMap(i)))
+      val attributes = dataset.schema.attrs.map(i => convertAttribute(qualifiedName.toString, attributeMap(i)))
       val translated = operation match {
         case op.Read(_, st, paths) =>
           val path = paths.map(_.path) mkString ", "

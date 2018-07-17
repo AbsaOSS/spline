@@ -27,20 +27,24 @@ import za.co.absa.spline.model.{Attribute, Schema, _}
 
 import scala.language.implicitConversions
 
-object LogicalPlanLineageHarvesterSpec {
+object DataLineageBuilderFactorySpec {
 
   case class TestRow(i: Int, d: Double, s: String)
 
 }
 
-class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
+class DataLineageBuilderFactorySpec extends FlatSpec with Matchers {
 
   import TestSparkContext._
   import sparkSession.implicits._
-  import za.co.absa.spline.core.harvester.LogicalPlanLineageHarvesterSpec.TestRow
+  import za.co.absa.spline.core.harvester.DataLineageBuilderFactorySpec.TestRow
 
   private val initialDataFrame = sparkSession.createDataset(Seq(TestRow(1, 2.3, "text")))
   private val hadoopConfiguration = sparkSession.sparkContext.hadoopConfiguration
+
+  private val integerType = Simple("integer", nullable = false)
+  private val doubleType = Simple("double", nullable = false)
+  private val stringType = Simple("string", nullable = true)
 
   implicit class OperationAssertions(operation: Operation) {
 
@@ -79,8 +83,6 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
       private def getReferenceInputPositions = operation.mainProps.inputs.map(i => references.indexOf(i))
 
       def as(anotherComparator: ReferenceToDatasetComparator) = {
-        Console.println("output :" + getReferenceOutputPosition.toString)
-        Console.println("intputs :" + getReferenceInputPositions.toString)
         getReferenceOutputPosition shouldEqual anotherComparator.getReferenceOutputPosition
         getReferenceInputPositions shouldEqual anotherComparator.getReferenceInputPositions
       }
@@ -112,7 +114,12 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
 
   }
 
-  def assertDataLineage(expectedOperations: Seq[Operation], expectedDatasets: Seq[MetaDataset], expectedAttributes: Seq[Attribute], tested: DataLineage): Unit = {
+  def assertDataLineage
+  (
+    expectedOperations: Seq[Operation],
+    expectedDatasets: Seq[MetaDataset],
+    expectedAttributes: Seq[Attribute],
+    tested: DataLineage): Unit = {
 
     tested.operations shouldNot be(null)
     tested.operations.length shouldEqual expectedOperations.length
@@ -127,7 +134,7 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
     }
 
     for ((testedAttribute: Attribute, expectedAttribute: Attribute) <- tested.attributes.zip(expectedAttributes)) {
-      testedAttribute.copy(id = null) shouldEqual expectedAttribute.copy(id = null)
+      testedAttribute.copy(id = null, dataTypeId = null) shouldEqual expectedAttribute.copy(id = null, dataTypeId = null)
     }
   }
 
@@ -149,9 +156,9 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
       )
     )
 
-    val sut = new LogicalPlanLineageHarvester(hadoopConfiguration)
+    val sut = new DataLineageBuilderFactory(hadoopConfiguration)
 
-    val result = sut.harvestLineage(sparkSession.sparkContext, sparkSession.emptyDataFrame.queryExecution.analyzed)
+    val result = sut.createBuilder(sparkSession.sparkContext).buildLineage(sparkSession.emptyDataFrame.queryExecution.analyzed)
 
     assertDataLineage(expectedOperations, expectedDatasets, Seq.empty, result)
   }
@@ -160,9 +167,9 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
     val df = initialDataFrame
 
     val expectedAttributes = Seq(
-      Attribute(randomUUID, "i", Simple("integer", nullable = false)),
-      Attribute(randomUUID, "d", Simple("double", nullable = false)),
-      Attribute(randomUUID, "s", Simple("string", nullable = true))
+      Attribute(randomUUID, "i", integerType.id),
+      Attribute(randomUUID, "d", doubleType.id),
+      Attribute(randomUUID, "s", stringType.id)
     )
 
     val expectedDatasets = Seq(
@@ -181,9 +188,9 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
       )
     )
 
-    val sut = new LogicalPlanLineageHarvester(hadoopConfiguration)
+    val sut = new DataLineageBuilderFactory(hadoopConfiguration)
 
-    val result = sut.harvestLineage(sparkSession.sparkContext, df.queryExecution.analyzed)
+    val result = sut.createBuilder(sparkSession.sparkContext).buildLineage(df.queryExecution.analyzed)
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }
@@ -194,15 +201,15 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
       .filter($"A".notEqual(5))
 
     val expectedAttributes = Seq(
-      Attribute(randomUUID, "A", Simple("integer", nullable = false)),
-      Attribute(randomUUID, "d", Simple("double", nullable = false)),
-      Attribute(randomUUID, "s", Simple("string", nullable = true)),
-      Attribute(randomUUID, "i", Simple("integer", nullable = false))
+      Attribute(randomUUID, "i", integerType.id),
+      Attribute(randomUUID, "d", doubleType.id),
+      Attribute(randomUUID, "s", stringType.id),
+      Attribute(randomUUID, "A", integerType.id)
     )
 
     val expectedDatasets = Seq(
       MetaDataset(randomUUID, Schema(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id))),
-      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id))),
+      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id))),
       MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id)))
     )
 
@@ -212,13 +219,13 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
           randomUUID,
           "Filter",
           Seq(expectedDatasets(1).id),
-          expectedDatasets(0).id),
+          expectedDatasets(2).id),
         null),
       Projection(
         OperationProps(
           randomUUID,
           "Project",
-          Seq(expectedDatasets(2).id),
+          Seq(expectedDatasets(0).id),
           expectedDatasets(1).id),
         null),
       Generic(
@@ -226,15 +233,15 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
           randomUUID,
           "LocalRelation",
           Seq.empty,
-          expectedDatasets(2).id
+          expectedDatasets(0).id
         ),
         null
       )
     )
 
-    val sut = new LogicalPlanLineageHarvester(hadoopConfiguration)
+    val sut = new DataLineageBuilderFactory(hadoopConfiguration)
 
-    val result = sut.harvestLineage(sparkSession.sparkContext, df.queryExecution.analyzed)
+    val result = sut.createBuilder(sparkSession.sparkContext).buildLineage(df.queryExecution.analyzed)
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }
@@ -246,9 +253,9 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
 
     val expectedAttributes =
       Seq(
-        Attribute(randomUUID, "i", Simple("integer", nullable = false)),
-        Attribute(randomUUID, "d", Simple("double", nullable = false)),
-        Attribute(randomUUID, "s", Simple("string", nullable = true))
+        Attribute(randomUUID, "i", integerType.id),
+        Attribute(randomUUID, "d", doubleType.id),
+        Attribute(randomUUID, "s", stringType.id)
       )
 
     val attributeReferences = expectedAttributes.map(_.id)
@@ -265,16 +272,16 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
         OperationProps(
           randomUUID,
           "Union",
-          Seq(expectedDatasets(1).id, expectedDatasets(3).id),
-          expectedDatasets(0).id
+          Seq(expectedDatasets(2).id, expectedDatasets(1).id),
+          expectedDatasets(3).id
         )
       ),
       Filter(
         OperationProps(
           randomUUID,
           "Filter",
-          Seq(expectedDatasets(2).id),
-          expectedDatasets(1).id
+          Seq(expectedDatasets(0).id),
+          expectedDatasets(2).id
         ),
         null
       ),
@@ -283,7 +290,7 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
           randomUUID,
           "LocalRelation",
           Seq.empty,
-          expectedDatasets(2).id
+          expectedDatasets(0).id
         ),
         null
       ),
@@ -291,16 +298,16 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
         OperationProps(
           randomUUID,
           "Filter",
-          Seq(expectedDatasets(2).id),
-          expectedDatasets(3).id
+          Seq(expectedDatasets(0).id),
+          expectedDatasets(1).id
         ),
         null
       )
     )
 
-    val sut = new LogicalPlanLineageHarvester(hadoopConfiguration)
+    val sut = new DataLineageBuilderFactory(hadoopConfiguration)
 
-    val result = sut.harvestLineage(sparkSession.sparkContext, df.queryExecution.analyzed)
+    val result = sut.createBuilder(sparkSession.sparkContext).buildLineage(df.queryExecution.analyzed)
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }
@@ -311,44 +318,43 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
     val df = filteredDF.join(aggregatedDF, filteredDF.col("i").eqNullSafe(aggregatedDF.col("A")), "inner")
 
     val expectedAttributes = Seq(
-      Attribute(randomUUID, "i", Simple("integer", nullable = false)),
-      Attribute(randomUUID, "d", Simple("double", nullable = false)),
-      Attribute(randomUUID, "s", Simple("string", nullable = true)),
-      Attribute(randomUUID, "A", Simple("integer", nullable = false)),
-      Attribute(randomUUID, "MIN", Simple("double", nullable = true)),
-      Attribute(randomUUID, "MAX", Simple("string", nullable = true))
+      Attribute(randomUUID, "i", integerType.id),
+      Attribute(randomUUID, "d", doubleType.id),
+      Attribute(randomUUID, "s", stringType.id),
+      Attribute(randomUUID, "A", integerType.id),
+      Attribute(randomUUID, "MIN", Simple("double", nullable = true).id),
+      Attribute(randomUUID, "MAX", stringType.id)
     )
 
     val expectedDatasets = Seq(
-      MetaDataset(randomUUID, Schema(expectedAttributes.map(_.id))),
       MetaDataset(randomUUID, Schema(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id))),
-      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id))),
+      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id))),
       MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(4).id, expectedAttributes(5).id))),
-      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id)))
-    )
+      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id))),
+      MetaDataset(randomUUID, Schema(expectedAttributes.map(_.id))))
 
     val expectedOperations = Seq(
       Join(
         OperationProps(
           randomUUID,
           "Join",
-          Seq(expectedDatasets(1).id, expectedDatasets(3).id),
-          expectedDatasets(0).id),
+          Seq(expectedDatasets(3).id, expectedDatasets(2).id),
+          expectedDatasets(4).id),
         None,
         "Inner"),
       Filter(
         OperationProps(
           randomUUID,
           "Filter",
-          Seq(expectedDatasets(2).id),
-          expectedDatasets(1).id),
+          Seq(expectedDatasets(0).id),
+          expectedDatasets(3).id),
         null),
       Generic(
         OperationProps(
           randomUUID,
           "LocalRelation",
           Seq.empty,
-          expectedDatasets(2).id
+          expectedDatasets(0).id
         ),
         "LocalRelation"
       ),
@@ -356,8 +362,8 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
         OperationProps(
           randomUUID,
           "Aggregate",
-          Seq(expectedDatasets(4).id),
-          expectedDatasets(3).id
+          Seq(expectedDatasets(1).id),
+          expectedDatasets(2).id
         ),
         Nil,
         Map.empty
@@ -366,16 +372,16 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
         OperationProps(
           randomUUID,
           "Project",
-          Seq(expectedDatasets(2).id),
-          expectedDatasets(4).id
+          Seq(expectedDatasets(0).id),
+          expectedDatasets(1).id
         ),
         null
       )
     )
 
-    val sut = new LogicalPlanLineageHarvester(hadoopConfiguration)
+    val sut = new DataLineageBuilderFactory(hadoopConfiguration)
 
-    val result = sut.harvestLineage(sparkSession.sparkContext, df.queryExecution.analyzed)
+    val result = sut.createBuilder(sparkSession.sparkContext).buildLineage(df.queryExecution.analyzed)
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }

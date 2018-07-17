@@ -19,6 +19,7 @@ package za.co.absa.spline.persistence.mongo
 
 import com.mongodb.{DBCollection, DBObject}
 import org.slf4s.Logging
+import za.co.absa.spline.model.dt.DataType
 import za.co.absa.spline.model.op.Operation
 import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset}
 import za.co.absa.spline.persistence.api.DataLineageWriter
@@ -45,6 +46,7 @@ class MongoDataLineageWriter(connection: MongoConnection) extends DataLineageWri
     Future.sequence(Seq(
       insertAsyncSeq(operationCollection, operationDbos(lineage)),
       insertAsyncSeq(attributeCollection, attributeDbos(lineage)),
+      insertAsyncSeq(dataTypeCollection, dataTypeDbos(lineage)),
       insertAsyncSeq(datasetCollection, datasetDbos(lineage))))
       .map(_ => blocking(dataLineageCollection.insert(lineageDbo(lineage))))
   }
@@ -76,6 +78,13 @@ class MongoDataLineageWriter(connection: MongoConnection) extends DataLineageWri
   private def attributeDbos(lineage: DataLineage): Seq[DBObject] = {
     val seq = lineage.attributes
       .map(serializeWithVersion[Attribute])
+      .map(putLineageId(lineage))
+    index(seq)
+  }
+
+  private def dataTypeDbos(lineage: DataLineage): Seq[DBObject] = {
+    val seq = lineage.dataTypes
+      .map(serializeWithVersion[DataType])
       .map(putLineageId(lineage))
     index(seq)
   }

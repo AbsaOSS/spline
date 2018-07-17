@@ -23,18 +23,20 @@ import za.co.absa.spline.model.op
 import za.co.absa.spline.persistence.atlas.model._
 
 /**
-  * The object is responsible for conversion of [[za.co.absa.spline.model.op.Operation Spline operations]] to [[za.co.absa.spline.persistence.atlas.model.Operation Atlas operations]].
-  */
-object OperationConverter {
+ * The object is responsible for conversion of [[za.co.absa.spline.model.op.Operation Spline operations]] to [[za.co.absa.spline.persistence.atlas.model.Operation Atlas operations]].
+ */
+trait OperationConverter {
+  this: ExpressionConverter =>
 
   /**
-    * The method converts [[za.co.absa.spline.model.op.Operation Spline operations]] to [[za.co.absa.spline.persistence.atlas.model.Operation Atlas operations]].
-    * @param operations A sequence of [[za.co.absa.spline.model.op.Operation Spline operations]]
-    * @param datasetIdMap A map of Spline data set ids to Atlas ids
-    * @return A sequence of [[za.co.absa.spline.persistence.atlas.model.Operation Atlas operations]]
-    */
-  def convert(operations: Seq[op.Operation], datasetIdMap : Map[UUID, Id]) : Seq[Operation] =
-    operations.map{o =>
+   * The method converts [[za.co.absa.spline.model.op.Operation Spline operations]] to [[za.co.absa.spline.persistence.atlas.model.Operation Atlas operations]].
+   *
+   * @param operations   A sequence of [[za.co.absa.spline.model.op.Operation Spline operations]]
+   * @param datasetIdMap A map of Spline data set ids to Atlas ids
+   * @return A sequence of [[za.co.absa.spline.persistence.atlas.model.Operation Atlas operations]]
+   */
+  def convertOperation(operations: Seq[op.Operation], datasetIdMap: Map[UUID, Id]): Seq[Operation] =
+    operations.map { o =>
       val commonProperties = OperationCommonProperties(
         o.mainProps.name,
         o.mainProps.id.toString,
@@ -42,9 +44,9 @@ object OperationConverter {
         Seq(datasetIdMap(o.mainProps.output))
       )
       o match {
-        case op.Join(_, c, t) => new JoinOperation(commonProperties, t, c.map(j => ExpressionConverter.convert(commonProperties.qualifiedName, j)).get) //TODO: why Option.get ???
-        case op.Filter(_, c) => new FilterOperation(commonProperties, ExpressionConverter.convert(commonProperties.qualifiedName, c))
-        case op.Projection(_, t) => new ProjectOperation(commonProperties, t.zipWithIndex.map(j => ExpressionConverter.convert(commonProperties.qualifiedName + "@" + j._2, j._1)))
+        case op.Join(_, c, t) => new JoinOperation(commonProperties, t, c.map(j => convertExpression(commonProperties.qualifiedName, j)).get) //TODO: why Option.get ???
+        case op.Filter(_, c) => new FilterOperation(commonProperties, convertExpression(commonProperties.qualifiedName, c))
+        case op.Projection(_, t) => new ProjectOperation(commonProperties, t.zipWithIndex.map(j => convertExpression(commonProperties.qualifiedName + "@" + j._2, j._1)))
         case op.Alias(_, a) => new AliasOperation(commonProperties, a)
         case op.Generic(_, r) => new GenericOperation(commonProperties, r)
         case _ => new Operation(commonProperties)

@@ -36,4 +36,5 @@ class MongoConnection(dbUrl: String, dbName: String) {
   val operationCollection: DBCollection = database.getCollection("operations")
   val attributeCollection: DBCollection = database.getCollection("attributes")
   val datasetCollection: DBCollection = database.getCollection("datasets")
+  val dataTypeCollection: DBCollection = database.getCollection("datatypes")
 }

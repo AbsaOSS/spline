@@ -15,4 +15,12 @@ package za.co.absa.spline.model
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class LinkedLineage(linked: DataLineage, val original: DataLineage) extends DataLineage(linked.appId, linked.appName, linked.timestamp, linked.operations, linked.datasets, linked.attributes)
+class LinkedLineage(linked: DataLineage, val original: DataLineage)
+  extends DataLineage(
+    linked.appId,
+    linked.appName,
+    linked.timestamp,
+    linked.operations,
+    linked.datasets,
+    linked.attributes,
+    linked.dataTypes)

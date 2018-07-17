@@ -18,7 +18,9 @@ package za.co.absa.spline.fixture
 
 import org.apache.commons.configuration.Configuration
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.scalatest.{BeforeAndAfterAll, Outcome, TestSuite, TestSuiteMixin}
+import org.scalatest.matchers.{MatchResult, Matcher}
+import org.scalatest._
+import org.slf4s.Logging
 import za.co.absa.spline.common.TempDirectory
 import za.co.absa.spline.core.conf.DefaultSplineConfigurer.ConfProperty.PERSISTENCE_FACTORY
 import za.co.absa.spline.model.DataLineage
@@ -27,7 +29,8 @@ import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, 
 trait SparkAndSplineFixture extends TestSuiteMixin
   with BeforeAndAfterAll
   with SparkAndSplineFixture.Implicits {
-  this: TestSuite =>
+  this: TestSuite with Logging with Matchers =>
+
   SparkAndSplineFixture.touch()
 
   val spark: SparkSession = SparkSession.builder.getOrCreate
@@ -48,6 +51,39 @@ trait SparkAndSplineFixture extends TestSuiteMixin
       try super.withFixture(test)
       finally SparkAndSplineFixture.justCapturedLineage = null
     }
+
+  class MatcherAdapter[T](matchingFn: T => MatchResult) extends Matcher[T] {
+    override def apply(left: T): MatchResult = matchingFn(left)
+  }
+
+  object HaveEveryComponentSizeInBSONLessThan {
+
+    import za.co.absa.spline.common.ByteUnits._
+
+    def apply(bsonSizeLimit: Int) = new MatcherAdapter[DataLineage](
+      lineage => {
+        def checkSize[T <: AnyRef : Manifest](o: T): Assertion = {
+          val bsonSize = o.asBSON.length
+          log.info(f"${bsonSize.toDouble / 1.mb}%.2f mb")
+          bsonSize should be < bsonSizeLimit
+        }
+
+        log.info("Operations BSON size:")
+        lineage.operations.foreach(checkSize(_))
+
+        log.info("Attributes BSON size:")
+        lineage.attributes.foreach(checkSize(_))
+
+        log.info("Datasets BSON size:")
+        lineage.datasets.foreach(checkSize(_))
+
+        log.info("DataTypes BSON size:")
+        lineage.dataTypes.foreach(checkSize(_))
+
+        MatchResult(matches = true, "", "")
+      })
+  }
+
 }
 
 object SparkAndSplineFixture {
@@ -75,11 +111,11 @@ object SparkAndSplineFixture {
 
   trait Implicits {
 
-    implicit class LinageSerializer(lineage: DataLineage) {
+    implicit class LinageSerializer[T <: AnyRef : Manifest](o: T) {
 
       import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext._
 
-      def asBSON: Array[Byte] = salat.grater[DataLineage] toBSON lineage
+      def asBSON: Array[Byte] = salat.grater[T] toBSON o
     }
 
     implicit class DataFrameLineageExtractor(df: DataFrame) {

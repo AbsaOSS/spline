@@ -19,9 +19,7 @@ package za.co.absa.spline.persistence.mongo
 import java.util.UUID.randomUUID
 
 import za.co.absa.spline.model._
-import za.co.absa.spline.model.op.{Operation, OperationProps}
-
-import scala.math.Ordering
+import za.co.absa.spline.model.op.OperationProps
 
 class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase {
 
@@ -40,7 +38,7 @@ class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase {
 
     it("should store fields with dots correctly") {
       val lineageWithDotsAndDollar = {
-        val dummyExpression = expr.Generic("", "", dt.Simple("", nullable = true), Nil)
+        val dummyExpression = expr.Generic("", "", randomUUID, Nil)
         val aggregateOperationWithDotsAnd$ =
           op.Aggregate(OperationProps(randomUUID, "aggregate", Nil, randomUUID), Nil, Map("field.with.dots.and.$" -> dummyExpression))
         lineage.copy(operations = lineage.operations :+ aggregateOperationWithDotsAnd$)

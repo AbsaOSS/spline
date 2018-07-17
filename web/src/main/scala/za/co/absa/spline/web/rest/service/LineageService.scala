@@ -204,7 +204,14 @@ class LineageService
       }
     }
 
-    def finalGather(): DataLineage = DataLineage("appId", "appName", 0, operations.toSeq, datasets.toSeq, attributes.toSeq)
+    def finalGather(): DataLineage =
+      DataLineage(
+        "appId", "appName", 0,
+        operations.toSeq,
+        datasets.toSeq,
+        attributes.toSeq,
+        Nil // no datatype info is required for the high level lineage overview
+      )
 
     // Now, just enqueue the datasetId and process it recursively
     enqueueOutput(Seq(datasetId))

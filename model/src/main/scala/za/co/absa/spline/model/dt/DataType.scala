@@ -16,47 +16,35 @@
 
 package za.co.absa.spline.model.dt
 
+import java.util.UUID
+
 import salat.annotations.Salat
 
 /**
-  * The trait describes a data type of an attribute, expression, etc.
-  */
+ * The trait describes a data type of an attribute, expression, etc.
+ */
 @Salat
 sealed trait DataType {
-  /**
-    * A flag describing whether the type is nullable or not
-    */
+  val id: UUID
   val nullable: Boolean
 }
 
-/**
-  * The case class represents atomic types such as boolean, integer, string, etc.
-  *
-  * @param name     A name of an atomic type ("integer", "string", ...)
-  * @param nullable A flag describing whether the type is nullable or not
-  */
-case class Simple(name: String, nullable: Boolean) extends DataType
+case class Simple(id: UUID, name: String, nullable: Boolean) extends DataType
 
-/**
-  * The case class represents custom structured types.
-  *
-  * @param fields   A sequence of fields that the type is compound from
-  * @param nullable A flag describing whether the type is nullable or not
-  */
-case class Struct(fields: Seq[StructField], nullable: Boolean) extends DataType
+object Simple {
+  def apply(name: String, nullable: Boolean): Simple = Simple(UUID.randomUUID, name: String, nullable: Boolean)
+}
 
-/**
-  * The case class represents one attribute (element) of a [[za.co.absa.spline.model.dt.Struct StructType]]
-  *
-  * @param name     A name of the attribute (element)
-  * @param dataType A data type of the attribute (element)
-  */
-case class StructField(name: String, dataType: DataType)
+case class Struct(id: UUID, fields: Seq[StructField], nullable: Boolean) extends DataType
 
-/**
-  * The case class represents a spacial data type for arrays.
-  *
-  * @param elementDataType A data type of any element from the array
-  * @param nullable        A flag describing whether the type is nullable or not
-  */
-case class Array(elementDataType: DataType, nullable: Boolean) extends DataType
+object Struct {
+  def apply(fields: Seq[StructField], nullable: Boolean): Struct = Struct(UUID.randomUUID, fields, nullable)
+}
+
+case class StructField(name: String, dataTypeId: UUID)
+
+case class Array(id: UUID, elementDataTypeId: UUID, nullable: Boolean) extends DataType
+
+object Array {
+  def apply(elementDataTypeId: UUID, nullable: Boolean): Array = Array(UUID.randomUUID, elementDataTypeId, nullable)
+}

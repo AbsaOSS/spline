@@ -22,11 +22,12 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.types.StructType
 import org.scalatest.{FlatSpec, Matchers}
 import za.co.absa.spline.core.TestSparkContext.sparkSession
+import za.co.absa.spline.core.harvester.{ComponentCreatorFactory, StreamReadNodeBuilder}
 import za.co.absa.spline.model.endpoint.{FileEndpoint, KafkaEndpoint, SocketEndpoint, VirtualEndpoint}
 
 class StreamReadNodeSpec extends FlatSpec with Matchers {
   implicit val hadoopConfiguration: Configuration = sparkSession.sparkContext.hadoopConfiguration
-  implicit val metaDatasetFactory: MetaDatasetFactory = new MetaDatasetFactory(new AttributeFactory)
+  implicit val compCreatorFactory: ComponentCreatorFactory = new ComponentCreatorFactory()
   import za.co.absa.spline.coresparkadapterapi.StreamingRelationAdapter.instance._
 
   behavior of "The build method"

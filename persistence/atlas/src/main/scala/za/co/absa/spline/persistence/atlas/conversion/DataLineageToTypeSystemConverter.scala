@@ -16,29 +16,43 @@
 
 package za.co.absa.spline.persistence.atlas.conversion
 
+import java.util.UUID
+
 import org.apache.atlas.typesystem.Referenceable
-import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.model.{DataLineage, dt}
 import za.co.absa.spline.persistence.atlas.model._
 
 /**
-  * The object is responsible for conversion of [[za.co.absa.spline.model.DataLineage Spline lineage model]] to Atlas entities.
-  */
+ * The object is responsible for conversion of [[za.co.absa.spline.model.DataLineage Spline lineage model]] to Atlas entities.
+ */
 object DataLineageToTypeSystemConverter {
 
   /**
-    * The method converts [[za.co.absa.spline.model.DataLineage Spline lineage model]] to Atlas entities.
-    * @param lineage An input Spline lineage model
-    * @return Atlas entities
-    */
+   * The method converts [[za.co.absa.spline.model.DataLineage Spline lineage model]] to Atlas entities.
+   *
+   * @param lineage An input Spline lineage model
+   * @return Atlas entities
+   */
   def convert(lineage: DataLineage): Seq[Referenceable] = {
-    val datasets = DatasetConverter.convert(lineage.operations, lineage.datasets, lineage.attributes)
+
+    val converter = new {}
+      with DatasetConverter
+      with OperationConverter
+      with AttributeConverter
+      with ExpressionConverter
+      with DataTypeConverter {
+      override val dataTypeById: UUID => dt.DataType =
+        lineage.dataTypes.map(dt => dt.id -> dt).toMap
+    }
+
+    val datasets = converter.convertDataset(lineage.operations, lineage.datasets, lineage.attributes)
     val datasetIdMap = datasets.map(i => i.qualifiedName -> i.getId).toMap
-    val operations = OperationConverter.convert(lineage.operations, datasetIdMap)
+    val operations = converter.convertOperation(lineage.operations, datasetIdMap)
     val process = createProcess(lineage, operations, datasets)
     datasets ++ operations :+ process
   }
 
-  private def createProcess(lineage: DataLineage, operations : Seq[Operation] , datasets : Seq[Dataset]) : Referenceable = {
+  private def createProcess(lineage: DataLineage, operations: Seq[Operation], datasets: Seq[Dataset]): Referenceable = {
     val (inputDatasets, outputDatasets) = datasets
       .filter(_.isInstanceOf[EndpointDataset])
       .map(_.asInstanceOf[EndpointDataset])
@@ -56,4 +70,4 @@ object DataLineageToTypeSystemConverter {
       outputDatasets.map(_.endpoint.getId)
     )
   }
-  }
+}

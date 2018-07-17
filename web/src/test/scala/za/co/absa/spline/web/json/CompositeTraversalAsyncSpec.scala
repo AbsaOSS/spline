@@ -32,11 +32,11 @@ import scala.concurrent.Future
 import scala.language.postfixOps
 
 /**
-  * This is a test suite for high order lineage construction algorithm
-  * defined in LineageService
-  *
-  * This test suite is for the non-blocking/async version
-  */
+ * This is a test suite for high order lineage construction algorithm
+ * defined in LineageService
+ *
+ * This test suite is for the non-blocking/async version
+ */
 //noinspection NameBooleanParameters,LanguageFeature
 class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
 
@@ -56,11 +56,16 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
   val xUUID2: UUID = UUID fromString "22222222-2222-2222-2222-222222222222"
   val xUUID3: UUID = UUID fromString "33333333-3333-3333-3333-333333333333"
 
+  private val intType = Simple("int", nullable = false)
+
   val lineage1 = DataLineage("AppId1", "AppName1", 0, Seq(
     Write(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa1", "SaveIntoDataSourceCommand", Seq(), UUIDS1), "fileS1", "fileS1.txt", append = false)),
     Seq(MetaDataset(UUIDS1, Schema(Seq(xUUID3)))),
-    Seq(Attribute(xUUID3, "a", Simple("int", nullable = false))))
+    Seq(Attribute(xUUID3, "a", intType.id)),
+    Seq(intType)
+  )
 
+  private val longType = Simple("long", nullable = false)
   val lineage2 = DataLineage("AppId2", "AppName2", 0, Seq(
     Write(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa3", "SaveIntoDataSourceCommand", Seq(xUUID2), UUIDS2), "fileOut", "fileOut.txt", append = false),
     Read(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa2", "LogicalRelation", Seq(UUIDS1), xUUID2), "fileS1", Seq(MetaDataSource("fileS1.txt", Seq(UUIDS1))))),
@@ -68,7 +73,8 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
       MetaDataset(UUIDS2, Schema(Seq(xUUID3))),
       MetaDataset(xUUID2, Schema(Seq(xUUID3))),
       MetaDataset(UUIDS1, Schema(Seq(xUUID3)))),
-    Seq(Attribute(xUUID3, "b", Simple("long", nullable = false))))
+    Seq(Attribute(xUUID3, "b", longType.id)),
+    Seq(longType))
 
   it should "be able to construct small high order lineage out of 2 composites" in {
     val readerMock: DataLineageReader = mock[DataLineageReader]
@@ -114,15 +120,19 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
   val operationDUUID: UUID = UUID fromString "dddddddd-1111-1111-1111-111111111111"
   val operationEUUID: UUID = UUID fromString "eeeeeeee-1111-1111-1111-111111111111"
 
+  private val stringType = Simple("String", true)
+
   val lineageD = DataLineage("AppId", "AppNameD", 0,
     operations = Seq(Write(OperationProps(operationDUUID, "Save", Seq(), dUUID), "fileD", "fileD.csv", append = false)),
     datasets = Seq(MetaDataset(dUUID, Schema(Seq(xUUID1)))),
-    attributes = Seq(Attribute(xUUID1, "attributeD", Simple("String", true))))
+    attributes = Seq(Attribute(xUUID1, "attributeD", stringType.id)),
+    dataTypes = Seq(stringType))
 
   val lineageE = DataLineage("AppId", "AppNameE", 0,
     operations = Seq(Write(OperationProps(operationEUUID, "Save", Seq(), eUUID), "fileE", "fileE.csv", append = false)),
     datasets = Seq(MetaDataset(xUUID2, Schema(Seq(xUUID2)))),
-    attributes = Seq(Attribute(xUUID2, "attributeE", Simple("String", true))))
+    attributes = Seq(Attribute(xUUID2, "attributeE", stringType.id)),
+    dataTypes = Seq(stringType))
 
   val lineageA = DataLineage("AppId", "AppNameA", 0,
     operations = Seq(
@@ -130,7 +140,8 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
       Read(OperationProps(operationAUUID, "Read", Seq(dUUID), null), "fileD", Seq(MetaDataSource("dileD.csv", Seq(dUUID)))),
       Read(OperationProps(operationAUUID, "Read", Seq(eUUID), null), "fileE", Seq(MetaDataSource("dileE.csv", Seq(eUUID))))),
     datasets = Seq(MetaDataset(xUUID3, Schema(Seq(xUUID3)))),
-    attributes = Seq(Attribute(xUUID3, "attributeA", Simple("String", true))))
+    attributes = Seq(Attribute(xUUID3, "attributeA", stringType.id)),
+    dataTypes = Seq(stringType))
 
   val lineageB = DataLineage("AppId", "AppNameB", 0,
     operations = Seq(
@@ -138,7 +149,8 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
       Read(OperationProps(operationBUUID, "Read", Seq(aUUID), null), "fileA", Seq(MetaDataSource("dileA.csv", Seq(aUUID))))
     ),
     datasets = Seq(MetaDataset(xUUID4, Schema(Seq(xUUID4)))),
-    attributes = Seq(Attribute(xUUID4, "attributeB", Simple("String", true))))
+    attributes = Seq(Attribute(xUUID4, "attributeB", stringType.id)),
+    dataTypes = Seq(stringType))
 
   val lineageC = DataLineage("AppId", "AppNameC", 0,
     operations = Seq(
@@ -146,7 +158,8 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
       Read(OperationProps(operationCUUID, "Read", Seq(aUUID), null), "fileA", Seq(MetaDataSource("dileA.csv", Seq(aUUID))))
     ),
     datasets = Seq(MetaDataset(xUUID3, Schema(Seq(xUUID3)))),
-    attributes = Seq(Attribute(xUUID3, "attributeA", Simple("String", true))))
+    attributes = Seq(Attribute(xUUID3, "attributeA", stringType.id)),
+    dataTypes = Seq(stringType))
 
   def prepareBigLineageMock(readerMock: DataLineageReader): Unit = {
     when(readerMock.loadByDatasetId(≡(aUUID))(any())) thenReturn Future.successful(Some(lineageA))

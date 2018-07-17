@@ -16,16 +16,14 @@
 
 package za.co.absa.spline.persistence.atlas.conversion
 
-import java.util.UUID
-
-import org.apache.atlas.typesystem.persistence.Id
 import za.co.absa.spline.model._
 import za.co.absa.spline.persistence.atlas.model._
 
 /**
   * The object is responsible for conversion of [[za.co.absa.spline.model.expr.Expression Spline expressions]] to [[za.co.absa.spline.persistence.atlas.model.Expression Atlas expressions]].
   */
-object ExpressionConverter {
+trait ExpressionConverter {
+  this: DataTypeConverter =>
 
   /**
     * The method converts [[za.co.absa.spline.model.expr.Expression Spline expressions]] to [[za.co.absa.spline.persistence.atlas.model.Expression Atlas expressions]].
@@ -34,14 +32,14 @@ object ExpressionConverter {
     * @param expression          An input Spline expression
     * @return An Atlas expression
     */
-  def convert(qualifiedNamePrefix: String, expression: expr.Expression): Expression = {
+  def convertExpression(qualifiedNamePrefix: String, expression: expr.Expression): Expression = {
     val qualifiedName = qualifiedNamePrefix + "@" + expression.text
-    val children = expression.children.zipWithIndex.map(i => convert(qualifiedName + "@" + i._2, i._1))
+    val children = expression.children.zipWithIndex.map(i => convertExpression(qualifiedName + "@" + i._2, i._1))
     val mainProperties = ExpressionCommonProperties(
       qualifiedName,
       expression.text,
       expression.exprType,
-      DataTypeConverter.convert(expression.dataType, qualifiedName),
+      convertDataType(expression.dataTypeId, qualifiedName),
       children
     )
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.mongo.serialization
+package za.co.absa.spline
 
 import org.apache.spark.sql.Column
 import org.apache.spark.sql.types.IntegerType
@@ -38,7 +38,7 @@ class LineageToBSONSerializationSpec
       Seq((1, 2), (3, 4)).toDF().agg(concat(sum('_1), min('_2)) as "forty_two").lineage
 
     smallLineage.operations.length shouldBe 3
-    smallLineage.asBSON.length should be < 5.kb
+    smallLineage should HaveEveryComponentSizeInBSONLessThan(2.kb)
   }
 
   it should "serialize big lineage" in {
@@ -67,10 +67,6 @@ class LineageToBSONSerializationSpec
       .select(columnNames map aComplexExpression: _*)
       .lineage
 
-    val bsonSize = bigLineage.asBSON.length
-
-    log.info(f"BSON size is ${bsonSize.toDouble / 1.mb}%.2f mb")
-
-    bsonSize should be < 16.mb
+    bigLineage should HaveEveryComponentSizeInBSONLessThan(16.mb)
   }
 }

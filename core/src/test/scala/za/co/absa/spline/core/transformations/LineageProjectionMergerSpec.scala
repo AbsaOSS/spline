@@ -33,10 +33,10 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers {
       val attributeType = Simple("type", nullable = false)
 
       val attributes = Seq(
-        Attribute(randomUUID, "a", attributeType),
-        Attribute(randomUUID, "b", attributeType),
-        Attribute(randomUUID, "c", attributeType),
-        Attribute(randomUUID, "d", attributeType)
+        Attribute(randomUUID, "a", attributeType.id),
+        Attribute(randomUUID, "b", attributeType.id),
+        Attribute(randomUUID, "c", attributeType.id),
+        Attribute(randomUUID, "d", attributeType.id)
       )
 
       val datasets = Seq(
@@ -69,7 +69,8 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers {
         1L,
         operations,
         datasets,
-        attributes
+        attributes,
+        Seq(attributeType)
       )
 
       val expectedLineage = lineage.copy(datasets = Seq(datasets(0), datasets(1), datasets(2)), attributes = Seq(attributes(0), attributes(1)))
@@ -82,13 +83,14 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers {
 
     val attributeId = randomUUID()
 
+    val aType = Simple("type", nullable = true)
+
     def createGenericExpressions(names: String*): Seq[Expression] = {
-      names.map(n => Generic("exprType", n, Simple("type", nullable = true), Seq.empty))
+      names.map(n => Generic("exprType", n, aType.id, Seq.empty))
     }
 
     def createCompositeExpressions(attributeNames: (String, String)*): Seq[Expression] = {
-      val simpleType = Simple("type", nullable = true)
-      attributeNames.map(ns => Alias(ns._2, simpleType, Seq(AttributeReference(attributeId, ns._1, simpleType))))
+      attributeNames.map(ns => Alias(ns._2, aType.id, Seq(AttributeReference(attributeId, ns._1, aType.id))))
     }
 
     it("should join two compatible projections into one node") {

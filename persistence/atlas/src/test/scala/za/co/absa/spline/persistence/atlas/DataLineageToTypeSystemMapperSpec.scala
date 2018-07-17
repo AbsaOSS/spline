@@ -47,10 +47,11 @@ class DataLineageToTypeSystemMapperSpec extends FlatSpec with Matchers{
                                    path: String = "hdfs://foo/bar/path",
                                    append: Boolean = false)
   : DataLineage = {
+    val stringType = Simple("StringType", nullable = true)
     val attributes = Seq(
-      Attribute(randomUUID(), "_1", Simple("StringType", nullable = true)),
-      Attribute(randomUUID(), "_2", Simple("StringType", nullable = true)),
-      Attribute(randomUUID(), "_3", Simple("StringType", nullable = true))
+      Attribute(randomUUID(), "_1", stringType.id),
+      Attribute(randomUUID(), "_2", stringType.id),
+      Attribute(randomUUID(), "_3", stringType.id)
     )
     val aSchema = Schema(attributes.map(_.id))
     val bSchema = Schema(attributes.map(_.id).tail)
@@ -72,7 +73,8 @@ class DataLineageToTypeSystemMapperSpec extends FlatSpec with Matchers{
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md1.id), "rawString4")
       ),
       Seq(md1, md2, md3, md4),
-      attributes
+      attributes,
+      Seq(stringType)
     )
   }
 

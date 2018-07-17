@@ -27,7 +27,11 @@ abstract class WriteCommandParser[T <: LogicalPlan](implicit tag: ClassTag[T]) {
     tag.runtimeClass.isAssignableFrom(operation.getClass)
   }
 
-  implicit def asWriteCommand(operation: T): WriteCommand
+  def asWriteCommand(operation: T): WriteCommand
+
+  def asWriteCommandIfPossible(operation: T): Option[WriteCommand] =
+    if (matches(operation)) Some(asWriteCommand(operation))
+    else None
 
 }
 

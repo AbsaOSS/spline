@@ -17,6 +17,7 @@
 package za.co.absa.spline.persistence.mongo
 
 import salat.annotations.Persist
+import za.co.absa.spline.model.dt.DataType
 import za.co.absa.spline.model.op.Operation
 import za.co.absa.spline.model.{Attribute, DataLineage, DataLineageId, MetaDataset}
 
@@ -29,8 +30,14 @@ case class TruncatedDataLineage
   rootDataset: MetaDataset
 ) {
 
-  def toDataLineage(operations: Seq[Operation], datasets: Seq[MetaDataset], attributes: Seq[Attribute]): DataLineage = {
-    DataLineage(appId, appName, timestamp, operations, datasets, attributes)
+  def toDataLineage
+  (
+    operations: Seq[Operation],
+    datasets: Seq[MetaDataset],
+    attributes: Seq[Attribute],
+    dataTypes: Seq[DataType]
+  ): DataLineage = {
+    DataLineage(appId, appName, timestamp, operations, datasets, attributes, dataTypes)
   }
 
   @Persist

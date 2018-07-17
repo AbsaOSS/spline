@@ -38,10 +38,11 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
                                    path: String = "hdfs://foo/bar/path",
                                    append: Boolean = false)
   : DataLineage = {
+    val dataTypes = Seq(Simple("StringType", nullable = true))
     val attributes = Seq(
-      Attribute(randomUUID(), "_1", Simple("StringType", nullable = true)),
-      Attribute(randomUUID(), "_2", Simple("StringType", nullable = true)),
-      Attribute(randomUUID(), "_3", Simple("StringType", nullable = true))
+      Attribute(randomUUID(), "_1", dataTypes.head.id),
+      Attribute(randomUUID(), "_2", dataTypes.head.id),
+      Attribute(randomUUID(), "_3", dataTypes.head.id)
     )
     val aSchema = Schema(attributes.map(_.id))
     val bSchema = Schema(attributes.map(_.id).tail)
@@ -63,7 +64,8 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md1.id), "rawString4")
       ),
       Seq(md1, md2, md3, md4),
-      attributes
+      attributes,
+      dataTypes
     )
   }
 
@@ -72,6 +74,7 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
     dataLineageCollection.drop()
     operationCollection.drop()
     attributeCollection.drop()
+    dataTypeCollection.drop()
     datasetCollection.drop()
   }
 }

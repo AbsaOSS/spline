@@ -20,11 +20,11 @@ import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.util.QueryExecutionListener
 import org.slf4s.Logging
 import za.co.absa.spline.core.SparkLineageProcessor
-import za.co.absa.spline.core.harvester.LogicalPlanLineageHarvester
+import za.co.absa.spline.core.harvester.DataLineageBuilderFactory
 
 import scala.language.postfixOps
 
-class SplineQueryExecutionListener(harvester: LogicalPlanLineageHarvester, lineageProcessor: SparkLineageProcessor) extends QueryExecutionListener with Logging {
+class SplineQueryExecutionListener(harvesterFactory: DataLineageBuilderFactory, lineageProcessor: SparkLineageProcessor) extends QueryExecutionListener with Logging {
 
   /**
     * The method is executed when an action execution is successful.
@@ -39,7 +39,9 @@ class SplineQueryExecutionListener(harvester: LogicalPlanLineageHarvester, linea
     if (funcName == "save") {
       log debug s"Start tracking lineage for action '$funcName'"
 
-      val rawLineage = harvester.harvestLineage(qe.sparkSession.sparkContext, qe.analyzed)
+      val builder = harvesterFactory.createBuilder(qe.sparkSession.sparkContext)
+
+      val rawLineage = builder.buildLineage(qe.analyzed)
       lineageProcessor.process(rawLineage)
 
       log debug s"Lineage tracking for action '$funcName' is done."

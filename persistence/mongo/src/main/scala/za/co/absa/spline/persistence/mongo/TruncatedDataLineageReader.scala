@@ -21,6 +21,7 @@ import java.util.UUID
 import com.mongodb.DBCollection
 import com.mongodb.casbah.Imports.{DBObject, MongoDBObject, _}
 import com.mongodb.casbah.query.dsl.QueryExpressionObject
+import za.co.absa.spline.model.dt.DataType
 import za.co.absa.spline.model.op.Operation
 import za.co.absa.spline.model.{Attribute, DataLineage, DataLineageId, MetaDataset}
 import za.co.absa.spline.persistence.mongo.DBSchemaVersionHelper.deserializeWithVersionCheck
@@ -45,14 +46,15 @@ class TruncatedDataLineageReader(connection: MongoConnection) {
       datasets <- findLineageLinked[MetaDataset](datasetCollection, truncatedDataLineage)
       operations <- findLineageLinked[Operation](operationCollection, truncatedDataLineage)
       attributes <- findLineageLinked[Attribute](attributeCollection, truncatedDataLineage)
-    } yield truncatedDataLineage.toDataLineage(operations, datasets, attributes)
+      dataTypes <- findLineageLinked[DataType](dataTypeCollection, truncatedDataLineage)
+    } yield truncatedDataLineage.toDataLineage(operations, datasets, attributes, dataTypes)
   }
 
   private def findLineageLinked[Y <: scala.AnyRef](dBCollection: DBCollection, truncatedDataLineage: TruncatedDataLineage)(implicit m: scala.Predef.Manifest[Y], ec: ExecutionContext): Future[Seq[Y]] =
     Future {
       blocking(dBCollection.find(inLineageOp(truncatedDataLineage)).sort(sortByIndex))
         .toArray.asScala.map(deserializeWithVersionCheck[Y])
-  }
+    }
 
   def inLineageOp(truncatedDataLineage: TruncatedDataLineage): DBObject with QueryExpressionObject =
     lineageIdField $eq truncatedDataLineage.id

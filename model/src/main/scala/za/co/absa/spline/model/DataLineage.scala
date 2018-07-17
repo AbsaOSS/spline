@@ -18,6 +18,7 @@ package za.co.absa.spline.model
 
 import java.util.UUID
 
+import za.co.absa.spline.model.dt.DataType
 import za.co.absa.spline.model.op.Operation
 
 /**
@@ -37,7 +38,8 @@ case class DataLineage
   timestamp: Long,
   operations: Seq[Operation],
   datasets: Seq[MetaDataset],
-  attributes: Seq[Attribute]
+  attributes: Seq[Attribute],
+  dataTypes: Seq[DataType]
 ) {
   require(operations.nonEmpty, "list of operations cannot be empty")
   require(datasets.nonEmpty, "list of datasets cannot be empty")
