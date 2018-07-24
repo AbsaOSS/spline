@@ -72,9 +72,9 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         page2 <- mongoReader.findDatasets(None, PageRequest(107, 3, 3))
         page3 <- mongoReader.findDatasets(None, PageRequest(107, 6, 3))
       } yield {
-        page1 should ConsistOfItemsWithAppIds("appID7", "appID6", "appID5")
-        page2 should ConsistOfItemsWithAppIds("appID4", "appID3", "appID2")
-        page3 should ConsistOfItemsWithAppIds("appID1", "appID0")
+        page1 should consistOfItemsWithAppIds("appID7", "appID6", "appID5")
+        page2 should consistOfItemsWithAppIds("appID4", "appID3", "appID2")
+        page3 should consistOfItemsWithAppIds("appID1", "appID0")
       }
     }
 
@@ -83,7 +83,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         _ <- Future.sequence(testLineages.map(mongoWriter.store))
         page <- mongoReader.findDatasets("n", PageRequest(107, 0, 3))
       } yield {
-        page should ConsistOfItemsWithAppIds("appID7", "appID1")
+        page should consistOfItemsWithAppIds("appID7", "appID1")
       }
     }
 
@@ -92,7 +92,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         _ <- Future.sequence(testLineages.map(mongoWriter.store))
         page <- mongoReader.findDatasets("nInE", EntireLatestContent)
       } yield {
-        page should ConsistOfItemsWithAppIds("appID9")
+        page should consistOfItemsWithAppIds("appID9")
       }
     }
 
@@ -105,7 +105,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         noResultByPrefix <- mongoReader.findDatasets(searchingDatasetId take 10, EntireLatestContent)
         noResultBySuffix <- mongoReader.findDatasets(searchingDatasetId drop 10, EntireLatestContent)
       } yield {
-        foundSingleMatch should ConsistOfItemsWithAppIds(searchingLineage.appId)
+        foundSingleMatch should consistOfItemsWithAppIds(searchingLineage.appId)
         noResultByPrefix.iterator shouldBe empty
         noResultBySuffix.iterator shouldBe empty
       }
@@ -131,7 +131,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
 
       val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestDatasetIdsByPath(path))
 
-      result.map(resultItems => resultItems should ConsistOfItems(uuid3))
+      result.map(resultItems => resultItems should consistOfItems(uuid3))
     }
 
     it("should return empty result if no records exists in a database for a given path") {
@@ -157,7 +157,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
 
       val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestDatasetIdsByPath(path))
 
-      result.map(resultItems => resultItems should ConsistOfItems(uuid1, uuid2, uuid3))
+      result.map(resultItems => resultItems should consistOfItems(uuid1, uuid2, uuid3))
     }
 
     it("should return a sequence of all appended lineages since the last overwrite") {
@@ -171,7 +171,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
 
       val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.findLatestDatasetIdsByPath(path))
 
-      result.map(resultItems => resultItems should ConsistOfItems(uuid1, uuid2, uuid3))
+      result.map(resultItems => resultItems should consistOfItems(uuid1, uuid2, uuid3))
     }
 
   }
@@ -232,7 +232,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
           MongoTestProperties.mongoConnection.dataLineageCollection remove DBObject("appId" -> "appID4") // Emulate incomplete lineage #4
           mongoReader.findByInputId(datasetIdToFindBy)
         }).
-        map(_ should ConsistOfItemsWithAppIds("appID2", "appID3"))
+        map(_ should consistOfItemsWithAppIds("appID2", "appID3"))
     }
   }
 

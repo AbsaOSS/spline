@@ -27,35 +27,14 @@
         <version>0.3.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>spline-integration-tests</artifactId>
+    <artifactId>spline-test-commons</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>spline-test-commons</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>spline-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>spline-core-spark-adapter-${spark.compat.version}</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>spline-persistence-mongo</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_${scala.compat.version}</artifactId>
         </dependency>
-
     </dependencies>
-    
+
 </project>

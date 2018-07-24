@@ -44,6 +44,12 @@
             <groupId>com.github.salat</groupId>
             <artifactId>salat-core_${scala.compat.version}</artifactId>
         </dependency>
+        <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>spline-test-commons</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

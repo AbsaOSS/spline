@@ -19,15 +19,14 @@ package za.co.absa.spline
 import org.apache.spark.sql.Column
 import org.apache.spark.sql.types.IntegerType
 import org.scalatest._
-import org.slf4s.Logging
 import za.co.absa.spline.common.ByteUnits._
-import za.co.absa.spline.fixture.SparkAndSplineFixture
+import za.co.absa.spline.fixture.{SparkFixture, SplineFixture}
 
 class LineageToBSONSerializationSpec
   extends FlatSpec
     with Matchers
-    with SparkAndSplineFixture
-    with Logging {
+    with SparkFixture
+    with SplineFixture {
 
   import spark.implicits._
 
@@ -38,7 +37,7 @@ class LineageToBSONSerializationSpec
       Seq((1, 2), (3, 4)).toDF().agg(concat(sum('_1), min('_2)) as "forty_two").lineage
 
     smallLineage.operations.length shouldBe 3
-    smallLineage should HaveEveryComponentSizeInBSONLessThan(2.kb)
+    smallLineage should haveEveryComponentSizeInBSONLessThan(2.kb)
   }
 
   it should "serialize big lineage" in {
@@ -67,6 +66,6 @@ class LineageToBSONSerializationSpec
       .select(columnNames map aComplexExpression: _*)
       .lineage
 
-    bigLineage should HaveEveryComponentSizeInBSONLessThan(16.mb)
+    bigLineage should haveEveryComponentSizeInBSONLessThan(16.mb)
   }
 }

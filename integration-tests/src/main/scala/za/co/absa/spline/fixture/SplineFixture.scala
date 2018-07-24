@@ -17,23 +17,26 @@
 package za.co.absa.spline.fixture
 
 import org.apache.commons.configuration.Configuration
-import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.scalatest.matchers.{MatchResult, Matcher}
+import org.apache.spark.sql.DataFrame
 import org.scalatest._
+import org.scalatest.matchers.{MatchResult, Matcher}
 import org.slf4s.Logging
+import za.co.absa.spline.common.ByteUnits._
 import za.co.absa.spline.common.TempDirectory
 import za.co.absa.spline.core.conf.DefaultSplineConfigurer.ConfProperty.PERSISTENCE_FACTORY
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
+import za.co.absa.spline.scalatest.MatcherImplicits
 
-trait SparkAndSplineFixture extends TestSuiteMixin
-  with BeforeAndAfterAll
-  with SparkAndSplineFixture.Implicits {
-  this: TestSuite with Logging with Matchers =>
+trait SplineFixture
+  extends TestSuiteMixin
+    with BeforeAndAfterAll
+    with SplineFixture.Implicits
+    with SplineFixture.Matchers {
 
-  SparkAndSplineFixture.touch()
+  this: TestSuite with SparkFixture =>
 
-  val spark: SparkSession = SparkSession.builder.getOrCreate
+  SplineFixture.touch()
 
   abstract override protected def beforeAll(): Unit = {
     import za.co.absa.spline.core.SparkLineageInitializer._
@@ -41,56 +44,17 @@ trait SparkAndSplineFixture extends TestSuiteMixin
     super.beforeAll()
   }
 
-  abstract override protected def afterAll(): Unit =
-    try super.afterAll()
-    finally SparkSession.builder.getOrCreate.stop()
-
-
   abstract override protected def withFixture(test: NoArgTest): Outcome =
-    SparkAndSplineFixture.synchronized {
+    SplineFixture.synchronized {
       try super.withFixture(test)
-      finally SparkAndSplineFixture.justCapturedLineage = null
+      finally SplineFixture.justCapturedLineage = null
     }
-
-  class MatcherAdapter[T](matchingFn: T => MatchResult) extends Matcher[T] {
-    override def apply(left: T): MatchResult = matchingFn(left)
-  }
-
-  object HaveEveryComponentSizeInBSONLessThan {
-
-    import za.co.absa.spline.common.ByteUnits._
-
-    def apply(bsonSizeLimit: Int) = new MatcherAdapter[DataLineage](
-      lineage => {
-        def checkSize[T <: AnyRef : Manifest](o: T): Assertion = {
-          val bsonSize = o.asBSON.length
-          log.info(f"${bsonSize.toDouble / 1.mb}%.2f mb")
-          bsonSize should be < bsonSizeLimit
-        }
-
-        log.info("Operations BSON size:")
-        lineage.operations.foreach(checkSize(_))
-
-        log.info("Attributes BSON size:")
-        lineage.attributes.foreach(checkSize(_))
-
-        log.info("Datasets BSON size:")
-        lineage.datasets.foreach(checkSize(_))
-
-        log.info("DataTypes BSON size:")
-        lineage.dataTypes.foreach(checkSize(_))
-
-        MatchResult(matches = true, "", "")
-      })
-  }
-
 }
 
-object SparkAndSplineFixture {
+object SplineFixture {
 
   import scala.concurrent.{ExecutionContext, Future}
 
-  System.getProperties.setProperty("spark.master", "local[*]")
   System.getProperties.setProperty(PERSISTENCE_FACTORY, classOf[TestPersistenceFactory].getName)
 
   private var justCapturedLineage: DataLineage = _
@@ -121,8 +85,47 @@ object SparkAndSplineFixture {
     implicit class DataFrameLineageExtractor(df: DataFrame) {
       def lineage: DataLineage = {
         df.write.save(TempDirectory("spline", ".parquet", pathOnly = true).deleteOnExit().path.toString)
-        SparkAndSplineFixture.justCapturedLineage
+        SplineFixture.justCapturedLineage
       }
+    }
+
+  }
+
+  trait Matchers {
+    def haveEveryComponentSizeInBSONLessThan(bsonSizeLimit: Int): Matcher[DataLineage] =
+      HaveEveryComponentSizeInBSONLessThan(bsonSizeLimit)
+
+    object HaveEveryComponentSizeInBSONLessThan
+      extends Logging
+        with Implicits
+        with MatcherImplicits {
+
+      def apply(bsonSizeLimit: Int): Matcher[DataLineage] =
+        (lineage: DataLineage) => {
+          case class ComponentSize(name: String, size: Int)
+
+          def componentBsonSizes[T <: AnyRef : Manifest](name: String, col: Seq[T]): Iterator[ComponentSize] =
+            for (o <- col.iterator) yield {
+              val bsonSize = o.asBSON.length
+              log.info(f"$name BSON size: ${bsonSize.toDouble / 1.mb}%.2f mb")
+              ComponentSize(name, bsonSize)
+            }
+
+          val allComponentsSizes = Iterator(
+            componentBsonSizes("Operation", lineage.operations),
+            componentBsonSizes("Attribute", lineage.attributes),
+            componentBsonSizes("Dataset", lineage.datasets),
+            componentBsonSizes("DataType", lineage.dataTypes)
+          ).flatten
+
+          allComponentsSizes.zipWithIndex.find(_._1.size >= bsonSizeLimit) match {
+            case None => MatchResult(matches = true, "", "")
+            case Some((ComponentSize(name, oversize), i)) => MatchResult(
+              matches = false,
+              f"$name[$i] size ${oversize.toDouble / 1.mb}%.2f mb should be less than ${bsonSizeLimit.toDouble / 1.mb} mb",
+              "")
+          }
+        }
     }
 
   }
