@@ -109,8 +109,8 @@ class ExpressionConverter(dataTypeConverter: DataTypeCreator, attributeCreator: 
 
     case bo: expressions.BinaryOperator =>
       expr.Binary(
-        bo.nodeName,
         bo.symbol,
+        bo.nodeName,
         bo.simpleString,
         getDataType(bo).id,
         bo.children map convert)
@@ -121,6 +121,12 @@ class ExpressionConverter(dataTypeConverter: DataTypeCreator, attributeCreator: 
         u.simpleString,
         getDataType(u).id,
         u.children map convert)
+
+    case e: expressions.LeafExpression =>
+      expr.GenericLeaf(
+        e.nodeName,
+        e.simpleString,
+        getDataType(e).id)
 
     case e =>
       expr.Generic(

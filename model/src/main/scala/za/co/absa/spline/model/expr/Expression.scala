@@ -44,28 +44,33 @@ sealed trait Expression {
   /**
    * A sequence of sub-expressions
    */
-  val children: Seq[Expression]
+  def children: Seq[Expression]
 
   def inputAttributeNames: Seq[String] = children.flatMap(_.inputAttributeNames)
 
   def outputAttributeNames: Seq[String] = children.flatMap(_.outputAttributeNames)
 }
 
-/**
- * The case class represents Spark expressions for which a dedicated expression node type hasn't been created yet.
- *
- * @param exprType   see [[za.co.absa.spline.model.expr.Expression#exprType Expression.exprType]]
- * @param text       A textual representation of an expression node including sub-expressions
- * @param dataTypeId see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
- * @param children   see [[za.co.absa.spline.model.expr.Expression#children Expression.children]]
- */
+trait Leaf {
+  this: Expression =>
+
+  override final def children: Seq[Expression] = Nil
+}
+
 case class Generic
 (
-  exprType: String,
-  text: String,
-  dataTypeId: UUID,
-  children: Seq[Expression]
+  override val exprType: String,
+  override val text: String,
+  override val dataTypeId: UUID,
+  override val children: Seq[Expression]
 ) extends Expression
+
+case class GenericLeaf
+(
+  override val exprType: String,
+  override val text: String,
+  override val dataTypeId: UUID
+) extends Expression with Leaf
 
 /**
  * The case class represents renaming of an underlying expression to a specific alias.
@@ -77,8 +82,8 @@ case class Generic
 case class Alias
 (
   alias: String,
-  dataTypeId: UUID,
-  children: Seq[Expression]
+  override val dataTypeId: UUID,
+  override val children: Seq[Expression]
 ) extends Expression {
 
   override val exprType: String = "Alias"
@@ -99,11 +104,11 @@ case class Alias
  */
 case class Binary
 (
-  exprType: String,
   symbol: String,
-  text: String,
-  dataTypeId: UUID,
-  children: Seq[Expression]
+  override val exprType: String,
+  override val text: String,
+  override val dataTypeId: UUID,
+  override val children: Seq[Expression]
 ) extends Expression
 
 /**
@@ -115,9 +120,9 @@ case class Binary
  */
 case class AttributeRemoval
 (
-  text: String,
-  dataTypeId: UUID,
-  children: Seq[Expression]
+  override val text: String,
+  override val dataTypeId: UUID,
+  override val children: Seq[Expression]
 ) extends Expression {
 
   override val exprType: String = "AttributeRemoval"
@@ -152,11 +157,9 @@ case class AttributeReference
   name: String,
   text: String,
   dataTypeId: UUID
-) extends Expression {
+) extends Expression with Leaf {
 
   override val exprType: String = "AttributeReference"
-
-  override val children: Seq[Expression] = Seq.empty
 
   override def inputAttributeNames: Seq[String] = Seq(name)
 }
@@ -197,9 +200,9 @@ object AttributeReference {
 case class UserDefinedFunction
 (
   name: String,
-  text: String,
-  dataTypeId: UUID,
-  children: Seq[Expression]
+  override val text: String,
+  override val dataTypeId: UUID,
+  override val children: Seq[Expression]
 ) extends Expression {
 
   override val exprType: String = "UserDefinedFunction"
