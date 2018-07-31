@@ -130,7 +130,7 @@ You will need:
 * [Node.js](https://nodejs.org/) 6.9
 
 ```
-mvn install -DskipTests
+mvn install -DskipTests -Pspark-2.3
 ```
 
 # <a name="persistence"></a> Lineage persistence
