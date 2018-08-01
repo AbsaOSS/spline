@@ -35,9 +35,9 @@ export module ExpressionUtils {
                 return `${getText(aliasExpr.children[0])} AS ${aliasExpr.alias}`
             case "AttributeRemoval":
                 return (<IAttributeRemoval>expr).text
-            case "UserDefinedFunction":
+            case "UDF":
                 return (<IUserDefinedFunction>expr).text
-            case "AttributeReference":
+            case "AttrRef":
                 return (<IAttributeReference>expr).text
             case "Generic":
                 return (<IGeneric>expr).text

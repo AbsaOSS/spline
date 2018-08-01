@@ -114,7 +114,7 @@ object AttributeRemoval {
    * @param attribute A reference to an attribute that will be removed.
    * @return An instance of the case class [[za.co.absa.spline.model.expr.AttributeRemoval AttributeRemoval]].
    */
-  def apply(attribute: AttributeReference): AttributeRemoval =
+  def apply(attribute: AttrRef): AttributeRemoval =
     new AttributeRemoval(attribute.dataTypeId, Seq(attribute))
 }
 
@@ -125,7 +125,7 @@ object AttributeRemoval {
  * @param name       A name of a referenced attribute
  * @param dataTypeId see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
  */
-case class AttributeReference
+case class AttrRef
 (
   refId: UUID,
   name: String,
@@ -135,18 +135,18 @@ case class AttributeReference
 }
 
 /**
- * A companion object for the case class [[za.co.absa.spline.model.expr.AttributeReference AttributeReference]].
+ * A companion object for the case class [[za.co.absa.spline.model.expr.AttrRef AttributeReference]].
  */
-object AttributeReference {
+object AttrRef {
 
   /**
-   * The method constructs an instance of the case class [[za.co.absa.spline.model.expr.AttributeReference AttributeReference]].
+   * The method constructs an instance of the case class [[za.co.absa.spline.model.expr.AttrRef AttributeReference]].
    *
    * @param attribute An attribute object that will be referenced
-   * @return An instance of the case class [[za.co.absa.spline.model.expr.AttributeReference AttributeReference]].
+   * @return An instance of the case class [[za.co.absa.spline.model.expr.AttrRef AttributeReference]].
    */
-  def apply(attribute: Attribute): AttributeReference =
-    AttributeReference(attribute.id, attribute.name, attribute.dataTypeId)
+  def apply(attribute: Attribute): AttrRef =
+    AttrRef(attribute.id, attribute.name, attribute.dataTypeId)
 }
 
 /**
@@ -156,7 +156,7 @@ object AttributeReference {
  * @param dataTypeId see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
  * @param children   see [[za.co.absa.spline.model.expr.Expression#children Expression.children]]
  */
-case class UserDefinedFunction
+case class UDF
 (
   name: String,
   override val dataTypeId: UUID,

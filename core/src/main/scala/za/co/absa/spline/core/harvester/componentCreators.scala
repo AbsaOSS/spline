@@ -105,7 +105,7 @@ class ExpressionConverter(dataTypeConverter: DataTypeCreator, attributeCreator: 
         a.children map convert)
 
     case a: expressions.AttributeReference =>
-      expr.AttributeReference(
+      expr.AttrRef(
         attributeCreator.convert(a))
 
     case bo: expressions.BinaryOperator =>
@@ -115,7 +115,7 @@ class ExpressionConverter(dataTypeConverter: DataTypeCreator, attributeCreator: 
         bo.children map convert)
 
     case u: expressions.ScalaUDF =>
-      expr.UserDefinedFunction(
+      expr.UDF(
         u.udfName getOrElse u.function.getClass.getName,
         getDataType(u).id,
         u.children map convert)

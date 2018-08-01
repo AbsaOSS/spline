@@ -36,9 +36,9 @@ export type ExpressionType =
     ( "Binary"
     | "Alias"
     | "AttributeRemoval"
-    | "UserDefinedFunction"
+    | "UDF"
     | "Generic"
-    | "AttributeReference"
+    | "AttrRef"
     )
 
 export type DataTypeType =

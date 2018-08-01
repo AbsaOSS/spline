@@ -114,7 +114,7 @@
                     </p-header>
                     <ul>
                         <ng-template ngFor let-name [ngForOf]="keys(operation.aggregations)">
-                            <li *ngIf="getExprType(operation.aggregations[name]) != 'AttributeReference'">
+                            <li *ngIf="getExprType(operation.aggregations[name]) != 'AttrRef'">
                                 <expression-inline [expr]="operation.aggregations[name]"></expression-inline>
                             </li>
                         </ng-template>

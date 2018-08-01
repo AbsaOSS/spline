@@ -156,7 +156,7 @@ class ProjectionNodeBuilder
   override def build(): op.Projection = {
     val transformations = operation.projectList
       .map(expressionCreator.convert)
-      .filterNot(_.isInstanceOf[expr.AttributeReference])
+      .filterNot(_.isInstanceOf[expr.AttrRef])
       .union(resolveAttributeRemovals())
 
     op.Projection(
@@ -170,7 +170,7 @@ class ProjectionNodeBuilder
     val removedAttributes = inputAttributes diff outputAttributes
     val removedAttributesSortedByName = removedAttributes.sortBy(_.name)
     removedAttributesSortedByName map (attr =>
-      expr.AttributeRemoval(expr.AttributeReference(attributeCreator.convert(attr))))
+      expr.AttributeRemoval(expr.AttrRef(attributeCreator.convert(attr))))
   }
 }
 

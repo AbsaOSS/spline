@@ -93,7 +93,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
     }
 
     def createCompositeExpressions(attributeNames: (String, String)*): Seq[Expression] = {
-      attributeNames.map(ns => Alias(ns._2, aType.id, Seq(AttributeReference(attributeId, ns._1, aType.id))))
+      attributeNames.map(ns => Alias(ns._2, aType.id, Seq(AttrRef(attributeId, ns._1, aType.id))))
     }
 
     it("should join two compatible projections into one node") {
