@@ -18,14 +18,15 @@ package za.co.absa.spline.core.transformations
 
 import java.util.UUID.randomUUID
 
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{AsyncFunSpec, Matchers}
 import za.co.absa.spline.core.transformations.LineageProjectionMerger.mergeProjections
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.expr._
-import za.co.absa.spline.model.op.{Join, OperationProps, Projection}
+import za.co.absa.spline.model.op.{Join, Operation, OperationProps, Projection}
 import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset, Schema}
 
-class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers {
+class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with MockitoSugar {
 
   describe("consolidateReferences() method") {
 
@@ -75,7 +76,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers {
 
       val expectedLineage = lineage.copy(datasets = Seq(datasets(0), datasets(1), datasets(2)), attributes = Seq(attributes(0), attributes(1)))
 
-      LineageProjectionMerger.consolidateReferences(lineage) map (_ shouldEqual expectedLineage)
+      LineageProjectionMerger.cleanupReferences(lineage) shouldEqual expectedLineage
     }
   }
 
@@ -85,8 +86,10 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers {
 
     val aType = Simple("type", nullable = true)
 
+    val emptyLineage = DataLineage("", "", -1, Seq(mock[Operation]), Seq(mock[MetaDataset]), Nil, Nil)
+
     def createGenericExpressions(names: String*): Seq[Expression] = {
-      names.map(n => Generic("exprType", n, aType.id, Seq.empty))
+      names.map(n => Generic(n, aType.id, Seq.empty))
     }
 
     def createCompositeExpressions(attributeNames: (String, String)*): Seq[Expression] = {
@@ -123,9 +126,9 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers {
           outputMetaDataset),
         createGenericExpressions("a", "b", "c", "d")))
 
-      val result = mergeProjections(inputNodes)
+      val result = mergeProjections(emptyLineage.copy(operations = inputNodes))
 
-      result.map(_.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes)
+      result.operations.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes
     }
 
     it("should join three compatible projections into one node") {
@@ -166,9 +169,9 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers {
         createGenericExpressions("a", "b", "c", "d", "e", "f"))
       )
 
-      val result = mergeProjections(inputNodes)
+      val result = mergeProjections(emptyLineage.copy(operations = inputNodes))
 
-      result.map(_.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes)
+      result.operations.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes
     }
 
     it("should not merge incompatible projections") {
@@ -192,9 +195,9 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers {
           createCompositeExpressions(("a", "b")))
       )
 
-      val result = mergeProjections(input)
+      val result = mergeProjections(emptyLineage.copy(operations = input))
 
-      result.map(_ shouldEqual input)
+      result.operations shouldEqual input
     }
 
     it("should merge a branch of compatible projections within a diamond graph") {
@@ -283,9 +286,9 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers {
           createGenericExpressions("r"))
       )
 
-      val result = mergeProjections(inputNodes)
+      val result = mergeProjections(emptyLineage.copy(operations = inputNodes))
 
-      result.map(_.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes)
+      result.operations.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes
     }
 
 
@@ -382,9 +385,9 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers {
           createGenericExpressions("r"))
       )
 
-      val result = mergeProjections(inputNodes)
+      val result = mergeProjections(emptyLineage.copy(operations = inputNodes))
 
-      result.map(_.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes)
+      result.operations.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes
     }
   }
 }

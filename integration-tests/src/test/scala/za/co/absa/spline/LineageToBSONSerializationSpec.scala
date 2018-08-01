@@ -38,6 +38,7 @@ class LineageToBSONSerializationSpec
 
     smallLineage.operations.length shouldBe 3
     smallLineage should haveEveryComponentSizeInBSONLessThan(2.kb)
+    smallLineage.asBSON.length should be < 5.kb
   }
 
   it should "serialize big lineage" in {
@@ -67,5 +68,6 @@ class LineageToBSONSerializationSpec
       .lineage
 
     bigLineage should haveEveryComponentSizeInBSONLessThan(16.mb)
+    bigLineage.asBSON.length should be < 16.mb
   }
 }

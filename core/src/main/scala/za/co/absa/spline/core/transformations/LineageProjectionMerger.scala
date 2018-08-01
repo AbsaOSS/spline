@@ -30,6 +30,10 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 object LineageProjectionMerger extends AsyncTransformation[DataLineage] {
 
+  private val pipeline = Seq(
+    mergeProjections _,
+    cleanupReferences _)
+
   /**
     * The method transforms an input instance by a custom logic.
     *
@@ -37,43 +41,47 @@ object LineageProjectionMerger extends AsyncTransformation[DataLineage] {
     * @return A transformed result
     */
   override def apply(lineage: DataLineage)(implicit ec: ExecutionContext): Future[DataLineage] =
-    for {
-      mergedOperations <- mergeProjections(lineage.operations)
-      updatedLineage <- consolidateReferences(lineage.copy(operations = mergedOperations))
-    } yield updatedLineage
+    Future.successful((lineage /: pipeline) ((lin, f) => f(lin)))
 
-  /**
-    * The method filters out all unused MetaDatasets and Attributes.
-    *
-    * @param input An input instance
-    * @return A transformed result
-    */
-  private[transformations] def consolidateReferences(input: DataLineage)(implicit ec: ExecutionContext): Future[DataLineage] = Future.successful {
-    val operations = input.operations
-    val datasetIds = (operations.flatMap(_.mainProps.inputs) ++ operations.map(_.mainProps.output)).distinct
-    val datasets = input.datasets.filter(i => datasetIds.contains(i.id))
-    val attributeIds = datasets.flatMap(_.schema.attrs).distinct
-    val attributes = input.attributes.filter(i => attributeIds.contains(i.id))
-    input.copy(operations = operations, datasets = datasets, attributes = attributes)
+  private[transformations] def cleanupReferences(lineage: DataLineage): DataLineage = {
+    val operations = lineage.operations
+
+    val datasets = {
+      val datasetIds =
+        (operations.flatMap(_.mainProps.inputs)
+          ++ operations.map(_.mainProps.output)).distinct
+      lineage.datasets.filter(ds => datasetIds.contains(ds.id))
+    }
+
+    val attributes = {
+      val attributeIds = datasets.flatMap(_.schema.attrs).distinct
+      lineage.attributes.filter(attr => attributeIds.contains(attr.id))
+    }
+
+    val dataTypes = {
+      val dataTypeIds = attributes.map(_.dataTypeId) // todo: ++ expressions' data types IDs
+      lineage.dataTypes.filter(dt => dataTypeIds.contains(dt.id))
+    }
+
+    lineage.copy(
+      operations = operations,
+      datasets = datasets,
+      attributes = attributes,
+      dataTypes = dataTypes)
   }
 
-  /**
-    * The method merges compatible projections into one node.
-    *
-    * @param input An input instance
-    * @return A transformed result
-    */
-  private[transformations] def mergeProjections(input: Seq[Operation])(implicit ec: ExecutionContext): Future[Seq[Operation]] = Future.successful {
-    input.foldLeft(List.empty[Operation])(
+  private[transformations] def mergeProjections(lineage: DataLineage): DataLineage = {
+    val mergedOperations = lineage.operations.foldLeft(List.empty[Operation])(
       (collection, value) => collection match {
         case Nil => List(value)
         case x :: xs =>
-          if (canMerge(x, value, input))
+          if (canMerge(x, value, lineage.operations))
             merge(x, value) :: xs
           else
             value :: collection
       }
     ).reverse
+    lineage.copy(operations = mergedOperations)
   }
 
   private def canMerge(a: Operation, b: Operation, allOperations: Seq[Operation]): Boolean = {

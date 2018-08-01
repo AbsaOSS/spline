@@ -27,16 +27,6 @@ import za.co.absa.spline.model.Attribute
 @Salat
 sealed trait Expression {
   /**
-   * A string describing type of an expression node
-   */
-  val exprType: String
-
-  /**
-   * A textual representation of an expression node including sub-expressions
-   */
-  def text: String
-
-  /**
    * A data type of an expression node
    */
   val dataTypeId: UUID
@@ -59,16 +49,14 @@ trait Leaf {
 
 case class Generic
 (
-  override val exprType: String,
-  override val text: String,
+  exprType: String,
   override val dataTypeId: UUID,
   override val children: Seq[Expression]
 ) extends Expression
 
 case class GenericLeaf
 (
-  override val exprType: String,
-  override val text: String,
+  exprType: String,
   override val dataTypeId: UUID
 ) extends Expression with Leaf
 
@@ -86,27 +74,19 @@ case class Alias
   override val children: Seq[Expression]
 ) extends Expression {
 
-  override val exprType: String = "Alias"
-
   override def outputAttributeNames: Seq[String] = Seq(alias)
-
-  override def text: String = alias
 }
 
 /**
  * The case class represents binary operators like addition, multiplication, string concatenation, etc.
  *
- * @param exprType   see [[za.co.absa.spline.model.expr.Expression#exprType Expression.exprType]]
  * @param symbol     A symbol expressing the operation (+, -, *, /, etc. )
- * @param text       see [[za.co.absa.spline.model.expr.Expression#text Expression.text]]
  * @param dataTypeId see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
  * @param children   see [[za.co.absa.spline.model.expr.Expression#children Expression.children]]
  */
 case class Binary
 (
   symbol: String,
-  override val exprType: String,
-  override val text: String,
   override val dataTypeId: UUID,
   override val children: Seq[Expression]
 ) extends Expression
@@ -114,19 +94,14 @@ case class Binary
 /**
  * The case class represents a special expression for removing an attribute from a data set.
  *
- * @param text       see [[za.co.absa.spline.model.expr.Expression#text Expression.text]]
  * @param dataTypeId see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
  * @param children   see [[za.co.absa.spline.model.expr.Expression#children Expression.children]]
  */
 case class AttributeRemoval
 (
-  override val text: String,
   override val dataTypeId: UUID,
   override val children: Seq[Expression]
-) extends Expression {
-
-  override val exprType: String = "AttributeRemoval"
-}
+) extends Expression
 
 /**
  * A companion object for the case class [[za.co.absa.spline.model.expr.AttributeRemoval AttributeRemoval]].
@@ -140,7 +115,7 @@ object AttributeRemoval {
    * @return An instance of the case class [[za.co.absa.spline.model.expr.AttributeRemoval AttributeRemoval]].
    */
   def apply(attribute: AttributeReference): AttributeRemoval =
-    new AttributeRemoval("- " + attribute.text, attribute.dataTypeId, Seq(attribute))
+    new AttributeRemoval(attribute.dataTypeId, Seq(attribute))
 }
 
 /**
@@ -148,19 +123,14 @@ object AttributeRemoval {
  *
  * @param refId      An unique of a referenced attribute
  * @param name       A name of a referenced attribute
- * @param text       see [[za.co.absa.spline.model.expr.Expression#text Expression.text]]
  * @param dataTypeId see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
  */
 case class AttributeReference
 (
   refId: UUID,
   name: String,
-  text: String,
-  dataTypeId: UUID
+  override val dataTypeId: UUID
 ) extends Expression with Leaf {
-
-  override val exprType: String = "AttributeReference"
-
   override def inputAttributeNames: Seq[String] = Seq(name)
 }
 
@@ -172,38 +142,23 @@ object AttributeReference {
   /**
    * The method constructs an instance of the case class [[za.co.absa.spline.model.expr.AttributeReference AttributeReference]].
    *
-   * @param attributeId   see [[za.co.absa.spline.model.expr.AttributeReference#attributeId AttributeReference.attributeId]]
-   * @param attributeName see [[za.co.absa.spline.model.expr.AttributeReference#attributeName AttributeReference.attributeName]]
-   * @param dataTypeId    see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
-   * @return An instance of the case class [[za.co.absa.spline.model.expr.AttributeReference AttributeReference]].
-   */
-  def apply(attributeId: UUID, attributeName: String, dataTypeId: UUID): AttributeReference =
-    new AttributeReference(attributeId, attributeName, attributeName, dataTypeId)
-
-  /**
-   * The method constructs an instance of the case class [[za.co.absa.spline.model.expr.AttributeReference AttributeReference]].
-   *
    * @param attribute An attribute object that will be referenced
    * @return An instance of the case class [[za.co.absa.spline.model.expr.AttributeReference AttributeReference]].
    */
-  def apply(attribute: Attribute): AttributeReference = apply(attribute.id, attribute.name, attribute.dataTypeId)
+  def apply(attribute: Attribute): AttributeReference =
+    AttributeReference(attribute.id, attribute.name, attribute.dataTypeId)
 }
 
 /**
  * The case class represents a special expression describing an user-defined function of Spark.
  *
  * @param name       A name assigned to an user-defined function
- * @param text       see [[za.co.absa.spline.model.expr.Expression#text Expression.text]]
  * @param dataTypeId see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
  * @param children   see [[za.co.absa.spline.model.expr.Expression#children Expression.children]]
  */
 case class UserDefinedFunction
 (
   name: String,
-  override val text: String,
   override val dataTypeId: UUID,
   override val children: Seq[Expression]
-) extends Expression {
-
-  override val exprType: String = "UserDefinedFunction"
-}
+) extends Expression

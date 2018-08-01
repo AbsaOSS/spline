@@ -1140,7 +1140,6 @@ module.exports = function () {
                     },
                     "transformations": [{
                         "_typeHint": "za.co.absa.spline.core.model.expr.Generic",
-                        "exprType": "Alias",
                         "text": "UDF:selectBalance(ProductCategory#106, TradeScalar#0.NominalRepCcy, TradeScalar#0.CashBalanceRepCcy) AS Balance#352",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -1591,8 +1590,6 @@ module.exports = function () {
                     },
                     "transformations": [{
                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeRemoval",
-                        "exprType": "AttributeRemoval",
-                        "text": "- MappingMainType",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.AttributeReference",
@@ -1625,7 +1622,6 @@ module.exports = function () {
                     },
                     "condition": {
                         "_typeHint": "za.co.absa.spline.core.model.expr.Binary",
-                        "exprType": "EqualNullSafe",
                         "symbol": "<=>",
                         "text": "(ProductMainType#34 <=> MappingMainType#111)",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "boolean", "nullable": false},
@@ -1669,7 +1665,6 @@ module.exports = function () {
                     },
                     "transformations": [{
                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeRemoval",
-                        "exprType": "AttributeRemoval",
                         "text": "- FundingInstrumentType",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -1693,7 +1688,6 @@ module.exports = function () {
                     },
                     "transformations": [{
                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeRemoval",
-                        "exprType": "AttributeRemoval",
                         "text": "- AdditionalInstrumentOverride",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -1717,7 +1711,6 @@ module.exports = function () {
                     },
                     "transformations": [{
                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeRemoval",
-                        "exprType": "AttributeRemoval",
                         "text": "- MappingSubType",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -1741,7 +1734,6 @@ module.exports = function () {
                     },
                     "transformations": [{
                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeRemoval",
-                        "exprType": "AttributeRemoval",
                         "text": "- MappingMainType",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -1775,25 +1767,21 @@ module.exports = function () {
                     },
                     "condition": {
                         "_typeHint": "za.co.absa.spline.core.model.expr.Binary",
-                        "exprType": "And",
                         "symbol": "&&",
                         "text": "((((ProductMainType#34 <=> MappingMainType#85) && (ProductSubType#35 <=> MappingSubType#86)) && (UDF:toLower(UDF:replaceNullsWithNotApplicable(TradeStatic#1.InsTypeOverrideName)) <=> UDF:toLower(AdditionalInstrumentOverride#71))) && (UDF:toLower(UDF:replaceNullsWithNotApplicable(TradeStatic#1.FundingInsType)) <=> UDF:toLower(FundingInstrumentType#72)))",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "boolean", "nullable": false},
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.Binary",
-                            "exprType": "And",
                             "symbol": "&&",
                             "text": "(((ProductMainType#34 <=> MappingMainType#85) && (ProductSubType#35 <=> MappingSubType#86)) && (UDF:toLower(UDF:replaceNullsWithNotApplicable(TradeStatic#1.InsTypeOverrideName)) <=> UDF:toLower(AdditionalInstrumentOverride#71)))",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "boolean", "nullable": false},
                             "children": [{
                                 "_typeHint": "za.co.absa.spline.core.model.expr.Binary",
-                                "exprType": "And",
                                 "symbol": "&&",
                                 "text": "((ProductMainType#34 <=> MappingMainType#85) && (ProductSubType#35 <=> MappingSubType#86))",
                                 "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "boolean", "nullable": false},
                                 "children": [{
                                     "_typeHint": "za.co.absa.spline.core.model.expr.Binary",
-                                    "exprType": "EqualNullSafe",
                                     "symbol": "<=>",
                                     "text": "(ProductMainType#34 <=> MappingMainType#85)",
                                     "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "boolean", "nullable": false},
@@ -1816,7 +1804,6 @@ module.exports = function () {
                                     }]
                                 }, {
                                     "_typeHint": "za.co.absa.spline.core.model.expr.Binary",
-                                    "exprType": "EqualNullSafe",
                                     "symbol": "<=>",
                                     "text": "(ProductSubType#35 <=> MappingSubType#86)",
                                     "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "boolean", "nullable": false},
@@ -1840,7 +1827,6 @@ module.exports = function () {
                                 }]
                             }, {
                                 "_typeHint": "za.co.absa.spline.core.model.expr.Binary",
-                                "exprType": "EqualNullSafe",
                                 "symbol": "<=>",
                                 "text": "(UDF:toLower(UDF:replaceNullsWithNotApplicable(TradeStatic#1.InsTypeOverrideName)) <=> UDF:toLower(AdditionalInstrumentOverride#71))",
                                 "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "boolean", "nullable": false},
@@ -2504,7 +2490,6 @@ module.exports = function () {
                             }]
                         }, {
                             "_typeHint": "za.co.absa.spline.core.model.expr.Binary",
-                            "exprType": "EqualNullSafe",
                             "symbol": "<=>",
                             "text": "(UDF:toLower(UDF:replaceNullsWithNotApplicable(TradeStatic#1.FundingInsType)) <=> UDF:toLower(FundingInstrumentType#72))",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "boolean", "nullable": false},
@@ -3189,7 +3174,6 @@ module.exports = function () {
                     },
                     "transformations": [{
                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeRemoval",
-                        "exprType": "AttributeRemoval",
                         "text": "- SourceSubType",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -3213,7 +3197,6 @@ module.exports = function () {
                     },
                     "transformations": [{
                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeRemoval",
-                        "exprType": "AttributeRemoval",
                         "text": "- SourceMainType",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -3247,13 +3230,11 @@ module.exports = function () {
                     },
                     "condition": {
                         "_typeHint": "za.co.absa.spline.core.model.expr.Binary",
-                        "exprType": "And",
                         "symbol": "&&",
                         "text": "((UDF:toLower(Instrument#2.InstrumentType) <=> UDF:toLower(SourceMainType#32)) && (UDF:toLower(UDF:selectSubtype(Instrument#2.InstrumentType, TradeStatic#1.FxSubType, Instrument#2.UnderlyingInstrumentType)) <=> UDF:toLower(SourceSubType#49)))",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "boolean", "nullable": false},
                         "children": [{
                             "_typeHint": "za.co.absa.spline.core.model.expr.Binary",
-                            "exprType": "EqualNullSafe",
                             "symbol": "<=>",
                             "text": "(UDF:toLower(Instrument#2.InstrumentType) <=> UDF:toLower(SourceMainType#32))",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "boolean", "nullable": false},
@@ -4029,7 +4010,6 @@ module.exports = function () {
                             }]
                         }, {
                             "_typeHint": "za.co.absa.spline.core.model.expr.Binary",
-                            "exprType": "EqualNullSafe",
                             "symbol": "<=>",
                             "text": "(UDF:toLower(UDF:selectSubtype(Instrument#2.InstrumentType, TradeStatic#1.FxSubType, Instrument#2.UnderlyingInstrumentType)) <=> UDF:toLower(SourceSubType#49))",
                             "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "boolean", "nullable": false},
@@ -6238,8 +6218,7 @@ module.exports = function () {
                         "output": "ds-uuid-21"
                     },
                     "transformations": [{
-                        "_typeHint": "za.co.absa.spline.core.model.expr.Generic",
-                        "exprType": "Alias",
+                        "_typeHint": "za.co.absa.spline.core.model.expr.Alias",
                         "text": "UDF:removeEmptyStrings(SourceSubType#33) AS SourceSubType#49",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -6260,7 +6239,6 @@ module.exports = function () {
                         }]
                     }, {
                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeRemoval",
-                        "exprType": "AttributeRemoval",
                         "text": "- SourceSubType",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -6284,7 +6262,6 @@ module.exports = function () {
                     },
                     "transformations": [{
                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeRemoval",
-                        "exprType": "AttributeRemoval",
                         "text": "- ProductMainSubTypeMappingId",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -6298,7 +6275,6 @@ module.exports = function () {
                         }]
                     }, {
                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeRemoval",
-                        "exprType": "AttributeRemoval",
                         "text": "- SourceSystem",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -6352,8 +6328,7 @@ module.exports = function () {
                         "output": "ds-uuid-26"
                     },
                     "transformations": [{
-                        "_typeHint": "za.co.absa.spline.core.model.expr.Generic",
-                        "exprType": "Alias",
+                        "_typeHint": "za.co.absa.spline.core.model.expr.Alias",
                         "text": "ProductMainType#68 AS MappingMainType#85",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -6366,8 +6341,7 @@ module.exports = function () {
                             "children": []
                         }]
                     }, {
-                        "_typeHint": "za.co.absa.spline.core.model.expr.Generic",
-                        "exprType": "Alias",
+                        "_typeHint": "za.co.absa.spline.core.model.expr.Alias",
                         "text": "ProductSubType#69 AS MappingSubType#86",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -6381,7 +6355,6 @@ module.exports = function () {
                         }]
                     }, {
                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeRemoval",
-                        "exprType": "AttributeRemoval",
                         "text": "- EnterpriseProductMappingId",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -6395,7 +6368,6 @@ module.exports = function () {
                         }]
                     }, {
                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeRemoval",
-                        "exprType": "AttributeRemoval",
                         "text": "- ProductMainType",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -6409,7 +6381,6 @@ module.exports = function () {
                         }]
                     }, {
                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeRemoval",
-                        "exprType": "AttributeRemoval",
                         "text": "- ProductSubType",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -6423,7 +6394,6 @@ module.exports = function () {
                         }]
                     }, {
                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeRemoval",
-                        "exprType": "AttributeRemoval",
                         "text": "- MoneyMarketInstrumentType",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -6437,7 +6407,6 @@ module.exports = function () {
                         }]
                     }, {
                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeRemoval",
-                        "exprType": "AttributeRemoval",
                         "text": "- OTCOverride",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -6491,8 +6460,7 @@ module.exports = function () {
                         "output": "ds-uuid-30"
                     },
                     "transformations": [{
-                        "_typeHint": "za.co.absa.spline.core.model.expr.Generic",
-                        "exprType": "Alias",
+                        "_typeHint": "za.co.absa.spline.core.model.expr.Alias",
                         "text": "MainType#105 AS MappingMainType#111",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -6506,7 +6474,6 @@ module.exports = function () {
                         }]
                     }, {
                         "_typeHint": "za.co.absa.spline.core.model.expr.AttributeRemoval",
-                        "exprType": "AttributeRemoval",
                         "text": "- MainType",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "string", "nullable": true},
                         "children": [{
@@ -6539,7 +6506,6 @@ module.exports = function () {
                     },
                     "condition": {
                         "_typeHint": "za.co.absa.spline.core.model.expr.Binary",
-                        "exprType": "EqualNullSafe",
                         "symbol": "<=>",
                         "text": "(ProductMainType#34 <=> MappingMainType#111)",
                         "dataType": {"_typeHint": "za.co.absa.spline.core.model.dt.Simple", "name": "boolean", "nullable": false},

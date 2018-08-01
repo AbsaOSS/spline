@@ -33,20 +33,20 @@ trait ExpressionConverter {
     * @return An Atlas expression
     */
   def convertExpression(qualifiedNamePrefix: String, expression: expr.Expression): Expression = {
-    val qualifiedName = qualifiedNamePrefix + "@" + expression.text
+    val qualifiedName = qualifiedNamePrefix + "@" + ??? //expression.text
     val children = expression.children.zipWithIndex.map(i => convertExpression(qualifiedName + "@" + i._2, i._1))
     val mainProperties = ExpressionCommonProperties(
       qualifiedName,
-      expression.text,
+      ???, //expression.text,
       expression.exprType,
       convertDataType(expression.dataTypeId, qualifiedName),
       children
     )
 
     expression match {
-      case expr.Binary(symbol, _, _, _, _) => new BinaryExpression(mainProperties, symbol)
-      case expr.AttributeReference(attributeId, attributeName, _, _) => new AttributeReferenceExpression(mainProperties, attributeId, attributeName)
-      case expr.UserDefinedFunction(name, _, _, _) => new UserDefinedFunctionExpression(mainProperties, name)
+      case expr.Binary(symbol, _, _, _) => new BinaryExpression(mainProperties, symbol)
+      case expr.AttributeReference(attributeId, attributeName, _) => new AttributeReferenceExpression(mainProperties, attributeId, attributeName)
+      case expr.UserDefinedFunction(name, _, _) => new UserDefinedFunctionExpression(mainProperties, name)
       case _ => new Expression(mainProperties)
     }
   }

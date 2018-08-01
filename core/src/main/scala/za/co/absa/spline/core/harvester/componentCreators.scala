@@ -18,6 +18,7 @@ package za.co.absa.spline.core.harvester
 
 import java.util.UUID.randomUUID
 
+import org.apache.commons.lang3.StringUtils.substringAfter
 import org.apache.spark.sql.catalyst.expressions
 import org.apache.spark.sql.catalyst.expressions.{Attribute => SparkAttribute, Expression => SparkExpression}
 import za.co.absa.spline.model.dt._
@@ -110,30 +111,31 @@ class ExpressionConverter(dataTypeConverter: DataTypeCreator, attributeCreator: 
     case bo: expressions.BinaryOperator =>
       expr.Binary(
         bo.symbol,
-        bo.nodeName,
-        bo.simpleString,
         getDataType(bo).id,
         bo.children map convert)
 
     case u: expressions.ScalaUDF =>
       expr.UserDefinedFunction(
         u.udfName getOrElse u.function.getClass.getName,
-        u.simpleString,
         getDataType(u).id,
         u.children map convert)
 
     case e: expressions.LeafExpression =>
       expr.GenericLeaf(
-        e.nodeName,
-        e.simpleString,
+        getExpressionSimpleClassName(e),
         getDataType(e).id)
 
     case e =>
       expr.Generic(
-        e.nodeName,
-        e.simpleString,
+        getExpressionSimpleClassName(e),
         getDataType(e).id,
         e.children map convert)
+  }
+
+  private def getExpressionSimpleClassName(expr: SparkExpression) = {
+    val simpleName = substringAfter(expr.getClass.getName, "org.apache.spark.sql.catalyst.expressions.")
+    assume(simpleName.nonEmpty)
+    simpleName
   }
 
   private def getDataType(expr: SparkExpression) = dataTypeConverter.convert(expr.dataType, expr.nullable)

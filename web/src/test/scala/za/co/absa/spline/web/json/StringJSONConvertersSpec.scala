@@ -72,18 +72,12 @@ class StringJSONConvertersSpec extends FlatSpec with Matchers with MockitoSugar 
       s"""
          |{
          |  "_typeHint":"za.co.absa.spline.model.expr.AttributeRemoval",
-         |  "text":"- test",
-         |  "dataType":{
-         |    "_typeHint":"za.co.absa.spline.model.dt.Simple",
-         |    "name":"simpleType",
-         |    "nullable":true
-         |  },
+         |  "dataTypeId":"$aUUID",
          |  "children":[
          |    {
          |      "_typeHint":"za.co.absa.spline.model.expr.AttributeReference",
          |      "refId":"$aUUID",
          |      "name":"test",
-         |      "text":"test",
          |      "dataTypeId":"$aUUID"
          |    }
          |  ]
