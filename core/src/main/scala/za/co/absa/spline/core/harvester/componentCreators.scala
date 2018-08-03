@@ -99,14 +99,10 @@ class ExpressionConverter(dataTypeConverter: DataTypeCreator, attributeCreator: 
   override def convert(sparkExpr: SparkExpression): expr.Expression = sparkExpr match {
 
     case a: expressions.Alias =>
-      expr.Alias(
-        a.name,
-        dataTypeConverter.convert(a.dataType, a.nullable).id,
-        a.children map convert)
+      expr.Alias(a.name, convert(a.child))
 
     case a: expressions.AttributeReference =>
-      expr.AttrRef(
-        attributeCreator.convert(a))
+      expr.AttrRef(attributeCreator.convert(a).id)
 
     case bo: expressions.BinaryOperator =>
       expr.Binary(

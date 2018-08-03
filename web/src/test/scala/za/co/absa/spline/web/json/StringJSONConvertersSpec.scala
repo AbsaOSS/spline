@@ -67,19 +67,12 @@ class StringJSONConvertersSpec extends FlatSpec with Matchers with MockitoSugar 
   }
 
   it should "serialize AttributeRemoval" in {
-    val sourceObj = expr.AttributeRemoval(expr.AttrRef(Attribute(aUUID, "test", aUUID)))
+    val sourceObj = expr.AttributeRemoval(aUUID)
     val serializedObj =
       s"""
          |{
          |  "_typeHint":"za.co.absa.spline.model.expr.AttributeRemoval",
-         |  "dataTypeId":"$aUUID",
-         |  "children":[
-         |    {
-         |      "_typeHint":"za.co.absa.spline.model.expr.AttrRef",
-         |      "refId":"$aUUID",
-         |      "dataTypeId":"$aUUID"
-         |    }
-         |  ]
+         |  "attrId":"$aUUID"
          |}""".stripMargin
 
     parse(sourceObj.toJson) shouldEqual parse(serializedObj)

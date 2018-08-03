@@ -169,8 +169,7 @@ class ProjectionNodeBuilder
     val outputAttributes: Seq[SparkAttribute] = operation.outputSet.toSeq
     val removedAttributes = inputAttributes diff outputAttributes
     val removedAttributesSortedByName = removedAttributes.sortBy(_.name)
-    removedAttributesSortedByName map (attr =>
-      expr.AttributeRemoval(expr.AttrRef(attributeCreator.convert(attr))))
+    removedAttributesSortedByName map (attr => expr.AttributeRemoval(attributeCreator.convert(attr).id))
   }
 }
 

@@ -19,21 +19,9 @@ package za.co.absa.spline.model.expr
 import java.util.UUID
 
 import salat.annotations.Salat
-import za.co.absa.spline.model.Attribute
 
-/**
- * The trait represents a node of recursive structure that can play role of a join condition, a projection rule, etc.
- */
 @Salat
 sealed trait Expression {
-  /**
-   * A data type of an expression node
-   */
-  val dataTypeId: UUID
-
-  /**
-   * A sequence of sub-expressions
-   */
   def children: Seq[Expression]
 
   def allNamedChildrenFlattened: Seq[Expression] = children.flatMap(_.allNamedChildrenFlattened)
@@ -50,111 +38,40 @@ trait NamedExpression extends Expression {
 case class Generic
 (
   exprType: String,
-  override val dataTypeId: UUID,
+  dataTypeId: UUID,
   override val children: Seq[Expression]
 ) extends Expression
 
 case class GenericLeaf
 (
   exprType: String,
-  override val dataTypeId: UUID
+  dataTypeId: UUID
 ) extends Expression
   with LeafExpression
 
-/**
- * The case class represents renaming of an underlying expression to a specific alias.
- *
- * @param alias      A final name of the expression
- * @param dataTypeId see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
- * @param children   see [[za.co.absa.spline.model.expr.Expression#children Expression.children]]
- */
 case class Alias
 (
   alias: String,
-  override val dataTypeId: UUID,
-  override val children: Seq[Expression]
+  child: Expression
 ) extends Expression
-  with NamedExpression
+  with NamedExpression {
+  override def children: Seq[Expression] = Seq(child)
+}
 
-/**
- * The case class represents binary operators like addition, multiplication, string concatenation, etc.
- *
- * @param symbol     A symbol expressing the operation (+, -, *, /, etc. )
- * @param dataTypeId see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
- * @param children   see [[za.co.absa.spline.model.expr.Expression#children Expression.children]]
- */
 case class Binary
 (
   symbol: String,
-  override val dataTypeId: UUID,
+  dataTypeId: UUID,
   override val children: Seq[Expression]
 ) extends Expression
 
-/**
- * The case class represents a special expression for removing an attribute from a data set.
- *
- * @param dataTypeId see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
- * @param children   see [[za.co.absa.spline.model.expr.Expression#children Expression.children]]
- */
-case class AttributeRemoval
-(
-  override val dataTypeId: UUID,
-  override val children: Seq[Expression]
-) extends Expression
+case class AttributeRemoval(attrId: UUID) extends Expression with LeafExpression
 
-/**
- * A companion object for the case class [[za.co.absa.spline.model.expr.AttributeRemoval AttributeRemoval]].
- */
-object AttributeRemoval {
+case class AttrRef(refId: UUID) extends Expression with LeafExpression with NamedExpression
 
-  /**
-   * The method constructs new instance of the case class [[za.co.absa.spline.model.expr.AttributeRemoval AttributeRemoval]].
-   *
-   * @param attribute A reference to an attribute that will be removed.
-   * @return An instance of the case class [[za.co.absa.spline.model.expr.AttributeRemoval AttributeRemoval]].
-   */
-  def apply(attribute: AttrRef): AttributeRemoval =
-    new AttributeRemoval(attribute.dataTypeId, Seq(attribute))
-}
-
-/**
- * The case class represents a special expression for referencing an attribute from a data set.
- *
- * @param refId      An unique of a referenced attribute
- * @param dataTypeId see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
- */
-case class AttrRef
-(
-  refId: UUID,
-  override val dataTypeId: UUID
-) extends Expression
-  with LeafExpression
-  with NamedExpression
-
-/**
- * A companion object for the case class [[za.co.absa.spline.model.expr.AttrRef AttributeReference]].
- */
-object AttrRef {
-
-  /**
-   * The method constructs an instance of the case class [[za.co.absa.spline.model.expr.AttrRef AttributeReference]].
-   *
-   * @param attribute An attribute object that will be referenced
-   * @return An instance of the case class [[za.co.absa.spline.model.expr.AttrRef AttributeReference]].
-   */
-  def apply(attribute: Attribute): AttrRef = AttrRef(attribute.id, attribute.dataTypeId)
-}
-
-/**
- * The case class represents a special expression describing an user-defined function of Spark.
- *
- * @param name       A name assigned to an user-defined function
- * @param dataTypeId see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
- * @param children   see [[za.co.absa.spline.model.expr.Expression#children Expression.children]]
- */
 case class UDF
 (
   name: String,
-  override val dataTypeId: UUID,
+  dataTypeId: UUID,
   override val children: Seq[Expression]
 ) extends Expression
