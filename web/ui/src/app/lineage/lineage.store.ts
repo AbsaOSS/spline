@@ -15,7 +15,7 @@
  */
 
 import {Injectable} from "@angular/core";
-import {IAttribute, IDataLineage, IMetaDataset, IOperation} from "../../generated-ts/lineage-model";
+import {IAttribute, IDataLineage, IDataType, IMetaDataset, IOperation} from "../../generated-ts/lineage-model";
 import {Observable} from "rxjs/Observable";
 import {Subject} from "rxjs/Subject";
 import {ReplaySubject} from "rxjs/ReplaySubject";
@@ -43,11 +43,13 @@ export class LineageAccessors {
     private datasetById: { [id: string]: IMetaDataset }
     private attributeById: { [id: string]: IAttribute }
     private operationIdsByAttributeId: { [id: string]: string }
+    private dataTypesById: { [id: string]: IDataType }
 
     constructor(public lineage: IDataLineage) {
         this.operationById = _.mapValues(_.groupBy(lineage.operations, "mainProps.id"), _.first)
         this.datasetById = _.mapValues(_.groupBy(lineage.datasets, "id"), _.first)
         this.attributeById = _.mapValues(_.groupBy(lineage.attributes, "id"), _.first)
+        this.dataTypesById = _.mapValues(_.groupBy(lineage.dataTypes, "id"), _.first)
 
         this.operationIdsByAttributeId = (<any>_(lineage.operations))
             .flatMap((op: IOperation) => {
@@ -72,6 +74,10 @@ export class LineageAccessors {
 
     public getAttribute(attrId: string) {
         return this.attributeById[attrId]
+    }
+
+    public getDataType(typeId: string) {
+        return this.dataTypesById[typeId]
     }
 
     public getOperationIdsByAnyAttributeId(...attrIds: string[]): string[] {

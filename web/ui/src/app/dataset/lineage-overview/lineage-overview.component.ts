@@ -21,23 +21,27 @@ import {Observable} from "rxjs/Observable";
 import * as _ from "lodash";
 import {GraphNode, GraphNodeType} from "./lineage-overview.model";
 import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
-import {LineageAccessors} from "../../lineage/lineage.store";
+import {LineageAccessors, LineageStore} from "../../lineage/lineage.store";
 
 @Component({
     templateUrl: "lineage-overview.component.html",
-    styleUrls: ["lineage-overview.component.less"]
+    styleUrls: ["lineage-overview.component.less"],
+    providers: [LineageStore]
 })
 
 export class DatasetLineageOverviewComponent {
 
-    lineage$: Observable<IDataLineage>
     selectedNode$: Observable<GraphNode>
 
     selectedDataSourceDescription: DataSourceDescription
     selectedOperation: IComposite
 
-    constructor(private route: ActivatedRoute, private router: Router) {
-        this.lineage$ = route.data.map((data: { lineage: IDataLineage }) => data.lineage)
+    constructor(
+        private route: ActivatedRoute,
+        private router: Router,
+        private lineageStore: LineageStore) {
+
+        route.data.subscribe((data: { lineage: IDataLineage }) => this.lineageStore.lineage = data.lineage)
 
         this.selectedNode$ =
             Observable.combineLatest(
@@ -49,7 +53,7 @@ export class DatasetLineageOverviewComponent {
                     id: data.dataset.datasetId
                 })
 
-        let lineageAccessors$ = this.lineage$.map(lin => new LineageAccessors(lin))
+        let lineageAccessors$ = this.lineageStore.lineage$.map(lin => new LineageAccessors(lin))
 
         Observable
             .combineLatest(lineageAccessors$, this.selectedNode$)

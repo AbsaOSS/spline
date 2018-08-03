@@ -183,6 +183,7 @@
                                 <argument>za.co.absa.spline.model.expr.AttributeRemoval</argument>
                                 <argument>za.co.absa.spline.model.expr.AttrRef</argument>
                                 <argument>za.co.absa.spline.model.expr.Generic</argument>
+                                <argument>za.co.absa.spline.model.expr.GenericLeaf</argument>
                                 <argument>za.co.absa.spline.model.expr.Alias</argument>
                                 <argument>za.co.absa.spline.model.expr.Binary</argument>
                                 <argument>za.co.absa.spline.model.expr.UDF</argument>

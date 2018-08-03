@@ -18,7 +18,7 @@ import {Component, Input, OnChanges} from "@angular/core";
 import {MatDialog} from "@angular/material";
 import {ExpressionDialogComponent} from "./expression-dialog.component";
 import {IExpression} from "../../../../generated-ts/expression-model";
-import {ExpressionUtils} from "./expression-utils";
+import {ExpressionRenderService} from "./expression-render.service";
 
 @Component({
     selector: "expression-inline",
@@ -31,18 +31,20 @@ import {ExpressionUtils} from "./expression-utils";
         code {
             padding: 0;
         }
-    `]
+    `],
+    providers: [ExpressionRenderService]
 })
 export class ExpressionInlineComponent implements OnChanges {
     @Input() expr: IExpression
 
     exprString: string
 
-    constructor(private dialog: MatDialog) {
+    constructor(private dialog: MatDialog,
+                private expressionRenderer: ExpressionRenderService) {
     }
 
     ngOnChanges(): void {
-        this.exprString = ExpressionUtils.getText(this.expr).replace(/#\d+/g, "")
+        this.exprString = this.expressionRenderer.getText(this.expr)
     }
 
     openExprViewDialog(e: Event) {
@@ -51,6 +53,7 @@ export class ExpressionInlineComponent implements OnChanges {
             data: {
                 expr: this.expr,
                 exprString: this.exprString,
+                expressionRenderer: this.expressionRenderer
             }
         })
     }

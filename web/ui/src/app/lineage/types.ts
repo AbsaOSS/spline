@@ -38,6 +38,7 @@ export type ExpressionType =
     | "AttributeRemoval"
     | "UDF"
     | "Generic"
+    | "GenericLeaf"
     | "AttrRef"
     )
 

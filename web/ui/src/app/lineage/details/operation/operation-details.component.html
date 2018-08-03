@@ -136,9 +136,9 @@
                             [ngSwitch]="getExprType(expr)">
                             <span *ngSwitchCase="'AttributeRemoval'"
                                   class="expr-attr-removal"
-                                  title="Removed attribute '{{expr.children[0].name}}'">
+                                  title="Removed attribute '{{ getAttribute(expr.attrId).name }}'">
                                 <i>a</i>
-                                <span>{{ expr.children[0].name }}</span>
+                                <span>{{ getAttribute(expr.attrId).name }}</span>
                             </span>
                             <span *ngSwitchDefault
                                   class="expr-lambda">

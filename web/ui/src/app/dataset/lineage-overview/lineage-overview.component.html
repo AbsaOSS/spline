@@ -18,7 +18,7 @@
     <mat-grid-list cols="3">
         <mat-grid-tile colspan="2">
             <lineage-overview-graph #graph
-                                    [lineage$]="lineage$"
+                                    [lineage$]="lineageStore.lineage$"
                                     [selectedNode$]="selectedNode$"
                                     (nodeSelected)="selectNode($event.id, $event.type)"
                                     (nodeActioned)="gotoPartialLineage($event.id)">

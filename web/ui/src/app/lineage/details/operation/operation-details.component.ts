@@ -55,6 +55,10 @@ export class OperationDetailsComponent implements OnChanges {
         return typeOfExpr(expr)
     }
 
+    getAttribute(id: string): IAttribute {
+        return this.lineageStore.lineageAccessors.getAttribute(id)
+    }
+
     getDatasetAttributes(dsId: string): IAttribute[] {
         let dataset = this.lineageStore.lineageAccessors.getDataset(dsId)
         return dataset.schema.attrs.map(attrId => this.lineageStore.lineageAccessors.getAttribute(attrId))

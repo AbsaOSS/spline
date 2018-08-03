@@ -21,6 +21,7 @@ import {typeOfDataType} from "../../types";
 import {IActionMapping, ITreeOptions, TreeComponent} from "angular-tree-component";
 import {ITreeNode} from 'angular-tree-component/dist/defs/api';
 import * as _ from 'lodash';
+import {LineageStore} from "../../lineage.store";
 
 @Component({
     selector: "attribute-list",
@@ -56,6 +57,9 @@ export class AttributeListComponent implements OnInit {
         allowDrop: false,
     }
 
+    constructor(private lineageStore: LineageStore) {
+    }
+
     ngOnInit(): void {
         this.attrTree = this.attrs.map(a => this.buildAttrTree(a))
     }
@@ -72,16 +76,17 @@ export class AttributeListComponent implements OnInit {
 
     private buildAttrTree(attr: IAttribute): INodeData {
         const attributeId = attr.id
+        const getDataType = _.bind(this.lineageStore.lineageAccessors.getDataType, this.lineageStore.lineageAccessors)
 
         function buildChildren(dt: IDataType): (INodeData[] | undefined) {
             let dtt = typeOfDataType(dt)
             return (dtt == "Simple") ? undefined
                 : (dtt == "Struct") ? buildChildrenForStructType(<IStruct> dt)
-                    : buildChildren((<IArray> dt).elementDataType)
+                    : buildChildren(getDataType((<IArray> dt).elementDataTypeId))
         }
 
         function buildChildrenForStructType(sdt: IStruct): INodeData[] {
-            return sdt.fields.map(f => buildNode(f.dataType, f.name, false))
+            return sdt.fields.map(f => buildNode(getDataType(f.dataTypeId), f.name, false))
         }
 
         function buildNode(dt: IDataType, name: string, isExpanded: boolean) {
@@ -94,7 +99,7 @@ export class AttributeListComponent implements OnInit {
             }
         }
 
-        return buildNode(attr.dataType, attr.name, this.expandRoot)
+        return buildNode(getDataType(attr.dataTypeId), attr.name, this.expandRoot)
     }
 
     private highlightSelected(): void {

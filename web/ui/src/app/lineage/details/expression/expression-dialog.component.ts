@@ -16,11 +16,11 @@
 
 import {MAT_DIALOG_DATA} from "@angular/material";
 import {Component, Inject} from "@angular/core";
-import * as _ from "lodash";
 import {IExpression} from "../../../../generated-ts/expression-model";
 import {ITreeNode} from 'angular-tree-component/dist/defs/api';
 import {IActionMapping, ITreeOptions} from 'angular-tree-component';
-import {ExpressionUtils} from "./expression-utils";
+import {ExpressionRenderService} from "./expression-render.service";
+
 
 @Component({
     selector: "expression-dialog",
@@ -38,7 +38,9 @@ import {ExpressionUtils} from "./expression-utils";
 })
 export class ExpressionDialogComponent {
 
-    expr: IExpression
+    private readonly expr: IExpression
+    private expressionRenderer: ExpressionRenderService
+
     exprString: string
     exprTree: any[]
 
@@ -57,28 +59,26 @@ export class ExpressionDialogComponent {
     constructor(@Inject(MAT_DIALOG_DATA) data: any) {
         this.expr = data.expr
         this.exprString = data.exprString
+        this.expressionRenderer = data.expressionRenderer
         this.exprTree = this.buildExprTree()
     }
 
     private buildExprTree(): any[] {
         let seq = 0
-        return [buildNode(this.expr)]
 
-        function buildNode(expr: IExpression) {
-            let exprText = ExpressionUtils.getText(expr)
-            return {
-                id: seq++,
-                name: _.isEmpty(expr.children)
-                    ? exprText // only use it for leaf expressions
-                    : expr.exprType, // todo: this property is not mandatory for any arbitrary expression
-                text: exprText.replace(/#\d+/g, ""),
-                children: buildChildrenNodes(expr)
-            }
-        }
+        const buildNode = (expr: IExpression) => ({
+            id: seq++,
+            name: "??? short expr name ???",
+            text: this.expressionRenderer.getText(expr),
+            children: buildChildrenNodes(expr)
+        })
 
         function buildChildrenNodes(ex: IExpression): (any[] | undefined) {
-            return (ex.children || []).map(buildNode)
+            const children = ex['children'] || (ex['child'] && [ex['child']])
+            return children && children.map(buildNode)
         }
+
+        return [buildNode(this.expr)]
     }
 
     static onNodeClicked(node: ITreeNode) {
