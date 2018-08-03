@@ -45,7 +45,7 @@ trait ExpressionConverter {
 
     expression match {
       case expr.Binary(symbol, _, _) => new BinaryExpression(mainProperties, symbol)
-      case expr.AttrRef(attributeId, attributeName, _) => new AttributeReferenceExpression(mainProperties, attributeId, attributeName)
+      case expr.AttrRef(attributeId, _) => new AttributeReferenceExpression(mainProperties, attributeId, "") //attributeName)
       case expr.UDF(name, _, _) => new UserDefinedFunctionExpression(mainProperties, name)
       case _ => new Expression(mainProperties)
     }

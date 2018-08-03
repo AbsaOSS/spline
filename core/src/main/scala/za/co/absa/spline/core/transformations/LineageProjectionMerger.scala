@@ -16,11 +16,12 @@
 
 package za.co.absa.spline.core.transformations
 
+import java.util.UUID
 import java.util.UUID.randomUUID
 
 import za.co.absa.spline.common.transformations.AsyncTransformation
-import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.model.expr.Expression
+import za.co.absa.spline.model.{Attribute, DataLineage}
+import za.co.absa.spline.model.expr.{Alias, AttrRef, Expression}
 import za.co.absa.spline.model.op.{Operation, OperationProps, Projection}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -71,11 +72,12 @@ object LineageProjectionMerger extends AsyncTransformation[DataLineage] {
   }
 
   private[transformations] def mergeProjections(lineage: DataLineage): DataLineage = {
+    val attributeById = lineage.attributes.map(attr => attr.id -> attr).toMap
     val mergedOperations = lineage.operations.foldLeft(List.empty[Operation])(
       (collection, value) => collection match {
         case Nil => List(value)
         case x :: xs =>
-          if (canMerge(x, value, lineage.operations))
+          if (canMerge(x, value, lineage.operations, attributeById))
             merge(x, value) :: xs
           else
             value :: collection
@@ -84,10 +86,22 @@ object LineageProjectionMerger extends AsyncTransformation[DataLineage] {
     lineage.copy(operations = mergedOperations)
   }
 
-  private def canMerge(a: Operation, b: Operation, allOperations: Seq[Operation]): Boolean = {
+  private def canMerge(a: Operation, b: Operation, allOperations: Seq[Operation], attributesById: Map[UUID, Attribute]): Boolean = {
     def transformationsAreCompatible(ats: Seq[Expression], bts: Seq[Expression]) = {
-      val inputAttributeNames = ats.flatMap(_.inputAttributeNames)
-      val outputAttributeNames = bts.flatMap(_.outputAttributeNames)
+      val inputAttributeNames = ats.
+        flatMap(_.allNamedChildrenFlattened).
+        flatMap({
+          case ref: AttrRef => Some(attributesById(ref.refId).name)
+          case _ => None
+        })
+
+      val outputAttributeNames = bts.
+        flatMap(_.allNamedChildrenFlattened).
+        flatMap({
+          case alias: Alias => Some(alias.alias)
+          case _ => None
+        })
+
       (inputAttributeNames intersect outputAttributeNames).isEmpty
     }
 

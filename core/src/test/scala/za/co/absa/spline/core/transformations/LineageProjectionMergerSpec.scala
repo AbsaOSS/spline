@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.core.transformations
 
+import java.util.UUID
 import java.util.UUID.randomUUID
 
 import org.scalatest.mockito.MockitoSugar
@@ -25,6 +26,8 @@ import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.expr._
 import za.co.absa.spline.model.op.{Join, Operation, OperationProps, Projection}
 import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset, Schema}
+
+import scala.collection.mutable
 
 class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with MockitoSugar {
 
@@ -82,8 +85,6 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
 
   describe("mergeProjections() method") {
 
-    val attributeId = randomUUID()
-
     val aType = Simple("type", nullable = true)
 
     val emptyLineage = DataLineage("", "", -1, Seq(mock[Operation]), Seq(mock[MetaDataset]), Nil, Nil)
@@ -92,8 +93,19 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
       names.map(n => Generic(n, aType.id, Seq.empty))
     }
 
-    def createCompositeExpressions(attributeNames: (String, String)*): Seq[Expression] = {
-      attributeNames.map(ns => Alias(ns._2, aType.id, Seq(AttrRef(attributeId, ns._1, aType.id))))
+    def createCompositeExpressions(attributeNames: (String, String)*)
+                                  (attrCollector: mutable.Map[UUID, Attribute]): Seq[Expression] = {
+      attributeNames.map({ case (name1, name2) =>
+        val refAttrId = attrCollector.
+          find { case (_, attr) => attr.name == name1 }.
+          map { case (id, _) => id }.
+          getOrElse {
+            val id = randomUUID
+            attrCollector.put(id, Attribute(id, name1, aType.id))
+            id
+          }
+        Alias(name2, aType.id, Seq(AttrRef(refAttrId, aType.id)))
+      })
     }
 
     it("should join two compatible projections into one node") {
@@ -177,6 +189,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
     it("should not merge incompatible projections") {
       val metaDatasetId = randomUUID
       val outputMetaDataset = randomUUID
+      val attrs = mutable.Map.empty[UUID, Attribute]
 
       val input = Seq(
         Projection(
@@ -185,17 +198,17 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
             "node2",
             Seq(metaDatasetId),
             outputMetaDataset),
-          createCompositeExpressions(("b", "c"))),
+          createCompositeExpressions(("b", "c"))(attrs)),
         Projection(
           OperationProps(
             randomUUID,
             "node1",
             Seq(),
             metaDatasetId),
-          createCompositeExpressions(("a", "b")))
+          createCompositeExpressions(("a", "b"))(attrs))
       )
 
-      val result = mergeProjections(emptyLineage.copy(operations = input))
+      val result = mergeProjections(emptyLineage.copy(operations = input, attributes = attrs.values.toSeq))
 
       result.operations shouldEqual input
     }
@@ -299,6 +312,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
       val metaDatasetIncompatible1Id = randomUUID
       val metaDatasetIncompatible2Id = randomUUID
       val outputMetaDataset = randomUUID
+      val attrs = mutable.Map.empty[UUID, Attribute]
 
       val inputNodes = Seq(
         Join(
@@ -315,28 +329,28 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
             "incompatible2",
             Seq(metaDatasetIncompatible1Id),
             metaDatasetIncompatible2Id),
-          createCompositeExpressions(("b", "c"))),
+          createCompositeExpressions(("b", "c"))(attrs)),
         Projection(
           OperationProps(
             randomUUID,
             "incompatible1",
             Seq(metaDatasetRootId),
             metaDatasetIncompatible1Id),
-          createCompositeExpressions(("a", "b"))),
+          createCompositeExpressions(("a", "b"))(attrs)),
         Projection(
           OperationProps(
             randomUUID,
             "compatible2",
             Seq(metaDatasetCompatible1Id),
             metaDatasetCompatible2Id),
-          createCompositeExpressions(("a", "b"))),
+          createCompositeExpressions(("a", "b"))(attrs)),
         Projection(
           OperationProps(
             randomUUID,
             "compatible1",
             Seq(metaDatasetRootId),
             metaDatasetCompatible1Id),
-          createCompositeExpressions(("b", "c"))),
+          createCompositeExpressions(("b", "c"))(attrs)),
         Projection(
           OperationProps(
             randomUUID,
@@ -361,21 +375,21 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
             "incompatible2",
             Seq(metaDatasetIncompatible1Id),
             metaDatasetIncompatible2Id),
-          createCompositeExpressions(("b", "c"))),
+          createCompositeExpressions(("b", "c"))(attrs)),
         Projection(
           OperationProps(
             id = null,
             "incompatible1",
             Seq(metaDatasetRootId),
             metaDatasetIncompatible1Id),
-          createCompositeExpressions(("a", "b"))),
+          createCompositeExpressions(("a", "b"))(attrs)),
         Projection(
           OperationProps(
             id = null,
             "compatible1",
             Seq(metaDatasetRootId),
             metaDatasetCompatible2Id),
-          createCompositeExpressions(("b", "c"), ("a", "b"))),
+          createCompositeExpressions(("b", "c"), ("a", "b"))(attrs)),
         Projection(
           OperationProps(
             id = null,
@@ -385,7 +399,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
           createGenericExpressions("r"))
       )
 
-      val result = mergeProjections(emptyLineage.copy(operations = inputNodes))
+      val result = mergeProjections(emptyLineage.copy(operations = inputNodes, attributes = attrs.values.toSeq))
 
       result.operations.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes
     }

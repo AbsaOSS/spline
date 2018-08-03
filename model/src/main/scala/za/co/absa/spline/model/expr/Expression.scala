@@ -36,15 +36,15 @@ sealed trait Expression {
    */
   def children: Seq[Expression]
 
-  def inputAttributeNames: Seq[String] = children.flatMap(_.inputAttributeNames)
-
-  def outputAttributeNames: Seq[String] = children.flatMap(_.outputAttributeNames)
+  def allNamedChildrenFlattened: Seq[Expression] = children.flatMap(_.allNamedChildrenFlattened)
 }
 
-trait Leaf {
-  this: Expression =>
-
+trait LeafExpression extends Expression {
   override final def children: Seq[Expression] = Nil
+}
+
+trait NamedExpression extends Expression {
+  override final def allNamedChildrenFlattened: Seq[Expression] = this +: super.allNamedChildrenFlattened
 }
 
 case class Generic
@@ -58,7 +58,8 @@ case class GenericLeaf
 (
   exprType: String,
   override val dataTypeId: UUID
-) extends Expression with Leaf
+) extends Expression
+  with LeafExpression
 
 /**
  * The case class represents renaming of an underlying expression to a specific alias.
@@ -72,10 +73,8 @@ case class Alias
   alias: String,
   override val dataTypeId: UUID,
   override val children: Seq[Expression]
-) extends Expression {
-
-  override def outputAttributeNames: Seq[String] = Seq(alias)
-}
+) extends Expression
+  with NamedExpression
 
 /**
  * The case class represents binary operators like addition, multiplication, string concatenation, etc.
@@ -122,17 +121,15 @@ object AttributeRemoval {
  * The case class represents a special expression for referencing an attribute from a data set.
  *
  * @param refId      An unique of a referenced attribute
- * @param name       A name of a referenced attribute
  * @param dataTypeId see [[za.co.absa.spline.model.expr.Expression#dataType Expression.dataType]]
  */
 case class AttrRef
 (
   refId: UUID,
-  name: String,
   override val dataTypeId: UUID
-) extends Expression with Leaf {
-  override def inputAttributeNames: Seq[String] = Seq(name)
-}
+) extends Expression
+  with LeafExpression
+  with NamedExpression
 
 /**
  * A companion object for the case class [[za.co.absa.spline.model.expr.AttrRef AttributeReference]].
@@ -145,8 +142,7 @@ object AttrRef {
    * @param attribute An attribute object that will be referenced
    * @return An instance of the case class [[za.co.absa.spline.model.expr.AttrRef AttributeReference]].
    */
-  def apply(attribute: Attribute): AttrRef =
-    AttrRef(attribute.id, attribute.name, attribute.dataTypeId)
+  def apply(attribute: Attribute): AttrRef = AttrRef(attribute.id, attribute.dataTypeId)
 }
 
 /**
