@@ -26,7 +26,7 @@ import org.slf4s.Logging
 import za.co.absa.spline.sparkadapterapi.StructuredStreamingListenerAdapter.instance._
 import za.co.absa.spline.harvester.LogicalPlanLineageHarvester
 import za.co.absa.spline.harvester.conf.LineageDispatcher
-import za.co.absa.spline.model.endpoint.{FileEndpoint, KafkaEndpoint}
+import za.co.absa.spline.model.endpoint.{ConsoleEndpoint, FileEndpoint, KafkaEndpoint}
 import za.co.absa.spline.model.op.{OperationProps, StreamWrite}
 
 import scala.language.postfixOps
@@ -70,7 +70,7 @@ class StructuredStreamingListener(
     val maybeEndpoint = se.sink match {
       case FileSinkObj(path, fileFormat) => Some(FileEndpoint(path, fileFormat.toString))
       case KafkaSinkObj(cluster, topic) => Some(KafkaEndpoint(cluster, topic.getOrElse("")))
-      case x if Set(consoleSinkClass(), classOf[ForeachSink[_]], classOf[MemorySink]).exists(assignableFrom(_, x)) => None
+      case x if Set(consoleSinkClass(), classOf[ForeachSink[_]], classOf[MemorySink]).exists(assignableFrom(_, x)) => Some(ConsoleEndpoint)
       case sink => throw new IllegalArgumentException(s"Unsupported sink type: ${sink.getClass}")
     }
 

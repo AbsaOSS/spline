@@ -46,3 +46,5 @@ case class KafkaEndpoint(cluster: Seq[String], topic: String) extends StreamEndp
   * @param port A port number
   */
 case class SocketEndpoint(host: String, port: String) extends StreamEndpoint
+
+case object ConsoleEndpoint extends StreamEndpoint
