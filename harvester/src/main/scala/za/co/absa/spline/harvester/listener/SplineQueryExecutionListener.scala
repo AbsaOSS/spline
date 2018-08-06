@@ -26,7 +26,10 @@ import za.co.absa.spline.model.DataLineage
 
 import scala.language.postfixOps
 
-class SplineQueryExecutionListener(harvester: LogicalPlanLineageHarvester, lineageDispatcher: LineageDispatcher, sparkSession: SparkSession) extends QueryExecutionListener with Logging {
+class SplineQueryExecutionListener(
+  harvester: LogicalPlanLineageHarvester,
+  lineageDispatcher: LineageDispatcher,
+  sparkSession: SparkSession) extends QueryExecutionListener with Logging {
 
   /**
     * The method is executed when an action execution is successful.

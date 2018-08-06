@@ -61,7 +61,7 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
   }
 
   it should "return StreamRead node with a kafka endpoint when reading data from a kafka topic." in {
-    val cluster = Seq("server1:1111", "server2:2222")
+    val cluster = Seq("localhost:1111", "localhost:2222")
     val topic = "someTopic"
 
     val df = sparkSession

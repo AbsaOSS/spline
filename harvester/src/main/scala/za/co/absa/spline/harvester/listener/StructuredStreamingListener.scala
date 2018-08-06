@@ -25,6 +25,7 @@ import org.apache.spark.sql.streaming.{StreamingQuery, StreamingQueryListener, S
 import org.slf4s.Logging
 import za.co.absa.spline.sparkadapterapi.StructuredStreamingListenerAdapter.instance._
 import za.co.absa.spline.harvester.LogicalPlanLineageHarvester
+import za.co.absa.spline.harvester.conf.LineageDispatcher
 import za.co.absa.spline.model.endpoint.{FileEndpoint, KafkaEndpoint}
 import za.co.absa.spline.model.op.{OperationProps, StreamWrite}
 
@@ -33,8 +34,10 @@ import scala.language.postfixOps
 /**
   * Not finished. Please ignore.
   */
-class StructuredStreamingListener(queryManager: StreamingQueryManager,
-                                  lineageHarvester: LogicalPlanLineageHarvester)
+class StructuredStreamingListener(
+  queryManager: StreamingQueryManager,
+  lineageHarvester: LogicalPlanLineageHarvester,
+  lineageDispatcher: LineageDispatcher)
   extends StreamingQueryListener with Logging {
 
   override def onQueryStarted(event: StreamingQueryListener.QueryStartedEvent): Unit = {
@@ -82,6 +85,7 @@ class StructuredStreamingListener(queryManager: StreamingQueryManager,
           datasets = metaDataset +: lineage.datasets)
     }
 
+    lineageDispatcher.send(streamingLineage)
   }
 
   private def assignableFrom(runtimeClass: Class[_], anyRef: AnyRef) = {
