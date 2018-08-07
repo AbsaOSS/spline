@@ -69,7 +69,7 @@ class StructuredStreamingListener(
     val logicalPlanLineage = lineageHarvester.harvestLineage(se.sparkSession.sparkContext, se.logicalPlan)
 
     val endpoint = se.sink match {
-      case FileSinkObj(path, fileFormat) => FileEndpoint(path, fileFormat.toString)
+      case FileSinkObj(path, fileFormat) => FileEndpoint(fileFormat.toString, path)
       case KafkaSinkObj(cluster, topic) => KafkaEndpoint(cluster, topic.getOrElse(""))
       case x if Set(consoleSinkClass(), classOf[ForeachSink[_]], classOf[MemorySink]).exists(assignableFrom(_, x)) => ConsoleEndpoint()
       case sink => throw new IllegalArgumentException(s"Unsupported sink type: ${sink.getClass}")
@@ -77,7 +77,7 @@ class StructuredStreamingListener(
 
     val metaDataset = logicalPlanLineage.rootDataset.copy(randomUUID)
     val mainProps = OperationProps(randomUUID, endpoint.getClass.getSimpleName, Seq(logicalPlanLineage.rootDataset.id), metaDataset.id)
-    val writeOperation = StreamWrite(mainProps, endpoint, endpoint.getClass.getSimpleName, endpoint.path.toString)
+    val writeOperation = StreamWrite(mainProps, endpoint)
 
     val streamingLineage = logicalPlanLineage.copy(
         operations = writeOperation +: logicalPlanLineage.operations,

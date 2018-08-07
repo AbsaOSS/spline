@@ -19,7 +19,7 @@ package za.co.absa.spline.model.op
 import java.awt.JobAttributes.DestinationType
 import java.util.UUID
 
-import salat.annotations.Salat
+import salat.annotations.{Persist, Salat}
 import za.co.absa.spline.model.endpoint.StreamEndpoint
 import za.co.absa.spline.model.expr.Expression
 import za.co.absa.spline.model.{MetaDataSource, TypedMetaDataSource}
@@ -64,7 +64,7 @@ object Operation {
       case op@Read(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@StreamRead(mp, _) => op.copy(mainProps = fn(mp))
       case op@BatchWrite(mp, _, _, _) => op.copy(mainProps = fn(mp))
-      case op@StreamWrite(mp, _, _, _) => op.copy(mainProps = fn(mp))
+      case op@StreamWrite(mp, _) => op.copy(mainProps = fn(mp))
       case op@Alias(mp, _) => op.copy(mainProps = fn(mp))
       case op@Filter(mp, _) => op.copy(mainProps = fn(mp))
       case op@Sort(mp, _) => op.copy(mainProps = fn(mp))
@@ -239,10 +239,14 @@ case class StreamRead(
   */
 case class StreamWrite(
                         mainProps: OperationProps,
-                        destination: StreamEndpoint,
-                        destinationType: String,
-                        path: String
-                      ) extends Write
+                        destination: StreamEndpoint
+                      ) extends Write {
+  @Persist
+  lazy val path: String = destination.path.toString
+
+  @Persist
+  lazy val destinationType: String = destination.description
+}
 
 /**
   * The case class represents a partial data lineage at its boundary level.
