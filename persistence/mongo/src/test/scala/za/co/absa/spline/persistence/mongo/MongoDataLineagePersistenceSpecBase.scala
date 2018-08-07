@@ -21,7 +21,7 @@ import java.util.UUID.randomUUID
 
 import org.scalatest.{AsyncFunSpec, BeforeAndAfterEach, Matchers}
 import za.co.absa.spline.model.dt.Simple
-import za.co.absa.spline.model.op.{Generic, OperationProps, Write}
+import za.co.absa.spline.model.op.{Generic, OperationProps, BatchWrite}
 import za.co.absa.spline.model.{Attribute, Schema, _}
 import za.co.absa.spline.persistence.mongo.MongoTestProperties.mongoConnection
 
@@ -56,7 +56,7 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
       appName,
       timestamp,
       Seq(
-        Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path, append),
+        BatchWrite(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path, append),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md2.id), "rawString2"),
         Generic(OperationProps(randomUUID, "LogicalRDD", Seq.empty, md4.id), "rawString3"),

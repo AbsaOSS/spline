@@ -9,7 +9,7 @@ import za.co.absa.spline.linker.LinkerApp
 import za.co.absa.spline.linker.boundary.DefaultSplineConfig
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.dt.Simple
-import za.co.absa.spline.model.op.{Generic, OperationProps, Write}
+import za.co.absa.spline.model.op.{Generic, OperationProps, BatchWrite}
 import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
 
 import scala.collection.immutable
@@ -132,7 +132,7 @@ object SparkLineageProcessorSpec {
       appName,
       timestamp,
       Seq(
-        Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path, append),
+        BatchWrite(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path, append),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md2.id), "rawString2"),
         Generic(OperationProps(randomUUID, "LogicalRDD", Seq.empty, md4.id), "rawString3"),

@@ -191,7 +191,7 @@ private class StreamReadNodeBuilder(val operation: StreamingRelation)
       dataSource.options.getOrElse("host", ""),
       dataSource.options.getOrElse("port", "")
     )
-    case _ => VirtualEndpoint
+    case _ => VirtualEndpoint()
   }
 }
 
@@ -208,7 +208,7 @@ private class WriteNodeBuilder(val operation: WriteCommand)
   override val outputMetaDataset: UUID = metaDatasetFactory.create(operation.query)
 
   def build(): op.Operation = {
-        op.Write(
+        op.BatchWrite(
           buildOperationProps(),
           operation.format,
           PathUtils.getQualifiedPath(hadoopConfiguration)(operation.path),

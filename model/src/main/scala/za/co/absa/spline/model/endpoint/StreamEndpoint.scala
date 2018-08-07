@@ -16,35 +16,51 @@
 
 package za.co.absa.spline.model.endpoint
 
+import java.net.{URI, URLEncoder}
+import salat.annotations.Salat
+
 /**
   * The trait represents an abstraction of an endpoint for structured streaming
   */
-trait StreamEndpoint {}
+@Salat
+trait StreamEndpoint {
+  def path: URI
+}
 
 /**
   * The object represents an endpoint non-referring to any source of data
   */
-case object VirtualEndpoint extends StreamEndpoint
+case class VirtualEndpoint() extends StreamEndpoint {
+  override def path: URI = URI.create("invalid://virtual")
+}
 
 /**
   * The class represents a file-based endpoint for structured streaming
   * @param format An format of files keeping data
-  * @param path A path to files keeping data
+  * @param filePath A path to files keeping data
   */
-case class FileEndpoint(format: String, path: String) extends StreamEndpoint
+case class FileEndpoint(format: String, filePath: String) extends StreamEndpoint {
+  override def path: URI = URI.create("file://" + filePath)
+}
 
 /**
   * The class represents a kafka endpoint for structured streaming
   * @param cluster A sequence of servers forming the cluster
   * @param topic A topic name
   */
-case class KafkaEndpoint(cluster: Seq[String], topic: String) extends StreamEndpoint
+case class KafkaEndpoint(cluster: Seq[String], topic: String) extends StreamEndpoint {
+  override def path: URI = URI.create("kafka://" + URLEncoder.encode(cluster.mkString(","), "UTF-8") + "/" + topic)
+}
 
 /**
   * The class represents a socket endpoint for structured streaming
   * @param host A server address
   * @param port A port number
   */
-case class SocketEndpoint(host: String, port: String) extends StreamEndpoint
+case class SocketEndpoint(host: String, port: String) extends StreamEndpoint {
+  override def path: URI = URI.create("tcp://" + host + ":" + port)
+}
 
-case object ConsoleEndpoint extends StreamEndpoint
+case class ConsoleEndpoint() extends StreamEndpoint {
+  override def path: URI = URI.create("console://null")
+}

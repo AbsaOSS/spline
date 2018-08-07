@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.model.op
 
+import java.awt.JobAttributes.DestinationType
 import java.util.UUID
 
 import salat.annotations.Salat
@@ -62,8 +63,8 @@ object Operation {
     def updated(fn: OperationProps => OperationProps): T = (op.asInstanceOf[Operation] match {
       case op@Read(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@StreamRead(mp, _) => op.copy(mainProps = fn(mp))
-      case op@Write(mp, _, _, _) => op.copy(mainProps = fn(mp))
-      case op@StreamWrite(mp, _) => op.copy(mainProps = fn(mp))
+      case op@BatchWrite(mp, _, _, _) => op.copy(mainProps = fn(mp))
+      case op@StreamWrite(mp, _, _, _) => op.copy(mainProps = fn(mp))
       case op@Alias(mp, _) => op.copy(mainProps = fn(mp))
       case op@Filter(mp, _) => op.copy(mainProps = fn(mp))
       case op@Sort(mp, _) => op.copy(mainProps = fn(mp))
@@ -174,6 +175,11 @@ case class Alias(
                   alias: String
                 ) extends Operation
 
+@Salat
+sealed trait Write extends Operation {
+  def path: String
+  def destinationType: String
+}
 /**
   * The case class represents Spark operations for persisting data sets to HDFS, Hive etc. Operations are usually performed via DataFrameWriters.
   *
@@ -182,12 +188,12 @@ case class Alias(
   * @param path            A path to the place where data set will be stored (file, table, ...)
   * @param append          `true` for "APPEND" write mode, `false` otherwise.
   */
-case class Write(
+case class BatchWrite(
                   mainProps: OperationProps,
                   destinationType: String,
                   path: String,
                   append: Boolean
-                ) extends Operation
+                ) extends Write
 
 /**
   * The case class represents Spark operations for loading data from HDFS, Hive, Kafka, etc.
@@ -233,8 +239,10 @@ case class StreamRead(
   */
 case class StreamWrite(
                         mainProps: OperationProps,
-                        destination: StreamEndpoint
-                      ) extends Operation
+                        destination: StreamEndpoint,
+                        destinationType: String,
+                        path: String
+                      ) extends Write
 
 /**
   * The case class represents a partial data lineage at its boundary level.

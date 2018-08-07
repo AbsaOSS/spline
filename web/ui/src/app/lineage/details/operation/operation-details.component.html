@@ -41,7 +41,7 @@
             </section>
 
             <!-- Section: Write -->
-            <section *ngIf="operationType == 'Write'">
+            <section *ngIf="operationType == 'BatchWrite' || operationType == 'StreamWrite'">
                 <p-accordionTab [selected]="true">
                     <p-header>
                         <details-section-header
@@ -204,7 +204,7 @@
             </ng-container>
 
             <!-- Section: Output -->
-            <ng-container *ngIf="operationType != 'Write'">
+            <ng-container *ngIf="operationType != 'BatchWrite' && operationType != 'StreamWrite'">
                 <section *ngIf="operation.mainProps.output">
                     <p-accordionTab [selected]="true">
                         <p-header>

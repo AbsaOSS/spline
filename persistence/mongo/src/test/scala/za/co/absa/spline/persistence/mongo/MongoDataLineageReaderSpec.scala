@@ -54,7 +54,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         datasetId = l.rootDataset.id,
         appId = l.appId,
         appName = l.appName,
-        path = new URI(l.rootOperation.asInstanceOf[Write].path),
+        path = new URI(l.rootOperation.asInstanceOf[BatchWrite].path),
         timestamp = l.timestamp))
 
       val descriptionsFuture =
@@ -258,7 +258,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
       appName,
       timestamp,
       Seq(
-        Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", outputPath, append = false),
+        BatchWrite(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", outputPath, append = false),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md2.id), "rawString2"),
         Read(OperationProps(randomUUID, "Read", sources.flatMap(_.datasetsIds), md4.id), "rawString3", sources),

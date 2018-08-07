@@ -27,7 +27,8 @@ export type OperationType =
     | "Filter"
     | "Sort"
     | "Aggregate"
-    | "Write"
+    | "BatchWrite"
+    | "StreamWrite"
     | "Alias"
     | "Composite"
     )

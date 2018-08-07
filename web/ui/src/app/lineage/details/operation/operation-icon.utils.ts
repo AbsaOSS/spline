@@ -21,7 +21,10 @@ export function getIconForNodeType(nodeType: OperationType): Icon {
     let font = "FontAwesome";
 
     switch (nodeType) {
-        case "Write":
+        case "BatchWrite":
+            return new Icon("fa-floppy-o", "\uf0c7", font);
+
+        case "StreamWrite":
             return new Icon("fa-floppy-o", "\uf0c7", font);
 
         case "Filter":

@@ -62,7 +62,7 @@ class LogicalPlanLineageHarvesterSpec extends FlatSpec with Matchers {
       case (gn: Generic) => gn copy(mainProps = strippedProps(gn), rawString = null)
       case (as: Alias) => as copy (mainProps = strippedProps(as))
       case (rd: Read) => rd copy (mainProps = strippedProps(rd))
-      case (wt: Write) => wt copy (mainProps = strippedProps(wt))
+      case (wt: BatchWrite) => wt copy (mainProps = strippedProps(wt))
       case (cm: Composite) => cm copy (mainProps = strippedProps(cm))
     }
 

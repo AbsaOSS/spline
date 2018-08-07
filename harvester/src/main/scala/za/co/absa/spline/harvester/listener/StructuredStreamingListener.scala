@@ -26,7 +26,8 @@ import org.slf4s.Logging
 import za.co.absa.spline.sparkadapterapi.StructuredStreamingListenerAdapter.instance._
 import za.co.absa.spline.harvester.LogicalPlanLineageHarvester
 import za.co.absa.spline.harvester.conf.LineageDispatcher
-import za.co.absa.spline.model.endpoint.{ConsoleEndpoint, FileEndpoint, KafkaEndpoint}
+import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.model.endpoint.{ConsoleEndpoint, FileEndpoint, KafkaEndpoint, StreamEndpoint}
 import za.co.absa.spline.model.op.{OperationProps, StreamWrite}
 
 import scala.language.postfixOps
@@ -75,10 +76,10 @@ class StructuredStreamingListener(
     }
 
     val streamingLineage = (logicalPlanLineage /: maybeEndpoint) {
-      case (lineage, endpoint) =>
+      case (lineage: DataLineage, endpoint: StreamEndpoint) =>
         val metaDataset = lineage.rootDataset.copy(randomUUID)
         val mainProps = OperationProps(randomUUID, endpoint.getClass.getSimpleName, Seq(lineage.rootDataset.id), randomUUID)
-        val writeOperation = StreamWrite(mainProps, endpoint)
+        val writeOperation = StreamWrite(mainProps, endpoint, endpoint.getClass.getSimpleName, endpoint.path.toString)
 
         lineage.copy(
           operations = writeOperation +: lineage.operations,

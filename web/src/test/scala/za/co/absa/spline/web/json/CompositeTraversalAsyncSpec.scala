@@ -57,12 +57,12 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
   val xUUID3: UUID = UUID fromString "33333333-3333-3333-3333-333333333333"
 
   val lineage1 = DataLineage("AppId1", "AppName1", 0, Seq(
-    Write(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa1", "SaveIntoDataSourceCommand", Seq(), UUIDS1), "fileS1", "fileS1.txt", append = false)),
+    BatchWrite(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa1", "SaveIntoDataSourceCommand", Seq(), UUIDS1), "fileS1", "fileS1.txt", append = false)),
     Seq(MetaDataset(UUIDS1, Schema(Seq(xUUID3)))),
     Seq(Attribute(xUUID3, "a", Simple("int", nullable = false))))
 
   val lineage2 = DataLineage("AppId2", "AppName2", 0, Seq(
-    Write(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa3", "SaveIntoDataSourceCommand", Seq(xUUID2), UUIDS2), "fileOut", "fileOut.txt", append = false),
+    BatchWrite(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa3", "SaveIntoDataSourceCommand", Seq(xUUID2), UUIDS2), "fileOut", "fileOut.txt", append = false),
     Read(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa2", "LogicalRelation", Seq(UUIDS1), xUUID2), "fileS1", Seq(MetaDataSource("fileS1.txt", Seq(UUIDS1))))),
     Seq(
       MetaDataset(UUIDS2, Schema(Seq(xUUID3))),
@@ -115,18 +115,18 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
   val operationEUUID: UUID = UUID fromString "eeeeeeee-1111-1111-1111-111111111111"
 
   val lineageD = DataLineage("AppId", "AppNameD", 0,
-    operations = Seq(Write(OperationProps(operationDUUID, "Save", Seq(), dUUID), "fileD", "fileD.csv", append = false)),
+    operations = Seq(BatchWrite(OperationProps(operationDUUID, "Save", Seq(), dUUID), "fileD", "fileD.csv", append = false)),
     datasets = Seq(MetaDataset(dUUID, Schema(Seq(xUUID1)))),
     attributes = Seq(Attribute(xUUID1, "attributeD", Simple("String", true))))
 
   val lineageE = DataLineage("AppId", "AppNameE", 0,
-    operations = Seq(Write(OperationProps(operationEUUID, "Save", Seq(), eUUID), "fileE", "fileE.csv", append = false)),
+    operations = Seq(BatchWrite(OperationProps(operationEUUID, "Save", Seq(), eUUID), "fileE", "fileE.csv", append = false)),
     datasets = Seq(MetaDataset(xUUID2, Schema(Seq(xUUID2)))),
     attributes = Seq(Attribute(xUUID2, "attributeE", Simple("String", true))))
 
   val lineageA = DataLineage("AppId", "AppNameA", 0,
     operations = Seq(
-      Write(OperationProps(operationAUUID, "Save", null, aUUID), "fileA", "fileA.csv", append = false),
+      BatchWrite(OperationProps(operationAUUID, "Save", null, aUUID), "fileA", "fileA.csv", append = false),
       Read(OperationProps(operationAUUID, "Read", Seq(dUUID), null), "fileD", Seq(MetaDataSource("dileD.csv", Seq(dUUID)))),
       Read(OperationProps(operationAUUID, "Read", Seq(eUUID), null), "fileE", Seq(MetaDataSource("dileE.csv", Seq(eUUID))))),
     datasets = Seq(MetaDataset(xUUID3, Schema(Seq(xUUID3)))),
@@ -134,7 +134,7 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
 
   val lineageB = DataLineage("AppId", "AppNameB", 0,
     operations = Seq(
-      Write(OperationProps(operationBUUID, "Save", null, bUUID), "fileB", "fileB.csv", append = false),
+      BatchWrite(OperationProps(operationBUUID, "Save", null, bUUID), "fileB", "fileB.csv", append = false),
       Read(OperationProps(operationBUUID, "Read", Seq(aUUID), null), "fileA", Seq(MetaDataSource("dileA.csv", Seq(aUUID))))
     ),
     datasets = Seq(MetaDataset(xUUID4, Schema(Seq(xUUID4)))),
@@ -142,7 +142,7 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
 
   val lineageC = DataLineage("AppId", "AppNameC", 0,
     operations = Seq(
-      Write(OperationProps(operationCUUID, "Save", null, cUUID), "fileC", "fileC.csv", append = false),
+      BatchWrite(OperationProps(operationCUUID, "Save", null, cUUID), "fileC", "fileC.csv", append = false),
       Read(OperationProps(operationCUUID, "Read", Seq(aUUID), null), "fileA", Seq(MetaDataSource("dileA.csv", Seq(aUUID))))
     ),
     datasets = Seq(MetaDataset(xUUID3, Schema(Seq(xUUID3)))),

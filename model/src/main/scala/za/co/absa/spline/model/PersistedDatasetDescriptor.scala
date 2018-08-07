@@ -33,6 +33,6 @@ case class PersistedDatasetDescriptor
   datasetId: UUID,
   appId: String,
   appName: String,
-  path: URI,
+  path: URI, // FIXME needs to be generalized e.g. or kafka needs to be fit into this kafka://servers/topic
   timestamp: Long
 )
