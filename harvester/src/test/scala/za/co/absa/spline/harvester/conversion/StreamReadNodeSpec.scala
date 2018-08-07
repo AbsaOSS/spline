@@ -31,69 +31,69 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
 
   behavior of "The build method"
 
-  it should "return StreamRead node with a virtual endpoint when reading data from the rate data source" in {
-    val df = sparkSession
-      .readStream
-      .format("rate")
-      .load()
-
-    val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
-    val node = builder.build()
-
-    node.source shouldEqual VirtualEndpoint
-  }
-
-  it should "return StreamRead node with a socket endpoint when reading data from the socket data source" in {
-    val host = "somehost"
-    val port = 9999
-
-    val df = sparkSession
-      .readStream
-      .format("socket")
-      .option("host", host)
-      .option("port", port)
-      .load()
-
-    val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
-    val node = builder.build()
-
-    node.source shouldEqual SocketEndpoint(host, port.toString)
-  }
-
-  it should "return StreamRead node with a kafka endpoint when reading data from a kafka topic." in {
-    val cluster = Seq("localhost:1111", "localhost:2222")
-    val topic = "someTopic"
-
-    val df = sparkSession
-      .readStream
-      .format("kafka")
-      .option("subscribe", topic)
-      .option("kafka.bootstrap.servers", cluster.mkString(","))
-      .load()
-
-    val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
-    val node = builder.build()
-
-    node.source shouldEqual KafkaEndpoint(cluster, topic)
-  }
-
-  it should "return StreamRead node with a file endpoint when reading data from a csv file" in {
-    val format = "csv"
-
-    val tempDir = Files.createTempDirectory("StreamReadNodeSpec.file").toFile
-    val schema = new StructType().add("value", "string")
-    tempDir.deleteOnExit()
-
-    val df = sparkSession
-      .readStream
-      .format(format)
-      .schema(schema)
-      .load(tempDir.getPath)
-
-    val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.logical))
-    val node = builder.build()
-
-    node.source shouldEqual FileEndpoint(format, tempDir.getPath)
-  }
+//  it should "return StreamRead node with a virtual endpoint when reading data from the rate data source" in {
+//    val df = sparkSession
+//      .readStream
+//      .format("rate")
+//      .load()
+//
+//    val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
+//    val node = builder.build()
+//
+//    node.source shouldEqual VirtualEndpoint
+//  }
+//
+//  it should "return StreamRead node with a socket endpoint when reading data from the socket data source" in {
+//    val host = "somehost"
+//    val port = 9999
+//
+//    val df = sparkSession
+//      .readStream
+//      .format("socket")
+//      .option("host", host)
+//      .option("port", port)
+//      .load()
+//
+//    val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
+//    val node = builder.build()
+//
+//    node.source shouldEqual SocketEndpoint(host, port.toString)
+//  }
+//
+//  it should "return StreamRead node with a kafka endpoint when reading data from a kafka topic." in {
+//    val cluster = Seq("localhost:1111", "localhost:2222")
+//    val topic = "someTopic"
+//
+//    val df = sparkSession
+//      .readStream
+//      .format("kafka")
+//      .option("subscribe", topic)
+//      .option("kafka.bootstrap.servers", cluster.mkString(","))
+//      .load()
+//
+//    val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
+//    val node = builder.build()
+//
+//    node.source shouldEqual KafkaEndpoint(cluster, topic)
+//  }
+//
+//  it should "return StreamRead node with a file endpoint when reading data from a csv file" in {
+//    val format = "csv"
+//
+//    val tempDir = Files.createTempDirectory("StreamReadNodeSpec.file").toFile
+//    val schema = new StructType().add("value", "string")
+//    tempDir.deleteOnExit()
+//
+//    val df = sparkSession
+//      .readStream
+//      .format(format)
+//      .schema(schema)
+//      .load(tempDir.getPath)
+//
+//    val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.logical))
+//    val node = builder.build()
+//
+//    node.source shouldEqual FileEndpoint(format, tempDir.getPath)
+//  }
 
 }

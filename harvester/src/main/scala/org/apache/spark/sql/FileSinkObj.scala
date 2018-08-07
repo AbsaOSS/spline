@@ -17,7 +17,7 @@
 package org.apache.spark.sql
 
 import org.apache.spark.sql.execution.datasources.FileFormat
-import org.apache.spark.sql.execution.streaming.{FileStreamSink, Sink}
+import org.apache.spark.sql.execution.streaming.{BaseStreamingSource, FileStreamSink, FileStreamSource, Sink}
 import za.co.absa.spline.common.InstanceInspector
 
 /**
@@ -36,6 +36,20 @@ object FileSinkObj {
         (
           InstanceInspector.getFieldValue[String](fss, "path"),
           InstanceInspector.getFieldValue[FileFormat](fss, "fileFormat")
+        )
+      )
+    case _ => None
+  }
+}
+
+object FileSourceObject {
+
+  def unapply(baseStreamingSource: BaseStreamingSource): Option[(String, String)] = baseStreamingSource match {
+    case fss: FileStreamSource =>
+      Some(
+        (
+          InstanceInspector.getFieldValue[String](fss, "path"),
+          InstanceInspector.getFieldValue[String](fss, "fileFormatClassName")
         )
       )
     case _ => None

@@ -21,16 +21,17 @@ import java.util.UUID.randomUUID
 
 import com.databricks.spark.xml.XmlRelation
 import org.apache.hadoop.conf.Configuration
-import org.apache.spark.sql.{JDBCRelation, SaveMode}
 import org.apache.spark.sql.catalyst.expressions.SortOrder
 import org.apache.spark.sql.catalyst.plans.logical._
-import org.apache.spark.sql.execution.datasources.{DataSource, HadoopFsRelation, LogicalRelation}
-import org.apache.spark.sql.execution.streaming.StreamingRelation
+import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation}
+import org.apache.spark.sql.execution.streaming.{BaseStreamingSource, StreamingExecutionRelation}
+import org.apache.spark.sql.kafka010.KafkaSourceObj
 import org.apache.spark.sql.sources.BaseRelation
-import za.co.absa.spline.sparkadapterapi.{WriteCommand, WriteCommandParser}
+import org.apache.spark.sql.{FileSourceObject, JDBCRelation, SaveMode}
 import za.co.absa.spline.model.endpoint._
 import za.co.absa.spline.model.expr.Expression
 import za.co.absa.spline.model.{op, _}
+import za.co.absa.spline.sparkadapterapi.{WriteCommand, WriteCommandParser}
 
 import scala.collection.mutable
 
@@ -60,6 +61,7 @@ class OperationNodeBuilderFactory(implicit hadoopConfiguration: Configuration, m
     case s: Aggregate => new AggregateNodeBuilder(s)
     case a: SubqueryAlias => new AliasNodeBuilder(a)
     case lr: LogicalRelation => new ReadNodeBuilder(lr)
+    case sr: StreamingExecutionRelation => new StreamReadNodeBuilder(sr)
     case wc if writeCommandParser.matches(logicalPlan) => new WriteNodeBuilder(writeCommandParser.asWriteCommand(wc))
     case x => new GenericNodeBuilder(x)
   }
@@ -174,23 +176,18 @@ private class ReadNodeBuilder(val operation: LogicalRelation)
   }
 }
 
-private class StreamReadNodeBuilder(val operation: StreamingRelation)
-                                   (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[StreamingRelation] {
-  def build(): op.StreamRead = op.StreamRead(
-    buildOperationProps(),
-    createEndpoint(operation.dataSource)
-  )
+// FIXME Supported only on Spark 2.3+
+private class StreamReadNodeBuilder(val operation: StreamingExecutionRelation)
+                                   (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[StreamingExecutionRelation] {
+  def build(): op.Read = {
+    val endpoint = createEndpoint(operation.source)
+    op.Read(buildOperationProps(), endpoint.description, Seq(MetaDataSource(endpoint.path.toString, Nil)))
+  }
 
-  private def createEndpoint(dataSource: DataSource): StreamEndpoint = dataSource.sourceInfo.name match {
-    case x if x startsWith "FileSource" => FileEndpoint(dataSource.className, dataSource.options.getOrElse("path", ""))
-    case "kafka" => KafkaEndpoint(
-      dataSource.options.getOrElse("kafka.bootstrap.servers", ",").split(","),
-      dataSource.options.getOrElse("subscribe", "")
-    )
-    case "textSocket" => SocketEndpoint(
-      dataSource.options.getOrElse("host", ""),
-      dataSource.options.getOrElse("port", "")
-    )
+  private def createEndpoint(source: BaseStreamingSource): StreamEndpoint = source match {
+    case FileSourceObject(path, format) => FileEndpoint(format, path)
+    case KafkaSourceObj(cluster, topic) => KafkaEndpoint(cluster, topic)
+    // FIXME TextSocket
     case _ => VirtualEndpoint()
   }
 }
