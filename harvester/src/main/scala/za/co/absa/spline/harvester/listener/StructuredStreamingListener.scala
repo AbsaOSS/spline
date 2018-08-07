@@ -78,7 +78,7 @@ class StructuredStreamingListener(
     val streamingLineage = (logicalPlanLineage /: maybeEndpoint) {
       case (lineage: DataLineage, endpoint: StreamEndpoint) =>
         val metaDataset = lineage.rootDataset.copy(randomUUID)
-        val mainProps = OperationProps(randomUUID, endpoint.getClass.getSimpleName, Seq(lineage.rootDataset.id), randomUUID)
+        val mainProps = OperationProps(randomUUID, endpoint.getClass.getSimpleName, Seq(lineage.rootDataset.id), metaDataset.id)
         val writeOperation = StreamWrite(mainProps, endpoint, endpoint.getClass.getSimpleName, endpoint.path.toString)
 
         lineage.copy(
