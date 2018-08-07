@@ -68,24 +68,20 @@ class StructuredStreamingListener(
 
     val logicalPlanLineage = lineageHarvester.harvestLineage(se.sparkSession.sparkContext, se.logicalPlan)
 
-    val maybeEndpoint = se.sink match {
-      case FileSinkObj(path, fileFormat) => Some(FileEndpoint(path, fileFormat.toString))
-      case KafkaSinkObj(cluster, topic) => Some(KafkaEndpoint(cluster, topic.getOrElse("")))
-      case x if Set(consoleSinkClass(), classOf[ForeachSink[_]], classOf[MemorySink]).exists(assignableFrom(_, x)) => Some(ConsoleEndpoint)
+    val endpoint = se.sink match {
+      case FileSinkObj(path, fileFormat) => FileEndpoint(path, fileFormat.toString)
+      case KafkaSinkObj(cluster, topic) => KafkaEndpoint(cluster, topic.getOrElse(""))
+      case x if Set(consoleSinkClass(), classOf[ForeachSink[_]], classOf[MemorySink]).exists(assignableFrom(_, x)) => ConsoleEndpoint()
       case sink => throw new IllegalArgumentException(s"Unsupported sink type: ${sink.getClass}")
     }
 
-    val streamingLineage = (logicalPlanLineage /: maybeEndpoint) {
-      case (lineage: DataLineage, endpoint: StreamEndpoint) =>
-        val metaDataset = lineage.rootDataset.copy(randomUUID)
-        val mainProps = OperationProps(randomUUID, endpoint.getClass.getSimpleName, Seq(lineage.rootDataset.id), metaDataset.id)
-        val writeOperation = StreamWrite(mainProps, endpoint, endpoint.getClass.getSimpleName, endpoint.path.toString)
+    val metaDataset = logicalPlanLineage.rootDataset.copy(randomUUID)
+    val mainProps = OperationProps(randomUUID, endpoint.getClass.getSimpleName, Seq(logicalPlanLineage.rootDataset.id), metaDataset.id)
+    val writeOperation = StreamWrite(mainProps, endpoint, endpoint.getClass.getSimpleName, endpoint.path.toString)
 
-        lineage.copy(
-          operations = writeOperation +: lineage.operations,
-          datasets = metaDataset +: lineage.datasets)
-    }
-
+    val streamingLineage = logicalPlanLineage.copy(
+        operations = writeOperation +: logicalPlanLineage.operations,
+        datasets = metaDataset +: logicalPlanLineage.datasets)
     lineageDispatcher.send(streamingLineage)
   }
 
