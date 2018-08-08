@@ -29,7 +29,7 @@
                     <p-header>
                         <details-section-header
                                 caption="Read {{ operation.sourceType }}"
-                                faIcon="fa-table"
+                                faIcon="{{ getOperationIcon() }}"
                                 iconColor="black"></details-section-header>
                     </p-header>
                     <ul>
@@ -46,7 +46,7 @@
                     <p-header>
                         <details-section-header
                                 caption="Write to {{ operation.destinationType }}"
-                                faIcon="fa-floppy-o"
+                                faIcon="{{ getOperationIcon() }}"
                                 iconColor="steelblue"></details-section-header>
                     </p-header>
                     <ul>
@@ -61,7 +61,7 @@
                     <p-header>
                         <details-section-header
                                 caption="Filter by"
-                                faIcon="fa-filter"
+                                faIcon="{{ getOperationIcon() }}"
                                 iconColor="steelblue"></details-section-header>
                     </p-header>
                     <ul>
@@ -78,7 +78,7 @@
                     <p-header>
                         <details-section-header
                                 caption="Sort by"
-                                faIcon="fa-sort-amount-desc"
+                                faIcon="{{ getOperationIcon() }}"
                                 iconColor="steelblue"></details-section-header>
                     </p-header>
                     <ul class="sort-orders">
@@ -96,7 +96,7 @@
                     <p-header>
                         <details-section-header
                                 caption="Group by"
-                                faIcon="fa-object-group"
+                                faIcon="{{ getOperationIcon() }}"
                                 iconColor="steelblue"></details-section-header>
                     </p-header>
                     <ul>
@@ -109,7 +109,7 @@
                     <p-header>
                         <details-section-header
                                 caption="Aggregations"
-                                faIcon="fa-calculator"
+                                faIcon="{{ getOperationIcon() }}"
                                 iconColor="steelblue"></details-section-header>
                     </p-header>
                     <ul>
@@ -128,7 +128,7 @@
                     <p-header>
                         <details-section-header
                                 caption="Transformations"
-                                faIcon="fa-cogs"
+                                faIcon="{{ getOperationIcon() }}"
                                 iconColor="steelblue"></details-section-header>
                     </p-header>
                     <ul>
@@ -156,7 +156,7 @@
                     <p-header>
                         <details-section-header
                                 caption="{{ operation.joinType }} join on"
-                                faIcon="fa-code-fork"
+                                faIcon="{{ getOperationIcon() }}"
                                 iconColor="steelblue"></details-section-header>
                     </p-header>
                     <ul>
@@ -177,7 +177,7 @@
                     <p-header>
                         <details-section-header
                                 caption="Operation source code"
-                                faIcon="fa-code"
+                                faIcon="{{ getOperationIcon() }}"
                                 iconColor="steelblue"></details-section-header>
                     </p-header>
                     <code class="small" title="Internal operation representation">{{operation.rawString}}</code>
@@ -191,7 +191,7 @@
                         <p-header>
                             <details-section-header
                                     caption="Input"
-                                    faIcon="fa-arrow-circle-right"
+                                    faIcon="{{ getOperationIcon() }}"
                                     iconColor="green"></details-section-header>
                         </p-header>
                         <attribute-list
@@ -210,7 +210,7 @@
                         <p-header>
                             <details-section-header
                                     caption="Output"
-                                    faIcon="fa-arrow-circle-left"
+                                    faIcon="{{ getOperationIcon() }}"
                                     iconColor="firebrick"></details-section-header>
                         </p-header>
                         <attribute-list
