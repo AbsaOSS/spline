@@ -75,7 +75,7 @@ export class LineageComponent implements OnInit {
     }
 
     getDataSourceCount() {
-        return _.sumBy(this.lineage.operations, node => +(typeOfOperation(node) == 'Read'))
+        return _.sumBy(this.lineage.operations, node => +(typeOfOperation(node) == 'BatchRead' || typeOfOperation(node) == 'StreamRead'))
     }
 
     onOperationSelected(opId: string) {

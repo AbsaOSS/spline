@@ -147,9 +147,9 @@ private class AliasNodeBuilder(val operation: SubqueryAlias)
   */
 private class ReadNodeBuilder(val operation: LogicalRelation)
                              (implicit hadoopConfiguration: Configuration, val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[LogicalRelation] {
-  def build(): op.Read = {
+  def build(): op.BatchRead = {
     val (sourceType, paths) = getRelationPaths(operation.relation)
-    op.Read(
+    op.BatchRead(
       buildOperationProps(),
       sourceType,
       paths.map(MetaDataSource(_, Nil))
@@ -179,9 +179,9 @@ private class ReadNodeBuilder(val operation: LogicalRelation)
 // FIXME Supported only on Spark 2.3+
 private class StreamReadNodeBuilder(val operation: StreamingExecutionRelation)
                                    (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[StreamingExecutionRelation] {
-  def build(): op.Read = {
+  def build(): op.StreamRead = {
     val endpoint = createEndpoint(operation.source)
-    op.Read(buildOperationProps(), endpoint.description, Seq(MetaDataSource(endpoint.path.toString, Nil)))
+    op.StreamRead(buildOperationProps(), createEndpoint(operation.source))
   }
 
   private def createEndpoint(source: BaseStreamingSource): StreamEndpoint = source match {

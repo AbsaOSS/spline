@@ -154,7 +154,8 @@
                                 <argument>za.co.absa.spline.model.op.Join</argument>
                                 <argument>za.co.absa.spline.model.op.Union</argument>
                                 <argument>za.co.absa.spline.model.op.Projection</argument>
-                                <argument>za.co.absa.spline.model.op.Read</argument>
+                                <argument>za.co.absa.spline.model.op.BatchRead</argument>
+                                <argument>za.co.absa.spline.model.op.StreamRead</argument>
                                 <argument>za.co.absa.spline.model.op.Composite</argument>
                                 <!-- workaround for a scala-ts bug -->
                                 <argument>za.co.absa.spline.model.dt.DataType</argument>

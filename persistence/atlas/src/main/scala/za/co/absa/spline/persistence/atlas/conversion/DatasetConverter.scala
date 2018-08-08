@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.persistence.atlas.conversion
 
+import za.co.absa.spline.model.op.{Read, Write}
 import za.co.absa.spline.model.{Attribute, MetaDataset, op}
 import za.co.absa.spline.persistence.atlas.model._
 
@@ -43,10 +44,10 @@ object DatasetConverter {
       val qualifiedName = dataset.id
       val attributes = dataset.schema.attrs.map(i => AttributeConverter.convert(qualifiedName.toString, attributeMap(i)))
       val translated = operation match {
-        case op.Read(_, st, paths) =>
-          val path = paths.map(_.path) mkString ", "
-          new EndpointDataset(name, qualifiedName, attributes, new FileEndpoint(path, path), EndpointType.file, EndpointDirection.input, st)
-        case op.BatchWrite(_, dt, path, _) => new EndpointDataset(name, qualifiedName, attributes, new FileEndpoint(path, path), EndpointType.file, EndpointDirection.output, dt)
+        case r: Read =>
+          val path = r.sources.map(_.path) mkString ", "
+          new EndpointDataset(name, qualifiedName, attributes, new FileEndpoint(path, path), EndpointType.file, EndpointDirection.input, r.sourceType)
+        case w: Write => new EndpointDataset(name, qualifiedName, attributes, new FileEndpoint(w.path, w.path), EndpointType.file, EndpointDirection.output, w.destinationType)
         case _ => new Dataset(name, qualifiedName, attributes)
       }
       attributes.foreach(_.assingDataset(translated.getId))

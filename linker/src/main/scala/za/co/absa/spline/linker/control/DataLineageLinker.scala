@@ -19,7 +19,7 @@ package za.co.absa.spline.linker.control
 import java.util.UUID
 
 import org.slf4s.Logging
-import za.co.absa.spline.model.op.{Operation, Read}
+import za.co.absa.spline.model.op.{BatchRead, Operation, Read, StreamRead}
 import za.co.absa.spline.model.{DataLineage, LinkedLineage, MetaDataSource}
 import za.co.absa.spline.persistence.api.DataLineageReader
 
@@ -41,7 +41,7 @@ class DataLineageLinker(reader: DataLineageReader) extends Logging {
     */
   def apply(lineage: DataLineage)(implicit ec: ExecutionContext): Future[LinkedLineage] = {
     def castIfRead(op: Operation): Option[Read] = op match {
-      case a@Read(_, _, _) => Some(a)
+      case a: Read => Some(a)
       case _ => None
     }
 
@@ -69,8 +69,12 @@ class DataLineageLinker(reader: DataLineageReader) extends Logging {
       } yield
         eventualSources map (newSources => {
           val newProps = read.mainProps.copy(inputs = newSources.flatMap(_.datasetsIds).distinct)
-          val newRead = read.copy(sources = newSources, mainProps = newProps)
-          newRead
+          read match {
+            case r: BatchRead => r.copy(sources = newSources, mainProps = newProps)
+            case r: StreamRead =>
+              require(newSources.size == 1, "StreamRead has always single source.")
+              r.copy(datasetIds = newSources.head.datasetsIds.distinct, mainProps = newProps)
+          }
         }))
 
     eventualReadsWithLineages map (newReads => {

@@ -26,7 +26,7 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{AsyncFlatSpec, Matchers}
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.dt.Simple
-import za.co.absa.spline.model.op.{OperationProps, Read}
+import za.co.absa.spline.model.op.{OperationProps, BatchRead}
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
 
 import scala.concurrent.Future
@@ -47,8 +47,8 @@ class DataLineageLinkerSpec extends AsyncFlatSpec with Matchers with MockitoSuga
         Attribute(randomUUID, "3", dataType)
       )
       val dataset = MetaDataset(randomUUID, Schema(attributes.map(_.id)))
-      val operation1 = Read(OperationProps(randomUUID, "read", Seq.empty, dataset.id), "parquet", Seq(MetaDataSource("some/path_known", Nil)))
-      val operation2 = Read(OperationProps(randomUUID, "read", Seq.empty, dataset.id), "parquet", Seq(MetaDataSource("some/path_unknown", Nil)))
+      val operation1 = BatchRead(OperationProps(randomUUID, "read", Seq.empty, dataset.id), "parquet", Seq(MetaDataSource("some/path_known", Nil)))
+      val operation2 = BatchRead(OperationProps(randomUUID, "read", Seq.empty, dataset.id), "parquet", Seq(MetaDataSource("some/path_unknown", Nil)))
 
       DataLineage("appId2", "appName2", 2L, Seq(operation1, operation2), Seq(dataset), attributes)
     }
@@ -64,8 +64,8 @@ class DataLineageLinkerSpec extends AsyncFlatSpec with Matchers with MockitoSuga
     val expectedResult = {
       inputLineage.copy(
         operations = inputLineage.operations.map({
-          case Read(props, sourceType, sources) if sources.exists(_.path == "some/path_known") =>
-            Read(
+          case BatchRead(props, sourceType, sources) if sources.exists(_.path == "some/path_known") =>
+            BatchRead(
               props.copy(inputs = Seq(referencedDsID)),
               sourceType,
               sources.map(_.copy(datasetsIds = Seq(referencedDsID))))

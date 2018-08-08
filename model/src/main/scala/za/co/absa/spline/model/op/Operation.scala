@@ -61,8 +61,8 @@ object Operation {
       * @return A copy with new main properties
       */
     def updated(fn: OperationProps => OperationProps): T = (op.asInstanceOf[Operation] match {
-      case op@Read(mp, _, _) => op.copy(mainProps = fn(mp))
-      case op@StreamRead(mp, _) => op.copy(mainProps = fn(mp))
+      case op@BatchRead(mp, _, _) => op.copy(mainProps = fn(mp))
+      case op@StreamRead(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@BatchWrite(mp, _, _, _) => op.copy(mainProps = fn(mp))
       case op@StreamWrite(mp, _) => op.copy(mainProps = fn(mp))
       case op@Alias(mp, _) => op.copy(mainProps = fn(mp))
@@ -195,6 +195,17 @@ case class BatchWrite(
                   append: Boolean
                 ) extends Write
 
+@Salat
+sealed trait Read extends Operation {
+  def sourceType: String
+  def sources: Seq[MetaDataSource]
+
+  def unapply(arg: Read): Option[(String, Seq[MetaDataSource])] = {
+    Some(arg.sourceType, sources)
+  }
+
+}
+
 /**
   * The case class represents Spark operations for loading data from HDFS, Hive, Kafka, etc.
   *
@@ -203,11 +214,11 @@ case class BatchWrite(
   * @param sources    A sequence of meta data sources for the operation. When the data is read from multiple files by one "read" operation,
   *                   every file will be represented by one meta data source instance
   */
-case class Read(
+case class BatchRead(
                  mainProps: OperationProps,
                  sourceType: String,
                  sources: Seq[MetaDataSource]
-               ) extends Operation {
+               ) extends Read {
 
   private val knownSourceLineagesCount = sources.flatMap(_.datasetsIds).distinct.size
   private val inputDatasetsCount = mainProps.inputs.size
@@ -227,8 +238,16 @@ case class Read(
   */
 case class StreamRead(
                       mainProps: OperationProps,
-                      source : StreamEndpoint
-                     ) extends Operation
+                      source: StreamEndpoint,
+                      datasetIds: Seq[UUID] = Nil
+                     ) extends Read {
+
+  @Persist
+  val sourceType: String = source.description
+
+  @Persist
+  val sources = Seq(MetaDataSource(source.path.toString, datasetIds))
+}
 
 /**
   * The case class represents Spark operations for persisting data via structured streaming
@@ -253,7 +272,7 @@ case class StreamWrite(
   * I.e. only focusing on its inputs, output and related Spark application meta data, omitting all the transformations in between.
   *
   * @param mainProps   Common node properties
-  * @param sources     represents the embedded [[Read]] operations
+  * @param sources     represents the embedded [[BatchRead]] operations
   * @param destination represents the embedded [[Write]] operation
   * @param timestamp   output dataset lineage created timestamp
   * @param appId       related Spark application ID

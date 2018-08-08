@@ -261,7 +261,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         BatchWrite(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", outputPath, append = false),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md2.id), "rawString2"),
-        Read(OperationProps(randomUUID, "Read", sources.flatMap(_.datasetsIds), md4.id), "rawString3", sources),
+        BatchRead(OperationProps(randomUUID, "Read", sources.flatMap(_.datasetsIds), md4.id), "rawString3", sources),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md1.id), "rawString4")
       ),
       Seq(md1, md2, md3, md4),

@@ -124,7 +124,8 @@ class LineageService
 
     def lineageToCompositeWithDependencies(dataLineage: DataLineage): CompositeWithDependencies = {
       def castIfRead(op: Operation): Option[Read] = op match {
-        case a@Read(_, _, _) => Some(a)
+        case a: BatchRead => Some(a)
+        case a: StreamRead => Some(a)
         case _ => None
       }
 

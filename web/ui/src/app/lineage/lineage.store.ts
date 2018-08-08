@@ -51,7 +51,8 @@ export class LineageAccessors {
 
         this.operationIdsByAttributeId = (<any>_(lineage.operations))
             .flatMap((op: IOperation) => {
-                let opInputIds = typeOfOperation(op) != "Read" ? op.mainProps.inputs : [], // Read operation reads from external datasets that are not part of the current lineage and can be ignored.
+                // Read operation reads from external datasets that are not part of the current lineage and can be ignored.
+                let opInputIds = typeOfOperation(op) != "BatchRead" && typeOfOperation(op) != "StreamRead" ? op.mainProps.inputs : [],
                     opOutputId = op.mainProps.output,
                     opDatasetIds = opInputIds.concat(opOutputId),
                     opAttrIds = _.uniq(_.flatMap(opDatasetIds, dsId => this.datasetById[dsId].schema.attrs))

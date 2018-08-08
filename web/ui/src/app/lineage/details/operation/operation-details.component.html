@@ -24,7 +24,7 @@
         <p-accordion [multiple]="true">
 
             <!-- Section: Read -->
-            <section *ngIf="operationType == 'Read'">
+            <section *ngIf="operationType == 'BatchRead' || operationType == 'StreamRead'">
                 <p-accordionTab [selected]="true">
                     <p-header>
                         <details-section-header
@@ -185,7 +185,7 @@
             </section>
 
             <!-- Section: Input -->
-            <ng-container *ngIf="operationType != 'Read'">
+            <ng-container *ngIf="operationType != 'BatchRead' && operationType != 'StreamRead'">
                 <section *ngFor="let input of operation.mainProps.inputs">
                     <p-accordionTab [selected]="true">
                         <p-header>

@@ -20,7 +20,8 @@ import {IDataType} from "../../generated-ts/datatype-model";
 
 export type OperationType =
     ( "Projection"
-    | "Read"
+    | "BatchRead"
+    | "StreamRead"
     | "Join"
     | "Union"
     | "Generic"

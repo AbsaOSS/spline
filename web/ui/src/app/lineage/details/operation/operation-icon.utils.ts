@@ -45,8 +45,11 @@ export function getIconForNodeType(nodeType: OperationType): Icon {
         case "Projection":
             return new Icon("fa-chevron-circle-down", "\uf13a", font);
 
-        case "Read":
+        case "BatchRead":
             return new Icon("fa-database", "\uf1c0", font);
+
+        case "StreamRead":
+            return new Icon("fa-angle-double-up", "\uf102", font);
 
         case "Alias":
             return new Icon("fa-circle-thin", "\uf1db", font);

@@ -63,7 +63,7 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
 
   val lineage2 = DataLineage("AppId2", "AppName2", 0, Seq(
     BatchWrite(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa3", "SaveIntoDataSourceCommand", Seq(xUUID2), UUIDS2), "fileOut", "fileOut.txt", append = false),
-    Read(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa2", "LogicalRelation", Seq(UUIDS1), xUUID2), "fileS1", Seq(MetaDataSource("fileS1.txt", Seq(UUIDS1))))),
+    BatchRead(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa2", "LogicalRelation", Seq(UUIDS1), xUUID2), "fileS1", Seq(MetaDataSource("fileS1.txt", Seq(UUIDS1))))),
     Seq(
       MetaDataset(UUIDS2, Schema(Seq(xUUID3))),
       MetaDataset(xUUID2, Schema(Seq(xUUID3))),
@@ -127,15 +127,15 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
   val lineageA = DataLineage("AppId", "AppNameA", 0,
     operations = Seq(
       BatchWrite(OperationProps(operationAUUID, "Save", null, aUUID), "fileA", "fileA.csv", append = false),
-      Read(OperationProps(operationAUUID, "Read", Seq(dUUID), null), "fileD", Seq(MetaDataSource("dileD.csv", Seq(dUUID)))),
-      Read(OperationProps(operationAUUID, "Read", Seq(eUUID), null), "fileE", Seq(MetaDataSource("dileE.csv", Seq(eUUID))))),
+      BatchRead(OperationProps(operationAUUID, "Read", Seq(dUUID), null), "fileD", Seq(MetaDataSource("dileD.csv", Seq(dUUID)))),
+      BatchRead(OperationProps(operationAUUID, "Read", Seq(eUUID), null), "fileE", Seq(MetaDataSource("dileE.csv", Seq(eUUID))))),
     datasets = Seq(MetaDataset(xUUID3, Schema(Seq(xUUID3)))),
     attributes = Seq(Attribute(xUUID3, "attributeA", Simple("String", true))))
 
   val lineageB = DataLineage("AppId", "AppNameB", 0,
     operations = Seq(
       BatchWrite(OperationProps(operationBUUID, "Save", null, bUUID), "fileB", "fileB.csv", append = false),
-      Read(OperationProps(operationBUUID, "Read", Seq(aUUID), null), "fileA", Seq(MetaDataSource("dileA.csv", Seq(aUUID))))
+      BatchRead(OperationProps(operationBUUID, "Read", Seq(aUUID), null), "fileA", Seq(MetaDataSource("dileA.csv", Seq(aUUID))))
     ),
     datasets = Seq(MetaDataset(xUUID4, Schema(Seq(xUUID4)))),
     attributes = Seq(Attribute(xUUID4, "attributeB", Simple("String", true))))
@@ -143,7 +143,7 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
   val lineageC = DataLineage("AppId", "AppNameC", 0,
     operations = Seq(
       BatchWrite(OperationProps(operationCUUID, "Save", null, cUUID), "fileC", "fileC.csv", append = false),
-      Read(OperationProps(operationCUUID, "Read", Seq(aUUID), null), "fileA", Seq(MetaDataSource("dileA.csv", Seq(aUUID))))
+      BatchRead(OperationProps(operationCUUID, "Read", Seq(aUUID), null), "fileA", Seq(MetaDataSource("dileA.csv", Seq(aUUID))))
     ),
     datasets = Seq(MetaDataset(xUUID3, Schema(Seq(xUUID3)))),
     attributes = Seq(Attribute(xUUID3, "attributeA", Simple("String", true))))
