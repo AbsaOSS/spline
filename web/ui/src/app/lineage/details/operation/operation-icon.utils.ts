@@ -25,7 +25,7 @@ export function getIconForNodeType(nodeType: OperationType): Icon {
             return new Icon("fa-floppy-o", "\uf0c7", font);
 
         case "StreamWrite":
-            return new Icon("fa-floppy-o", "\uf0c7", font);
+            return new Icon("fa-angle-double-down", "\uf103", font);
 
         case "Filter":
             return new Icon("fa-filter", "\uf0b0", font);
