@@ -178,7 +178,8 @@ private class ReadNodeBuilder(val operation: LogicalRelation)
 private class StreamReadNodeBuilder(val operation: StreamingRelation)
                                    (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[StreamingRelation] {
   def build(): op.StreamRead = {
-    op.StreamRead(buildOperationProps(), createEndpoint(operation.dataSource))
+    val endpoint = createEndpoint(operation.dataSource)
+    op.StreamRead(buildOperationProps(), endpoint.description, Seq(MetaDataSource(endpoint.path.toString, Nil)))
   }
 
   private def createEndpoint(dataSource: DataSource): StreamEndpoint = dataSource.sourceInfo.name match {

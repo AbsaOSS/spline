@@ -85,7 +85,7 @@ class StructuredStreamingListener(
 
     val metaDataset = logicalPlanLineage.rootDataset.copy(randomUUID)
     val mainProps = OperationProps(randomUUID, endpoint.getClass.getSimpleName, Seq(logicalPlanLineage.rootDataset.id), metaDataset.id)
-    val writeOperation = StreamWrite(mainProps, endpoint)
+    val writeOperation = StreamWrite(mainProps, endpoint.path.toString, endpoint.description)
 
     val streamingLineage = logicalPlanLineage.copy(
         operations = writeOperation +: logicalPlanLineage.operations,

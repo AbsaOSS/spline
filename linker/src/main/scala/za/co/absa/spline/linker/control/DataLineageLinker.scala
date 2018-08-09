@@ -71,9 +71,7 @@ class DataLineageLinker(reader: DataLineageReader) extends Logging {
           val newProps = read.mainProps.copy(inputs = newSources.flatMap(_.datasetsIds).distinct)
           read match {
             case r: BatchRead => r.copy(sources = newSources, mainProps = newProps)
-            case r: StreamRead =>
-              require(newSources.size == 1, "StreamRead has always single source.")
-              r.copy(datasetIds = newSources.head.datasetsIds.distinct, mainProps = newProps)
+            case r: StreamRead => r.copy(sources = newSources, mainProps = newProps)
           }
         }))
 
