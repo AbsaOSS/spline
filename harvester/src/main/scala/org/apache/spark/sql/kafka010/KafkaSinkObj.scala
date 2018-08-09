@@ -16,7 +16,7 @@
 
 package org.apache.spark.sql.kafka010
 
-import org.apache.spark.sql.execution.streaming.{BaseStreamingSource, Sink}
+import org.apache.spark.sql.execution.streaming.Sink
 import za.co.absa.spline.common.InstanceInspector
 
 /**
@@ -38,24 +38,6 @@ object KafkaSinkObj {
             .asInstanceOf[String]
             .split(','),
           InstanceInspector.getFieldValue[Option[String]](x, "topic")
-        )
-      )
-    case _ => None
-  }
-}
-
-
-object KafkaSourceObj {
-
-  def unapply(baseStreamingSource: BaseStreamingSource): Option[(Seq[String], String)] = baseStreamingSource match {
-    case x: KafkaSource =>
-      Some(
-        (
-          InstanceInspector.getFieldValue[java.util.Map[String, Object]](x, "executorKafkaParams")
-            .getOrDefault("bootstrap.servers",",")
-            .asInstanceOf[String]
-            .split(','),
-          InstanceInspector.getFieldValue[Option[String]](x, "topic").get
         )
       )
     case _ => None

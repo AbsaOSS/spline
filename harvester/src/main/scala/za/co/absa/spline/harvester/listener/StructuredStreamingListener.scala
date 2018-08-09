@@ -19,16 +19,16 @@ package za.co.absa.spline.harvester.listener
 import java.util.UUID.randomUUID
 
 import org.apache.spark.sql.FileSinkObj
+import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.streaming._
-import org.apache.spark.sql.kafka010.KafkaSinkObj
 import org.apache.spark.sql.streaming.{StreamingQuery, StreamingQueryListener, StreamingQueryManager}
 import org.slf4s.Logging
-import za.co.absa.spline.sparkadapterapi.StructuredStreamingListenerAdapter.instance._
+import za.co.absa.spline.common.InstanceInspector
 import za.co.absa.spline.harvester.LogicalPlanLineageHarvester
 import za.co.absa.spline.harvester.conf.LineageDispatcher
-import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.model.endpoint.{ConsoleEndpoint, FileEndpoint, KafkaEndpoint, StreamEndpoint}
+import za.co.absa.spline.model.endpoint.{ConsoleEndpoint, FileEndpoint, KafkaEndpoint}
 import za.co.absa.spline.model.op.{OperationProps, StreamWrite}
+import za.co.absa.spline.sparkadapterapi.StructuredStreamingListenerAdapter.instance._
 
 import scala.language.postfixOps
 
@@ -65,12 +65,20 @@ class StructuredStreamingListener(
 
   private def processExecution(se: StreamExecution): Unit = {
     assume(se.logicalPlan.resolved, "we harvest lineage from analyzed logic plans")
+    val logicalPlan = InstanceInspector.getFieldValue[LogicalPlan](se, "analyzedPlan")
 
-    val logicalPlanLineage = lineageHarvester.harvestLineage(se.sparkSession.sparkContext, se.logicalPlan)
+    val logicalPlanLineage = lineageHarvester.harvestLineage(se.sparkSession.sparkContext, logicalPlan)
 
     val endpoint = se.sink match {
+        // FIXME Extract 2.2 version is case KafkaSinkObj(cluster, topic) => KafkaEndpoint(cluster, topic.getOrElse(""))
       case FileSinkObj(path, fileFormat) => FileEndpoint(fileFormat.toString, path)
-      case KafkaSinkObj(cluster, topic) => KafkaEndpoint(cluster, topic.getOrElse(""))
+      case x if x.getClass.getSimpleName == "KafkaSourceProvider" => {
+        val extraOptions = InstanceInspector.getFieldValue[Map[String, String]](se, "extraOptions")
+        val topic = extraOptions("topic")
+        val bootstrapServers = extraOptions("kafka.bootstrap.servers").split("[\t ]*,[\t ]*")
+        KafkaEndpoint(bootstrapServers, topic)
+      }
+      // FIXME Remove MemorySink.
       case x if Set(consoleSinkClass(), classOf[ForeachSink[_]], classOf[MemorySink]).exists(assignableFrom(_, x)) => ConsoleEndpoint()
       case sink => throw new IllegalArgumentException(s"Unsupported sink type: ${sink.getClass}")
     }

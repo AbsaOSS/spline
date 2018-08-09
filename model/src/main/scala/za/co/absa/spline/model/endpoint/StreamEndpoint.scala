@@ -17,6 +17,8 @@
 package za.co.absa.spline.model.endpoint
 
 import java.net.{URI, URLEncoder}
+import java.nio.file.Paths
+
 import salat.annotations.Salat
 
 /**
@@ -41,7 +43,7 @@ case class VirtualEndpoint() extends StreamEndpoint {
   * @param filePath A path to files keeping data
   */
 case class FileEndpoint(format: String, filePath: String) extends StreamEndpoint {
-  override def path: URI = URI.create("file://" + filePath)
+  override def path: URI = Paths.get(filePath).toUri()
   override def description: String = format + " " + super.description
 }
 
