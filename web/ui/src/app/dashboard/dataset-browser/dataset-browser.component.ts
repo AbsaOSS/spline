@@ -66,4 +66,8 @@ export class DatasetBrowserComponent implements OnInit {
             this.searchRequest$.next(
                 this.searchRequest$.getValue().withOffset(this.descriptors.length))
     }
+
+    toDateString(timestamp: number): string {
+        return new Date(timestamp).toUTCString()
+    }
 }

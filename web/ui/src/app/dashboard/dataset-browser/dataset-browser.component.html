@@ -38,6 +38,10 @@
             <b>{{d.path}}</b>
             <br/>
             <span class="small" title="Spark application name">{{d.appName}}</span>
+            <br>
+            <!-- FIXME ensure UTC -->
+            <!-- FIXME acquire more accurate write timestamp -->
+            <span class="small" title="Approximate write timestamp">{{ toDateString(d.timestamp) }}</span>
         </a>
     </li>
 </ul>
