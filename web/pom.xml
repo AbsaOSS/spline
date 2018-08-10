@@ -232,10 +232,10 @@
                 <version>1.7</version>
                 <executions>
                     <execution>
-                        <id>ui-package</id>
-                        <phase>prepare-package</phase>
+                        <id>ui-download-dependencies</id>
+                        <phase>clean</phase>
                         <configuration>
-                            <target name="ui-build">
+                            <target name="ui-download-dependencies">
                                 <echo>Preparing UI build</echo>
                                 <!-- Install NPM dependencies -->
                                 <exec executable="cmd" dir="${webui.basedir}" osfamily="windows" failonerror="true">
@@ -253,6 +253,17 @@
                                     <arg line="run install-typings --no-color" />
                                 </exec>
 
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>ui-package</id>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <target name="ui-build">
                                 <echo>Executing UI build</echo>
                                 <exec executable="cmd" dir="${webui.basedir}" osfamily="windows" failonerror="true">
                                     <env key="SPLINE_VERSION" value="${project.version}" />
