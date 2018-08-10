@@ -37,6 +37,8 @@
     "@angular/platform-browser": "5.1.2",
     "@angular/platform-browser-dynamic": "5.1.2",
     "@angular/router": "5.1.2",
+    "moment": "2.22.2",
+    "ng2-datetime-picker": "0.15.1",
     "angular-tree-component": "7.0.1",
     "bootstrap": "3.3.7",
     "core-js": "2.5.3",

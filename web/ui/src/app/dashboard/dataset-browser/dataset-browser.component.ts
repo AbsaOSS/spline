@@ -23,6 +23,7 @@ import {BehaviorSubject} from "rxjs/BehaviorSubject";
 import {ScrollEvent} from "ngx-scroll-event";
 import {timer} from "rxjs/observable/timer";
 import {identity} from "rxjs/util/identity";
+import moment = require('moment');
 
 @Component({
     selector: "dataset-browser",
@@ -34,6 +35,8 @@ export class DatasetBrowserComponent implements OnInit {
     descriptors: IPersistedDatasetDescriptor[]
 
     searchText = new FormControl()
+
+    searchTimestamp = new FormControl()
 
     private searchRequest$ = new BehaviorSubject<SearchRequest>(null)
 
@@ -55,6 +58,9 @@ export class DatasetBrowserComponent implements OnInit {
 
         // set initial values
         this.searchText.setValue("")
+        // FIXME ensure utc
+        const now = moment().format('YYYY-MM-DD HH:mm')
+        this.searchTimestamp.setValue(now)
     }
 
     newSearch(text: string) {

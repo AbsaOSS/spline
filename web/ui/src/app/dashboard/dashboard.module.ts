@@ -20,6 +20,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/css/bootstrap-theme.min.css";
 import "@angular/material/prebuilt-themes/indigo-pink.css";
 import {MaterialModule} from "../material-extension/material.module";
+import { Ng2DatetimePickerModule } from 'ng2-datetime-picker';
 
 // Other imports
 import {CommonModule} from "@angular/common";
@@ -42,7 +43,8 @@ import {ScrollEventModule} from "ngx-scroll-event";
         HttpClientModule,
         MaterialModule,
         MiscModule,
-        ScrollEventModule
+        ScrollEventModule,
+        Ng2DatetimePickerModule
     ],
     declarations: [
         DashboardComponent,

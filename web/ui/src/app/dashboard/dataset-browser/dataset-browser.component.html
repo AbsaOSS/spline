@@ -16,7 +16,8 @@
 
 <div class="search input-group">
     <span class="input-group-addon"><mat-icon>search</mat-icon></span>
-    <input [formControl]="searchText" class="form-control" placeholder="Search">
+    <input [formControl]="searchText" class="form-control" placeholder="Sink Name" />
+    <input [formControl]="searchTimestamp" ng2-datetime-picker placeholder="Now"/>
     <button mat-icon-button class="cancel"
             *ngIf="searchText.value.length"
             (click)="searchText.reset('')">
