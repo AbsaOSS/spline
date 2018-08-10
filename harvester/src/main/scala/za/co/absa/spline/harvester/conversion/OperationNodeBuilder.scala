@@ -24,11 +24,12 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.catalyst.expressions.SortOrder
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.{DataSource, HadoopFsRelation, LogicalRelation}
-import org.apache.spark.sql.execution.streaming.StreamingRelation
+import org.apache.spark.sql.execution.streaming.{StreamingRelation, StreamingRelationV2}
 import org.apache.spark.sql.sources.BaseRelation
 import org.apache.spark.sql.{JDBCRelation, SaveMode}
 import za.co.absa.spline.model.endpoint._
 import za.co.absa.spline.model.expr.Expression
+import za.co.absa.spline.model.op.Operation
 import za.co.absa.spline.model.{op, _}
 import za.co.absa.spline.sparkadapterapi.{WriteCommand, WriteCommandParser}
 
@@ -61,6 +62,7 @@ class OperationNodeBuilderFactory(implicit hadoopConfiguration: Configuration, m
     case a: SubqueryAlias => new AliasNodeBuilder(a)
     case lr: LogicalRelation => new ReadNodeBuilder(lr)
     case sr: StreamingRelation => new StreamReadNodeBuilder(sr)
+    case sr: StreamingRelationV2 => new StreamReadV2NodeBuilder(sr)
     case wc if writeCommandParser.matches(logicalPlan) => new WriteNodeBuilder(writeCommandParser.asWriteCommand(wc))
     case x => new GenericNodeBuilder(x)
   }
@@ -175,11 +177,24 @@ private class ReadNodeBuilder(val operation: LogicalRelation)
   }
 }
 
+private class StreamReadV2NodeBuilder(val operation: StreamingRelationV2)(implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[StreamingRelationV2] {
+
+  override def build(): Operation = {
+    if (operation.v1Relation.isDefined) {
+      val v1Op = new StreamReadNodeBuilder(operation.v1Relation.get).build()
+      v1Op.copy(mainProps = v1Op.mainProps.copy(output = outputMetaDataset))
+    } else {
+      new GenericNodeBuilder(operation).build()
+    }
+  }
+
+}
+
 private class StreamReadNodeBuilder(val operation: StreamingRelation)
                                    (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[StreamingRelation] {
   def build(): op.StreamRead = {
     val endpoint = createEndpoint(operation.dataSource)
-    op.StreamRead(buildOperationProps(), endpoint.description, Seq(MetaDataSource(endpoint.path.toString, Nil)))
+    op.StreamRead(buildOperationProps().copy(name = endpoint.description), endpoint.description, Seq(MetaDataSource(endpoint.path.toString, Nil)))
   }
 
   private def createEndpoint(dataSource: DataSource): StreamEndpoint = dataSource.sourceInfo.name match {
