@@ -44,6 +44,7 @@ export class DatasetBrowserComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        // FIXME level2 search on date picker changes
         this.searchText.valueChanges
             .debounce(v => timer(v ? 300 : 0))
             .forEach(this.newSearch.bind(this))
@@ -58,13 +59,14 @@ export class DatasetBrowserComponent implements OnInit {
 
         // set initial values
         this.searchText.setValue("")
-        // FIXME ensure utc
+        // FIXME level2 ensure utc
         const now = moment().format('YYYY-MM-DD HH:mm')
         this.searchTimestamp.setValue(now)
     }
 
     newSearch(text: string) {
-        this.searchRequest$.next(new SearchRequest(text))
+        let asAt = moment(this.searchTimestamp.value, "YYYY-MM-DD HH:mm").valueOf()
+        this.searchRequest$.next(new SearchRequest(text, asAt))
     }
 
     onScroll(e: ScrollEvent) {
