@@ -15,7 +15,7 @@
  */
 
 import {Component, OnInit} from "@angular/core";
-import {FormControl} from '@angular/forms';
+import {FormControl, FormGroup} from '@angular/forms';
 import {DatasetBrowserService} from "./dataset-browser.service";
 import {IPersistedDatasetDescriptor} from "../../../generated-ts/lineage-model";
 import {SearchRequest} from "./dataset-browser.model";
@@ -34,9 +34,10 @@ export class DatasetBrowserComponent implements OnInit {
 
     descriptors: IPersistedDatasetDescriptor[]
 
-    searchText = new FormControl()
-
-    searchTimestamp = new FormControl()
+    searchValue = new FormGroup({
+        text: new FormControl(),
+        timestamp: new FormControl()
+    })
 
     private searchRequest$ = new BehaviorSubject<SearchRequest>(null)
 
@@ -44,8 +45,7 @@ export class DatasetBrowserComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        // FIXME level2 search on date picker changes
-        this.searchText.valueChanges
+        this.searchValue.valueChanges
             .debounce(v => timer(v ? 300 : 0))
             .forEach(this.newSearch.bind(this))
 
@@ -57,16 +57,12 @@ export class DatasetBrowserComponent implements OnInit {
                     .getLineageDescriptors(sr)
                     .then(descriptors => this.descriptors = descriptors))
 
-        // set initial values
-        this.searchText.setValue("")
-        // FIXME level2 ensure utc
-        const now = moment().format('YYYY-MM-DD HH:mm')
-        this.searchTimestamp.setValue(now)
+        this.reset()
     }
 
-    newSearch(text: string) {
-        let asAt = moment(this.searchTimestamp.value, "YYYY-MM-DD HH:mm").valueOf()
-        this.searchRequest$.next(new SearchRequest(text, asAt))
+    newSearch(value:  {[key: string]: string}) {
+        let asAt = moment(value.timestamp, "YYYY-MM-DD HH:mm").valueOf()
+        this.searchRequest$.next(new SearchRequest(value.text, asAt))
     }
 
     onScroll(e: ScrollEvent) {
@@ -77,5 +73,13 @@ export class DatasetBrowserComponent implements OnInit {
 
     toDateString(timestamp: number): string {
         return new Date(timestamp).toUTCString()
+    }
+
+    reset() {
+        this.searchValue.reset({
+            text: "",
+            // FIXME level2 ensure utc
+            timestamp: moment().format('YYYY-MM-DD HH:mm')
+        })
     }
 }
