@@ -18,13 +18,31 @@
     <span class="input-group-addon"><mat-icon>search</mat-icon></span>
     <form [formGroup]="searchValue">
         <div class="form-group">
-            <input id="text" class="form-control" formControlName="text" placeholder="Sink Name" />
-            <input id="timestamp" class="form-control" formControlName="timestamp" ng2-datetime-picker placeholder="Sink As Of Write Time"/>
+            <input type="text" class="form-control" formControlName="text" placeholder="Sink Name" />
+        </div>
+        <div class="form-check">
+            <input id="interval" class="form-check-input" type="checkbox" formControlName="interval" />
+            <label class="form-check-label" for="interval">Interval Search</label>
+        </div>
+        <div class="form-group">
+            <div *ngIf="searchValue.value.interval" >
+                <label for="from">From:</label>
+                <input id="from" class="form-control" formControlName="from" ng2-datetime-picker title="from" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label *ngIf="!searchValue.value.interval" for="until">
+                As-of:
+            </label>
+            <label *ngIf="searchValue.value.interval" for="until">
+                Until:
+            </label>
+            <input id="until" class="form-control" formControlName="until" ng2-datetime-picker title="As-of or until"/>
         </div>
     </form>
     <button mat-icon-button class="cancel"
             *ngIf="searchValue.value.text.length"
-            (click)="reset()">
+            (click)="clearText()">
         <mat-icon>cancel</mat-icon>
     </button>
 </div>

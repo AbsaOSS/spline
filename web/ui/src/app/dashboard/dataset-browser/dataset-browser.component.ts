@@ -36,18 +36,20 @@ export class DatasetBrowserComponent implements OnInit {
 
     searchValue = new FormGroup({
         text: new FormControl(),
-        timestamp: new FormControl()
+        interval: new FormControl(),
+        from: new FormControl(),
+        until: new FormControl(),
     })
 
     private searchRequest$ = new BehaviorSubject<SearchRequest>(null)
+    private static readonly TIMESTAMP_FORMAT = "YYYY-MM-DD HH:mm"
 
-    constructor(private dsBrowserService: DatasetBrowserService) {
-    }
+    constructor(private dsBrowserService: DatasetBrowserService) {}
 
     ngOnInit(): void {
         this.searchValue.valueChanges
             .debounce(v => timer(v ? 300 : 0))
-            .forEach(this.newSearch.bind(this))
+            .subscribe(this.newSearch.bind(this))
 
         this.searchRequest$
             .distinct()
@@ -57,12 +59,16 @@ export class DatasetBrowserComponent implements OnInit {
                     .getLineageDescriptors(sr)
                     .then(descriptors => this.descriptors = descriptors))
 
-        this.reset()
+        this.init()
     }
 
-    newSearch(value:  {[key: string]: string}) {
-        let asAt = moment(value.timestamp, "YYYY-MM-DD HH:mm").valueOf()
-        this.searchRequest$.next(new SearchRequest(value.text, asAt))
+    newSearch(value:  {[key: string]: string}): void {
+        if (!value.interval) {
+            let asAt = DatasetBrowserComponent.parseTimestamp(value.until).valueOf()
+            this.searchRequest$.next(new SearchRequest(value.text, asAt))
+        } else {
+            // FIXME implement interval search
+        }
     }
 
     onScroll(e: ScrollEvent) {
@@ -75,11 +81,21 @@ export class DatasetBrowserComponent implements OnInit {
         return new Date(timestamp).toUTCString()
     }
 
-    reset() {
+    clearText() {
+        this.searchValue.get("text").setValue("")
+    }
+
+    private init() {
         this.searchValue.reset({
             text: "",
             // FIXME level2 ensure utc
-            timestamp: moment().format('YYYY-MM-DD HH:mm')
+            from: moment().format(DatasetBrowserComponent.TIMESTAMP_FORMAT),
+            until: moment().format(DatasetBrowserComponent.TIMESTAMP_FORMAT),
+            interval: false
         })
+    }
+
+    private static parseTimestamp(timestamp: string): moment.Moment {
+        return moment(timestamp, DatasetBrowserComponent.TIMESTAMP_FORMAT)
     }
 }
