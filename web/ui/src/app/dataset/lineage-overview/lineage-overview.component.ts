@@ -17,11 +17,12 @@
 import {Component} from "@angular/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {IAttribute, IDataLineage} from "../../../generated-ts/lineage-model";
-import {Observable} from "rxjs/Observable";
+import {combineLatest, Observable} from "rxjs";
 import * as _ from "lodash";
 import {GraphNode, GraphNodeType} from "./lineage-overview.model";
 import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
 import {LineageAccessors, LineageStore} from "../../lineage/lineage.store";
+import {distinctUntilChanged, filter, map} from "rxjs/operators";
 
 @Component({
     templateUrl: "lineage-overview.component.html",
@@ -44,21 +45,21 @@ export class DatasetLineageOverviewComponent {
         route.data.subscribe((data: { lineage: IDataLineage }) => this.lineageStore.lineage = data.lineage)
 
         this.selectedNode$ =
-            Observable.combineLatest(
+            combineLatest(
                 route.fragment,
                 route.parent.data
-            ).map(([fragment, data]) =>
+            ).pipe(map(([fragment, data]) =>
                 <GraphNode>{
                     type: fragment,
                     id: data.dataset.datasetId
-                })
+                }))
 
-        let lineageAccessors$ = this.lineageStore.lineage$.map(lin => new LineageAccessors(lin))
+        let lineageAccessors$ = this.lineageStore.lineage$.pipe(map(lin => new LineageAccessors(lin)))
 
-        Observable
-            .combineLatest(lineageAccessors$, this.selectedNode$)
-            .filter(([linAccessors, selectedNode]) => !!linAccessors.getDataset(selectedNode.id))
-            .distinctUntilChanged(([la0, node0], [la1, node1]) => la0.lineage.id == la1.lineage.id && _.isEqual(node0, node1))
+        combineLatest(lineageAccessors$, this.selectedNode$)
+            .pipe(
+                filter(([linAccessors, selectedNode]) => !!linAccessors.getDataset(selectedNode.id)),
+                distinctUntilChanged(([la0, node0], [la1, node1]) => la0.lineage.id == la1.lineage.id && _.isEqual(node0, node1)))
             .subscribe(([linAccessors, selectedNode]) => this.updateSelectedState(linAccessors, selectedNode))
     }
 

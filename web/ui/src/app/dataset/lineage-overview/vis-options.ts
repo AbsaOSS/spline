@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-export const visOptions = {
+import {Options} from "vis";
+
+export const visOptions: Options = {
 
     autoResize: true,
     interaction: {
@@ -60,12 +62,11 @@ export const visOptions = {
     nodes: {
         shape: 'icon',
         shadow: false,
-        margin: 10,
+        // margin: 10,
         labelHighlightBold: false,
         font: {
             color: '#343434',
-            multi: false,
-            size: 20,
-        },
-    },
+            size: 20
+        }
+    }
 }

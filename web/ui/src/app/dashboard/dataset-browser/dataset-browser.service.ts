@@ -17,8 +17,6 @@
 import {Injectable} from "@angular/core";
 import {IPersistedDatasetDescriptor} from "../../../generated-ts/lineage-model";
 import {HttpClient} from "@angular/common/http";
-import "rxjs/add/operator/map";
-import "rxjs/add/operator/toPromise";
 import {SearchRequest} from "./dataset-browser.model";
 
 @Injectable()
