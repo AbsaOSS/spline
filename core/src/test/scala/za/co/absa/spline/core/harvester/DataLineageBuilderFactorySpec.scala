@@ -57,17 +57,17 @@ class DataLineageBuilderFactorySpec extends FlatSpec with Matchers {
     def shouldEqualStripped(anotherOperation: Operation): Unit = stripped(operation) shouldEqual stripped(anotherOperation)
 
     private def stripped(operation: Operation): Operation = operation match {
-      case (jn: Join) => jn copy(mainProps = strippedProps(jn), condition = null)
-      case (un: Union) => un copy (mainProps = strippedProps(un))
-      case (fr: Filter) => fr copy(mainProps = strippedProps(fr), condition = null)
-      case (st: Sort) => st copy(mainProps = strippedProps(st), orders = Nil)
-      case (ag: Aggregate) => ag copy(mainProps = strippedProps(ag), groupings = Nil, aggregations = Map.empty)
-      case (pn: Projection) => pn copy(mainProps = strippedProps(pn), transformations = null)
-      case (gn: Generic) => gn copy(mainProps = strippedProps(gn), rawString = null)
-      case (as: Alias) => as copy (mainProps = strippedProps(as))
-      case (rd: Read) => rd copy (mainProps = strippedProps(rd))
-      case (wt: Write) => wt copy (mainProps = strippedProps(wt))
-      case (cm: Composite) => cm copy (mainProps = strippedProps(cm))
+      case jn: Join => jn copy(mainProps = strippedProps(jn), condition = null)
+      case un: Union => un copy (mainProps = strippedProps(un))
+      case fr: Filter => fr copy(mainProps = strippedProps(fr), condition = null)
+      case st: Sort => st copy(mainProps = strippedProps(st), orders = Nil)
+      case ag: Aggregate => ag copy(mainProps = strippedProps(ag), groupings = Nil, aggregations = Map.empty)
+      case pn: Projection => pn copy(mainProps = strippedProps(pn), transformations = null)
+      case gn: Generic => gn copy(mainProps = strippedProps(gn), rawString = null)
+      case as: Alias => as copy (mainProps = strippedProps(as))
+      case rd: Read => rd copy (mainProps = strippedProps(rd))
+      case wt: Write => wt copy (mainProps = strippedProps(wt))
+      case cm: Composite => cm copy (mainProps = strippedProps(cm))
     }
 
     private def strippedProps(n: Operation): OperationProps = n.mainProps.copy(id = null, inputs = null, output = null)

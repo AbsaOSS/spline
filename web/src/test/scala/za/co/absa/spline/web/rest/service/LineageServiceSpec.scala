@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.web.json
+package za.co.absa.spline.web.rest.service
 
 import java.util.UUID
 
@@ -23,22 +23,22 @@ import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{AsyncFlatSpec, Matchers}
 import za.co.absa.spline.model.dt.Simple
+import za.co.absa.spline.model.expr.AttrRef
 import za.co.absa.spline.model.op._
 import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset, Schema, _}
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
-import za.co.absa.spline.web.rest.service.LineageService
 
 import scala.concurrent.Future
 import scala.language.postfixOps
 
 /**
- * This is a test suite for high order lineage construction algorithm
- * defined in LineageService
- *
- * This test suite is for the non-blocking/async version
- */
+  * This is a test suite for high order lineage construction algorithm
+  * defined in LineageService
+  *
+  * This test suite is for the non-blocking/async version
+  */
 //noinspection NameBooleanParameters,LanguageFeature
-class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
+class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
 
   /*
       Composite [lineage] is a lineage viewed as an operation on datasets produced by other lineages
@@ -87,7 +87,7 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
 
     val svc = new LineageService(readerMock)
 
-    for (lin <- svc getDatasetOverviewLineageAsync UUIDS1) yield {
+    for (lin <- svc getDatasetLineageOverview UUIDS1) yield {
       lin.operations.size shouldEqual 2
       lin.datasets.size shouldEqual 2
       lin.attributes.size shouldEqual 2
@@ -120,46 +120,69 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
   val operationDUUID: UUID = UUID fromString "dddddddd-1111-1111-1111-111111111111"
   val operationEUUID: UUID = UUID fromString "eeeeeeee-1111-1111-1111-111111111111"
 
-  private val stringType = Simple("String", true)
+  private val stringType1 = Simple("String", true)
+  private val stringType2 = Simple("String", true)
 
-  val lineageD = DataLineage("AppId", "AppNameD", 0,
+  private val lineageD = DataLineage("AppId", "AppNameD", 0,
     operations = Seq(Write(OperationProps(operationDUUID, "Save", Seq(), dUUID), "fileD", "fileD.csv", append = false)),
     datasets = Seq(MetaDataset(dUUID, Schema(Seq(xUUID1)))),
-    attributes = Seq(Attribute(xUUID1, "attributeD", stringType.id)),
-    dataTypes = Seq(stringType))
+    attributes = Seq(Attribute(xUUID1, "attributeD", stringType1.id)),
+    dataTypes = Seq(stringType1))
 
-  val lineageE = DataLineage("AppId", "AppNameE", 0,
+  private val lineageE = DataLineage("AppId", "AppNameE", 0,
     operations = Seq(Write(OperationProps(operationEUUID, "Save", Seq(), eUUID), "fileE", "fileE.csv", append = false)),
     datasets = Seq(MetaDataset(xUUID2, Schema(Seq(xUUID2)))),
-    attributes = Seq(Attribute(xUUID2, "attributeE", stringType.id)),
-    dataTypes = Seq(stringType))
+    attributes = Seq(Attribute(xUUID2, "attributeE", stringType1.id)),
+    dataTypes = Seq(stringType1))
 
-  val lineageA = DataLineage("AppId", "AppNameA", 0,
+  private val lineageA = DataLineage("AppId", "AppNameA", 0,
     operations = Seq(
       Write(OperationProps(operationAUUID, "Save", null, aUUID), "fileA", "fileA.csv", append = false),
       Read(OperationProps(operationAUUID, "Read", Seq(dUUID), null), "fileD", Seq(MetaDataSource("dileD.csv", Seq(dUUID)))),
       Read(OperationProps(operationAUUID, "Read", Seq(eUUID), null), "fileE", Seq(MetaDataSource("dileE.csv", Seq(eUUID))))),
     datasets = Seq(MetaDataset(xUUID3, Schema(Seq(xUUID3)))),
-    attributes = Seq(Attribute(xUUID3, "attributeA", stringType.id)),
-    dataTypes = Seq(stringType))
+    attributes = Seq(Attribute(xUUID3, "attributeA", stringType2.id)),
+    dataTypes = Seq(stringType2))
 
-  val lineageB = DataLineage("AppId", "AppNameB", 0,
+  private val lineageB = DataLineage("AppId", "AppNameB", 0,
     operations = Seq(
       Write(OperationProps(operationBUUID, "Save", null, bUUID), "fileB", "fileB.csv", append = false),
       Read(OperationProps(operationBUUID, "Read", Seq(aUUID), null), "fileA", Seq(MetaDataSource("dileA.csv", Seq(aUUID))))
     ),
     datasets = Seq(MetaDataset(xUUID4, Schema(Seq(xUUID4)))),
-    attributes = Seq(Attribute(xUUID4, "attributeB", stringType.id)),
-    dataTypes = Seq(stringType))
+    attributes = Seq(Attribute(xUUID4, "attributeB", stringType2.id)),
+    dataTypes = Seq(stringType2))
 
-  val lineageC = DataLineage("AppId", "AppNameC", 0,
-    operations = Seq(
-      Write(OperationProps(operationCUUID, "Save", null, cUUID), "fileC", "fileC.csv", append = false),
-      Read(OperationProps(operationCUUID, "Read", Seq(aUUID), null), "fileA", Seq(MetaDataSource("dileA.csv", Seq(aUUID))))
-    ),
-    datasets = Seq(MetaDataset(xUUID3, Schema(Seq(xUUID3)))),
-    attributes = Seq(Attribute(xUUID3, "attributeA", stringType.id)),
-    dataTypes = Seq(stringType))
+  private val lineageC = {
+    val ds1Id = UUID.randomUUID
+    val ds2Id = UUID.randomUUID
+    val attr1Id = UUID.randomUUID
+    val attr2Id = UUID.randomUUID
+    val dt1Id = UUID.randomUUID
+    val dt2Id = UUID.randomUUID
+    DataLineage("AppId", "AppNameC", 0,
+      operations = Seq(
+        Write(OperationProps(operationCUUID, "Save", Seq(ds2Id), cUUID), "fileC", "fileC.csv", append = false),
+        Filter(OperationProps(UUID.randomUUID, "Filter 2", Seq(ds1Id), ds2Id), expr.Binary(">", dt1Id, children = Seq(AttrRef(attr1Id)))),
+        Filter(OperationProps(UUID.randomUUID, "Filter 1", Seq(aUUID), ds1Id), expr.Binary("<", dt2Id, children = Seq(AttrRef(attr2Id)))),
+        Read(OperationProps(operationCUUID, "Read", Seq(aUUID), null), "fileA", Seq(MetaDataSource("dileA.csv", Seq(aUUID))))
+      ),
+      datasets = Seq(
+        MetaDataset(xUUID3, Schema(Seq(xUUID3))),
+        MetaDataset(ds1Id, Schema(Seq(ds1Id))),
+        MetaDataset(ds2Id, Schema(Seq(ds2Id)))
+      ),
+      attributes = Seq(
+        Attribute(xUUID3, "attributeA", stringType2.id),
+        Attribute(attr1Id, "attributeA1", dt1Id),
+        Attribute(attr2Id, "attributeA2", dt2Id)
+      ),
+      dataTypes = Seq(
+        stringType2,
+        Simple("some type 1", false),
+        Simple("some type 2", false)
+      ))
+  }
 
   def prepareBigLineageMock(readerMock: DataLineageReader): Unit = {
     when(readerMock.loadByDatasetId(≡(aUUID))(any())) thenReturn Future.successful(Some(lineageA))
@@ -180,10 +203,11 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
     val svc = new LineageService(readerMock)
     prepareBigLineageMock(readerMock)
 
-    for (lin1 <- svc getDatasetOverviewLineageAsync aUUID) yield {
-      lin1.operations.size shouldEqual 5
-      lin1.datasets.size shouldEqual 4
-      lin1.attributes.size shouldEqual 4
+    for (lin <- svc getDatasetLineageOverview aUUID) yield {
+      lin.operations.size shouldEqual 5
+      lin.datasets.size shouldEqual 4
+      lin.attributes.size shouldEqual 4
+      lin.dataTypes.size shouldEqual 2
     }
   }
 
@@ -192,10 +216,11 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
     val svc = new LineageService(readerMock)
     prepareBigLineageMock(readerMock)
 
-    for (lin <- svc getDatasetOverviewLineageAsync cUUID) yield {
+    for (lin <- svc getDatasetLineageOverview cUUID) yield {
       lin.operations.size shouldEqual 5
       lin.datasets.size shouldEqual 4
       lin.attributes.size shouldEqual 4
+      lin.dataTypes.size shouldEqual 2
     }
   }
 
@@ -204,10 +229,11 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
     val svc = new LineageService(readerMock)
     prepareBigLineageMock(readerMock)
 
-    for (lin <- svc getDatasetOverviewLineageAsync dUUID) yield {
+    for (lin <- svc getDatasetLineageOverview dUUID) yield {
       lin.operations.size shouldEqual 5
       lin.datasets.size shouldEqual 4
       lin.attributes.size shouldEqual 4
+      lin.dataTypes.size shouldEqual 2
     }
   }
 

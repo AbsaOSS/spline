@@ -73,6 +73,6 @@ class LineageController @Autowired()
 
   @RequestMapping(path = Array("/dataset/{id}/lineage/overview"), method = Array(GET))
   @ResponseBody
-  def datasetLineageOverview(@PathVariable("id") id: UUID): Future[String] = service.getDatasetOverviewLineageAsync(id).map(_.toJson)
+  def datasetLineageOverview(@PathVariable("id") id: UUID): Future[String] = service.getDatasetLineageOverview(id).map(_.toJson)
 
 }
