@@ -20,6 +20,7 @@ package za.co.absa.spline.core.transformations
 import java.util.UUID
 import java.util.UUID.randomUUID
 
+import org.apache.spark
 import org.mockito.ArgumentMatchers.{eq => ≡, _}
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
@@ -50,7 +51,7 @@ class DataLineageLinkerSpec extends AsyncFlatSpec with Matchers with MockitoSuga
       val operation1 = Read(OperationProps(randomUUID, "read", Seq.empty, dataset.id), "parquet", Seq(MetaDataSource("some/path_known", Nil)))
       val operation2 = Read(OperationProps(randomUUID, "read", Seq.empty, dataset.id), "parquet", Seq(MetaDataSource("some/path_unknown", Nil)))
 
-      DataLineage("appId2", "appName2", 2L, Seq(operation1, operation2), Seq(dataset), attributes, Seq(dataType))
+      DataLineage("appId2", "appName2", 2L, spark.SPARK_VERSION, Seq(operation1, operation2), Seq(dataset), attributes, Seq(dataType))
     }
 
     (when(dataLineageReader.findLatestDatasetIdsByPath(any())(any()))

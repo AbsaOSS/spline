@@ -218,7 +218,7 @@ class LineageService
 
     def finalGather(): DataLineage =
       DataLineage(
-        "appId", "appName", 0,
+        "", "", 0, "",
         operations.toSeq,
         datasets.toSeq,
         attributes.toSeq,

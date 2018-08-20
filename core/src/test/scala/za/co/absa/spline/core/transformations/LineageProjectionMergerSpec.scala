@@ -19,6 +19,7 @@ package za.co.absa.spline.core.transformations
 import java.util.UUID
 import java.util.UUID.randomUUID
 
+import org.apache.spark
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{AsyncFunSpec, Matchers}
 import za.co.absa.spline.core.transformations.LineageProjectionMerger.mergeProjections
@@ -71,6 +72,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
         "appId",
         "appName",
         1L,
+        spark.SPARK_VERSION,
         operations,
         datasets,
         attributes,
@@ -87,7 +89,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
 
     val aType = Simple("type", nullable = true)
 
-    val emptyLineage = DataLineage("", "", -1, Seq(mock[Operation]), Seq(mock[MetaDataset]), Nil, Nil)
+    val emptyLineage = DataLineage("", "", -1, spark.SPARK_VERSION, Seq(mock[Operation]), Seq(mock[MetaDataset]), Nil, Nil)
 
     def createGenericExpressions(names: String*): Seq[Expression] = {
       names.map(Generic(_, aType.id, Seq.empty))

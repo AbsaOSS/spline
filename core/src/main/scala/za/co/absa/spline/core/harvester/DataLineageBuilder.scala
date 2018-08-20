@@ -18,6 +18,7 @@ package za.co.absa.spline.core.harvester
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.spark
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.LogicalRelation
@@ -39,6 +40,7 @@ class DataLineageBuilder
       sparkContext.applicationId,
       sparkContext.appName,
       System.currentTimeMillis(),
+      spark.SPARK_VERSION,
       operations,
       componentCreatorFactory.metaDatasetConverter.values,
       componentCreatorFactory.attributeConverter.values,

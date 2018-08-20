@@ -36,6 +36,7 @@ case class DataLineage
   appId: String,
   appName: String,
   timestamp: Long,
+  sparkVer: String,
   operations: Seq[Operation],
   datasets: Seq[MetaDataset],
   attributes: Seq[Attribute],

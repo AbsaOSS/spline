@@ -26,6 +26,7 @@ module.exports = function () {
                 "id": "ln_ds-uuid-1",
                 "appId": "ln_ds-uuid-1",
                 "appName": "Sample - FrontCache Conformance",
+                "sparkVer": "2.2.1",
                 "attributes": [{
                     "id": "attr-uuid-0",
                     "name": "TradeScalar",
@@ -1649,6 +1650,7 @@ module.exports = function () {
             },
             {
                 "id": "ln_ds-uuid-28",
+                "sparkVer": "2.2.1",
                 "appId": "ln_ds-uuid-28",
                 appName: "Foo Bar Application",
                 attributes: [{
@@ -2427,9 +2429,10 @@ module.exports = function () {
         "_dataset-lineage-overview": [
             {
                 "id": "a38e44ec-bfea-4048-bf21-a9060dbbbb25",
-                "appId": "appId",
-                "appName": "appName",
+                "appId": "",
+                "appName": "",
                 "timestamp": 0,
+                "sparkVer": "",
                 "operations": [
                     {
                         "_typeHint": "za.co.absa.spline.model.op.Composite",
@@ -2454,6 +2457,7 @@ module.exports = function () {
                             "datasetsIds": ["5fc0b171-94c4-4ab4-93a5-0658c9560622"]
                         },
                         "timestamp": 1520949141083,
+                        "sparkVer": "2.2.1",
                         "appId": "local-1520949132164",
                         "appName": "Jan's Beer Job"
                     },
@@ -2479,6 +2483,7 @@ module.exports = function () {
                             "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/crazyJobResults",
                             "datasetsIds": ["f7e1e9d3-5d34-4778-9071-0e1967facdc6"]
                         },
+                        "sparkVer": "2.2.1",
                         "timestamp": 1520942324401,
                         "appId": "local-1520942314349",
                         "appName": "Crazy Job"
@@ -2505,6 +2510,7 @@ module.exports = function () {
                             "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/beerConsCtl",
                             "datasetsIds": ["030ab235-01a0-45c4-b08b-3e60b5fa1542"]
                         },
+                        "sparkVer": "2.2.1",
                         "timestamp": 1520942288616,
                         "appId": "local-1520942279474",
                         "appName": "Jan's Beer Job"
@@ -2531,6 +2537,7 @@ module.exports = function () {
                             "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/gdpPerCapitaUSD",
                             "datasetsIds": ["96a20517-0e25-4a96-af75-4131422b3964"]
                         },
+                        "sparkVer": "2.2.1",
                         "timestamp": 1520942263099,
                         "appId": "local-1520942252952",
                         "appName": "Marek's Job"
@@ -2557,6 +2564,7 @@ module.exports = function () {
                             "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/beerConsCtl",
                             "datasetsIds": ["5c43a06f-4e0f-4809-af30-f2177949e405"]
                         },
+                        "sparkVer": "2.2.1",
                         "timestamp": 1520949075188,
                         "appId": "local-1520949065741",
                         "appName": "Jan's Beer Job"
@@ -2583,6 +2591,7 @@ module.exports = function () {
                             "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/crazyJobResults",
                             "datasetsIds": ["a38e44ec-bfea-4048-bf21-a9060dbbbb25"]
                         },
+                        "sparkVer": "2.2.1",
                         "timestamp": 1520949162367,
                         "appId": "local-1520949152836",
                         "appName": "Crazy Job"
@@ -2609,6 +2618,7 @@ module.exports = function () {
                             "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/beerConsCtl",
                             "datasetsIds": ["ba86ac19-e211-4469-97f2-8efa6bc83806"]
                         },
+                        "sparkVer": "2.2.1",
                         "timestamp": 1520942201317,
                         "appId": "local-1520942190577",
                         "appName": "Jan's Beer Job"
@@ -2635,6 +2645,7 @@ module.exports = function () {
                             "path": "file:/C:/work/bacibbd/spline/sample/data/results/batchWithDependencies/beerConsCtl",
                             "datasetsIds": ["68da2924-4b5f-4e7f-9abe-f38c6b567659"]
                         },
+                        "sparkVer": "2.2.1",
                         "timestamp": 1520942214734,
                         "appId": "local-1520942202977",
                         "appName": "Jan's Beer Job"

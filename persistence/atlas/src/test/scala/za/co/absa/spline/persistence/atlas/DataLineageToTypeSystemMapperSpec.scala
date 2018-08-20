@@ -65,6 +65,7 @@ class DataLineageToTypeSystemMapperSpec extends FlatSpec with Matchers{
       appId,
       appName,
       timestamp,
+      "0.0.42",
       Seq(
         Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path, append),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),

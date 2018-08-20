@@ -26,6 +26,7 @@ case class TruncatedDataLineage
   appId: String,
   appName: String,
   timestamp: Long,
+  sparkVer: String,
   rootOperation: Operation,
   rootDataset: MetaDataset
 ) {
@@ -37,7 +38,7 @@ case class TruncatedDataLineage
     attributes: Seq[Attribute],
     dataTypes: Seq[DataType]
   ): DataLineage = {
-    DataLineage(appId, appName, timestamp, operations, datasets, attributes, dataTypes)
+    DataLineage(appId, appName, timestamp, sparkVer, operations, datasets, attributes, dataTypes)
   }
 
   @Persist
@@ -48,7 +49,13 @@ case class TruncatedDataLineage
 object TruncatedDataLineage {
 
   def apply(dataLineage: DataLineage): TruncatedDataLineage = {
-    TruncatedDataLineage(dataLineage.appId, dataLineage.appName, dataLineage.timestamp, dataLineage.rootOperation, dataLineage.rootDataset)
+    TruncatedDataLineage(
+      dataLineage.appId,
+      dataLineage.appName,
+      dataLineage.timestamp,
+      dataLineage.sparkVer,
+      dataLineage.rootOperation,
+      dataLineage.rootDataset)
   }
 
 }
