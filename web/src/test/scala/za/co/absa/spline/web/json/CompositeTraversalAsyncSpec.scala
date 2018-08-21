@@ -81,7 +81,7 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
 
     val svc = new LineageService(readerMock)
 
-    for (lin <- svc getDatasetOverviewLineageAsync UUIDS1) yield {
+    for (lin <- svc getPrelinked UUIDS1) yield {
       lin.operations.size shouldEqual 2
       lin.datasets.size shouldEqual 2
       lin.attributes.size shouldEqual 2
@@ -167,7 +167,7 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
     val svc = new LineageService(readerMock)
     prepareBigLineageMock(readerMock)
 
-    for (lin1 <- svc getDatasetOverviewLineageAsync aUUID) yield {
+    for (lin1 <- svc getPrelinked aUUID) yield {
       lin1.operations.size shouldEqual 5
       lin1.datasets.size shouldEqual 4
       lin1.attributes.size shouldEqual 4
@@ -179,7 +179,7 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
     val svc = new LineageService(readerMock)
     prepareBigLineageMock(readerMock)
 
-    for (lin <- svc getDatasetOverviewLineageAsync cUUID) yield {
+    for (lin <- svc getPrelinked cUUID) yield {
       lin.operations.size shouldEqual 5
       lin.datasets.size shouldEqual 4
       lin.attributes.size shouldEqual 4
@@ -191,7 +191,7 @@ class CompositeTraversalAsyncSpec extends AsyncFlatSpec with Matchers with Mocki
     val svc = new LineageService(readerMock)
     prepareBigLineageMock(readerMock)
 
-    for (lin <- svc getDatasetOverviewLineageAsync dUUID) yield {
+    for (lin <- svc getPrelinked dUUID) yield {
       lin.operations.size shouldEqual 5
       lin.datasets.size shouldEqual 4
       lin.attributes.size shouldEqual 4

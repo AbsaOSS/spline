@@ -73,6 +73,16 @@ class LineageController @Autowired()
 
   @RequestMapping(path = Array("/dataset/{id}/lineage/overview"), method = Array(GET))
   @ResponseBody
-  def datasetLineageOverview(@PathVariable("id") id: UUID): Future[String] = service.getDatasetOverviewLineageAsync(id).map(_.toJson)
+  def datasetLineageOverview(@PathVariable("id") id: UUID): Future[String] = service.getPrelinked(id).map(_.toJson)
+
+
+  // FIXME quiery with endpoint URI and not with any of corresponding datasets id.
+  @RequestMapping(path = Array("/dataset/{id}/lineage/interval"), method = Array(GET))
+  @ResponseBody
+  def intervalLineageOverview(@PathVariable("id") id: UUID) = {
+    // FIXME where to get interval?
+    // Query the dataset, extract endpoint URI and then do interval query.
+//    service.getInterval(id, )
+  }
 
 }
