@@ -38,7 +38,7 @@ class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase {
 
     it("should store fields with dots correctly") {
       val lineageWithDotsAndDollar = {
-        val dummyExpression = expr.Generic("", randomUUID, Nil)
+        val dummyExpression = expr.Literal(42, randomUUID)
         val aggregateOperationWithDotsAnd$ =
           op.Aggregate(OperationProps(randomUUID, "aggregate", Nil, randomUUID), Nil, Map("field.with.dots.and.$" -> dummyExpression))
         lineage.copy(operations = lineage.operations :+ aggregateOperationWithDotsAnd$)

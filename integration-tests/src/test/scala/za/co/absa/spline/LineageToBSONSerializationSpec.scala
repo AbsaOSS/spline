@@ -67,7 +67,7 @@ class LineageToBSONSerializationSpec
       .select(columnNames map aComplexExpression: _*)
       .lineage
 
-    bigLineage should haveEveryComponentSizeInBSONLessThan(8.mb)
+    bigLineage should haveEveryComponentSizeInBSONLessThan(9.mb)
     bigLineage.asBSON.length should be < 16.mb
   }
 }

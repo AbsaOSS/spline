@@ -24,54 +24,80 @@ import salat.annotations.Salat
 sealed trait Expression {
   def children: Seq[Expression]
 
-  def allNamedChildrenFlattened: Seq[Expression] = children.flatMap(_.allNamedChildrenFlattened)
+  def allRefLikeChildrenFlattened: Seq[Expression] = children.flatMap(_.allRefLikeChildrenFlattened)
+}
+
+trait TypedExpression {
+  def dataTypeId: UUID
 }
 
 trait LeafExpression extends Expression {
   override final def children: Seq[Expression] = Nil
 }
 
-trait NamedExpression extends Expression {
-  override final def allNamedChildrenFlattened: Seq[Expression] = this +: super.allNamedChildrenFlattened
+trait RefLikeExpression extends Expression {
+  override final def allRefLikeChildrenFlattened: Seq[Expression] = this +: super.allRefLikeChildrenFlattened
+}
+
+trait GenericExpressionLike {
+  def exprType: String
+
+  def params: Option[Map[String, Any]]
 }
 
 case class Generic
 (
-  exprType: String,
-  dataTypeId: UUID,
-  override val children: Seq[Expression]
+  override val dataTypeId: UUID,
+  override val children: Seq[Expression],
+  override val exprType: String,
+  override val params: Option[Map[String, Any]]
 ) extends Expression
+  with TypedExpression
+  with GenericExpressionLike
 
 case class GenericLeaf
 (
-  exprType: String,
-  dataTypeId: UUID
+  override val dataTypeId: UUID,
+  override val exprType: String,
+  override val params: Option[Map[String, Any]]
 ) extends Expression
   with LeafExpression
+  with TypedExpression
+  with GenericExpressionLike
 
 case class Alias
 (
   alias: String,
   child: Expression
 ) extends Expression
-  with NamedExpression {
+  with RefLikeExpression {
   override def children: Seq[Expression] = Seq(child)
 }
 
 case class Binary
 (
   symbol: String,
-  dataTypeId: UUID,
+  override val dataTypeId: UUID,
   override val children: Seq[Expression]
 ) extends Expression
+  with TypedExpression
 
 case class AttributeRemoval(attrId: UUID) extends Expression with LeafExpression
 
-case class AttrRef(refId: UUID) extends Expression with LeafExpression with NamedExpression
+case class AttrRef(refId: UUID) extends Expression with LeafExpression with RefLikeExpression
+
+case class Literal
+(
+  value: Any,
+  override val dataTypeId: UUID
+) extends Expression
+  with LeafExpression
+  with TypedExpression
 
 case class UDF
 (
   name: String,
-  dataTypeId: UUID,
+  override val dataTypeId: UUID,
   override val children: Seq[Expression]
 ) extends Expression
+  with TypedExpression

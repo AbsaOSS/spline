@@ -89,14 +89,14 @@ object LineageProjectionMerger extends AsyncTransformation[DataLineage] {
   private def canMerge(a: Operation, b: Operation, allOperations: Seq[Operation], attributesById: Map[UUID, Attribute]): Boolean = {
     def transformationsAreCompatible(ats: Seq[Expression], bts: Seq[Expression]) = {
       val inputAttributeNames = ats.
-        flatMap(_.allNamedChildrenFlattened).
+        flatMap(_.allRefLikeChildrenFlattened).
         flatMap({
           case ref: AttrRef => Some(attributesById(ref.refId).name)
           case _ => None
         })
 
       val outputAttributeNames = bts.
-        flatMap(_.allNamedChildrenFlattened).
+        flatMap(_.allRefLikeChildrenFlattened).
         flatMap({
           case alias: Alias => Some(alias.alias)
           case _ => None
