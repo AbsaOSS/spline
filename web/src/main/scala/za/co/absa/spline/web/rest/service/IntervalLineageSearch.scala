@@ -21,7 +21,8 @@ import scala.concurrent.Future
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class IntervalLineageService(reader: DataLineageReader) extends DatasetOverviewLineageAsync {
+
+class IntervalLineageSearch(reader: DataLineageReader) extends DatasetOverviewLineageAsync {
   private var start: Long = _
   private var end: Long = _
 
@@ -37,5 +38,12 @@ class IntervalLineageService(reader: DataLineageReader) extends DatasetOverviewL
   override def traverseUp(datasetId: UUID): Future[Unit] = {
     // query events between start and end and writing to URI of dataset with datasetId.
     ???
+  }
+}
+
+class IntervalLineageService(reader: DataLineageReader) {
+
+  def apply(datasetId: UUID, start: Long, end: Long): Future[DataLineage] = {
+    new IntervalLineageSearch(reader).get(datasetId, start, end)
   }
 }

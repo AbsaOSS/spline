@@ -18,7 +18,7 @@ package za.co.absa.spline.web.rest.service
 
 import java.util.UUID
 
-import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset, TypedMetaDataSource}
+import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.DataLineageReader
 import za.co.absa.spline.web.ExecutionContextImplicit
 
@@ -28,6 +28,9 @@ class LineageService
 (
   val reader: DataLineageReader
 ) extends ExecutionContextImplicit {
+
+  private val prelinkedLineageService = new PrelinkedLineageService(reader)
+  private val intervalLineageService = new IntervalLineageService(reader)
 
   /**
     * This is non-blocking version of getting High Order Lineage by a dataset Id
@@ -41,13 +44,13 @@ class LineageService
     */
 
   def getPrelinked(datasetId: UUID): Future[DataLineage] = {
-    new PrelinkedLineageService(reader).getPrelinked(datasetId)
+    prelinkedLineageService(datasetId)
   }
 
   def getInterval(datasetId: UUID, start: Long, end: Long): Future[DataLineage] = {
 //    new IntervalLineageService(reader).get(datasetId, )
-    ???
     // FIXME use interval service
+    intervalLineageService(datasetId, start, end)
   }
 
 }

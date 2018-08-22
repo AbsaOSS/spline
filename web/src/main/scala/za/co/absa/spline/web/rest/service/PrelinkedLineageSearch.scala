@@ -23,9 +23,9 @@ import scala.concurrent.Future
  * limitations under the License.
  */
 
-class PrelinkedLineageService(reader: DataLineageReader) extends DatasetOverviewLineageAsync {
+private class PrelinkedLineageSearch(reader: DataLineageReader) extends DatasetOverviewLineageAsync {
 
-  def getPrelinked(datasetId: UUID): Future[DataLineage] = {
+  def apply(datasetId: UUID): Future[DataLineage] = {
     // Now, just enqueue the datasetId and process it recursively
     enqueueOutput(Seq(datasetId))
     processQueueAsync().map { _ => finalGather() }
@@ -49,4 +49,8 @@ class PrelinkedLineageService(reader: DataLineageReader) extends DatasetOverview
     }
   }
 
+}
+
+class PrelinkedLineageService(reader: DataLineageReader) {
+  def apply(datasetId: UUID): Future[DataLineage] = new PrelinkedLineageSearch(reader)(datasetId)
 }
