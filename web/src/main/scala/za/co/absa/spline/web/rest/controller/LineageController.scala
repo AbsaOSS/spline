@@ -79,10 +79,11 @@ class LineageController @Autowired()
   // FIXME quiery with endpoint URI and not with any of corresponding datasets id.
   @RequestMapping(path = Array("/dataset/{id}/lineage/interval"), method = Array(GET))
   @ResponseBody
-  def intervalLineageOverview(@PathVariable("id") id: UUID) = {
+  def intervalLineageOverview(@PathVariable("id") id: UUID): Future[String] = {
     // FIXME where to get interval?
     // Query the dataset, extract endpoint URI and then do interval query.
 //    service.getInterval(id, )
+    ???
   }
 
 }

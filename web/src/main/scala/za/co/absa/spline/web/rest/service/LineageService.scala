@@ -45,6 +45,7 @@ class LineageService
   }
 
   def getInterval(datasetId: UUID, start: Long, end: Long): Future[DataLineage] = {
+//    new IntervalLineageService(reader).get(datasetId, )
     ???
     // FIXME use interval service
   }

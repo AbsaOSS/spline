@@ -2,6 +2,7 @@ package za.co.absa.spline.web.rest.service
 import java.util.UUID
 
 import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.persistence.api.DataLineageReader
 
 import scala.concurrent.Future
 
@@ -20,8 +21,21 @@ import scala.concurrent.Future
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class IntervalLineageService extends DatasetOverviewLineageAsync {
-  def get(datasetId: UUID, start: Long, end: Long): Future[DataLineage] = ???
-  override def traverseDown(datasetId: UUID): Future[Unit] = ???
-  override def traverseUp(datasetId: UUID): Future[Unit] = ???
+class IntervalLineageService(reader: DataLineageReader) extends DatasetOverviewLineageAsync {
+  private var start: Long = _
+  private var end: Long = _
+
+  def get(datasetId: UUID, start: Long, end: Long): Future[DataLineage] = {
+    this.start = start
+    this.end = end
+    ???
+  }
+  override def traverseDown(datasetId: UUID): Future[Unit] = {
+    // query events between start and end and reading from URI of dataset with datasetId.
+    ???
+  }
+  override def traverseUp(datasetId: UUID): Future[Unit] = {
+    // query events between start and end and writing to URI of dataset with datasetId.
+    ???
+  }
 }
