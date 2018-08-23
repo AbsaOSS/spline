@@ -36,8 +36,7 @@ private class PrelinkedLineageSearch(reader: DataLineageReader) extends DatasetO
   // Traverse lineage tree from an dataset Id in the direction from destination to source
   override def traverseUp(dsId: UUID): Future[Unit] =
     reader.loadByDatasetId(dsId).flatMap { a =>
-      val maybeLineageToEventualUnit = processAndEnqueue(a)
-      maybeLineageToEventualUnit
+      processAndEnqueue(a)
     }
 
   // Traverse lineage tree from an dataset Id in the direction from source to destination

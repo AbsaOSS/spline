@@ -76,4 +76,6 @@ object NopDataLineageReader extends DataLineageReader {
     * @return Descriptors of all data lineages
     */
   override def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[PersistedDatasetDescriptor] = `not applicable`
+
+  override def getByDatasetIdsByPathAndInterval(id: UUID, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[UUID]] = Future.successful(CloseableIterable.empty)
 }

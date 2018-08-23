@@ -209,4 +209,12 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     val auxiliaryFields = Array("_ver")
     caseClassFields ++ auxiliaryFields map (_ -> 1)
   }
+
+  override def getByDatasetIdsByPathAndInterval(id: UUID, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[UUID]] = {
+    getDatasetDescriptor(id).map(_.path.toString).map(path => {
+      val cursor = datasetCollection.find(DBObject("path" → path, "timestamp" → DBObject("$lt" → end, "$gt" → start)))
+      val iterator = cursor.asScala.map(_.get(idField).asInstanceOf[UUID])
+      new CloseableIterable[UUID](iterator = iterator, closeFunction = cursor.close())
+    })
+  }
 }
