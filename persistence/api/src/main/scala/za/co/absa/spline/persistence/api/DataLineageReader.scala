@@ -88,5 +88,5 @@ trait DataLineageReader {
     */
   def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[PersistedDatasetDescriptor]
 
-  def getByDatasetIdsByPathAndInterval(id: UUID, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[UUID]]
+  def getByDatasetIdsByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[UUID]]
 }

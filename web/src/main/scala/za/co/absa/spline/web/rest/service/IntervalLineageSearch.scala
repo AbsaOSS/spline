@@ -2,7 +2,6 @@ package za.co.absa.spline.web.rest.service
 
 import java.util.{Collections, UUID}
 import java.util.concurrent.ConcurrentHashMap
-import java.{util -> util}
 
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.model.op.Operation
@@ -35,8 +34,6 @@ class IntervalLineageSearch(reader: DataLineageReader) extends DatasetOverviewLi
   private var start: Long = _
   private var end: Long = _
   private var isTraverseDirectionUp: Boolean = _
-  private var traversedPaths: mutable.Set[String] = new mutable.HashSet[String]()
-  private var operations: mutable.Set[Operation] = new mutable.HashSet[Operation]()
 
   private var pathToDatasetId: collection.concurrent.Map[String, UUID] = new ConcurrentHashMap[String, UUID]().asScala
   private var nextPaths = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean]()).asScala
@@ -96,76 +93,50 @@ class IntervalLineageSearch(reader: DataLineageReader) extends DatasetOverviewLi
     compositeWithDependencies.copy(composite = linkedComposite)
   }
 
-    override def traverseDown(datasetId: UUID): Future[Unit]
+  override def traverseDown(datasetId: UUID): Future[Unit] = {
+    // query events between start and end and reading from URI of dataset with datasetId.
+    // TODO Cannot use these methods because these already use linking (they operate on dataset.sources nad dataset.destionation)
+    // Need to rewrite such that we search by path and interval excluding lineages already found plus modifying source and destionation values.
+    // Thus one needs to iterate over input datasets making sure that the sources are being properly overwritten and also making sure both sources and dests are loaded based on path and interval only.
+    //    for (
+    //      uuids <- loadByPath(datasetId);
+    //      uuid <- uuids;
+    //      lineages <- reader.findByInputId(uuid)
+    //    ) yield processAndEnqueue(lineages.iterator)
+    Future.failed(new UnsupportedOperationException)
+  }
 
-    =
-    {
-      // query events between start and end and reading from URI of dataset with datasetId.
-      // TODO Cannot use these methods because these already use linking (they operate on dataset.sources nad dataset.destionation)
-      // Need to rewrite such that we search by path and interval excluding lineages already found plus modifying source and destionation values.
-      // Thus one needs to iterate over input datasets making sure that the sources are being properly overwritten and also making sure both sources and dests are loaded based on path and interval only.
-      //    for (
-      //      uuids <- loadByPath(datasetId);
-      //      uuid <- uuids;
-      //      lineages <- reader.findByInputId(uuid)
-      //    ) yield processAndEnqueue(lineages.iterator)
-    }
+  override def traverseUp(datasetId: UUID): Future[Unit] = {
+    Future.failed(new UnsupportedOperationException)
+  }
 
-    override def traverseUp(datasetId: UUID): Future[Unit]
-
-    =
-    {
-      // query events between start and end and writing to URI of dataset with datasetId.
-      for (
-        uuids <- loadByPath(datasetId);
-        uuid <- uuids;
-        lineages <- reader.loadByDatasetId(uuid)
-      ) yield {
-        // synch
-        operations.synchronized {
-          operations.find(_.mainProps.inputs.contains())
+  override def processAndEnqueue(lineages: GenTraversableOnce[DataLineage]): Future[Unit] = {
+    lineages.foreach {
+      lineage =>
+        val compositeWithDeps = lineageToCompositeWithDependencies(lineage)
+        // FIXME remap sources here
+        accumulateCompositeDependencies(compositeWithDeps)
+        val composite = compositeWithDeps.composite
+        if (isTraverseDirectionUp) {
+          enqueueInput(Seq(composite.mainProps.output))
+        } else {
+          enqueueOutput(composite.mainProps.inputs)
         }
-        processAndEnqueue(lineages)
-      }
     }
-
-    override def processAndEnqueue(lineages: GenTraversableOnce[DataLineage]): Future[Unit]
-
-    =
-    {
-      lineages.foreach {
-        lineage =>
-          val compositeWithDeps = lineageToCompositeWithDependencies(lineage)
-          // FIXME remap sources here
-          accumulateCompositeDependencies(compositeWithDeps)
-          val composite = compositeWithDeps.composite
-          if (isTraverseDirectionUp) {
-            enqueueInput(Seq(composite.mainProps.output))
-          } else {
-            enqueueOutput(composite.mainProps.inputs)
-          }
-      }
-      // This launches parallel execution of the remaining elements of the queue
-      processQueueAsync()
-    }
-
-    private def loadByPath(datasetId: UUID): Future[CloseableIterable[UUID]]
-
-    =
-    {
-      // Find dataset by path and interval excluding given and return set of corresponding lineages excluding or not datasetId's lineage based on whether we go up or down.
-      reader.getByDatasetIdsByPathAndInterval(datasetId, start, end)
-    }
-
+    // This launches parallel execution of the remaining elements of the queue
+    processQueueAsync()
   }
 
-  class IntervalLineageService(reader: DataLineageReader) {
 
-    def apply(datasetId: UUID, start: Long, end: Long): Future[DataLineage] = {
-      val up = new IntervalLineageSearch(reader)(datasetId, start, end, true)
-      up
-      //    val down = new IntervalLineageSearch(reader).get(datasetId, start, end, false)
-      // FIXME combine
-      //    null
-    }
+}
+
+class IntervalLineageService(reader: DataLineageReader) {
+
+  def apply(datasetId: UUID, start: Long, end: Long): Future[DataLineage] = {
+    val up = new IntervalLineageSearch(reader)(datasetId, start, end, true)
+    up
+    //    val down = new IntervalLineageSearch(reader).get(datasetId, start, end, false)
+    // FIXME combine
+    //    null
   }
+}

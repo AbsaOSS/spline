@@ -21,7 +21,7 @@ import java.util.UUID
 import java.util.regex.Pattern.quote
 
 import _root_.salat._
-import com.mongodb.Cursor
+import com.mongodb.{Cursor, DBCursor}
 import com.mongodb.casbah.AggregationOptions.{default => aggOpts}
 import com.mongodb.casbah.Imports._
 import org.slf4s.Logging
@@ -210,11 +210,11 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     caseClassFields ++ auxiliaryFields map (_ -> 1)
   }
 
-  override def getByDatasetIdsByPathAndInterval(id: UUID, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[UUID]] = {
-    getDatasetDescriptor(id).map(_.path.toString).map(path => {
-      val cursor = datasetCollection.find(DBObject("path" → path, "timestamp" → DBObject("$lt" → end, "$gt" → start)))
+  override def getByDatasetIdsByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[UUID]] = {
+    Future {
+      val cursor: DBCursor = blocking(datasetCollection.find(DBObject("path" → path, "timestamp" → DBObject("$lt" → end, "$gt" → start))))
       val iterator = cursor.asScala.map(_.get(idField).asInstanceOf[UUID])
       new CloseableIterable[UUID](iterator = iterator, closeFunction = cursor.close())
-    })
+    }
   }
 }
