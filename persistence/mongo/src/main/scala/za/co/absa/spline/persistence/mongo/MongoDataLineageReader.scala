@@ -212,8 +212,8 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
 
   override def getByDatasetIdsByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[UUID]] = {
     Future {
-      val cursor: DBCursor = blocking(datasetCollection.find(DBObject("path" → path, "timestamp" → DBObject("$lt" → end, "$gt" → start))))
-      val iterator = cursor.asScala.map(_.get(idField).asInstanceOf[UUID])
+      val cursor: DBCursor = blocking(dataLineageCollection.find(DBObject("rootOperation.path" → path, "timestamp" → DBObject("$lt" → end, "$gt" → start))))
+      val iterator = cursor.asScala.map(_.get("rootDataset").asInstanceOf[DBObject].get("_id").asInstanceOf[UUID])
       new CloseableIterable[UUID](iterator = iterator, closeFunction = cursor.close())
     }
   }

@@ -17,21 +17,23 @@
 package za.co.absa.spline.web.rest.controller
 
 import java.util.UUID
-import javax.servlet.http.HttpServletResponse
 
+import javax.servlet.http.HttpServletResponse
 import org.apache.commons.lang.StringUtils.trimToNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMethod._
 import org.springframework.web.bind.annotation.{PathVariable, RequestMapping, RequestParam, ResponseBody}
+import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.DataLineageReader
 import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 import za.co.absa.spline.web.ExecutionContextImplicit
 import za.co.absa.spline.web.json.StringJSONConverters
 import za.co.absa.spline.web.rest.service.LineageService
 
-import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
 
 @Controller
@@ -79,11 +81,17 @@ class LineageController @Autowired()
   // FIXME quiery with endpoint URI and not with any of corresponding datasets id.
   @RequestMapping(path = Array("/dataset/{id}/lineage/interval"), method = Array(GET))
   @ResponseBody
-  def intervalLineageOverview(@PathVariable("id") id: UUID): Future[String] = {
-    // FIXME where to get interval?
-    // Query the dataset, extract endpoint URI and then do interval query.
-//    service.getInterval(id, )
-    ???
+  def intervalLineageOverview(
+    @PathVariable("id") id: UUID,
+    @RequestParam(name = "from", required = false, defaultValue = "9223372036854775807") from: Long,
+    @RequestParam(name = "to", required = false, defaultValue = "0") to: Long): Future[String] = {
+
+    try {
+      print("RESULT: " + Await.result(service.getInterval(id, 0, 1635109844423L), Duration.fromNanos(100000000000L)))
+    } catch {
+      case x: Throwable => x.printStackTrace(System.out)
+    }
+    Future.successful("")
   }
 
 }

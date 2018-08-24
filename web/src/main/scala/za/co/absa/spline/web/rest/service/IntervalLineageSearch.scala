@@ -78,17 +78,22 @@ class IntervalLineageSearch(reader: DataLineageReader) extends DatasetOverviewLi
       .getOrElse(originalDestinationId)
     val destinationIds = Seq(newDestinationId)
     val newSources = originalComposite.sources.map(s => {
-      val result = pathToDatasetId.putIfAbsent(s.path, s.datasetsIds.head)
-      if (result.isEmpty) {
-        nextPaths.add(s.path)
-        // Breath first loop to subtree of path result.path.
+      if (s.datasetsIds.nonEmpty) {
+        val result = pathToDatasetId.putIfAbsent(s.path, s.datasetsIds.head)
+        if (result.isEmpty) {
+          nextPaths.add(s.path)
+          // Breath first loop to subtree of path result.path.
+        }
+        s.copy(datasetsIds = Seq(result.getOrElse(s.datasetsIds.head)))
+      } else {
+        s
       }
-      s.copy(datasetsIds = Seq(result.getOrElse(s.datasetsIds.head)))
     })
+    val newInputs = newSources.flatMap(_.datasetsIds.headOption.toList)
     val linkedComposite = originalComposite.copy(
       destination = originalComposite.destination.copy(datasetsIds = destinationIds),
       sources = newSources,
-      mainProps = originalComposite.mainProps.copy(output = newDestinationId, inputs = newSources.map(_.datasetsIds.head)))
+      mainProps = originalComposite.mainProps.copy(output = newDestinationId, inputs = newInputs))
     // TODO Do I need to change also other fields of the CompositeWithDeps
     compositeWithDependencies.copy(composite = linkedComposite)
   }
