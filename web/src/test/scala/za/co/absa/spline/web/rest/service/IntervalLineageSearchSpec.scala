@@ -44,6 +44,7 @@ class IntervalLineageSearchSpec extends AsyncFlatSpec with Matchers with Mockito
 
   val UUIDS1: UUID = UUID fromString "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
   val UUIDS2: UUID = UUID fromString "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+  val UUIDS1x: UUID = UUID fromString "cccccccc-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
 
   val xUUID1: UUID = UUID fromString "11111111-1111-1111-1111-111111111111"
   val xUUID2: UUID = UUID fromString "22222222-2222-2222-2222-222222222222"
@@ -51,7 +52,7 @@ class IntervalLineageSearchSpec extends AsyncFlatSpec with Matchers with Mockito
 
   val lineage1 = DataLineage("AppId1", "AppName1", 0, Seq(
     BatchWrite(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa1", "SaveIntoDataSourceCommand", Seq(), UUIDS1), "fileS1", "fileS1.txt", append = false)),
-    Seq(MetaDataset(UUIDS1, Schema(Seq(xUUID3)))),
+    Seq(MetaDataset(UUIDS1x, Schema(Seq(xUUID3)))),
     Seq(Attribute(xUUID3, "a", Simple("int", nullable = false))))
 
   val lineage2 = DataLineage("AppId2", "AppName2", 0, Seq(
@@ -66,27 +67,32 @@ class IntervalLineageSearchSpec extends AsyncFlatSpec with Matchers with Mockito
   it should "be able to construct small high order lineage out of 2 composites" in {
     val readerMock: DataLineageReader = mock[DataLineageReader]
 
-    when(readerMock.loadByDatasetId(≡(UUIDS1))(any())) thenReturn Future.successful(Some(lineage1))
+    when(readerMock.loadByDatasetId(≡(UUIDS1))(any())) thenReturn Future.successful(None)
+    when(readerMock.loadByDatasetId(≡(UUIDS1x))(any())) thenReturn Future.successful(Some(lineage1))
     when(readerMock.loadByDatasetId(≡(UUIDS2))(any())) thenReturn Future.successful(Some(lineage2))
 
     when(readerMock.getByDatasetIdsByPathAndInterval(≡("fileS1.txt"), any(), any())(any())) thenReturn
-      Future.successful(new CloseableIterable[UUID](iterator = Seq(UUIDS1).iterator, closeFunction = {}))
+      Future.successful(new CloseableIterable[UUID](iterator = Seq(UUIDS1, UUIDS1x).iterator, closeFunction = {}))
+
     when(readerMock.getByDatasetIdsByPathAndInterval(≡("fileOut.txt"), any(), any())(any())) thenReturn
       Future.successful(new CloseableIterable[UUID](iterator = Seq(UUIDS2).iterator, closeFunction = {}))
 //    when(readerMock.getByDatasetIdsByPathAndInterval(≡(UUIDS2))(any())) thenReturn Future.successful(Some(lineage2))
 
-    when(readerMock.getDatasetDescriptor(≡(UUIDS1))(any())) thenReturn
-      Future.successful(PersistedDatasetDescriptor(UUIDS1, lineage1.appId, lineage1.appId, new URI("fileS1.txt"), 11))
+    when(readerMock.getDatasetDescriptor(≡(UUIDS1x))(any())) thenReturn
+      Future.successful(PersistedDatasetDescriptor(UUIDS1x, lineage1.appId, lineage1.appId, new URI("fileS1.txt"), 11))
+
     when(readerMock.getDatasetDescriptor(≡(UUIDS2))(any())) thenReturn
       Future.successful(PersistedDatasetDescriptor(UUIDS2, lineage2.appId, lineage2.appId, new URI("fileOut.txt"), 11))
+
     when(readerMock.findByInputId(≡(UUIDS2))(any())) thenReturn Future.successful(new CloseableIterable(Iterator.empty, {}))
 
     val svc = new IntervalLineageService(readerMock)
 
     for (lin <- svc(UUIDS2, 10, 20)) yield {
       lin.operations.size shouldEqual 2
-      lin.datasets.size shouldEqual 2
+      lin.datasets.size shouldEqual 3
       lin.attributes.size shouldEqual 2
     }
+
   }
 }
