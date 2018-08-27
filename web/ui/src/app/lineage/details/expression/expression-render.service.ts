@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-import {
-    IAlias,
-    IAttributeRemoval,
-    IAttrRef,
-    IBinary,
-    IExpression,
-    IGeneric,
-    IUDF
-} from "../../../../generated-ts/expression-model";
+import {IAlias, IAttrRef, IBinary, IExpression, IGeneric, IUDF} from "../../../../generated-ts/expression-model";
 import {typeOfExpr} from "../../types";
 import {Injectable} from "@angular/core";
 import {LineageStore} from "../../lineage.store";
@@ -39,8 +31,6 @@ export class ExpressionRenderService {
                 return this.getBinaryExprText(<IBinary>expr)
             case "Alias":
                 return this.getAliasExprText(<IAlias>expr)
-            case "AttributeRemoval":
-                return this.getRemovalAttributeExprText(<IAttributeRemoval>expr)
             case "UDF":
                 return this.getUDFExprText(<IUDF>expr)
             case "AttrRef":
@@ -56,10 +46,6 @@ export class ExpressionRenderService {
 
     private getAliasExprText(e: IAlias) {
         return `${this.getText(e.child)} AS ${e.alias}`
-    }
-
-    private getRemovalAttributeExprText(e: IAttributeRemoval) {
-        return this.lineageStore.lineageAccessors.getAttribute(e.attrId).name
     }
 
     private getUDFExprText(e: IUDF) {

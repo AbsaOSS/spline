@@ -35,7 +35,6 @@ export type OperationType =
 export type ExpressionType =
     ( "Binary"
     | "Alias"
-    | "AttributeRemoval"
     | "UDF"
     | "Generic"
     | "GenericLeaf"

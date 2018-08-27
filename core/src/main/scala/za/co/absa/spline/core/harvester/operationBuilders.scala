@@ -157,19 +157,10 @@ class ProjectionNodeBuilder
     val transformations = operation.projectList
       .map(expressionCreator.convert)
       .filterNot(_.isInstanceOf[expr.AttrRef])
-      .union(resolveAttributeRemovals())
 
     op.Projection(
       operationProps,
       transformations)
-  }
-
-  private def resolveAttributeRemovals(): Seq[expr.Expression] = {
-    val inputAttributes: Seq[SparkAttribute] = operation.inputSet.toSeq
-    val outputAttributes: Seq[SparkAttribute] = operation.outputSet.toSeq
-    val removedAttributes = inputAttributes diff outputAttributes
-    val removedAttributesSortedByName = removedAttributes.sortBy(_.name)
-    removedAttributesSortedByName map (attr => expr.AttributeRemoval(attributeCreator.convert(attr).id))
   }
 }
 

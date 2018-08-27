@@ -301,10 +301,7 @@ module.exports = function () {
                         "inputs": ["ds-uuid-3"],
                         "output": "ds-uuid-2"
                     },
-                    "transformations": [{
-                        "_typeHint": "za.co.absa.spline.model.expr.AttributeRemoval",
-                        "attrId": "attr-uuid-111"
-                    }]
+                    "transformations": []
                 }, {
                     "_typeHint": "za.co.absa.spline.model.op.Alias",
                     "mainProps": {
@@ -351,10 +348,7 @@ module.exports = function () {
                         "inputs": ["ds-uuid-7"],
                         "output": "ds-uuid-6"
                     },
-                    "transformations": [{
-                        "_typeHint": "za.co.absa.spline.model.expr.AttributeRemoval",
-                        "attrId": "attr-uuid-72"
-                    }]
+                    "transformations": []
                 }, {
                     "_typeHint": "za.co.absa.spline.model.op.Projection",
                     "mainProps": {
@@ -363,10 +357,7 @@ module.exports = function () {
                         "inputs": ["ds-uuid-8"],
                         "output": "ds-uuid-7"
                     },
-                    "transformations": [{
-                        "_typeHint": "za.co.absa.spline.model.expr.AttributeRemoval",
-                        "attrId": "attr-uuid-71"
-                    }]
+                    "transformations": []
                 }, {
                     "_typeHint": "za.co.absa.spline.model.op.Projection",
                     "mainProps": {
@@ -375,10 +366,7 @@ module.exports = function () {
                         "inputs": ["ds-uuid-9"],
                         "output": "ds-uuid-8"
                     },
-                    "transformations": [{
-                        "_typeHint": "za.co.absa.spline.model.expr.AttributeRemoval",
-                        "attrId": "attr-uuid-86"
-                    }]
+                    "transformations": []
                 }, {
                     "_typeHint": "za.co.absa.spline.model.op.Projection",
                     "mainProps": {
@@ -387,10 +375,7 @@ module.exports = function () {
                         "inputs": ["ds-uuid-10"],
                         "output": "ds-uuid-9"
                     },
-                    "transformations": [{
-                        "_typeHint": "za.co.absa.spline.model.expr.AttributeRemoval",
-                        "attrId": "attr-uuid-85"
-                    }]
+                    "transformations": []
                 }, {
                     "_typeHint": "za.co.absa.spline.model.op.Alias",
                     "mainProps": {
@@ -533,10 +518,7 @@ module.exports = function () {
                         "inputs": ["ds-uuid-14"],
                         "output": "ds-uuid-13"
                     },
-                    "transformations": [{
-                        "_typeHint": "za.co.absa.spline.model.expr.AttributeRemoval",
-                        "attrId": "attr-uuid-49"
-                    }]
+                    "transformations": []
                 }, {
                     "_typeHint": "za.co.absa.spline.model.op.Projection",
                     "mainProps": {
@@ -545,10 +527,7 @@ module.exports = function () {
                         "inputs": ["ds-uuid-15"],
                         "output": "ds-uuid-14"
                     },
-                    "transformations": [{
-                        "_typeHint": "za.co.absa.spline.model.expr.AttributeRemoval",
-                        "attrId": "attr-uuid-32"
-                    }]
+                    "transformations": []
                 }, {
                     "_typeHint": "za.co.absa.spline.model.op.Alias",
                     "mainProps": {
@@ -711,9 +690,6 @@ module.exports = function () {
                                 "_typeHint": "za.co.absa.spline.model.expr.AttrRef",
                                 "refId": "attr-uuid-33"}]
                         }
-                    }, {
-                        "_typeHint": "za.co.absa.spline.model.expr.AttributeRemoval",
-                        "attrId": "attr-uuid-33"
                     }]
                 }, {
                     "_typeHint": "za.co.absa.spline.model.op.Projection",
@@ -723,13 +699,7 @@ module.exports = function () {
                         "inputs": ["ds-uuid-23"],
                         "output": "ds-uuid-22"
                     },
-                    "transformations": [{
-                        "_typeHint": "za.co.absa.spline.model.expr.AttributeRemoval",
-                        "attrId": "attr-uuid-30"
-                    }, {
-                        "_typeHint": "za.co.absa.spline.model.expr.AttributeRemoval",
-                        "attrId": "attr-uuid-31"
-                    }]
+                    "transformations": []
                 }, {
                     "_typeHint": "za.co.absa.spline.model.op.Alias",
                     "mainProps": {
@@ -782,21 +752,6 @@ module.exports = function () {
                         "child": {
                             "_typeHint": "za.co.absa.spline.model.expr.AttrRef",
                             "refId": "attr-uuid-69"}
-                    }, {
-                        "_typeHint": "za.co.absa.spline.model.expr.AttributeRemoval",
-                        "attrId": "attr-uuid-67"
-                    }, {
-                        "_typeHint": "za.co.absa.spline.model.expr.AttributeRemoval",
-                        "attrId": "attr-uuid-68"
-                    }, {
-                        "_typeHint": "za.co.absa.spline.model.expr.AttributeRemoval",
-                        "attrId": "attr-uuid-69"
-                    }, {
-                        "_typeHint": "za.co.absa.spline.model.expr.AttributeRemoval",
-                        "attrId": "attr-uuid-70"
-                    }, {
-                        "_typeHint": "za.co.absa.spline.model.expr.AttributeRemoval",
-                        "attrId": "attr-uuid-73"
                     }]
                 }, {
                     "_typeHint": "za.co.absa.spline.model.op.Alias",
@@ -842,9 +797,6 @@ module.exports = function () {
                         "child": {
                             "_typeHint": "za.co.absa.spline.model.expr.AttrRef",
                             "refId": "attr-uuid-105"}
-                    }, {
-                        "_typeHint": "za.co.absa.spline.model.expr.AttributeRemoval",
-                        "attrId": "attr-uuid-105"
                     }]
                 }, {
                     "_typeHint": "za.co.absa.spline.model.op.Alias",

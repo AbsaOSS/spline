@@ -83,7 +83,8 @@
                     </p-header>
                     <ul class="sort-orders">
                         <li *ngFor="let order of operation.orders">
-                            <i class="fa {{order.direction == 'ASC' ? 'fa-long-arrow-down' : 'fa-long-arrow-up'}}" title="{{order.direction}}"></i>
+                            <i class="fa {{order.direction == 'ASC' ? 'fa-long-arrow-down' : 'fa-long-arrow-up'}}"
+                               title="{{order.direction}}"></i>
                             <expression-inline [expr]="order.expression"></expression-inline>
                         </li>
                     </ul>
@@ -124,7 +125,25 @@
 
             <!-- Section: Projection -->
             <section *ngIf="operationType == 'Projection'">
-                <p-accordionTab [selected]="true">
+                <p-accordionTab *ngIf="getDroppedAttributesIfAny(); let droppedAttrs" [selected]="true">
+                    <p-header>
+                        <details-section-header
+                                caption="Dropped Attributes"
+                                faIcon="fa-columns"
+                                iconColor="steelblue"></details-section-header>
+                    </p-header>
+                    <ul>
+                        <li *ngFor="let attr of droppedAttrs">
+                            <span class="expr-attr-removal"
+                                  title="Removed attribute '{{ attr.name }}'">
+                                <i>a</i>
+                                <span>{{ attr.name }}</span>
+                            </span>
+                        </li>
+                    </ul>
+                </p-accordionTab>
+
+                <p-accordionTab *ngIf="operation.transformations?.length" [selected]="true">
                     <p-header>
                         <details-section-header
                                 caption="Transformations"
@@ -132,16 +151,8 @@
                                 iconColor="steelblue"></details-section-header>
                     </p-header>
                     <ul>
-                        <li *ngFor="let expr of operation.transformations"
-                            [ngSwitch]="getExprType(expr)">
-                            <span *ngSwitchCase="'AttributeRemoval'"
-                                  class="expr-attr-removal"
-                                  title="Removed attribute '{{ getAttribute(expr.attrId).name }}'">
-                                <i>a</i>
-                                <span>{{ getAttribute(expr.attrId).name }}</span>
-                            </span>
-                            <span *ngSwitchDefault
-                                  class="expr-lambda">
+                        <li *ngFor="let expr of operation.transformations">
+                            <span class="expr-lambda">
                                 <i title="Expression">λ=</i>
                                 <expression-inline [expr]="expr"></expression-inline>
                             </span>

@@ -82,8 +82,6 @@ case class Binary
 ) extends Expression
   with TypedExpression
 
-case class AttributeRemoval(attrId: UUID) extends Expression with LeafExpression
-
 case class AttrRef(refId: UUID) extends Expression with LeafExpression with RefLikeExpression
 
 case class Literal
