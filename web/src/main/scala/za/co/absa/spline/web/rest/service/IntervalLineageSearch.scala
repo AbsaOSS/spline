@@ -137,11 +137,8 @@ class IntervalLineageSearch(reader: DataLineageReader) extends DatasetOverviewLi
 
 class IntervalLineageService(reader: DataLineageReader) {
 
-  def apply(datasetId: UUID, start: Long, end: Long): Future[DataLineage] = {
-    val up = new IntervalLineageSearch(reader)(datasetId, start, end, true)
-    up
-    //    val down = new IntervalLineageSearch(reader).get(datasetId, start, end, false)
-    // FIXME combine
-    //    null
+  def apply(datasetId: UUID, from: Long, to: Long): Future[DataLineage] = {
+    // FIXME add down traversion
+    new IntervalLineageSearch(reader)(datasetId, from, to, true)
   }
 }

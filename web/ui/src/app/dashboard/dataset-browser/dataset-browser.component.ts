@@ -24,6 +24,7 @@ import {ScrollEvent} from "ngx-scroll-event";
 import {timer} from "rxjs/observable/timer";
 import {identity} from "rxjs/util/identity";
 import moment = require('moment');
+import {ActivatedRoute, Router} from '@angular/router';
 
 @Component({
     selector: "dataset-browser",
@@ -44,7 +45,10 @@ export class DatasetBrowserComponent implements OnInit {
     private searchRequest$ = new BehaviorSubject<SearchRequest>(null)
     private static readonly TIMESTAMP_FORMAT = "YYYY-MM-DD HH:mm"
 
-    constructor(private dsBrowserService: DatasetBrowserService) {}
+    constructor(
+        private dsBrowserService: DatasetBrowserService,
+        private router: Router,
+        private route: ActivatedRoute) {}
 
     ngOnInit(): void {
         this.searchValue.valueChanges
@@ -83,6 +87,23 @@ export class DatasetBrowserComponent implements OnInit {
 
     clearText() {
         this.searchValue.get("text").setValue("")
+    }
+
+    selectLineage(datasetId: string) {
+        if (!this.searchValue.get("interval").value) {
+            this.router.navigate(["dashboard", "dataset", datasetId, "lineage", "overview"], {
+                fragment: "datasource",
+                relativeTo: this.route.parent
+            })
+        } else {
+            let to = DatasetBrowserComponent.parseTimestamp(this.searchValue.get("until").value)
+            let from = DatasetBrowserComponent.parseTimestamp(this.searchValue.get("from").value)
+            this.router.navigate(["dashboard", "dataset", datasetId, "lineage", "interval"], {
+                queryParams: {'from': from, 'to': to},
+                queryParamsHandling: "merge",
+                relativeTo: this.route.parent
+            })
+        }
     }
 
     private init() {

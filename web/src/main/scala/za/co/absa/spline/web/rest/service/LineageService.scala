@@ -47,10 +47,10 @@ class LineageService
     prelinkedLineageService(datasetId)
   }
 
-  def getInterval(datasetId: UUID, start: Long, end: Long): Future[DataLineage] = {
+  def getInterval(datasetId: UUID, from: Long, to: Long): Future[DataLineage] = {
 //    new IntervalLineageService(reader).get(datasetId, )
     // FIXME use interval service
-    intervalLineageService(datasetId, start, end)
+    intervalLineageService(datasetId, from, to)
   }
 
 }

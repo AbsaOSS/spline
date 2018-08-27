@@ -25,6 +25,7 @@ import "font-awesome/css/font-awesome.min.css";
 import {PersistentDatasetResolver} from "./dataset.resolver";
 import {DatasetService} from "./dataset.service";
 import {DatasetLineageOverviewResolver} from "./lineage-overview/lineage-overview.resolver";
+import {DatasetLineageIntervalResolver} from "./lineage-overview/lineage-interval.resolver";
 import {DatasetLineageOverviewComponent} from "./lineage-overview/lineage-overview.component";
 import {MiscModule} from "../misc/misc.module";
 import {MaterialModule} from "../material-extension/material.module";
@@ -48,7 +49,8 @@ import {DetailsModule} from "../lineage/details/details.module";
     providers: [
         DatasetService,
         PersistentDatasetResolver,
-        DatasetLineageOverviewResolver
+        DatasetLineageOverviewResolver,
+        DatasetLineageIntervalResolver
     ]
 })
 export class DatasetModule {

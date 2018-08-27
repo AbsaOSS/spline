@@ -83,11 +83,11 @@ class LineageController @Autowired()
   @ResponseBody
   def intervalLineageOverview(
     @PathVariable("id") id: UUID,
-    @RequestParam(name = "from", required = false, defaultValue = "9223372036854775807") from: Long,
-    @RequestParam(name = "to", required = false, defaultValue = "0") to: Long): Future[String] = {
+    @RequestParam(name = "from") from: Long,
+    @RequestParam(name = "to") to: Long): Future[String] = {
 
     service
-      .getInterval(id, 0, 1635109844423L)
+      .getInterval(id, from, to)
       .map(_.toJson)
   }
 

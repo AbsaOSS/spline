@@ -54,9 +54,7 @@
 
     <li role="presentation"
         *ngFor="let d of descriptors"
-        [routerLink]="'dataset/'+d.datasetId+'/lineage/overview'"
-        fragment="datasource"
-        [routerLinkActive]="['active']">
+        (click)="selectLineage(d.datasetId)">
         <a href="javascript:void(0)">
             <b>{{d.path}}</b>
             <br/>
