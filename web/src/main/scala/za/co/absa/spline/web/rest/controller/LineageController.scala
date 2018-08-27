@@ -86,12 +86,9 @@ class LineageController @Autowired()
     @RequestParam(name = "from", required = false, defaultValue = "9223372036854775807") from: Long,
     @RequestParam(name = "to", required = false, defaultValue = "0") to: Long): Future[String] = {
 
-    try {
-      print("RESULT: " + Await.result(service.getInterval(id, 0, 1635109844423L), Duration.fromNanos(100000000000L)))
-    } catch {
-      case x: Throwable => x.printStackTrace(System.out)
-    }
-    Future.successful("")
+    service
+      .getInterval(id, 0, 1635109844423L)
+      .map(_.toJson)
   }
 
 }
