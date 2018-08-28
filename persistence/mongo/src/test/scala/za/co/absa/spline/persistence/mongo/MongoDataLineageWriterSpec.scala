@@ -50,5 +50,26 @@ class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase {
       } yield
         storedLineage shouldEqual Option(lineageWithDotsAndDollar)
     }
+
+    it("should store expressions") {
+      val lineageWithExpressions = lineage.copy(operations =
+        lineage.operations :+ op.Projection(OperationProps(randomUUID, "", Nil, randomUUID), Seq(
+          expr.Generic(randomUUID, Nil, "", None),
+          expr.GenericLeaf(randomUUID, "", None),
+          expr.Alias("", expr.Literal(42, randomUUID)),
+          expr.AttrRef(randomUUID),
+          expr.Literal(42, randomUUID),
+          expr.Binary("+", randomUUID, Nil),
+          expr.UDF("", randomUUID, Nil)
+        )))
+      for {
+        _ <- mongoWriter store lineageWithExpressions
+        storedLineage <- mongoReader loadByDatasetId lineageWithExpressions.rootDataset.id
+      } yield {
+        storedLineage.get shouldEqual lineageWithExpressions
+      }
+    }
+
+
   }
 }

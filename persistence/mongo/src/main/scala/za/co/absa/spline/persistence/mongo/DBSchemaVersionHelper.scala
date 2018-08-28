@@ -16,9 +16,9 @@
 
 package za.co.absa.spline.persistence.mongo
 
-import _root_.salat._
 import com.mongodb.DBObject
 import com.mongodb.casbah.Imports._
+import salat.grater
 import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext.ctx_with_fix_for_SL_126
 
 object DBSchemaVersionHelper {
@@ -37,12 +37,12 @@ object DBSchemaVersionHelper {
     versionCheck _ andThen[T] f
   }
 
-  def deserializeWithVersionCheck[Y <: scala.AnyRef](dBObject: DBObject)(implicit m : scala.Predef.Manifest[Y]): Y = {
+  def deserializeWithVersionCheck[Y <: scala.AnyRef : Manifest](dBObject: DBObject): Y = {
     versionCheck(dBObject)
     grater[Y].asObject(dBObject)
   }
 
-  def serializeWithVersion[Y <: scala.AnyRef](obj: Y)(implicit m : scala.Predef.Manifest[Y]): DBObject = {
+  def serializeWithVersion[Y <: scala.AnyRef : Manifest](obj: Y): DBObject = {
     val dBObject = grater[Y].asDBObject(obj)
     putVersion(dBObject)
     dBObject

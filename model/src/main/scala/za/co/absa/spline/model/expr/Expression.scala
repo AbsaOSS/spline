@@ -27,16 +27,18 @@ sealed trait Expression {
   def allRefLikeChildrenFlattened: Seq[Expression] = children.flatMap(_.allRefLikeChildrenFlattened)
 }
 
-trait TypedExpression {
-  def dataTypeId: UUID
-}
-
+@Salat
 trait LeafExpression extends Expression {
   override final def children: Seq[Expression] = Nil
 }
 
+@Salat
 trait RefLikeExpression extends Expression {
   override final def allRefLikeChildrenFlattened: Seq[Expression] = this +: super.allRefLikeChildrenFlattened
+}
+
+trait TypedExpression {
+  def dataTypeId: UUID
 }
 
 trait GenericExpressionLike {

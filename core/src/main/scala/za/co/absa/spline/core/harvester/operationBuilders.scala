@@ -19,7 +19,7 @@ package za.co.absa.spline.core.harvester
 import java.util.UUID.randomUUID
 
 import com.databricks.spark.xml.XmlRelation
-import org.apache.spark.sql.catalyst.expressions.{SortOrder, Attribute => SparkAttribute}
+import org.apache.spark.sql.catalyst.expressions.{AttributeReference, SortOrder, Attribute => SparkAttribute}
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.{DataSource, HadoopFsRelation, LogicalRelation}
 import org.apache.spark.sql.execution.streaming.StreamingRelation
@@ -155,8 +155,8 @@ class ProjectionNodeBuilder
   extends OperationNodeBuilder {
   override def build(): op.Projection = {
     val transformations = operation.projectList
+      .filterNot(_.isInstanceOf[AttributeReference])
       .map(expressionCreator.convert)
-      .filterNot(_.isInstanceOf[expr.AttrRef])
 
     op.Projection(
       operationProps,
