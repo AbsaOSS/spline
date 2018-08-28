@@ -18,7 +18,7 @@ import {Component, OnInit} from "@angular/core";
 import {FormControl, FormGroup} from '@angular/forms';
 import {DatasetBrowserService} from "./dataset-browser.service";
 import {IPersistedDatasetDescriptor} from "../../../generated-ts/lineage-model";
-import {SearchRequest} from "./dataset-browser.model";
+import {IntervalRequest, PageRequest, SearchRequest} from "./dataset-browser.model";
 import {BehaviorSubject} from "rxjs/BehaviorSubject";
 import {ScrollEvent} from "ngx-scroll-event";
 import {timer} from "rxjs/observable/timer";
@@ -69,13 +69,15 @@ export class DatasetBrowserComponent implements OnInit {
     newSearch(value:  {[key: string]: string}): void {
         if (!value.interval) {
             let asAt = DatasetBrowserComponent.parseTimestamp(value.until).valueOf()
-            this.searchRequest$.next(new SearchRequest(value.text, asAt))
+            this.searchRequest$.next(new PageRequest(value.text, asAt))
         } else {
-            // FIXME implement interval search
+            let to = DatasetBrowserComponent.parseTimestamp(value.until).valueOf()
+            let from = DatasetBrowserComponent.parseTimestamp(value.from).valueOf()
+            this.searchRequest$.next(new IntervalRequest(value.text, from, to))
         }
     }
 
-    onScroll(e: ScrollEvent) {
+    onScroll(e: ScrollEvent): void {
         if (!e.isWindowEvent && e.isReachingBottom)
             this.searchRequest$.next(
                 this.searchRequest$.getValue().withOffset(this.descriptors.length))
@@ -85,19 +87,19 @@ export class DatasetBrowserComponent implements OnInit {
         return new Date(timestamp).toUTCString()
     }
 
-    clearText() {
+    clearText(): void {
         this.searchValue.get("text").setValue("")
     }
 
-    selectLineage(datasetId: string) {
+    selectLineage(datasetId: string): void {
         if (!this.searchValue.get("interval").value) {
             this.router.navigate(["dashboard", "dataset", datasetId, "lineage", "overview"], {
                 fragment: "datasource",
                 relativeTo: this.route.parent
             })
         } else {
-            let to = DatasetBrowserComponent.parseTimestamp(this.searchValue.get("until").value)
-            let from = DatasetBrowserComponent.parseTimestamp(this.searchValue.get("from").value)
+            let to = DatasetBrowserComponent.parseTimestamp(this.searchValue.get("until").value).valueOf()
+            let from = DatasetBrowserComponent.parseTimestamp(this.searchValue.get("from").value).valueOf()
             this.router.navigate(["dashboard", "dataset", datasetId, "lineage", "interval"], {
                 queryParams: {'from': from, 'to': to},
                 queryParamsHandling: "merge",

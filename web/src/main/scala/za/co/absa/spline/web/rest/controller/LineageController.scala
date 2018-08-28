@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestMethod._
 import org.springframework.web.bind.annotation.{PathVariable, RequestMapping, RequestParam, ResponseBody}
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.DataLineageReader
-import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
+import za.co.absa.spline.persistence.api.DataLineageReader.{IntervalPageRequest, PageRequest}
 import za.co.absa.spline.web.ExecutionContextImplicit
 import za.co.absa.spline.web.json.StringJSONConverters
 import za.co.absa.spline.web.rest.service.LineageService
@@ -55,14 +55,22 @@ class LineageController @Autowired()
     @RequestParam(name = "asAtTime", required = false, defaultValue = "9223372036854775807") timestamp: Long,
     @RequestParam(name = "offset", required = false, defaultValue = "0") offset: Int,
     @RequestParam(name = "size", required = false, defaultValue = "2147483647") size: Int,
+    @RequestParam(name = "from", required = false, defaultValue = "-1") from: Long,
+    @RequestParam(name = "to", required = false, defaultValue = "-1") to: Long,
     response: HttpServletResponse
   ): Future[Unit] = {
-    val futureResult =
+    if (from == -1 || to == -1) {
+        reader.findDatasets(
+          Option(trimToNull(text)),
+          PageRequest(timestamp, offset, size))
+          .map(_ asJsonArrayInto response.getWriter)
+    } else {
       reader.findDatasets(
         Option(trimToNull(text)),
-        PageRequest(timestamp, offset, size))
-    futureResult map (_ asJsonArrayInto response.getWriter)
-  }
+        IntervalPageRequest(from, to))
+        .map(_ asJsonArrayInto response.getWriter)
+    }
+ }
 
 
   @RequestMapping(Array("/dataset/{id}/descriptor"))

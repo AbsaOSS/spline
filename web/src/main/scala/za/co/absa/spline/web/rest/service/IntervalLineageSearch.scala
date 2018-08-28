@@ -1,14 +1,12 @@
 package za.co.absa.spline.web.rest.service
 
-import java.util.{Collections, UUID}
 import java.util.concurrent.ConcurrentHashMap
+import java.util.{Collections, UUID}
 
 import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.model.op.Operation
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
 
 import scala.collection.GenTraversableOnce
-import scala.collection.mutable
 import scala.concurrent.Future
 
 /*
