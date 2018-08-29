@@ -33,7 +33,7 @@ import za.co.absa.spline.persistence.mongo.DBSchemaVersionHelper._
 import za.co.absa.spline.persistence.mongo.MongoDataLineageWriter._
 import za.co.absa.spline.persistence.mongo.MongoImplicits._
 
-import scala.collection.JavaConverters._
+import scala.collection.convert.WrapAsScala
 import scala.concurrent.{ExecutionContext, Future, blocking}
 
 /**
@@ -117,7 +117,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
             DBObject("$sort" → DBObject("timestamp" → +1))),
           aggOpts))
 
-      val dsIdIterator = lineageCursor.asScala
+      val dsIdIterator = WrapAsScala.asScalaIterator(lineageCursor)
         .map(deserializeWithVersionCheck[TruncatedDataLineage])
         .map(_.rootDataset.id)
 
@@ -136,7 +136,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     Future(blocking(operationCollection.find(DBObject("sources.datasetsIds" → datasetId)))) flatMap {
       cursor => {
         val eventualMaybeLineages =
-          cursor.asScala
+          WrapAsScala.asScalaIterator(cursor)
             .map(versionCheck)
             .map(dBObject => {
               val refLineageId = dBObject.get(lineageIdField).asInstanceOf[String]
@@ -179,6 +179,8 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
   }
 
   private def selectPersistedDatasets(queryPipeline: DBObject*): Cursor = {
+    import scala.collection.JavaConverters._
+
     val projectionPipeline: Seq[DBObject] = Seq(
       DBObject("$addFields" → DBObject(
         "datasetId" → "$rootDataset._id",
