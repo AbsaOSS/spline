@@ -78,16 +78,25 @@ export class DatasetLineageOverviewComponent {
         }
     }
 
-    selectNode(nodeId: string, nodeType: GraphNodeType) {
+    selectNode(nodeId: string, nodeType: GraphNodeType): void {
         switch (nodeType) {
             case "operation":
             case "datasource":
-                this.router.navigate(
-                    ["dataset", nodeId, "lineage", "overview"], {
-                        relativeTo: this.route.parent.parent.parent,
-                        fragment: nodeType
-                    })
+                if (this.router.url.replace(/[#?].*$/, "").endsWith("/overview")) {
+                    this.navigateToDatasource(nodeId, "overview")
+                } else {
+                    this.navigateToDatasource(nodeId, "interval")
+                }
         }
+    }
+
+    private navigateToDatasource(datasetId: string, view: "interval" | "overview"): void {
+        this.router.navigate(
+            ["dataset", datasetId, "lineage", view], {
+                relativeTo: this.route.parent.parent.parent,
+                fragment: "datasource",
+                queryParamsHandling: 'merge'
+            })
     }
 
     gotoPartialLineage(dsId: string) {
