@@ -22,7 +22,7 @@ import com.mongodb.DBCollection
 import com.mongodb.casbah.Imports.{DBObject, MongoDBObject, _}
 import com.mongodb.casbah.query.dsl.QueryExpressionObject
 import za.co.absa.spline.model.dt.DataType
-import za.co.absa.spline.model.op.Operation
+import za.co.absa.spline.model.op.{Operation, Projection}
 import za.co.absa.spline.model.{Attribute, DataLineage, DataLineageId, MetaDataset}
 import za.co.absa.spline.persistence.mongo.DBSchemaVersionHelper.deserializeWithVersionCheck
 import za.co.absa.spline.persistence.mongo.MongoDataLineageWriter.{indexField, lineageIdField}
@@ -31,32 +31,40 @@ import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future, blocking}
 
 
-class TruncatedDataLineageReader(connection: MongoConnection) {
+class DataLineagePOReader(connection: MongoConnection) {
 
   import connection._
 
-  def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Option[TruncatedDataLineage] = {
+  def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Option[DataLineagePO] = {
     val lineageId = DataLineageId.fromDatasetId(dsId)
     Option(blocking(dataLineageCollection findOne lineageId))
-      .map(deserializeWithVersionCheck[TruncatedDataLineage])
+      .map(deserializeWithVersionCheck[DataLineagePO])
   }
 
-  def enrichWithLinked(truncatedDataLineage: TruncatedDataLineage)(implicit ec: ExecutionContext): Future[DataLineage] = {
+  def enrichWithLinked(dataLineagePO: DataLineagePO)(implicit ec: ExecutionContext): Future[DataLineage] = {
     for {
-      datasets <- findLineageLinked[MetaDataset](datasetCollection, truncatedDataLineage)
-      operations <- findLineageLinked[Operation](operationCollection, truncatedDataLineage)
-      attributes <- findLineageLinked[Attribute](attributeCollection, truncatedDataLineage)
-      dataTypes <- findLineageLinked[DataType](dataTypeCollection, truncatedDataLineage)
-    } yield truncatedDataLineage.toDataLineage(operations, datasets, attributes, dataTypes)
+      datasets <- findLineageLinked[MetaDataset](datasetCollection, dataLineagePO)
+      operations <- findLineageLinked[Operation](operationCollection, dataLineagePO)
+      transformationPOs <- findLineageLinked[TransformationPO](transformationCollection, dataLineagePO)
+      attributes <- findLineageLinked[Attribute](attributeCollection, dataLineagePO)
+      dataTypes <- findLineageLinked[DataType](dataTypeCollection, dataLineagePO)
+    } yield {
+      val transformationsByOperationId = transformationPOs.groupBy(_.opId).mapValues(_.map(_.expr))
+      val enrichedOperations = operations.map {
+        case op@Projection(_, Nil) => op.copy(transformations = transformationsByOperationId(op.mainProps.id))
+        case op => op
+      }
+      dataLineagePO.toDataLineage(enrichedOperations, datasets, attributes, dataTypes)
+    }
   }
 
-  private def findLineageLinked[Y <: scala.AnyRef](dBCollection: DBCollection, truncatedDataLineage: TruncatedDataLineage)(implicit m: scala.Predef.Manifest[Y], ec: ExecutionContext): Future[Seq[Y]] =
+  private def findLineageLinked[Y <: scala.AnyRef](dBCollection: DBCollection, truncatedDataLineage: DataLineagePO)(implicit m: scala.Predef.Manifest[Y], ec: ExecutionContext): Future[Seq[Y]] =
     Future {
       blocking(dBCollection.find(inLineageOp(truncatedDataLineage)).sort(sortByIndex))
         .toArray.asScala.map(deserializeWithVersionCheck[Y])
     }
 
-  def inLineageOp(truncatedDataLineage: TruncatedDataLineage): DBObject with QueryExpressionObject =
+  def inLineageOp(truncatedDataLineage: DataLineagePO): DBObject with QueryExpressionObject =
     lineageIdField $eq truncatedDataLineage.id
 
   def sortByIndex: DBObject = MongoDBObject(indexField → 1)

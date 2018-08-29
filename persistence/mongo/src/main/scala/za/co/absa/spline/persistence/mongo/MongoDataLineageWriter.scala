@@ -20,7 +20,7 @@ package za.co.absa.spline.persistence.mongo
 import com.mongodb.{DBCollection, DBObject}
 import org.slf4s.Logging
 import za.co.absa.spline.model.dt.DataType
-import za.co.absa.spline.model.op.Operation
+import za.co.absa.spline.model.op.{Operation, Projection}
 import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset}
 import za.co.absa.spline.persistence.api.DataLineageWriter
 import za.co.absa.spline.persistence.mongo.DBSchemaVersionHelper._
@@ -43,14 +43,26 @@ class MongoDataLineageWriter(connection: MongoConnection) extends DataLineageWri
     */
   override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = {
     log debug s"Storing lineage objects"
+
+    val (transformations: Seq[TransformationPO], operations: Seq[Operation]) =
+      ((Seq.empty[TransformationPO], Seq.empty[Operation]) /: lineage.operations.view) {
+        case ((transformationPOsAcc, operationsAcc), op:Projection) =>
+          val transformationPOs:Seq[TransformationPO] =
+            op.transformations.map(expr => TransformationPO(expr, op.mainProps.id))
+          (transformationPOsAcc ++ transformationPOs, op.copy(transformations = Nil) +: operationsAcc)
+        case ((transformationPOsAcc, operationsAcc), op) =>
+          (transformationPOsAcc, op +: operationsAcc)
+      }
+
     import connection._
     for (_ <- Future.sequence(Seq(
-      insertAsyncSeq(operationCollection, toLineageComponentDBOs[Operation](lineage.operations, idField -> (_.mainProps.id))(lineage.id)),
+      insertAsyncSeq(operationCollection, toLineageComponentDBOs[Operation](operations.reverse, idField -> (_.mainProps.id))(lineage.id)),
+      insertAsyncSeq(transformationCollection, toLineageComponentDBOs[TransformationPO](transformations)(lineage.id)),
       insertAsyncSeq(attributeCollection, toLineageComponentDBOs[Attribute](lineage.attributes)(lineage.id)),
       insertAsyncSeq(dataTypeCollection, toLineageComponentDBOs[DataType](lineage.dataTypes)(lineage.id)),
       insertAsyncSeq(datasetCollection, toLineageComponentDBOs[MetaDataset](lineage.datasets)(lineage.id)))))
       yield
-        blocking(dataLineageCollection.insert(serializeWithVersion[TruncatedDataLineage](TruncatedDataLineage(lineage))))
+        blocking(dataLineageCollection.insert(serializeWithVersion[DataLineagePO](DataLineagePO(lineage))))
   }
 }
 
@@ -60,7 +72,8 @@ object MongoDataLineageWriter {
   val indexField = "_index"
 
   private def insertAsyncSeq(dBCollection: DBCollection, seq: Seq[DBObject])(implicit executionContext: ExecutionContext): Future[Unit] =
-    Future(blocking(dBCollection.insert(seq: _*)))
+    if (seq.isEmpty) Future.successful(Unit)
+    else Future(blocking(dBCollection.insert(seq: _*)))
 
   private def toLineageComponentDBOs[Y <: scala.AnyRef : Manifest](col: Seq[Y], extraProps: (String, Y => Any)*)(linId: String): Seq[DBObject] =
     col.view

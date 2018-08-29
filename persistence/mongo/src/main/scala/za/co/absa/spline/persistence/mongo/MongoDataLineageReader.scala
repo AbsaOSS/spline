@@ -46,7 +46,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
   import connection._
   import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext._
 
-  private val truncatedDataLineageReader = new TruncatedDataLineageReader(connection)
+  private val dataLineagePOReader = new DataLineagePOReader(connection)
 
   /**
     * The method loads a particular data lineage from the persistence layer.
@@ -55,10 +55,9 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
   override def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Future[Option[DataLineage]] = {
-    val maybeEventualLineage = truncatedDataLineageReader
-      .loadByDatasetId(dsId)
-      .map(truncatedDataLineageReader.enrichWithLinked)
-    Future.sequence(Option.option2Iterable(maybeEventualLineage))
+    val maybeLineagePO = dataLineagePOReader.loadByDatasetId(dsId)
+    Future
+      .traverse(maybeLineagePO.toList)(dataLineagePOReader.enrichWithLinked)
       .map(_.headOption)
   }
 
@@ -118,7 +117,7 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
           aggOpts))
 
       val dsIdIterator = WrapAsScala.asScalaIterator(lineageCursor)
-        .map(deserializeWithVersionCheck[TruncatedDataLineage])
+        .map(deserializeWithVersionCheck[DataLineagePO])
         .map(_.rootDataset.id)
 
       new CloseableIterable[UUID](

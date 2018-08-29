@@ -21,7 +21,7 @@ import za.co.absa.spline.model.dt.DataType
 import za.co.absa.spline.model.op.Operation
 import za.co.absa.spline.model.{Attribute, DataLineage, DataLineageId, MetaDataset}
 
-case class TruncatedDataLineage
+case class DataLineagePO
 (
   appId: String,
   appName: String,
@@ -37,25 +37,32 @@ case class TruncatedDataLineage
     datasets: Seq[MetaDataset],
     attributes: Seq[Attribute],
     dataTypes: Seq[DataType]
-  ): DataLineage = {
-    DataLineage(appId, appName, timestamp, sparkVer, operations, datasets, attributes, dataTypes)
-  }
+  ) =
+    DataLineage(
+      appId,
+      appName,
+      timestamp,
+      sparkVer,
+      operations.toList,
+      datasets.toList,
+      attributes.toList,
+      dataTypes.toList)
+
 
   @Persist
   lazy val id: String = DataLineageId.fromDatasetId(rootDataset.id)
 
 }
 
-object TruncatedDataLineage {
+object DataLineagePO {
 
-  def apply(dataLineage: DataLineage): TruncatedDataLineage = {
-    TruncatedDataLineage(
+  def apply(dataLineage: DataLineage): DataLineagePO =
+    DataLineagePO(
       dataLineage.appId,
       dataLineage.appName,
       dataLineage.timestamp,
       dataLineage.sparkVer,
       dataLineage.rootOperation,
       dataLineage.rootDataset)
-  }
 
 }
