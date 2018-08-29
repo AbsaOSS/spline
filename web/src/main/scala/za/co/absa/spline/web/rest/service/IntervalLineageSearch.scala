@@ -41,7 +41,11 @@ class IntervalLineageSearch(reader: DataLineageReader) extends DatasetOverviewLi
     this.end = end
     this.isTraverseDirectionUp = isTraverseDirectionUp
     val descriptor = reader.getDatasetDescriptor(datasetId)
-    descriptor.map(_.path.toString).flatMap(relinkAndAccumulate)
+    descriptor
+      .map(d => {
+        pathToDatasetId.put(d.path.toString, d.datasetId)
+        d.path.toString})
+      .flatMap(relinkAndAccumulate)
       .map(_ => finalGather())
   }
 
