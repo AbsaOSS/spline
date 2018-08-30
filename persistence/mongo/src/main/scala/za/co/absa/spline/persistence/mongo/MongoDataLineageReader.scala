@@ -21,16 +21,17 @@ import java.util.UUID
 import java.util.regex.Pattern.quote
 
 import _root_.salat._
-import com.mongodb.Cursor
 import com.mongodb.casbah.AggregationOptions.{default => aggOpts}
 import com.mongodb.casbah.Imports._
+import com.mongodb.casbah.query.dsl.QueryExpressionObject
+import com.mongodb.{Cursor, DBCollection}
 import org.slf4s.Logging
 import za.co.absa.spline.common.UUIDExtractors.UUIDExtractor
 import za.co.absa.spline.model._
 import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
+import za.co.absa.spline.persistence.mongo.DBOFields._
 import za.co.absa.spline.persistence.mongo.DBSchemaVersionHelper._
-import za.co.absa.spline.persistence.mongo.MongoDataLineageWriter._
 import za.co.absa.spline.persistence.mongo.MongoImplicits._
 
 import scala.collection.convert.WrapAsScala
@@ -46,7 +47,8 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
   import connection._
   import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext._
 
-  private val dataLineagePOReader = new DataLineagePOReader(connection)
+  private val dataLineageCollection = collections(LineageComponent.Root)
+  private val operationCollection = collections(LineageComponent.Operation)
 
   /**
     * The method loads a particular data lineage from the persistence layer.
@@ -55,9 +57,35 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
   override def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Future[Option[DataLineage]] = {
-    val maybeLineagePO = dataLineagePOReader.loadByDatasetId(dsId)
+    def enrichWithLinked(dataLineageDBO: DBObject)(implicit ec: ExecutionContext): Future[DataLineage] = {
+
+      val eventualSubComponents = Future.sequence(
+        (LineageComponent.values - LineageComponent.Root)
+          .map(comp => readLinkedComponent(collections(comp), dataLineageDBO(idField).toString).map(comp -> _))
+          + Future.successful(LineageComponent.Root -> Seq(dataLineageDBO)))
+
+      for (subComponents <- eventualSubComponents)
+        yield LineageDBOSerDe.deserialize(subComponents.toMap)
+    }
+
+    def readLinkedComponent(dBCollection: DBCollection, lineageId: String)
+                           (implicit ec: ExecutionContext): Future[Seq[DBObject]] = Future(blocking {
+      WrapAsScala.asScalaIterator(
+        dBCollection
+          .find(inLineageOp(lineageId))
+          .sort(sortByIndex))
+        .toSeq
+    })
+
+    def inLineageOp(lineageId: String): DBObject with QueryExpressionObject = lineageIdField $eq lineageId
+
+    def sortByIndex: DBObject = MongoDBObject(indexField → 1)
+
+    val lineageId = DataLineageId.fromDatasetId(dsId)
+    val maybeLineagePO = Option(blocking(collections(LineageComponent.Root) findOne lineageId))
+
     Future
-      .traverse(maybeLineagePO.toList)(dataLineagePOReader.enrichWithLinked)
+      .traverse(maybeLineagePO.toList)(enrichWithLinked)
       .map(_.headOption)
   }
 

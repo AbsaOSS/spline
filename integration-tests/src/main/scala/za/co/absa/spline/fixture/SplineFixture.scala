@@ -16,8 +16,10 @@
 
 package za.co.absa.spline.fixture
 
+import com.mongodb.DBObject
 import org.apache.commons.configuration.Configuration
 import org.apache.spark.sql.DataFrame
+import org.bson.BSON
 import org.scalatest._
 import org.scalatest.matchers.{MatchResult, Matcher}
 import org.slf4s.Logging
@@ -26,6 +28,8 @@ import za.co.absa.spline.common.TempDirectory
 import za.co.absa.spline.core.conf.DefaultSplineConfigurer.ConfProperty.PERSISTENCE_FACTORY
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
+import za.co.absa.spline.persistence.mongo.LineageDBOSerDe.Components
+import za.co.absa.spline.persistence.mongo.{LineageComponent, LineageDBOSerDe}
 import za.co.absa.spline.scalatest.MatcherImplicits
 
 trait SplineFixture
@@ -104,25 +108,25 @@ object SplineFixture {
         (lineage: DataLineage) => {
           case class ComponentSize(name: String, size: Int)
 
-          def componentBsonSizes[T <: AnyRef : Manifest](name: String, col: Seq[T]): Iterator[ComponentSize] =
-            for (o <- col.iterator) yield {
-              val bsonSize = o.asBSON.length
-              log.info(f"$name BSON size: ${bsonSize.toDouble / 1.mb}%.2f mb")
+          def componentBsonSizes(component: LineageComponent, dbos: Seq[DBObject]): Iterator[ComponentSize] =
+            for (dbo <- dbos.iterator) yield {
+              val bsonSize = BSON.encode(dbo).length
+              val name = component.toString
+              log.info(f"$name BSON size: ${bsonSize.toDouble / 1.kb}%.2f kb")
               ComponentSize(name, bsonSize)
             }
 
-          val allComponentsSizes = Iterator(
-            componentBsonSizes("Operation", lineage.operations),
-            componentBsonSizes("Attribute", lineage.attributes),
-            componentBsonSizes("Dataset", lineage.datasets),
-            componentBsonSizes("DataType", lineage.dataTypes)
-          ).flatten
+          val components: Components = LineageDBOSerDe.serialize(lineage)
+
+          val allComponentsSizes = components.iterator.flatMap {
+            case (comp, dbos) => componentBsonSizes(comp, dbos)
+          }
 
           allComponentsSizes.zipWithIndex.find(_._1.size >= bsonSizeLimit) match {
             case None => MatchResult(matches = true, "", "")
             case Some((ComponentSize(name, oversize), i)) => MatchResult(
               matches = false,
-              f"$name[$i] size ${oversize.toDouble / 1.mb}%.2f mb should be less than ${bsonSizeLimit.toDouble / 1.mb} mb",
+              f"$name[$i] size ${oversize.toDouble / 1.kb}%.2f kb should be less than ${bsonSizeLimit.toDouble / 1.kb} kb",
               "")
           }
         }

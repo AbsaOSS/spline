@@ -14,27 +14,10 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.common
+package za.co.absa.spline.persistence.mongo
 
-import org.scalatest.{FlatSpec, Matchers}
-
-class InstanceInspectorSpec extends FlatSpec with Matchers {
-
-  class DummyClass(a: String, b : Int){
-    def methodUsingFields = a + b.toString
-  }
-
-  "getFieldValue" should "return correct values of DummyClass" in
-  {
-    val expectedA = "value"
-    val expectedB = 123
-    val dc = new DummyClass(expectedA, expectedB)
-
-    val a = ReflectionUtils.getFieldValue[String](dc, "a")
-    val b = ReflectionUtils.getFieldValue[Int](dc, "b")
-
-    a shouldEqual expectedA
-    b shouldEqual expectedB
-  }
-
+object DBOFields {
+  val lineageIdField = "_lineageId"
+  val idField = "_id"
+  val indexField = "_index"
 }

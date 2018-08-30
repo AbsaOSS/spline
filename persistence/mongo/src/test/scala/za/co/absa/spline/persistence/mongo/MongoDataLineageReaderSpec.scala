@@ -229,7 +229,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
 
       Future.sequence(testLineages.map(i => mongoWriter.store(i))).
         flatMap(_ => {
-          MongoTestProperties.mongoConnection.dataLineageCollection remove DBObject("appId" -> "appID4") // Emulate incomplete lineage #4
+          MongoTestProperties.mongoConnection.collections(LineageComponent.Root) remove DBObject("appId" -> "appID4") // Emulate incomplete lineage #4
           mongoReader.findByInputId(datasetIdToFindBy)
         }).
         map(_ should consistOfItemsWithAppIds("appID2", "appID3"))

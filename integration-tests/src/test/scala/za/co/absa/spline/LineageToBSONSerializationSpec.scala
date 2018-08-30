@@ -38,7 +38,6 @@ class LineageToBSONSerializationSpec
 
     smallLineage.operations.length shouldBe 3
     smallLineage should haveEveryComponentSizeInBSONLessThan(2.kb)
-    smallLineage.asBSON.length should be < 5.kb
   }
 
   it should "serialize big lineage" in {
@@ -67,7 +66,6 @@ class LineageToBSONSerializationSpec
       .select(columnNames map aComplexExpression: _*)
       .lineage
 
-    bigLineage should haveEveryComponentSizeInBSONLessThan(9.mb)
-    bigLineage.asBSON.length should be < 16.mb
+    bigLineage should haveEveryComponentSizeInBSONLessThan(100.kb)
   }
 }

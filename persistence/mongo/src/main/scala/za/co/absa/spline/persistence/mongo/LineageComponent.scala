@@ -16,8 +16,23 @@
 
 package za.co.absa.spline.persistence.mongo
 
-import java.util.UUID
+import za.co.absa.spline.common.EnumerationMacros.sealedInstancesOf
 
-import za.co.absa.spline.model.expr.Expression
+sealed trait LineageComponent
 
-case class TransformationPO(expr:Expression, opId: UUID)
+object LineageComponent {
+
+  case object Root extends LineageComponent
+
+  case object Operation extends LineageComponent
+
+  case object Transformation extends LineageComponent
+
+  case object Attribute extends LineageComponent
+
+  case object Dataset extends LineageComponent
+
+  case object DataType extends LineageComponent
+
+  val values: Set[LineageComponent] = sealedInstancesOf[LineageComponent]
+}

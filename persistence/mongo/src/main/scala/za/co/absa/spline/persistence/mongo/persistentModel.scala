@@ -16,10 +16,12 @@
 
 package za.co.absa.spline.persistence.mongo
 
+import java.util.UUID
+
 import salat.annotations.Persist
-import za.co.absa.spline.model.dt.DataType
+import za.co.absa.spline.model.{DataLineageId, MetaDataset}
+import za.co.absa.spline.model.expr.Expression
 import za.co.absa.spline.model.op.Operation
-import za.co.absa.spline.model.{Attribute, DataLineage, DataLineageId, MetaDataset}
 
 case class DataLineagePO
 (
@@ -30,39 +32,8 @@ case class DataLineagePO
   rootOperation: Operation,
   rootDataset: MetaDataset
 ) {
-
-  def toDataLineage
-  (
-    operations: Seq[Operation],
-    datasets: Seq[MetaDataset],
-    attributes: Seq[Attribute],
-    dataTypes: Seq[DataType]
-  ) =
-    DataLineage(
-      appId,
-      appName,
-      timestamp,
-      sparkVer,
-      operations.toList,
-      datasets.toList,
-      attributes.toList,
-      dataTypes.toList)
-
-
   @Persist
   lazy val id: String = DataLineageId.fromDatasetId(rootDataset.id)
-
 }
 
-object DataLineagePO {
-
-  def apply(dataLineage: DataLineage): DataLineagePO =
-    DataLineagePO(
-      dataLineage.appId,
-      dataLineage.appName,
-      dataLineage.timestamp,
-      dataLineage.sparkVer,
-      dataLineage.rootOperation,
-      dataLineage.rootDataset)
-
-}
+case class TransformationPO(expr: Expression, opId: UUID)
