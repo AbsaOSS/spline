@@ -92,7 +92,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
     val emptyLineage = DataLineage("", "", -1, spark.SPARK_VERSION, Seq(mock[Operation]), Seq(mock[MetaDataset]), Nil, Nil)
 
     def createGenericExpressions(names: String*): Seq[Expression] = {
-      names.map(Generic(aType.id, Seq.empty, _, None))
+      names.map(name => Generic(name.toLowerCase, aType.id, Seq.empty, name, None))
     }
 
     def createCompositeExpressions(attributeNames: (String, String)*)

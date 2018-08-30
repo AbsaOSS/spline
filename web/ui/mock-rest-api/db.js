@@ -261,7 +261,19 @@ module.exports = function () {
                     },
                     "transformations": [{
                         "_typeHint": "za.co.absa.spline.model.expr.Generic",
+                        "name": "some_cool",
                         "exprType": "SomeCoolExpression",
+                        "params": {
+                            "a": "foo",
+                            "b": ["bar", ["baz", 42]],
+                            "c": true,
+                            "d": {"x": 1, "y": [2, 3]},
+                            "otherExpression": {
+                                "_typeHint": "za.co.absa.spline.model.expr.Literal",
+                                "value": "777",
+                                "dataTypeId": 6
+                            }
+                        },
                         // "text": "UDF:selectBalance(ProductCategory#106, TradeScalar#0.NominalRepCcy, TradeScalar#0.CashBalanceRepCcy) AS Balance#352",
                         "dataTypeId": "1",
                         "children": [{
@@ -274,6 +286,7 @@ module.exports = function () {
                                 "refId": "attr-uuid-106"
                             }, {
                                 "_typeHint": "za.co.absa.spline.model.expr.Generic",
+                                "name": "getstructfield",
                                 "exprType": "GetStructField",
                                 // "text": "TradeScalar#0.NominalRepCcy",
                                 "dataTypeId": "1",
@@ -283,6 +296,7 @@ module.exports = function () {
                                 }]
                             }, {
                                 "_typeHint": "za.co.absa.spline.model.expr.Generic",
+                                "name": "getstructfield",
                                 "exprType": "GetStructField",
                                 // "text": "TradeScalar#0.CashBalanceRepCcy",
                                 "dataTypeId": "1",
@@ -446,6 +460,7 @@ module.exports = function () {
                                         "dataTypeId": "1",
                                         "children": [{
                                             "_typeHint": "za.co.absa.spline.model.expr.Generic",
+                                            "name": "getstructfield",
                                             "exprType": "GetStructField",
                                             // "text": "TradeStatic#1.InsTypeOverrideName",
                                             "dataTypeId": "1",
@@ -481,6 +496,7 @@ module.exports = function () {
                                     "dataTypeId": "1",
                                     "children": [{
                                         "_typeHint": "za.co.absa.spline.model.expr.Generic",
+                                        "name": "getstructfield",
                                         "exprType": "GetStructField",
                                         // "text": "TradeStatic#1.FundingInsType",
                                         "dataTypeId": "1",
@@ -562,6 +578,7 @@ module.exports = function () {
                                 "dataTypeId": "1",
                                 "children": [{
                                     "_typeHint": "za.co.absa.spline.model.expr.Generic",
+                                    "name": "getstructfield",
                                     "exprType": "GetStructField",
                                     // "text": "Instrument#2.InstrumentType",
                                     "dataTypeId": "1",
@@ -595,6 +612,7 @@ module.exports = function () {
                                     "dataTypeId": "1",
                                     "children": [{
                                         "_typeHint": "za.co.absa.spline.model.expr.Generic",
+                                        "name": "getstructfield",
                                         "exprType": "GetStructField",
                                         // "text": "Instrument#2.InstrumentType",
                                         "dataTypeId": "1",
@@ -603,6 +621,7 @@ module.exports = function () {
                                             "refId": "attr-uuid-2"}]
                                     }, {
                                         "_typeHint": "za.co.absa.spline.model.expr.Generic",
+                                        "name": "getstructfield",
                                         "exprType": "GetStructField",
                                         // "text": "TradeStatic#1.FxSubType",
                                         "dataTypeId": "1",
@@ -611,6 +630,7 @@ module.exports = function () {
                                             "refId": "attr-uuid-1"}]
                                     }, {
                                         "_typeHint": "za.co.absa.spline.model.expr.Generic",
+                                        "name": "getstructfield",
                                         "exprType": "GetStructField",
                                         // "text": "Instrument#2.UnderlyingInstrumentType",
                                         "dataTypeId": "1",
@@ -870,11 +890,13 @@ module.exports = function () {
                             "dataTypeId": "13",
                             "child": {
                                 "_typeHint": "za.co.absa.spline.model.expr.Generic",
+                                "name": "aggregateexpression",
                                 "exprType": "AggregateExpression",
                                 // "text": "collect_list(author#134, 0, 0)",
                                 "dataTypeId": "13",
                                 "children": [{
                                     "_typeHint": "za.co.absa.spline.model.expr.Generic",
+                                    "name": "collect_list",
                                     "exprType": "CollectList",
                                     // "text": "collect_list(author#134, 0, 0)",
                                     "dataTypeId": "13",

@@ -186,6 +186,7 @@
                                 <argument>za.co.absa.spline.model.expr.Alias</argument>
                                 <argument>za.co.absa.spline.model.expr.Binary</argument>
                                 <argument>za.co.absa.spline.model.expr.UDF</argument>
+                                <argument>za.co.absa.spline.model.expr.Literal</argument>
                             </arguments>
                         </configuration>
                     </execution>

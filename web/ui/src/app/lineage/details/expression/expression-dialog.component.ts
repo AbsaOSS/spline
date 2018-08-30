@@ -29,10 +29,7 @@ import {ExpressionRenderService} from "./expression-render.service";
         <code>{{ exprString }}</code>
         <hr>
         <tree-root #tree [nodes]="exprTree" [options]="treeOptions">
-            <ng-template #treeNodeTemplate let-node>
-                <div *ngIf="!node.isExpanded">{{ node.data.text }}</div>
-                <div *ngIf="node.isExpanded">{{ node.data.name }}</div>
-            </ng-template>
+            <ng-template #treeNodeTemplate let-node>{{ node.data.name }}</ng-template>
         </tree-root>
     `
 })
@@ -68,8 +65,7 @@ export class ExpressionDialogComponent {
 
         const buildNode = (expr: IExpression) => ({
             id: seq++,
-            name: "??? short expr name ???",
-            text: this.expressionRenderer.getText(expr),
+            name: this.expressionRenderer.getName(expr),
             children: buildChildrenNodes(expr)
         })
 

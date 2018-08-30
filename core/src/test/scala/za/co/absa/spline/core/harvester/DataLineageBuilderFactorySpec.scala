@@ -68,6 +68,7 @@ class DataLineageBuilderFactorySpec extends FlatSpec with Matchers {
       case rd: Read => rd copy (mainProps = strippedProps(rd))
       case wt: Write => wt copy (mainProps = strippedProps(wt))
       case cm: Composite => cm copy (mainProps = strippedProps(cm))
+      case op => ???
     }
 
     private def strippedProps(n: Operation): OperationProps = n.mainProps.copy(id = null, inputs = null, output = null)

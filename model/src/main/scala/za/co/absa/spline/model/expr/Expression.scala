@@ -42,6 +42,8 @@ trait TypedExpression {
 }
 
 trait GenericExpressionLike {
+  def name: String
+
   def exprType: String
 
   def params: Option[Map[String, Any]]
@@ -49,6 +51,7 @@ trait GenericExpressionLike {
 
 case class Generic
 (
+  override val name: String,
   override val dataTypeId: UUID,
   override val children: Seq[Expression],
   override val exprType: String,
@@ -59,6 +62,7 @@ case class Generic
 
 case class GenericLeaf
 (
+  override val name: String,
   override val dataTypeId: UUID,
   override val exprType: String,
   override val params: Option[Map[String, Any]]

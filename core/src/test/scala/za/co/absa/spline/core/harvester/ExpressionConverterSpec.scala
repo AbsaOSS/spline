@@ -45,7 +45,8 @@ class ExpressionConverterSpec extends FlatSpec with OneInstancePerTest with Mock
     val expression = new Foo("this parameter should not be captured")
 
     inside(converter convert expression) {
-      case expr.Generic(dataTypeId, children, exprType, Some(params)) =>
+      case expr.Generic(name, dataTypeId, children, exprType, Some(params)) =>
+        name shouldEqual "foo"
         dataTypeId shouldEqual nullDataType.id
         children should have size 0
         exprType shouldEqual classOf[Foo].getName
@@ -57,7 +58,7 @@ class ExpressionConverterSpec extends FlatSpec with OneInstancePerTest with Mock
     val expression = Foo.empty
 
     inside(converter convert expression) {
-      case expr.Generic(_, _, _, Some(params)) =>
+      case expr.Generic(_, _, _, _, Some(params)) =>
         params shouldNot contain key "otherExpression"
         params shouldNot contain key "string"
         params shouldNot contain key "javaInteger"
@@ -72,7 +73,7 @@ class ExpressionConverterSpec extends FlatSpec with OneInstancePerTest with Mock
     val expression = Foo.empty.copy(javaInteger = 1, scalaInt = 2)
 
     inside(converter convert expression) {
-      case expr.Generic(_, _, _, Some(params)) =>
+      case expr.Generic(_, _, _, _, Some(params)) =>
         params should contain allOf(
           "javaInteger" -> 1,
           "scalaInt" -> 2
@@ -95,7 +96,7 @@ class ExpressionConverterSpec extends FlatSpec with OneInstancePerTest with Mock
     )
 
     inside(converter convert expression) {
-      case expr.Generic(_, _, _, Some(params)) =>
+      case expr.Generic(_, _, _, _, Some(params)) =>
         params should contain allOf(
           "optionWithDefault" -> "this is a default value",
           "scalaIntWithDefault" -> 42
@@ -114,7 +115,7 @@ class ExpressionConverterSpec extends FlatSpec with OneInstancePerTest with Mock
           777 -> None))))
 
     inside(converter convert expression) {
-      case expr.Generic(_, _, _, Some(params)) =>
+      case expr.Generic(_, _, _, _, Some(params)) =>
         params should contain("option" -> Map("1" -> 10, "2" -> Seq(20), "3" -> Map("42" -> 42)))
     }
   }
@@ -123,7 +124,7 @@ class ExpressionConverterSpec extends FlatSpec with OneInstancePerTest with Mock
     val expression = Foo.empty.copy(any = Bar)
 
     inside(converter convert expression) {
-      case expr.Generic(_, _, _, Some(params)) =>
+      case expr.Generic(_, _, _, _, Some(params)) =>
         params should contain("any" -> "Bar")
     }
   }
@@ -132,7 +133,7 @@ class ExpressionConverterSpec extends FlatSpec with OneInstancePerTest with Mock
     val expression = Foo.empty.copy(any = CaseWhen(Seq(Literal(42) -> Literal("Moo")), Literal("Meh")))
 
     inside(converter convert expression) {
-      case expr.Generic(_, _, _, Some(params)) =>
+      case expr.Generic(_, _, _, _, Some(params)) =>
         params should contain("any" -> "CASE WHEN 42 THEN Moo ELSE Meh END")
     }
   }
@@ -149,7 +150,7 @@ class ExpressionConverterSpec extends FlatSpec with OneInstancePerTest with Mock
     )
 
     inside(converter convert expression) {
-      case expr.Generic(_, _, _, Some(params)) =>
+      case expr.Generic(_, _, _, _, Some(params)) =>
         params should contain allOf(
           "any" -> "Bar",
           "option" -> "blah",
@@ -167,7 +168,7 @@ class ExpressionConverterSpec extends FlatSpec with OneInstancePerTest with Mock
     )
 
     inside(converter convert expression) {
-      case expr.Generic(_, _, _, Some(params)) =>
+      case expr.Generic(_, _, _, _, Some(params)) =>
         params shouldNot contain key "nullable"
 
         params shouldNot contain key "dataType"
@@ -186,7 +187,7 @@ class ExpressionConverterSpec extends FlatSpec with OneInstancePerTest with Mock
     )
 
     inside(converter convert expression) {
-      case expr.Generic(_, _, _, Some(params)) =>
+      case expr.Generic(_, _, _, _, Some(params)) =>
         params shouldNot contain key "otherExpression"
     }
   }

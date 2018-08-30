@@ -46,7 +46,7 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
 
   it should "return StreamRead node with a socket endpoint when reading data from the socket data source" in {
     val host = "somehost"
-    val port = 9999
+    val port = 9999L
 
     val df = sparkSession
       .readStream

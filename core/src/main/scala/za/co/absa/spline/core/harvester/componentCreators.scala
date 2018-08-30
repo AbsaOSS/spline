@@ -190,12 +190,14 @@ class ExpressionConverter(dataTypeConverter: DataTypeConverter, attributeConvert
 
     case e: expressions.LeafExpression =>
       expr.GenericLeaf(
+        e.prettyName,
         getDataType(e).id,
         getExpressionSimpleClassName(e),
         getExpressionExtraParameters(e))
 
     case e =>
       expr.Generic(
+        e.prettyName,
         getDataType(e).id,
         e.children map convert,
         getExpressionSimpleClassName(e),

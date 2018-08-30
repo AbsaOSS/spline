@@ -54,8 +54,8 @@ class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase {
     it("should store expressions") {
       val lineageWithExpressions = lineage.copy(operations =
         lineage.operations :+ op.Projection(OperationProps(randomUUID, "", Nil, randomUUID), Seq(
-          expr.Generic(randomUUID, Nil, "", None),
-          expr.GenericLeaf(randomUUID, "", None),
+          expr.Generic("", randomUUID, Nil, "", None),
+          expr.GenericLeaf("", randomUUID, "", None),
           expr.Alias("", expr.Literal(42, randomUUID)),
           expr.AttrRef(randomUUID),
           expr.Literal(42, randomUUID),
