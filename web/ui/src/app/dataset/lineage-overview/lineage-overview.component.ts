@@ -58,7 +58,7 @@ export class DatasetLineageOverviewComponent {
             .subscribe(([linAccessors, selectedNode]) => this.updateSelectedState(linAccessors, selectedNode))
     }
 
-    updateSelectedState(linAccessors: LineageAccessors, node: GraphNode) {
+    private updateSelectedState(linAccessors: LineageAccessors, node: GraphNode) {
         let compositeOp = <IComposite> linAccessors.getOperation(node.id)
         switch (node.type) {
             case "operation":
