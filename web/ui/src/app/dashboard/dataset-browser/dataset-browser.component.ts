@@ -103,6 +103,7 @@ export class DatasetBrowserComponent implements OnInit {
             this.router.navigate(["dashboard", "dataset", datasetId, "lineage", "interval"], {
                 queryParams: {'from': from, 'to': to},
                 queryParamsHandling: "merge",
+                fragment: "datasource",
                 relativeTo: this.route.parent
             })
         }
