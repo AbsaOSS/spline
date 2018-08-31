@@ -57,13 +57,20 @@ export class LineageOverviewGraphComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        let lineageContainsDataset = (lin: IDataLineage, dsId: string) => _.some(lin.datasets, {id: dsId}),
-            reactOnChange = (prevLineage: IDataLineage, nextLineage: IDataLineage, selectedNode: GraphNode) => {
-                if (!this.network || nextLineage !== prevLineage)
-                    this.rebuildGraph(nextLineage)
-                this.selectedNode = selectedNode
-                this.refreshSelectedNode(selectedNode)
+        let lineageContainsDataset = (lin: IDataLineage, dsId: string) => {
+                return _.some(lin.datasets, {id: dsId})
             }
+        let reactOnChange = (prevLineage: IDataLineage, nextLineage: IDataLineage, selectedNode: GraphNode) => {
+                    if (!this.network || nextLineage.timestamp !== prevLineage.timestamp)
+                        this.rebuildGraph(nextLineage)
+                    this.selectedNode = selectedNode
+                    try {
+                        this.refreshSelectedNode(selectedNode)
+                    } catch (e) {
+                        // FIXME resolve bug of failing to find dataset.
+                        console.log("WARN Ignoring failed selection: \n" + e)
+                    }
+                }
 
         let lineagePairs$ =
             this.lineage$.first()
@@ -73,7 +80,7 @@ export class LineageOverviewGraphComponent implements OnInit {
         Observable
             .combineLatest(lineagePairs$, this.selectedNode$)
             .filter(([[__, lineage], selectedNode]) => lineageContainsDataset(lineage, selectedNode.id))
-            .distinctUntilChanged(([[__, lin0], node0], [[___, lin1], node1]) => lin0.id == lin1.id && _.isEqual(node0, node1))
+            .distinctUntilChanged(([[__, lin0], node0], [[___, lin1], node1]) => lin0.timestamp == lin1.timestamp && _.isEqual(node0, node1))
             .subscribe(([[prevLineage, nextLineage], selectedNode]) => reactOnChange(prevLineage, nextLineage, selectedNode))
     }
 

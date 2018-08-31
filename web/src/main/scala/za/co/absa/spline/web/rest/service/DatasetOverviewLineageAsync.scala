@@ -176,8 +176,13 @@ abstract class DatasetOverviewLineageAsync extends ExecutionContextImplicit {
 
   def traverseUp(datasetId: UUID): Future[Unit]
 
-  def finalGather(): DataLineage = DataLineage("appId", "appName", 0, operations.toSeq, datasets.toSeq, attributes.toSeq)
-
+  def finalGather(): DataLineage = DataLineage(
+    "appId",
+    "appName",
+    System.currentTimeMillis(),
+    operations.toSeq,
+    datasets.toSeq,
+    attributes.toSeq)
 
   /**
     * The case class serves for associating a composite operation with its dependencies
