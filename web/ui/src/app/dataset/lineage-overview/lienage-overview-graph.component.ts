@@ -77,6 +77,7 @@ export class LineageOverviewGraphComponent implements OnInit {
                 .concat(this.lineage$)
                 .pairwise()
 
+        // FIXME refactor preplace remove pairwise on lineagePairs$
         Observable
             .combineLatest(lineagePairs$, this.selectedNode$)
             .filter(([[__, lineage], selectedNode]) => lineageContainsDataset(lineage, selectedNode.id))
