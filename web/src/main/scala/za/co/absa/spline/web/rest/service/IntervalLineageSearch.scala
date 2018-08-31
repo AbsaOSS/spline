@@ -52,41 +52,28 @@ class IntervalLineageSearch(reader: DataLineageReader) extends DatasetOverviewLi
   private def relinkAndAccumulate(path: String): Future[Unit] = {
     reader
       .getByDatasetIdsByPathAndInterval(path, start, end)
-      .flatMap(relinkAndAccumulate)
+      .map(relinkAndAccumulate)
       .flatMap(_ => {
         val originalNextPaths = nextPaths.clone()
         nextPaths.clear()
-        val value: Future[Unit] = Future.sequence(originalNextPaths.map(relinkAndAccumulate)).map(_ => Unit)
-        value
+        Future.sequence(originalNextPaths.map(relinkAndAccumulate)).map(_ => Unit)
       })
   }
 
-  private def relinkAndAccumulate(ids: CloseableIterable[UUID]): Future[Unit] = {
-    Future.sequence(ids.iterator.map(reader.loadByDatasetId))
-      .map(iterator => iterator
-        .filter(_.isDefined)
-        .map(_.get)
+  private def relinkAndAccumulate(lineages: CloseableIterable[DataLineage]): Unit = {
+    lineages.iterator
         .map(lineageToCompositeWithDependencies)
         .map(relinkComposite)
         .foreach(accumulateCompositeDependencies)
-      )
   }
 
   private def relinkComposite(compositeWithDependencies: CompositeWithDependencies): CompositeWithDependencies = {
     val originalComposite = compositeWithDependencies.composite
-    val originalDestinationId = originalComposite.destination.datasetsIds.head
-    val newDestinationId = pathToDatasetId
-      .putIfAbsent(originalComposite.destination.path, originalDestinationId)
-      .getOrElse(originalDestinationId)
+    val newDestinationId = getOrSetPathDatasetId(originalComposite.destination.path, originalComposite.destination.datasetsIds.head)
     val destinationIds = Seq(newDestinationId)
     val newSources = originalComposite.sources.map(s => {
       if (s.datasetsIds.nonEmpty) {
-        val result = pathToDatasetId.putIfAbsent(s.path, s.datasetsIds.head)
-        if (result.isEmpty) {
-          nextPaths.add(s.path)
-          // Breath first loop to subtree of path result.path.
-        }
-        s.copy(datasetsIds = Seq(result.getOrElse(s.datasetsIds.head)))
+        s.copy(datasetsIds = Seq(getOrSetPathDatasetId(s.path, s.datasetsIds.head)))
       } else {
         s
       }
@@ -100,16 +87,15 @@ class IntervalLineageSearch(reader: DataLineageReader) extends DatasetOverviewLi
     compositeWithDependencies.copy(composite = linkedComposite)
   }
 
+  private def getOrSetPathDatasetId(path: String, datasetId: UUID): UUID = {
+    pathToDatasetId.put(path, datasetId).getOrElse({
+      // Breath first loop to subtree of path result.path.
+      nextPaths.add(path)
+      datasetId
+    })
+  }
+
   override def traverseDown(datasetId: UUID): Future[Unit] = {
-    // query events between start and end and reading from URI of dataset with datasetId.
-    // TODO Cannot use these methods because these already use linking (they operate on dataset.sources nad dataset.destionation)
-    // Need to rewrite such that we search by path and interval excluding lineages already found plus modifying source and destionation values.
-    // Thus one needs to iterate over input datasets making sure that the sources are being properly overwritten and also making sure both sources and dests are loaded based on path and interval only.
-    //    for (
-    //      uuids <- loadByPath(datasetId);
-    //      uuid <- uuids;
-    //      lineages <- reader.findByInputId(uuid)
-    //    ) yield processAndEnqueue(lineages.iterator)
     Future.failed(new UnsupportedOperationException)
   }
 

@@ -236,11 +236,16 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     caseClassFields ++ auxiliaryFields map (_ -> 1)
   }
 
-  override def getByDatasetIdsByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[UUID]] = {
+  override def getByDatasetIdsByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[DataLineage]] = {
     Future {
-      val cursor: DBCursor = blocking(dataLineageCollection.find(DBObject("rootOperation.path" → path, "timestamp" → DBObject("$lt" → end, "$gt" → start))))
-      val iterator = cursor.asScala.map(_.get("rootDataset").asInstanceOf[DBObject].get("_id").asInstanceOf[UUID])
-      new CloseableIterable[UUID](iterator = iterator, closeFunction = cursor.close())
+      // Find operations with given path then its datasets as well and split them by read and write to link them properly.
+      // Owning lineage and interation into it is trivial.
+      val cursor: DBCursor = operationCollection.find(DBObject("path" → path, "timestamp" → DBObject("$lt" → end, "$gt" → start)))
+      val iterator = cursor.asScala
+        .map(_.get(lineageIdField))
+        .map(dataLineageCollection.findOne)
+        .map(deserializeWithVersionCheck[DataLineage])
+      new CloseableIterable[DataLineage](iterator = iterator, closeFunction = cursor.close())
     }
   }
 }

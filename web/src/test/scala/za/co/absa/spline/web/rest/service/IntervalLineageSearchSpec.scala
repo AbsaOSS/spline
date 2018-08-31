@@ -72,10 +72,10 @@ class IntervalLineageSearchSpec extends AsyncFlatSpec with Matchers with Mockito
     when(readerMock.loadByDatasetId(≡(UUIDS2))(any())) thenReturn Future.successful(Some(lineage2))
 
     when(readerMock.getByDatasetIdsByPathAndInterval(≡("fileS1.txt"), any(), any())(any())) thenReturn
-      Future.successful(new CloseableIterable[UUID](iterator = Seq(UUIDS1, UUIDS1x).iterator, closeFunction = {}))
+      Future.successful(new CloseableIterable[DataLineage](iterator = Seq(lineage1, lineage2).iterator, closeFunction = {}))
 
     when(readerMock.getByDatasetIdsByPathAndInterval(≡("fileOut.txt"), any(), any())(any())) thenReturn
-      Future.successful(new CloseableIterable[UUID](iterator = Seq(UUIDS2).iterator, closeFunction = {}))
+      Future.successful(new CloseableIterable[DataLineage](iterator = Seq(lineage2).iterator, closeFunction = {}))
 //    when(readerMock.getByDatasetIdsByPathAndInterval(≡(UUIDS2))(any())) thenReturn Future.successful(Some(lineage2))
 
     when(readerMock.getDatasetDescriptor(≡(UUIDS1x))(any())) thenReturn
@@ -96,6 +96,16 @@ class IntervalLineageSearchSpec extends AsyncFlatSpec with Matchers with Mockito
       lin.rootOperation.asInstanceOf[Composite].sources.exists(ds => ds.datasetsIds == Seq(UUIDS1)) shouldEqual true
       lin.operations.map(c => c.asInstanceOf[Composite].destination).map(_.datasetsIds).contains(List(UUIDS1)) shouldEqual true
 //      1 shouldEqual(1)
+    })
+
+    svc(UUIDS1x, 10, 20).map(lin => {
+      lin.operations.size shouldEqual 2
+      lin.datasets.size shouldEqual 3
+      lin.attributes.size shouldEqual 2
+      lin.rootOperation.asInstanceOf[Composite].destination.datasetsIds shouldEqual List(UUIDS2)
+      lin.rootOperation.asInstanceOf[Composite].sources.exists(ds => ds.datasetsIds == Seq(UUIDS1)) shouldEqual true
+      lin.operations.map(c => c.asInstanceOf[Composite].destination).map(_.datasetsIds).contains(List(UUIDS1x)) shouldEqual true
+      //      1 shouldEqual(1)
     })
 
   }
