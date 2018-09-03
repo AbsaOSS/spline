@@ -168,10 +168,17 @@ export class LineageOverviewGraphComponent implements OnInit {
     private static buildVisModel(lineage: IDataLineage): VisModel<VisNode, vis.Edge> {
         const getIdentifiableDataSourcesOf =
             (op: IComposite): ITypedMetaDataSource[] =>
-                _.flatMap(op.sources, (src, i) =>
-                    _.isEmpty(src.datasetsIds)
-                        ? _.assign({}, src, {datasetsIds: [ID_PREFIXES.extra + i + "_" + op.mainProps.id]})
-                        : src)
+                _.flatMap(op.sources, (src, i) => {
+                    let maybeFirstDataset = lineage.datasets.find(d => d.id == src.datasetsIds[0])
+                    if (_.isEmpty(src.datasetsIds)) {
+                        return _.assign({}, src, {datasetsIds: [ID_PREFIXES.extra + i + "_" + op.mainProps.id]})
+                    } else if (src.datasetsIds.length == 1 && maybeFirstDataset.schema.attrs.length == 0) {
+                        // FIXME avoid this hack. It prevent duplicate paths displayed in interval view for generated readonly metaDatasets with empty schema.
+                        return _.assign({}, src, {datasetsIds: [ID_PREFIXES.extra + "_" + maybeFirstDataset.id]})
+                    } else {
+                        return src
+                    }
+                })
 
         const recombineByDatasetIdAndLongestAppendSequence =
             (typedMetadataSources: ITypedMetaDataSource[]): [string, ITypedMetaDataSource][] =>

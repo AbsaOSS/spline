@@ -3,10 +3,10 @@ package za.co.absa.spline.web.rest.service
 import java.util.concurrent.ConcurrentHashMap
 import java.util.{Collections, UUID}
 
-import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.model.{DataLineage, MetaDataset, Schema}
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
 
-import scala.collection.GenTraversableOnce
+import scala.collection.{GenTraversableOnce, mutable}
 import scala.concurrent.Future
 
 /*
@@ -71,11 +71,15 @@ class IntervalLineageSearch(reader: DataLineageReader) extends DatasetOverviewLi
     val originalComposite = compositeWithDependencies.composite
     val newDestinationId = getOrSetPathDatasetId(originalComposite.destination.path, originalComposite.destination.datasetsIds.head)
     val destinationIds = Seq(newDestinationId)
+    val dummyDatasets = mutable.Set[MetaDataset]()
     val newSources = originalComposite.sources.map(s => {
       if (s.datasetsIds.nonEmpty) {
         s.copy(datasetsIds = Seq(getOrSetPathDatasetId(s.path, s.datasetsIds.head)))
       } else {
         s
+        val dts = MetaDataset(UUID.randomUUID(), Schema(Seq()))
+        dummyDatasets.add(dts)
+        s.copy(datasetsIds = Seq(getOrSetPathDatasetId(s.path, dts.id)))
       }
     })
     val newInputs = newSources.flatMap(_.datasetsIds.headOption.toList)
@@ -84,7 +88,7 @@ class IntervalLineageSearch(reader: DataLineageReader) extends DatasetOverviewLi
       sources = newSources,
       mainProps = originalComposite.mainProps.copy(output = newDestinationId, inputs = newInputs))
     // TODO Do I need to change also other fields of the CompositeWithDeps
-    compositeWithDependencies.copy(composite = linkedComposite)
+    compositeWithDependencies.copy(composite = linkedComposite, datasets = compositeWithDependencies.datasets ++ dummyDatasets)
   }
 
   private def getOrSetPathDatasetId(path: String, datasetId: UUID): UUID = {
@@ -120,6 +124,33 @@ class IntervalLineageSearch(reader: DataLineageReader) extends DatasetOverviewLi
     processQueueAsync()
   }
 
+  override def finalGather(): DataLineage = {
+    val dummyDatasets = mutable.Set[MetaDataset]()
+    val noBlankSourcesOps = operations
+      .map(op =>
+        if (op.sources.exists(_.datasetsIds.isEmpty)) {
+          val nonBlankSources = op.sources.map(s =>
+            if (s.datasetsIds.isEmpty) {
+              val dtId = getOrSetPathDatasetId(s.path, UUID.randomUUID())
+              dummyDatasets.add(MetaDataset(dtId, Schema(Seq())))
+              s.copy(datasetsIds = Seq(dtId))
+            } else {
+              s
+            })
+          op.copy(sources = nonBlankSources)
+        } else {
+          op
+        }
+      )
+      .toSet
+    DataLineage(
+      "appId",
+      "appName",
+      System.currentTimeMillis(),
+      noBlankSourcesOps.toSeq,
+      datasets.toSeq,
+      attributes.toSeq)
+  }
 
 }
 

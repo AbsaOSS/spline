@@ -28,7 +28,7 @@ import scala.concurrent.Future
 abstract class DatasetOverviewLineageAsync extends ExecutionContextImplicit {
 
   // Accululation containers holding partial high order lineage
-  val operations: mutable.Set[Operation] = new mutable.HashSet[Operation]()
+  val operations: mutable.Set[Composite] = new mutable.HashSet[Composite]()
   val datasets: mutable.Set[MetaDataset] = new mutable.HashSet[MetaDataset]()
   val attributes: mutable.Set[Attribute] = new mutable.HashSet[Attribute]()
 
@@ -177,12 +177,12 @@ abstract class DatasetOverviewLineageAsync extends ExecutionContextImplicit {
   def traverseUp(datasetId: UUID): Future[Unit]
 
   def finalGather(): DataLineage = DataLineage(
-    "appId",
-    "appName",
-    System.currentTimeMillis(),
-    operations.toSeq,
-    datasets.toSeq,
-    attributes.toSeq)
+      "appId",
+      "appName",
+      System.currentTimeMillis(),
+      operations.toSeq,
+      datasets.toSeq,
+      attributes.toSeq)
 
   /**
     * The case class serves for associating a composite operation with its dependencies
