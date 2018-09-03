@@ -26,7 +26,7 @@ trait KafkaProperties
 {
   private val configuration = new SystemConfiguration
 
-  private def getRequiredString(key: String): String = {
+  protected def getRequiredString(key: String): String = {
     val value = configuration.getString(key)
     require(isNotBlank(value), s"Missing configuration property $key in JVM parameters.")
     value
@@ -35,10 +35,10 @@ trait KafkaProperties
   /**
     * The list of servers forming the kafka cluster
     */
-  val kafkaServers = getRequiredString("kafka.servers")
+  def kafkaServers = getRequiredString("kafka.servers")
 
   /**
     * The name of a topic
     */
-  val kafkaTopic = getRequiredString("kafka.topic")
+  def kafkaTopic = getRequiredString("kafka.topic")
 }

@@ -1,0 +1,22 @@
+#Working directory for all jobs
+...\spline\sample
+
+
+# AggregationJob
+-Dkafka.servers=localhost:9092 -Dkafka.topic=meteo.*
+
+# FileMeteoDataReader
+-Dkafka.servers=localhost:9092 -Dkafka.topic=meteo.file
+
+# KafkaMeteoDataReader
+-Dkafka.servers=localhost:9092 -Dkafka.topic.input=raw -Dkafka.topic.output=meteo.kafka
+
+# SocketMeteoDataReader
+-Dkafka.servers=localhost:9092 -Dkafka.topic=meteo.socket
+
+# KafkaMeteoStation
+-Dkafka.servers=localhost:9092 -Dkafka.topic=raw
+
+# FileMeteoStation
+
+# SocketMeteoStation
