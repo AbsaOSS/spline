@@ -237,15 +237,15 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
   }
 
   override def getByDatasetIdsByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[DataLineage]] = {
-    Future {
-      // Find operations with given path then its datasets as well and split them by read and write to link them properly.
-      // Owning lineage and interation into it is trivial.
-      val cursor: DBCursor = operationCollection.find(DBObject("path" → path, "timestamp" → DBObject("$lt" → end, "$gt" → start)))
+      // FIXME avoid quiering all operations with given path without filtering by timestamp via use of events.
+      val cursor: DBCursor = operationCollection.find(DBObject("$or" → DBList(DBObject("sources.path" → path), DBObject("path" → path))))
       val iterator = cursor.asScala
-        .map(_.get(lineageIdField))
-        .map(dataLineageCollection.findOne)
-        .map(deserializeWithVersionCheck[DataLineage])
-      new CloseableIterable[DataLineage](iterator = iterator, closeFunction = cursor.close())
-    }
+        .map(_.get(lineageIdField).asInstanceOf[String])
+        .toSet[String].iterator
+        .map(id => dataLineageCollection.findOne(DBObject("_id" → id, "timestamp" → DBObject("$gt" → start, "$lt" → end))))
+        .filter(_ != null)
+        .map(deserializeWithVersionCheck[TruncatedDataLineage])
+        .map(truncatedDataLineageReader.enrichWithLinked)
+      Future.sequence(iterator).map(i => new CloseableIterable[DataLineage](iterator = i, closeFunction = cursor.close()))
   }
 }

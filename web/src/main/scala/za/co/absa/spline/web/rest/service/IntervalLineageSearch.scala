@@ -88,7 +88,7 @@ class IntervalLineageSearch(reader: DataLineageReader) extends DatasetOverviewLi
   }
 
   private def getOrSetPathDatasetId(path: String, datasetId: UUID): UUID = {
-    pathToDatasetId.put(path, datasetId).getOrElse({
+    pathToDatasetId.putIfAbsent(path, datasetId).getOrElse({
       // Breath first loop to subtree of path result.path.
       nextPaths.add(path)
       datasetId
