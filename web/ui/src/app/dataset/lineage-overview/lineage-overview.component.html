@@ -48,10 +48,12 @@
                         <h5>Type: <b>{{selectedDataSourceDescription.source.type}}</b></h5>
                         <h5>Timestamp: <b>{{selectedDataSourceDescription.timestamp | date:'medium'}}</b></h5>
                         <hr>
-                        <div style="text-align: center">
-                            <button mat-raised-button (click)="gotoPartialLineage(selectedDataSourceDescription.source.datasetsIds[0])">
-                                Show detailed lineage graph
-                            </button>
+                        <div *ngIf="this.isOverview">
+                            <div style="text-align: center" *ngIf="isOverview()">
+                                <button mat-raised-button (click)="gotoPartialLineage(selectedDataSourceDescription.source.datasetsIds[0])">
+                                    Show detailed lineage graph
+                                </button>
+                            </div>
                         </div>
                         <hr>
                         <h3>Schema:</h3>

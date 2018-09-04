@@ -82,12 +82,16 @@ export class DatasetLineageOverviewComponent {
         switch (nodeType) {
             case "operation":
             case "datasource":
-                if (this.router.url.replace(/[#?].*$/, "").endsWith("/overview")) {
+                if (this.isOverview()) {
                     this.navigateToDatasource(nodeId, "overview", nodeType)
                 } else {
                     this.navigateToDatasource(nodeId, "interval", nodeType)
                 }
         }
+    }
+
+    isOverview(): boolean {
+        return this.router.url.replace(/[#?].*$/, "").endsWith("/overview")
     }
 
     private navigateToDatasource(datasetId: string, view: "interval" | "overview", nodeType: GraphNodeType): void {
