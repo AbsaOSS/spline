@@ -82,7 +82,7 @@ export class DatasetLineageOverviewComponent {
         switch (nodeType) {
             case "operation":
             case "datasource":
-                if (this.isOverview()) {
+                if (this.isOverviewNotIntervalView()) {
                     this.navigateToDatasource(nodeId, "overview", nodeType)
                 } else {
                     this.navigateToDatasource(nodeId, "interval", nodeType)
@@ -90,7 +90,7 @@ export class DatasetLineageOverviewComponent {
         }
     }
 
-    isOverview(): boolean {
+    isOverviewNotIntervalView(): boolean {
         return this.router.url.replace(/[#?].*$/, "").endsWith("/overview")
     }
 

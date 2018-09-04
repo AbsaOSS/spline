@@ -45,6 +45,7 @@ export class LineageOverviewGraphComponent implements OnInit {
 
     @Input() lineage$: Observable<IDataLineage>
     @Input() selectedNode$: Observable<GraphNode>
+    @Input() isOverviewNotIntervalView: boolean
 
     @Output() nodeSelected = new EventEmitter<GraphNode>()
     @Output() nodeActioned = new EventEmitter<GraphNode>()
@@ -140,7 +141,9 @@ export class LineageOverviewGraphComponent implements OnInit {
             if (event.nodes.length == 1) {
                 console.log("DOUBLE CLICK", event.nodes[0])
                 let node = LineageOverviewGraphComponent.eventToClickableNode(event)
-                if (node) this.nodeActioned.emit(node)
+                if (this.isOverviewNotIntervalView || node.type != "datasource") {
+                    if (node) this.nodeActioned.emit(node)
+                }
             }
         })
 
