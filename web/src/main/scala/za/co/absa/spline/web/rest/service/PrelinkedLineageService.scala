@@ -25,7 +25,15 @@ import scala.concurrent.Future
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-abstract class DatasetOverviewLineageAsync extends ExecutionContextImplicit {
+class PrelinkedLineageSearch(reader: DataLineageReader) extends ExecutionContextImplicit {
+
+  def apply(datasetId: UUID): Future[DataLineage] = {
+    // Now, just enqueue the datasetId and process it recursively
+    enqueueOutput(Seq(datasetId))
+    processQueueAsync().map { _ => finalGather() }
+    // Alternatively, for comprehension may be used:
+    // for ( _ <- processQueueAsync() ) yield finalGather()
+  }
 
   // Accululation containers holding partial high order lineage
   val operations: mutable.Set[Composite] = new mutable.HashSet[Composite]()
@@ -172,9 +180,20 @@ abstract class DatasetOverviewLineageAsync extends ExecutionContextImplicit {
     }
   }
 
-  def traverseDown(datasetId: UUID): Future[Unit]
+  // Traverse lineage tree from an dataset Id in the direction from destination to source
+  def traverseUp(dsId: UUID): Future[Unit] =
+    reader.loadByDatasetId(dsId).flatMap { a =>
+      processAndEnqueue(a)
+    }
 
-  def traverseUp(datasetId: UUID): Future[Unit]
+  // Traverse lineage tree from an dataset Id in the direction from source to destination
+  def traverseDown(dsId: UUID): Future[Unit] = {
+    import za.co.absa.spline.common.ARMImplicits._
+    reader.findByInputId(dsId).flatMap {
+      for (compositeList <- _) yield
+        processAndEnqueue(compositeList.iterator)
+    }
+  }
 
   def finalGather(): DataLineage = DataLineage(
       "appId",
@@ -193,4 +212,8 @@ abstract class DatasetOverviewLineageAsync extends ExecutionContextImplicit {
     */
   case class CompositeWithDependencies(composite: Composite, datasets: Seq[MetaDataset], attributes: Seq[Attribute])
 
+}
+
+class PrelinkedLineageService(reader: DataLineageReader) {
+  def apply(datasetId: UUID): Future[DataLineage] = new PrelinkedLineageSearch(reader)(datasetId)
 }

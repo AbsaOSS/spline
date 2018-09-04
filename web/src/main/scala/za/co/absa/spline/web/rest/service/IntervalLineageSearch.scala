@@ -25,7 +25,7 @@ import scala.concurrent.Future
  * limitations under the License.
  */
 
-class IntervalLineageSearch(reader: DataLineageReader) extends DatasetOverviewLineageAsync {
+class IntervalLineageSearch(reader: DataLineageReader) extends PrelinkedLineageSearch(reader) {
 
   import scala.collection.JavaConverters._
 
@@ -97,14 +97,6 @@ class IntervalLineageSearch(reader: DataLineageReader) extends DatasetOverviewLi
       nextPaths.add(path)
       datasetId
     })
-  }
-
-  override def traverseDown(datasetId: UUID): Future[Unit] = {
-    Future.failed(new UnsupportedOperationException)
-  }
-
-  override def traverseUp(datasetId: UUID): Future[Unit] = {
-    Future.failed(new UnsupportedOperationException)
   }
 
   override def processAndEnqueue(lineages: GenTraversableOnce[DataLineage]): Future[Unit] = {
