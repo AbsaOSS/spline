@@ -106,7 +106,8 @@ export class DatasetLineageOverviewComponent {
     gotoPartialLineage(dsId: string) {
         this.router.navigate(
             ["dataset", dsId, "lineage", "partial"], {
-                relativeTo: this.route.parent.parent.parent
+                relativeTo: this.route.parent.parent.parent,
+                queryParamsHandling: 'merge'
             })
     }
 }
