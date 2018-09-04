@@ -147,9 +147,9 @@ class IntervalLineageSearch(reader: DataLineageReader) extends DatasetOverviewLi
       "appId",
       "appName",
       System.currentTimeMillis(),
-      noBlankSourcesOps.toSeq,
-      datasets.toSeq,
-      attributes.toSeq)
+      noBlankSourcesOps.toSeq.sortBy(_.mainProps.id),
+      datasets.toSeq.sortBy(_.id),
+      attributes.toSeq.sortBy(_.id))
   }
 
 }

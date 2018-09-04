@@ -83,18 +83,18 @@ export class DatasetLineageOverviewComponent {
             case "operation":
             case "datasource":
                 if (this.router.url.replace(/[#?].*$/, "").endsWith("/overview")) {
-                    this.navigateToDatasource(nodeId, "overview")
+                    this.navigateToDatasource(nodeId, "overview", nodeType)
                 } else {
-                    this.navigateToDatasource(nodeId, "interval")
+                    this.navigateToDatasource(nodeId, "interval", nodeType)
                 }
         }
     }
 
-    private navigateToDatasource(datasetId: string, view: "interval" | "overview"): void {
+    private navigateToDatasource(datasetId: string, view: "interval" | "overview", nodeType: GraphNodeType): void {
         this.router.navigate(
             ["dataset", datasetId, "lineage", view], {
                 relativeTo: this.route.parent.parent.parent,
-                fragment: "datasource",
+                fragment: nodeType,
                 queryParamsHandling: 'merge'
             })
     }
