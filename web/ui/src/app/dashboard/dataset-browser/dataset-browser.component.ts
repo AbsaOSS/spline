@@ -110,13 +110,30 @@ export class DatasetBrowserComponent implements OnInit {
     }
 
     private init() {
-        this.searchValue.reset({
+        this.searchValue.reset(this.resetFilterValue())
+    }
+
+
+    // FIXME extract this to a service with this, graph view and partial view code
+    resetFilterValue(): any {
+        let paramMap = new Map<string, string>()
+        this.router.url
+            .replace(/.*\?/, "")
+            .replace(/#.*/, "")
+            .split("&")
+            .map(pair => pair.split("="))
+            .forEach(pair => paramMap[pair[0]] = pair[1])
+        let from: string = moment(+paramMap['from'])
+            .format(DatasetBrowserComponent.TIMESTAMP_FORMAT)
+        let until: string = moment(!!paramMap['to'] ? +paramMap['to']: +paramMap['asAt'])
+            .format(DatasetBrowserComponent.TIMESTAMP_FORMAT)
+        let interval: boolean = !!(from && until)
+        return {
             text: "",
-            // FIXME level2 ensure utc
-            from: moment().format(DatasetBrowserComponent.TIMESTAMP_FORMAT),
-            until: moment().format(DatasetBrowserComponent.TIMESTAMP_FORMAT),
-            interval: false
-        })
+            from: from,
+            until: until,
+            interval: interval
+        }
     }
 
     private static parseTimestamp(timestamp: string): moment.Moment {
