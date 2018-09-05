@@ -49,10 +49,12 @@ class IntervalLineageSearchSpec extends AsyncFlatSpec with Matchers with Mockito
   val xUUID1: UUID = UUID fromString "11111111-1111-1111-1111-111111111111"
   val xUUID2: UUID = UUID fromString "22222222-2222-2222-2222-222222222222"
   val xUUID3: UUID = UUID fromString "33333333-3333-3333-3333-333333333333"
+  val xUUID4: UUID = UUID fromString "44444444-4444-4444-4444-444444444444"
 
   val lineage1 = DataLineage("AppId1", "AppName1", 0, Seq(
-    BatchWrite(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa1", "SaveIntoDataSourceCommand", Seq(), UUIDS1), "fileS1", "fileS1.txt", append = false)),
-    Seq(MetaDataset(UUIDS1x, Schema(Seq(xUUID3)))),
+    BatchWrite(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa1", "SaveIntoDataSourceCommand", Seq(xUUID4), UUIDS1), "fileS1", "fileS1.txt", append = false),
+    BatchRead(OperationProps(xUUID4, "LogicalRelation", Seq(), xUUID4), "file", Seq(MetaDataSource("fileS4.txt", Seq())))),
+    Seq(MetaDataset(UUIDS1x, Schema(Seq(xUUID3))), MetaDataset(xUUID4, Schema(Seq()))),
     Seq(Attribute(xUUID3, "a", Simple("int", nullable = false))))
 
   val lineage2 = DataLineage("AppId2", "AppName2", 0, Seq(
@@ -70,6 +72,9 @@ class IntervalLineageSearchSpec extends AsyncFlatSpec with Matchers with Mockito
     when(readerMock.loadByDatasetId(≡(UUIDS1))(any())) thenReturn Future.successful(None)
     when(readerMock.loadByDatasetId(≡(UUIDS1x))(any())) thenReturn Future.successful(Some(lineage1))
     when(readerMock.loadByDatasetId(≡(UUIDS2))(any())) thenReturn Future.successful(Some(lineage2))
+
+    when(readerMock.getByDatasetIdsByPathAndInterval(≡("fileS4.txt"), any(), any())(any())) thenReturn
+      Future.successful(new CloseableIterable[DataLineage](iterator = Seq(lineage1).iterator, closeFunction = {}))
 
     when(readerMock.getByDatasetIdsByPathAndInterval(≡("fileS1.txt"), any(), any())(any())) thenReturn
       Future.successful(new CloseableIterable[DataLineage](iterator = Seq(lineage1, lineage2).iterator, closeFunction = {}))
@@ -100,10 +105,10 @@ class IntervalLineageSearchSpec extends AsyncFlatSpec with Matchers with Mockito
 
     svc(UUIDS1x, 10, 20).map(lin => {
       lin.operations.size shouldEqual 2
-      lin.datasets.size shouldEqual 3
+      lin.datasets.size shouldEqual 5
       lin.attributes.size shouldEqual 2
       lin.rootOperation.asInstanceOf[Composite].destination.datasetsIds shouldEqual List(UUIDS2)
-      lin.rootOperation.asInstanceOf[Composite].sources.exists(ds => ds.datasetsIds == Seq(UUIDS1)) shouldEqual true
+      lin.rootOperation.asInstanceOf[Composite].sources.map(ds => ds.datasetsIds) shouldEqual Seq(Seq(UUIDS1x))
       lin.operations.map(c => c.asInstanceOf[Composite].destination).map(_.datasetsIds).contains(List(UUIDS1x)) shouldEqual true
       //      1 shouldEqual(1)
     })
