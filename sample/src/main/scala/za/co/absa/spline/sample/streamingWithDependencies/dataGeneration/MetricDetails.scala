@@ -14,12 +14,6 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.sample
+package za.co.absa.spline.sample.streamingWithDependencies.dataGeneration
 
-import za.co.absa.spline.linker.LinkerApp
-object LinkerRunnerApp extends App {
-
-  System.setProperty("spark.master", "local")
-  LinkerApp.main(args)
-
-}
+case class MetricDetails(metricName: String, average: Double, mutability: Double, randomness: Double)

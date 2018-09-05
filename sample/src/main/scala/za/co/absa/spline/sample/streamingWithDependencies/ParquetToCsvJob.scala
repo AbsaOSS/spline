@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.sample
+package za.co.absa.spline.sample.streamingWithDependencies
 
 import org.apache.commons.configuration.SystemConfiguration
 import org.apache.commons.lang.StringUtils.isNotBlank
+import za.co.absa.spline.sample.SparkApp
 
-/**
-  * The trait holds details important for making connection to Kafka
-  */
-trait KafkaProperties
-{
+object ParquetToCsvJob extends SparkApp("Parquet to CSV Job", conf = Seq("spark.sql.shuffle.partitions" -> "4")) {
+
   private val configuration = new SystemConfiguration
 
   protected def getRequiredString(key: String): String = {
@@ -32,13 +30,11 @@ trait KafkaProperties
     value
   }
 
-  /**
-    * The list of servers forming the kafka cluster
-    */
-  def kafkaServers = getRequiredString("kafka.servers")
+  def date = getRequiredString("date")
 
-  /**
-    * The name of a topic
-    */
-  def kafkaTopic = getRequiredString("kafka.topic")
+  spark
+    .read.parquet(s"data/results/streamingWithDependencies/parquet/date=$date")
+    .repartition(1)
+    .write.mode("overwrite").parquet(s"data/results/streamingWithDependencies/csv/$date")
+
 }
