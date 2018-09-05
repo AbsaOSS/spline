@@ -30,6 +30,7 @@ import {DatasetModule} from "./dataset/dataset.module";
 import {DatasetLineageOverviewResolver} from "./dataset/lineage-overview/lineage-overview.resolver";
 import {DatasetLineageOverviewComponent} from "./dataset/lineage-overview/lineage-overview.component";
 import {MiscModule} from "./misc/misc.module";
+import {DatasetLineageIntervalResolver} from './dataset/lineage-overview/lineage-interval.resolver';
 
 
 const lineageRoute = {
@@ -55,10 +56,15 @@ const datasetRoute = {
                     component: DatasetLineageOverviewComponent
                 },
                 {
+                    path: "interval",
+                    resolve: {lineage: DatasetLineageIntervalResolver},
+                    component: DatasetLineageOverviewComponent
+                },
+                {
                     path: "partial",
                     resolve: {lineage: LineageByDatasetIdResolver},
                     children: [lineageRoute]
-                }
+                },
             ]
         }
     ]

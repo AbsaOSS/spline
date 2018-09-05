@@ -21,7 +21,8 @@
                                     [lineage$]="lineage$"
                                     [selectedNode$]="selectedNode$"
                                     (nodeSelected)="selectNode($event.id, $event.type)"
-                                    (nodeActioned)="gotoPartialLineage($event.id)">
+                                    (nodeActioned)="gotoPartialLineage($event.id)"
+                                    [isOverviewNotIntervalView]="isOverviewNotIntervalView()">
             </lineage-overview-graph>
             <div class="graph-footer">
                 <button mat-button (click)="graph.collapseNodes()" title="Collapse groups of nodes">
@@ -48,7 +49,7 @@
                         <h5>Type: <b>{{selectedDataSourceDescription.source.type}}</b></h5>
                         <h5>Timestamp: <b>{{selectedDataSourceDescription.timestamp | date:'medium'}}</b></h5>
                         <hr>
-                        <div style="text-align: center">
+                        <div style="text-align: center" *ngIf="isOverviewNotIntervalView()">
                             <button mat-raised-button (click)="gotoPartialLineage(selectedDataSourceDescription.source.datasetsIds[0])">
                                 Show detailed lineage graph
                             </button>

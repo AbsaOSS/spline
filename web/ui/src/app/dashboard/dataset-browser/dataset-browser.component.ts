@@ -18,12 +18,13 @@ import {Component, OnInit} from "@angular/core";
 import {FormControl, FormGroup} from '@angular/forms';
 import {DatasetBrowserService} from "./dataset-browser.service";
 import {IPersistedDatasetDescriptor} from "../../../generated-ts/lineage-model";
-import {SearchRequest} from "./dataset-browser.model";
+import {IntervalRequest, PageRequest, SearchRequest} from "./dataset-browser.model";
 import {BehaviorSubject} from "rxjs/BehaviorSubject";
 import {ScrollEvent} from "ngx-scroll-event";
 import {timer} from "rxjs/observable/timer";
 import {identity} from "rxjs/util/identity";
 import moment = require('moment');
+import {ActivatedRoute, Router} from '@angular/router';
 
 @Component({
     selector: "dataset-browser",
@@ -36,18 +37,23 @@ export class DatasetBrowserComponent implements OnInit {
 
     searchValue = new FormGroup({
         text: new FormControl(),
-        timestamp: new FormControl()
+        interval: new FormControl(),
+        from: new FormControl(),
+        until: new FormControl(),
     })
 
     private searchRequest$ = new BehaviorSubject<SearchRequest>(null)
+    private static readonly TIMESTAMP_FORMAT = "YYYY-MM-DD HH:mm"
 
-    constructor(private dsBrowserService: DatasetBrowserService) {
-    }
+    constructor(
+        private dsBrowserService: DatasetBrowserService,
+        private router: Router,
+        private route: ActivatedRoute) {}
 
     ngOnInit(): void {
         this.searchValue.valueChanges
             .debounce(v => timer(v ? 300 : 0))
-            .forEach(this.newSearch.bind(this))
+            .subscribe(this.newSearch.bind(this))
 
         this.searchRequest$
             .distinct()
@@ -57,15 +63,21 @@ export class DatasetBrowserComponent implements OnInit {
                     .getLineageDescriptors(sr)
                     .then(descriptors => this.descriptors = descriptors))
 
-        this.reset()
+        this.init()
     }
 
-    newSearch(value:  {[key: string]: string}) {
-        let asAt = moment(value.timestamp, "YYYY-MM-DD HH:mm").valueOf()
-        this.searchRequest$.next(new SearchRequest(value.text, asAt))
+    newSearch(value:  {[key: string]: string}): void {
+        if (!value.interval) {
+            let asAt = DatasetBrowserComponent.parseTimestamp(value.until).valueOf()
+            this.searchRequest$.next(new PageRequest(value.text, asAt))
+        } else {
+            let to = DatasetBrowserComponent.parseTimestamp(value.until).valueOf()
+            let from = DatasetBrowserComponent.parseTimestamp(value.from).valueOf()
+            this.searchRequest$.next(new IntervalRequest(value.text, from, to))
+        }
     }
 
-    onScroll(e: ScrollEvent) {
+    onScroll(e: ScrollEvent): void {
         if (!e.isWindowEvent && e.isReachingBottom)
             this.searchRequest$.next(
                 this.searchRequest$.getValue().withOffset(this.descriptors.length))
@@ -75,11 +87,56 @@ export class DatasetBrowserComponent implements OnInit {
         return new Date(timestamp).toUTCString()
     }
 
-    reset() {
-        this.searchValue.reset({
+    clearText(): void {
+        this.searchValue.get("text").setValue("")
+    }
+
+    selectLineage(datasetId: string): void {
+        if (!this.searchValue.get("interval").value) {
+            this.router.navigate(["dashboard", "dataset", datasetId, "lineage", "overview"], {
+                fragment: "datasource",
+                relativeTo: this.route.parent
+            })
+        } else {
+            let to = DatasetBrowserComponent.parseTimestamp(this.searchValue.get("until").value).valueOf()
+            let from = DatasetBrowserComponent.parseTimestamp(this.searchValue.get("from").value).valueOf()
+            this.router.navigate(["dashboard", "dataset", datasetId, "lineage", "interval"], {
+                queryParams: {'from': from, 'to': to},
+                queryParamsHandling: "merge",
+                fragment: "datasource",
+                relativeTo: this.route.parent
+            })
+        }
+    }
+
+    private init() {
+        this.searchValue.reset(this.resetFilterValue())
+    }
+
+
+    // FIXME extract this to a service with this, graph view and partial view code
+    resetFilterValue(): any {
+        let paramMap = new Map<string, string>()
+        this.router.url
+            .replace(/.*\?/, "")
+            .replace(/#.*/, "")
+            .split("&")
+            .map(pair => pair.split("="))
+            .forEach(pair => paramMap[pair[0]] = pair[1])
+        let from: string = moment(+paramMap['from'])
+            .format(DatasetBrowserComponent.TIMESTAMP_FORMAT)
+        let until: string = moment(!!paramMap['to'] ? +paramMap['to']: +paramMap['asAt'])
+            .format(DatasetBrowserComponent.TIMESTAMP_FORMAT)
+        let interval: boolean = !!(from && until)
+        return {
             text: "",
-            // FIXME level2 ensure utc
-            timestamp: moment().format('YYYY-MM-DD HH:mm')
-        })
+            from: from,
+            until: until,
+            interval: interval
+        }
+    }
+
+    private static parseTimestamp(timestamp: string): moment.Moment {
+        return moment(timestamp, DatasetBrowserComponent.TIMESTAMP_FORMAT)
     }
 }

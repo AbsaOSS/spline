@@ -54,4 +54,9 @@ export class DatasetService {
         let cachedPromise = this.overviewPromiseCache[datasetId]
         return (cachedPromise) ? cachedPromise : fetchAndCache(datasetId)
     }
+
+    getLineageInterval(datasetId: string, from: number, to: number): Promise<IDataLineage> {
+        let url = `rest/dataset/${datasetId}/lineage/interval?from=${from}&to=${to}`;
+        return this.http.get<IDataLineage>(url).toPromise()
+    }
 }

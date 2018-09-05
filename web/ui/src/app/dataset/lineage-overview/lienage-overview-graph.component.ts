@@ -45,6 +45,7 @@ export class LineageOverviewGraphComponent implements OnInit {
 
     @Input() lineage$: Observable<IDataLineage>
     @Input() selectedNode$: Observable<GraphNode>
+    @Input() isOverviewNotIntervalView: boolean
 
     @Output() nodeSelected = new EventEmitter<GraphNode>()
     @Output() nodeActioned = new EventEmitter<GraphNode>()
@@ -57,23 +58,31 @@ export class LineageOverviewGraphComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        let lineageContainsDataset = (lin: IDataLineage, dsId: string) => _.some(lin.datasets, {id: dsId}),
-            reactOnChange = (prevLineage: IDataLineage, nextLineage: IDataLineage, selectedNode: GraphNode) => {
-                if (!this.network || nextLineage !== prevLineage)
-                    this.rebuildGraph(nextLineage)
-                this.selectedNode = selectedNode
-                this.refreshSelectedNode(selectedNode)
+        let lineageContainsDataset = (lin: IDataLineage, dsId: string) => {
+                return _.some(lin.datasets, {id: dsId})
             }
+        let reactOnChange = (prevLineage: IDataLineage, nextLineage: IDataLineage, selectedNode: GraphNode) => {
+                    if (!this.network || nextLineage.timestamp !== prevLineage.timestamp)
+                        this.rebuildGraph(nextLineage)
+                    this.selectedNode = selectedNode
+                    try {
+                        this.refreshSelectedNode(selectedNode)
+                    } catch (e) {
+                        // FIXME resolve bug of failing to find dataset.
+                        console.log("WARN Ignoring failed selection: \n" + e)
+                    }
+                }
 
         let lineagePairs$ =
             this.lineage$.first()
                 .concat(this.lineage$)
                 .pairwise()
 
+        // FIXME refactor preplace remove pairwise on lineagePairs$
         Observable
             .combineLatest(lineagePairs$, this.selectedNode$)
             .filter(([[__, lineage], selectedNode]) => lineageContainsDataset(lineage, selectedNode.id))
-            .distinctUntilChanged(([[__, lin0], node0], [[___, lin1], node1]) => lin0.id == lin1.id && _.isEqual(node0, node1))
+            .distinctUntilChanged(([[__, lin0], node0], [[___, lin1], node1]) => lin0.timestamp == lin1.timestamp && _.isEqual(node0, node1))
             .subscribe(([[prevLineage, nextLineage], selectedNode]) => reactOnChange(prevLineage, nextLineage, selectedNode))
     }
 
@@ -132,7 +141,9 @@ export class LineageOverviewGraphComponent implements OnInit {
             if (event.nodes.length == 1) {
                 console.log("DOUBLE CLICK", event.nodes[0])
                 let node = LineageOverviewGraphComponent.eventToClickableNode(event)
-                if (node) this.nodeActioned.emit(node)
+                if (this.isOverviewNotIntervalView || node.type != "datasource") {
+                    if (node) this.nodeActioned.emit(node)
+                }
             }
         })
 
@@ -160,10 +171,17 @@ export class LineageOverviewGraphComponent implements OnInit {
     private static buildVisModel(lineage: IDataLineage): VisModel<VisNode, vis.Edge> {
         const getIdentifiableDataSourcesOf =
             (op: IComposite): ITypedMetaDataSource[] =>
-                _.flatMap(op.sources, (src, i) =>
-                    _.isEmpty(src.datasetsIds)
-                        ? _.assign({}, src, {datasetsIds: [ID_PREFIXES.extra + i + "_" + op.mainProps.id]})
-                        : src)
+                _.flatMap(op.sources, (src, i) => {
+                    let maybeFirstDataset = lineage.datasets.find(d => d.id == src.datasetsIds[0])
+                    if (_.isEmpty(src.datasetsIds)) {
+                        return _.assign({}, src, {datasetsIds: [ID_PREFIXES.extra + i + "_" + op.mainProps.id]})
+                    } else if (src.datasetsIds.length == 1 && maybeFirstDataset.schema.attrs.length == 0) {
+                        // FIXME avoid this hack. It prevent duplicate paths displayed in interval view for generated readonly metaDatasets with empty schema.
+                        return _.assign({}, src, {datasetsIds: [ID_PREFIXES.extra + "_" + maybeFirstDataset.id]})
+                    } else {
+                        return src
+                    }
+                })
 
         const recombineByDatasetIdAndLongestAppendSequence =
             (typedMetadataSources: ITypedMetaDataSource[]): [string, ITypedMetaDataSource][] =>

@@ -114,10 +114,28 @@ export class LineageComponent implements OnInit {
     }
 
     gotoLineageOverview() {
-        this.router.navigate(["overview"], {
+        let originViewType = this.originViewType()
+        this.router.navigate([originViewType], {
             fragment: "datasource",
-            relativeTo: this.route.parent.parent
+            relativeTo: this.route.parent.parent,
+            queryParamsHandling: "merge"
         })
+    }
+
+    originViewTypeName(): string {
+        switch (this.originViewType()) {
+            case "interval": return "Interval View";
+            case "overview": return "Overview";
+        }
+    }
+
+    private originViewType(): ViewType {
+        let queryParamString = this.router.url.replace(/.*\?/, "")
+        if (queryParamString.startsWith("from") || queryParamString.startsWith("to")) {
+            return "interval"
+        } else {
+            return "overview"
+        }
     }
 
     private doSelectAttribute(...attrIds: string[]) {
@@ -141,3 +159,5 @@ export class LineageComponent implements OnInit {
         })
     }
 }
+
+type ViewType = ( "overview" | "interval" )

@@ -236,6 +236,45 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
     }
   }
 
+  describe("findByInterval()") {
+
+    it("should find the correct lineage ID according a given criteria") {
+      val path = "hdfs://a/b/c"
+      val testLineages = Seq(
+        createDataLineage("appID1", "appName1", 1L, path = path),
+        createDataLineage("appID1", "appName1", 2L),
+        createDataLineage("appID2", "appName2", 30L, path = path),
+        createDataLineage("appID2", "appName2", 4L),
+        createDataLineage("appID3", "appName2", 5L, path = path)
+      )
+
+      val datasetIds = testLineages.map(_.original.rootDataset.id.toString)
+      Future.sequence(testLineages.map(i => mongoWriter.store(i)))
+        .flatMap(_ => mongoReader.getByDatasetIdsByPathAndInterval(path, 0, 125))
+          .map(_.iterator.toList.map(_.toString))
+          .map(_ shouldEqual List(datasetIds.head, datasetIds(2), datasetIds(4)))
+
+        mongoReader.getByDatasetIdsByPathAndInterval(path, 50, 125)
+        .map(_.iterator.toList.map(_.toString))
+        .map(_ shouldEqual List())
+    }
+
+    it("should return None if there is no record for a given criteria") {
+      val path = "hdfs://a/b/c"
+      val testLineages = Seq(
+        createDataLineage("appID1", "appName1", 1L, path = path),
+        createDataLineage("appID1", "appName1", 2L),
+        createDataLineage("appID2", "appName2", 30L),
+        createDataLineage("appID2", "appName2", 4L),
+        createDataLineage("appID3", "appName2", 5L, path = path)
+      )
+
+      val result = Future.sequence(testLineages.map(i => mongoWriter.store(i))).flatMap(_ => mongoReader.searchDataset(path, "appID2"))
+
+      result.map(resultItem => resultItem shouldEqual None)
+    }
+
+  }
   protected def createDataLineageWithSources(appId: String, appName: String, sources: Seq[MetaDataSource]): LinkedLineage = {
     val timestamp: Long = 123L
     val outputPath: String = "hdfs://foo/bar/path"

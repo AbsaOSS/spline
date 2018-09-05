@@ -58,7 +58,7 @@ export class DatasetLineageOverviewComponent {
             .subscribe(([linAccessors, selectedNode]) => this.updateSelectedState(linAccessors, selectedNode))
     }
 
-    updateSelectedState(linAccessors: LineageAccessors, node: GraphNode) {
+    private updateSelectedState(linAccessors: LineageAccessors, node: GraphNode) {
         let compositeOp = <IComposite> linAccessors.getOperation(node.id)
         switch (node.type) {
             case "operation":
@@ -78,22 +78,36 @@ export class DatasetLineageOverviewComponent {
         }
     }
 
-    selectNode(nodeId: string, nodeType: GraphNodeType) {
+    selectNode(nodeId: string, nodeType: GraphNodeType): void {
         switch (nodeType) {
             case "operation":
             case "datasource":
-                this.router.navigate(
-                    ["dataset", nodeId, "lineage", "overview"], {
-                        relativeTo: this.route.parent.parent.parent,
-                        fragment: nodeType
-                    })
+                if (this.isOverviewNotIntervalView()) {
+                    this.navigateToDatasource(nodeId, "overview", nodeType)
+                } else {
+                    this.navigateToDatasource(nodeId, "interval", nodeType)
+                }
         }
+    }
+
+    isOverviewNotIntervalView(): boolean {
+        return this.router.url.replace(/[#?].*$/, "").endsWith("/overview")
+    }
+
+    private navigateToDatasource(datasetId: string, view: "interval" | "overview", nodeType: GraphNodeType): void {
+        this.router.navigate(
+            ["dataset", datasetId, "lineage", view], {
+                relativeTo: this.route.parent.parent.parent,
+                fragment: nodeType,
+                queryParamsHandling: 'merge'
+            })
     }
 
     gotoPartialLineage(dsId: string) {
         this.router.navigate(
             ["dataset", dsId, "lineage", "partial"], {
-                relativeTo: this.route.parent.parent.parent
+                relativeTo: this.route.parent.parent.parent,
+                queryParamsHandling: 'merge'
             })
     }
 }

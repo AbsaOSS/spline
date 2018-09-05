@@ -21,13 +21,14 @@ import java.util.UUID
 import java.util.regex.Pattern.quote
 
 import _root_.salat._
-import com.mongodb.Cursor
+import com.mongodb.{Cursor, DBCursor}
 import com.mongodb.casbah.AggregationOptions.{default => aggOpts}
 import com.mongodb.casbah.Imports._
+import com.mongodb.casbah.query.Imports
 import org.slf4s.Logging
 import za.co.absa.spline.common.UUIDExtractors.UUIDExtractor
 import za.co.absa.spline.model._
-import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
+import za.co.absa.spline.persistence.api.DataLineageReader.{IntervalPageRequest, PageRequest, SearchRequest}
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
 import za.co.absa.spline.persistence.mongo.DBSchemaVersionHelper._
 import za.co.absa.spline.persistence.mongo.MongoDataLineageWriter._
@@ -155,18 +156,21 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     *
     * @return Descriptors of all data lineages
     */
-  override def findDatasets(maybeText: Option[String], pageRequest: PageRequest)
-                           (implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]] = Future {
+  override def findDatasets(maybeText: Option[String], searchRequest: SearchRequest)
+                           (implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]] =
+    searchRequest match {
+      case r: PageRequest => findDatasets(maybeText, r)
+      case r: IntervalPageRequest => findDatasets(maybeText, r)
+    }
+
+  private def findDatasets(maybeText: Option[String], pageRequest: PageRequest)
+                          (implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]] = Future {
+
     val paginationDeduplicationCriteria: Seq[DBObject] = Seq(
       "timestamp" $lte pageRequest.asAtTime
     )
 
-    val optionalTextSearchCriterion = maybeText map {
-      text =>
-        val regexMatchOnFieldsCriteria = Seq("appId", "appName", "rootOperation.path") map (_ $regex quote(text) $options "i")
-        val optDatasetIdMatchCriterion = UUIDExtractor unapply text.toLowerCase map (uuid => DBObject("rootDataset._id" → uuid))
-        $or(regexMatchOnFieldsCriteria ++ optDatasetIdMatchCriterion)
-    }
+    val optionalTextSearchCriterion = createOptionalTextSearchCriterion(maybeText)
 
     val cursor = selectPersistedDatasets(
       DBObject("$match" → $and(paginationDeduplicationCriteria ++ optionalTextSearchCriterion)),
@@ -176,6 +180,28 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     )
 
     new DBCursorToCloseableIterableAdapter[PersistedDatasetDescriptor](cursor)
+  }
+
+  private def findDatasets(maybeText: Option[String], intervalPageRequest: IntervalPageRequest)
+                          (implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]] = Future {
+
+    val optionalTextSearchCriterion = createOptionalTextSearchCriterion(maybeText)
+    val timestampCriteria: Seq[DBObject] = Seq(
+      "timestamp" $gte intervalPageRequest.from,
+      "timestamp" $lte intervalPageRequest.to
+    )
+    val cursor = selectPersistedDatasets(
+      DBObject("$match" → $and(timestampCriteria ++ optionalTextSearchCriterion)),
+      DBObject("$sort" → DBObject("timestamp" → -1, "rootDataset._id" → 1))
+    )
+    new DBCursorToCloseableIterableAdapter[PersistedDatasetDescriptor](cursor)
+  }
+
+  private def createOptionalTextSearchCriterion(maybeText: Option[String]): Option[Imports.DBObject] = maybeText map {
+    text =>
+      val regexMatchOnFieldsCriteria = Seq("appId", "appName", "rootOperation.path") map (_ $regex quote(text) $options "i")
+      val optDatasetIdMatchCriterion = UUIDExtractor unapply text.toLowerCase map (uuid => DBObject("rootDataset._id" → uuid))
+      $or(regexMatchOnFieldsCriteria ++ optDatasetIdMatchCriterion)
   }
 
   private def selectPersistedDatasets(queryPipeline: DBObject*): Cursor = {
@@ -208,5 +234,18 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     val caseClassFields = classOf[PersistedDatasetDescriptor].getDeclaredFields map (_.getName)
     val auxiliaryFields = Array("_ver")
     caseClassFields ++ auxiliaryFields map (_ -> 1)
+  }
+
+  override def getByDatasetIdsByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[DataLineage]] = {
+      // FIXME avoid quiering all operations with given path without filtering by timestamp via use of events.
+      val cursor: DBCursor = operationCollection.find(DBObject("$or" → DBList(DBObject("sources.path" → path), DBObject("path" → path))))
+      val iterator = cursor.asScala
+        .map(_.get(lineageIdField).asInstanceOf[String])
+        .toSet[String].iterator
+        .map(id => dataLineageCollection.findOne(DBObject("_id" → id, "timestamp" → DBObject("$gt" → start, "$lt" → end))))
+        .filter(_ != null)
+        .map(deserializeWithVersionCheck[TruncatedDataLineage])
+        .map(truncatedDataLineageReader.enrichWithLinked)
+      Future.sequence(iterator).map(i => new CloseableIterable[DataLineage](iterator = i, closeFunction = cursor.close()))
   }
 }

@@ -70,8 +70,11 @@ module.exports = {
         hot: false,
         proxy: {
             "/rest": {
-                target: "http://localhost:3004",
-                pathRewrite: {"^/rest": ""}
+                target: "http://localhost:8080",
+                // FIXME Choose proxy based on command executed e.g. "npm run dev" vs "npm run dev-it".
+                // Use following for proxying to mock.
+                // target: "http://localhost:3004",
+                // pathRewrite: {"^/rest": ""}
             }
         }
     }

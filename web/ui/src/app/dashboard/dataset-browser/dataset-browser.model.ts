@@ -14,17 +14,35 @@
  * limitations under the License.
  */
 
-export class SearchRequest {
+export interface SearchRequest {
+   readonly text: string
+
+    withOffset(offset: number): SearchRequest
+}
+
+export class PageRequest implements SearchRequest {
     constructor(public readonly text: string,
                 public readonly asAtTime = Date.now(),
                 public readonly offset: number = 0) {
     }
 
-    public withOffset(offset: number): SearchRequest {
+    public withOffset(offset: number): PageRequest {
         return offset == this.offset
             ? this
-            : new SearchRequest(this.text,
+            : new PageRequest(this.text,
                 this.asAtTime,
                 offset)
     }
+}
+
+export class IntervalRequest implements SearchRequest {
+
+    constructor(public readonly text: string,
+                public readonly from: number,
+                public readonly to: number) {}
+
+    withOffset(offset: number): SearchRequest {
+        return this;
+    }
+
 }
