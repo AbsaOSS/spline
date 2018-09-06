@@ -194,15 +194,21 @@ private class StreamReadNodeBuilder(val operation: StreamingRelation)
                                    (implicit val metaDatasetFactory: MetaDatasetFactory) extends OperationNodeBuilder[StreamingRelation] {
   def build(): op.StreamRead = {
     val endpoint = createEndpoint(operation.dataSource)
-    op.StreamRead(buildOperationProps().copy(name = endpoint.description), endpoint.description, Seq(MetaDataSource(endpoint.path.toString, Nil)))
+    op.StreamRead(
+      buildOperationProps().copy(name = endpoint.description),
+      endpoint.description,
+      endpoint.paths.map(path => MetaDataSource(path.toString, Nil))
+    )
   }
 
   private def createEndpoint(dataSource: DataSource): StreamEndpoint = dataSource.sourceInfo.name match {
-    case x if x startsWith "FileSource" => FileEndpoint(dataSource.className, dataSource.options.getOrElse("path", ""))
+    case x if x startsWith "FileSource" => FileEndpoint(
+      dataSource.className,
+      dataSource.options.getOrElse("path", "")
+    )
     case "kafka" => KafkaEndpoint(
       dataSource.options.getOrElse("kafka.bootstrap.servers", "").split(","),
-      // FIXME support multiple topics and other input methods
-      dataSource.options.getOrElse("subscribe", "")
+      dataSource.options.getOrElse("subscribe", "").split(",")
     )
     case "textSocket" => SocketEndpoint(
       dataSource.options.getOrElse("host", ""),

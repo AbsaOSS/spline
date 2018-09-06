@@ -76,7 +76,7 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
     val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
     val node = builder.build()
 
-    shouldEq(node, KafkaEndpoint(cluster, topic))
+    shouldEq(node, KafkaEndpoint(cluster, topic :: Nil))
   }
 
   it should "return StreamRead node with a file endpoint when reading data from a csv file" in {
@@ -101,6 +101,6 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
   private def shouldEq(node: StreamRead, endpoint: StreamEndpoint): Unit = {
     node.sourceType shouldEqual endpoint.description
     node.sources.size shouldEqual 1
-    node.sources.head.path shouldEqual endpoint.path.toString
+    node.sources.head.path shouldEqual endpoint.paths.head.toString
   }
 }

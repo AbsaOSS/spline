@@ -22,13 +22,13 @@ import za.co.absa.spline.common.WithResources._
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class KafkaJavaSerializer extends Serializer[DataLineage] {
+class KafkaJavaSerializer[TObject] extends Serializer[TObject] {
 
-  override def serialize(arg0: String, dataLineage: DataLineage): Array[Byte] =
-    withResources(new ByteArrayOutputStream())(writeObject)(dataLineage).toByteArray
+  override def serialize(arg0: String, obj: TObject): Array[Byte] =
+    withResources(new ByteArrayOutputStream())(writeObject)(obj).toByteArray
 
-  private def writeObject(baos: ByteArrayOutputStream)(dataLineage: DataLineage) = {
-    withResources(new ObjectOutputStream(baos))(_.writeObject(dataLineage))
+  private def writeObject(baos: ByteArrayOutputStream)(obj: TObject) = {
+    withResources(new ObjectOutputStream(baos))(_.writeObject(obj))
     baos
   }
 

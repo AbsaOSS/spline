@@ -16,7 +16,9 @@
 
 package za.co.absa.spline.harvester.listener
 
+import java.util.UUID
 import java.util.UUID.randomUUID
+import java.util.concurrent.ConcurrentHashMap
 
 import org.apache.spark.sql.FileSinkObj
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
@@ -26,8 +28,10 @@ import org.slf4s.Logging
 import za.co.absa.spline.common.InstanceInspector
 import za.co.absa.spline.harvester.LogicalPlanLineageHarvester
 import za.co.absa.spline.harvester.conf.LineageDispatcher
+import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.model.endpoint.{ConsoleEndpoint, FileEndpoint, KafkaEndpoint}
-import za.co.absa.spline.model.op.{OperationProps, StreamWrite}
+import za.co.absa.spline.model.op.{OperationProps, StreamRead, StreamWrite}
+import za.co.absa.spline.model.streaming.ProgressEvent
 import za.co.absa.spline.sparkadapterapi.StructuredStreamingListenerAdapter.instance._
 
 import scala.language.postfixOps
@@ -41,12 +45,37 @@ class StructuredStreamingListener(
   lineageDispatcher: LineageDispatcher)
   extends StreamingQueryListener with Logging {
 
+  val runIdToLineages = new ConcurrentHashMap[UUID, DataLineage]()
+
   override def onQueryStarted(event: StreamingQueryListener.QueryStartedEvent): Unit = {
     log debug s"Structured streaming query(id: ${event.id}, runId: ${event.runId}) has started."
+    Console.println(s"(id: ${event.id}, runId: ${event.runId})")
     processQuery(queryManager.get(event.id))
   }
 
-  override def onQueryProgress(event: StreamingQueryListener.QueryProgressEvent): Unit = ()
+  override def onQueryProgress(event: StreamingQueryListener.QueryProgressEvent): Unit = {
+    val progress = event.progress
+    val lineage = runIdToLineages.get(progress.runId)
+    val progressEvent = lineageToEvent(lineage, progress.numInputRows)
+    lineageDispatcher.send(progressEvent)
+  }
+
+  private def lineageToEvent(lineage: DataLineage, numberOfRecords: Long): ProgressEvent = {
+    val writePath = lineage.rootOperation.asInstanceOf[StreamWrite].path
+    val readPaths = for(
+        op <- lineage.operations if op.isInstanceOf[StreamRead];
+        ds <- op.asInstanceOf[StreamRead].sources
+      ) yield ds.path
+
+    ProgressEvent(
+      randomUUID,
+      lineage.id,
+      System.currentTimeMillis(),
+      numberOfRecords,
+      readPaths,
+      writePath
+    )
+  }
 
   override def onQueryTerminated(event: StreamingQueryListener.QueryTerminatedEvent): Unit = {
     val queryStringRep = s"Structured streaming query(id: ${event.id}, runId: ${event.runId})"
@@ -70,26 +99,27 @@ class StructuredStreamingListener(
     val logicalPlanLineage = lineageHarvester.harvestLineage(se.sparkSession.sparkContext, logicalPlan)
 
     val endpoint = se.sink match {
-        // FIXME Extract 2.2 version is case KafkaSinkObj(cluster, topic) => KafkaEndpoint(cluster, topic.getOrElse(""))
+      // FIXME Extract 2.2 version is case KafkaSinkObj(cluster, topic) => KafkaEndpoint(cluster, topic.getOrElse(""))
       case FileSinkObj(path, fileFormat) => FileEndpoint(fileFormat.toString, path)
       case x if x.getClass.getSimpleName == "KafkaSourceProvider" => {
         val extraOptions = InstanceInspector.getFieldValue[Map[String, String]](se, "extraOptions")
         val topic = extraOptions("topic")
         val bootstrapServers = extraOptions("kafka.bootstrap.servers").split("[\t ]*,[\t ]*")
-        KafkaEndpoint(bootstrapServers, topic)
+        KafkaEndpoint(bootstrapServers, topic :: Nil)
       }
       // FIXME Remove MemorySink.
       case x if Set(consoleSinkClass(), classOf[ForeachSink[_]], classOf[MemorySink]).exists(assignableFrom(_, x)) => ConsoleEndpoint()
       case sink => throw new IllegalArgumentException(s"Unsupported sink type: ${sink.getClass}")
     }
 
-    val metaDataset = logicalPlanLineage.rootDataset.copy(randomUUID)
+    val metaDataset = logicalPlanLineage.rootDataset.copy(se.runId)
     val mainProps = OperationProps(randomUUID, endpoint.description, Seq(logicalPlanLineage.rootDataset.id), metaDataset.id)
-    val writeOperation = StreamWrite(mainProps, endpoint.path.toString, endpoint.description)
+    val writeOperation = StreamWrite(mainProps, endpoint.paths.mkString(","), endpoint.description)
 
     val streamingLineage = logicalPlanLineage.copy(
-        operations = writeOperation +: logicalPlanLineage.operations,
-        datasets = metaDataset +: logicalPlanLineage.datasets)
+      operations = writeOperation +: logicalPlanLineage.operations,
+      datasets = metaDataset +: logicalPlanLineage.datasets)
+    runIdToLineages.put(se.runId, streamingLineage)
     lineageDispatcher.send(streamingLineage)
   }
 
