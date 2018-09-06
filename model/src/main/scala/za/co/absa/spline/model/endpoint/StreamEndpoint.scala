@@ -34,7 +34,7 @@ trait StreamEndpoint {
   * The object represents an endpoint non-referring to any source of data
   */
 case class VirtualEndpoint() extends StreamEndpoint {
-  override def paths: Seq[URI] = URI.create("virtual://virtual") :: Nil
+  override def paths: Seq[URI] = Seq(URI.create("virtual://virtual"))
 }
 
 /**
@@ -43,7 +43,7 @@ case class VirtualEndpoint() extends StreamEndpoint {
   * @param filePath A path to files keeping data
   */
 case class FileEndpoint(format: String, filePath: String) extends StreamEndpoint {
-  override def paths: Seq[URI] = Paths.get(filePath).toUri :: Nil
+  override def paths: Seq[URI] = Seq(Paths.get(filePath).toUri)
   override def description: String = format + " " + super.description
 }
 
@@ -63,9 +63,9 @@ case class KafkaEndpoint(cluster: Seq[String], topics: Seq[String]) extends Stre
   * @param port A port number
   */
 case class SocketEndpoint(host: String, port: String) extends StreamEndpoint {
-  override def paths: Seq[URI] = URI.create("socket://" + host + ":" + port) :: Nil
+  override def paths: Seq[URI] = Seq(URI.create("socket://" + host + ":" + port))
 }
 
 case class ConsoleEndpoint() extends StreamEndpoint {
-  override def paths: Seq[URI] = URI.create("console://console") :: Nil
+  override def paths: Seq[URI] = Seq(URI.create("console://console"))
 }

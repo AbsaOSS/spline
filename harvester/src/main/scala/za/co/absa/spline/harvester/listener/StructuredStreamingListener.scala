@@ -105,7 +105,7 @@ class StructuredStreamingListener(
         val extraOptions = InstanceInspector.getFieldValue[Map[String, String]](se, "extraOptions")
         val topic = extraOptions("topic")
         val bootstrapServers = extraOptions("kafka.bootstrap.servers").split("[\t ]*,[\t ]*")
-        KafkaEndpoint(bootstrapServers, topic :: Nil)
+        KafkaEndpoint(bootstrapServers, Seq(topic))
       }
       // FIXME Remove MemorySink.
       case x if Set(consoleSinkClass(), classOf[ForeachSink[_]], classOf[MemorySink]).exists(assignableFrom(_, x)) => ConsoleEndpoint()
