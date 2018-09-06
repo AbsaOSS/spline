@@ -26,7 +26,7 @@ import salat.annotations.Salat
   */
 @Salat
 trait StreamEndpoint {
-  def path: URI
+  def paths: Seq[URI]
   def description: String = "Stream " + getClass.getSimpleName.replaceAll("Endpoint$", "")
 }
 
@@ -34,7 +34,7 @@ trait StreamEndpoint {
   * The object represents an endpoint non-referring to any source of data
   */
 case class VirtualEndpoint() extends StreamEndpoint {
-  override def path: URI = URI.create("virtual://virtual")
+  override def paths: Seq[URI] = Seq(URI.create("virtual://virtual"))
 }
 
 /**
@@ -43,17 +43,18 @@ case class VirtualEndpoint() extends StreamEndpoint {
   * @param filePath A path to files keeping data
   */
 case class FileEndpoint(format: String, filePath: String) extends StreamEndpoint {
-  override def path: URI = Paths.get(filePath).toUri
+  override def paths: Seq[URI] = Seq(Paths.get(filePath).toUri)
   override def description: String = format + " " + super.description
 }
 
 /**
   * The class represents a kafka endpoint for structured streaming
   * @param cluster A sequence of servers forming the cluster
-  * @param topic A topic name
+  * @param topics Topic name
   */
-case class KafkaEndpoint(cluster: Seq[String], topic: String) extends StreamEndpoint {
-  override def path: URI = URI.create("kafka://" + URLEncoder.encode(cluster.mkString(","), "UTF-8") + "/" + topic)
+case class KafkaEndpoint(cluster: Seq[String], topics: Seq[String]) extends StreamEndpoint {
+  override def paths: Seq[URI] =
+    topics.map(topic => URI.create("kafka://" + URLEncoder.encode(cluster.mkString(","), "UTF-8") + "/" + topic))
 }
 
 /**
@@ -62,9 +63,9 @@ case class KafkaEndpoint(cluster: Seq[String], topic: String) extends StreamEndp
   * @param port A port number
   */
 case class SocketEndpoint(host: String, port: String) extends StreamEndpoint {
-  override def path: URI = URI.create("socket://" + host + ":" + port)
+  override def paths: Seq[URI] = Seq(URI.create("socket://" + host + ":" + port))
 }
 
 case class ConsoleEndpoint() extends StreamEndpoint {
-  override def path: URI = URI.create("console://console")
+  override def paths: Seq[URI] = Seq(URI.create("console://console"))
 }

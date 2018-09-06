@@ -18,6 +18,7 @@ package za.co.absa.spline.linker.boundary
 
 import org.apache.commons.configuration.Configuration
 import org.apache.spark.sql._
+import org.apache.spark.sql.types.BinaryType
 import za.co.absa.spline.model.{DataLineage, LinkedLineage}
 
 object HarvestReader {
@@ -26,7 +27,7 @@ object HarvestReader {
   implicit val LinkedLineageEncoder: Encoder[LinkedLineage] = Encoders.kryo[LinkedLineage]
 
   val HarvesterServersProperty = "harvester.kafka.servers"
-  val HarvesterTopicProperty = "harvester.topic"
+  val HarvesterTopicProperty = "harvester.topic.lineage"
   val DefaultTopic = "lineages"
   val HarvesterStartingOffsetsProperty = "harvester.startingOffsets"
   val DefaultStartingOffsets = "latest"
