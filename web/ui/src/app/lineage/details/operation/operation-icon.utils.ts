@@ -24,6 +24,7 @@ export function getIconForNodeType(nodeType: OperationType): Icon {
         case "BatchWrite":
             return new Icon("fa-floppy-o", "\uf0c7", font);
 
+        case "StreamRead":
         case "StreamWrite":
             return new Icon("fa-angle-double-down", "\uf103", font);
 
@@ -47,9 +48,6 @@ export function getIconForNodeType(nodeType: OperationType): Icon {
 
         case "BatchRead":
             return new Icon("fa-database", "\uf1c0", font);
-
-        case "StreamRead":
-            return new Icon("fa-angle-double-up", "\uf102", font);
 
         case "Alias":
             return new Icon("fa-circle-thin", "\uf1db", font);
