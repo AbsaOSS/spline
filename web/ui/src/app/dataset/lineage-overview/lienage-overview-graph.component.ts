@@ -205,7 +205,9 @@ export class LineageOverviewGraphComponent implements OnInit {
                             src.type + ":" + src.path,
                             src.path.substring(src.path.lastIndexOf("/") + 1),
                             LineageOverviewGraphComponent.getIcon(
-                                new Icon("fa-file", "\uf15b", "FontAwesome"),
+                                // Global lineage sink or sources cannot be determined to be exclusively batch or stream.
+                                // Thus neutral icon of a circle is used.
+                                new Icon("fa-circle", "\uf111", "FontAwesome"),
                                 datasetId.startsWith(ID_PREFIXES.extra) ? "#c0cdd6" : undefined)
                         )),
 
