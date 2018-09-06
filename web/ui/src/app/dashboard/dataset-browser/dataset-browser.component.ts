@@ -127,11 +127,11 @@ export class DatasetBrowserComponent implements OnInit {
             .format(DatasetBrowserComponent.TIMESTAMP_FORMAT)
         let until: string = moment(!!paramMap['to'] ? +paramMap['to']: +paramMap['asAt'])
             .format(DatasetBrowserComponent.TIMESTAMP_FORMAT)
-        let interval: boolean = !!(from && until)
+        let interval: boolean = from != 'Invalid date' && until != 'Invalid date'
         return {
             text: "",
-            from: from,
-            until: until,
+            from: from != 'Invalid date' ? from: moment().format(DatasetBrowserComponent.TIMESTAMP_FORMAT),
+            until: until != 'Invalid date' ? until: moment().format(DatasetBrowserComponent.TIMESTAMP_FORMAT),
             interval: interval
         }
     }
