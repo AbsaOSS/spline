@@ -18,6 +18,7 @@ package za.co.absa.spline.sample
 
 import org.apache.commons.configuration.SystemConfiguration
 import org.apache.commons.lang.StringUtils.isNotBlank
+import scala.collection.JavaConverters._
 
 /**
   * The trait holds details important for making connection to Kafka
@@ -27,7 +28,8 @@ trait KafkaProperties
   private val configuration = new SystemConfiguration
 
   protected def getRequiredString(key: String): String = {
-    val value = configuration.getString(key)
+    // Comma delimited values are parsed as List and method getString returns only first value.
+    val value = configuration.getList(key).asScala.mkString(",")
     require(isNotBlank(value), s"Missing configuration property $key in JVM parameters.")
     value
   }

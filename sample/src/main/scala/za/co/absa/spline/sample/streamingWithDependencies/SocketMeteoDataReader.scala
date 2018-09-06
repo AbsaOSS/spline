@@ -24,6 +24,9 @@ import za.co.absa.spline.sample.{KafkaProperties, SparkApp}
 
 object SocketMeteoDataReader  extends SparkApp("SocketMeteoDataReader") with KafkaProperties{
 
+  import za.co.absa.spline.harvester.SparkLineageInitializer._
+  spark.enableLineageTracking()
+
   val schema = StructType(Seq(
     StructField("Name", StringType, false),
     StructField("Time", StringType, false),

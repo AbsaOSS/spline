@@ -22,6 +22,9 @@ import za.co.absa.spline.sample.{KafkaProperties, SparkApp}
 
 object KafkaMeteoDataReader extends SparkApp("KafkaMeteoDataReader") with KafkaProperties {
 
+  import za.co.absa.spline.harvester.SparkLineageInitializer._
+  spark.enableLineageTracking()
+
   override def kafkaTopic: String = throw new NotImplementedError("Kafka topic is not supported in this context.")
 
   val inputTopic: String = getRequiredString("kafka.topic.input")

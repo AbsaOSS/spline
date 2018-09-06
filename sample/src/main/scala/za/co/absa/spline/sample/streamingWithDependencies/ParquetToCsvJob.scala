@@ -22,6 +22,9 @@ import za.co.absa.spline.sample.SparkApp
 
 object ParquetToCsvJob extends SparkApp("Parquet to CSV Job", conf = Seq("spark.sql.shuffle.partitions" -> "4")) {
 
+  import za.co.absa.spline.harvester.SparkLineageInitializer._
+  spark.enableLineageTracking()
+
   private val configuration = new SystemConfiguration
 
   protected def getRequiredString(key: String): String = {

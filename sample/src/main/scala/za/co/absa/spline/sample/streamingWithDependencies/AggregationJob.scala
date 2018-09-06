@@ -22,6 +22,9 @@ import za.co.absa.spline.sample.{KafkaProperties, SparkApp}
 
 object AggregationJob extends SparkApp("AggregationJob", conf = ("spark.sql.shuffle.partitions" , "4") :: Nil) with KafkaProperties{
 
+  import za.co.absa.spline.harvester.SparkLineageInitializer._
+  spark.enableLineageTracking()
+
   val schema = StructType(Seq(
     StructField("id", StringType, false),
     StructField("time", StringType, false),
@@ -37,7 +40,7 @@ object AggregationJob extends SparkApp("AggregationJob", conf = ("spark.sql.shuf
     .readStream
     .format("kafka")
     .option("kafka.bootstrap.servers", kafkaServers)
-    .option("subscribePattern", kafkaTopic)
+    .option("subscribe", kafkaTopic)
     .option("startingOffsets", "latest")
     .load()
 
