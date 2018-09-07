@@ -26,7 +26,7 @@ import scala.concurrent.{Await, ExecutionContext}
 /**
   * Handles duplicate insert via duplicate key exception ignore.
   */
-class AnalyticsPersistenceSink(configMap: Map[String, Object]) extends ForeachWriter[LinkedLineage] with Logging {
+class AnalyticsPersistenceSink(serializableConfig: Map[String, Object]) extends ForeachWriter[LinkedLineage] with Logging {
 
   private implicit lazy val executionContext: ExecutionContext = ExecutionContext.global
   private var analyticsWriter: DataLineageWriter = _
@@ -51,7 +51,7 @@ class AnalyticsPersistenceSink(configMap: Map[String, Object]) extends ForeachWr
 
   def open(partitionId: Long, version: Long): Boolean = {
     import za.co.absa.spline.linker.control.ConfigMapConverter._
-    val configuration = toConfiguration(configMap)
+    val configuration = toConfiguration(serializableConfig)
     analyticsWriter = PersistenceFactory
       .create(configuration)
       .createDataLineageWriter

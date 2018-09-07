@@ -24,11 +24,11 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import ConfigMapConverter._
 import scala.concurrent.duration.DurationInt
 
-class LinkerTask(configMap: Map[String, Object]) extends MapFunction[DataLineage, LinkedLineage] with Logging {
+class LinkerTask(serializableConfig: Map[String, Object]) extends MapFunction[DataLineage, LinkedLineage] with Logging {
 
   private implicit lazy val executionContext: ExecutionContext = ExecutionContext.global
   private lazy val transformation: DataLineage => Future[LinkedLineage] = {
-    val configuration = toConfiguration(configMap)
+    val configuration = toConfiguration(serializableConfig)
     val factory = PersistenceFactory.create(configuration)
     if (factory.createDataLineageReader.isDefined) {
       new DataLineageLinker(factory.createDataLineageReader.get).apply
