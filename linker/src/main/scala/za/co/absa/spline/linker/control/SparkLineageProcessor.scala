@@ -38,6 +38,8 @@ class SparkLineageProcessor
 
   import za.co.absa.spline.linker.boundary.HarvestReader._
   def start(): SparkLineageProcessor = {
+    // Serialize to a map which can be passed to executors. Configuration object unfortunately cannot be serialized to be sent to tasks.
+    // FIXME improve usage of configs to avoid serialization problems
     val configMap = toConfigMap(configuration)
     openedStream = harvestReader
       .map(LineageProjectionMerger.apply)
