@@ -25,23 +25,19 @@ import scala.concurrent.Future
  * limitations under the License.
  */
 
-class PlaceholderMetaDataset(id: UUID = UUID.randomUUID()) extends MetaDataset(id, schema = Schema(Seq()))
-
 class IntervalLineageSearch(reader: DataLineageReader) extends PrelinkedLineageSearch(reader) {
 
   import scala.collection.JavaConverters._
 
   private var start: Long = _
   private var end: Long = _
-  private var isTraverseDirectionUp: Boolean = _
 
   private var pathToDataset: collection.concurrent.Map[String, MetaDataset] = new ConcurrentHashMap[String, MetaDataset]().asScala
   private var nextPaths = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean]()).asScala
 
-  def apply(datasetId: UUID, start: Long, end: Long, isTraverseDirectionUp: Boolean): Future[DataLineage] = {
+  def apply(datasetId: UUID, start: Long, end: Long): Future[DataLineage] = {
     this.start = start
     this.end = end
-    this.isTraverseDirectionUp = isTraverseDirectionUp
     val descriptor = reader.getDatasetDescriptor(datasetId)
     descriptor
       .map(d => {
@@ -79,7 +75,10 @@ class IntervalLineageSearch(reader: DataLineageReader) extends PrelinkedLineageS
     val destinationIds = Seq(newDestinationId)
     val newSources: Seq[TypedMetaDataSource] = originalComposite.sources.map(s => {
       if (s.datasetsIds.nonEmpty) {
-        val currentDataset = compositeWithDependencies.datasets.find(_.id == s.datasetsIds.head).get
+        val originalDatasetId: UUID = s.datasetsIds.head
+        val currentDataset = compositeWithDependencies.datasets
+          .find(_.id == originalDatasetId)
+          .getOrElse(new PlaceholderMetaDataset(originalDatasetId))
         val dtId = getOrSetPathDataset(s.path, currentDataset).id
         s.copy(datasetsIds = Seq(dtId))
       } else {
@@ -113,39 +112,26 @@ class IntervalLineageSearch(reader: DataLineageReader) extends PrelinkedLineageS
     })
   }
 
-  override def processAndEnqueue(lineages: GenTraversableOnce[DataLineage]): Future[Unit] = {
-    lineages.foreach {
-      lineage =>
-        val compositeWithDeps = lineageToCompositeWithDependencies(lineage)
-        // FIXME remap sources here
-        accumulateCompositeDependencies(compositeWithDeps)
-        val composite = compositeWithDeps.composite
-        if (isTraverseDirectionUp) {
-          enqueueInput(Seq(composite.mainProps.output))
-        } else {
-          enqueueOutput(composite.mainProps.inputs)
-        }
-    }
-    // This launches parallel execution of the remaining elements of the queue
-    processQueueAsync()
-  }
-
   override def finalGather(): DataLineage = {
+    val resolvedDatasetsWithTransformedPlaceholders = pathToDataset
+      .values
+      .map(_.copy())
     DataLineage(
       "appId",
       "appName",
       System.currentTimeMillis(),
       operations.toSeq.sortBy(_.mainProps.id),
-      (datasets ++ pathToDataset.values).toSeq.sortBy(_.id),
+      (datasets ++ resolvedDatasetsWithTransformedPlaceholders).toSeq.sortBy(_.id),
       attributes.toSeq.sortBy(_.id))
   }
 
 }
 
+class PlaceholderMetaDataset(id: UUID = UUID.randomUUID()) extends MetaDataset(id, Schema(Seq()))
+
 class IntervalLineageService(reader: DataLineageReader) {
 
   def apply(datasetId: UUID, from: Long, to: Long): Future[DataLineage] = {
-    // FIXME add down traversion
-    new IntervalLineageSearch(reader)(datasetId, from, to, true)
+    new IntervalLineageSearch(reader)(datasetId, from, to)
   }
 }
