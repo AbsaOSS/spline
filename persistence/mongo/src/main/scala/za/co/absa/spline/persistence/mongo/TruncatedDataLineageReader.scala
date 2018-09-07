@@ -24,7 +24,7 @@ import com.mongodb.casbah.query.dsl.QueryExpressionObject
 import za.co.absa.spline.model.op.Operation
 import za.co.absa.spline.model.{Attribute, DataLineage, DataLineageId, MetaDataset}
 import za.co.absa.spline.persistence.mongo.DBSchemaVersionHelper.deserializeWithVersionCheck
-import za.co.absa.spline.persistence.mongo.MongoDataLineageWriter.{indexField, lineageIdField}
+import za.co.absa.spline.persistence.mongo.MongoWriterFields.{indexField, lineageIdField}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future, blocking}

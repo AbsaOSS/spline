@@ -23,7 +23,7 @@ import za.co.absa.spline.model.op.Operation
 import za.co.absa.spline.model.{Attribute, DataLineage, LinkedLineage, MetaDataset}
 import za.co.absa.spline.persistence.api.DataLineageWriter
 import za.co.absa.spline.persistence.mongo.DBSchemaVersionHelper._
-import za.co.absa.spline.persistence.mongo.MongoDataLineageWriter._
+import za.co.absa.spline.persistence.mongo.MongoWriterFields._
 
 import scala.concurrent.{ExecutionContext, Future, blocking}
 /**
@@ -102,12 +102,4 @@ class MongoDataLineageWriter(connection: MongoConnection) extends DataLineageWri
   override def close(): Unit = {
     connection.close()
   }
-}
-
-object MongoDataLineageWriter {
-
-  val lineageIdField = "_lineageId"
-  val idField = "_id"
-  val indexField = "_index"
-
 }

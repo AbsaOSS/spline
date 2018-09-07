@@ -31,7 +31,7 @@ import za.co.absa.spline.model._
 import za.co.absa.spline.persistence.api.DataLineageReader.{IntervalPageRequest, PageRequest, SearchRequest}
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
 import za.co.absa.spline.persistence.mongo.DBSchemaVersionHelper._
-import za.co.absa.spline.persistence.mongo.MongoDataLineageWriter._
+import za.co.absa.spline.persistence.mongo.MongoWriterFields._
 import za.co.absa.spline.persistence.mongo.MongoImplicits._
 
 import scala.collection.JavaConverters._

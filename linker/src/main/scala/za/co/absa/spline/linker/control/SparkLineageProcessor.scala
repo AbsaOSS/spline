@@ -19,7 +19,7 @@ package za.co.absa.spline.linker.control
 import org.apache.commons.configuration.Configuration
 import org.apache.spark.sql._
 import org.apache.spark.sql.streaming.StreamingQuery
-import za.co.absa.spline.linker.boundary.AnalyticsPersistenceSink
+import za.co.absa.spline.linker.boundary.LineagePersistenceSink
 import za.co.absa.spline.linker.control.ConfigMapConverter._
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api._
@@ -36,7 +36,7 @@ class SparkLineageProcessor
 
   private var openedStream: StreamingQuery = _
 
-  import za.co.absa.spline.linker.boundary.HarvestReader._
+  import za.co.absa.spline.linker.boundary.LineageHarvestReader._
   def start(): SparkLineageProcessor = {
     // Serialize to a map which can be passed to executors. Configuration object unfortunately cannot be serialized to be sent to tasks.
     // FIXME improve usage of configs to avoid serialization problems e.g. (Marek) try to implement case class Config extends AbstractConfiguration which may be serializable.
@@ -45,12 +45,10 @@ class SparkLineageProcessor
       .map(LineageProjectionMerger.apply)
       .map(new LinkerTask(serializableConfig).call)
       .writeStream
-      .foreach(new AnalyticsPersistenceSink(serializableConfig))
+      .foreach(new LineagePersistenceSink(serializableConfig))
       .start()
     this
   }
-
-  def awaitTermination(): Unit = openedStream.awaitTermination()
 
   override def close(): Unit = {
     if (openedStream.isActive) {
