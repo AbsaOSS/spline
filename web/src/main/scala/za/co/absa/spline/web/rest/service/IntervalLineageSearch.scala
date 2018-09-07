@@ -3,7 +3,7 @@ package za.co.absa.spline.web.rest.service
 import java.util.concurrent.ConcurrentHashMap
 import java.util.{Collections, UUID}
 
-import za.co.absa.spline.model.{DataLineage, MetaDataset, Schema}
+import za.co.absa.spline.model.{DataLineage, MetaDataset, Schema, TypedMetaDataSource}
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
 
 import scala.collection.{GenTraversableOnce, mutable}
@@ -25,6 +25,8 @@ import scala.concurrent.Future
  * limitations under the License.
  */
 
+class PlaceholderMetaDataset(id: UUID = UUID.randomUUID()) extends MetaDataset(id, schema = Schema(Seq()))
+
 class IntervalLineageSearch(reader: DataLineageReader) extends PrelinkedLineageSearch(reader) {
 
   import scala.collection.JavaConverters._
@@ -33,7 +35,7 @@ class IntervalLineageSearch(reader: DataLineageReader) extends PrelinkedLineageS
   private var end: Long = _
   private var isTraverseDirectionUp: Boolean = _
 
-  private var pathToDatasetId: collection.concurrent.Map[String, UUID] = new ConcurrentHashMap[String, UUID]().asScala
+  private var pathToDataset: collection.concurrent.Map[String, MetaDataset] = new ConcurrentHashMap[String, MetaDataset]().asScala
   private var nextPaths = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean]()).asScala
 
   def apply(datasetId: UUID, start: Long, end: Long, isTraverseDirectionUp: Boolean): Future[DataLineage] = {
@@ -43,7 +45,7 @@ class IntervalLineageSearch(reader: DataLineageReader) extends PrelinkedLineageS
     val descriptor = reader.getDatasetDescriptor(datasetId)
     descriptor
       .map(d => {
-        pathToDatasetId.put(d.path.toString, d.datasetId)
+        pathToDataset.put(d.path.toString, new PlaceholderMetaDataset(d.datasetId))
         d.path.toString})
       .flatMap(relinkAndAccumulate)
       .map(_ => finalGather())
@@ -69,33 +71,45 @@ class IntervalLineageSearch(reader: DataLineageReader) extends PrelinkedLineageS
 
   private def relinkComposite(compositeWithDependencies: CompositeWithDependencies): CompositeWithDependencies = {
     val originalComposite = compositeWithDependencies.composite
-    val newDestinationId = getOrSetPathDatasetId(originalComposite.destination.path, originalComposite.destination.datasetsIds.head)
+    val originalDestinationDataset = compositeWithDependencies
+      .datasets
+      .find(m => m.id == originalComposite.destination.datasetsIds.head)
+      .get
+    val newDestinationId = getOrSetPathDataset(originalComposite.destination.path, originalDestinationDataset).id
     val destinationIds = Seq(newDestinationId)
-    val dummyDatasets = mutable.Set[MetaDataset]()
-    val newSources = originalComposite.sources.map(s => {
+    val newSources: Seq[TypedMetaDataSource] = originalComposite.sources.map(s => {
       if (s.datasetsIds.nonEmpty) {
-        s.copy(datasetsIds = Seq(getOrSetPathDatasetId(s.path, s.datasetsIds.head)))
+        val currentDataset = compositeWithDependencies.datasets.find(_.id == s.datasetsIds.head).get
+        val dtId = getOrSetPathDataset(s.path, currentDataset).id
+        s.copy(datasetsIds = Seq(dtId))
       } else {
-        s
-        val dts = MetaDataset(UUID.randomUUID(), Schema(Seq()))
-        dummyDatasets.add(dts)
-        s.copy(datasetsIds = Seq(getOrSetPathDatasetId(s.path, dts.id)))
-      }
-    })
+        // leads to empty schema in datasets
+        s.copy(datasetsIds = Seq(getOrSetPathDataset(s.path, new PlaceholderMetaDataset()).id))
+      }})
     val newInputs = newSources.flatMap(_.datasetsIds.headOption.toList)
     val linkedComposite = originalComposite.copy(
       destination = originalComposite.destination.copy(datasetsIds = destinationIds),
       sources = newSources,
       mainProps = originalComposite.mainProps.copy(output = newDestinationId, inputs = newInputs))
-    // TODO Do I need to change also other fields of the CompositeWithDeps
-    compositeWithDependencies.copy(composite = linkedComposite, datasets = compositeWithDependencies.datasets ++ dummyDatasets)
+    compositeWithDependencies.copy(composite = linkedComposite)
   }
 
-  private def getOrSetPathDatasetId(path: String, datasetId: UUID): UUID = {
-    pathToDatasetId.putIfAbsent(path, datasetId).getOrElse({
-      // Breath first loop to subtree of path result.path.
-      nextPaths.add(path)
-      datasetId
+  private def getOrSetPathDataset(path: String, dataset: MetaDataset): MetaDataset = {
+    pathToDataset.putIfAbsent(path, dataset)
+      .map(original => {
+        if (original.isInstanceOf[PlaceholderMetaDataset]
+          && !dataset.isInstanceOf[PlaceholderMetaDataset]) {
+          // PlaceholderMetaDataset have no schemas. While we would like any schema available for given path.
+          val datasetWithOriginalIdAndRealSchema = dataset.copy(id = original.id)
+          pathToDataset.put(path, datasetWithOriginalIdAndRealSchema)
+          datasetWithOriginalIdAndRealSchema
+        } else {
+          original
+        }
+      }).getOrElse({
+       // Breath first loop to subtree of path result.path.
+        nextPaths.add(path)
+        dataset
     })
   }
 
@@ -117,30 +131,12 @@ class IntervalLineageSearch(reader: DataLineageReader) extends PrelinkedLineageS
   }
 
   override def finalGather(): DataLineage = {
-    val dummyDatasets = mutable.Set[MetaDataset]()
-    val noBlankSourcesOps = operations
-      .map(op =>
-        if (op.sources.exists(_.datasetsIds.isEmpty)) {
-          val nonBlankSources = op.sources.map(s =>
-            if (s.datasetsIds.isEmpty) {
-              val dtId = getOrSetPathDatasetId(s.path, UUID.randomUUID())
-              dummyDatasets.add(MetaDataset(dtId, Schema(Seq())))
-              s.copy(datasetsIds = Seq(dtId))
-            } else {
-              s
-            })
-          op.copy(sources = nonBlankSources)
-        } else {
-          op
-        }
-      )
-      .toSet
     DataLineage(
       "appId",
       "appName",
       System.currentTimeMillis(),
-      noBlankSourcesOps.toSeq.sortBy(_.mainProps.id),
-      datasets.toSeq.sortBy(_.id),
+      operations.toSeq.sortBy(_.mainProps.id),
+      (datasets ++ pathToDataset.values).toSeq.sortBy(_.id),
       attributes.toSeq.sortBy(_.id))
   }
 

@@ -52,7 +52,7 @@ class IntervalLineageSearchSpec extends AsyncFlatSpec with Matchers with Mockito
   val xUUID4: UUID = UUID fromString "44444444-4444-4444-4444-444444444444"
 
   val lineage1 = DataLineage("AppId1", "AppName1", 0, Seq(
-    BatchWrite(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa1", "SaveIntoDataSourceCommand", Seq(xUUID4), UUIDS1), "fileS1", "fileS1.txt", append = false),
+    BatchWrite(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa1", "SaveIntoDataSourceCommand", Seq(xUUID4), UUIDS1x), "fileS1", "fileS1.txt", append = false),
     BatchRead(OperationProps(xUUID4, "LogicalRelation", Seq(), xUUID4), "file", Seq(MetaDataSource("fileS4.txt", Seq())))),
     Seq(MetaDataset(UUIDS1x, Schema(Seq(xUUID3))), MetaDataset(xUUID4, Schema(Seq()))),
     Seq(Attribute(xUUID3, "a", Simple("int", nullable = false))))
@@ -105,7 +105,7 @@ class IntervalLineageSearchSpec extends AsyncFlatSpec with Matchers with Mockito
 
     svc(UUIDS1x, 10, 20).map(lin => {
       lin.operations.size shouldEqual 2
-      lin.datasets.size shouldEqual 5
+      lin.datasets.size shouldEqual 4
       lin.attributes.size shouldEqual 2
       lin.rootOperation.asInstanceOf[Composite].destination.datasetsIds shouldEqual List(UUIDS2)
       lin.rootOperation.asInstanceOf[Composite].sources.map(ds => ds.datasetsIds) shouldEqual Seq(Seq(UUIDS1x))
