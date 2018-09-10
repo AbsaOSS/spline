@@ -103,11 +103,6 @@ class MockPersistenceFactory(configuration: Configuration) extends PersistenceFa
 
   override def createDataLineageReader: Option[DataLineageReader] = None
 
-  /**
-    * The method creates a writer to the persistence layer for the [[za.co.absa.spline.model.streaming.ProgressEvent ProgressEvent]] entity.
-    *
-    * @return A writer to the persistence layer for the [[za.co.absa.spline.model.streaming.ProgressEvent ProgressEvent]] entity
-    */
   override def createProgressEventWriter: ProgressEventWriter = throw new UnsupportedOperationException()
 }
 
