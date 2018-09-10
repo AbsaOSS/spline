@@ -27,7 +27,7 @@ import salat.annotations.Salat
 @Salat
 trait StreamEndpoint {
   def paths: Seq[URI]
-  def description: String = "Stream " + getClass.getSimpleName.replaceAll("Endpoint$", "")
+  def description: String = getClass.getSimpleName.replaceAll("Endpoint$", "")
 }
 
 /**
@@ -44,7 +44,7 @@ case class VirtualEndpoint() extends StreamEndpoint {
   */
 case class FileEndpoint(format: String, filePath: String) extends StreamEndpoint {
   override def paths: Seq[URI] = Seq(Paths.get(filePath).toUri)
-  override def description: String = format + " " + super.description
+  override def description: String = format
 }
 
 /**
