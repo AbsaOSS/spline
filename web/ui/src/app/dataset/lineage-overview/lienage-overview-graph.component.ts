@@ -199,7 +199,7 @@ export class LineageOverviewGraphComponent implements OnInit {
         let datasetNodes: VisNode[] =
                 recombineByDatasetIdAndLongestAppendSequence(dataSources)
                     .map(([datasetId, src]) => {
-                        let lastPathItemName = src.path.substring(src.path.replace(/\/$/, '').lastIndexOf("/") + 1)
+                        let lastPathItemName = "/" + src.path.substring(src.path.replace(/\/$/, '').lastIndexOf("/") + 1)
                         let trimmedLabel = LineageOverviewGraphComponent.trimNodeText(src.type + "\n" + lastPathItemName)
                         return new VisDatasetNode(
                             src,
