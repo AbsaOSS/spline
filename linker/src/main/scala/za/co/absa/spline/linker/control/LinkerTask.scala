@@ -1,11 +1,3 @@
-package za.co.absa.spline.linker.control
-
-import org.apache.spark.api.java.function.MapFunction
-import za.co.absa.spline.model.{DataLineage, LinkedLineage}
-import za.co.absa.spline.persistence.api.{Logging, PersistenceFactory}
-
-import scala.concurrent.{Await, ExecutionContext, Future}
-
 /*
  * Copyright 2017 Barclays Africa Group Limited
  *
@@ -21,6 +13,15 @@ import scala.concurrent.{Await, ExecutionContext, Future}
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package za.co.absa.spline.linker.control
+
+import org.apache.spark.api.java.function.MapFunction
+import za.co.absa.spline.model.{DataLineage, LinkedLineage}
+import za.co.absa.spline.persistence.api.{Logging, PersistenceFactory}
+
+import scala.concurrent.{Await, ExecutionContext, Future}
+
 import ConfigMapConverter._
 import scala.concurrent.duration.DurationInt
 

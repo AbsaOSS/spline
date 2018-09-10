@@ -36,6 +36,7 @@ class MongoConnection(dbUrl: String, dbName: String) extends AutoCloseable {
   val operationCollection: DBCollection = database.getCollection("operations")
   val attributeCollection: DBCollection = database.getCollection("attributes")
   val datasetCollection: DBCollection = database.getCollection("datasets")
+  val eventsCollection: DBCollection = database.getCollection("events")
 
   override def close(): Unit = {
     client.close()

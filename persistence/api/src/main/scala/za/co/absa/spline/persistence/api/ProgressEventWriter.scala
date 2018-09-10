@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.linker.boundary
+package za.co.absa.spline.persistence.api
 
-import java.io.{ByteArrayInputStream, ObjectInputStream}
+import za.co.absa.spline.model.streaming.ProgressEvent
 
-import za.co.absa.spline.common.WithResources._
+import scala.concurrent.{ExecutionContext, Future}
 
-class JavaKafkaDeserializer[TObject] {
+/**
+  * The trait represents a writer to a persistence layer for the [[za.co.absa.spline.model.streaming.ProgressEvent ProgressEvent]] entity.
+  */
+trait ProgressEventWriter extends AutoCloseable {
 
-  def deserialize(data: Array[Byte]): TObject = {
-    withResources[ObjectInputStream, TObject](createReader(data))(read)
-  }
-
-  private def createReader(data: Array[Byte]): ObjectInputStream = {
-    new ObjectInputStream(new ByteArrayInputStream(data))
-  }
-
-  private def read(objectInputStream: ObjectInputStream): TObject =  objectInputStream.readObject().asInstanceOf[TObject]
-
+  /**
+    * The method stores a particular progress event to the persistence layer.
+    *
+    * @param event A progress event that will be stored
+    */
+  def store(event: ProgressEvent)(implicit ec: ExecutionContext) : Future[Unit]
 }

@@ -1,12 +1,3 @@
-package za.co.absa.spline.linker.boundary
-
-import com.mongodb.DuplicateKeyException
-import org.apache.spark.sql.ForeachWriter
-import za.co.absa.spline.model.LinkedLineage
-import za.co.absa.spline.persistence.api.{DataLineageWriter, Logging, PersistenceFactory}
-
-import scala.concurrent.{Await, ExecutionContext}
-
 /*
  * Copyright 2017 Barclays Africa Group Limited
  *
@@ -23,13 +14,22 @@ import scala.concurrent.{Await, ExecutionContext}
  * limitations under the License.
  */
 
+package za.co.absa.spline.linker.boundary
+
+import com.mongodb.DuplicateKeyException
+import org.apache.spark.sql.ForeachWriter
+import za.co.absa.spline.model.LinkedLineage
+import za.co.absa.spline.persistence.api.{DataLineageWriter, Logging, PersistenceFactory}
+
+import scala.concurrent.{Await, ExecutionContext}
+
 /**
   * Handles duplicate insert via duplicate key exception ignore.
   */
-class AnalyticsPersistenceSink(serializableConfig: Map[String, Object]) extends ForeachWriter[LinkedLineage] with Logging {
+class LineagePersistenceSink(serializableConfig: Map[String, Object]) extends ForeachWriter[LinkedLineage] with Logging {
 
   private implicit lazy val executionContext: ExecutionContext = ExecutionContext.global
-  private var analyticsWriter: DataLineageWriter = _
+  private var lineageWriter: DataLineageWriter = _
 
   /**
     * FIXME Method is missing coherent and general duplicate storage support.
@@ -38,7 +38,7 @@ class AnalyticsPersistenceSink(serializableConfig: Map[String, Object]) extends 
     log debug s"Processing raw lineage"
     try {
       import scala.concurrent.duration.DurationInt
-      Await.result(analyticsWriter.store(rawLineage), 10 minutes)
+      Await.result(lineageWriter.store(rawLineage), 10 minutes)
     } catch {
       case e: DuplicateKeyException => log.warn("Duplicate key ignored to tolarate potential duplicate insert to MongoDB.", e)
       case e: Throwable => throw e
@@ -46,13 +46,13 @@ class AnalyticsPersistenceSink(serializableConfig: Map[String, Object]) extends 
   }
 
   def close(errorOrNull: Throwable): Unit = {
-    analyticsWriter.close()
+    lineageWriter.close()
   }
 
   def open(partitionId: Long, version: Long): Boolean = {
     import za.co.absa.spline.linker.control.ConfigMapConverter._
     val configuration = toConfiguration(serializableConfig)
-    analyticsWriter = PersistenceFactory
+    lineageWriter = PersistenceFactory
       .create(configuration)
       .createDataLineageWriter
     true

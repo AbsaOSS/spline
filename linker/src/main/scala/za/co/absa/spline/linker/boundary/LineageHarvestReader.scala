@@ -18,19 +18,16 @@ package za.co.absa.spline.linker.boundary
 
 import org.apache.commons.configuration.Configuration
 import org.apache.spark.sql._
-import org.apache.spark.sql.types.BinaryType
 import za.co.absa.spline.model.{DataLineage, LinkedLineage}
+import ReaderProperties._
+import org.apache.spark.sql.types.BinaryType
 
-object HarvestReader {
+object LineageHarvestReader {
 
   implicit val LineageEncoder: Encoder[DataLineage] = Encoders.kryo[DataLineage]
   implicit val LinkedLineageEncoder: Encoder[LinkedLineage] = Encoders.kryo[LinkedLineage]
 
-  val HarvesterServersProperty = "harvester.kafka.servers"
-  val HarvesterTopicProperty = "harvester.topic.lineage"
-  val DefaultTopic = "lineages"
-  val HarvesterStartingOffsetsProperty = "harvester.startingOffsets"
-  val DefaultStartingOffsets = "latest"
+  val deserializer = new JavaKafkaDeserializer[DataLineage]
 
   def apply(configuration: Configuration, sparkSession: SparkSession): Dataset[DataLineage] = {
     // FIXME encode DataLineage as Product while Operation and others using Kryo to allow Catalyst optimizations.
@@ -38,13 +35,12 @@ object HarvestReader {
     val keyValue = sparkSession
       .readStream
       .format("kafka")
-      .option("kafka.bootstrap.servers", configuration.getString(HarvesterServersProperty))
-      .option("subscribe", configuration.getString(HarvesterTopicProperty, DefaultTopic))
-      .option("startingOffsets", configuration.getString(HarvesterStartingOffsetsProperty, DefaultStartingOffsets))
+      .option("kafka.bootstrap.servers", configuration.getString(harvesterServersProperty))
+      .option("subscribe", configuration.getString(lineageTopicProperty, defaultLineageTopic))
+      .option("startingOffsets", configuration.getString(harvesterStartingOffsetsProperty, defaultStartingOffsets))
       .load()
     keyValue
-      .selectExpr("CAST(value AS Binary)").as[Array[Byte]]
-      .map(JavaKafkaDeserializer.deserialize)
+      .select('value.cast(BinaryType)).as[Array[Byte]]
+      .map(deserializer.deserialize)
   }
-
 }

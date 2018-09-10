@@ -1,21 +1,3 @@
-package za.co.absa.spline.linker.control
-
-import java.util.UUID
-import java.util.UUID.randomUUID
-
-import org.apache.commons.configuration.Configuration
-import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
-import za.co.absa.spline.linker.LinkerApp
-import za.co.absa.spline.linker.boundary.DefaultSplineConfig
-import za.co.absa.spline.model._
-import za.co.absa.spline.model.dt.Simple
-import za.co.absa.spline.model.op.{Generic, OperationProps, BatchWrite}
-import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
-
-import scala.collection.immutable
-import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.{ExecutionContext, Future}
-
 /*
  * Copyright 2017 Barclays Africa Group Limited
  *
@@ -31,6 +13,26 @@ import scala.concurrent.{ExecutionContext, Future}
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package za.co.absa.spline.linker.control
+
+import java.util.UUID
+import java.util.UUID.randomUUID
+
+import org.apache.commons.configuration.Configuration
+import org.apache.spark.sql.SparkSession
+import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
+import za.co.absa.spline.linker.LinkerApp
+import za.co.absa.spline.linker.boundary.DefaultSplineConfig
+import za.co.absa.spline.model._
+import za.co.absa.spline.model.dt.Simple
+import za.co.absa.spline.model.op.{BatchWrite, Generic, OperationProps}
+import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory, ProgressEventWriter}
+
+import scala.collection.immutable
+import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.{ExecutionContext, Future}
+
 class SparkLineageProcessorSpec extends FunSpec with Matchers with BeforeAndAfterEach {
 
   import scala.concurrent.ExecutionContext.Implicits._
@@ -44,10 +46,12 @@ class SparkLineageProcessorSpec extends FunSpec with Matchers with BeforeAndAfte
     it("linker should process harvested lineages") {
       System.setProperty(PersistenceFactory.PersistenceFactoryPropName, classOf[MockPersistenceFactory].getName)
 
-      val session = LinkerApp.createSession()
+      val sparkBuilder = SparkSession.builder()
+      sparkBuilder.appName("SplineLinker")
+      val session: SparkSession =  sparkBuilder.getOrCreate()
       val configuration = DefaultSplineConfig(session)
       val uuid = UUID.randomUUID()
-      import za.co.absa.spline.linker.boundary.HarvestReader._
+      import za.co.absa.spline.linker.boundary.LineageHarvestReader._
       val stream = session
         .readStream
         .format("rate")
@@ -98,6 +102,8 @@ class MockPersistenceFactory(configuration: Configuration) extends PersistenceFa
   }
 
   override def createDataLineageReader: Option[DataLineageReader] = None
+
+  override def createProgressEventWriter: ProgressEventWriter = throw new UnsupportedOperationException()
 }
 
 object MockPersistenceFactory {
