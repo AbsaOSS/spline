@@ -43,6 +43,7 @@ object KafkaStreamingJob extends SparkApp("Kafka Streaming Job") with KafkaPrope
     .writeStream
     .format("kafka")
     .option("topic", kafkaTopic)
+    .option("kafka.bootstrap.servers", kafkaServers)
     .option("checkpointLocation", "data/checkpoints/streaming/kafka")
     .start()
     .processAllAvailable()
