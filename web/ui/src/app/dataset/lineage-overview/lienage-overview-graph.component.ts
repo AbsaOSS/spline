@@ -206,19 +206,15 @@ export class LineageOverviewGraphComponent implements OnInit {
                             ID_PREFIXES.datasource + datasetId,
                             src.type + ": " + src.path,
                             trimmedLabel,
-                            LineageOverviewGraphComponent.getIcon(
-                                // Global lineage sink or sources cannot be determined to be exclusively batch or stream.
-                                // Thus neutral icon of a circle is used.
-                                new Icon("fa-circle", "\uf111", "FontAwesome"),
-                                datasetId.startsWith(ID_PREFIXES.extra) ? "#c0cdd6" : undefined))
-                        })
+                            LineageOverviewGraphComponent.getDatasetVisIcon(src.type));
+                        });
 
          let processNodes: VisNode[] = lineage.operations.map((op: IComposite) =>
                 new VisProcessNode(
                     op,
                     ID_PREFIXES.operation + op.mainProps.id,
                     LineageOverviewGraphComponent.trimNodeText(op.appName),
-                    LineageOverviewGraphComponent.getIcon(getIconForNodeType(typeOfOperation(op)))
+                    LineageOverviewGraphComponent.toVisIcon(getIconForNodeType(typeOfOperation(op)))
                 ))
 
          let nodes = processNodes.concat(datasetNodes)
@@ -250,7 +246,7 @@ export class LineageOverviewGraphComponent implements OnInit {
         )
     }
 
-    static trimNodeText(text: string): string {
+    private static trimNodeText(text: string): string {
         let textSize = 13
         return text.split('\n').map(
             line => {
@@ -263,7 +259,7 @@ export class LineageOverviewGraphComponent implements OnInit {
     }
 
 
-    static getIcon(icon: Icon, color: string = "#337ab7") {
+    private static toVisIcon(icon: Icon, color: string = "#337ab7") {
         return {
             face: icon.font,
             size: 80,
@@ -271,5 +267,21 @@ export class LineageOverviewGraphComponent implements OnInit {
             color: color
         }
     }
+
+    private static getDatasetVisIcon(type: string): any {
+        return this.toVisIcon(this.getDatasetIcon(type))
+    }
+
+    private static getDatasetIcon(type: string): Icon {
+        switch (type.toLowerCase()) {
+            case "parquet":
+            case "csv":
+                return new Icon("fa-file", "\uf15b", "FontAwesome");
+            case "kafka": return new Icon("fa-window-minimize", "\uf2d1", "FontAwesome");
+            case "socket": return new Icon("fa-plug", "\uf1e6", "FontAwesome");
+            default: return new Icon("fa-circle", "\uf111", "FontAwesome");
+        }
+    }
+
 }
 
