@@ -1,7 +1,3 @@
-package za.co.absa.spline.linker.control
-
-import org.apache.commons.configuration.{BaseConfiguration, Configuration}
-
 /*
  * Copyright 2017 Barclays Africa Group Limited
  *
@@ -17,6 +13,10 @@ import org.apache.commons.configuration.{BaseConfiguration, Configuration}
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package za.co.absa.spline.linker.control
+
+import org.apache.commons.configuration.{BaseConfiguration, Configuration}
 
 import scala.collection.JavaConverters._
 

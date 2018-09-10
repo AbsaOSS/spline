@@ -17,35 +17,30 @@
 package za.co.absa.spline.linker.control
 
 import org.apache.commons.configuration.Configuration
-import org.apache.spark.sql._
+import org.apache.spark.sql.{Dataset, SparkSession}
 import org.apache.spark.sql.streaming.StreamingQuery
-import za.co.absa.spline.linker.boundary.LineagePersistenceSink
-import za.co.absa.spline.linker.control.ConfigMapConverter._
-import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.persistence.api._
+import za.co.absa.spline.linker.boundary.EventPersistenceSink
+import za.co.absa.spline.linker.control.ConfigMapConverter.toConfigMap
+
+import za.co.absa.spline.model.streaming.ProgressEvent
+import za.co.absa.spline.persistence.api.Logging
 
 import scala.concurrent.ExecutionContext
-import scala.language.postfixOps
 
-class SparkLineageProcessor
+class StreamingEventProcessor
 (
-  harvestReader: Dataset[DataLineage],
+  reader: Dataset[ProgressEvent],
   configuration: Configuration,
   sparkSession: SparkSession
 )(implicit executionContext: ExecutionContext) extends AutoCloseable with Logging {
 
   private var openedStream: StreamingQuery = _
 
-  import za.co.absa.spline.linker.boundary.LineageHarvestReader._
-  def start(): SparkLineageProcessor = {
-    // Serialize to a map which can be passed to executors. Configuration object unfortunately cannot be serialized to be sent to tasks.
-    // FIXME improve usage of configs to avoid serialization problems e.g. (Marek) try to implement case class Config extends AbstractConfiguration which may be serializable.
-    val serializableConfig = toConfigMap(configuration)
-    openedStream = harvestReader
-      .map(LineageProjectionMerger.apply)
-      .map(new LinkerTask(serializableConfig).call)
+  def start(): StreamingEventProcessor = {
+    val configMap = toConfigMap(configuration)
+    openedStream = reader
       .writeStream
-      .foreach(new LineagePersistenceSink(serializableConfig))
+      .foreach(new EventPersistenceSink(configMap))
       .start()
     this
   }
@@ -60,4 +55,3 @@ class SparkLineageProcessor
     openedStream.stop()
   }
 }
-

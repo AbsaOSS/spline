@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.linker.boundary
+package za.co.absa.spline.persistence.mongo
 
-import java.io.{ByteArrayInputStream, ObjectInputStream}
-
-import za.co.absa.spline.common.WithResources._
-
-class JavaKafkaDeserializer[TObject] {
-
-  def deserialize(data: Array[Byte]): TObject = {
-    withResources[ObjectInputStream, TObject](createReader(data))(read)
-  }
-
-  private def createReader(data: Array[Byte]): ObjectInputStream = {
-    new ObjectInputStream(new ByteArrayInputStream(data))
-  }
-
-  private def read(objectInputStream: ObjectInputStream): TObject =  objectInputStream.readObject().asInstanceOf[TObject]
-
+/**
+  * The object contains names of the fields which are used only in Mongo documents.
+  */
+object MongoWriterFields {
+  val lineageIdField = "_lineageId"
+  val idField = "_id"
+  val indexField = "_index"
 }

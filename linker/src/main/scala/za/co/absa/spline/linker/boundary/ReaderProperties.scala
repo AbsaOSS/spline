@@ -16,20 +16,12 @@
 
 package za.co.absa.spline.linker.boundary
 
-import java.io.{ByteArrayInputStream, ObjectInputStream}
-
-import za.co.absa.spline.common.WithResources._
-
-class JavaKafkaDeserializer[TObject] {
-
-  def deserialize(data: Array[Byte]): TObject = {
-    withResources[ObjectInputStream, TObject](createReader(data))(read)
-  }
-
-  private def createReader(data: Array[Byte]): ObjectInputStream = {
-    new ObjectInputStream(new ByteArrayInputStream(data))
-  }
-
-  private def read(objectInputStream: ObjectInputStream): TObject =  objectInputStream.readObject().asInstanceOf[TObject]
-
+object ReaderProperties {
+  val harvesterServersProperty = "harvester.kafka.servers"
+  val lineageTopicProperty = "harvester.topic.lineage"
+  val eventsTopicProperty = "harvester.topic.events"
+  val defaultLineageTopic = "lineages"
+  val defaultEventsTopic = "events"
+  val harvesterStartingOffsetsProperty = "harvester.startingOffsets"
+  val defaultStartingOffsets = "latest"
 }

@@ -37,7 +37,7 @@ class MongoPersistenceFactory(configuration: Configuration) extends PersistenceF
 
   import MongoPersistenceFactory._
 
-  protected lazy val mongoConnection: MongoConnection = connect(MongoDbUrlKey, MongoDbNameKey)
+  protected def mongoConnection: MongoConnection = connect(MongoDbUrlKey, MongoDbNameKey)
 
   protected def connect(dbUrlKey: String, dbNameKey: String): MongoConnection = {
     val dbUrl = configuration getRequiredString dbUrlKey
@@ -61,4 +61,11 @@ class MongoPersistenceFactory(configuration: Configuration) extends PersistenceF
     * @return An optional reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
   override def createDataLineageReader: Option[DataLineageReader] = Some(new MongoDataLineageReader(mongoConnection))
+
+  /**
+    * The method creates a writer to the persistence layer for the [[za.co.absa.spline.model.streaming.ProgressEvent ProgressEvent]] entity.
+    *
+    * @return A writer to the persistence layer for the [[za.co.absa.spline.model.streaming.ProgressEvent ProgressEvent]] entity
+    */
+  override def createProgressEventWriter: ProgressEventWriter = new MongoProgressEventWriter(mongoConnection)
 }
