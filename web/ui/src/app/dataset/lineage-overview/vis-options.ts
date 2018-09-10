@@ -35,8 +35,8 @@ export const visOptions = {
     physics: {
         enabled: true,
         hierarchicalRepulsion: {
-            nodeDistance: 250,
-            springLength: 150,
+            nodeDistance: 270,
+            springLength: 170,
             springConstant: 10,
             damping: 1
         }
@@ -65,7 +65,7 @@ export const visOptions = {
         font: {
             color: '#343434',
             multi: false,
-            size: 20,
+            size: 15,
         },
     },
 }
