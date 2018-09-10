@@ -25,10 +25,22 @@ import java.io.Closeable
   * @param closeFunction close callback
   * @tparam T item type
   */
-class CloseableIterable[+T](val iterator: Iterator[T], closeFunction: => Unit) extends Closeable {
+class CloseableIterable[T](val iterator: Iterator[T], closeFunction: => Unit) extends Closeable {
   override def close(): Unit = closeFunction
+
+  def ++(otherIterable: CloseableIterable[T]): CloseableIterable[T] =
+    new CloseableIterable[T](
+      iterator = this.iterator ++ otherIterable.iterator,
+      try this.close()
+      finally otherIterable.close())
 }
 
 object CloseableIterable {
   def empty[T]: CloseableIterable[T] = new CloseableIterable[T](Iterator.empty, () => {})
+
+  def chain[T](iters: CloseableIterable[T]*): CloseableIterable[T] = {
+    (empty[T] /: iters) {
+      case (accIter, nextIter) => accIter ++ nextIter
+    }
+  }
 }

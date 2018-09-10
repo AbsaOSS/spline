@@ -24,8 +24,8 @@ import scala.language.reflectiveCalls
 
 object CloseableIterableMatchers extends MatcherImplicits {
 
-  def consistOfItemsWithAppIds(appIds: String*): Matcher[CloseableIterable[ {def appId: String}]] =
-    actualDescriptors => {
+  def consistOfItemsWithAppIds[T <: {def appId : String}](appIds: String*): Matcher[CloseableIterable[T]] =
+    (actualDescriptors: CloseableIterable[T]) => {
       val actualAppIds = actualDescriptors.iterator.map(_.appId).toList
       val expectedAppIds = appIds.toList
       MatchResult(
@@ -37,7 +37,7 @@ object CloseableIterableMatchers extends MatcherImplicits {
     }
 
   def consistOfItems[T](items: T*): Matcher[CloseableIterable[T]] =
-    iterable => {
+    (iterable: CloseableIterable[T]) => {
       val actualItems = iterable.iterator.toList
       val expectedItems = items.toList
       MatchResult(

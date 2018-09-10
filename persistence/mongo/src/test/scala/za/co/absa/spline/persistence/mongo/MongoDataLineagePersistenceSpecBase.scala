@@ -19,13 +19,17 @@ package za.co.absa.spline.persistence.mongo
 import java.util.UUID
 import java.util.UUID.randomUUID
 
-import org.scalatest.{AsyncFunSpec, BeforeAndAfterEach, Matchers}
+import org.scalatest.mockito.MockitoSugar
+import org.scalatest.{AsyncFunSpec, BeforeAndAfterEach}
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op.{Generic, OperationProps, Write}
 import za.co.absa.spline.model.{Attribute, Schema, _}
 import za.co.absa.spline.persistence.mongo.MongoTestProperties.mongoConnection
 
-abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Matchers with BeforeAndAfterEach {
+abstract class MongoDataLineagePersistenceSpecBase
+  extends AsyncFunSpec
+    with MockitoSugar
+    with BeforeAndAfterEach {
 
   protected val mongoWriter = new MongoDataLineageWriter(mongoConnection)
   protected val mongoReader = new MongoDataLineageReader(mongoConnection)

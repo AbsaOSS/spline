@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.mongo
+package za.co.absa.spline.persistence.mongo.serde
 
 import com.mongodb.DBObject
-import com.mongodb.casbah.Imports
+import com.mongodb.casbah.Imports._
+import salat.grater
+import za.co.absa.spline.common.TypeFreaks._
 import za.co.absa.spline.model.dt.DataType
 import za.co.absa.spline.model.op.{Operation, Projection}
 import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset}
-import za.co.absa.spline.persistence.mongo.DBOFields._
-import za.co.absa.spline.persistence.mongo.DBSchemaVersionHelper.{deserializeWithVersionCheck, serializeWithVersion}
+import za.co.absa.spline.persistence.mongo.DBOFields.{idField, indexField, lineageIdField}
+import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext.ctx_with_fix_for_SL_126
+import za.co.absa.spline.persistence.mongo.{DataLineagePO, LineageComponent, TransformationPO}
 
 object LineageDBOSerDe {
 
-  type Components = Map[LineageComponent, Seq[Imports.DBObject]]
+  type Components = Map[LineageComponent, Seq[DBObject]]
 
   def serialize(lineage: DataLineage): Components = {
     val (transformations: Seq[TransformationPO], operations: Seq[Operation]) =
@@ -42,7 +45,7 @@ object LineageDBOSerDe {
     LineageComponent.values
       .map(comp =>
         comp -> (comp match {
-          case LineageComponent.Root => Seq(serializeWithVersion[DataLineagePO](
+          case LineageComponent.Root => Seq(serialize[DataLineagePO](
             DataLineagePO(
               lineage.appId,
               lineage.appName,
@@ -61,12 +64,12 @@ object LineageDBOSerDe {
   }
 
   def deserialize(components: Components): DataLineage = {
-    val dataLineagePO = components(LineageComponent.Root).map(deserializeWithVersionCheck[DataLineagePO]).head
-    val operations = components(LineageComponent.Operation).map(deserializeWithVersionCheck[Operation])
-    val transformationPOs = components(LineageComponent.Transformation).map(deserializeWithVersionCheck[TransformationPO])
-    val attributes = components(LineageComponent.Attribute).map(deserializeWithVersionCheck[Attribute])
-    val datasets = components(LineageComponent.Dataset).map(deserializeWithVersionCheck[MetaDataset])
-    val dataTypes = components(LineageComponent.DataType).map(deserializeWithVersionCheck[DataType])
+    val dataLineagePO = components(LineageComponent.Root).map(deserialize[DataLineagePO]).head
+    val operations = components(LineageComponent.Operation).map(deserialize[Operation])
+    val transformationPOs = components(LineageComponent.Transformation).map(deserialize[TransformationPO])
+    val attributes = components(LineageComponent.Attribute).map(deserialize[Attribute])
+    val datasets = components(LineageComponent.Dataset).map(deserialize[MetaDataset])
+    val dataTypes = components(LineageComponent.DataType).map(deserialize[DataType])
 
     val transformationsByOperationId = transformationPOs.groupBy(_.opId).mapValues(_.map(_.expr))
     val enrichedOperations = operations.map {
@@ -89,12 +92,28 @@ object LineageDBOSerDe {
     col.view
       .zipWithIndex
       .map { case (o, i) =>
-        val dbo = serializeWithVersion[Y](o)
+        val dbo = serialize[Y](o)
         dbo.put(lineageIdField, linId)
         dbo.put(indexField, i)
         for ((propName, valueFn) <- extraProps)
           dbo.put(propName, valueFn(o))
         dbo
       }
+
+  private val LATEST_SERIAL_VERSION = 3
+  private val versionField = "_ver"
+
+  def deserialize[Y <: scala.AnyRef : Manifest](dBObject: DBObject): Y = {
+    dBObject.get(versionField).asInstanceOf[Int] match {
+      case LATEST_SERIAL_VERSION => grater[Y].asObject(dBObject)
+      case unknownVersion => sys.error(s"Unsupported serialized lineage version: $unknownVersion")
+    }
+  }
+
+  def serialize[Y <: scala.AnyRef : `not a subtype of`[DataLineage]#λ : Manifest](obj: Y): DBObject = {
+    val dBObject = grater[Y].asDBObject(obj)
+    dBObject.put(versionField, LATEST_SERIAL_VERSION)
+    dBObject
+  }
 
 }

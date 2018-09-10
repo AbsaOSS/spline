@@ -18,10 +18,11 @@ package za.co.absa.spline.persistence.mongo
 
 import java.util.UUID.randomUUID
 
+import org.scalatest.Matchers
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.op.OperationProps
 
-class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase {
+class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase with Matchers {
 
   private val lineage = createDataLineage("appID", "appName")
 

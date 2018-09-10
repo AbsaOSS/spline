@@ -28,8 +28,9 @@ import za.co.absa.spline.common.TempDirectory
 import za.co.absa.spline.core.conf.DefaultSplineConfigurer.ConfProperty.PERSISTENCE_FACTORY
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
-import za.co.absa.spline.persistence.mongo.LineageDBOSerDe.Components
-import za.co.absa.spline.persistence.mongo.{LineageComponent, LineageDBOSerDe}
+import za.co.absa.spline.persistence.mongo.serde.LineageDBOSerDe.Components
+import za.co.absa.spline.persistence.mongo.LineageComponent
+import za.co.absa.spline.persistence.mongo.serde.LineageDBOSerDe
 import za.co.absa.spline.scalatest.MatcherImplicits
 
 trait SplineFixture
@@ -78,13 +79,6 @@ object SplineFixture {
   }
 
   trait Implicits {
-
-    implicit class LinageSerializer[T <: AnyRef : Manifest](o: T) {
-
-      import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext._
-
-      def asBSON: Array[Byte] = salat.grater[T] toBSON o
-    }
 
     implicit class DataFrameLineageExtractor(df: DataFrame) {
       def lineage: DataLineage = {

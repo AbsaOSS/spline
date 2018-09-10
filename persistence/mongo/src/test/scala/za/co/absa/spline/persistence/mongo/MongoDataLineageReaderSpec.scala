@@ -21,6 +21,7 @@ import java.util.UUID
 import java.util.UUID.randomUUID
 
 import com.mongodb.casbah.commons.Imports.DBObject
+import org.scalatest.Matchers
 import za.co.absa.spline.common.OptionImplicits._
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.dt.Simple
@@ -30,7 +31,7 @@ import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest.EntireLat
 
 import scala.concurrent.Future
 
-class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
+class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase with Matchers {
 
   import CloseableIterableMatchers._
 
@@ -72,9 +73,9 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         page2 <- mongoReader.findDatasets(None, PageRequest(107, 3, 3))
         page3 <- mongoReader.findDatasets(None, PageRequest(107, 6, 3))
       } yield {
-        page1 should consistOfItemsWithAppIds("appID7", "appID6", "appID5")
-        page2 should consistOfItemsWithAppIds("appID4", "appID3", "appID2")
-        page3 should consistOfItemsWithAppIds("appID1", "appID0")
+        page1 should consistOfItemsWithAppIds[PersistedDatasetDescriptor]("appID7", "appID6", "appID5")
+        page2 should consistOfItemsWithAppIds[PersistedDatasetDescriptor]("appID4", "appID3", "appID2")
+        page3 should consistOfItemsWithAppIds[PersistedDatasetDescriptor]("appID1", "appID0")
       }
     }
 
@@ -83,7 +84,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         _ <- Future.sequence(testLineages.map(mongoWriter.store))
         page <- mongoReader.findDatasets("n", PageRequest(107, 0, 3))
       } yield {
-        page should consistOfItemsWithAppIds("appID7", "appID1")
+        page should consistOfItemsWithAppIds[PersistedDatasetDescriptor]("appID7", "appID1")
       }
     }
 
@@ -92,7 +93,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         _ <- Future.sequence(testLineages.map(mongoWriter.store))
         page <- mongoReader.findDatasets("nInE", EntireLatestContent)
       } yield {
-        page should consistOfItemsWithAppIds("appID9")
+        page should consistOfItemsWithAppIds[PersistedDatasetDescriptor]("appID9")
       }
     }
 
@@ -105,7 +106,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         noResultByPrefix <- mongoReader.findDatasets(searchingDatasetId take 10, EntireLatestContent)
         noResultBySuffix <- mongoReader.findDatasets(searchingDatasetId drop 10, EntireLatestContent)
       } yield {
-        foundSingleMatch should consistOfItemsWithAppIds(searchingLineage.appId)
+        foundSingleMatch should consistOfItemsWithAppIds[PersistedDatasetDescriptor](searchingLineage.appId)
         noResultByPrefix.iterator shouldBe empty
         noResultBySuffix.iterator shouldBe empty
       }
@@ -232,7 +233,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
           MongoTestProperties.mongoConnection.collections(LineageComponent.Root) remove DBObject("appId" -> "appID4") // Emulate incomplete lineage #4
           mongoReader.findByInputId(datasetIdToFindBy)
         }).
-        map(_ should consistOfItemsWithAppIds("appID2", "appID3"))
+        map(_ should consistOfItemsWithAppIds[DataLineage]("appID2", "appID3"))
     }
   }
 

@@ -20,6 +20,7 @@ package za.co.absa.spline.persistence.mongo
 import org.slf4s.Logging
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.DataLineageWriter
+import za.co.absa.spline.persistence.mongo.serde.LineageDBOSerDe
 
 import scala.concurrent.{ExecutionContext, Future, blocking}
 

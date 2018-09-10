@@ -33,6 +33,7 @@ import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
 import za.co.absa.spline.persistence.mongo.DBOFields._
 import za.co.absa.spline.persistence.mongo.DBSchemaVersionHelper._
 import za.co.absa.spline.persistence.mongo.MongoImplicits._
+import za.co.absa.spline.persistence.mongo.serde.LineageDBOSerDe
 
 import scala.collection.convert.WrapAsScala
 import scala.concurrent.{ExecutionContext, Future, blocking}
