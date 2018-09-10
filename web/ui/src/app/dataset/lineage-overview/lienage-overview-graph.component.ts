@@ -202,8 +202,8 @@ export class LineageOverviewGraphComponent implements OnInit {
                         new VisDatasetNode(
                             src,
                             ID_PREFIXES.datasource + datasetId,
-                            src.type + ":" + src.path,
-                            src.path.substring(src.path.lastIndexOf("/") + 1),
+                            src.type + ": " + src.path,
+                            src.type + "\n" + src.path.substring(src.path.replace(/\/$/, '').lastIndexOf("/") + 1),
                             LineageOverviewGraphComponent.getIcon(
                                 // Global lineage sink or sources cannot be determined to be exclusively batch or stream.
                                 // Thus neutral icon of a circle is used.
