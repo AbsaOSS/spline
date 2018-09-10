@@ -53,6 +53,7 @@ object KafkaStreamingJob extends SparkApp("Kafka Streaming Job") with KafkaPrope
     .readStream
     .format("kafka")
     .option("subscribe", kafkaTopic)
+    .option("kafka.bootstrap.servers", kafkaServers)
     .option("startingOffsets", "earliest")
     .load()
 

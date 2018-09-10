@@ -131,7 +131,8 @@ class PrelinkedLineageSearch(reader: DataLineageReader) extends ExecutionContext
       destination = outputSource,
       dataLineage.timestamp,
       dataLineage.appId,
-      dataLineage.appName
+      dataLineage.appName,
+      outputWriteOperation.isInstanceOf[BatchWrite]
     )
 
     val datasets = dataLineage.datasets.filter(ds => datasetIds(ds.id))

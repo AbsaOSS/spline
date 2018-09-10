@@ -71,7 +71,7 @@ object Operation {
       case op@Join(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Union(mp) => op.copy(mainProps = fn(mp))
       case op@Projection(mp, _) => op.copy(mainProps = fn(mp))
-      case op@Composite(mp, _, _, _, _, _) => op.copy(mainProps = fn(mp))
+      case op@Composite(mp, _, _, _, _, _, _) => op.copy(mainProps = fn(mp))
     }).asInstanceOf[T]
   }
 
@@ -257,7 +257,8 @@ case class Composite(
                       destination: TypedMetaDataSource,
                       timestamp: Long,
                       appId: String,
-                      appName: String
+                      appName: String,
+                      isBatchNotStream: Boolean
                     ) extends Operation {
   private def knownSourceLineagesCount = sources.flatMap(_.datasetsIds).distinct.size
 

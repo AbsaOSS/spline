@@ -214,8 +214,7 @@ export class LineageOverviewGraphComponent implements OnInit {
                     op,
                     ID_PREFIXES.operation + op.mainProps.id,
                     LineageOverviewGraphComponent.trimNodeText(op.appName),
-                    LineageOverviewGraphComponent.toVisIcon(getIconForNodeType(typeOfOperation(op)))
-                ))
+                    LineageOverviewGraphComponent.getProcessingVisIcon(op)))
 
          let nodes = processNodes.concat(datasetNodes)
 
@@ -259,29 +258,37 @@ export class LineageOverviewGraphComponent implements OnInit {
     }
 
 
-    private static toVisIcon(icon: Icon, color: string = "#337ab7") {
-        return {
-            face: icon.font,
-            size: 80,
-            code: icon.code,
-            color: color
+    private static toVisIcon(icon: Icon, color: string = "#337ab7"): VisIcon {
+        return new VisIcon(icon.code, 80, icon.font, color)
+    }
+
+    private static getProcessingVisIcon(op: IComposite): any  {
+        if (op.isBatchNotStream) {
+            return new VisIcon( "\uf085")
+        } else {
+            return new VisIcon("\uf103");
         }
     }
 
-    private static getDatasetVisIcon(type: string): any {
-        return this.toVisIcon(this.getDatasetIcon(type))
-    }
-
-    private static getDatasetIcon(type: string): Icon {
+    private static getDatasetVisIcon(type: string): VisIcon {
         switch (type.toLowerCase()) {
             case "parquet":
             case "csv":
-                return new Icon("fa-file", "\uf15b", "FontAwesome");
-            case "kafka": return new Icon("fa-window-minimize", "\uf2d1", "FontAwesome");
-            case "socket": return new Icon("fa-plug", "\uf1e6", "FontAwesome");
-            default: return new Icon("fa-circle", "\uf111", "FontAwesome");
+                return new VisIcon("\uf15b");
+            case "kafka": return new VisIcon("\uf2d1")
+            case "socket": return new VisIcon("\uf1e6")
+            default: return new VisIcon("\uf111")
         }
     }
 
 }
 
+
+export class VisIcon {
+    constructor(
+        public code: string,
+        public size: number = 80,
+        public face: string = "FontAwesome",
+        public color: string ="#337ab7"
+    ) {}
+}
