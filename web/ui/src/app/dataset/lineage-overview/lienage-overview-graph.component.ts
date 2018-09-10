@@ -194,34 +194,36 @@ export class LineageOverviewGraphComponent implements OnInit {
 
         let dataSources =
                 _.flatMap(lineage.operations, (op: IComposite) =>
-                    getIdentifiableDataSourcesOf(op).concat(op.destination)),
+                    getIdentifiableDataSourcesOf(op).concat(op.destination))
 
-            datasetNodes: VisNode[] =
+        let datasetNodes: VisNode[] =
                 recombineByDatasetIdAndLongestAppendSequence(dataSources)
-                    .map(([datasetId, src]) =>
-                        new VisDatasetNode(
+                    .map(([datasetId, src]) => {
+                        let lastPathItemName = src.path.substring(src.path.replace(/\/$/, '').lastIndexOf("/") + 1)
+                        let trimmedLabel = LineageOverviewGraphComponent.trimNodeText(src.type + "\n" + lastPathItemName)
+                        return new VisDatasetNode(
                             src,
                             ID_PREFIXES.datasource + datasetId,
                             src.type + ": " + src.path,
-                            src.type + "\n" + src.path.substring(src.path.replace(/\/$/, '').lastIndexOf("/") + 1),
+                            trimmedLabel,
                             LineageOverviewGraphComponent.getIcon(
                                 // Global lineage sink or sources cannot be determined to be exclusively batch or stream.
                                 // Thus neutral icon of a circle is used.
                                 new Icon("fa-circle", "\uf111", "FontAwesome"),
-                                datasetId.startsWith(ID_PREFIXES.extra) ? "#c0cdd6" : undefined)
-                        )),
+                                datasetId.startsWith(ID_PREFIXES.extra) ? "#c0cdd6" : undefined))
+                        })
 
-            processNodes: VisNode[] = lineage.operations.map((op: IComposite) =>
+         let processNodes: VisNode[] = lineage.operations.map((op: IComposite) =>
                 new VisProcessNode(
                     op,
                     ID_PREFIXES.operation + op.mainProps.id,
-                    op.appName,
+                    LineageOverviewGraphComponent.trimNodeText(op.appName),
                     LineageOverviewGraphComponent.getIcon(getIconForNodeType(typeOfOperation(op)))
-                )),
+                ))
 
-            nodes = processNodes.concat(datasetNodes),
+         let nodes = processNodes.concat(datasetNodes)
 
-            edges: vis.Edge[] = _.flatMap(lineage.operations, (op: IComposite) => {
+         let edges: vis.Edge[] = _.flatMap(lineage.operations, (op: IComposite) => {
                 let opNodeId = ID_PREFIXES.operation + op.mainProps.id
                 let inputEdges: vis.Edge[] =
                         recombineByDatasetIdAndLongestAppendSequence(getIdentifiableDataSourcesOf(op))
@@ -247,6 +249,19 @@ export class LineageOverviewGraphComponent implements OnInit {
             new vis.DataSet<vis.Edge>(edges)
         )
     }
+
+    static trimNodeText(text: string): string {
+        let textSize = 13
+        return text.split('\n').map(
+            line => {
+                if (line.length < textSize) {
+                    return line
+                }
+                return line.substring(0, textSize - 2) + "\n" + this.trimNodeText(line.substring(textSize - 2))
+            }
+        ).join("\n")
+    }
+
 
     static getIcon(icon: Icon, color: string = "#337ab7") {
         return {
