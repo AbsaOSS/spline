@@ -60,7 +60,7 @@ export function getIconForNodeType(nodeType: OperationType): Icon {
     }
 }
 
-export function getProcessingIconCode(processingType: ProcessingType): any  {
+export function getProcessingIconCode(processingType: ProcessingType): string {
     if (processingType == 'Stream') {
         return "\uf085";
     } else {

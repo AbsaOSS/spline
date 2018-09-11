@@ -19,7 +19,7 @@ import {getProcessingIconCode, ProcessingType} from "./operation-icon.utils";
 
 @Component({
     selector: "processing-type-icon",
-    template: "<i class='fa {{faIconCode}}'></i>",
+    template: "<i class='fa'>{{faIconCode}}</i>",
     styles: ["i { color: steelblue; }"]
 })
 export class ProcessingTypeIconComponent {

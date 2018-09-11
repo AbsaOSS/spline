@@ -21,13 +21,13 @@ import {getIconForNodeType} from "./operation-icon.utils";
 
 @Component({
     selector: "operation-icon",
-    template: "<i class='fa {{faIconCode}}'></i>",
+    template: "<i class='fa'>{{faIconCode}}</i>",
     styles: ["i { color: steelblue; }"]
 })
 export class OperationIconComponent {
     faIconCode: string
 
     @Input() set operation(op: IOperation) {
-        this.faIconCode = op && getIconForNodeType(typeOfOperation(op)).name
+        this.faIconCode = op && getIconForNodeType(typeOfOperation(op)).code
     }
 }
