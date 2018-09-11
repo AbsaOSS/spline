@@ -19,7 +19,7 @@ import * as vis from "vis";
 export class Icon {
     constructor(public name: string,
                 public code: string,
-                public font: string) {
+                public font: string = "FontAwesome") {
     }
 }
 

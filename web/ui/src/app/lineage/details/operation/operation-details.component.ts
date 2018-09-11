@@ -18,8 +18,8 @@ import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from "
 import {IAttribute, IOperation} from "../../../../generated-ts/lineage-model";
 import {LineageStore} from "../../lineage.store";
 import {OperationType, typeOfExpr, typeOfOperation} from "../../types";
-import {IExpression} from "../../../../generated-ts/operation-model";
-import {getIconForNodeType} from "./operation-icon.utils";
+import {IComposite, IExpression} from "../../../../generated-ts/operation-model";
+import {getCompositeIcon, getIconForNodeType} from "./operation-icon.utils";
 
 @Component({
     selector: "operation-details",
@@ -47,7 +47,11 @@ export class OperationDetailsComponent implements OnChanges {
     }
 
     getOperationIcon() {
-        return getIconForNodeType(this.operationType).name
+        if (this.operationType == 'Composite') {
+            return getCompositeIcon(this.operation as IComposite).name
+        } else {
+            return getIconForNodeType(this.operationType).name
+        }
     }
 
     //noinspection JSMethodCanBeStatic

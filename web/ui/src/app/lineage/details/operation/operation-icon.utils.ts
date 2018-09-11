@@ -16,6 +16,7 @@
 
 import {OperationType} from "../../types";
 import {Icon} from "../../../visjs/vis-model";
+import {IComposite} from '../../../../generated-ts/operation-model';
 
 export function getIconForNodeType(nodeType: OperationType): Icon {
     let font = "FontAwesome";
@@ -60,11 +61,20 @@ export function getIconForNodeType(nodeType: OperationType): Icon {
     }
 }
 
-export function getProcessingIconCode(processingType: ProcessingType): string {
+export function getProcessingIcon(processingType: ProcessingType): Icon {
     if (processingType == 'Stream') {
-        return "\uf085";
+        return new Icon("fa-angle-double-down", "\uf103");
     } else {
-        return "\uf103";
+        return new Icon('fa-cogs', "\uf085");
+    }
+}
+
+
+export function getCompositeIcon(composite: IComposite): Icon {
+    if (composite.isBatchNotStream) {
+        return getProcessingIcon("Batch")
+    } else {
+        return getProcessingIcon("Stream")
     }
 }
 

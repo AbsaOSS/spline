@@ -35,7 +35,7 @@ import {
 } from "./lineage-overview.model";
 import {ClusterManager} from "../../visjs/cluster-manager";
 import {Icon, VisClusterNode, VisModel} from "../../visjs/vis-model";
-import {getIconForNodeType, getProcessingIconCode} from "../../lineage/details/operation/operation-icon.utils";
+import { getCompositeIcon } from "../../lineage/details/operation/operation-icon.utils";
 
 @Component({
     selector: 'lineage-overview-graph',
@@ -258,13 +258,7 @@ export class LineageOverviewGraphComponent implements OnInit {
     }
 
     private static getProcessingVisIcon(op: IComposite): any  {
-        let code
-        if (op.isBatchNotStream) {
-            code = getProcessingIconCode("Batch")
-        } else {
-            code = getProcessingIconCode("Stream")
-        }
-        return new VisIcon(code);
+        return new VisIcon(getCompositeIcon(op).code);
     }
 
     private static getDatasetVisIcon(type: string): VisIcon {

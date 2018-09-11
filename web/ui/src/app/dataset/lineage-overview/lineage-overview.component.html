@@ -68,7 +68,7 @@
                 <div *ngIf="selectedOperation">
                     <details-panel-header
                             [caption]="selectedOperation.appName"
-                            faIcon="fa-cogs"
+                            [faIcon]="getSelectedOperationIcon()"
                             iconColor="steelblue">
                     </details-panel-header>
                     <hr>

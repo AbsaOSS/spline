@@ -22,6 +22,7 @@ import * as _ from "lodash";
 import {GraphNode, GraphNodeType} from "./lineage-overview.model";
 import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
 import {LineageAccessors} from "../../lineage/lineage.store";
+import {getCompositeIcon} from '../../lineage/details/operation/operation-icon.utils';
 
 @Component({
     templateUrl: "lineage-overview.component.html",
@@ -109,6 +110,10 @@ export class DatasetLineageOverviewComponent {
                 relativeTo: this.route.parent.parent.parent,
                 queryParamsHandling: 'merge'
             })
+    }
+
+    getSelectedOperationIcon(): string {
+        return getCompositeIcon(this.selectedOperation).name
     }
 }
 

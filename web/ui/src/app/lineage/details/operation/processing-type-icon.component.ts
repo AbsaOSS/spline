@@ -15,19 +15,19 @@
  */
 
 import {Component, Input} from "@angular/core";
-import {getProcessingIconCode, ProcessingType} from "./operation-icon.utils";
+import {getProcessingIcon, ProcessingType} from "./operation-icon.utils";
 
 @Component({
     selector: "processing-type-icon",
-    template: "<i class='fa'>{{faIconCode}}</i>",
+    template: "<i class='fa {{faIcon}}'></i>",
     styles: ["i { color: steelblue; }"]
 })
 export class ProcessingTypeIconComponent {
-    faIconCode: string
+    faIcon: string
 
     @Input() set processingType(pt: ProcessingType) {
         if (pt) {
-            this.faIconCode = getProcessingIconCode(pt)
+            this.faIcon = getProcessingIcon(pt).name
         }
     }
 
