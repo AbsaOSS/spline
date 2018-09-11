@@ -30,6 +30,7 @@ import {ExpressionDialogComponent} from "./expression/expression-dialog.componen
 import {TreeModule} from "angular-tree-component";
 import {AttributeListComponent} from "./attribute-list/attribute-list.component";
 import {DataTypeViewComponent} from "./attribute-list/data-type-view/data-type-view.component";
+import {ProcessingTypeIconComponent} from './operation/processing-type-icon.component';
 
 @NgModule({
     imports: [
@@ -46,13 +47,15 @@ import {DataTypeViewComponent} from "./attribute-list/data-type-view/data-type-v
         ExpressionInlineComponent,
         ExpressionDialogComponent,
         AttributeListComponent,
-        DataTypeViewComponent
+        DataTypeViewComponent,
+        ProcessingTypeIconComponent
     ],
     entryComponents: [
         ExpressionDialogComponent
     ],
     exports: [
         OperationIconComponent,
+        ProcessingTypeIconComponent,
         OperationDetailsComponent,
         AttributeListComponent,
         DetailsPanelHeaderComponent

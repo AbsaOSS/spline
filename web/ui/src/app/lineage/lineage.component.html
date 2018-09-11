@@ -59,8 +59,12 @@
                                (selectChange)="onTabChanged($event)">
 
                     <mat-tab label="Summary">
-                        <h2>{{lineage.appName}}</h2>
+                        <h2>
+                            <processing-type-icon [processingType]="processingType"></processing-type-icon>
+                            {{lineage.appName}}
+                        </h2>
                         <pre class="small">#{{lineage.appId}}</pre>
+                        <p>Type: <b>{{processingType}}</b></p>
                         <p>Operations: <b>{{lineage.operations.length}}</b></p>
                         <p>Input data sources: <b>{{getDataSourceCount()}}</b></p>
                     </mat-tab>

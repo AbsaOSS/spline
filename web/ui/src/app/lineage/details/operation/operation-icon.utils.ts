@@ -52,9 +52,6 @@ export function getIconForNodeType(nodeType: OperationType): Icon {
         case "Alias":
             return new Icon("fa-circle-thin", "\uf1db", font);
 
-        case "Composite":
-            return new Icon("fa-cogs", "\uf085", font);
-
         case "Generic":
             return new Icon("fa-question-circle", "\uf059", font);
 
@@ -62,3 +59,13 @@ export function getIconForNodeType(nodeType: OperationType): Icon {
             return null;
     }
 }
+
+export function getProcessingIconCode(processingType: ProcessingType): any  {
+    if (processingType == 'Stream') {
+        return "\uf085";
+    } else {
+        return "\uf103";
+    }
+}
+
+export type ProcessingType = ( "Stream" | "Batch" )

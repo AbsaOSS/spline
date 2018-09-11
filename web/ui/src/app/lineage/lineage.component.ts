@@ -22,6 +22,7 @@ import {OperationType, typeOfOperation} from "./types";
 import * as _ from "lodash";
 import {MatTabChangeEvent} from "@angular/material";
 import {Tab} from "./tabs";
+import {ProcessingType} from './details/operation/operation-icon.utils';
 
 @Component({
     templateUrl: 'lineage.component.html',
@@ -32,6 +33,7 @@ export class LineageComponent implements OnInit {
     lineage: IDataLineage
     selectedTabIndex: Tab = Tab.Summary
     selectedOperation?: IOperation
+    processingType: ProcessingType
     selectedAttrIDs: string[]
     highlightedNodeIDs: string[]
 
@@ -51,6 +53,7 @@ export class LineageComponent implements OnInit {
     ngOnInit(): void {
         this.route.data.subscribe((data: { lineage: IDataLineage }) => {
             this.lineage = data.lineage
+            this.processingType = this.parseProcessingType(data.lineage)
             this.lineageStore.lineage = data.lineage
             this.presentHideableOperationTypes =
                 _.intersection(
@@ -144,6 +147,13 @@ export class LineageComponent implements OnInit {
             queryParamsHandling: "merge",
             preserveFragment: true
         })
+    }
+
+    parseProcessingType(lineage: IDataLineage): ProcessingType {
+        return lineage.operations
+            .map(typeOfOperation)
+            .find(op => op.endsWith("Write"))
+            .replace("Write", '') as ProcessingType
     }
 
     toggleOperationTypeVisibility(opType: OperationType) {
