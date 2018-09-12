@@ -53,7 +53,7 @@ export class LineageComponent implements OnInit {
     ngOnInit(): void {
         this.route.data.subscribe((data: { lineage: IDataLineage }) => {
             this.lineage = data.lineage
-            this.processingType = this.parseProcessingType(data.lineage)
+            this.processingType = LineageComponent.parseProcessingType(data.lineage)
             this.lineageStore.lineage = data.lineage
             this.presentHideableOperationTypes =
                 _.intersection(
@@ -149,7 +149,7 @@ export class LineageComponent implements OnInit {
         })
     }
 
-    parseProcessingType(lineage: IDataLineage): ProcessingType {
+    static parseProcessingType(lineage: IDataLineage): ProcessingType {
         return lineage.operations
             .map(typeOfOperation)
             .find(op => op.endsWith("Write"))

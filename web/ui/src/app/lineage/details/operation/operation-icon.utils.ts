@@ -53,6 +53,7 @@ export function getDatasetIcon(storageType: string): Icon {
         default: return new Icon('fa-database', "\uf1c0")
     }
 }
+
 export function getProcessingIcon(processingType: ProcessingType): Icon {
     if (processingType == 'Stream') {
         return new Icon("fa-angle-double-down", "\uf103");
@@ -60,7 +61,6 @@ export function getProcessingIcon(processingType: ProcessingType): Icon {
         return new Icon('fa-cogs', "\uf085");
     }
 }
-
 
 export function getCompositeIcon(composite: IComposite): Icon {
     if (composite.isBatchNotStream) {

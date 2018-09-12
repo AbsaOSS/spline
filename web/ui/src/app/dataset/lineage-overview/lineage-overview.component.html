@@ -74,6 +74,7 @@
                     <hr>
                     <h5>Application ID: <b>{{selectedOperation.appId}}</b></h5>
                     <h5>Timestamp: <b>{{selectedOperation.timestamp | date:'medium'}}</b></h5>
+                    <h5>Type: <b>{{getSelectedOperationProcessingType()}}</b></h5>
                     <hr>
                     <div style="text-align: center">
                         <button mat-raised-button (click)="gotoPartialLineage(selectedOperation.mainProps.id)">
