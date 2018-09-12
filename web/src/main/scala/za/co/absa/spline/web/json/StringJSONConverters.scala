@@ -80,11 +80,13 @@ object StringJSONConverters {
 
   implicit class CloseableIterableToJson[T <: AnyRef with io.Serializable : Manifest](ci: CloseableIterable[T]) {
 
-    import za.co.absa.spline.common.ARMImplicits._
+    import za.co.absa.spline.common.ARM._
 
-    def toJsonArray: String = for (managedCI <- ci) yield Serialization.write(managedCI.iterator.toStream)
+    def toJsonArray: String =
+      using(ci) { ci => Serialization.write(ci.iterator.toStream) }
 
-    def asJsonArrayInto(out: Writer): Unit = for (managedCI <- ci) yield Serialization.write(managedCI.iterator.toStream, out)
+    def asJsonArrayInto(out: Writer): Unit =
+      using(ci) { ci => Serialization.write(ci.iterator.toStream, out) }
   }
 
   implicit class CollectionToJson[T <: AnyRef with io.Serializable : Manifest](xs: Traversable[T]) {

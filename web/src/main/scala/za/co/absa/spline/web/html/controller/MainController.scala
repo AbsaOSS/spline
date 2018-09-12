@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMethod.{GET, HEAD}
 import org.springframework.web.bind.annotation.{RequestMapping, RequestParam, ResponseBody}
-import za.co.absa.spline.common.ARMImplicits
+import za.co.absa.spline.common.ARM._
 import za.co.absa.spline.persistence.api.DataLineageReader
 import za.co.absa.spline.web.ExecutionContextImplicit
 import za.co.absa.spline.web.exception.LineageNotFoundException
@@ -54,9 +54,8 @@ class MainController @Autowired()
   @RequestMapping(path = Array("/build-info"), method = Array(GET), produces = Array("text/x-java-properties"))
   @ResponseBody
   def buildInfo: String = {
-    import ARMImplicits._
     val lines = for {
-      stream <- this.getClass getResourceAsStream "/build.properties"
+      stream <- managed(this.getClass getResourceAsStream "/build.properties")
       line <- fromInputStream(stream).getLines if line.nonEmpty && !line.startsWith("#")
     } yield line
     lines.mkString("\n")

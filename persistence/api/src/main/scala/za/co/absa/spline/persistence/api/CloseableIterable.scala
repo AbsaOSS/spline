@@ -33,6 +33,15 @@ class CloseableIterable[T](val iterator: Iterator[T], closeFunction: => Unit) ex
       iterator = this.iterator ++ otherIterable.iterator,
       try this.close()
       finally otherIterable.close())
+
+  def map[U](fn: T => U): CloseableIterable[U] =
+    new CloseableIterable[U](iterator.map(fn), closeFunction)
+
+  def flatMap[U](fn: T => Iterable[U]): CloseableIterable[U] =
+    new CloseableIterable[U](iterator.flatMap(fn), closeFunction)
+
+  def filter(p: T => Boolean): CloseableIterable[T] =
+    new CloseableIterable[T](iterator.filter(p), closeFunction)
 }
 
 object CloseableIterable {

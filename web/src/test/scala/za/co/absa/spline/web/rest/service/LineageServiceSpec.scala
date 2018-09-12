@@ -83,7 +83,7 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
     when(readerMock.loadByDatasetId(≡(UUIDS2))(any())) thenReturn Future.successful(Some(lineage2))
 
     when(readerMock.findByInputId(≡(UUIDS1))(any())) thenReturn Future.successful(new CloseableIterable(Iterator(lineage2), {}))
-    when(readerMock.findByInputId(≡(UUIDS2))(any())) thenReturn Future.successful(new CloseableIterable(Iterator.empty, {}))
+    when(readerMock.findByInputId(≡(UUIDS2))(any())) thenReturn Future.successful(CloseableIterable.empty[DataLineage])
 
     val svc = new LineageService(readerMock)
 
@@ -192,13 +192,13 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
     when(readerMock.loadByDatasetId(≡(eUUID))(any())) thenReturn Future.successful(Some(lineageE))
 
     when(readerMock.findByInputId(≡(aUUID))(any())) thenReturn Future.successful(new CloseableIterable(Iterator(lineageB, lineageC), {}))
-    when(readerMock.findByInputId(≡(bUUID))(any())) thenReturn Future.successful(new CloseableIterable(Iterator.empty, {}))
-    when(readerMock.findByInputId(≡(cUUID))(any())) thenReturn Future.successful(new CloseableIterable(Iterator.empty, {}))
+    when(readerMock.findByInputId(≡(bUUID))(any())) thenReturn Future.successful(CloseableIterable.empty[DataLineage])
+    when(readerMock.findByInputId(≡(cUUID))(any())) thenReturn Future.successful(CloseableIterable.empty[DataLineage])
     when(readerMock.findByInputId(≡(dUUID))(any())) thenReturn Future.successful(new CloseableIterable(Iterator(lineageA), {}))
     when(readerMock.findByInputId(≡(eUUID))(any())) thenReturn Future.successful(new CloseableIterable(Iterator(lineageA), {}))
   }
 
-  it should "be able to construst small high order lineage out of 5 composits, starting at point A" in {
+  it should "be able to construst small high order lineage out of 5 composites, starting at point A" in {
     val readerMock: DataLineageReader = mock[DataLineageReader]
     val svc = new LineageService(readerMock)
     prepareBigLineageMock(readerMock)
@@ -211,7 +211,7 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
     }
   }
 
-  it should "be able to construst small high order lineage out of 5 composits, starting at point C" in {
+  it should "be able to construct small high order lineage out of 5 composits, starting at point C" in {
     val readerMock: DataLineageReader = mock[DataLineageReader]
     val svc = new LineageService(readerMock)
     prepareBigLineageMock(readerMock)
@@ -224,7 +224,7 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
     }
   }
 
-  it should "be able to construst small high order lineage out of 5 composits, starting at point D" in {
+  it should "be able to construct small high order lineage out of 5 composites, starting at point D" in {
     val readerMock: DataLineageReader = mock[DataLineageReader]
     val svc = new LineageService(readerMock)
     prepareBigLineageMock(readerMock)

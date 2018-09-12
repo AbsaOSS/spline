@@ -18,6 +18,7 @@ package za.co.absa.spline.web.rest.service
 
 import java.util.UUID
 
+import za.co.absa.spline.common.ARM._
 import za.co.absa.spline.model.dt.DataType
 import za.co.absa.spline.model.op._
 import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset, TypedMetaDataSource}
@@ -107,11 +108,9 @@ class LineageService
 
     // Traverse lineage tree from an dataset Id in the direction from source to destination
     def traverseDown(dsId: UUID): Future[Unit] = {
-      import za.co.absa.spline.common.ARMImplicits._
-      reader.findByInputId(dsId).flatMap {
-        for (compositeList <- _) yield
-          processAndEnqueue(compositeList.iterator)
-      }
+      reader.findByInputId(dsId).flatMap(managed(compositeList =>
+        processAndEnqueue(compositeList.iterator)
+      ))
     }
 
     def processAndEnqueue(lineages: GenTraversableOnce[DataLineage]) = {
