@@ -70,6 +70,8 @@ class StructuredStreamingListener(
     ProgressEvent(
       randomUUID,
       lineage.id,
+      lineage.appId,
+      lineage.appName,
       System.currentTimeMillis(),
       numberOfRecords,
       readPaths,
