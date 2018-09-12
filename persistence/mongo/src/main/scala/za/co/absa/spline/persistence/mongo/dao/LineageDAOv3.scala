@@ -14,25 +14,16 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.mongo
+package za.co.absa.spline.persistence.mongo.dao
 
-import za.co.absa.spline.common.EnumerationMacros.sealedInstancesOf
+import za.co.absa.spline.persistence.mongo.MongoConnection
+import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component
 
-sealed trait LineageComponent
+class LineageDAOv3(override val connection: MongoConnection) extends BaselineLineageDAO {
 
-object LineageComponent {
+  override val version: Int = 3
 
-  case object Root extends LineageComponent
+  override def upgrader: Option[VersionUpgrader] = None
 
-  case object Operation extends LineageComponent
-
-  case object Transformation extends LineageComponent
-
-  case object Attribute extends LineageComponent
-
-  case object Dataset extends LineageComponent
-
-  case object DataType extends LineageComponent
-
-  val values: Set[LineageComponent] = sealedInstancesOf[LineageComponent]
+  override protected def getMongoCollectionNameForComponent(component: Component): String = component.name
 }

@@ -18,41 +18,17 @@ package za.co.absa.spline.persistence.mongo
 
 
 import org.slf4s.Logging
+import salat.grater
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.DataLineageWriter
-import za.co.absa.spline.persistence.mongo.serde.LineageDBOSerDe
+import za.co.absa.spline.persistence.mongo.dao.LineageDAO
+import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext._
 
-import scala.concurrent.{ExecutionContext, Future, blocking}
+import scala.concurrent.{ExecutionContext, Future}
 
-/**
-  *
-  * The class represents Mongo persistence writer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
-  *
-  * @param connection A connection to Mongo database
-  */
-class MongoDataLineageWriter(connection: MongoConnection) extends DataLineageWriter with Logging {
-
-  /**
-    * The method stores a particular data lineage to the persistence layer.
-    *
-    * @param lineage A data lineage that will be stored
-    */
+class MongoDataLineageWriter(lineageDAO: LineageDAO) extends DataLineageWriter with Logging {
   override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = {
     log debug s"Storing lineage objects"
-
-    val (lineageDBO, subComponentDBOs) = {
-      val allComponents = LineageDBOSerDe.serialize(lineage)
-      (allComponents(LineageComponent.Root).head, allComponents - LineageComponent.Root)
-    }
-
-    import connection._
-
-    val eventualSubComponentInserts = subComponentDBOs.map {
-      case (component, dbos) if dbos.nonEmpty => Future(blocking(collections(component).insert(dbos: _*)))
-      case _ => Future.successful(Unit)
-    }
-
-    for (_ <- Future.sequence(eventualSubComponentInserts))
-      yield blocking(collections(LineageComponent.Root).insert(lineageDBO))
+    lineageDAO.save(grater[DataLineage].asDBObject(lineage))
   }
 }

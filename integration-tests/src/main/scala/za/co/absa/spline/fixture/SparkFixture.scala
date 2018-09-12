@@ -20,20 +20,26 @@ import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SparkSession
 import org.scalatest._
 
-trait SparkFixture
-  extends TestSuiteMixin
-    with BeforeAndAfterAll {
+trait AbstractSparkFixture extends BeforeAndAfterAll {
 
-  this: TestSuite =>
+  this: Suite =>
 
-  SparkFixture.touch()
+  AbstractSparkFixture.touch()
 
   protected val spark: SparkSession = SparkSession.builder.getOrCreate
 
   abstract override protected def afterAll(): Unit = try super.afterAll() finally spark.stop()
 }
 
-object SparkFixture {
+trait SparkFixture extends AbstractSparkFixture with TestSuiteMixin {
+  this: TestSuite =>
+}
+
+trait AsyncSparkFixture extends AbstractSparkFixture with AsyncTestSuiteMixin {
+  this: AsyncTestSuite =>
+}
+
+object AbstractSparkFixture {
   /** force the object to be loaded by the class loader */
   private def touch(): Unit = {}
 

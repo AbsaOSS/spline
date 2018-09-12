@@ -16,32 +16,39 @@
 
 package za.co.absa.spline.fixture
 
-import com.mongodb.DBObject
+import java.{util => ju}
+
+import com.mongodb.casbah.MongoDB
+import com.mongodb.{DBCollection, DBObject}
 import org.apache.commons.configuration.Configuration
 import org.apache.spark.sql.DataFrame
 import org.bson.BSON
+import org.mockito.Mockito._
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.stubbing.Answer
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.scalatest.Inspectors.forAll
 import org.scalatest._
-import org.scalatest.matchers.{MatchResult, Matcher}
+import org.scalatest.mockito.MockitoSugar
 import org.slf4s.Logging
 import za.co.absa.spline.common.ByteUnits._
 import za.co.absa.spline.common.TempDirectory
 import za.co.absa.spline.core.conf.DefaultSplineConfigurer.ConfProperty.PERSISTENCE_FACTORY
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
-import za.co.absa.spline.persistence.mongo.serde.LineageDBOSerDe.Components
-import za.co.absa.spline.persistence.mongo.LineageComponent
-import za.co.absa.spline.persistence.mongo.serde.LineageDBOSerDe
-import za.co.absa.spline.scalatest.MatcherImplicits
+import za.co.absa.spline.persistence.mongo.MongoConnection
+import za.co.absa.spline.persistence.mongo.dao.LineageDAOv4
 
-trait SplineFixture
-  extends TestSuiteMixin
-    with BeforeAndAfterAll
-    with SplineFixture.Implicits
-    with SplineFixture.Matchers {
+import scala.collection.JavaConverters._
+import scala.collection.mutable
 
-  this: TestSuite with SparkFixture =>
+trait AbstractSplineFixture
+  extends BeforeAndAfterAll
+    with AbstractSplineFixture.Implicits {
 
-  SplineFixture.touch()
+  this: Suite with AbstractSparkFixture =>
+
+  AbstractSplineFixture.touch()
 
   abstract override protected def beforeAll(): Unit = {
     import za.co.absa.spline.core.SparkLineageInitializer._
@@ -49,14 +56,31 @@ trait SplineFixture
     super.beforeAll()
   }
 
-  abstract override protected def withFixture(test: NoArgTest): Outcome =
-    SplineFixture.synchronized {
-      try super.withFixture(test)
-      finally SplineFixture.justCapturedLineage = null
+  protected def exec[T](body: => T): T = {
+    AbstractSplineFixture.synchronized {
+      try body
+      finally AbstractSplineFixture.justCapturedLineage = null
     }
+  }
 }
 
-object SplineFixture {
+trait SplineFixture extends AbstractSplineFixture with TestSuiteMixin {
+  this: TestSuite with AbstractSparkFixture =>
+
+  abstract override protected def withFixture(test: NoArgTest): Outcome = exec {
+    super.withFixture(test)
+  }
+}
+
+trait AsyncSplineFixture extends AbstractSplineFixture with AsyncTestSuiteMixin {
+  this: AsyncTestSuite with AbstractSparkFixture =>
+
+  abstract override def withFixture(test: NoArgAsyncTest): FutureOutcome = exec {
+    super.withFixture(test)
+  }
+}
+
+object AbstractSplineFixture {
 
   import scala.concurrent.{ExecutionContext, Future}
 
@@ -83,48 +107,42 @@ object SplineFixture {
     implicit class DataFrameLineageExtractor(df: DataFrame) {
       def lineage: DataLineage = {
         df.write.save(TempDirectory("spline", ".parquet", pathOnly = true).deleteOnExit().path.toString)
-        SplineFixture.justCapturedLineage
+        AbstractSplineFixture.justCapturedLineage
       }
     }
 
-  }
+    implicit class LineageComponentSizeVerifier(lineage: DataLineage)(implicit ec: ExecutionContext)
+      extends MockitoSugar with Matchers with Logging {
+      def shouldHaveEveryComponentSizeInBSONLessThan(sizeLimit: Int): Future[Assertion] = {
+        import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext._
 
-  trait Matchers {
-    def haveEveryComponentSizeInBSONLessThan(bsonSizeLimit: Int): Matcher[DataLineage] =
-      HaveEveryComponentSizeInBSONLessThan(bsonSizeLimit)
+        val mongoConnectionMock = mock[MongoConnection]
+        val mongoDBMock = mock[MongoDB]
+        val mongoDBCollectionMocks = mutable.Map.empty[String, DBCollection]
 
-    object HaveEveryComponentSizeInBSONLessThan
-      extends Logging
-        with Implicits
-        with MatcherImplicits {
+        when(mongoConnectionMock.db).thenReturn(mongoDBMock)
+        when(mongoDBMock.getCollection(ArgumentMatchers.any())).thenAnswer(new Answer[DBCollection] {
+          override def answer(invocation: InvocationOnMock): DBCollection =
+            mongoDBCollectionMocks.getOrElseUpdate(invocation getArgument 0, mock[DBCollection])
+        })
 
-      def apply(bsonSizeLimit: Int): Matcher[DataLineage] =
-        (lineage: DataLineage) => {
-          case class ComponentSize(name: String, size: Int)
-
-          def componentBsonSizes(component: LineageComponent, dbos: Seq[DBObject]): Iterator[ComponentSize] =
-            for (dbo <- dbos.iterator) yield {
-              val bsonSize = BSON.encode(dbo).length
-              val name = component.toString
-              log.info(f"$name BSON size: ${bsonSize.toDouble / 1.kb}%.2f kb")
-              ComponentSize(name, bsonSize)
-            }
-
-          val components: Components = LineageDBOSerDe.serialize(lineage)
-
-          val allComponentsSizes = components.iterator.flatMap {
-            case (comp, dbos) => componentBsonSizes(comp, dbos)
-          }
-
-          allComponentsSizes.zipWithIndex.find(_._1.size >= bsonSizeLimit) match {
-            case None => MatchResult(matches = true, "", "")
-            case Some((ComponentSize(name, oversize), i)) => MatchResult(
-              matches = false,
-              f"$name[$i] size ${oversize.toDouble / 1.kb}%.2f kb should be less than ${bsonSizeLimit.toDouble / 1.kb} kb",
-              "")
+        for (_ <- new LineageDAOv4(mongoConnectionMock).save(salat.grater[DataLineage].asDBObject(lineage))) yield {
+          forAll(mongoDBCollectionMocks) {
+            case (colName, col) =>
+              val argCaptor = ArgumentCaptor.forClass(classOf[ju.List[DBObject]]): ArgumentCaptor[ju.List[DBObject]]
+              verify(col, atLeastOnce).insert(argCaptor.capture())
+              val dbos = argCaptor.getAllValues.asScala.flatMap(_.asScala)
+              forAll(dbos.zipWithIndex) {
+                case (dbo, i) =>
+                  val actualSize = BSON.encode(dbo).length
+                  log.info(f"$colName[$i] BSON size: ${actualSize.toDouble / 1.kb}%.2f kb")
+                  actualSize should be < sizeLimit
+              }
           }
         }
+      }
     }
+
 
   }
 

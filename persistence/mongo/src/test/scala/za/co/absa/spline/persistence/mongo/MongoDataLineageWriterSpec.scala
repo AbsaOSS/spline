@@ -71,6 +71,17 @@ class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase wit
       }
     }
 
+    it("should support Projection operation with no transformations") {
+      val lineageWithExpressions = lineage.copy(operations =
+        lineage.operations :+ op.Projection(OperationProps(randomUUID, "", Nil, randomUUID), Nil))
+      for {
+        _ <- mongoWriter store lineageWithExpressions
+        storedLineage <- mongoReader loadByDatasetId lineageWithExpressions.rootDataset.id
+      } yield {
+        storedLineage.get shouldEqual lineageWithExpressions
+      }
+    }
+
 
   }
 }

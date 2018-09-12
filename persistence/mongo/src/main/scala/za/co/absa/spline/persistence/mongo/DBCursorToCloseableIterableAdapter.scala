@@ -20,14 +20,11 @@ import java.{util => ju}
 
 import com.mongodb.Cursor
 import com.mongodb.casbah.Imports._
-import salat.grater
 import za.co.absa.spline.persistence.api.CloseableIterable
-import za.co.absa.spline.persistence.mongo.DBSchemaVersionHelper.withVersionCheck
-import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext._
 
 import scala.collection.JavaConverters._
 
-class DBCursorToCloseableIterableAdapter[T <: AnyRef : Manifest](cur: Cursor)
-  extends CloseableIterable[T](
-    iterator = (cur: ju.Iterator[DBObject]).asScala map withVersionCheck(grater[T] asObject _),
+class DBCursorToCloseableIterableAdapter(cur: Cursor)
+  extends CloseableIterable[DBObject](
+    iterator = (cur: ju.Iterator[DBObject]).asScala,
     closeFunction = cur.close())

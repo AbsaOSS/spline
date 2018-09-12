@@ -16,31 +16,17 @@
 
 package za.co.absa.spline.persistence.mongo
 
-import com.mongodb.DBCollection
 import com.mongodb.casbah.Imports.MongoClientURI
-import com.mongodb.casbah.MongoClient
-import za.co.absa.spline.persistence.mongo.LineageComponent._
+import com.mongodb.casbah.{MongoClient, MongoDB}
 
-/**
-  * The class represents a connection to a specific Mongo database
-  *
-  * @param dbUrl  An url to Mongo server
-  * @param dbName A database name
-  */
-class MongoConnection(dbUrl: String, dbName: String) {
+trait MongoConnection {
+  def db: MongoDB
+}
+
+class MongoConnectionImpl(dbUrl: String, dbName: String) extends MongoConnection {
   private val client: MongoClient = MongoClient(MongoClientURI(dbUrl))
+
   require(client.databaseNames != null) // check if the connection can be established
 
-  private val database = client.getDB(dbName)
-
-  val collections: Map[LineageComponent, DBCollection] = Map(
-    Root -> database.getCollection("lineages"),
-    Operation -> database.getCollection("operations"),
-    Transformation -> database.getCollection("transformations"),
-    Attribute -> database.getCollection("attributes"),
-    Dataset -> database.getCollection("datasets"),
-    DataType -> database.getCollection("datatypes")
-  )
-
-  assert(collections.size == LineageComponent.values.size, "Every component should be mapped to a collection")
+  val db: MongoDB = client.getDB(dbName)
 }

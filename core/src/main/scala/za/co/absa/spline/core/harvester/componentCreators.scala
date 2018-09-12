@@ -22,10 +22,10 @@ import org.apache.commons.lang3.StringUtils.substringAfter
 import org.apache.spark.sql.catalyst.expressions
 import org.apache.spark.sql.catalyst.expressions.{Literal, Attribute => SparkAttribute, Expression => SparkExpression}
 import org.apache.spark.sql.catalyst.util.ArrayData
+import za.co.absa.spline.common.transformations.{AbstractConverter, CachingConverter}
 import za.co.absa.spline.model.dt._
 import za.co.absa.spline.model.{Attribute, MetaDataset, Schema, expr}
 
-import scala.collection.immutable.ListMap
 import scala.collection.mutable
 import scala.reflect.runtime
 import scala.reflect.runtime.universe
@@ -35,25 +35,6 @@ class ComponentCreatorFactory {
   val attributeConverter = new AttributeConverter(dataTypeConverter) with CachingConverter
   val expressionConverter = new ExpressionConverter(dataTypeConverter, attributeConverter)
   val metaDatasetConverter = new MetaDatasetConverter(attributeConverter) with CachingConverter
-}
-
-trait AbstractConverter {
-  type From
-  type To
-
-  def convert(arg: From): To
-}
-
-trait CachingConverter extends AbstractConverter {
-  private var cache = ListMap.empty[From, To]
-
-  def values: Seq[To] = cache.values.toSeq
-
-  abstract override def convert(arg: From): To = cache.getOrElse(arg, {
-    val value = super.convert(arg)
-    cache += arg -> value
-    value
-  })
 }
 
 class DataTypeConverter extends AbstractConverter {

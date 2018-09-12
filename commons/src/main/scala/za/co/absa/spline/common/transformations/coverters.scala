@@ -14,10 +14,23 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.mongo
+package za.co.absa.spline.common.transformations
 
-object DBOFields {
-  val lineageIdField = "_lineageId"
-  val idField = "_id"
-  val indexField = "_index"
+import scala.collection.mutable
+
+trait AbstractConverter {
+  type From
+  type To
+
+  def convert(arg: From): To
 }
+
+trait CachingConverter extends AbstractConverter {
+  private val cache = mutable.Map.empty[From, To]
+
+  def values: Seq[To] = cache.values.toSeq
+
+  abstract override def convert(arg: From): To =
+    cache.getOrElseUpdate(arg, super.convert(arg))
+}
+

@@ -25,5 +25,5 @@ object MongoTestProperties {
   private val mongoDBUri: String = new SystemConfiguration() getRequiredString "test.spline.mongodb.url"
   private val mongoDBName: String = new SystemConfiguration() getRequiredString "test.spline.mongodb.name"
 
-  val mongoConnection: MongoConnection = new MongoConnection(mongoDBUri, mongoDBName)
+  val mongoConnection: MongoConnection = new MongoConnectionImpl(mongoDBUri, mongoDBName)
 }

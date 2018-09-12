@@ -20,13 +20,13 @@ import org.apache.spark.sql.Column
 import org.apache.spark.sql.types.IntegerType
 import org.scalatest._
 import za.co.absa.spline.common.ByteUnits._
-import za.co.absa.spline.fixture.{SparkFixture, SplineFixture}
+import za.co.absa.spline.fixture.{AsyncSparkFixture, AsyncSplineFixture}
 
 class LineageToBSONSerializationSpec
-  extends FlatSpec
+  extends AsyncFlatSpec
     with Matchers
-    with SparkFixture
-    with SplineFixture {
+    with AsyncSparkFixture
+    with AsyncSplineFixture {
 
   import spark.implicits._
 
@@ -37,7 +37,7 @@ class LineageToBSONSerializationSpec
       Seq((1, 2), (3, 4)).toDF().agg(concat(sum('_1), min('_2)) as "forty_two").lineage
 
     smallLineage.operations.length shouldBe 3
-    smallLineage should haveEveryComponentSizeInBSONLessThan(2.kb)
+    smallLineage shouldHaveEveryComponentSizeInBSONLessThan 2.kb
   }
 
   it should "serialize big lineage" in {
@@ -66,6 +66,6 @@ class LineageToBSONSerializationSpec
       .select(columnNames map aComplexExpression: _*)
       .lineage
 
-    bigLineage should haveEveryComponentSizeInBSONLessThan(100.kb)
+    bigLineage shouldHaveEveryComponentSizeInBSONLessThan 100.kb
   }
 }

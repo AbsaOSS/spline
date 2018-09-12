@@ -25,14 +25,19 @@ import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op.{Generic, OperationProps, Write}
 import za.co.absa.spline.model.{Attribute, Schema, _}
 import za.co.absa.spline.persistence.mongo.MongoTestProperties.mongoConnection
+import za.co.absa.spline.persistence.mongo.dao.{LineageDAOv3, LineageDAOv4, MultiVersionLineageDAO}
 
 abstract class MongoDataLineagePersistenceSpecBase
   extends AsyncFunSpec
     with MockitoSugar
     with BeforeAndAfterEach {
 
-  protected val mongoWriter = new MongoDataLineageWriter(mongoConnection)
-  protected val mongoReader = new MongoDataLineageReader(mongoConnection)
+  private val dao = new MultiVersionLineageDAO(
+    new LineageDAOv3(mongoConnection),
+    new LineageDAOv4(mongoConnection))
+
+  protected val mongoWriter = new MongoDataLineageWriter(dao)
+  protected val mongoReader = new MongoDataLineageReader(dao)
 
   protected def createDataLineage(
                                    appId: String,
@@ -75,5 +80,5 @@ abstract class MongoDataLineagePersistenceSpecBase
   }
 
   override protected def afterEach(): Unit =
-    mongoConnection.collections.values.foreach(_.drop())
+    mongoConnection.db.collectionNames.foreach(mongoConnection.db(_).drop)
 }

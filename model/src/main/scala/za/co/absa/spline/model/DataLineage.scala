@@ -18,6 +18,7 @@ package za.co.absa.spline.model
 
 import java.util.UUID
 
+import salat.annotations.Persist
 import za.co.absa.spline.model.dt.DataType
 import za.co.absa.spline.model.op.Operation
 
@@ -48,6 +49,7 @@ case class DataLineage
   /**
     * A unique identifier of the data lineage
     */
+  @Persist
   lazy val id: String = DataLineageId.fromDatasetId(datasets.head.id)
 
   /**
