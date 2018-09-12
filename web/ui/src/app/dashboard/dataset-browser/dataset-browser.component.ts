@@ -67,7 +67,7 @@ export class DatasetBrowserComponent implements OnInit {
     }
 
     newSearch(value:  {[key: string]: string}): void {
-        if (!value.interval) {
+        if (value.interval == "false") {
             let asAt = DatasetBrowserComponent.parseTimestamp(value.until).valueOf()
             this.searchRequest$.next(new PageRequest(value.text, asAt))
         } else {
@@ -92,7 +92,7 @@ export class DatasetBrowserComponent implements OnInit {
     }
 
     selectLineage(datasetId: string): void {
-        if (!this.searchValue.get("interval").value) {
+        if (this.searchValue.get("interval").value == "false") {
             this.router.navigate(["dashboard", "dataset", datasetId, "lineage", "overview"], {
                 fragment: "datasource",
                 relativeTo: this.route.parent
@@ -132,7 +132,7 @@ export class DatasetBrowserComponent implements OnInit {
             text: "",
             from: from != 'Invalid date' ? from: moment().format(DatasetBrowserComponent.TIMESTAMP_FORMAT),
             until: until != 'Invalid date' ? until: moment().format(DatasetBrowserComponent.TIMESTAMP_FORMAT),
-            interval: interval
+            interval: interval ? "true": "false"
         }
     }
 
