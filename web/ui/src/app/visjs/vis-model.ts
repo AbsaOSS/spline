@@ -21,6 +21,19 @@ export class Icon {
                 public code: string,
                 public font: string = "FontAwesome") {
     }
+
+    public toVisIcon(): VisIcon {
+        return new VisIcon(this.code, 80, this.font)
+    }
+}
+
+export class VisIcon {
+    constructor(
+        public code: string,
+        public size: number = 80,
+        public face: string = "FontAwesome",
+        public color: string ="#337ab7"
+    ) {}
 }
 
 export class VisModel<TVisNode extends vis.Node, TVisEdge extends vis.Edge> implements vis.Data {

@@ -21,7 +21,6 @@ import * as vis from "vis";
 import * as _ from "lodash";
 import {Observable} from "rxjs/Observable";
 import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
-import {typeOfOperation} from "../../lineage/types";
 import {visOptions} from "./vis-options";
 import {
     GraphNode,
@@ -34,8 +33,8 @@ import {
     VisProcessNode
 } from "./lineage-overview.model";
 import {ClusterManager} from "../../visjs/cluster-manager";
-import {Icon, VisClusterNode, VisModel} from "../../visjs/vis-model";
-import { getCompositeIcon } from "../../lineage/details/operation/operation-icon.utils";
+import {VisClusterNode, VisModel} from "../../visjs/vis-model";
+import {getDatasetIcon, getOperationIcon} from "../../lineage/details/operation/operation-icon.utils";
 
 @Component({
     selector: 'lineage-overview-graph',
@@ -206,7 +205,7 @@ export class LineageOverviewGraphComponent implements OnInit {
                             ID_PREFIXES.datasource + datasetId,
                             src.type + ": " + src.path,
                             trimmedLabel,
-                            LineageOverviewGraphComponent.getDatasetVisIcon(src.type));
+                            getDatasetIcon(src.type).toVisIcon());
                         });
 
          let processNodes: VisNode[] = lineage.operations.map((op: IComposite) =>
@@ -214,7 +213,7 @@ export class LineageOverviewGraphComponent implements OnInit {
                     op,
                     ID_PREFIXES.operation + op.mainProps.id,
                     LineageOverviewGraphComponent.trimNodeText(op.appName),
-                    LineageOverviewGraphComponent.getProcessingVisIcon(op)))
+                    getOperationIcon(op).toVisIcon()))
 
          let nodes = processNodes.concat(datasetNodes)
 
@@ -257,28 +256,5 @@ export class LineageOverviewGraphComponent implements OnInit {
         ).join("\n")
     }
 
-    private static getProcessingVisIcon(op: IComposite): any  {
-        return new VisIcon(getCompositeIcon(op).code);
-    }
-
-    private static getDatasetVisIcon(type: string): VisIcon {
-        switch (type.toLowerCase()) {
-            case "parquet":
-            case "csv":
-                return new VisIcon("\uf15b");
-            case "kafka": return new VisIcon("\uf2d1")
-            case "socket": return new VisIcon("\uf1e6")
-            default: return new VisIcon("\uf111")
-        }
-    }
-
 }
 
-export class VisIcon {
-    constructor(
-        public code: string,
-        public size: number = 80,
-        public face: string = "FontAwesome",
-        public color: string ="#337ab7"
-    ) {}
-}

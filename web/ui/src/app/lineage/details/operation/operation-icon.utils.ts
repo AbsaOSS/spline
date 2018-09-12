@@ -14,53 +14,45 @@
  * limitations under the License.
  */
 
-import {OperationType} from "../../types";
+import {typeOfOperation} from "../../types";
 import {Icon} from "../../../visjs/vis-model";
 import {IComposite} from '../../../../generated-ts/operation-model';
+import {IOperation} from '../../../../generated-ts/lineage-model';
 
-export function getIconForNodeType(nodeType: OperationType): Icon {
-    let font = "FontAwesome";
+export function getOperationIcon(operation: IOperation): Icon {
+    let type = typeOfOperation(operation);
 
-    switch (nodeType) {
-        case "BatchWrite":
-            return new Icon("fa-floppy-o", "\uf0c7", font);
+    if (type == 'Composite') {
+        return getCompositeIcon(operation as IComposite)
+    } else if (type.endsWith("Write")) {
+        return getDatasetIcon(operation['destinationType']);
+    } else if (type.endsWith('Read')) {
+        return getDatasetIcon(operation['sourceType']);
+    }
 
-        case "StreamRead":
-        case "StreamWrite":
-            return new Icon("fa-angle-double-down", "\uf103", font);
-
-        case "Filter":
-            return new Icon("fa-filter", "\uf0b0", font);
-
-        case "Sort":
-            return new Icon("fa-sort-amount-desc", "\uf161", font);
-
-        case "Aggregate":
-            return new Icon("fa-calculator", "\uf1ec", font);
-
-        case "Join":
-            return new Icon("fa-code-fork", "\uf126", font);
-
-        case "Union":
-            return new Icon("fa-bars", "\uf0c9", font);
-
-        case "Projection":
-            return new Icon("fa-chevron-circle-down", "\uf13a", font);
-
-        case "BatchRead":
-            return new Icon("fa-database", "\uf1c0", font);
-
-        case "Alias":
-            return new Icon("fa-circle-thin", "\uf1db", font);
-
-        case "Generic":
-            return new Icon("fa-question-circle", "\uf059", font);
-
-        default:
-            return null;
+    switch (type) {
+        case "Filter": return new Icon("fa-filter", "\uf0b0");
+        case "Sort": return new Icon("fa-sort-amount-desc", "\uf161");
+        case "Aggregate": return new Icon("fa-calculator", "\uf1ec");
+        case "Join": return new Icon("fa-code-fork", "\uf126");
+        case "Union": return new Icon("fa-bars", "\uf0c9");
+        case "Projection": return new Icon("fa-chevron-circle-down", "\uf13a");
+        case "Alias": return new Icon("fa-circle-thin", "\uf1db");
+        case "Generic": return new Icon("fa-question-circle", "\uf059");
+        default: return null;
     }
 }
 
+export function getDatasetIcon(storageType: string): Icon {
+    switch (storageType.toLowerCase()) {
+        case "parquet":
+        case "csv":
+            return new Icon('fa-file', "\uf15b");
+        case "kafka": return new Icon('fa-window-minimize', "\uf2d1")
+        case "socket": return new Icon('fa-plug', "\uf1e6")
+        default: return new Icon('fa-database', "\uf1c0")
+    }
+}
 export function getProcessingIcon(processingType: ProcessingType): Icon {
     if (processingType == 'Stream') {
         return new Icon("fa-angle-double-down", "\uf103");

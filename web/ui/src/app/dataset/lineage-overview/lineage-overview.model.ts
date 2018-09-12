@@ -16,6 +16,7 @@
 
 import * as vis from "vis";
 import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
+import {VisIcon} from '../../visjs/vis-model';
 
 export interface GraphNode {
     type: GraphNodeType
@@ -31,7 +32,7 @@ export abstract class VisNode implements vis.Node {
     constructor(public nodeType: VisNodeType,
                 public id: string,
                 public label: string,
-                public icon: any) {
+                public icon: VisIcon) {
     }
 }
 
@@ -39,7 +40,7 @@ export class VisProcessNode extends VisNode {
     constructor(public operation: IComposite,
                 id: string,
                 label: string,
-                icon: any) {
+                icon: VisIcon) {
         super(VisNodeType.Process, id, label, icon)
     }
 }
@@ -49,7 +50,7 @@ export class VisDatasetNode extends VisNode {
                 id: string,
                 title: string,
                 label: string,
-                icon: any) {
+                icon: VisIcon) {
         super(VisNodeType.Dataset, id, label, icon)
     }
 }
