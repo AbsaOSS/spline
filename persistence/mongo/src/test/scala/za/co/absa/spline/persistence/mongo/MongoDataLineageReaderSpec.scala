@@ -304,7 +304,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase {
         _ <- Future.sequence(testEvents.map(eventWriter.store))
         result <- mongoReader.getByDatasetIdsByPathAndInterval(path, 100, 115)
       } yield {
-        result should ConsistOfItemsWithAppIds("appID2", "appID5")
+        result should ConsistOfItemsWithAppIds("appID5", "appID2")
       }
     }
 

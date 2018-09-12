@@ -270,7 +270,11 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     val eventFilter = DBObject("$match" → $and(eventCriteria :+ $or(searchCriteria)))
     val lineageIds = withResources(selectLineageIdsBasedOnEvents(eventFilter))(i => i.iterator.toArray)
 
-    val cursor = blocking(dataLineageCollection.find(DBObject(idField → DBObject("$in" → DBList(lineageIds: _*)))))
+    val queryPipeline = Seq(
+      DBObject("$match" → DBObject(idField → DBObject("$in" → DBList(lineageIds: _*)))),
+      DBObject("$sort" → DBObject("timestamp" → -1, "datasetId" → 1))
+    ).asJava
+    val cursor = blocking(dataLineageCollection.aggregate(queryPipeline, aggOpts))
     val futures = cursor.asScala
       .map(deserializeWithVersionCheck[TruncatedDataLineage])
       .map(truncatedDataLineageReader.enrichWithLinked)
