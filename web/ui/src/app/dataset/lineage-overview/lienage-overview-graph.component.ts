@@ -33,7 +33,7 @@ import {
     VisProcessNode
 } from "./lineage-overview.model";
 import {ClusterManager} from "../../visjs/cluster-manager";
-import {VisClusterNode, VisModel} from "../../visjs/vis-model";
+import {VisClusterNode, VisIcon, VisModel} from "../../visjs/vis-model";
 import {getDatasetIcon, getOperationIcon} from "../../lineage/details/operation/operation-icon.utils";
 
 @Component({
@@ -205,7 +205,7 @@ export class LineageOverviewGraphComponent implements OnInit {
                             ID_PREFIXES.datasource + datasetId,
                             src.type + ": " + src.path,
                             trimmedLabel,
-                            getDatasetIcon(src.type).toVisIcon());
+                            this.getTypedSourceIcon(src));
                         });
 
          let processNodes: VisNode[] = lineage.operations.map((op: IComposite) =>
@@ -242,6 +242,16 @@ export class LineageOverviewGraphComponent implements OnInit {
             new vis.DataSet<VisNode>(nodes),
             new vis.DataSet<vis.Edge>(edges)
         )
+    }
+
+    private static getTypedSourceIcon(source: ITypedMetaDataSource): VisIcon {
+        let sourceIcon = getDatasetIcon(source.type).toVisIcon();
+        if (source.datasetsIds[0].startsWith(ID_PREFIXES.extra)) {
+            sourceIcon.color = "#c0cdd6"
+            return sourceIcon;
+        } else {
+            return sourceIcon;
+        }
     }
 
     private static trimNodeText(text: string): string {
