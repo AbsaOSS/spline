@@ -21,23 +21,25 @@ import java.util.UUID.randomUUID
 
 import org.scalatest.{AsyncFunSpec, BeforeAndAfterEach, Matchers}
 import za.co.absa.spline.model.dt.Simple
-import za.co.absa.spline.model.op.{Generic, OperationProps, BatchWrite}
+import za.co.absa.spline.model.op.{BatchWrite, Generic, OperationProps}
+import za.co.absa.spline.model.streaming.ProgressEvent
 import za.co.absa.spline.model.{Attribute, Schema, _}
 import za.co.absa.spline.persistence.mongo.MongoTestProperties.mongoConnection
 
 abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Matchers with BeforeAndAfterEach {
 
-  protected val mongoWriter = new MongoDataLineageWriter(mongoConnection)
+  protected val lineageWriter = new MongoDataLineageWriter(mongoConnection)
+  protected val eventWriter = new MongoProgressEventWriter(mongoConnection)
   protected val mongoReader = new MongoDataLineageReader(mongoConnection)
 
   protected def createDataLineage(
-                                   appId: String,
-                                   appName: String,
-                                   timestamp: Long = 123L,
-                                   datasetId: UUID = randomUUID,
-                                   path: String = "hdfs://foo/bar/path",
-                                   append: Boolean = false)
-  : LinkedLineage = {
+      appId: String,
+      appName: String,
+      timestamp: Long = 123L,
+      datasetId: UUID = randomUUID,
+      path: String = "hdfs://foo/bar/path",
+      append: Boolean = false): LinkedLineage = {
+
     val attributes = Seq(
       Attribute(randomUUID(), "_1", Simple("StringType", nullable = true)),
       Attribute(randomUUID(), "_2", Simple("StringType", nullable = true)),
@@ -68,11 +70,27 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
     new LinkedLineage(lineage, lineage)
   }
 
+  protected def createEvent(linkedLineage: LinkedLineage, timestamp: Long, readCount: Long, readPaths: Seq[String], writePath: String) =
+  {
+    val lineage = linkedLineage.original
+    ProgressEvent(
+      randomUUID,
+      lineage.id,
+      lineage.appId,
+      lineage.appName,
+      timestamp,
+      readCount,
+      readPaths,
+      writePath
+    )
+  }
+
   override protected def afterEach(): Unit = {
     import mongoConnection._
     dataLineageCollection.drop()
     operationCollection.drop()
     attributeCollection.drop()
     datasetCollection.drop()
+    eventsCollection.drop()
   }
 }

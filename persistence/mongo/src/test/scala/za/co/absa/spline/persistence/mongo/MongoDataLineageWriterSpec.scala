@@ -32,7 +32,7 @@ class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase {
 
     it("should store data lineage to a database") {
       for {
-        _ <- mongoWriter store linkedLineage
+        _ <- lineageWriter store linkedLineage
         storedLineage <- mongoReader loadByDatasetId lineage.rootDataset.id
       } yield {
         storedLineage.get shouldEqual lineage
@@ -49,7 +49,7 @@ class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase {
       }
 
       for {
-        _ <- mongoWriter store new LinkedLineage(lineageWithDotsAndDollar, lineageWithDotsAndDollar)
+        _ <- lineageWriter store new LinkedLineage(lineageWithDotsAndDollar, lineageWithDotsAndDollar)
         storedLineage <- mongoReader loadByDatasetId lineageWithDotsAndDollar.rootDataset.id
       } yield
         storedLineage shouldEqual Option(lineageWithDotsAndDollar)

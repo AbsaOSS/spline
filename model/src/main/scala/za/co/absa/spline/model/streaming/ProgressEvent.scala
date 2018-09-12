@@ -30,6 +30,8 @@ import java.util.UUID
 case class ProgressEvent(
   id: UUID,
   lineageId: String,
+  appId: String,
+  appName: String,
   timestamp: Long,
   readCount: Long,
   readPaths: Seq[String],

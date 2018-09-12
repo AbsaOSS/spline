@@ -26,6 +26,7 @@ import com.mongodb.casbah.AggregationOptions.{default => aggOpts}
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.query.Imports
 import org.slf4s.Logging
+import za.co.absa.spline.common.WithResources.withResources
 import za.co.absa.spline.common.UUIDExtractors.UUIDExtractor
 import za.co.absa.spline.model._
 import za.co.absa.spline.persistence.api.DataLineageReader.{IntervalPageRequest, PageRequest, SearchRequest}
@@ -182,17 +183,35 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
     new DBCursorToCloseableIterableAdapter[PersistedDatasetDescriptor](cursor)
   }
 
+
+  private def selectLineageIdsBasedOnEvents(queryPipeline: DBObject*): CloseableIterable[String] = {
+    val eventPipeline = Seq(DBObject("$group" → DBObject(idField → "$lineageId")))
+    val pipeline = (queryPipeline ++ eventPipeline).asJava
+    val cursor = blocking(eventsCollection.aggregate(pipeline, aggOpts))
+    val iterator = cursor.asScala.map(_.get(idField).asInstanceOf[String])
+    new CloseableIterable[String](iterator = iterator, closeFunction = cursor.close())
+  }
+
   private def findDatasets(maybeText: Option[String], intervalPageRequest: IntervalPageRequest)
                           (implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]] = Future {
 
-    val optionalTextSearchCriterion = createOptionalTextSearchCriterion(maybeText)
-    val timestampCriteria: Seq[DBObject] = Seq(
+    val searchCriteria = maybeText.map { text =>
+      val regexMatchOnFieldsCriteria = Seq("appId", "appName", "writePath").map(_.$regex(quote(text)).$options("i"))
+      val optDatasetIdMatchCriterion = UUIDExtractor.unapply(text.toLowerCase).map(uuid => DBObject("lineageId" → DataLineageId.fromDatasetId(uuid)))
+      $or(regexMatchOnFieldsCriteria ++ optDatasetIdMatchCriterion)
+    }
+    val eventCriteria: Seq[DBObject] = Seq(
       "timestamp" $gte intervalPageRequest.from,
-      "timestamp" $lte intervalPageRequest.to
+      "timestamp" $lte intervalPageRequest.to,
+      "readCount" $gt 0
     )
+
+    val eventFilter = DBObject("$match" → $and(eventCriteria ++ searchCriteria))
+    val lineageIds = withResources(selectLineageIdsBasedOnEvents(eventFilter))(i => i.iterator.toArray)
+
     val cursor = selectPersistedDatasets(
-      DBObject("$match" → $and(timestampCriteria ++ optionalTextSearchCriterion)),
-      DBObject("$sort" → DBObject("timestamp" → -1, "rootDataset._id" → 1))
+      DBObject("$match" → DBObject(idField → DBObject("$in" → DBList(lineageIds: _*)))),
+      DBObject("$sort" → DBObject("timestamp" → -1, "datasetId" → 1))
     )
     new DBCursorToCloseableIterableAdapter[PersistedDatasetDescriptor](cursor)
   }
@@ -204,18 +223,18 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
       $or(regexMatchOnFieldsCriteria ++ optDatasetIdMatchCriterion)
   }
 
+
   private def selectPersistedDatasets(queryPipeline: DBObject*): Cursor = {
-    val projectionPipeline: Seq[DBObject] = Seq(
+    val datasetDescriptorProjection = Seq(
       DBObject("$addFields" → DBObject(
         "datasetId" → "$rootDataset._id",
         "path" → "$rootOperation.path"
       )),
       DBObject("$project" → DBObject(persistedDatasetDescriptorFields: _*))
     )
-    val pipeline = (queryPipeline ++ projectionPipeline).asJava
-    blocking(
-      dataLineageCollection.
-        aggregate(pipeline, aggOpts))
+
+    val pipeline = (queryPipeline ++ datasetDescriptorProjection).asJava
+    blocking(dataLineageCollection.aggregate(pipeline, aggOpts))
   }
 
   /**
@@ -237,15 +256,28 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
   }
 
   override def getByDatasetIdsByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[DataLineage]] = {
-      // FIXME avoid quiering all operations with given path without filtering by timestamp via use of events.
-      val cursor: DBCursor = operationCollection.find(DBObject("$or" → DBList(DBObject("sources.path" → path), DBObject("path" → path))))
-      val iterator = cursor.asScala
-        .map(_.get(lineageIdField).asInstanceOf[String])
-        .toSet[String].iterator
-        .map(id => dataLineageCollection.findOne(DBObject("_id" → id, "timestamp" → DBObject("$gt" → start, "$lt" → end))))
-        .filter(_ != null)
-        .map(deserializeWithVersionCheck[TruncatedDataLineage])
-        .map(truncatedDataLineageReader.enrichWithLinked)
-      Future.sequence(iterator).map(i => new CloseableIterable[DataLineage](iterator = i, closeFunction = cursor.close()))
+    val searchCriteria: Seq[DBObject] = Seq(
+      DBObject("writePath" → path),
+      DBObject("readPaths" → path)
+    )
+
+    val eventCriteria: Seq[DBObject] = Seq(
+      "timestamp" $gte start,
+      "timestamp" $lte end,
+      "readCount" $gt 0
+    )
+
+    val eventFilter = DBObject("$match" → $and(eventCriteria :+ $or(searchCriteria)))
+    val lineageIds = withResources(selectLineageIdsBasedOnEvents(eventFilter))(i => i.iterator.toArray)
+
+    val queryPipeline = Seq(
+      DBObject("$match" → DBObject(idField → DBObject("$in" → DBList(lineageIds: _*)))),
+      DBObject("$sort" → DBObject("timestamp" → -1, "datasetId" → 1))
+    ).asJava
+    val cursor = blocking(dataLineageCollection.aggregate(queryPipeline, aggOpts))
+    val futures = cursor.asScala
+      .map(deserializeWithVersionCheck[TruncatedDataLineage])
+      .map(truncatedDataLineageReader.enrichWithLinked)
+    Future.sequence(futures).map(i => new CloseableIterable[DataLineage](iterator = i, closeFunction = cursor.close()))
   }
 }
