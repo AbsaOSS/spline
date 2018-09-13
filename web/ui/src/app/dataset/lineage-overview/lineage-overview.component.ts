@@ -22,7 +22,7 @@ import * as _ from "lodash";
 import {GraphNode, GraphNodeType} from "./lineage-overview.model";
 import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
 import {LineageAccessors} from "../../lineage/lineage.store";
-import {getCompositeIcon, ProcessingType} from '../../lineage/details/operation/operation-icon.utils';
+import {getCompositeIcon, getDatasetIcon, ProcessingType} from '../../lineage/details/operation/operation-icon.utils';
 
 @Component({
     templateUrl: "lineage-overview.component.html",
@@ -121,6 +121,9 @@ export class DatasetLineageOverviewComponent {
     }
     getSelectedOperationIcon(): string {
         return getCompositeIcon(this.selectedOperation).name
+    }
+    getSelectedSourceIcon(): string {
+        return getDatasetIcon(this.selectedDataSourceDescription.source.type).name
     }
 }
 
