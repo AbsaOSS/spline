@@ -16,12 +16,13 @@
 
 package za.co.absa.spline.persistence.atlas
 
-import java.io.{File, FileWriter, IOException}
+import java.io.{File, FileWriter}
 import java.util.Properties
 
 import org.apache.atlas.ApplicationProperties
 import org.apache.commons.configuration.Configuration
 import za.co.absa.spline.common.ARM._
+import za.co.absa.spline.common.TempDirectory
 import za.co.absa.spline.persistence.api._
 
 
@@ -45,20 +46,9 @@ class AtlasPersistenceFactory(configuration: Configuration) extends PersistenceF
 
   import scala.collection.JavaConverters._
 
-  createAtlasTemporaryConfigurationFile()
-
-  def createTempDirectory(): File = {
-    val temp = File.createTempFile("temp", System.nanoTime().toString)
-    if (!temp.delete) throw new IOException("Could not delete temp file: " + temp.getAbsolutePath)
-    if (!temp.mkdir) throw new IOException("Could not create temp directory: " + temp.getAbsolutePath)
-    temp
-  }
-
-  private def createAtlasTemporaryConfigurationFile(): Unit = {
-    val atlasConfTempDir = createTempDirectory()
+  {
+    val atlasConfTempDir = TempDirectory("temp").deleteOnExit().path.toFile
     val atlasConfTempFile = new File(atlasConfTempDir, atlasTemporaryConfigurationFileName)
-    atlasConfTempFile.deleteOnExit()
-    atlasConfTempDir.deleteOnExit()
 
     System.setProperty(atlasConfigurationDirKey, atlasConfTempDir.getAbsolutePath)
 
