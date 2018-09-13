@@ -22,12 +22,12 @@
         </div>
         <input id="asOf" class="form-select-button" type="radio" formControlName="interval" value="false"/>
         <label for="asOf">Last Write</label><br>
+        <input id="interval" class="form-select-button" type="radio" formControlName="interval" value="true"/>
+        <label for="interval">Interval View</label>
         <div class="form-group" *ngIf="searchValue.value.interval == 'false'">
             <label for="until">As-of:</label>
             <input id="until" class="form-control" formControlName="until" ng2-datetime-picker title="As-of or until"/>
         </div>
-        <input id="interval" class="form-select-button" type="radio" formControlName="interval" value="true"/>
-        <label for="interval">Interval View</label>
         <div class="form-group" *ngIf="searchValue.value.interval == 'true'">
             <label for="from">From:</label>
             <input id="from" class="form-control" formControlName="from" ng2-datetime-picker title="from" />
