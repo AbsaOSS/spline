@@ -20,10 +20,7 @@ import org.apache.commons.configuration.SystemConfiguration
 import org.apache.commons.lang.StringUtils.isNotBlank
 import za.co.absa.spline.sample.SparkApp
 
-object ParquetToCsvJob extends SparkApp("Parquet to CSV Job", conf = Seq("spark.sql.shuffle.partitions" -> "4")) {
-
-  import za.co.absa.spline.harvester.SparkLineageInitializer._
-  spark.enableLineageTracking()
+object ParquetToCsvJob extends SparkApp("Parquet to CSV Job", conf = Seq("spark.sql.shuffle.partitions" -> "1")) {
 
   private val configuration = new SystemConfiguration
 
@@ -38,6 +35,9 @@ object ParquetToCsvJob extends SparkApp("Parquet to CSV Job", conf = Seq("spark.
   spark
     .read.parquet(s"data/results/streamingWithDependencies/parquet/date=$date")
     .repartition(1)
-    .write.mode("overwrite").parquet(s"data/results/streamingWithDependencies/csv/$date")
+    .sort('hour)
+    .write.mode("overwrite")
+    .option("header", "true")
+    .csv(s"data/results/streamingWithDependencies/csv/$date")
 
 }
