@@ -39,6 +39,7 @@ object AggregationJob extends SparkApp("AggregationJob", conf = ("spark.sql.shuf
   val sourceDF = spark
     .readStream
     .format("kafka")
+    .option("failOnDataLoss", "false")
     .option("kafka.bootstrap.servers", kafkaServers)
     .option("subscribe", kafkaTopic)
     .option("startingOffsets", "latest")
