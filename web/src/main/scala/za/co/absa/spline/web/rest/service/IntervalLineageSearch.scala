@@ -3,10 +3,10 @@ package za.co.absa.spline.web.rest.service
 import java.util.concurrent.ConcurrentHashMap
 import java.util.{Collections, UUID}
 
+import za.co.absa.spline.model.op.Write
 import za.co.absa.spline.model.{DataLineage, MetaDataset, Schema, TypedMetaDataSource}
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
 
-import scala.collection.{GenTraversableOnce, mutable}
 import scala.concurrent.Future
 
 /*
@@ -29,20 +29,24 @@ class IntervalLineageSearch(reader: DataLineageReader) extends PrelinkedLineageS
 
   import scala.collection.JavaConverters._
 
-  private var start: Long = _
+private var start: Long = _
   private var end: Long = _
 
+  // If for given path exists destination dataset with schema and associated lineage or at least with an real id then it needs to be uniquely selected and stored.
   private var pathToDataset: collection.concurrent.Map[String, MetaDataset] = new ConcurrentHashMap[String, MetaDataset]().asScala
   private var nextPaths = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean]()).asScala
 
   def apply(datasetId: UUID, start: Long, end: Long): Future[DataLineage] = {
     this.start = start
     this.end = end
-    val descriptor = reader.getDatasetDescriptor(datasetId)
-    descriptor
-      .map(d => {
-        pathToDataset.put(d.path.toString, new PlaceholderMetaDataset(d.datasetId))
-        d.path.toString})
+        reader.loadByDatasetId(datasetId)
+        .map(_.get)
+        .map(l => {
+          // Ensures that path of selected dataset id resolved to that dataset id.
+          val d = l.rootDataset
+          val path = l.rootOperation.asInstanceOf[Write].path
+          pathToDataset.put(path, d)
+          path})
       .flatMap(relinkAndAccumulate)
       .map(_ => finalGather())
   }
@@ -50,7 +54,7 @@ class IntervalLineageSearch(reader: DataLineageReader) extends PrelinkedLineageS
   private def relinkAndAccumulate(path: String): Future[Unit] = {
     reader
       .getByDatasetIdsByPathAndInterval(path, start, end)
-      .map(relinkAndAccumulate)
+      .map(remapAndAccumulate)
       .flatMap(_ => {
         val originalNextPaths = nextPaths.clone()
         nextPaths.clear()
@@ -58,14 +62,14 @@ class IntervalLineageSearch(reader: DataLineageReader) extends PrelinkedLineageS
       })
   }
 
-  private def relinkAndAccumulate(lineages: CloseableIterable[DataLineage]): Unit = {
+  private def remapAndAccumulate(lineages: CloseableIterable[DataLineage]): Unit = {
     lineages.iterator
         .map(lineageToCompositeWithDependencies)
-        .map(relinkComposite)
+        .map(remapDestinationsAndAccumulateComposite)
         .foreach(accumulateCompositeDependencies)
   }
 
-  private def relinkComposite(compositeWithDependencies: CompositeWithDependencies): CompositeWithDependencies = {
+  private def remapDestinationsAndAccumulateComposite(compositeWithDependencies: CompositeWithDependencies): CompositeWithDependencies = {
     val originalComposite = compositeWithDependencies.composite
     val originalDestinationDataset = compositeWithDependencies
       .datasets
@@ -73,46 +77,54 @@ class IntervalLineageSearch(reader: DataLineageReader) extends PrelinkedLineageS
       .get
     val newDestinationId = getOrSetPathDataset(originalComposite.destination.path, originalDestinationDataset).id
     val destinationIds = Seq(newDestinationId)
-    val newSources: Seq[TypedMetaDataSource] = originalComposite.sources.map(s => {
+    originalComposite.sources.foreach(s => {
       if (s.datasetsIds.nonEmpty) {
         val originalDatasetId: UUID = s.datasetsIds.head
         val currentDataset = compositeWithDependencies.datasets
           .find(_.id == originalDatasetId)
           .getOrElse(new PlaceholderMetaDataset(originalDatasetId))
-        val dtId = getOrSetPathDataset(s.path, currentDataset).id
-        s.copy(datasetsIds = Seq(dtId))
+        getOrSetPathDataset(s.path, currentDataset).id
       } else {
-        // leads to empty schema in datasets
-        s.copy(datasetsIds = Seq(getOrSetPathDataset(s.path, new PlaceholderMetaDataset()).id))
-      }})
-    val newInputs = newSources.flatMap(_.datasetsIds.headOption.toList)
+        getOrSetPathDataset(s.path, new GeneratedUUIDMetaDataset)
+      }
+    })
     val linkedComposite = originalComposite.copy(
       destination = originalComposite.destination.copy(datasetsIds = destinationIds),
-      sources = newSources,
-      mainProps = originalComposite.mainProps.copy(output = newDestinationId, inputs = newInputs))
+      mainProps = originalComposite.mainProps.copy(output = newDestinationId))
     compositeWithDependencies.copy(composite = linkedComposite)
   }
 
   private def getOrSetPathDataset(path: String, dataset: MetaDataset): MetaDataset = {
     pathToDataset.putIfAbsent(path, dataset)
-      .map(original => {
-        if (original.isInstanceOf[PlaceholderMetaDataset]
-          && !dataset.isInstanceOf[PlaceholderMetaDataset]) {
-          // PlaceholderMetaDataset have no schemas. While we would like any schema available for given path.
-          val datasetWithOriginalIdAndRealSchema = dataset.copy(id = original.id)
-          pathToDataset.put(path, datasetWithOriginalIdAndRealSchema)
-          datasetWithOriginalIdAndRealSchema
-        } else {
+      .map {
+        case _: PlaceholderMetaDataset if !dataset.isInstanceOf[PlaceholderMetaDataset] =>
+          // PlaceholderMetaDataset have no schemas. While we would like any real schema available for given path.
+          pathToDataset.put(path, dataset)
+          dataset
+        case _: GeneratedUUIDMetaDataset if !dataset.isInstanceOf[GeneratedUUIDMetaDataset] =>
+          // Overwrite dataset with generated ids.
+          pathToDataset.put(path, dataset)
+          dataset
+        case original =>
           original
-        }
-      }).getOrElse({
-       // Breath first loop to subtree of path result.path.
+      }.getOrElse({
+        // Breath first loop to subtree of path result.path.
         nextPaths.add(path)
         dataset
     })
   }
 
   override def finalGather(): DataLineage = {
+    // While destinations where remapped to correct datasets the sources could be yet relinked.
+    // That is due no guarantee of existence of dataset with full schema when resolving a source.
+    val operationsWithRelinkedSources = operations
+      .map(op => {
+        val newSources = op.sources.map(s => s.copy(datasetsIds = Seq(pathToDataset(s.path).id)))
+        val newInputs = newSources.map(_.datasetsIds.head).distinct
+        op.copy(
+          mainProps = op.mainProps.copy(inputs = newInputs),
+          sources = newSources)
+      })
     val resolvedDatasetsWithTransformedPlaceholders = pathToDataset
       .values
       .map(_.copy())
@@ -120,14 +132,15 @@ class IntervalLineageSearch(reader: DataLineageReader) extends PrelinkedLineageS
       "appId",
       "appName",
       System.currentTimeMillis(),
-      operations.toSeq.sortBy(_.mainProps.id),
+      operationsWithRelinkedSources.toSeq.sortBy(_.mainProps.id),
       (datasets ++ resolvedDatasetsWithTransformedPlaceholders).toSeq.sortBy(_.id),
       attributes.toSeq.sortBy(_.id))
   }
 
 }
 
-class PlaceholderMetaDataset(id: UUID = UUID.randomUUID()) extends MetaDataset(id, Schema(Seq()))
+class PlaceholderMetaDataset(realId: UUID) extends MetaDataset(realId, Schema(Seq()))
+class GeneratedUUIDMetaDataset extends PlaceholderMetaDataset(UUID.randomUUID())
 
 class IntervalLineageService(reader: DataLineageReader) {
 
