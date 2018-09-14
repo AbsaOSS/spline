@@ -37,6 +37,8 @@ object KafkaMeteoDataReader extends SparkApp("KafkaMeteoDataReader") with KafkaP
     .option("kafka.bootstrap.servers", kafkaServers)
     .option("subscribe", inputTopic)
     .option("startingOffsets", "latest")
+    .option("failOnDataLoss", "false")
+
     .load()
 
   val schema = StructType(Seq(
