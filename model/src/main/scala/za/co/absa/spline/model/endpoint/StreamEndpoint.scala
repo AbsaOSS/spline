@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.model.endpoint
 
-import java.net.{URI, URLEncoder}
+import java.net.URI
 import java.nio.file.Paths
 
 import salat.annotations.Salat
@@ -54,7 +54,7 @@ case class FileEndpoint(format: String, filePath: String) extends StreamEndpoint
   */
 case class KafkaEndpoint(cluster: Seq[String], topics: Seq[String]) extends StreamEndpoint {
   override def paths: Seq[URI] =
-    topics.map(topic => URI.create("kafka://" + URLEncoder.encode(cluster.mkString(","), "UTF-8") + "/" + topic))
+    topics.map(topic => URI.create("kafka://" + cluster.mkString(",") + "/" + topic))
 }
 
 /**
