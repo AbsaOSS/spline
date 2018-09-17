@@ -14,52 +14,47 @@
   ~ limitations under the License.
   -->
 
-<div class="search input-group">
-    <span class="input-group-addon"><mat-icon>search</mat-icon></span>
-    <form [formGroup]="searchValue">
+<mat-tab-group [(selectedIndex)]="selectedIndex">
+    <mat-tab label="Last Write">
+        <div class="search input-group">
+            <form [formGroup]="searchValue">
+                <div class="form-group text-search-group">
+                    <span class="input-group-addon"><mat-icon>search</mat-icon></span>
+                    <input type="text" class="form-control" formControlName="text" placeholder="Sink Name"/>
+                </div>
+                <div class="form-group">
+                    <label for="until">As-of:</label>
+                    <input id="until" class="form-control" formControlName="until" ng2-datetime-picker
+                           title="As-of or until"/>
+                </div>
+            </form>
+        </div>
+        <dataset-results (scrollEvent)="onScroll($event)" (selectLineage)="selectLineage($event)"
+                         [descriptors]="descriptors"></dataset-results>
+    </mat-tab>
+    <mat-tab label="Interval View">
+        <!-- fixme -->
         <div class="form-group">
-            <input type="text" class="form-control" formControlName="text" placeholder="Sink Name" />
+            <div class="search input-group">
+                <input type="text" class="form-control" formControlName="text" placeholder="Sink Name"/>
+            </div>
+            <div class="form-group">
+                <label for="from">From:</label>
+                <input id="from" class="form-control" formControlName="from" ng2-datetime-picker title="from"/>
+            </div>
+            <div class="form-group">
+                <label for="to">To:</label>
+                <input id="to" class="form-control" formControlName="until" ng2-datetime-picker title="to"/>
+            </div>
         </div>
-        <input id="asOf" class="form-select-button" type="radio" formControlName="interval" value="false"/>
-        <label for="asOf">Last Write</label><br>
-        <input id="interval" class="form-select-button" type="radio" formControlName="interval" value="true"/>
-        <label for="interval">Interval View</label>
-        <div class="form-group" *ngIf="searchValue.value.interval == 'false'">
-            <label for="until">As-of:</label>
-            <input id="until" class="form-control" formControlName="until" ng2-datetime-picker title="As-of or until"/>
-        </div>
-        <div class="form-group" *ngIf="searchValue.value.interval == 'true'">
-            <label for="from">From:</label>
-            <input id="from" class="form-control" formControlName="from" ng2-datetime-picker title="from" />
-            <label *ngIf="searchValue.value.interval">To:</label>
-            <input id="to" class="form-control" formControlName="until" ng2-datetime-picker title="to"/>
-        </div>
-    </form>
-    <button mat-icon-button class="cancel"
-            *ngIf="searchValue.value.text.length"
-            (click)="clearText()">
-        <mat-icon>cancel</mat-icon>
-    </button>
-</div>
-
-<ul class="nav nav-pills nav-stacked"
-    detect-scroll
-    [bottomOffset]="300"
-    (onScroll)="onScroll($event)">
-
-    <li role="presentation"
-        *ngFor="let d of descriptors"
-        (click)="selectLineage(d.datasetId)">
-        <a href="javascript:void(0)">
-            <b>{{d.path}}</b>
-            <br/>
-            <span class="small" title="Spark application name">{{d.appName}}</span>
-            <br>
-            <!-- FIXME ensure UTC -->
-            <!-- FIXME acquire more accurate write timestamp -->
-            <span class="small" title="Approximate write timestamp">{{ toDateString(d.timestamp) }}</span>
-        </a>
-    </li>
-</ul>
+        <dataset-results (scrollEvent)="onScroll($event)" (selectLineage)="selectLineage($event)"
+                         [descriptors]="descriptors"></dataset-results>
+    </mat-tab>
+</mat-tab-group>
+<button mat-icon-button class="cancel"
+        *ngIf="searchValue.value.text.length"
+        (click)="clearText()">
+    <mat-icon>cancel</mat-icon>
+</button>
 
 <loading-indicator [active]="descriptors == null"></loading-indicator>

@@ -34,6 +34,7 @@ import {DatasetBrowserService} from "./dataset-browser/dataset-browser.service";
 import {WelcomeComponent} from "./welcome/welcome.component";
 import {MiscModule} from "../misc/misc.module";
 import {ScrollEventModule} from "ngx-scroll-event";
+import {DatasetResultsComponent} from './dataset-browser/dataset-results.component';
 
 @NgModule({
     imports: [
@@ -49,7 +50,8 @@ import {ScrollEventModule} from "ngx-scroll-event";
     declarations: [
         DashboardComponent,
         DatasetBrowserComponent,
-        WelcomeComponent
+        WelcomeComponent,
+        DatasetResultsComponent
     ],
     providers: [
         DatasetBrowserService
