@@ -35,6 +35,18 @@ export class DatasetBrowserComponent implements OnInit {
 
     descriptors: IPersistedDatasetDescriptor[]
 
+    set selectedIndex(selectedIndex: number) {
+        this.searchValue.get('interval').setValue(selectedIndex == 1)
+    }
+
+    get selectedIndex(): number {
+        if (this.searchValue.get('interval').value) {
+            return 1
+        } else {
+            return 0
+        }
+    }
+
     searchValue = new FormGroup({
         text: new FormControl(),
         interval: new FormControl(),
@@ -67,7 +79,7 @@ export class DatasetBrowserComponent implements OnInit {
     }
 
     newSearch(value:  {[key: string]: string}): void {
-        if (value.interval == "false") {
+        if (!value.interval) {
             let asAt = DatasetBrowserComponent.parseTimestamp(value.until).valueOf()
             this.searchRequest$.next(new PageRequest(value.text, asAt))
         } else {
@@ -83,16 +95,12 @@ export class DatasetBrowserComponent implements OnInit {
                 this.searchRequest$.getValue().withOffset(this.descriptors.length))
     }
 
-    toDateString(timestamp: number): string {
-        return new Date(timestamp).toUTCString()
-    }
-
     clearText(): void {
         this.searchValue.get("text").setValue("")
     }
 
     selectLineage(datasetId: string): void {
-        if (this.searchValue.get("interval").value == "false") {
+        if (!this.searchValue.get("interval").value) {
             this.router.navigate(["dashboard", "dataset", datasetId, "lineage", "overview"], {
                 fragment: "datasource",
                 relativeTo: this.route.parent
@@ -132,7 +140,7 @@ export class DatasetBrowserComponent implements OnInit {
             text: "",
             from: from != 'Invalid date' ? from: moment().format(DatasetBrowserComponent.TIMESTAMP_FORMAT),
             until: until != 'Invalid date' ? until: moment().format(DatasetBrowserComponent.TIMESTAMP_FORMAT),
-            interval: interval ? "true": "false"
+            interval: interval
         }
     }
 
