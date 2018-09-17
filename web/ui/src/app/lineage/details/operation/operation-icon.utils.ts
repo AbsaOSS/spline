@@ -48,7 +48,7 @@ export function getDatasetIcon(storageType: string): Icon {
         case "parquet":
         case "csv":
             return new Icon('fa-file', "\uf15b");
-        case "kafka": return new Icon('fa-window-minimize', "\uf2d1")
+        case "kafka": return new Icon('icon-apache_kafka-icon', "\u0041", "Glyphter")
         case "socket": return new Icon('fa-plug', "\uf1e6")
         default: return new Icon('fa-database', "\uf1c0")
     }
