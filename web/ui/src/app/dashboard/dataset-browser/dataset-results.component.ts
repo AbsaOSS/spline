@@ -40,7 +40,7 @@ import {ScrollEvent} from 'ngx-scroll-event';
             </li>
         </ul>
     `,
-    // styleUrls: ["dataset-browser.component.less"]
+    styleUrls: ["dataset-results.component.less"]
 })
 export class DatasetResultsComponent {
 
