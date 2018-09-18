@@ -37,27 +37,39 @@
     height: 100%;
   }
 
-  /deep/ .form-group {
-    width: 100%;
-  }
-
   /deep/ .search {
     width: 100%;
-    height: 155px;
+    height: 145px;
     background-color: lighten(whitesmoke, 2.5%);
     position: relative;
 
-    .text-search-group {
+    /deep/ .form-group {
       width: 100%;
-      position: relative;
-      display: inline-flex
+      display: inline-flex;
+
+      .input-group-addon, label {
+        width: 40px;
+        margin-right: 10px;
+        margin-left: 10px;
+        margin-bottom: 0;
+      }
+
+      .input-group-addon {
+        width: fit-content;
+        margin-right: 10px;
+        padding-right: 0;
+      }
     }
 
-    .input-group-addon {
-      width: fit-content;
+    /deep/ .form-control {
+      border: none;
+      padding: 0;
+      outline: none;
+      box-shadow: none;
+      background: none;
     }
 
-    input, .input-group-addon {
+    /deep/ input, .input-group-addon {
       border: none;
       outline: none;
       box-shadow: none;
@@ -68,10 +80,6 @@
       height: 35px;
       font-size: larger;
       padding-right: 36px;
-    }
-
-    .input-group-addon {
-      padding-right: 0;
     }
 
   }
