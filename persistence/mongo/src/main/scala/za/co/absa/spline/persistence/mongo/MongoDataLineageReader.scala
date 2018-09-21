@@ -99,6 +99,8 @@ class MongoDataLineageReader(connection: MongoConnection) extends DataLineageRea
           dataLineageCollection.aggregate(
             asList(
               DBObject("$match" → DBObject(
+                // Prevent linking to stream lineage.
+                "$not" → DBObject("rootOperation." + typeHintField → path),
                 "rootOperation.path" → path,
                 "rootOperation.append" → false)),
               DBObject("$project" → DBObject("timestamp" → 1)),

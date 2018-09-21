@@ -31,7 +31,7 @@ import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
 
 import scala.concurrent.Future
 
-class DataLineageLinkerSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
+class BatchDataLineageLinkerSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
 
   "Apply method" should "resolve lineage of known input sources and link them by assigning corresponding dataset IDs" in {
     val dataLineageReader = mock[DataLineageReader]
@@ -73,7 +73,7 @@ class DataLineageLinkerSpec extends AsyncFlatSpec with Matchers with MockitoSuga
         }))
     }
 
-    for (result <- new DataLineageLinker(dataLineageReader)(inputLineage))
+    for (result <- new BatchDataLineageLinker(dataLineageReader)(inputLineage))
       yield result.linked shouldEqual expectedResult
   }
 }

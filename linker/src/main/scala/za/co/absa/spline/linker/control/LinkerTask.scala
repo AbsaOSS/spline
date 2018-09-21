@@ -32,7 +32,7 @@ class LinkerTask(serializableConfig: Map[String, Object]) extends MapFunction[Da
     val configuration = toConfiguration(serializableConfig)
     val factory = PersistenceFactory.create(configuration)
     if (factory.createDataLineageReader.isDefined) {
-      new DataLineageLinker(factory.createDataLineageReader.get).apply
+      new BatchDataLineageLinker(factory.createDataLineageReader.get).apply
     } else {
       dataLineage => Future { new LinkedLineage(dataLineage, dataLineage) }
     }

@@ -31,7 +31,7 @@ import scala.language.postfixOps
   *
   * @param reader A reader reading lineage graphs from persistence layer
   */
-class DataLineageLinker(reader: DataLineageReader) extends Logging {
+class BatchDataLineageLinker(reader: DataLineageReader) extends Logging {
 
   /**
     * The method transforms an input instance by a custom logic.
@@ -41,6 +41,7 @@ class DataLineageLinker(reader: DataLineageReader) extends Logging {
     */
   def apply(lineage: DataLineage)(implicit ec: ExecutionContext): Future[LinkedLineage] = {
     def castIfRead(op: Operation): Option[Read] = op match {
+      case a: StreamRead => None // Prevent batch based linking for streams.
       case a: Read => Some(a)
       case _ => None
     }
