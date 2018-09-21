@@ -58,7 +58,7 @@
   "scripts": {
     "install-typings": "typings install",
     "dev": "concurrently --kill-others \"npm run dev-http-server\" \"npm run dev-rest-server\"",
-    "dev-http-server": "cross-env SPLINE_VERSION=0.0.0 webpack-dev-server",
+    "dev-http-server": "cross-env SPLINE_VERSION=0.0.0 webpack-dev-server --port 8081",
     "dev-rest-server": "json-server mock-rest-api/db.js",
     "dev-build": "webpack",
     "prod-build": "cross-env NODE_ENV='production' webpack -p --no-color"

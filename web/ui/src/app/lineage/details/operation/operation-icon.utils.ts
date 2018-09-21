@@ -50,13 +50,14 @@ export function getDatasetIcon(storageType: string): Icon {
             return new Icon('fa-file', "\uf15b");
         case "kafka": return new Icon('icon-apache_kafka-icon', "\u0041", "Glyphter")
         case "socket": return new Icon('icon-ethernet-socket-2', "\u0042", "Glyphter");
+        case "console": return new Icon('fa-terminal', "\uf120");
         default: return new Icon('fa-database', "\uf1c0")
     }
 }
 
 export function getProcessingIcon(processingType: ProcessingType): Icon {
     if (processingType == 'Stream') {
-        return new Icon("fa-angle-double-down", "\uf103");
+        return new Icon("icon-cogs-stream", "\u0043", "Glyphter");
     } else {
         return new Icon('fa-cogs', "\uf085");
     }
