@@ -16,8 +16,9 @@
 
 package za.co.absa.spline.sample
 
-import org.apache.commons.configuration.SystemConfiguration
+import org.apache.commons.configuration.{CompositeConfiguration, PropertiesConfiguration, SystemConfiguration}
 import org.apache.commons.lang.StringUtils.isNotBlank
+
 import scala.collection.JavaConverters._
 
 /**
@@ -25,7 +26,11 @@ import scala.collection.JavaConverters._
   */
 trait KafkaProperties
 {
-  private val configuration = new SystemConfiguration
+
+  val propConf = new PropertiesConfiguration("spline.properties")
+  private val configuration = new CompositeConfiguration(Seq(new SystemConfiguration, propConf).asJavaCollection)
+
+  import scala.collection.JavaConverters._
 
   protected def getRequiredString(key: String): String = {
     // Comma delimited values are parsed as List and method getString returns only first value.

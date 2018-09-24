@@ -47,7 +47,7 @@ object FileMeteoStation extends App with MeteoDataGenerator with Timer {
 
   val lock = new Object()
   val minRecordsInFile = 50
-  val dir = new File("data/input/streamingWithDependencies/fileMeteoStation")
+  val dir = new File(FileMeteoStationConstants.outputPath)
 
   override def doJob = lock.synchronized {
     val currentData = getCurrentData()
@@ -76,4 +76,9 @@ object FileMeteoStation extends App with MeteoDataGenerator with Timer {
   override protected def cleanup: Unit = createDataFile()
 
   run
+}
+
+
+object FileMeteoStationConstants {
+  val outputPath = "data/input/streamingWithDependencies/stationPragueKbely"
 }

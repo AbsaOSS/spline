@@ -18,6 +18,7 @@ package za.co.absa.spline.sample.streamingWithDependencies
 
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
+import za.co.absa.spline.sample.streamingWithDependencies.dataGeneration.KafkaMeteoStationConstants
 import za.co.absa.spline.sample.{KafkaProperties, SparkApp}
 
 object KafkaMeteoDataReader extends SparkApp("KafkaMeteoDataReader") with KafkaProperties {
@@ -27,15 +28,13 @@ object KafkaMeteoDataReader extends SparkApp("KafkaMeteoDataReader") with KafkaP
 
   override def kafkaTopic: String = throw new NotImplementedError("Kafka topic is not supported in this context.")
 
-  val inputTopic: String = getRequiredString("kafka.topic.input")
 
-  val outputTopic: String = getRequiredString("kafka.topic.output")
 
   val sourceDF = spark
     .readStream
     .format("kafka")
     .option("kafka.bootstrap.servers", kafkaServers)
-    .option("subscribe", inputTopic)
+    .option("subscribe", KafkaMeteoStationConstants.outputTopic)
     .option("startingOffsets", "latest")
     .option("failOnDataLoss", "false")
 
@@ -66,7 +65,13 @@ object KafkaMeteoDataReader extends SparkApp("KafkaMeteoDataReader") with KafkaP
     .format("kafka")
     .option("kafka.bootstrap.servers", kafkaServers)
     .option("checkpointLocation", "data/checkpoints/streamingWithDependencies/kafka")
-    .option("topic", outputTopic)
+    .option("topic", KafkaMeteoDataReaderConstants.outputTopic)
     .start()
     .awaitTermination()
+}
+
+object KafkaMeteoDataReaderConstants {
+
+  val outputTopic: String = "temperature.prague.karlov"
+
 }

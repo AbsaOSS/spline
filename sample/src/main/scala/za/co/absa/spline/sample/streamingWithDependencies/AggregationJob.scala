@@ -22,6 +22,8 @@ import za.co.absa.spline.sample.{KafkaProperties, SparkApp}
 
 object AggregationJob extends SparkApp("AggregationJob", conf = ("spark.sql.shuffle.partitions" , "4") :: Nil) with KafkaProperties{
 
+  val inputTopics = FileMeteoDataReaderConstants.outputTopic + "," + KafkaMeteoDataReaderConstants.outputTopic + "," + SocketMeteoDataReaderConstants.outputTopic
+
   import za.co.absa.spline.harvester.SparkLineageInitializer._
   spark.enableLineageTracking()
 
@@ -41,7 +43,7 @@ object AggregationJob extends SparkApp("AggregationJob", conf = ("spark.sql.shuf
     .format("kafka")
     .option("failOnDataLoss", "false")
     .option("kafka.bootstrap.servers", kafkaServers)
-    .option("subscribe", kafkaTopic)
+    .option("subscribe", inputTopics)
     .option("startingOffsets", "latest")
     .load()
 
@@ -57,7 +59,7 @@ object AggregationJob extends SparkApp("AggregationJob", conf = ("spark.sql.shuf
   resultDF
     .writeStream
     .option("checkpointLocation", "data/checkpoints/streamingWithDependencies/aggregation")
-    .option("path", "data/results/streamingWithDependencies/parquet")
+    .option("path", "data/results/streamingWithDependencies/temperature.prague.aggregate")
     .option("header", "true")
     .partitionBy("date")
     .format("parquet")

@@ -18,6 +18,7 @@ package za.co.absa.spline.sample.streamingWithDependencies
 
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
+import za.co.absa.spline.sample.streamingWithDependencies.dataGeneration.FileMeteoStationConstants
 import za.co.absa.spline.sample.{KafkaProperties, SparkApp}
 
 object FileMeteoDataReader extends SparkApp("FileMeteoDataReader") with KafkaProperties{
@@ -38,7 +39,7 @@ object FileMeteoDataReader extends SparkApp("FileMeteoDataReader") with KafkaPro
     .readStream
     .option("header", "true")
     .schema(schema)
-    .csv("data/input/streamingWithDependencies/fileMeteoStation")
+    .csv(FileMeteoStationConstants.outputPath)
 
   val resultDF = sourceDF
     .select(struct(
@@ -55,7 +56,11 @@ object FileMeteoDataReader extends SparkApp("FileMeteoDataReader") with KafkaPro
     .format("kafka")
     .option("kafka.bootstrap.servers", kafkaServers)
     .option("checkpointLocation", "data/checkpoints/streamingWithDependencies/file")
-    .option("topic", kafkaTopic)
+    .option("topic", FileMeteoDataReaderConstants.outputTopic)
     .start()
     .awaitTermination()
+}
+
+object FileMeteoDataReaderConstants {
+  val outputTopic = "temperature.prague.kbely"
 }

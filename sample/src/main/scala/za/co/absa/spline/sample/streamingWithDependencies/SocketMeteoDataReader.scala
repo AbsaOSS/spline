@@ -20,6 +20,7 @@ import java.util.UUID
 
 import org.apache.spark.sql.functions.{from_json, struct, to_json}
 import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
+import za.co.absa.spline.sample.streamingWithDependencies.dataGeneration.SocketMeteoStationConstants
 import za.co.absa.spline.sample.{KafkaProperties, SparkApp}
 
 object SocketMeteoDataReader  extends SparkApp("SocketMeteoDataReader") with KafkaProperties{
@@ -39,7 +40,7 @@ object SocketMeteoDataReader  extends SparkApp("SocketMeteoDataReader") with Kaf
   val sourceDF = spark.readStream
     .format("socket")
     .option("host", "localhost")
-    .option("port", 9999)
+    .option("port", SocketMeteoStationConstants.outputPort)
     .load()
 
   val resultDF = sourceDF
@@ -59,8 +60,11 @@ object SocketMeteoDataReader  extends SparkApp("SocketMeteoDataReader") with Kaf
     .format("kafka")
     .option("kafka.bootstrap.servers", kafkaServers)
     .option("checkpointLocation", s"data/checkpoints/streamingWithDependencies/socket/${UUID.randomUUID}")
-    .option("topic", kafkaTopic)
+    .option("topic", SocketMeteoDataReaderConstants.outputTopic)
     .start()
     .awaitTermination()
 }
 
+object SocketMeteoDataReaderConstants {
+  val outputTopic = "temperature.prague.libus"
+}

@@ -35,7 +35,7 @@ object SocketMeteoStation extends App with MeteoDataGenerator with Timer {
 
   override def timeMetricName = "Time"
 
-  val server = new ServerSocket(9999)
+  val server = new ServerSocket(SocketMeteoStationConstants.outputPort)
   println("Waiting for a client.")
   val socket = server.accept()
   println("A connection with a client has been established.")
@@ -55,4 +55,8 @@ object SocketMeteoStation extends App with MeteoDataGenerator with Timer {
   }
 
   run
+}
+
+object SocketMeteoStationConstants {
+  val outputPort = 9999
 }

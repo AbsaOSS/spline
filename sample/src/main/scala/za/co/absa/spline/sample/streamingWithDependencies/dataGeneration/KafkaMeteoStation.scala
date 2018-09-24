@@ -42,7 +42,7 @@ object KafkaMeteoStation extends App with MeteoDataGenerator with KafkaPropertie
   override def doJob(){
     val data = getCurrentData()
     val json = Json(DefaultFormats).write(data)
-    val kafkaRecord = new ProducerRecord[String, String](kafkaTopic, json)
+    val kafkaRecord = new ProducerRecord[String, String](KafkaMeteoStationConstants.outputTopic, json)
     println("Writing a message with payload:")
     println(json)
     kafkaProducer.send(kafkaRecord)
@@ -58,4 +58,10 @@ object KafkaMeteoStation extends App with MeteoDataGenerator with KafkaPropertie
   val kafkaProducer = new KafkaProducer[String, String](props)
 
   run
+}
+
+object KafkaMeteoStationConstants {
+
+  val outputTopic = "station.prague.karlov"
+
 }
