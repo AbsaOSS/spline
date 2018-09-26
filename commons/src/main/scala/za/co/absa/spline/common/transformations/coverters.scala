@@ -26,7 +26,7 @@ trait AbstractConverter {
 }
 
 trait CachingConverter extends AbstractConverter {
-  private val cache = mutable.Map.empty[From, To]
+  private val cache = mutable.LinkedHashMap.empty[From, To]
 
   def values: Seq[To] = cache.values.toSeq
 
