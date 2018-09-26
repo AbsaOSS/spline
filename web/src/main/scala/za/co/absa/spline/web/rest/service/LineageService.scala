@@ -172,8 +172,17 @@ class LineageService
       }
 
       val dataTypes = {
-        val dataTypeIds = attributes.map(_.dataTypeId).toSet
-        dataLineage.dataTypes.filter(dt => dataTypeIds(dt.id))
+        val collectedDTs = mutable.Set.empty[DataType]
+        val dtById = dataLineage.dataTypes.groupBy(_.id).mapValues(_.head)
+
+        def collectRecursively(dtId: UUID): Unit = {
+            val dt = dtById(dtId)
+            if (collectedDTs.add(dt))
+              dt.childDataTypeIds.foreach(collectRecursively)
+        }
+
+        attributes.foreach(a => collectRecursively(a.dataTypeId))
+        collectedDTs.toSeq
       }
 
       CompositeWithDependencies(composite, datasets, attributes, dataTypes)

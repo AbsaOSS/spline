@@ -27,15 +27,21 @@ import salat.annotations.Salat
 sealed trait DataType {
   val id: UUID
   val nullable: Boolean
+
+  def childDataTypeIds: Seq[UUID]
 }
 
-case class Simple(id: UUID, name: String, nullable: Boolean) extends DataType
+case class Simple(id: UUID, name: String, nullable: Boolean) extends DataType {
+  override def childDataTypeIds: Seq[UUID] = Nil
+}
 
 object Simple {
   def apply(name: String, nullable: Boolean): Simple = Simple(UUID.randomUUID, name: String, nullable: Boolean)
 }
 
-case class Struct(id: UUID, fields: Seq[StructField], nullable: Boolean) extends DataType
+case class Struct(id: UUID, fields: Seq[StructField], nullable: Boolean) extends DataType {
+  override def childDataTypeIds: Seq[UUID] = fields.map(_.dataTypeId)
+}
 
 object Struct {
   def apply(fields: Seq[StructField], nullable: Boolean): Struct = Struct(UUID.randomUUID, fields, nullable)
@@ -43,7 +49,9 @@ object Struct {
 
 case class StructField(name: String, dataTypeId: UUID)
 
-case class Array(id: UUID, elementDataTypeId: UUID, nullable: Boolean) extends DataType
+case class Array(id: UUID, elementDataTypeId: UUID, nullable: Boolean) extends DataType {
+  override def childDataTypeIds: Seq[UUID] = Seq(elementDataTypeId)
+}
 
 object Array {
   def apply(elementDataTypeId: UUID, nullable: Boolean): Array = Array(UUID.randomUUID, elementDataTypeId, nullable)
