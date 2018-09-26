@@ -143,10 +143,15 @@ module.exports = function () {
                     "id": "attr-uuid-105",
                     "name": "MainType",
                     "dataTypeId": "1"
+                },
+                {
+                    "id": "attr-uuid-0013",
+                    "name": "Authors",
+                    "dataTypeId": "13"
                 }],
                 "datasets": [{
                     "id": "ds-uuid-1",
-                    "schema": {"attrs": ["attr-uuid-0", "attr-uuid-1", "attr-uuid-2", "attr-uuid-3", "attr-uuid-4", "attr-uuid-5", "attr-uuid-6", "attr-uuid-7", "attr-uuid-34", "attr-uuid-35", "attr-uuid-74", "attr-uuid-106", "attr-uuid-352"]}
+                    "schema": {"attrs": ["attr-uuid-0", "attr-uuid-1", "attr-uuid-2", "attr-uuid-3", "attr-uuid-4", "attr-uuid-5", "attr-uuid-6", "attr-uuid-7", "attr-uuid-34", "attr-uuid-35", "attr-uuid-74", "attr-uuid-106", "attr-uuid-352", "attr-uuid-0013"]}
                 }, {
                     "id": "ds-uuid-2",
                     "schema": {"attrs": ["attr-uuid-0", "attr-uuid-1", "attr-uuid-2", "attr-uuid-3", "attr-uuid-4", "attr-uuid-5", "attr-uuid-6", "attr-uuid-7", "attr-uuid-34", "attr-uuid-35", "attr-uuid-74", "attr-uuid-106"]}
@@ -870,19 +875,19 @@ module.exports = function () {
                     },
                     "groupings": [{
                         "_typeHint": "za.co.absa.spline.model.expr.AttrRef",
-                        "refId": "bed05b03-276f-4861-99d9-0970c0936079"
+                        "refId": "attr-uuid-5"
                     }, {
                         "_typeHint": "za.co.absa.spline.model.expr.AttrRef",
-                        "refId": "5cada60b-10d0-45c8-8590-957cca18c53e"
+                        "refId": "attr-uuid-6"
                     }],
                     "aggregations": {
                         "id": {
                             "_typeHint": "za.co.absa.spline.model.expr.AttrRef",
-                            "refId": "bed05b03-276f-4861-99d9-0970c0936079"
+                            "refId": "attr-uuid-5"
                         },
                         "title": {
                             "_typeHint": "za.co.absa.spline.model.expr.AttrRef",
-                            "refId": "5cada60b-10d0-45c8-8590-957cca18c53e"
+                            "refId": "attr-uuid-6"
                         },
                         "authors": {
                             "_typeHint": "za.co.absa.spline.model.expr.Alias",
@@ -902,7 +907,7 @@ module.exports = function () {
                                     "dataTypeId": "13",
                                     "children": [{
                                         "_typeHint": "za.co.absa.spline.model.expr.AttrRef",
-                                        "refId": "53ec6b8f-20f4-48fb-9935-25971cedd009"
+                                        "refId": "attr-uuid-5"
                                     }]
                                 }]
                             }
