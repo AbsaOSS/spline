@@ -38,7 +38,7 @@ export function getOperationIcon(operation: IOperation): Icon {
         case "Union": return new Icon("fa-bars", "\uf0c9");
         case "Projection": return new Icon("fa-chevron-circle-down", "\uf13a");
         case "Alias": return new Icon("fa-circle-thin", "\uf1db");
-        case "Generic": return new Icon("fa-question-circle", "\uf059");
+        case "Generic": return new Icon("fa-square", "\uf0c8");
         default: return null;
     }
 }
