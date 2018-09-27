@@ -75,8 +75,8 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
     for (_ <- Future.traverse(subComponents)(saveSubComponent))
       yield {
         val rootProps = lineage.filterKeys(rootComponentPropNames)
-        val rootItem: MongoDBObject = new BasicDBObject(rootProps.asJava)
-        dataLineageCollection.insert(rootItem)
+        val rootItem = new BasicDBObject(rootProps.asJava)
+        dataLineageCollection.insert(asList(rootItem))
       }
   }
 

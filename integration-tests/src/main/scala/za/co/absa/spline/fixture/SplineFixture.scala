@@ -128,9 +128,9 @@ object AbstractSplineFixture {
 
         for (_ <- new LineageDAOv4(mongoConnectionMock).save(salat.grater[DataLineage].asDBObject(lineage))) yield {
           forAll(mongoDBCollectionMocks) {
-            case (colName, col) =>
+            case (colName, colMock) =>
               val argCaptor = ArgumentCaptor.forClass(classOf[ju.List[DBObject]]): ArgumentCaptor[ju.List[DBObject]]
-              verify(col, atLeastOnce).insert(argCaptor.capture())
+              verify(colMock, atLeastOnce).insert(argCaptor.capture())
               val dbos = argCaptor.getAllValues.asScala.flatMap(_.asScala)
               forAll(dbos.zipWithIndex) {
                 case (dbo, i) =>
