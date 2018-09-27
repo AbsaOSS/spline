@@ -27,9 +27,11 @@ import * as _ from 'lodash';
     templateUrl: "attribute-list.component.html",
     styleUrls: ["attribute-list.component.less"]
 })
-export class AttributeListComponent implements OnInit {
+export class AttributeListComponent {
 
-    @Input() attrs: IAttribute[]
+    @Input() set attrs(attrs: IAttribute[]) {
+       this.attrTree = attrs.map(a => this.buildAttrTree(a))
+    }
 
     @Input() set selectedAttrIDs(ids: string[]) {
         this.selectedIds = ids
@@ -54,10 +56,6 @@ export class AttributeListComponent implements OnInit {
         actionMapping: this.actionMapping,
         allowDrag: false,
         allowDrop: false,
-    }
-
-    ngOnInit(): void {
-        this.attrTree = this.attrs.map(a => this.buildAttrTree(a))
     }
 
     onTreeInit() {
