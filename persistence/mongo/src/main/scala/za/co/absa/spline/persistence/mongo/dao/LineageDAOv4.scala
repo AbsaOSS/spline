@@ -125,7 +125,9 @@ object LineageDAOv4 {
     val elementDataTypeId = "elementDataTypeId"
     val fields = "fields"
     val text = "text"
+    val value = "value"
     val name = "name"
+    val exprType = "exprType"
   }
 
   object SubComponentV4 {
@@ -266,6 +268,10 @@ object MutableLineageUpgraderV4 {
         case "Alias" =>
           expr.put(Field.child, expr.get(Field.children).asInstanceOf[ju.List[_]].get(0))
           expr.removeField(Field.dataType)
+        case "Generic" if expr.get(Field.exprType) == "Literal" =>
+          expr.removeField(Field.exprType)
+          expr.put(Field.value, expr.removeField(Field.text))
+          renameExpressionType(expr, "Literal")
         case "Generic" =>
           expr.put(Field.name, StringUtils.substringBefore(expr.removeField(Field.text).toString, "(").trim)
           val children = expr.get(Field.children).asInstanceOf[ju.List[_]]
