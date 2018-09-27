@@ -27,6 +27,7 @@ module.exports = function () {
                 "appId": "ln_ds-uuid-1",
                 "appName": "Sample - FrontCache Conformance",
                 "sparkVer": "2.2.1",
+                "timestamp": 1520949162367,
                 "attributes": [{
                     "id": "attr-uuid-0",
                     "name": "TradeScalar",
@@ -1631,8 +1632,9 @@ module.exports = function () {
                 "id": "ln_ds-uuid-28",
                 "sparkVer": "2.2.1",
                 "appId": "ln_ds-uuid-28",
-                appName: "Foo Bar Application",
-                attributes: [{
+                "timestamp": 1520949162367,
+                "appName": "Foo Bar Application",
+                "attributes": [{
                     "id": "attr-uuid-67",
                     "name": "EnterpriseProductMappingId",
                     "dataTypeId": "1"
@@ -1665,11 +1667,11 @@ module.exports = function () {
                     "name": "EnterpriseProduct",
                     "dataTypeId": "1"
                 }],
-                datasets: [{
+                "datasets": [{
                     "id": "ds-uuid-28",
                     "schema": {"attrs": ["attr-uuid-67", "attr-uuid-68", "attr-uuid-69", "attr-uuid-70", "attr-uuid-71", "attr-uuid-72", "attr-uuid-73", "attr-uuid-74"]}
                 }],
-                operations: [{
+                "operations": [{
                     "_typeHint": "za.co.absa.spline.model.op.Write",
                     "mainProps": {
                         "id": "op-uuid-1-a4",
@@ -1690,7 +1692,7 @@ module.exports = function () {
                     "sourceType": "CSV",
                     "sources": [{"path": "file:/C:/git/lineage/sample/data/Conformance/EnterpriseProductMapping.txt"}]
                 }],
-                dataTypes: [
+                "dataTypes": [
                     {id:1, "_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "string", "nullable": true},
                     {id:2, "_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "decimal(38,10)", "nullable": true},
                     {id:3, "_typeHint": "za.co.absa.spline.model.dt.Simple", "name": "boolean", "nullable": true},
