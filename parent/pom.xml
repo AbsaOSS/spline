@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2017 Barclays Africa Group Limited
+  ~ Copyright 2017 ABSA Group Limited
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -46,8 +46,8 @@
     </licenses>
 
     <organization>
-        <name>Barclays Africa Group Limited</name>
-        <url>https://www.barclaysafrica.com</url>
+        <name>ABSA Group Limited</name>
+        <url>https://www.absa.africa</url>
     </organization>
 
     <developers>
@@ -74,6 +74,12 @@
             <name>Ruslan Iushchenko</name>
             <timezone>Europe/Prague</timezone>
             <url>https://github.com/yruslan</url>
+        </developer>
+        <developer>
+            <id>vackosar</id>
+            <name>Vaclav Kosar</name>
+            <timezone>Europe/Prague</timezone>
+            <url>https://github.com/vackosar</url>
         </developer>
     </developers>
 
