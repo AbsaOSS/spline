@@ -50,9 +50,6 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
   protected lazy val operationCollection: DBCollection = getMongoCollectionForComponent(Component.Operation)
 
   override def save(lineage: DBObject)(implicit e: ExecutionContext): Future[Unit] = {
-    lineage.put("rootOperation", lineage.get(Component.Operation.name).asInstanceOf[Seq[DBObject]].head)
-    lineage.put("rootDataset", lineage.get(Component.Dataset.name).asInstanceOf[Seq[DBObject]].head)
-
     val lineageId = lineage.get(idField).toString
     val subComponentsPropNames = subComponents.map(_.name).toSet
     val rootComponentPropNames = lineage.keySet.asScala -- subComponentsPropNames

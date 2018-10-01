@@ -2410,10 +2410,6 @@ module.exports = function () {
         "_dataset-lineage-overview": [
             {
                 "id": "a38e44ec-bfea-4048-bf21-a9060dbbbb25",
-                "appId": "",
-                "appName": "",
-                "timestamp": 0,
-                "sparkVer": "",
                 "operations": [
                     {
                         "_typeHint": "za.co.absa.spline.model.op.Composite",

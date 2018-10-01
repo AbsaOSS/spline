@@ -131,7 +131,7 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
 
   private val lineageE = DataLineage("AppId", "AppNameE", 0, "0.0.42",
     operations = Seq(Write(OperationProps(operationEUUID, "Save", Seq(), eUUID), "fileE", "fileE.csv", append = false)),
-    datasets = Seq(MetaDataset(xUUID2, Schema(Seq(xUUID2)))),
+    datasets = Seq(MetaDataset(eUUID, Schema(Seq(xUUID2)))),
     attributes = Seq(Attribute(xUUID2, "attributeE", stringType1.id)),
     dataTypes = Seq(stringType1))
 
@@ -140,7 +140,7 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
       Write(OperationProps(operationAUUID, "Save", null, aUUID), "fileA", "fileA.csv", append = false),
       Read(OperationProps(operationAUUID, "Read", Seq(dUUID), null), "fileD", Seq(MetaDataSource("dileD.csv", Seq(dUUID)))),
       Read(OperationProps(operationAUUID, "Read", Seq(eUUID), null), "fileE", Seq(MetaDataSource("dileE.csv", Seq(eUUID))))),
-    datasets = Seq(MetaDataset(xUUID3, Schema(Seq(xUUID3)))),
+    datasets = Seq(MetaDataset(aUUID, Schema(Seq(xUUID3)))),
     attributes = Seq(Attribute(xUUID3, "attributeA", stringType2.id)),
     dataTypes = Seq(stringType2))
 
@@ -149,7 +149,7 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
       Write(OperationProps(operationBUUID, "Save", null, bUUID), "fileB", "fileB.csv", append = false),
       Read(OperationProps(operationBUUID, "Read", Seq(aUUID), null), "fileA", Seq(MetaDataSource("dileA.csv", Seq(aUUID))))
     ),
-    datasets = Seq(MetaDataset(xUUID4, Schema(Seq(xUUID4)))),
+    datasets = Seq(MetaDataset(bUUID, Schema(Seq(xUUID4)))),
     attributes = Seq(Attribute(xUUID4, "attributeB", stringType2.id)),
     dataTypes = Seq(stringType2))
 
@@ -168,7 +168,7 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
         Read(OperationProps(operationCUUID, "Read", Seq(aUUID), null), "fileA", Seq(MetaDataSource("dileA.csv", Seq(aUUID))))
       ),
       datasets = Seq(
-        MetaDataset(xUUID3, Schema(Seq(xUUID3))),
+        MetaDataset(cUUID, Schema(Seq(xUUID3))),
         MetaDataset(ds1Id, Schema(Seq(ds1Id))),
         MetaDataset(ds2Id, Schema(Seq(ds2Id)))
       ),
@@ -205,7 +205,7 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
 
     for (lin <- svc getDatasetLineageOverview aUUID) yield {
       lin.operations.size shouldEqual 5
-      lin.datasets.size shouldEqual 4
+      lin.datasets.size shouldEqual 5
       lin.attributes.size shouldEqual 4
       lin.dataTypes.size shouldEqual 2
     }
@@ -218,7 +218,7 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
 
     for (lin <- svc getDatasetLineageOverview cUUID) yield {
       lin.operations.size shouldEqual 5
-      lin.datasets.size shouldEqual 4
+      lin.datasets.size shouldEqual 5
       lin.attributes.size shouldEqual 4
       lin.dataTypes.size shouldEqual 2
     }
@@ -231,7 +231,7 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
 
     for (lin <- svc getDatasetLineageOverview dUUID) yield {
       lin.operations.size shouldEqual 5
-      lin.datasets.size shouldEqual 4
+      lin.datasets.size shouldEqual 5
       lin.attributes.size shouldEqual 4
       lin.dataTypes.size shouldEqual 2
     }

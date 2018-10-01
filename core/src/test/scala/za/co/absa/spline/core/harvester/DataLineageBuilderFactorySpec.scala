@@ -209,9 +209,9 @@ class DataLineageBuilderFactorySpec extends FlatSpec with Matchers {
     )
 
     val expectedDatasets = Seq(
-      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id))),
       MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id))),
-      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id)))
+      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id))),
+      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id)))
     )
 
     val expectedOperations = Seq(
@@ -220,13 +220,13 @@ class DataLineageBuilderFactorySpec extends FlatSpec with Matchers {
           randomUUID,
           "Filter",
           Seq(expectedDatasets(1).id),
-          expectedDatasets(2).id),
+          expectedDatasets(0).id),
         null),
       Projection(
         OperationProps(
           randomUUID,
           "Project",
-          Seq(expectedDatasets(0).id),
+          Seq(expectedDatasets(2).id),
           expectedDatasets(1).id),
         null),
       Generic(
@@ -234,7 +234,7 @@ class DataLineageBuilderFactorySpec extends FlatSpec with Matchers {
           randomUUID,
           "LocalRelation",
           Seq.empty,
-          expectedDatasets(0).id
+          expectedDatasets(2).id
         ),
         null
       )
@@ -273,16 +273,16 @@ class DataLineageBuilderFactorySpec extends FlatSpec with Matchers {
         OperationProps(
           randomUUID,
           "Union",
-          Seq(expectedDatasets(2).id, expectedDatasets(1).id),
-          expectedDatasets(3).id
+          Seq(expectedDatasets(1).id, expectedDatasets(2).id),
+          expectedDatasets(0).id
         )
       ),
       Filter(
         OperationProps(
           randomUUID,
           "Filter",
-          Seq(expectedDatasets(0).id),
-          expectedDatasets(2).id
+          Seq(expectedDatasets(3).id),
+          expectedDatasets(1).id
         ),
         null
       ),
@@ -291,7 +291,7 @@ class DataLineageBuilderFactorySpec extends FlatSpec with Matchers {
           randomUUID,
           "LocalRelation",
           Seq.empty,
-          expectedDatasets(0).id
+          expectedDatasets(3).id
         ),
         null
       ),
@@ -299,8 +299,8 @@ class DataLineageBuilderFactorySpec extends FlatSpec with Matchers {
         OperationProps(
           randomUUID,
           "Filter",
-          Seq(expectedDatasets(0).id),
-          expectedDatasets(1).id
+          Seq(expectedDatasets(3).id),
+          expectedDatasets(2).id
         ),
         null
       )
@@ -328,34 +328,34 @@ class DataLineageBuilderFactorySpec extends FlatSpec with Matchers {
     )
 
     val expectedDatasets = Seq(
+      MetaDataset(randomUUID, Schema(expectedAttributes.map(_.id))),
       MetaDataset(randomUUID, Schema(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id))),
-      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id))),
       MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(4).id, expectedAttributes(5).id))),
-      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id))),
-      MetaDataset(randomUUID, Schema(expectedAttributes.map(_.id))))
+      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id))),
+      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id))))
 
     val expectedOperations = Seq(
       Join(
         OperationProps(
           randomUUID,
           "Join",
-          Seq(expectedDatasets(3).id, expectedDatasets(2).id),
-          expectedDatasets(4).id),
+          Seq(expectedDatasets(1).id, expectedDatasets(2).id),
+          expectedDatasets(0).id),
         None,
         "Inner"),
       Filter(
         OperationProps(
           randomUUID,
           "Filter",
-          Seq(expectedDatasets(0).id),
-          expectedDatasets(3).id),
+          Seq(expectedDatasets(4).id),
+          expectedDatasets(1).id),
         null),
       Generic(
         OperationProps(
           randomUUID,
           "LocalRelation",
           Seq.empty,
-          expectedDatasets(0).id
+          expectedDatasets(4).id
         ),
         "LocalRelation"
       ),
@@ -363,7 +363,7 @@ class DataLineageBuilderFactorySpec extends FlatSpec with Matchers {
         OperationProps(
           randomUUID,
           "Aggregate",
-          Seq(expectedDatasets(1).id),
+          Seq(expectedDatasets(3).id),
           expectedDatasets(2).id
         ),
         Nil,
@@ -373,8 +373,8 @@ class DataLineageBuilderFactorySpec extends FlatSpec with Matchers {
         OperationProps(
           randomUUID,
           "Project",
-          Seq(expectedDatasets(0).id),
-          expectedDatasets(1).id
+          Seq(expectedDatasets(4).id),
+          expectedDatasets(3).id
         ),
         null
       )

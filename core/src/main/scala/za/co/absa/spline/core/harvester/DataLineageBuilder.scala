@@ -35,14 +35,13 @@ class DataLineageBuilder
   private val componentCreatorFactory: ComponentCreatorFactory = new ComponentCreatorFactory
 
   def buildLineage(logicalPlan: LogicalPlan): DataLineage = {
-    val operations = getOperations(logicalPlan)
     DataLineage(
       sparkContext.applicationId,
       sparkContext.appName,
       System.currentTimeMillis(),
       spark.SPARK_VERSION,
-      operations,
-      componentCreatorFactory.metaDatasetConverter.values,
+      getOperations(logicalPlan).reverse,
+      componentCreatorFactory.metaDatasetConverter.values.reverse,
       componentCreatorFactory.attributeConverter.values,
       componentCreatorFactory.dataTypeConverter.values
     )
@@ -80,7 +79,7 @@ class DataLineageBuilder
       }
     }
 
-    traverseAndCollect(Nil, Map.empty, Seq((rootOp, null))).map(_.build()).reverse
+    traverseAndCollect(Nil, Map.empty, Seq((rootOp, null))).map(_.build())
   }
 
   private def createOperationBuilder(op: LogicalPlan): OperationNodeBuilder = {

@@ -44,10 +44,10 @@ class LineageService
     * @return A high order lineage of Composite operations packed in a future
     */
 
-  def getDatasetLineageOverview(datasetId: UUID): Future[DataLineage] = {
+  def getDatasetLineageOverview(datasetId: UUID): Future[HigherLevelLineageOverview] = {
 
     // Accumulation containers holding partial high order lineage
-    val operations: mutable.Set[Operation] = mutable.HashSet.empty
+    val operations: mutable.Set[Composite] = mutable.HashSet.empty
     val datasets: mutable.Set[MetaDataset] = mutable.HashSet.empty
     val attributes: mutable.Set[Attribute] = mutable.HashSet.empty
     val dataTypes: mutable.Set[DataType] = mutable.HashSet.empty
@@ -176,9 +176,9 @@ class LineageService
         val dtById = dataLineage.dataTypes.groupBy(_.id).mapValues(_.head)
 
         def collectRecursively(dtId: UUID): Unit = {
-            val dt = dtById(dtId)
-            if (collectedDTs.add(dt))
-              dt.childDataTypeIds.foreach(collectRecursively)
+          val dt = dtById(dtId)
+          if (collectedDTs.add(dt))
+            dt.childDataTypeIds.foreach(collectRecursively)
         }
 
         attributes.foreach(a => collectRecursively(a.dataTypeId))
@@ -224,14 +224,12 @@ class LineageService
       }
     }
 
-    def finalGather(): DataLineage =
-      DataLineage(
-        "", "", 0, "",
-        operations.toSeq,
-        datasets.toSeq,
-        attributes.toSeq,
-        dataTypes.toSeq
-      )
+    def finalGather() = HigherLevelLineageOverview(
+      operations.toSeq,
+      datasets.toSeq,
+      attributes.toSeq,
+      dataTypes.toSeq
+    )
 
     // Now, just enqueue the datasetId and process it recursively
     enqueueOutput(Seq(datasetId))

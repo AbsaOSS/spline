@@ -55,15 +55,15 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
         Projection(
           OperationProps(
             randomUUID,
-            "node2",
+            "Operation 2",
             Seq(datasets(1).id),
-            datasets(2).id),
+            datasets(0).id),
           Seq.empty),
         Projection(
           OperationProps(
             randomUUID,
-            "node1",
-            Seq(datasets(0).id),
+            "Operation 1",
+            Seq(datasets(2).id),
             datasets(1).id),
           Seq.empty)
       )
@@ -89,7 +89,8 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
 
     val aType = Simple("type", nullable = true)
 
-    val emptyLineage = DataLineage("", "", -1, spark.SPARK_VERSION, Seq(mock[Operation]), Seq(mock[MetaDataset]), Nil, Nil)
+    def createLineage(operations: Seq[Operation], attributes: Seq[Attribute] = Nil) =
+      DataLineage("", "", -1, spark.SPARK_VERSION, operations, Seq(MetaDataset(operations.head.mainProps.output, null)), attributes, Nil)
 
     def createGenericExpressions(names: String*): Seq[Expression] = {
       names.map(name => Generic(name.toLowerCase, aType.id, Seq.empty, name, None))
@@ -140,7 +141,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
           outputMetaDataset),
         createGenericExpressions("a", "b", "c", "d")))
 
-      val result = mergeProjections(emptyLineage.copy(operations = inputNodes))
+      val result = mergeProjections(createLineage(inputNodes))
 
       result.operations.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes
     }
@@ -183,7 +184,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
         createGenericExpressions("a", "b", "c", "d", "e", "f"))
       )
 
-      val result = mergeProjections(emptyLineage.copy(operations = inputNodes))
+      val result = mergeProjections(createLineage(inputNodes))
 
       result.operations.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes
     }
@@ -210,7 +211,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
           createCompositeExpressions(("a", "b"))(attrs))
       )
 
-      val result = mergeProjections(emptyLineage.copy(operations = input, attributes = attrs.values.toSeq))
+      val result = mergeProjections(createLineage(input, attrs.values.toSeq))
 
       result.operations shouldEqual input
     }
@@ -301,7 +302,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
           createGenericExpressions("r"))
       )
 
-      val result = mergeProjections(emptyLineage.copy(operations = inputNodes))
+      val result = mergeProjections(createLineage(inputNodes))
 
       result.operations.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes
     }
@@ -401,7 +402,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
           createGenericExpressions("r"))
       )
 
-      val result = mergeProjections(emptyLineage.copy(operations = inputNodes, attributes = attrs.values.toSeq))
+      val result = mergeProjections(createLineage(inputNodes, attrs.values.toSeq))
 
       result.operations.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes
     }
