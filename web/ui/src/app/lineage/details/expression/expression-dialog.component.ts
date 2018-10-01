@@ -16,11 +16,11 @@
 
 import {MAT_DIALOG_DATA} from "@angular/material";
 import {Component, Inject} from "@angular/core";
-import * as _ from "lodash";
-import {typeOfExpr} from "../../types";
 import {IExpression} from "../../../../generated-ts/expression-model";
 import {ITreeNode} from 'angular-tree-component/dist/defs/api';
 import {IActionMapping, ITreeOptions} from 'angular-tree-component';
+import {ExpressionRenderService} from "./expression-render.service";
+
 
 @Component({
     selector: "expression-dialog",
@@ -29,16 +29,15 @@ import {IActionMapping, ITreeOptions} from 'angular-tree-component';
         <code>{{ exprString }}</code>
         <hr>
         <tree-root #tree [nodes]="exprTree" [options]="treeOptions">
-            <ng-template #treeNodeTemplate let-node>
-                <div *ngIf="!node.isExpanded">{{ node.data.text }}</div>
-                <div *ngIf="node.isExpanded">{{ node.data.name }}</div>
-            </ng-template>
+            <ng-template #treeNodeTemplate let-node>{{ node.data.name }}</ng-template>
         </tree-root>
     `
 })
 export class ExpressionDialogComponent {
 
-    expr: IExpression
+    private readonly expr: IExpression
+    private expressionRenderer: ExpressionRenderService
+
     exprString: string
     exprTree: any[]
 
@@ -57,31 +56,22 @@ export class ExpressionDialogComponent {
     constructor(@Inject(MAT_DIALOG_DATA) data: any) {
         this.expr = data.expr
         this.exprString = data.exprString
+        this.expressionRenderer = data.expressionRenderer
         this.exprTree = this.buildExprTree()
     }
 
     private buildExprTree(): any[] {
         let seq = 0
 
-        function buildChildren(ex: IExpression): (any[] | undefined) {
-            let et = typeOfExpr(ex)
-            // todo: improve expression view for specific expression types
-            return buildChildrenForGenericExpression(ex.children || [])
-        }
+        const buildNode = (expr: IExpression) => ({
+            id: seq++,
+            name: this.expressionRenderer.getName(expr),
+            children: buildChildrenNodes(expr)
+        })
 
-        function buildChildrenForGenericExpression(subExprs: IExpression[]): any[] {
-            return subExprs.map(buildNode)
-        }
-
-        function buildNode(expr: IExpression) {
-            return {
-                id: seq++,
-                name: _.isEmpty(expr.children)
-                    ? expr.text // only use it for leaf expressions
-                    : expr.exprType, // todo: this property is not mandatory for any arbitrary expression
-                text: expr.text.replace(/#\d+/g, ""),
-                children: buildChildren(expr)
-            }
+        function buildChildrenNodes(ex: IExpression): (any[] | undefined) {
+            const children = ex['children'] || (ex['child'] && [ex['child']])
+            return children && children.map(buildNode)
         }
 
         return [buildNode(this.expr)]

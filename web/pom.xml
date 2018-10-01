@@ -180,12 +180,13 @@
                                 <argument>--emit-interfaces</argument>
                                 <argument>--option-to-nullable</argument>
                                 <argument>za.co.absa.spline.model.expr.Expression</argument>
-                                <argument>za.co.absa.spline.model.expr.AttributeRemoval</argument>
-                                <argument>za.co.absa.spline.model.expr.AttributeReference</argument>
+                                <argument>za.co.absa.spline.model.expr.AttrRef</argument>
                                 <argument>za.co.absa.spline.model.expr.Generic</argument>
+                                <argument>za.co.absa.spline.model.expr.GenericLeaf</argument>
                                 <argument>za.co.absa.spline.model.expr.Alias</argument>
                                 <argument>za.co.absa.spline.model.expr.Binary</argument>
-                                <argument>za.co.absa.spline.model.expr.UserDefinedFunction</argument>
+                                <argument>za.co.absa.spline.model.expr.UDF</argument>
+                                <argument>za.co.absa.spline.model.expr.Literal</argument>
                             </arguments>
                         </configuration>
                     </execution>

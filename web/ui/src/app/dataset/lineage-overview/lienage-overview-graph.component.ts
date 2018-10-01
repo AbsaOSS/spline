@@ -19,7 +19,7 @@ import {IDataLineage} from "../../../generated-ts/lineage-model";
 import "vis/dist/vis.min.css";
 import * as vis from "vis";
 import * as _ from "lodash";
-import {Observable} from "rxjs/Observable";
+import {combineLatest, concat, Observable} from "rxjs";
 import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
 import {typeOfOperation} from "../../lineage/types";
 import {visOptions} from "./vis-options";
@@ -36,6 +36,7 @@ import {
 import {ClusterManager} from "../../visjs/cluster-manager";
 import {Icon, VisClusterNode, VisModel} from "../../visjs/vis-model";
 import {getIconForNodeType} from "../../lineage/details/operation/operation-icon.utils";
+import {distinctUntilChanged, filter, first, pairwise} from "rxjs/operators";
 
 @Component({
     selector: 'lineage-overview-graph',
@@ -66,14 +67,12 @@ export class LineageOverviewGraphComponent implements OnInit {
             }
 
         let lineagePairs$ =
-            this.lineage$.first()
-                .concat(this.lineage$)
-                .pairwise()
+            concat(this.lineage$.pipe(first()), this.lineage$).pipe(pairwise())
 
-        Observable
-            .combineLatest(lineagePairs$, this.selectedNode$)
-            .filter(([[__, lineage], selectedNode]) => lineageContainsDataset(lineage, selectedNode.id))
-            .distinctUntilChanged(([[__, lin0], node0], [[___, lin1], node1]) => lin0.id == lin1.id && _.isEqual(node0, node1))
+        combineLatest(lineagePairs$, this.selectedNode$)
+            .pipe(
+                filter(([[__, lineage], selectedNode]) => lineageContainsDataset(lineage, selectedNode.id)),
+                distinctUntilChanged(([[__, lin0], node0], [[___, lin1], node1]) => lin0.id == lin1.id && _.isEqual(node0, node1)))
             .subscribe(([[prevLineage, nextLineage], selectedNode]) => reactOnChange(prevLineage, nextLineage, selectedNode))
     }
 

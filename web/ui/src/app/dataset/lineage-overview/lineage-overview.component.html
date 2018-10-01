@@ -18,7 +18,7 @@
     <mat-grid-list cols="3">
         <mat-grid-tile colspan="2">
             <lineage-overview-graph #graph
-                                    [lineage$]="lineage$"
+                                    [lineage$]="lineageStore.lineage$"
                                     [selectedNode$]="selectedNode$"
                                     (nodeSelected)="selectNode($event.id, $event.type)"
                                     (nodeActioned)="gotoPartialLineage($event.id)">
@@ -46,7 +46,7 @@
                         </details-panel-header>
                         <hr>
                         <h5>Type: <b>{{selectedDataSourceDescription.source.type}}</b></h5>
-                        <h5>Timestamp: <b>{{selectedDataSourceDescription.timestamp | date:'medium'}}</b></h5>
+                        <h5>Timestamp: <b>{{selectedDataSourceDescription.timestamp | date:'long'}}</b></h5>
                         <hr>
                         <div style="text-align: center">
                             <button mat-raised-button (click)="gotoPartialLineage(selectedDataSourceDescription.source.datasetsIds[0])">
@@ -72,7 +72,7 @@
                     </details-panel-header>
                     <hr>
                     <h5>Application ID: <b>{{selectedOperation.appId}}</b></h5>
-                    <h5>Timestamp: <b>{{selectedOperation.timestamp | date:'medium'}}</b></h5>
+                    <h5>Timestamp: <b>{{selectedOperation.timestamp | date:'long'}}</b></h5>
                     <hr>
                     <div style="text-align: center">
                         <button mat-raised-button (click)="gotoPartialLineage(selectedOperation.mainProps.id)">

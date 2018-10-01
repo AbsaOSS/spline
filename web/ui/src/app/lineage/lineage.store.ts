@@ -15,10 +15,8 @@
  */
 
 import {Injectable} from "@angular/core";
-import {IAttribute, IDataLineage, IMetaDataset, IOperation} from "../../generated-ts/lineage-model";
-import {Observable} from "rxjs/Observable";
-import {Subject} from "rxjs/Subject";
-import {ReplaySubject} from "rxjs/ReplaySubject";
+import {IAttribute, IDataLineage, IDataType, IMetaDataset, IOperation} from "../../generated-ts/lineage-model";
+import {Observable, ReplaySubject, Subject} from "rxjs";
 import * as _ from "lodash";
 import {typeOfOperation} from "./types";
 
@@ -26,7 +24,6 @@ import {typeOfOperation} from "./types";
 export class LineageStore {
 
     private _lineage$: Subject<IDataLineage> = new ReplaySubject()
-    public lineageAccessors: LineageAccessors
 
     public get lineage$(): Observable<IDataLineage> {
         return this._lineage$
@@ -34,20 +31,28 @@ export class LineageStore {
 
     public set lineage(lineage: IDataLineage) {
         this._lineage$.next(lineage)
-        this.lineageAccessors = new LineageAccessors(lineage)
+        this._lineageAccessors = new LineageAccessors(lineage)
+    }
+
+    private _lineageAccessors: LineageAccessors
+
+    public get lineageAccessors(): LineageAccessors {
+        return this._lineageAccessors
     }
 }
 
 export class LineageAccessors {
-    private operationById: { [id: string]: IOperation }
-    private datasetById: { [id: string]: IMetaDataset }
-    private attributeById: { [id: string]: IAttribute }
-    private operationIdsByAttributeId: { [id: string]: string }
+    private readonly operationById: { [id: string]: IOperation }
+    private readonly datasetById: { [id: string]: IMetaDataset }
+    private readonly attributeById: { [id: string]: IAttribute }
+    private readonly operationIdsByAttributeId: { [id: string]: string }
+    private readonly dataTypesById: { [id: string]: IDataType }
 
     constructor(public lineage: IDataLineage) {
         this.operationById = _.mapValues(_.groupBy(lineage.operations, "mainProps.id"), _.first)
         this.datasetById = _.mapValues(_.groupBy(lineage.datasets, "id"), _.first)
         this.attributeById = _.mapValues(_.groupBy(lineage.attributes, "id"), _.first)
+        this.dataTypesById = _.mapValues(_.groupBy(lineage.dataTypes, "id"), _.first)
 
         this.operationIdsByAttributeId = (<any>_(lineage.operations))
             .flatMap((op: IOperation) => {
@@ -72,6 +77,10 @@ export class LineageAccessors {
 
     public getAttribute(attrId: string) {
         return this.attributeById[attrId]
+    }
+
+    public getDataType(typeId: string) {
+        return this.dataTypesById[typeId]
     }
 
     public getOperationIdsByAnyAttributeId(...attrIds: string[]): string[] {

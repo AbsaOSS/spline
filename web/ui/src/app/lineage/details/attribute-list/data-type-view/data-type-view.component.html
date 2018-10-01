@@ -14,25 +14,28 @@
   ~ limitations under the License.
   -->
 
-<div [ngSwitch]="getTypeOfType()"
-     title="{{ node.data.type.nullable ? 'Optional' : 'Required' }}">
-    <div *ngSwitchCase="'Struct'" class="struct-type">
-        <button class="btn btn-default btn-xs"
-                [ngClass]="{'active':node.isExpanded}"
-                (click)="toggleExpanded($event)">
-            &#123; ... &#125;
-        </button>
-    </div>
-    <div *ngSwitchCase="'Simple'" class="simple-type">
-        {{ node.data.type.name }}
-    </div>
-    <div *ngSwitchCase="'Array'" class="array-type">
-        <b>[</b>
-        <button class="btn btn-default btn-xs"
-                [ngClass]="{'active':node.isExpanded}"
-                (click)="toggleExpanded($event)">
-            &#123; ... &#125;
-        </button>
-        <b>]</b>
-    </div>
+<div title="{{ node.data.type.nullable ? 'Optional' : 'Required' }}">
+    <ng-container [ngTemplateOutlet]="dtView"
+                  [ngTemplateOutletContext]="{dt:node.data.type}"></ng-container>
 </div>
+
+<ng-template #dtView let-dt="dt">
+    <ng-container [ngSwitch]="typeOfDataType(dt)">
+        <div *ngSwitchCase="'Struct'" class="struct-type">
+            <button class="btn btn-default btn-xs"
+                    [ngClass]="{'active':node.isExpanded}"
+                    (click)="toggleExpanded($event)">
+                &#123; ... &#125;
+            </button>
+        </div>
+        <div *ngSwitchCase="'Simple'" class="simple-type">
+            {{ dt.name }}
+        </div>
+        <div *ngSwitchCase="'Array'" class="array-type">
+            <b>[</b>
+            <ng-container [ngTemplateOutlet]="dtView"
+                          [ngTemplateOutletContext]="{dt:getArrayElementType(dt)}"></ng-container>
+            <b>]</b>
+        </div>
+    </ng-container>
+</ng-template>

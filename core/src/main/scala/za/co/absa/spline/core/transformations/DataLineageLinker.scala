@@ -19,6 +19,7 @@ package za.co.absa.spline.core.transformations
 import java.util.UUID
 
 import org.slf4s.Logging
+import za.co.absa.spline.common.ARM._
 import za.co.absa.spline.common.transformations.AsyncTransformation
 import za.co.absa.spline.model.op.{Operation, Read}
 import za.co.absa.spline.model.{DataLineage, LinkedLineage, MetaDataSource}
@@ -51,14 +52,11 @@ class DataLineageLinker(reader: DataLineageReader) extends AsyncTransformation[D
 
       assume(mds.datasetsIds.isEmpty, s"a lineage of ${mds.path} is yet to be found")
 
-      reader.findLatestDatasetIdsByPath(mds.path) map (dsIdCursor => {
-        import za.co.absa.spline.common.ARMImplicits._
-        for (_ <- dsIdCursor) yield {
-          val dsIds = dsIdCursor.iterator.toList
-          if (dsIds.isEmpty)
-            log.debug(s"Lineage of ${mds.path} NOT FOUND")
-          mds.copy(datasetsIds = dsIds)
-        }
+      reader.findLatestDatasetIdsByPath(mds.path) map managed(dsIdCursor => {
+        val dsIds = dsIdCursor.iterator.toList
+        if (dsIds.isEmpty)
+          log.debug(s"Lineage of ${mds.path} NOT FOUND")
+        mds.copy(datasetsIds = dsIds)
       })
     }
 

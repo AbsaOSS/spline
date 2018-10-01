@@ -18,6 +18,7 @@ package za.co.absa.spline.persistence.mongo.serialization
 
 import java.net.URI
 
+import salat.{BinaryTypeHintStrategy, TypeHintFrequency, TypeHintStrategy}
 import salat.transformers.CustomTransformer
 
 /**
@@ -25,6 +26,8 @@ import salat.transformers.CustomTransformer
   */
 trait CommonSalatContext {
   this: salat.Context =>
+
+  override val typeHintStrategy: TypeHintStrategy = BinaryTypeHintStrategy(TypeHintFrequency.WhenNecessary, "_t")
 
   registerCustomTransformer(new CustomTransformer[URI, String]() {
     override def serialize(uri: URI): String = uri.toString

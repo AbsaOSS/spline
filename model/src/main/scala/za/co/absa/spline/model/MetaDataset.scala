@@ -23,8 +23,4 @@ import java.util.UUID
   * @param id An unique identifier
   * @param schema A data set schema
   */
-case class MetaDataset
-(
-  id: UUID,
-  schema: Schema
-)
+case class MetaDataset(id: UUID, schema: Schema)
