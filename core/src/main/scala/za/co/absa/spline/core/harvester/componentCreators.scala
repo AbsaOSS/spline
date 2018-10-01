@@ -98,20 +98,9 @@ object ExpressionConverter {
   private[this] def introspect(expr: SparkExpression): Iterable[(String, Any)] = {
     val exprChildren = expr.children
 
-    def render(o: Any): Option[Any] = {
-      lazy val symbol = mirror.classSymbol(o.getClass)
-      o match {
-        case null => None
-        case _: Number => Some(o)
-        case _: Boolean => Some(o)
-        case _: String => Some(o)
-        case opt: Option[_] => opt.flatMap(render)
-        case map: Map[_, _] => asOption[Map[_, _]](for ((k, v) <- map; r <- render(v)) yield k.toString -> r)
-        case seq: Traversable[_] => asOption(seq.flatMap(render).toList)
-        case _: SparkExpression if exprChildren contains o => None // skip children
-        case _ if symbol.isModuleClass => Option(symbol.name.toString)
-        case _ => Option(o.toString)
-      }
+    def render(o: Any): Option[Any] = o match {
+      case _: SparkExpression if exprChildren contains o => None // skip children
+      case _ => renderValue(render)(o)
     }
 
     val oMirror = mirror.reflect(expr)
@@ -119,6 +108,21 @@ object ExpressionConverter {
       val value = oMirror.reflectMethod(getter.asMethod).apply()
       render(value).map(getter.name.toString -> _)
     })
+  }
+
+  private[this] def renderValue(recursion: Any => Option[Any])(o: Any): Option[Any] = {
+    lazy val symbol = mirror.classSymbol(o.getClass)
+    o match {
+      case null => None
+      case _: Number => Some(o)
+      case _: Boolean => Some(o)
+      case _: String => Some(o)
+      case opt: Option[_] => opt.flatMap(recursion)
+      case map: Map[_, _] => asOption[Map[String, _]](for ((k, v) <- map; r <- recursion(v)) yield k.toString -> r)
+      case seq: Traversable[_] => asOption(seq.flatMap(item => recursion(item)).toList)
+      case _ if symbol.isModuleClass => Option(symbol.name.toString)
+      case _ => Option(o.toString)
+    }
   }
 
   private def getExpressionSimpleClassName(expr: SparkExpression) = {
@@ -132,9 +136,13 @@ object ExpressionConverter {
     if (params.isEmpty) None else Some(params)
   }
 
-  private def getLiteralValue(lit: Literal): Any = lit.value match {
-    case ad: ArrayData => ad.toArray(lit.dataType)
-    case v => v
+  private def getLiteralValue(lit: Literal): Any = {
+    def render(o: Any): Option[Any] = renderValue(render)(o)
+
+    lit.value match {
+      case ad: ArrayData => ad.toArray(lit.dataType)
+      case v => render(v).orNull
+    }
   }
 }
 
