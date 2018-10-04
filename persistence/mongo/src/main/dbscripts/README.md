@@ -10,7 +10,7 @@ $ mongo $DB_URL spline-0.3.upgrade.js
 
 ---
 
-    Copyright 2017 Barclays Africa Group Limited
+    Copyright 2017 ABSA Group Limited
     
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

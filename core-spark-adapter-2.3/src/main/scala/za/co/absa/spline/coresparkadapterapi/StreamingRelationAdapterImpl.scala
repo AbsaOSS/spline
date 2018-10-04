@@ -3,7 +3,7 @@ import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.streaming.{StreamingRelation, StreamingRelationV2}
 
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
