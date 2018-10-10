@@ -30,6 +30,7 @@ import {DatasetModule} from "./dataset/dataset.module";
 import {DatasetLineageOverviewResolver} from "./dataset/lineage-overview/lineage-overview.resolver";
 import {DatasetLineageOverviewComponent} from "./dataset/lineage-overview/lineage-overview.component";
 import {MiscModule} from "./misc/misc.module";
+import {XHRTimeoutRectifierModule} from "./xhr-timeout-rectifier/xhr-timeout-rectifier.module";
 
 
 const lineageRoute = {
@@ -93,6 +94,7 @@ const routes: Routes = [
     imports: [
         BrowserModule,
         RouterModule.forRoot(routes, {enableTracing: false}),
+        XHRTimeoutRectifierModule,
         DashboardModule,
         LineageModule,
         DatasetModule,
