@@ -29,6 +29,8 @@ import za.co.absa.spline.persistence.mongo.{MongoConnectionImpl, MongoDataLineag
 import za.co.absa.spline.web.handler.{ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
 import za.co.absa.spline.web.rest.service.LineageService
 
+import scala.concurrent.duration._
+
 @Configuration
 class LineageWebAppConfig extends WebMvcConfigurer with ExecutionContextImplicit {
 
@@ -40,8 +42,11 @@ class LineageWebAppConfig extends WebMvcConfigurer with ExecutionContextImplicit
   ))
 
   override def addReturnValueHandlers(returnValueHandlers: ju.List[HandlerMethodReturnValueHandler]): Unit = {
-    returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler)
     returnValueHandlers.add(new UnitMethodReturnValueHandler)
+    returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler(
+      minEstimatedTimeout = confProps.getLong("spline.adaptive_timeout.min", 3.seconds.toMillis),
+      durationToleranceFactor = confProps.getDouble("spline.adaptive_timeout.duration_factor", 1.5)
+    ))
   }
 
   @Bean def lineageReader: DataLineageReader = {
