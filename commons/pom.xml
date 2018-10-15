@@ -42,6 +42,10 @@
             <artifactId>scala-reflect</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.slf4s</groupId>
+            <artifactId>slf4s-api_${scala.compat.version}</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
