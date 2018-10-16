@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-import {Injectable} from "@angular/core";
-import {HttpClient} from "@angular/common/http";
-import {IDataLineage} from "../../generated-ts/lineage-model";
-import {PromiseCache} from "../commons/promise-cache";
+package za.co.absa.spline.web.handler
 
-@Injectable()
-export class LineageService {
-    private lineagePromiseCache = new PromiseCache<IDataLineage>()
+import java.util.concurrent.atomic.AtomicLong
+import java.util.function.LongBinaryOperator
 
-    constructor(private httpClient: HttpClient) {
-    }
+class MovingAverageCalculator(initialValue: Long, alpha: Double) {
 
-    getLineage(dsId: string): Promise<IDataLineage> {
-        return this.lineagePromiseCache.getOrCreate(dsId, () =>
-            this.httpClient.get<IDataLineage>(`rest/dataset/${dsId}/lineage/partial`).toPromise())
-    }
+  private val lastAvg = new AtomicLong(initialValue)
+
+  def currentAverage: Long = lastAvg.get
+
+  def addMeasurement(elapsedTime: Long): Unit =
+    lastAvg.accumulateAndGet(elapsedTime, new LongBinaryOperator {
+      override def applyAsLong(left: Long, right: Long): Long =
+        (alpha * elapsedTime + (1 - alpha) * lastAvg.get).toLong
+    })
 }

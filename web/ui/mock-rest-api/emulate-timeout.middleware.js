@@ -14,20 +14,10 @@
  * limitations under the License.
  */
 
-import {Injectable} from "@angular/core";
-import {HttpClient} from "@angular/common/http";
-import {IDataLineage} from "../../generated-ts/lineage-model";
-import {PromiseCache} from "../commons/promise-cache";
-
-@Injectable()
-export class LineageService {
-    private lineagePromiseCache = new PromiseCache<IDataLineage>()
-
-    constructor(private httpClient: HttpClient) {
-    }
-
-    getLineage(dsId: string): Promise<IDataLineage> {
-        return this.lineagePromiseCache.getOrCreate(dsId, () =>
-            this.httpClient.get<IDataLineage>(`rest/dataset/${dsId}/lineage/partial`).toPromise())
+module.exports = (req, res, next) => {
+    if (req.header("X-SPLINE-TIMEOUT")) {
+        next()
+    } else {
+        res.sendStatus(598)
     }
 }

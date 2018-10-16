@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-import {Injectable} from "@angular/core";
-import {HttpClient} from "@angular/common/http";
-import {IDataLineage} from "../../generated-ts/lineage-model";
-import {PromiseCache} from "../commons/promise-cache";
+package za.co.absa.spline.common
 
-@Injectable()
-export class LineageService {
-    private lineagePromiseCache = new PromiseCache<IDataLineage>()
+import org.apache.commons.lang.time.StopWatch
+import org.slf4s.Logging
 
-    constructor(private httpClient: HttpClient) {
-    }
-
-    getLineage(dsId: string): Promise<IDataLineage> {
-        return this.lineagePromiseCache.getOrCreate(dsId, () =>
-            this.httpClient.get<IDataLineage>(`rest/dataset/${dsId}/lineage/partial`).toPromise())
-    }
+object TimeTracingUtils extends Logging {
+  def logTime[T](msg: String)(body: => T): T = {
+    val sw = new StopWatch()
+    sw.start()
+    try body
+    finally
+      log.info(s"$msg:\t${sw.getTime}")
+  }
 }

@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-import {Injectable} from "@angular/core";
-import {HttpClient} from "@angular/common/http";
-import {IDataLineage} from "../../generated-ts/lineage-model";
-import {PromiseCache} from "../commons/promise-cache";
+import {Component} from "@angular/core";
 
-@Injectable()
-export class LineageService {
-    private lineagePromiseCache = new PromiseCache<IDataLineage>()
-
-    constructor(private httpClient: HttpClient) {
-    }
-
-    getLineage(dsId: string): Promise<IDataLineage> {
-        return this.lineagePromiseCache.getOrCreate(dsId, () =>
-            this.httpClient.get<IDataLineage>(`rest/dataset/${dsId}/lineage/partial`).toPromise())
-    }
+@Component({
+    templateUrl: 'retry-popup-dialog.component.html',
+    styleUrls: ['retry-popup-dialog.component.less']
+})
+export class RetryPopupDialogComponent {
 }

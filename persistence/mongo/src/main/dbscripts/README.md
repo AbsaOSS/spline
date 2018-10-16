@@ -5,7 +5,8 @@
 Please backup your database prior migration.
 
 ```shell
-$ mongo $DB_URL spline-0.3.upgrade.js
+$ mongo $DB_URL spline-0.3.0.upgrade.js
+$ mongo $DB_URL spline-0.3.2.upgrade.js
 ```
 
 ---

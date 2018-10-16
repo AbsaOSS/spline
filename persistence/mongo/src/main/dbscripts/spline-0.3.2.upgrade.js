@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-import {Injectable} from "@angular/core";
-import {HttpClient} from "@angular/common/http";
-import {IDataLineage} from "../../generated-ts/lineage-model";
-import {PromiseCache} from "../commons/promise-cache";
+// SL-141
 
-@Injectable()
-export class LineageService {
-    private lineagePromiseCache = new PromiseCache<IDataLineage>()
+db.operations.createIndex({"_index": 1})
+db.datasets.createIndex({"_index": 1})
+db.attributes.createIndex({"_index": 1})
 
-    constructor(private httpClient: HttpClient) {
-    }
+db.transformations_v4.createIndex({"_index": 1})
+db.dataTypes_v4.createIndex({"_index": 1})
 
-    getLineage(dsId: string): Promise<IDataLineage> {
-        return this.lineagePromiseCache.getOrCreate(dsId, () =>
-            this.httpClient.get<IDataLineage>(`rest/dataset/${dsId}/lineage/partial`).toPromise())
-    }
-}
+db.transformations_v4.createIndex({"_lineageId": 1})
+db.dataTypes_v4.createIndex({"_lineageId": 1})

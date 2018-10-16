@@ -17,8 +17,8 @@
 package za.co.absa.spline.web.rest.controller
 
 import java.util.UUID
-import javax.servlet.http.HttpServletResponse
 
+import javax.servlet.http.HttpServletResponse
 import org.apache.commons.lang.StringUtils.trimToNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -28,10 +28,10 @@ import org.springframework.web.bind.annotation.{PathVariable, RequestMapping, Re
 import za.co.absa.spline.persistence.api.DataLineageReader
 import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 import za.co.absa.spline.web.ExecutionContextImplicit
+import za.co.absa.spline.web.handler.EstimableFuture
 import za.co.absa.spline.web.json.StringJSONConverters
 import za.co.absa.spline.web.rest.service.LineageService
 
-import scala.concurrent.Future
 import scala.language.postfixOps
 
 @Controller
@@ -42,7 +42,7 @@ class LineageController @Autowired()
 (
   val reader: DataLineageReader,
   val service: LineageService
-) extends ExecutionContextImplicit {
+) extends ExecutionContextImplicit with EstimableFuture.Implicits {
 
   import StringJSONConverters._
 
@@ -54,25 +54,28 @@ class LineageController @Autowired()
     @RequestParam(name = "offset", required = false, defaultValue = "0") offset: Int,
     @RequestParam(name = "size", required = false, defaultValue = "2147483647") size: Int,
     response: HttpServletResponse
-  ): Future[Unit] = {
+  ): EstimableFuture[Unit] = {
     val futureResult =
       reader.findDatasets(
         Option(trimToNull(text)),
         PageRequest(timestamp, offset, size))
-    futureResult map (_ asJsonArrayInto response.getWriter)
-  }
 
+    futureResult.map(_ asJsonArrayInto response.getWriter).asEstimable(category = s"lineage/descriptors:$size")
+  }
 
   @RequestMapping(Array("/dataset/{id}/descriptor"))
   @ResponseBody
-  def datasetDescriptor(@PathVariable("id") id: UUID): Future[String] = reader.getDatasetDescriptor(id).map(_.toJson)
+  def datasetDescriptor(@PathVariable("id") id: UUID): EstimableFuture[String] =
+    reader.getDatasetDescriptor(id).map(_.toJson).asEstimable(category = "lineage/descriptor")
 
   @RequestMapping(Array("/dataset/{id}/lineage/partial"))
   @ResponseBody
-  def datasetLineage(@PathVariable("id") id: UUID): Future[String] = reader.loadByDatasetId(id).map(_.get.toJson)
+  def datasetLineage(@PathVariable("id") id: UUID): EstimableFuture[String] =
+    reader.loadByDatasetId(id).map(_.get.toJson).asEstimable(category = "lineage/partial")
 
   @RequestMapping(path = Array("/dataset/{id}/lineage/overview"), method = Array(GET))
   @ResponseBody
-  def datasetLineageOverview(@PathVariable("id") id: UUID): Future[String] = service.getDatasetLineageOverview(id).map(_.toJson)
+  def datasetLineageOverview(@PathVariable("id") id: UUID): EstimableFuture[String] =
+    service.getDatasetLineageOverview(id).map(_.toJson).asEstimable(category = "lineage/overview")
 
 }
