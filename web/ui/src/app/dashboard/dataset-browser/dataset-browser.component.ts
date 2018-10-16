@@ -48,10 +48,18 @@ export class DatasetBrowserComponent implements OnInit {
             .pipe(
                 distinct(),
                 filter(<any>identity))
-            .subscribe(sr =>
+            .subscribe((sr:SearchRequest) =>
                 this.dsBrowserService
                     .getLineageDescriptors(sr)
-                    .then(descriptors => this.descriptors = descriptors))
+                    .then(descriptors => {
+                        if (sr == this.searchRequest$.getValue()) {
+                            if (sr.offset == 0 ){
+                                this.descriptors = descriptors
+                            } else {
+                                this.descriptors.push(...descriptors)
+                            }
+                        }
+                    }))
 
         // set initial values
         this.searchText.setValue("")

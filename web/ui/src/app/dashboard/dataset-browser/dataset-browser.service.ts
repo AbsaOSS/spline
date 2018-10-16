@@ -31,7 +31,8 @@ export class DatasetBrowserService {
                 params: {
                     q: searchRequest.text,
                     asAtTime: `${searchRequest.asAtTime}`,
-                    offset: `${searchRequest.offset}`
+                    offset: `${searchRequest.offset}`,
+                    size: "20"
                 }
             }
         ).toPromise()
