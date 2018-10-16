@@ -179,22 +179,25 @@ export class LineageOverviewGraphComponent implements OnInit {
 
             datasetNodes: VisNode[] =
                 recombineByDatasetIdAndLongestAppendSequence(dataSources)
-                    .map(([datasetId, src]) =>
-                        new VisDatasetNode(
+                    .map(([datasetId, src]) => {
+                        let lastPathItemName = src.path.substring(src.path.replace(/\/$/, '').lastIndexOf("/") + 1)
+                        let label = LineageOverviewGraphComponent.wrapText(src.type + "\n" + lastPathItemName)
+                        return new VisDatasetNode(
                             src,
                             ID_PREFIXES.datasource + datasetId,
                             src.type + ":" + src.path,
-                            src.path.substring(src.path.lastIndexOf("/") + 1),
+                            label,
                             LineageOverviewGraphComponent.getIcon(
                                 new Icon("fa-file", "\uf15b", "FontAwesome"),
                                 datasetId.startsWith(ID_PREFIXES.extra) ? "#c0cdd6" : undefined)
-                        )),
+                        )
+                    }),
 
             processNodes: VisNode[] = lineage.operations.map((op: IComposite) =>
                 new VisProcessNode(
                     op,
                     ID_PREFIXES.operation + op.mainProps.id,
-                    op.appName,
+                    LineageOverviewGraphComponent.wrapText(op.appName),
                     LineageOverviewGraphComponent.getIcon(getIconForNodeType(typeOfOperation(op)))
                 )),
 
@@ -225,6 +228,18 @@ export class LineageOverviewGraphComponent implements OnInit {
             new vis.DataSet<VisNode>(nodes),
             new vis.DataSet<vis.Edge>(edges)
         )
+    }
+
+    static wrapText(text: string): string {
+        let textSize = 13
+        return text.split('\n').map(
+            line => {
+                if (line.length < textSize) {
+                    return line
+                }
+                return line.substring(0, textSize - 2) + "\n" + this.wrapText(line.substring(textSize - 2))
+            }
+        ).join("\n")
     }
 
     static getIcon(icon: Icon, color: string = "#337ab7") {

@@ -37,8 +37,8 @@ export const visOptions: Options = {
     physics: {
         enabled: true,
         hierarchicalRepulsion: {
-            nodeDistance: 250,
-            springLength: 150,
+            nodeDistance: 270,
+            springLength: 170,
             springConstant: 10,
             damping: 1
         }
