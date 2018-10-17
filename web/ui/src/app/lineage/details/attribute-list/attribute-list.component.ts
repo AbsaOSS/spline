@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from "@angular/core";
+import {Component, EventEmitter, Input, Output, ViewChild} from "@angular/core";
 import {IAttribute} from "../../../../generated-ts/lineage-model";
 import {IArray, IDataType, IStruct} from "../../../../generated-ts/datatype-model";
 import {typeOfDataType} from "../../types";
@@ -28,9 +28,11 @@ import {LineageStore} from "../../lineage.store";
     templateUrl: "attribute-list.component.html",
     styleUrls: ["attribute-list.component.less"]
 })
-export class AttributeListComponent implements OnInit {
+export class AttributeListComponent {
 
-    @Input() attrs: IAttribute[]
+    @Input() set attrs(attrs: IAttribute[]) {
+        this.attrTree = attrs.map(a => this.buildAttrTree(a))
+    }
 
     @Input() set selectedAttrIDs(ids: string[]) {
         this.selectedIds = ids
@@ -58,10 +60,6 @@ export class AttributeListComponent implements OnInit {
     }
 
     constructor(private lineageStore: LineageStore) {
-    }
-
-    ngOnInit(): void {
-        this.attrTree = this.attrs.map(a => this.buildAttrTree(a))
     }
 
     onTreeInit() {
