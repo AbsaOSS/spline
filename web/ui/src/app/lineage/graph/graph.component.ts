@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
-import {Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChange, SimpleChanges} from "@angular/core";
+import {
+    Component,
+    ElementRef,
+    EventEmitter,
+    Input,
+    OnChanges,
+    OnDestroy,
+    Output,
+    SimpleChange,
+    SimpleChanges
+} from "@angular/core";
 import {IDataLineage} from "../../../generated-ts/lineage-model";
 import "vis/dist/vis.min.css";
 import {visOptions} from "./vis-options";
@@ -22,10 +32,19 @@ import {lineageToGraph} from "./graph-builder";
 import * as vis from "vis";
 import * as _ from "lodash";
 import {ClusterManager} from "../../visjs/cluster-manager";
-import {HighlightedVisClusterNode, HighlightedVisNode, RegularVisClusterNode, RegularVisNode, VisEdge, VisNode, VisNodeType} from "./graph.model";
+import {
+    HighlightedVisClusterNode,
+    HighlightedVisNode,
+    RegularVisClusterNode,
+    RegularVisNode,
+    VisEdge,
+    VisNode,
+    VisNodeType
+} from "./graph.model";
 import {LineageStore} from "../lineage.store";
 import {OperationType} from "../types";
 import {VisModel} from "../../visjs/vis-model";
+import {Subscription} from "rxjs";
 
 const isDistinct = (change: SimpleChange): boolean => change && !_.isEqual(change.previousValue, change.currentValue)
 
@@ -33,7 +52,7 @@ const isDistinct = (change: SimpleChange): boolean => change && !_.isEqual(chang
     selector: 'graph',
     template: ''
 })
-export class GraphComponent implements OnChanges {
+export class GraphComponent implements OnChanges, OnDestroy {
     @Input() selectedOperationId?: string
     @Input() highlightedNodeIDs: string[]
     @Input() hiddenOperationTypes: OperationType[]
@@ -44,9 +63,10 @@ export class GraphComponent implements OnChanges {
     private graph: VisModel<VisNode, VisEdge>
 
     private clusterManager: ClusterManager<VisNode, VisEdge>
+    private lineage$Subscription: Subscription
 
     constructor(private container: ElementRef, private lineageStore: LineageStore) {
-        lineageStore.lineage$.subscribe(lineage => {
+        this.lineage$Subscription = this.lineageStore.lineage$.subscribe(lineage => {
             this.rebuildGraph(lineage)
         })
     }
@@ -63,6 +83,10 @@ export class GraphComponent implements OnChanges {
             this.refreshSelectedNode()
             this.refreshHighlightedNodes()
         }
+    }
+
+    ngOnDestroy(): void {
+        this.lineage$Subscription.unsubscribe()
     }
 
     private rebuildGraph(lineage: IDataLineage) {
