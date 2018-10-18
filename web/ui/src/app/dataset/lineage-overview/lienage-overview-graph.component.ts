@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import {Component, ElementRef, EventEmitter, Input, OnInit, Output} from "@angular/core";
+import {Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output} from "@angular/core";
 import {IDataLineage} from "../../../generated-ts/lineage-model";
 import "vis/dist/vis.min.css";
 import * as vis from "vis";
 import * as _ from "lodash";
-import {combineLatest, concat, Observable} from "rxjs";
+import {combineLatest, concat, Observable, Subscription} from "rxjs";
 import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
 import {typeOfOperation} from "../../lineage/types";
 import {visOptions} from "./vis-options";
@@ -42,7 +42,7 @@ import {distinctUntilChanged, filter, first, pairwise} from "rxjs/operators";
     selector: 'lineage-overview-graph',
     template: ''
 })
-export class LineageOverviewGraphComponent implements OnInit {
+export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
 
     @Input() lineage$: Observable<IDataLineage>
     @Input() selectedNode$: Observable<GraphNode>
@@ -53,6 +53,8 @@ export class LineageOverviewGraphComponent implements OnInit {
     private selectedNode: GraphNode
     private network: vis.Network
     private clusterManager: ClusterManager<VisNode, vis.Edge>
+
+    private subscriptions: Subscription[] = []
 
     constructor(private container: ElementRef) {
     }
@@ -69,11 +71,15 @@ export class LineageOverviewGraphComponent implements OnInit {
         let lineagePairs$ =
             concat(this.lineage$.pipe(first()), this.lineage$).pipe(pairwise())
 
-        combineLatest(lineagePairs$, this.selectedNode$)
+        this.subscriptions.unshift(combineLatest(lineagePairs$, this.selectedNode$)
             .pipe(
                 filter(([[__, lineage], selectedNode]) => lineageContainsDataset(lineage, selectedNode.id)),
                 distinctUntilChanged(([[__, lin0], node0], [[___, lin1], node1]) => lin0.id == lin1.id && _.isEqual(node0, node1)))
-            .subscribe(([[prevLineage, nextLineage], selectedNode]) => reactOnChange(prevLineage, nextLineage, selectedNode))
+            .subscribe(([[prevLineage, nextLineage], selectedNode]) => reactOnChange(prevLineage, nextLineage, selectedNode)))
+    }
+
+    ngOnDestroy(): void {
+        this.subscriptions.forEach(s => s.unsubscribe())
     }
 
     public fit() {

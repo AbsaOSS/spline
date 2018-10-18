@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Component, OnInit} from "@angular/core";
+import {Component, OnDestroy, OnInit} from "@angular/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {IAttribute, IDataLineage, IOperation} from "../../generated-ts/lineage-model";
 import {LineageStore} from "./lineage.store";
@@ -22,13 +22,14 @@ import {OperationType, typeOfOperation} from "./types";
 import * as _ from "lodash";
 import {MatTabChangeEvent} from "@angular/material";
 import {Tab} from "./tabs";
+import {Subscription} from "rxjs";
 
 @Component({
     templateUrl: 'lineage.component.html',
     styleUrls: ['lineage.component.less'],
     providers: [LineageStore]
 })
-export class LineageComponent implements OnInit {
+export class LineageComponent implements OnInit, OnDestroy {
     lineage: IDataLineage
     selectedTabIndex: Tab = Tab.Summary
     selectedOperation?: IOperation
@@ -38,6 +39,8 @@ export class LineageComponent implements OnInit {
     hideableOperationTypes: OperationType[] = ['Projection', 'Filter', 'Sort', 'Aggregate']
     presentHideableOperationTypes: OperationType[]
     hiddenOperationTypes: OperationType[]
+
+    private subscriptions: Subscription[] = []
 
     isOperationTypeVisible(opType: OperationType) {
         return this.hiddenOperationTypes.indexOf(opType) < 0
@@ -49,29 +52,33 @@ export class LineageComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.route.data.subscribe((data: { lineage: IDataLineage }) => {
+        this.subscriptions.unshift(this.route.data.subscribe((data: { lineage: IDataLineage }) => {
             this.lineage = data.lineage
             this.lineageStore.lineage = data.lineage
             this.presentHideableOperationTypes =
                 _.intersection(
                     _.uniq(data.lineage.operations.map(typeOfOperation)),
                     this.hideableOperationTypes)
-        })
+        }))
 
-        this.route.paramMap.subscribe(pm => {
+        this.subscriptions.unshift(this.route.paramMap.subscribe(pm => {
             let opId = pm.get("operationId")
             this.selectedOperation = this.lineageStore.lineageAccessors.getOperation(opId)
-        })
+        }))
 
-        this.route.queryParamMap.subscribe(qps => {
+        this.subscriptions.unshift(this.route.queryParamMap.subscribe(qps => {
             this.selectedAttrIDs = qps.getAll("attr")
             this.highlightedNodeIDs = this.lineageStore.lineageAccessors.getOperationIdsByAnyAttributeId(...this.selectedAttrIDs)
             this.hiddenOperationTypes = <OperationType[]> qps.getAll("hideOp")
-        })
+        }))
 
-        this.route.fragment.subscribe(fragment => {
+        this.subscriptions.unshift(this.route.fragment.subscribe(fragment => {
             this.selectedTabIndex = Tab.fromFragment(fragment).valueOr(this.selectedTabIndex)
-        })
+        }))
+    }
+
+    ngOnDestroy(): void {
+        this.subscriptions.forEach(s => s.unsubscribe())
     }
 
     getDataSourceCount() {

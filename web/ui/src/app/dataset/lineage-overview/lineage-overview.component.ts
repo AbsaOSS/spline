@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import {Component} from "@angular/core";
+import {Component, OnDestroy, OnInit} from "@angular/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {IAttribute, IDataLineage} from "../../../generated-ts/lineage-model";
-import {combineLatest, Observable} from "rxjs";
+import {combineLatest, Observable, Subscription} from "rxjs";
 import * as _ from "lodash";
 import {GraphNode, GraphNodeType} from "./lineage-overview.model";
 import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
@@ -30,24 +30,30 @@ import {distinctUntilChanged, filter, map} from "rxjs/operators";
     providers: [LineageStore]
 })
 
-export class DatasetLineageOverviewComponent {
+export class DatasetLineageOverviewComponent implements OnInit, OnDestroy{
 
     selectedNode$: Observable<GraphNode>
 
     selectedDataSourceDescription: DataSourceDescription
     selectedOperation: IComposite
 
+    private subscriptions: Subscription[] = []
+
     constructor(
         private route: ActivatedRoute,
         private router: Router,
         private lineageStore: LineageStore) {
+    }
 
-        route.data.subscribe((data: { lineage: IDataLineage }) => this.lineageStore.lineage = data.lineage)
+    ngOnInit(): void {
+        this.subscriptions.unshift(
+            this.route.data.subscribe((data: { lineage: IDataLineage }) =>
+                this.lineageStore.lineage = data.lineage))
 
         this.selectedNode$ =
             combineLatest(
-                route.fragment,
-                route.parent.data
+                this.route.fragment,
+                this.route.parent.data
             ).pipe(map(([fragment, data]) =>
                 <GraphNode>{
                     type: fragment,
@@ -56,11 +62,15 @@ export class DatasetLineageOverviewComponent {
 
         let lineageAccessors$ = this.lineageStore.lineage$.pipe(map(lin => new LineageAccessors(lin)))
 
-        combineLatest(lineageAccessors$, this.selectedNode$)
+        this.subscriptions.unshift(combineLatest(lineageAccessors$, this.selectedNode$)
             .pipe(
                 filter(([linAccessors, selectedNode]) => !!linAccessors.getDataset(selectedNode.id)),
                 distinctUntilChanged(([la0, node0], [la1, node1]) => la0.lineage.id == la1.lineage.id && _.isEqual(node0, node1)))
-            .subscribe(([linAccessors, selectedNode]) => this.updateSelectedState(linAccessors, selectedNode))
+            .subscribe(([linAccessors, selectedNode]) => this.updateSelectedState(linAccessors, selectedNode)))
+    }
+
+    ngOnDestroy(): void {
+        this.subscriptions.forEach(s => s.unsubscribe())
     }
 
     updateSelectedState(linAccessors: LineageAccessors, node: GraphNode) {
