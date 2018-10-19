@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.apache.spark.sql.kafka010.KafkaSinkObj
 import org.apache.spark.sql.streaming.{StreamingQuery, StreamingQueryListener, StreamingQueryManager}
 import org.slf4s.Logging
 import za.co.absa.spline.core.SparkLineageProcessor
-import za.co.absa.spline.core.harvester.LogicalPlanLineageHarvester
+import za.co.absa.spline.core.harvester.DataLineageBuilderFactory
 import za.co.absa.spline.coresparkadapterapi.StructuredStreamingListenerAdapter.instance._
 import za.co.absa.spline.model.endpoint.{FileEndpoint, KafkaEndpoint}
 import za.co.absa.spline.model.op.{OperationProps, StreamWrite}
@@ -32,7 +32,7 @@ import za.co.absa.spline.model.op.{OperationProps, StreamWrite}
 import scala.language.postfixOps
 
 class StructuredStreamingListener(queryManager: StreamingQueryManager,
-                                  lineageHarvester: LogicalPlanLineageHarvester,
+                                  lineageHarvester: DataLineageBuilderFactory,
                                   lineageProcessor: SparkLineageProcessor)
   extends StreamingQueryListener with Logging {
 
@@ -61,7 +61,7 @@ class StructuredStreamingListener(queryManager: StreamingQueryManager,
   private def processExecution(se: StreamExecution): Unit = {
     assume(se.logicalPlan.resolved, "we harvest lineage from analyzed logic plans")
 
-    val logicalPlanLineage = lineageHarvester.harvestLineage(se.sparkSession.sparkContext, se.logicalPlan)
+    val logicalPlanLineage = lineageHarvester.createBuilder(se.sparkSession.sparkContext).buildLineage(se.logicalPlan)
 
     val maybeEndpoint = se.sink match {
       case FileSinkObj(path, fileFormat) => Some(FileEndpoint(path, fileFormat.toString))

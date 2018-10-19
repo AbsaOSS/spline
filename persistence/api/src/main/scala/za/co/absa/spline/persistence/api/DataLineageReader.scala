@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ trait DataLineageReader {
     * @param dsId A unique identifier of a data lineage
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
-  def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Future[Option[DataLineage]]
+  def loadByDatasetId(dsId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[Option[DataLineage]]
 
   /**
     * The method scans the persistence layer and tries to find a dataset ID for a given path and application ID.
@@ -71,7 +71,7 @@ trait DataLineageReader {
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]]
+  def findByInputId(datasetId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]]
 
   /**
     * The method gets all data lineages stored in persistence layer.

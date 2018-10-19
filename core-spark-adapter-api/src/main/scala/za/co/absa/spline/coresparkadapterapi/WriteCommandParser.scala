@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,11 @@ abstract class WriteCommandParser[T <: LogicalPlan](implicit tag: ClassTag[T]) {
     tag.runtimeClass.isAssignableFrom(operation.getClass)
   }
 
-  implicit def asWriteCommand(operation: T): WriteCommand
+  def asWriteCommand(operation: T): WriteCommand
+
+  def asWriteCommandIfPossible(operation: T): Option[WriteCommand] =
+    if (matches(operation)) Some(asWriteCommand(operation))
+    else None
 
 }
 

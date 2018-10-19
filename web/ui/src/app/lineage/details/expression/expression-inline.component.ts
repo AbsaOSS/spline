@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ import {Component, Input, OnChanges} from "@angular/core";
 import {MatDialog} from "@angular/material";
 import {ExpressionDialogComponent} from "./expression-dialog.component";
 import {IExpression} from "../../../../generated-ts/expression-model";
+import {ExpressionRenderService} from "./expression-render.service";
 
 @Component({
     selector: "expression-inline",
@@ -30,18 +31,20 @@ import {IExpression} from "../../../../generated-ts/expression-model";
         code {
             padding: 0;
         }
-    `]
+    `],
+    providers: [ExpressionRenderService]
 })
 export class ExpressionInlineComponent implements OnChanges {
     @Input() expr: IExpression
 
     exprString: string
 
-    constructor(private dialog: MatDialog) {
+    constructor(private dialog: MatDialog,
+                private expressionRenderer: ExpressionRenderService) {
     }
 
     ngOnChanges(): void {
-        this.exprString = this.expr.text.replace(/#\d+/g, "")
+        this.exprString = this.expressionRenderer.getText(this.expr)
     }
 
     openExprViewDialog(e: Event) {
@@ -50,6 +53,7 @@ export class ExpressionInlineComponent implements OnChanges {
             data: {
                 expr: this.expr,
                 exprString: this.exprString,
+                expressionRenderer: this.expressionRenderer
             }
         })
     }

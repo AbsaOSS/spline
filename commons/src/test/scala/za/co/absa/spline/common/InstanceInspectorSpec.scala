@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,8 @@ class InstanceInspectorSpec extends FlatSpec with Matchers {
     val expectedB = 123
     val dc = new DummyClass(expectedA, expectedB)
 
-    val a = InstanceInspector.getFieldValue[String](dc, "a")
-    val b = InstanceInspector.getFieldValue[Int](dc, "b")
+    val a = ReflectionUtils.getFieldValue[String](dc, "a")
+    val b = ReflectionUtils.getFieldValue[Int](dc, "b")
 
     a shouldEqual expectedA
     b shouldEqual expectedB

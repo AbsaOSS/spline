@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.apache.spark.sql
 
 import org.apache.spark.sql.execution.datasources.FileFormat
 import org.apache.spark.sql.execution.streaming.{FileStreamSink, Sink}
-import za.co.absa.spline.common.InstanceInspector
+import za.co.absa.spline.common.ReflectionUtils
 
 /**
   * The object represents a value extractor for [[org.apache.spark.sql.execution.streaming.FileStreamSink FileStreamSink]].
@@ -34,8 +34,8 @@ object FileSinkObj {
     case fss: FileStreamSink =>
       Some(
         (
-          InstanceInspector.getFieldValue[String](fss, "path"),
-          InstanceInspector.getFieldValue[FileFormat](fss, "fileFormat")
+          ReflectionUtils.getFieldValue[String](fss, "path"),
+          ReflectionUtils.getFieldValue[FileFormat](fss, "fileFormat")
         )
       )
     case _ => None

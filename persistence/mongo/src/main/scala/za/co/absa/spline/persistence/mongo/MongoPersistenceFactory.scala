@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package za.co.absa.spline.persistence.mongo
 
 import org.apache.commons.configuration.Configuration
 import za.co.absa.spline.persistence.api._
+import za.co.absa.spline.persistence.mongo.dao.{LineageDAOv3, LineageDAOv4, MultiVersionLineageDAO}
 
 /**
   * The object contains static information about settings needed for initialization of the MongoPersistenceWriterFactory class.
@@ -41,22 +42,26 @@ class MongoPersistenceFactory(configuration: Configuration) extends PersistenceF
     val dbUrl = configuration getRequiredString mongoDbUrlKey
     val dbName = configuration getRequiredString mongoDbNameKey
     log debug s"Preparing connection: $dbUrl/$dbName"
-    val connection = new MongoConnection(dbUrl, dbName)
+    val connection = new MongoConnectionImpl(dbUrl, dbName)
     log info s"Connected: $dbUrl/$dbName"
     connection
   }
+
+  private val dao = new MultiVersionLineageDAO(
+    new LineageDAOv3(mongoConnection),
+    new LineageDAOv4(mongoConnection))
 
   /**
     * The method creates a persistence writer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
     * @return A persistence writer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  override def createDataLineageWriter: DataLineageWriter = new MongoDataLineageWriter(mongoConnection)
+  override def createDataLineageWriter: DataLineageWriter = new MongoDataLineageWriter(dao)
 
   /**
     * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
     * @return An optional reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
-  override def createDataLineageReader: Option[DataLineageReader] = Some(new MongoDataLineageReader(mongoConnection))
+  override def createDataLineageReader: Option[DataLineageReader] = Some(new MongoDataLineageReader(dao))
 }

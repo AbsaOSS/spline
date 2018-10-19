@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.permission.FsPermission
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.slf4s.Logging
+import za.co.absa.spline.common.ARM._
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.model.op.Write
 import za.co.absa.spline.persistence.api.DataLineageWriter
@@ -46,19 +47,17 @@ class HdfsDataLineageWriter(hadoopConfiguration: Configuration, fileName: String
   }
 
   private def persistToHdfs(content: String, path: Path): Unit = blocking {
-    import za.co.absa.spline.common.ARMImplicits._
     val fs = FileSystem.get(hadoopConfiguration)
     log debug s"Writing lineage to $path"
-    for (fos <- fs.create(
+    using(fs.create(
       path,
       filePermissions,
       true,
       hadoopConfiguration.getInt("io.file.buffer.size", 4096),
       fs.getDefaultReplication(path),
       fs.getDefaultBlockSize(path),
-      null)
-    ) {
-      fos.write(content.getBytes)
+      null)) {
+      _.write(content.getBytes)
     }
   }
 

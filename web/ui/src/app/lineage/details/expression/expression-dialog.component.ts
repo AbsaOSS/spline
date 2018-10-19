@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,64 +16,69 @@
 
 import {MAT_DIALOG_DATA} from "@angular/material";
 import {Component, Inject} from "@angular/core";
-import * as _ from "lodash";
-import {typeOfExpr} from "../../types";
 import {IExpression} from "../../../../generated-ts/expression-model";
+import {ITreeNode} from 'angular-tree-component/dist/defs/api';
+import {IActionMapping, ITreeOptions} from 'angular-tree-component';
+import {ExpressionRenderService} from "./expression-render.service";
+
 
 @Component({
     selector: "expression-dialog",
+    styleUrls: ["expression-dialog.component.less"],
     template: `
         <code>{{ exprString }}</code>
         <hr>
-        <tree-root [nodes]="exprTree" [options]="treeOptions">
-            <ng-template #treeNodeTemplate let-expr="node.data">
-                <span title="{{ expr.text }}">{{ expr.name }}</span>
-            </ng-template>
+        <tree-root #tree [nodes]="exprTree" [options]="treeOptions">
+            <ng-template #treeNodeTemplate let-node>{{ node.data.name }}</ng-template>
         </tree-root>
     `
 })
 export class ExpressionDialogComponent {
 
-    expr: IExpression
+    private readonly expr: IExpression
+    private expressionRenderer: ExpressionRenderService
+
     exprString: string
     exprTree: any[]
 
-    treeOptions = {
+    readonly actionMapping: IActionMapping = {
+        mouse: {
+            click: (tree, node) => ExpressionDialogComponent.onNodeClicked(node)
+        }
+    }
+
+    readonly treeOptions: ITreeOptions = {
+        actionMapping: this.actionMapping,
         allowDrag: false,
-        allowDrop: _.constant(false)
+        allowDrop: false,
     }
 
     constructor(@Inject(MAT_DIALOG_DATA) data: any) {
         this.expr = data.expr
         this.exprString = data.exprString
+        this.expressionRenderer = data.expressionRenderer
         this.exprTree = this.buildExprTree()
     }
 
     private buildExprTree(): any[] {
         let seq = 0
 
-        function buildChildren(ex: IExpression): (any[] | undefined) {
-            let et = typeOfExpr(ex)
-            // todo: improve expression view for specific expression types
-            return buildChildrenForGenericExpression(ex.children || [])
-        }
+        const buildNode = (expr: IExpression) => ({
+            id: seq++,
+            name: this.expressionRenderer.getName(expr),
+            children: buildChildrenNodes(expr)
+        })
 
-        function buildChildrenForGenericExpression(subExprs: IExpression[]): any[] {
-            return subExprs.map(buildNode)
-        }
-
-        function buildNode(expr: IExpression) {
-            return {
-                id: seq++,
-                name: _.isEmpty(expr.children)
-                    ? expr.text // only use it for leaf expressions
-                    : expr.exprType, // todo: this property is not mandatory for any arbitrary expression
-                text: expr.text.replace(/#\d+/g, ""),
-                children: buildChildren(expr)
-            }
+        function buildChildrenNodes(ex: IExpression): (any[] | undefined) {
+            const children = ex['children'] || (ex['child'] && [ex['child']])
+            return children && children.map(buildNode)
         }
 
         return [buildNode(this.expr)]
+    }
+
+    static onNodeClicked(node: ITreeNode) {
+        node.toggleExpanded()
     }
 
 }

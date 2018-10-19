@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,9 +82,11 @@ object SparkLineageInitializer extends Logging {
       val systemConfOpt = Some(new SystemConfiguration)
       val propFileConfOpt = Try(new PropertiesConfiguration(splinePropertiesFileName)).toOption
       val hadoopConfOpt = Some(new HadoopConfiguration(sparkSession.sparkContext.hadoopConfiguration))
+      val sparkConfOpt = Some(new SparkConfiguration(sparkSession.sparkContext.getConf))
 
       new CompositeConfiguration(Seq(
         hadoopConfOpt,
+        sparkConfOpt,
         systemConfOpt,
         propFileConfOpt
       ).flatten.asJava)

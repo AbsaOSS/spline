@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,13 @@ package za.co.absa.spline.model
 
 import java.util.UUID
 
-import za.co.absa.spline.model.dt.DataType
-
 /**
-  * The case class represents an attribute of a Spark data set.
-  *
-  * @param id       An unique identifier of the attribute
-  * @param name     A name of the attribute
-  * @param dataType A data type of the attribute
-  */
-case class Attribute(id: UUID, name: String, dataType: DataType)
+ * The case class represents an attribute of a Spark data set.
+ *
+ * @param id         An unique identifier of the attribute
+ * @param name       A name of the attribute
+ * @param dataTypeId A data type of the attribute
+ */
+case class Attribute(id: UUID, name: String, dataTypeId: UUID)
 
 

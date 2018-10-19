@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,41 +18,33 @@ package za.co.absa.spline.persistence.mongo
 
 import org.scalatest.matchers.{MatchResult, Matcher}
 import za.co.absa.spline.persistence.api.CloseableIterable
+import za.co.absa.spline.scalatest.MatcherImplicits
 
 import scala.language.reflectiveCalls
 
-object CloseableIterableMatchers {
+object CloseableIterableMatchers extends MatcherImplicits {
 
-  class MatcherAdapter[T](matchingFn: T => MatchResult) extends Matcher[T] {
-    override def apply(left: T): MatchResult = matchingFn(left)
-  }
+  def consistOfItemsWithAppIds[T <: {def appId : String}](appIds: String*): Matcher[CloseableIterable[T]] =
+    (actualDescriptors: CloseableIterable[T]) => {
+      val actualAppIds = actualDescriptors.iterator.map(_.appId).toList
+      val expectedAppIds = appIds.toList
+      MatchResult(
+        actualAppIds == expectedAppIds,
+        s"Returned list of lineage descriptors did not match expected values:" +
+          s"\n\tActual  : $actualAppIds" +
+          s"\n\tExpected: $expectedAppIds",
+        "")
+    }
 
-  object ConsistOfItemsWithAppIds {
-    def apply(appIds: String*) = new MatcherAdapter[CloseableIterable[ {def appId: String}]](
-      actualDescriptors => {
-        val actualAppIds = actualDescriptors.iterator.map(_.appId).toList
-        val expectedAppIds = appIds.toList
-        MatchResult(
-          actualAppIds == expectedAppIds,
-          s"Returned list of lineage descriptors did not match expected values:" +
-            s"\n\tActual  : $actualAppIds" +
-            s"\n\tExpected: $expectedAppIds",
-          "")
-      })
-  }
-
-  object ConsistOfItems {
-    def apply[T](items: T*) = new MatcherAdapter[CloseableIterable[T]](
-      iterable => {
-        val actualItems = iterable.iterator.toList
-        val expectedItems = items.toList
-        MatchResult(
-          actualItems == expectedItems,
-          s"Returned list did not match expected values:" +
-            s"\n\tActual  : $actualItems" +
-            s"\n\tExpected: $expectedItems",
-          "")
-      })
-  }
-
+  def consistOfItems[T](items: T*): Matcher[CloseableIterable[T]] =
+    (iterable: CloseableIterable[T]) => {
+      val actualItems = iterable.iterator.toList
+      val expectedItems = items.toList
+      MatchResult(
+        actualItems == expectedItems,
+        s"Returned list did not match expected values:" +
+          s"\n\tActual  : $actualItems" +
+          s"\n\tExpected: $expectedItems",
+        "")
+    }
 }

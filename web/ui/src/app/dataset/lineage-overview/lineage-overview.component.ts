@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,48 +14,63 @@
  * limitations under the License.
  */
 
-import {Component} from "@angular/core";
+import {Component, OnDestroy, OnInit} from "@angular/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {IAttribute, IDataLineage} from "../../../generated-ts/lineage-model";
-import {Observable} from "rxjs/Observable";
+import {combineLatest, Observable, Subscription} from "rxjs";
 import * as _ from "lodash";
 import {GraphNode, GraphNodeType} from "./lineage-overview.model";
 import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
-import {LineageAccessors} from "../../lineage/lineage.store";
+import {LineageAccessors, LineageStore} from "../../lineage/lineage.store";
+import {distinctUntilChanged, filter, map} from "rxjs/operators";
 
 @Component({
     templateUrl: "lineage-overview.component.html",
-    styleUrls: ["lineage-overview.component.less"]
+    styleUrls: ["lineage-overview.component.less"],
+    providers: [LineageStore]
 })
 
-export class DatasetLineageOverviewComponent {
+export class DatasetLineageOverviewComponent implements OnInit, OnDestroy{
 
-    lineage$: Observable<IDataLineage>
     selectedNode$: Observable<GraphNode>
 
     selectedDataSourceDescription: DataSourceDescription
     selectedOperation: IComposite
 
-    constructor(private route: ActivatedRoute, private router: Router) {
-        this.lineage$ = route.data.map((data: { lineage: IDataLineage }) => data.lineage)
+    private subscriptions: Subscription[] = []
+
+    constructor(
+        private route: ActivatedRoute,
+        private router: Router,
+        private lineageStore: LineageStore) {
+    }
+
+    ngOnInit(): void {
+        this.subscriptions.unshift(
+            this.route.data.subscribe((data: { lineage: IDataLineage }) =>
+                this.lineageStore.lineage = data.lineage))
 
         this.selectedNode$ =
-            Observable.combineLatest(
-                route.fragment,
-                route.parent.data
-            ).map(([fragment, data]) =>
+            combineLatest(
+                this.route.fragment,
+                this.route.parent.data
+            ).pipe(map(([fragment, data]) =>
                 <GraphNode>{
                     type: fragment,
                     id: data.dataset.datasetId
-                })
+                }))
 
-        let lineageAccessors$ = this.lineage$.map(lin => new LineageAccessors(lin))
+        let lineageAccessors$ = this.lineageStore.lineage$.pipe(map(lin => new LineageAccessors(lin)))
 
-        Observable
-            .combineLatest(lineageAccessors$, this.selectedNode$)
-            .filter(([linAccessors, selectedNode]) => !!linAccessors.getDataset(selectedNode.id))
-            .distinctUntilChanged(([la0, node0], [la1, node1]) => la0.lineage.id == la1.lineage.id && _.isEqual(node0, node1))
-            .subscribe(([linAccessors, selectedNode]) => this.updateSelectedState(linAccessors, selectedNode))
+        this.subscriptions.unshift(combineLatest(lineageAccessors$, this.selectedNode$)
+            .pipe(
+                filter(([linAccessors, selectedNode]) => !!linAccessors.getDataset(selectedNode.id)),
+                distinctUntilChanged(([la0, node0], [la1, node1]) => la0.lineage.id == la1.lineage.id && _.isEqual(node0, node1)))
+            .subscribe(([linAccessors, selectedNode]) => this.updateSelectedState(linAccessors, selectedNode)))
+    }
+
+    ngOnDestroy(): void {
+        this.subscriptions.forEach(s => s.unsubscribe())
     }
 
     updateSelectedState(linAccessors: LineageAccessors, node: GraphNode) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,5 +25,5 @@ object MongoTestProperties {
   private val mongoDBUri: String = new SystemConfiguration() getRequiredString "test.spline.mongodb.url"
   private val mongoDBName: String = new SystemConfiguration() getRequiredString "test.spline.mongodb.name"
 
-  val mongoConnection: MongoConnection = new MongoConnection(mongoDBUri, mongoDBName)
+  val mongoConnection: MongoConnection = new MongoConnectionImpl(mongoDBUri, mongoDBName)
 }

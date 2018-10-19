@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package za.co.absa.spline.core
 
 import org.apache.commons.configuration.Configuration
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.util.QueryExecutionListener
 import org.scalatest.Matchers._
@@ -67,17 +68,60 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
   override protected def afterEach(): Unit = SparkSession.builder.getOrCreate.stop
 
   describe("defaultConfiguration") {
+
+    val keyDefinedEverywhere = "key.defined.everywhere"
+    val keyDefinedInHadoopAndSpline = "key.defined.in_Hadoop_and_Spline"
+    val keyDefinedInHadoopAndSpark = "key.defined.in_Hadoop_and_Spark"
+    val keyDefinedInSparkAndSpline = "key.defined.in_Spark_and_Spline"
+    val keyDefinedInJVMAndSpline = "key.defined.in_JVM_and_Spline"
+    val keyDefinedInSplineOnly = "key.defined.in_Spline_only"
+
+    val valueFromHadoop = "value from Hadoop configuration"
+    val valueFromSpark = "value from Spark configuration"
+    val valueFromJVM = "value from JVM args"
+    val valueFromSpline = "value from spline.properties"
+
     it("should look through the multiple sources for the configuration properties") {
       val sparkSession = SparkSession.builder.getOrCreate
-      sparkSession.sparkContext.hadoopConfiguration.set("key.defined.everywhere", "value from Hadoop configuration")
+      val sparkConf = (classOf[SparkContext] getMethod "conf" invoke sparkSession.sparkContext).asInstanceOf[SparkConf]
+      val hadoopConf = sparkSession.sparkContext.hadoopConfiguration
 
-      jvmProps.setProperty("key.defined.everywhere", "value from JVM args")
-      jvmProps.setProperty("key.defined.in_JVM_and_spline.properties", "value from JVM args")
+      for (key <- Some(keyDefinedEverywhere)) {
+        jvmProps.setProperty(key, valueFromJVM)
+        hadoopConf.set(key, valueFromHadoop)
+        sparkConf.set(s"spark.$key", valueFromSpark)
+        // skip setting spline prop as it's already hardcoded in spline.properties
+      }
 
-      sparkSession.defaultSplineConfiguration getString "key.defined.everywhere" shouldEqual "value from Hadoop configuration"
-      sparkSession.defaultSplineConfiguration getString "key.defined.in_JVM_and_spline.properties" shouldEqual "value from JVM args"
-      sparkSession.defaultSplineConfiguration getString "key.defined.in_spline.properties_only" shouldEqual "value from spline.properties"
-      sparkSession.defaultSplineConfiguration getString "key.undefined" shouldBe null
+      for (key <- Some(keyDefinedInJVMAndSpline)) {
+        jvmProps.setProperty(key, valueFromJVM)
+        // skip setting spline prop as it's already hardcoded in spline.properties
+      }
+
+      for (key <- Some(keyDefinedInHadoopAndSpline)) {
+        hadoopConf.set(key, valueFromHadoop)
+        // skip setting spline prop as it's already hardcoded in spline.properties
+      }
+
+      for (key <- Some(keyDefinedInHadoopAndSpark)) {
+        hadoopConf.set(key, valueFromHadoop)
+        sparkConf.set(s"spark.$key", valueFromSpark)
+      }
+
+      for (key <- Some(keyDefinedInSparkAndSpline)) {
+        sparkConf.set(s"spark.$key", valueFromSpark)
+        // skip setting spline prop as it's already hardcoded in spline.properties
+      }
+
+      val splineConfiguration = sparkSession.defaultSplineConfiguration
+
+      splineConfiguration getString keyDefinedEverywhere shouldEqual valueFromHadoop
+      splineConfiguration getString keyDefinedInJVMAndSpline shouldEqual valueFromJVM
+      splineConfiguration getString keyDefinedInHadoopAndSpline shouldEqual valueFromHadoop
+      splineConfiguration getString keyDefinedInHadoopAndSpark shouldEqual valueFromHadoop
+      splineConfiguration getString keyDefinedInSparkAndSpline shouldEqual valueFromSpark
+      splineConfiguration getString keyDefinedInSplineOnly shouldEqual valueFromSpline
+      splineConfiguration getString "key.undefined" shouldBe null
     }
   }
 

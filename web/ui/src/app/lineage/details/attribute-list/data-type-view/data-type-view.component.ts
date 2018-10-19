@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 import {Component, Input} from "@angular/core";
 import {TreeNode} from "angular-tree-component";
 import {typeOfDataType} from "../../../types";
+import {IArray, IDataType} from "../../../../../generated-ts/datatype-model";
+import {LineageStore} from "../../../lineage.store";
 
 @Component({
     selector: "data-type-view",
@@ -26,8 +28,15 @@ import {typeOfDataType} from "../../../types";
 export class DataTypeViewComponent {
     @Input() node: TreeNode
 
-    getTypeOfType(): string {
-        return typeOfDataType(this.node.data.type)
+    constructor(private lineageStore: LineageStore) {
+    }
+
+    typeOfDataType(dt: IDataType): string {
+        return typeOfDataType(dt)
+    }
+
+    getArrayElementType(arrayDT: IArray): IDataType {
+        return this.lineageStore.lineageAccessors.getDataType(arrayDT.elementDataTypeId)
     }
 
     toggleExpanded(e: Event) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,48 +19,67 @@ import {IExpression} from "../../generated-ts/expression-model";
 import {IDataType} from "../../generated-ts/datatype-model";
 
 export type OperationType =
-    ( "Projection"
-    | "Read"
-    | "Join"
-    | "Union"
-    | "Generic"
-    | "Filter"
-    | "Sort"
-    | "Aggregate"
-    | "Write"
-    | "Alias"
-    | "Composite"
-    )
+    ("Projection"
+        | "Read"
+        | "Join"
+        | "Union"
+        | "Generic"
+        | "Filter"
+        | "Sort"
+        | "Aggregate"
+        | "Write"
+        | "Alias"
+        | "Composite"
+        )
 
 export type ExpressionType =
-    ( "Binary"
-    | "Alias"
-    | "AttributeRemoval"
-    | "UserDefinedFunction"
-    | "Generic"
-    | "AttributeReference"
-    )
+    ("Binary"
+        | "Literal"
+        | "Alias"
+        | "UDF"
+        | "Generic"
+        | "GenericLeaf"
+        | "AttrRef"
+        )
 
 export type DataTypeType =
-    ( "Struct"
-    | "Array"
-    | "Simple"
-    )
+    ("Struct"
+        | "Array"
+        | "Simple"
+        )
 
 
-export function typeOfOperation(node: IOperation): OperationType {
-    return typeOfAny(node)
+export function typeOfOperation(node: IOperation): OperationType | undefined {
+    return typeOfAnyAssumingPrefix(node, "op") as OperationType
 }
 
-export function typeOfExpr(expr: IExpression): ExpressionType {
-    return typeOfAny(expr)
+export function typeOfExpr(expr: IExpression): ExpressionType | undefined {
+    return typeOfAnyAssumingPrefix(expr, "expr") as ExpressionType
 }
 
-export function typeOfDataType(dataType: IDataType): DataTypeType {
-    return typeOfAny(dataType)
+export function typeOfDataType(dataType: IDataType): DataTypeType | undefined {
+    return typeOfAnyAssumingPrefix(dataType, "dt") as DataTypeType
 }
 
-function typeOfAny(obj: any) {
-    let typeHint = obj._typeHint
-    return typeHint.substr(typeHint.lastIndexOf(".") + 1)
+function typeOfAnyAssumingPrefix(obj: any, expectedPrefix: string): string | undefined {
+    let typeSuffix = getNthLastIndexOf(obj._typeHint, ".", 2)
+    let prefixWithType = typeSuffix && typeSuffix.split(".")
+    if (prefixWithType && prefixWithType.length == 2) {
+        const [prefix, type] = prefixWithType
+        return (prefix == expectedPrefix && type) || undefined
+    }
+    else
+        return undefined
+}
+
+function getNthLastIndexOf(str: string, search: string, n: number): string | undefined {
+    if(!str)
+        return undefined
+    else {
+        let pos = str.length
+        for (let i = 0; i < n; i++) {
+            pos = str.lastIndexOf(search, pos - 1)
+        }
+        return str.substring(pos + 1) || undefined
+    }
 }

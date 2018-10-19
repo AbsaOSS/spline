@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,17 @@
 
 package za.co.absa.spline.persistence.mongo
 
-import com.mongodb.DBCollection
 import com.mongodb.casbah.Imports.MongoClientURI
-import com.mongodb.casbah.MongoClient
+import com.mongodb.casbah.{MongoClient, MongoDB}
 
-/**
-  * The class represents a connection to a specific Mongo database
-  *
-  * @param dbUrl  An url to Mongo server
-  * @param dbName A database name
-  */
-class MongoConnection(dbUrl: String, dbName: String) {
+trait MongoConnection {
+  def db: MongoDB
+}
+
+class MongoConnectionImpl(dbUrl: String, dbName: String) extends MongoConnection {
   private val client: MongoClient = MongoClient(MongoClientURI(dbUrl))
+
   require(client.databaseNames != null) // check if the connection can be established
 
-  private val database = client.getDB(dbName)
-
-  val dataLineageCollection: DBCollection = database.getCollection("lineages")
-  val operationCollection: DBCollection = database.getCollection("operations")
-  val attributeCollection: DBCollection = database.getCollection("attributes")
-  val datasetCollection: DBCollection = database.getCollection("datasets")
+  val db: MongoDB = client.getDB(dbName)
 }

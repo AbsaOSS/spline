@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,25 @@ package za.co.absa.spline.persistence.mongo
 import java.util.UUID
 import java.util.UUID.randomUUID
 
-import org.scalatest.{AsyncFunSpec, BeforeAndAfterEach, Matchers}
+import org.scalatest.mockito.MockitoSugar
+import org.scalatest.{AsyncFunSpec, BeforeAndAfterEach}
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op.{Generic, OperationProps, Write}
 import za.co.absa.spline.model.{Attribute, Schema, _}
 import za.co.absa.spline.persistence.mongo.MongoTestProperties.mongoConnection
+import za.co.absa.spline.persistence.mongo.dao.{LineageDAOv3, LineageDAOv4, MultiVersionLineageDAO}
 
-abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Matchers with BeforeAndAfterEach {
+abstract class MongoDataLineagePersistenceSpecBase
+  extends AsyncFunSpec
+    with MockitoSugar
+    with BeforeAndAfterEach {
 
-  protected val mongoWriter = new MongoDataLineageWriter(mongoConnection)
-  protected val mongoReader = new MongoDataLineageReader(mongoConnection)
+  private val dao = new MultiVersionLineageDAO(
+    new LineageDAOv3(mongoConnection),
+    new LineageDAOv4(mongoConnection))
+
+  protected val mongoWriter = new MongoDataLineageWriter(dao)
+  protected val mongoReader = new MongoDataLineageReader(dao)
 
   protected def createDataLineage(
                                    appId: String,
@@ -38,10 +47,11 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
                                    path: String = "hdfs://foo/bar/path",
                                    append: Boolean = false)
   : DataLineage = {
+    val dataTypes = Seq(Simple("StringType", nullable = true))
     val attributes = Seq(
-      Attribute(randomUUID(), "_1", Simple("StringType", nullable = true)),
-      Attribute(randomUUID(), "_2", Simple("StringType", nullable = true)),
-      Attribute(randomUUID(), "_3", Simple("StringType", nullable = true))
+      Attribute(randomUUID(), "_1", dataTypes.head.id),
+      Attribute(randomUUID(), "_2", dataTypes.head.id),
+      Attribute(randomUUID(), "_3", dataTypes.head.id)
     )
     val aSchema = Schema(attributes.map(_.id))
     val bSchema = Schema(attributes.map(_.id).tail)
@@ -55,6 +65,7 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
       appId,
       appName,
       timestamp,
+      "0.0.42",
       Seq(
         Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path, append),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
@@ -63,15 +74,11 @@ abstract class MongoDataLineagePersistenceSpecBase extends AsyncFunSpec with Mat
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md1.id), "rawString4")
       ),
       Seq(md1, md2, md3, md4),
-      attributes
+      attributes,
+      dataTypes
     )
   }
 
-  override protected def afterEach(): Unit = {
-    import mongoConnection._
-    dataLineageCollection.drop()
-    operationCollection.drop()
-    attributeCollection.drop()
-    datasetCollection.drop()
-  }
+  override protected def afterEach(): Unit =
+    mongoConnection.db.collectionNames.foreach(mongoConnection.db(_).drop)
 }

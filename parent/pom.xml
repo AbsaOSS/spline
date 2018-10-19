@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2017 Barclays Africa Group Limited
+  ~ Copyright 2017 ABSA Group Limited
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
     <groupId>za.co.absa.spline</groupId>
     <artifactId>spline-parent</artifactId>
-    <version>0.3.1</version>
+    <version>0.3.2</version>
 
     <packaging>pom</packaging>
 
@@ -34,7 +34,7 @@
         <connection>scm:git:git://github.com/AbsaOSS/spline.git</connection>
         <developerConnection>scm:git:ssh://github.com:AbsaOSS/spline.git</developerConnection>
         <url>http://github.com/AbsaOSS/spline/tree/master</url>
-        <tag>release/0.3.1</tag>
+        <tag>release/0.3.2</tag>
     </scm>
 
     <licenses>
@@ -46,8 +46,8 @@
     </licenses>
 
     <organization>
-        <name>Barclays Africa Group Limited</name>
-        <url>https://www.barclaysafrica.com</url>
+        <name>ABSA Group Limited</name>
+        <url>https://www.absa.africa</url>
     </organization>
 
     <developers>
@@ -74,6 +74,12 @@
             <name>Ruslan Iushchenko</name>
             <timezone>Europe/Prague</timezone>
             <url>https://github.com/yruslan</url>
+        </developer>
+        <developer>
+            <id>vackosar</id>
+            <name>Vaclav Kosar</name>
+            <timezone>Europe/Prague</timezone>
+            <url>https://github.com/vackosar</url>
         </developer>
     </developers>
 
@@ -340,6 +346,11 @@
             </dependency>
             <dependency>
                 <groupId>org.scala-lang</groupId>
+                <artifactId>scala-actors</artifactId>
+                <version>${scala.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
                 <artifactId>scala-library</artifactId>
                 <version>${scala.version}</version>
             </dependency>
@@ -377,6 +388,31 @@
                 <groupId>org.mongodb</groupId>
                 <artifactId>mongo-java-driver</artifactId>
                 <version>3.6.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json4s</groupId>
+                <artifactId>json4s-ast_${scala.compat.version}</artifactId>
+                <version>${json4s.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json4s</groupId>
+                <artifactId>json4s-core_${scala.compat.version}</artifactId>
+                <version>${json4s.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json4s</groupId>
+                <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
+                <version>${json4s.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json4s</groupId>
+                <artifactId>json4s-native_${scala.compat.version}</artifactId>
+                <version>${json4s.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json4s</groupId>
+                <artifactId>json4s-scalap_${scala.compat.version}</artifactId>
+                <version>${json4s.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.json4s</groupId>
@@ -470,14 +506,12 @@
             <dependency>
                 <groupId>org.scalatest</groupId>
                 <artifactId>scalatest_${scala.compat.version}</artifactId>
-                <version>3.0.4</version>
-                <scope>test</scope>
+                <version>3.0.5</version>
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
                 <version>2.13.0</version>
-                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

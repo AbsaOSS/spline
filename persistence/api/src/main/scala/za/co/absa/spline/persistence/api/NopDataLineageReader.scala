@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ object NopDataLineageReader extends DataLineageReader {
     * @param dsId An unique identifier of a data lineage
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
-  override def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Future[Option[DataLineage]] = Future.successful(None)
+  override def loadByDatasetId(dsId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[Option[DataLineage]] = Future.successful(None)
 
   /**
     * The method scans the persistence layer and tries to find a dataset ID for a given path and application ID.
@@ -59,7 +59,7 @@ object NopDataLineageReader extends DataLineageReader {
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  override def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] = Future.successful(CloseableIterable.empty)
+  override def findByInputId(datasetId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] = Future.successful(CloseableIterable.empty)
 
 
   /**

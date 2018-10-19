@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import {LineageStore} from "../../lineage.store";
 import {OperationType, typeOfExpr, typeOfOperation} from "../../types";
 import {IExpression} from "../../../../generated-ts/operation-model";
 import {getIconForNodeType} from "./operation-icon.utils";
+
+import * as _ from "lodash"
 
 @Component({
     selector: "operation-details",
@@ -55,9 +57,31 @@ export class OperationDetailsComponent implements OnChanges {
         return typeOfExpr(expr)
     }
 
+    getAttribute(id: string): IAttribute {
+        return this.lineageStore.lineageAccessors.getAttribute(id)
+    }
+
     getDatasetAttributes(dsId: string): IAttribute[] {
         let dataset = this.lineageStore.lineageAccessors.getDataset(dsId)
         return dataset.schema.attrs.map(attrId => this.lineageStore.lineageAccessors.getAttribute(attrId))
+    }
+
+    getDroppedAttributesIfAny(): IAttribute[] | undefined {
+        const attributeIdsByDatasetId =
+            (dsId: string): string[] => this.lineageStore.lineageAccessors.getDataset(dsId).schema.attrs
+
+        const inputAttributeIds: string[] = _.flatMap(this.operation.mainProps.inputs, attributeIdsByDatasetId)
+        const outputAttributeIds: string[] = attributeIdsByDatasetId(this.operation.mainProps.output)
+
+        const removedAttributesSortedByName =
+            _(inputAttributeIds).difference(outputAttributeIds)
+                .map(attrId => this.lineageStore.lineageAccessors.getAttribute(attrId))
+                .sortBy(attr => attr.name)
+                .value()
+
+        return removedAttributesSortedByName.length
+            ? removedAttributesSortedByName
+            : undefined
     }
 
     selectAttribute(attrId: string) {

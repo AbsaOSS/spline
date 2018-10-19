@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2017 Barclays Africa Group Limited
+  ~ Copyright 2017 ABSA Group Limited
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,6 +61,8 @@
                     <mat-tab label="Summary">
                         <h2>{{lineage.appName}}</h2>
                         <pre class="small">#{{lineage.appId}}</pre>
+                        <p>Spark version: <b>{{lineage.sparkVer}}</b></p>
+                        <p>Timestamp: <b>{{lineage.timestamp | date:'long'}}</b></p>
                         <p>Operations: <b>{{lineage.operations.length}}</b></p>
                         <p>Input data sources: <b>{{getDataSourceCount()}}</b></p>
                     </mat-tab>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,16 @@ package za.co.absa.spline.core
 
 import java.util.Properties
 
-import za.co.absa.spline.common.ARMImplicits
+import za.co.absa.spline.common.ARM._
 
 object SplineBuildInfo {
 
-  import ARMImplicits._
-
   private val buildProps =
-    for (stream <- this.getClass getResourceAsStream "/build.properties")
-      yield new Properties() {
+    using(this.getClass getResourceAsStream "/build.properties") { stream =>
+      new Properties() {
         load(stream)
       }
+    }
 
   val version: String = buildProps getProperty "build.version"
   val timestamp: String = buildProps getProperty "build.timestamp"

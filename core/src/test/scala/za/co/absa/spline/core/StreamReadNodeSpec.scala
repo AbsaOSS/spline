@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,12 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.types.StructType
 import org.scalatest.{FlatSpec, Matchers}
 import za.co.absa.spline.core.TestSparkContext.sparkSession
+import za.co.absa.spline.core.harvester.{ComponentCreatorFactory, StreamReadNodeBuilder}
 import za.co.absa.spline.model.endpoint.{FileEndpoint, KafkaEndpoint, SocketEndpoint, VirtualEndpoint}
 
 class StreamReadNodeSpec extends FlatSpec with Matchers {
   implicit val hadoopConfiguration: Configuration = sparkSession.sparkContext.hadoopConfiguration
-  implicit val metaDatasetFactory: MetaDatasetFactory = new MetaDatasetFactory(new AttributeFactory)
+  implicit val compCreatorFactory: ComponentCreatorFactory = new ComponentCreatorFactory()
   import za.co.absa.spline.coresparkadapterapi.StreamingRelationAdapter.instance._
 
   behavior of "The build method"
@@ -45,7 +46,7 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
 
   it should "return StreamRead node with a socket endpoint when reading data from the socket data source" in {
     val host = "somehost"
-    val port = 9999
+    val port = 9999L
 
     val df = sparkSession
       .readStream
@@ -61,7 +62,7 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
   }
 
   it should "return StreamRead node with a kafka endpoint when reading data from a kafka topic." in {
-    val cluster = Seq("server1:1111", "server2:2222")
+    val cluster = Seq("127.0.0.1:1111", "127.0.0.1:2222")
     val topic = "someTopic"
 
     val df = sparkSession
