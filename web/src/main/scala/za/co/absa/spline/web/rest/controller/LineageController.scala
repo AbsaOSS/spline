@@ -71,7 +71,7 @@ class LineageController @Autowired()
   @RequestMapping(Array("/dataset/{id}/lineage/partial"))
   @ResponseBody
   def datasetLineage(@PathVariable("id") id: UUID): EstimableFuture[String] =
-    reader.loadByDatasetId(id).map(_.get.toJson).asEstimable(category = "lineage/partial")
+    reader.loadByDatasetId(id, overviewOnly = false).map(_.get.toJson).asEstimable(category = "lineage/partial")
 
   @RequestMapping(path = Array("/dataset/{id}/lineage/overview"), method = Array(GET))
   @ResponseBody

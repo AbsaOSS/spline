@@ -37,8 +37,8 @@ class MongoDataLineageReader(lineageDAO: LineageDAO) extends DataLineageReader {
     * @param dsId An unique identifier of a data lineage
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
-  override def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Future[Option[DataLineage]] = {
-    lineageDAO.loadByDatasetId(dsId).map(_.map(grater[DataLineage].asObject(_)))
+  override def loadByDatasetId(dsId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[Option[DataLineage]] = {
+    lineageDAO.loadByDatasetId(dsId, overviewOnly).map(_.map(grater[DataLineage].asObject(_)))
   }
 
   /**
@@ -66,8 +66,8 @@ class MongoDataLineageReader(lineageDAO: LineageDAO) extends DataLineageReader {
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  override def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] =
-    lineageDAO.findByInputId(datasetId).map(_.map(grater[DataLineage].asObject(_)))
+  override def findByInputId(datasetId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[CloseableIterable[DataLineage]] =
+    lineageDAO.findByInputId(datasetId, overviewOnly: Boolean).map(_.map(grater[DataLineage].asObject(_)))
 
   /**
     * The method gets all data lineages stored in persistence layer.

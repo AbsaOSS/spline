@@ -28,13 +28,13 @@ trait LineageDAO {
 
   def save(lineage: DBObject)(implicit e: ExecutionContext): Future[Unit]
 
-  def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Future[Option[DBObject]]
+  def loadByDatasetId(dsId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[Option[DBObject]]
 
   def searchDataset(path: String, applicationId: String)(implicit ec: ExecutionContext): Future[Option[UUID]]
 
   def findLatestDatasetIdsByPath(path: String)(implicit ec: ExecutionContext): Future[CloseableIterable[UUID]]
 
-  def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]]
+  def findByInputId(datasetId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]]
 
   def findDatasetDescriptors(maybeText: Option[String], pageRequest: PageRequest)
                             (implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]]
@@ -46,7 +46,7 @@ trait VersionedLineageDAO extends VersionedDAO {
 
   def save(lineage: DBObject)(implicit e: ExecutionContext): Future[Unit]
 
-  def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Future[Option[DBObject]]
+  def loadByDatasetId(dsId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[Option[DBObject]]
 
   def searchDataset(path: String, applicationId: String)(implicit ec: ExecutionContext): Future[Option[UUID]]
 
@@ -54,7 +54,7 @@ trait VersionedLineageDAO extends VersionedDAO {
 
   def findDatasetIdsByPathSince(path: String, since: Timestamp)(implicit ec: ExecutionContext): Future[CloseableIterable[UUID]]
 
-  def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]]
+  def findByInputId(datasetId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]]
 
   def findDatasetDescriptors(maybeText: Option[String], pageRequest: PageRequest)
                             (implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]]

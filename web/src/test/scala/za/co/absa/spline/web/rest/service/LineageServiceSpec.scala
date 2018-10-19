@@ -79,11 +79,11 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
   it should "be able to construct small high order lineage out of 2 composites" in {
     val readerMock: DataLineageReader = mock[DataLineageReader]
 
-    when(readerMock.loadByDatasetId(≡(UUIDS1))(any())) thenReturn Future.successful(Some(lineage1))
-    when(readerMock.loadByDatasetId(≡(UUIDS2))(any())) thenReturn Future.successful(Some(lineage2))
+    when(readerMock.loadByDatasetId(≡(UUIDS1), any())(any())) thenReturn Future.successful(Some(lineage1))
+    when(readerMock.loadByDatasetId(≡(UUIDS2), any())(any())) thenReturn Future.successful(Some(lineage2))
 
-    when(readerMock.findByInputId(≡(UUIDS1))(any())) thenReturn Future.successful(new CloseableIterable(Iterator(lineage2), {}))
-    when(readerMock.findByInputId(≡(UUIDS2))(any())) thenReturn Future.successful(CloseableIterable.empty[DataLineage])
+    when(readerMock.findByInputId(≡(UUIDS1), any())(any())) thenReturn Future.successful(new CloseableIterable(Iterator(lineage2), {}))
+    when(readerMock.findByInputId(≡(UUIDS2), any())(any())) thenReturn Future.successful(CloseableIterable.empty[DataLineage])
 
     val svc = new LineageService(readerMock)
 
@@ -185,17 +185,17 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
   }
 
   def prepareBigLineageMock(readerMock: DataLineageReader): Unit = {
-    when(readerMock.loadByDatasetId(≡(aUUID))(any())) thenReturn Future.successful(Some(lineageA))
-    when(readerMock.loadByDatasetId(≡(bUUID))(any())) thenReturn Future.successful(Some(lineageB))
-    when(readerMock.loadByDatasetId(≡(cUUID))(any())) thenReturn Future.successful(Some(lineageC))
-    when(readerMock.loadByDatasetId(≡(dUUID))(any())) thenReturn Future.successful(Some(lineageD))
-    when(readerMock.loadByDatasetId(≡(eUUID))(any())) thenReturn Future.successful(Some(lineageE))
+    when(readerMock.loadByDatasetId(≡(aUUID), any())(any())) thenReturn Future.successful(Some(lineageA))
+    when(readerMock.loadByDatasetId(≡(bUUID), any())(any())) thenReturn Future.successful(Some(lineageB))
+    when(readerMock.loadByDatasetId(≡(cUUID), any())(any())) thenReturn Future.successful(Some(lineageC))
+    when(readerMock.loadByDatasetId(≡(dUUID), any())(any())) thenReturn Future.successful(Some(lineageD))
+    when(readerMock.loadByDatasetId(≡(eUUID), any())(any())) thenReturn Future.successful(Some(lineageE))
 
-    when(readerMock.findByInputId(≡(aUUID))(any())) thenReturn Future.successful(new CloseableIterable(Iterator(lineageB, lineageC), {}))
-    when(readerMock.findByInputId(≡(bUUID))(any())) thenReturn Future.successful(CloseableIterable.empty[DataLineage])
-    when(readerMock.findByInputId(≡(cUUID))(any())) thenReturn Future.successful(CloseableIterable.empty[DataLineage])
-    when(readerMock.findByInputId(≡(dUUID))(any())) thenReturn Future.successful(new CloseableIterable(Iterator(lineageA), {}))
-    when(readerMock.findByInputId(≡(eUUID))(any())) thenReturn Future.successful(new CloseableIterable(Iterator(lineageA), {}))
+    when(readerMock.findByInputId(≡(aUUID), any())(any())) thenReturn Future.successful(new CloseableIterable(Iterator(lineageB, lineageC), {}))
+    when(readerMock.findByInputId(≡(bUUID), any())(any())) thenReturn Future.successful(CloseableIterable.empty[DataLineage])
+    when(readerMock.findByInputId(≡(cUUID), any())(any())) thenReturn Future.successful(CloseableIterable.empty[DataLineage])
+    when(readerMock.findByInputId(≡(dUUID), any())(any())) thenReturn Future.successful(new CloseableIterable(Iterator(lineageA), {}))
+    when(readerMock.findByInputId(≡(eUUID), any())(any())) thenReturn Future.successful(new CloseableIterable(Iterator(lineageA), {}))
   }
 
   it should "be able to construst small high order lineage out of 5 composites, starting at point A" in {

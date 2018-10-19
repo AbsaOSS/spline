@@ -100,8 +100,8 @@ class MultiVersionLineageDAO(protected val daoChain: VersionedLineageDAO*) exten
   override def save(lineage: DBObject)(implicit e: ExecutionContext): Future[Unit] =
     latestDAO.save(lineage)
 
-  override def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Future[Option[DBObject]] =
-    callAndCombine(_.loadByDatasetId(dsId))(_.flatten.headOption)
+  override def loadByDatasetId(dsId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[Option[DBObject]] =
+    callAndCombine(_.loadByDatasetId(dsId, overviewOnly))(_.flatten.headOption)
 
   override def searchDataset(path: String, applicationId: String)(implicit ec: ExecutionContext): Future[Option[UUID]] =
     callAndCombine(_.searchDataset(path, applicationId))(_.flatten.headOption)
@@ -113,8 +113,8 @@ class MultiVersionLineageDAO(protected val daoChain: VersionedLineageDAO*) exten
       result <- callAndCombine(_.findDatasetIdsByPathSince(path, lastOverwriteTimestamp))(CloseableIterable.chain)
     } yield result
 
-  override def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]] =
-    callAndCombine(_.findByInputId(datasetId))(CloseableIterable.chain)
+  override def findByInputId(datasetId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]] =
+    callAndCombine(_.findByInputId(datasetId, overviewOnly))(CloseableIterable.chain)
 
   override def findDatasetDescriptors(maybeText: Option[String], pageRequest: DataLineageReader.PageRequest)
                                      (implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]] = {
