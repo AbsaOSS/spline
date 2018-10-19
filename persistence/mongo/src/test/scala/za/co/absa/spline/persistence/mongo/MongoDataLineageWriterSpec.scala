@@ -31,7 +31,7 @@ class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase wit
     it("should store data lineage to a database") {
       for {
         _ <- mongoWriter store lineage
-        storedLineage <- mongoReader loadByDatasetId lineage.rootDataset.id
+        storedLineage <- mongoReader.loadByDatasetId(lineage.rootDataset.id, overviewOnly = false)
       } yield {
         storedLineage.get shouldEqual lineage
       }
@@ -47,7 +47,7 @@ class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase wit
 
       for {
         _ <- mongoWriter store lineageWithDotsAndDollar
-        storedLineage <- mongoReader loadByDatasetId lineageWithDotsAndDollar.rootDataset.id
+        storedLineage <- mongoReader.loadByDatasetId(lineageWithDotsAndDollar.rootDataset.id, overviewOnly = false)
       } yield
         storedLineage shouldEqual Option(lineageWithDotsAndDollar)
     }
@@ -65,7 +65,7 @@ class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase wit
         )))
       for {
         _ <- mongoWriter store lineageWithExpressions
-        storedLineage <- mongoReader loadByDatasetId lineageWithExpressions.rootDataset.id
+        storedLineage <- mongoReader.loadByDatasetId(lineageWithExpressions.rootDataset.id, overviewOnly = false)
       } yield {
         storedLineage.get shouldEqual lineageWithExpressions
       }
@@ -76,7 +76,7 @@ class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase wit
         lineage.operations :+ op.Projection(OperationProps(randomUUID, "", Nil, randomUUID), Nil))
       for {
         _ <- mongoWriter store lineageWithExpressions
-        storedLineage <- mongoReader loadByDatasetId lineageWithExpressions.rootDataset.id
+        storedLineage <- mongoReader.loadByDatasetId(lineageWithExpressions.rootDataset.id, overviewOnly = false)
       } yield {
         storedLineage.get shouldEqual lineageWithExpressions
       }

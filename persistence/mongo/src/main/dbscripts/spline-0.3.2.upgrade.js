@@ -17,11 +17,14 @@
 // SL-141
 
 db.operations.createIndex({"_index": 1})
+db.operations.createIndex({"_typeHint": 1})
+
 db.datasets.createIndex({"_index": 1})
+
 db.attributes.createIndex({"_index": 1})
 
 db.transformations_v4.createIndex({"_index": 1})
-db.dataTypes_v4.createIndex({"_index": 1})
-
 db.transformations_v4.createIndex({"_lineageId": 1})
+
+db.dataTypes_v4.createIndex({"_index": 1})
 db.dataTypes_v4.createIndex({"_lineageId": 1})

@@ -16,6 +16,8 @@
 
 package za.co.absa.spline.persistence.mongo.dao
 
+import com.mongodb.DBObject
+import com.mongodb.casbah.query.Implicits.mongoQueryStatements
 import za.co.absa.spline.persistence.mongo.MongoConnection
 import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component
 
@@ -26,4 +28,11 @@ class LineageDAOv3(override val connection: MongoConnection) extends BaselineLin
   override def upgrader: Option[VersionUpgrader] = None
 
   override protected def getMongoCollectionNameForComponent(component: Component): String = component.name
+
+  override protected val overviewComponentFilter: PartialFunction[Component.SubComponent, DBObject] = {
+    case Component.Operation =>
+      "_typeHint" $in Seq(
+        "za.co.absa.spline.model.op.Read",
+        "za.co.absa.spline.model.op.Write")
+  }
 }

@@ -21,6 +21,7 @@ import java.util.UUID
 import java.util.function.{Consumer, Predicate}
 import java.{util => ju}
 
+import com.mongodb.casbah.query.Implicits.mongoQueryStatements
 import com.mongodb.{BasicDBList, BasicDBObject, DBObject}
 import org.apache.commons.lang.StringUtils
 import salat.{BinaryTypeHintStrategy, TypeHintFrequency}
@@ -37,6 +38,8 @@ import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class LineageDAOv4(override val connection: MongoConnection) extends BaselineLineageDAO with MutableLineageUpgraderV4 {
+
+  import LineageDAOv4._
 
   override val version: Int = 4
 
@@ -66,11 +69,24 @@ class LineageDAOv4(override val connection: MongoConnection) extends BaselineLin
     }
   }
 
-  override protected def addComponents(rootComponentDBO: DBObject)(implicit ec: ExecutionContext): Future[DBObject] =
-    super.addComponents(rootComponentDBO).map(lineage => {
-      val transformations = lineage.get(SubComponentV4.Transformation.name).asInstanceOf[ju.List[DBObject]]
-      insertTransformationsIntoLineage(transformations.asScala, lineage)
-    })
+  override protected def addComponents(rootComponentDBO: DBObject, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[DBObject] = {
+    val eventualLineageDBO = super.addComponents(rootComponentDBO, overviewOnly)
+    if (overviewOnly)
+      eventualLineageDBO
+    else
+      eventualLineageDBO.map(lineage => {
+        val transformations = lineage.get(SubComponentV4.Transformation.name).asInstanceOf[ju.List[DBObject]]
+        insertTransformationsIntoLineage(transformations.asScala, lineage)
+      })
+  }
+
+  override protected val overviewComponentFilter: PartialFunction[Component.SubComponent, DBObject] = {
+    case Component.Operation =>
+      Field.t $in Seq(
+        "za.co.absa.spline.model.op.Read",
+        "za.co.absa.spline.model.op.Write")
+        .map(binaryTypeHintStrategy.encode)
+  }
 
   private def insertTransformationsIntoLineage(transformations: Seq[DBObject], lineage: DBObject) = {
     val transformationsByOperationId = transformations.groupBy(_.get(Field.opId))
@@ -99,6 +115,8 @@ class LineageDAOv4(override val connection: MongoConnection) extends BaselineLin
 }
 
 object LineageDAOv4 {
+
+  val binaryTypeHintStrategy = BinaryTypeHintStrategy(TypeHintFrequency.Always)
 
   object Field {
     val child = "child"
@@ -291,11 +309,9 @@ object MutableLineageUpgraderV4 {
       dtConverter.convertAndReplace(o, Field.dataType, Field.dataTypeId)
   }
 
-  val binaryTypeHintStrategy = BinaryTypeHintStrategy(TypeHintFrequency.Always)
-
   private def upgradeTypeHintOf(o: DBObject): Unit = {
     val stringTypeHint = o.removeField(Field.typeHint).toString
-    val binaryTypeHint = binaryTypeHintStrategy.encode(stringTypeHint)
+    val binaryTypeHint = LineageDAOv4.binaryTypeHintStrategy.encode(stringTypeHint)
     o.put(Field.t, binaryTypeHint)
   }
 

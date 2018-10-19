@@ -22,7 +22,6 @@ import java.util.regex.Pattern.quote
 
 import com.mongodb.casbah.AggregationOptions.{default => aggOpts}
 import com.mongodb.casbah.Imports._
-import com.mongodb.casbah.query.dsl.QueryExpressionObject
 import com.mongodb.{Cursor, DBCollection}
 import org.slf4s.Logging
 import za.co.absa.spline.common.ARM._
@@ -83,36 +82,40 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
     * @param dsId An unique identifier of a data lineage
     * @return A data lineage instance when there is a data lineage with a given id in the persistence layer, otherwise None
     */
-  override def loadByDatasetId(dsId: UUID)(implicit ec: ExecutionContext): Future[Option[DBObject]] = {
+  override def loadByDatasetId(dsId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[Option[DBObject]] = {
     val lineageId = DataLineageId.fromDatasetId(dsId)
     val maybeLineage = Option(blocking(dataLineageCollection findOne lineageId))
 
     Future
-      .traverse(maybeLineage.toList)(addComponents)
+      .traverse(maybeLineage.toList)(addComponents(_, overviewOnly))
       .map(_.headOption)
   }
 
-  protected def addComponents(rootComponentDBO: DBObject)(implicit ec: ExecutionContext): Future[DBObject] = {
-    def readLinkedComponent(dBCollection: DBCollection, lineageId: String): Future[BasicDBList] = Future {
+  protected def addComponents(rootComponentDBO: DBObject, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[DBObject] = {
+    val lineageId = rootComponentDBO(idField).toString
+
+    val componentFilter = if (overviewOnly) overviewComponentFilter else PartialFunction.empty
+
+    def readLinkedComponent(comp: SubComponent): Future[BasicDBList] = Future {
+      val componentQuery =
+        (lineageIdField $eq lineageId) ++
+          componentFilter.applyOrElse(comp, Function.const(DBObject.empty))
       new BasicDBList {
         addAll(blocking {
-          dBCollection
-            .find(inLineageOp(lineageId))
-            .sort(sortByIndex).toArray
+          getMongoCollectionForComponent(comp)
+            .find(componentQuery,
+              DBObject(indexField → 0, lineageIdField → 0))
+            .sort(
+              DBObject(indexField → 1))
+            .toArray
         })
       }
     }
 
-    def inLineageOp(lineageId: String): DBObject with QueryExpressionObject = lineageIdField $eq lineageId
-
-    def sortByIndex: DBObject = MongoDBObject(indexField → 1)
-
     val eventualSubComponents =
-      Future.sequence(subComponents.map(comp =>
-        readLinkedComponent(
-          getMongoCollectionForComponent(comp),
-          rootComponentDBO(idField).toString)
-          .map(comp -> _)))
+      Future.sequence(subComponents.map(comp => {
+        readLinkedComponent(comp).map(comp -> _)
+      }))
 
     for (subComponents <- eventualSubComponents.map(_.toMap))
       yield {
@@ -120,6 +123,8 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
         MongoDBObject(rootComponentDBO.toList ++ subEntries)
       }
   }
+
+  protected def overviewComponentFilter: PartialFunction[SubComponent, DBObject] = PartialFunction.empty
 
   /**
     * The method scans the persistence layer and tries to find a dataset ID for a given path and application ID.
@@ -182,22 +187,23 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
     * @param datasetId A dataset ID for which the operation is looked for
     * @return Composite operations with dependencies satisfying the criteria
     */
-  override def findByInputId(datasetId: UUID)(implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]] = {
-    val eventualCursor = Future(blocking(operationCollection.find(DBObject("sources.datasetsIds" → datasetId))))
+  override def findByInputId(datasetId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]] = {
+    val eventualOperations = Future(blocking(operationCollection.find(DBObject("sources.datasetsIds" → datasetId))))
 
     import scala.collection.convert.WrapAsScala.asScalaIterator
 
     for {
-      cursor <- eventualCursor
-      maybeLineages <- Future.traverse[DBObject, Option[DBObject], Iterator](cursor.iterator()) {
-        dBObject => {
-          val refLineageId = dBObject.get(lineageIdField).asInstanceOf[String]
-          val refDatasetId = DataLineageId.toDatasetId(refLineageId)
-          loadByDatasetId(refDatasetId)
+      opCursor <- eventualOperations
+      opIter = opCursor.iterator
+      lineageIds = opIter.map(_.get(lineageIdField).asInstanceOf[String]).toSet
+      maybeLineages <- Future.traverse[String, Option[DBObject], Iterator](lineageIds.iterator) {
+        lineageId => {
+          val datasetId = DataLineageId.toDatasetId(lineageId)
+          loadByDatasetId(datasetId, overviewOnly)
         }
       }
     } yield
-      new CloseableIterable(maybeLineages.flatten, cursor.close())
+      new CloseableIterable(maybeLineages.flatten, opCursor.close())
   }
 
   /**
