@@ -23,6 +23,21 @@ db.datasets.createIndex({"_index": 1})
 
 db.attributes.createIndex({"_index": 1})
 
+db.lineages_v4.createIndex({"rootDataset._id": 1})
+db.lineages_v4.createIndex({"rootOperation.path": 1, "appId": 1})
+db.lineages_v4.createIndex({"timestamp": 1})
+
+db.operations_v4.createIndex({"_lineageId": 1})
+db.operations_v4.createIndex({"sources.datasetsIds": 1})
+db.operations_v4.createIndex({"_index": 1})
+db.operations_v4.createIndex({"_typeHint": 1})
+
+db.datasets_v4.createIndex({"_lineageId": 1})
+db.datasets_v4.createIndex({"_index": 1})
+
+db.attributes_v4.createIndex({"_lineageId": 1})
+db.attributes_v4.createIndex({"_index": 1})
+
 db.transformations_v4.createIndex({"_index": 1})
 db.transformations_v4.createIndex({"_lineageId": 1})
 
