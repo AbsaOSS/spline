@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,9 @@ import {FormControl} from '@angular/forms';
 import {DatasetBrowserService} from "./dataset-browser.service";
 import {IPersistedDatasetDescriptor} from "../../../generated-ts/lineage-model";
 import {SearchRequest} from "./dataset-browser.model";
-import {BehaviorSubject} from "rxjs/BehaviorSubject";
+import {BehaviorSubject, identity, timer} from "rxjs";
 import {ScrollEvent} from "ngx-scroll-event";
-import {timer} from "rxjs/observable/timer";
-import {identity} from "rxjs/util/identity";
+import {debounce, distinct, filter} from "rxjs/operators";
 
 @Component({
     selector: "dataset-browser",
@@ -42,16 +41,25 @@ export class DatasetBrowserComponent implements OnInit {
 
     ngOnInit(): void {
         this.searchText.valueChanges
-            .debounce(v => timer(v ? 300 : 0))
+            .pipe(debounce(v => timer(v ? 300 : 0)))
             .forEach(this.newSearch.bind(this))
 
         this.searchRequest$
-            .distinct()
-            .filter(<any>identity)
-            .subscribe(sr =>
+            .pipe(
+                distinct(),
+                filter(<any>identity))
+            .subscribe((sr:SearchRequest) =>
                 this.dsBrowserService
                     .getLineageDescriptors(sr)
-                    .then(descriptors => this.descriptors = descriptors))
+                    .then(descriptors => {
+                        if (sr == this.searchRequest$.getValue()) {
+                            if (sr.offset == 0 ){
+                                this.descriptors = descriptors
+                            } else {
+                                this.descriptors.push(...descriptors)
+                            }
+                        }
+                    }))
 
         // set initial values
         this.searchText.setValue("")

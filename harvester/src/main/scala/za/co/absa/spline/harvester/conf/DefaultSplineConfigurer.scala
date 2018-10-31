@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.streaming.StreamingQueryListener
 import org.apache.spark.sql.util.QueryExecutionListener
 import org.slf4s.Logging
-import za.co.absa.spline.harvester.LogicalPlanLineageHarvester
+import za.co.absa.spline.harvester.DataLineageBuilderFactory
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.harvester.listener.{SplineQueryExecutionListener, StructuredStreamingListener}
@@ -76,6 +76,6 @@ class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkS
     new StructuredStreamingListener(sparkSession.streams, lineageHarvester)
 
 
-  private lazy val lineageHarvester = new LogicalPlanLineageHarvester(sparkSession.sparkContext.hadoopConfiguration)
+  private lazy val lineageHarvester = new DataLineageBuilderFactory(sparkSession.sparkContext.hadoopConfiguration)
 
 }

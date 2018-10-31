@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,28 @@
 
 package za.co.absa.spline.persistence.api.composition
 
-import za.co.absa.spline.model.{DataLineage, LinkedLineage}
+import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.{DataLineageWriter, Logging}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.reflectiveCalls
 
 /**
   * The class represents a parallel composite writer to various persistence layers for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
   *
   * @param writers a set of internal writers specific to particular  persistence layers
   */
-class ParallelCompositeDataLineageWriter(writers: Seq[DataLineageWriter]) extends DataLineageWriter with Logging {
+class ParallelCompositeDataLineageWriter(writers: Seq[DataLineageWriter])
+  extends DataLineageWriter with Logging {
 
   /**
     * The method stores a particular data lineage to the underlying persistence layers.
     *
     * @param lineage A data lineage that will be stored
     */
-  override def store(lineage: LinkedLineage)(implicit ec: ExecutionContext): Future[Unit] = {
+  override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = {
     log debug s"Calling underlying writers (${writers.length})"
     val futures = for (w <- writers) yield w.store(lineage)
     Future.sequence(futures).map(_ => Unit)
-  }
-
-  override def close(): Unit = {
-    writers.foreach(_.close())
   }
 }

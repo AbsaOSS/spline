@@ -11,7 +11,7 @@ import za.co.absa.spline.harvester.conversion.KafkaJavaSerializer
 import za.co.absa.spline.model.DataLineage
 
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,11 +32,12 @@ object LineageDispatcher {
   val sendTimeoutProperty = "harvester.kafka.sendTimeout"
   val lineagesTopicProperty = "harvester.topic"
   val defaultLineagesTopic = "lineages"
-  val defaultSendTimeout = 60
+  val defaultSendTimeout: Long = 60
   val serializer = new KafkaJavaSerializer()
 }
 
 class LineageDispatcher(sparkSession: SparkSession, configuration: Configuration) {
+
   import LineageDispatcher._
   import org.apache.kafka.clients.producer.ProducerConfig._
   import za.co.absa.spline.common.ConfigurationImplicits._
@@ -50,7 +51,7 @@ class LineageDispatcher(sparkSession: SparkSession, configuration: Configuration
     COMPRESSION_TYPE_CONFIG -> CompressionType.GZIP.name)
     .asJava
   private val appName = sparkSession.conf.get("spark.app.name")
-  private val sendTimeout = configuration.getInt(sendTimeoutProperty, defaultSendTimeout)
+  private val sendTimeout = configuration.getLong(sendTimeoutProperty, defaultSendTimeout)
 
   private def createProducer(): KafkaProducer[String, DataLineage] = {
     new KafkaProducer[String, DataLineage](config, new StringSerializer(), serializer)

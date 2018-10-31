@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package za.co.absa.spline.model.op
 
 import java.util.UUID
 
-import salat.annotations.Salat
+import salat.annotations.{Persist, Salat}
 import za.co.absa.spline.model.endpoint.StreamEndpoint
 import za.co.absa.spline.model.expr.Expression
 import za.co.absa.spline.model.{MetaDataSource, TypedMetaDataSource}
@@ -48,6 +48,9 @@ sealed trait Operation {
     * Common properties of all node types.
     */
   val mainProps: OperationProps
+
+  @Persist
+  val id: UUID = mainProps.id
 }
 
 object Operation {
@@ -217,11 +220,11 @@ case class Read(
   * The case class represents Spark operations for loading data via structured streaming
   *
   * @param mainProps Common node properties
-  * @param source  An endpoint that data flows from
+  * @param source    An endpoint that data flows from
   */
 case class StreamRead(
-                      mainProps: OperationProps,
-                      source : StreamEndpoint
+                       mainProps: OperationProps,
+                       source: StreamEndpoint
                      ) extends Operation
 
 /**

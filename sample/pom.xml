@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2017 Barclays Africa Group Limited
+  ~ Copyright 2017 ABSA Group Limited
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -64,11 +64,6 @@
         <dependency>
             <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-persistence-mongo</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>spline-persistence-atlas</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -155,7 +150,6 @@
                         <configuration>
                             <excludes combine.children="append">
                                 <exclude>data/**</exclude>
-                                <exclude>**/atlas-application.properties</exclude>
                             </excludes>
                         </configuration>
                     </plugin>

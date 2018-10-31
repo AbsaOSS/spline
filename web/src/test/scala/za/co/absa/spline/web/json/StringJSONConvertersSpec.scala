@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,36 +64,6 @@ class StringJSONConvertersSpec extends FlatSpec with Matchers with MockitoSugar 
       Foo(aUUID, new URI("http://example.com"), aUUID.toString :: Nil),
       Foo(aUUID, new URI("http://example.com"), aUUID.toString :: Nil)
     )
-  }
-
-  it should "serialize AttributeRemoval" in {
-    val sourceObj = expr.AttributeRemoval(expr.AttributeReference(Attribute(aUUID, "test", dt.Simple("simpleType", nullable = true))))
-    val serializedObj =
-      s"""
-         |{
-         |  "_typeHint":"za.co.absa.spline.model.expr.AttributeRemoval",
-         |  "text":"- test",
-         |  "dataType":{
-         |    "_typeHint":"za.co.absa.spline.model.dt.Simple",
-         |    "name":"simpleType",
-         |    "nullable":true
-         |  },
-         |  "children":[
-         |    {
-         |      "_typeHint":"za.co.absa.spline.model.expr.AttributeReference",
-         |      "refId":"$aUUID",
-         |      "name":"test",
-         |      "text":"test",
-         |      "dataType":{
-         |        "_typeHint":"za.co.absa.spline.model.dt.Simple",
-         |        "name":"simpleType",
-         |        "nullable":true
-         |      }
-         |    }
-         |  ]
-         |}""".stripMargin
-
-    parse(sourceObj.toJson) shouldEqual parse(serializedObj)
   }
 
   it should "serialize OperationProps" in {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import {Component, ElementRef, EventEmitter, Input, OnInit, Output} from "@angular/core";
+import {Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output} from "@angular/core";
 import {IDataLineage} from "../../../generated-ts/lineage-model";
 import "vis/dist/vis.min.css";
 import * as vis from "vis";
 import * as _ from "lodash";
-import {Observable} from "rxjs/Observable";
+import {combineLatest, concat, Observable, Subscription} from "rxjs";
 import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
 import {typeOfOperation} from "../../lineage/types";
 import {visOptions} from "./vis-options";
@@ -36,12 +36,13 @@ import {
 import {ClusterManager} from "../../visjs/cluster-manager";
 import {Icon, VisClusterNode, VisModel} from "../../visjs/vis-model";
 import {getIconForNodeType} from "../../lineage/details/operation/operation-icon.utils";
+import {distinctUntilChanged, filter, first, pairwise} from "rxjs/operators";
 
 @Component({
     selector: 'lineage-overview-graph',
     template: ''
 })
-export class LineageOverviewGraphComponent implements OnInit {
+export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
 
     @Input() lineage$: Observable<IDataLineage>
     @Input() selectedNode$: Observable<GraphNode>
@@ -52,6 +53,8 @@ export class LineageOverviewGraphComponent implements OnInit {
     private selectedNode: GraphNode
     private network: vis.Network
     private clusterManager: ClusterManager<VisNode, vis.Edge>
+
+    private subscriptions: Subscription[] = []
 
     constructor(private container: ElementRef) {
     }
@@ -66,15 +69,17 @@ export class LineageOverviewGraphComponent implements OnInit {
             }
 
         let lineagePairs$ =
-            this.lineage$.first()
-                .concat(this.lineage$)
-                .pairwise()
+            concat(this.lineage$.pipe(first()), this.lineage$).pipe(pairwise())
 
-        Observable
-            .combineLatest(lineagePairs$, this.selectedNode$)
-            .filter(([[__, lineage], selectedNode]) => lineageContainsDataset(lineage, selectedNode.id))
-            .distinctUntilChanged(([[__, lin0], node0], [[___, lin1], node1]) => lin0.id == lin1.id && _.isEqual(node0, node1))
-            .subscribe(([[prevLineage, nextLineage], selectedNode]) => reactOnChange(prevLineage, nextLineage, selectedNode))
+        this.subscriptions.unshift(combineLatest(lineagePairs$, this.selectedNode$)
+            .pipe(
+                filter(([[__, lineage], selectedNode]) => lineageContainsDataset(lineage, selectedNode.id)),
+                distinctUntilChanged(([[__, lin0], node0], [[___, lin1], node1]) => lin0.id == lin1.id && _.isEqual(node0, node1)))
+            .subscribe(([[prevLineage, nextLineage], selectedNode]) => reactOnChange(prevLineage, nextLineage, selectedNode)))
+    }
+
+    ngOnDestroy(): void {
+        this.subscriptions.forEach(s => s.unsubscribe())
     }
 
     public fit() {
@@ -180,22 +185,25 @@ export class LineageOverviewGraphComponent implements OnInit {
 
             datasetNodes: VisNode[] =
                 recombineByDatasetIdAndLongestAppendSequence(dataSources)
-                    .map(([datasetId, src]) =>
-                        new VisDatasetNode(
+                    .map(([datasetId, src]) => {
+                        let lastPathItemName = src.path.substring(src.path.replace(/\/$/, '').lastIndexOf("/") + 1)
+                        let label = LineageOverviewGraphComponent.wrapText(src.type + "\n" + lastPathItemName)
+                        return new VisDatasetNode(
                             src,
                             ID_PREFIXES.datasource + datasetId,
                             src.type + ":" + src.path,
-                            src.path.substring(src.path.lastIndexOf("/") + 1),
+                            label,
                             LineageOverviewGraphComponent.getIcon(
                                 new Icon("fa-file", "\uf15b", "FontAwesome"),
                                 datasetId.startsWith(ID_PREFIXES.extra) ? "#c0cdd6" : undefined)
-                        )),
+                        )
+                    }),
 
             processNodes: VisNode[] = lineage.operations.map((op: IComposite) =>
                 new VisProcessNode(
                     op,
                     ID_PREFIXES.operation + op.mainProps.id,
-                    op.appName,
+                    LineageOverviewGraphComponent.wrapText(op.appName),
                     LineageOverviewGraphComponent.getIcon(getIconForNodeType(typeOfOperation(op)))
                 )),
 
@@ -226,6 +234,18 @@ export class LineageOverviewGraphComponent implements OnInit {
             new vis.DataSet<VisNode>(nodes),
             new vis.DataSet<vis.Edge>(edges)
         )
+    }
+
+    static wrapText(text: string): string {
+        let textSize = 13
+        return text.split('\n').map(
+            line => {
+                if (line.length < textSize) {
+                    return line
+                }
+                return line.substring(0, textSize - 2) + "\n" + this.wrapText(line.substring(textSize - 2))
+            }
+        ).join("\n")
     }
 
     static getIcon(icon: Icon, color: string = "#337ab7") {

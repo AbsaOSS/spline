@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@ package za.co.absa.spline.linker.control
 import java.util.UUID
 
 import org.slf4s.Logging
+import za.co.absa.spline.common.ARM._
 import za.co.absa.spline.model.op.{Operation, Read}
-import za.co.absa.spline.model.{DataLineage, LinkedLineage, MetaDataSource}
+import za.co.absa.spline.model.{DataLineage, MetaDataSource}
 import za.co.absa.spline.persistence.api.DataLineageReader
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -39,7 +40,7 @@ class DataLineageLinker(reader: DataLineageReader) extends Logging {
     * @param lineage An input lineage graph
     * @return A transformed result
     */
-  def apply(lineage: DataLineage)(implicit ec: ExecutionContext): Future[LinkedLineage] = {
+  def apply(lineage: DataLineage)(implicit ec: ExecutionContext): Future[DataLineage] = {
     def castIfRead(op: Operation): Option[Read] = op match {
       case a@Read(_, _, _) => Some(a)
       case _ => None
@@ -50,14 +51,11 @@ class DataLineageLinker(reader: DataLineageReader) extends Logging {
 
       assume(mds.datasetsIds.isEmpty, s"a lineage of ${mds.path} is yet to be found")
 
-      reader.findLatestDatasetIdsByPath(mds.path) map (dsIdCursor => {
-        import za.co.absa.spline.common.ARMImplicits._
-        for (_ <- dsIdCursor) yield {
-          val dsIds = dsIdCursor.iterator.toList
-          if (dsIds.isEmpty)
-            log.debug(s"Lineage of ${mds.path} NOT FOUND")
-          mds.copy(datasetsIds = dsIds)
-        }
+      reader.findLatestDatasetIdsByPath(mds.path) map managed(dsIdCursor => {
+        val dsIds = dsIdCursor.iterator.toList
+        if (dsIds.isEmpty)
+          log.debug(s"Lineage of ${mds.path} NOT FOUND")
+        mds.copy(datasetsIds = dsIds)
       })
     }
 
@@ -75,9 +73,9 @@ class DataLineageLinker(reader: DataLineageReader) extends Logging {
 
     eventualReadsWithLineages map (newReads => {
       val newReadsMap: Map[UUID, Read] = newReads.map(read => read.mainProps.id -> read).toMap
-
-      val linked = lineage.copy(operations = lineage.operations.map(op => newReadsMap.getOrElse(op.mainProps.id, op)))
-      new LinkedLineage(linked, lineage)
+      lineage.copy(
+        operations = lineage.operations.map(op =>
+          newReadsMap.getOrElse(op.mainProps.id, op)))
     })
   }
 }

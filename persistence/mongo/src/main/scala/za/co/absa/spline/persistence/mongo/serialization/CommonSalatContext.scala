@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package za.co.absa.spline.persistence.mongo.serialization
 
 import java.net.URI
 
+import salat.{BinaryTypeHintStrategy, TypeHintFrequency, TypeHintStrategy}
 import salat.transformers.CustomTransformer
 
 /**
@@ -25,6 +26,8 @@ import salat.transformers.CustomTransformer
   */
 trait CommonSalatContext {
   this: salat.Context =>
+
+  override val typeHintStrategy: TypeHintStrategy = BinaryTypeHintStrategy(TypeHintFrequency.WhenNecessary, "_t")
 
   registerCustomTransformer(new CustomTransformer[URI, String]() {
     override def serialize(uri: URI): String = uri.toString

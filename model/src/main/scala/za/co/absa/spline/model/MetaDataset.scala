@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,4 @@ import java.util.UUID
   * @param id An unique identifier
   * @param schema A data set schema
   */
-case class MetaDataset
-(
-  id: UUID,
-  schema: Schema
-)
+case class MetaDataset(id: UUID, schema: Schema)

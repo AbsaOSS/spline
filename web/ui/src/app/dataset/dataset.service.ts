@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,42 +16,33 @@
 
 import {Injectable} from "@angular/core";
 import {HttpClient} from "@angular/common/http";
-import "rxjs";
 import {IDataLineage, IPersistedDatasetDescriptor} from "../../generated-ts/lineage-model";
+import {PromiseCache} from "../commons/promise-cache";
 
 @Injectable()
 export class DatasetService {
-    private datasetPromiseCache: { [id: string]: Promise<IPersistedDatasetDescriptor>; } = {}
-    private overviewPromiseCache: { [id: string]: Promise<IDataLineage>; } = {}
+    private datasetPromiseCache = new PromiseCache<IPersistedDatasetDescriptor>()
+    private overviewPromiseCache = new PromiseCache<IDataLineage>()
 
     constructor(private http: HttpClient) {
     }
 
     getDatasetDescriptor(id: string): Promise<IPersistedDatasetDescriptor> {
-        let fetchAndCache = (id: string) => {
-            let dsp = this.http.get<IPersistedDatasetDescriptor>(`rest/dataset/${id}/descriptor`).toPromise()
-            this.datasetPromiseCache[id] = dsp
-            return dsp
-        }
-
-        let cachedPromise = this.datasetPromiseCache[id]
-        return (cachedPromise) ? cachedPromise : fetchAndCache(id)
+        return this.datasetPromiseCache.getOrCreate(id, () =>
+            this.http.get<IPersistedDatasetDescriptor>(`rest/dataset/${id}/descriptor`).toPromise())
     }
 
     getLineageOverview(datasetId: string): Promise<IDataLineage> {
-        let fetchAndCache = (id: string) => {
-            let lop = this.http.get<IDataLineage>(`rest/dataset/${id}/lineage/overview`).toPromise()
-            this.overviewPromiseCache[id] = lop
-            return lop.then(expandCacheForAllRelatedDatasets)
-        }
-
-        let expandCacheForAllRelatedDatasets = (lineage: IDataLineage) => {
-            lineage.datasets.forEach(ds =>
-                this.overviewPromiseCache[ds.id] = Promise.resolve(lineage))
+        const expandCacheForDatasetsRelatedTo = (lineagePromise: Promise<IDataLineage>) => (lineage: IDataLineage) => {
+            lineage.datasets.forEach(ds => this.overviewPromiseCache.put(ds.id, lineagePromise))
             return lineage
         }
 
-        let cachedPromise = this.overviewPromiseCache[datasetId]
-        return (cachedPromise) ? cachedPromise : fetchAndCache(datasetId)
+        const fetchAndExpandCache = () => {
+            let lineagePromise = this.http.get<IDataLineage>(`rest/dataset/${datasetId}/lineage/overview`).toPromise()
+            return lineagePromise.then(expandCacheForDatasetsRelatedTo(lineagePromise))
+        }
+
+        return this.overviewPromiseCache.getOrCreate(datasetId, fetchAndExpandCache)
     }
 }

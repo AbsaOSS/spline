@@ -1,13 +1,13 @@
 package za.co.absa.spline.linker.control
 
 import org.apache.spark.api.java.function.MapFunction
-import za.co.absa.spline.model.{DataLineage, LinkedLineage}
+import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.{Logging, PersistenceFactory}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,25 +21,28 @@ import scala.concurrent.{Await, ExecutionContext, Future}
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ConfigMapConverter._
+
+import za.co.absa.spline.linker.control.ConfigMapConverter._
+
 import scala.concurrent.duration.DurationInt
 
-class LinkerTask(configMap: Map[String, Object]) extends MapFunction[DataLineage, LinkedLineage] with Logging {
+class LinkerTask(configMap: Map[String, Object]) extends MapFunction[DataLineage, DataLineage] with Logging {
 
   private implicit lazy val executionContext: ExecutionContext = ExecutionContext.global
-  private lazy val transformation: DataLineage => Future[LinkedLineage] = {
+
+  private lazy val transformation: DataLineage => Future[DataLineage] = {
     val configuration = toConfiguration(configMap)
     val factory = PersistenceFactory.create(configuration)
     if (factory.createDataLineageReader.isDefined) {
       new DataLineageLinker(factory.createDataLineageReader.get).apply
     } else {
-      dataLineage => Future { new LinkedLineage(dataLineage, dataLineage) }
+      Future.successful
     }
   }
 
-  override def call(rawLineage: DataLineage): LinkedLineage = {
+  override def call(rawLineage: DataLineage): DataLineage = {
     log debug s"Processing raw lineage"
-    Await.result(transformation(rawLineage), 10 minutes)
+    Await.result(transformation(rawLineage), 10.minutes)
   }
 
 }

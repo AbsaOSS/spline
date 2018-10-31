@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.util.QueryExecutionListener
 import org.slf4s.Logging
-import za.co.absa.spline.harvester.LogicalPlanLineageHarvester
+import za.co.absa.spline.harvester.DataLineageBuilderFactory
 import za.co.absa.spline.harvester.conf.LineageDispatcher
 import za.co.absa.spline.model.DataLineage
 
 import scala.language.postfixOps
 
-class SplineQueryExecutionListener(harvester: LogicalPlanLineageHarvester, lineageDispatcher: LineageDispatcher, sparkSession: SparkSession) extends QueryExecutionListener with Logging {
+class SplineQueryExecutionListener(harvesterFactory: DataLineageBuilderFactory, lineageDispatcher: LineageDispatcher, sparkSession: SparkSession) extends QueryExecutionListener with Logging {
 
   /**
     * The method is executed when an action execution is successful.
@@ -37,10 +37,15 @@ class SplineQueryExecutionListener(harvester: LogicalPlanLineageHarvester, linea
     */
   def onSuccess(funcName: String, qe: QueryExecution, durationNs: Long): Unit = {
     log debug s"Action '$funcName' execution succeeded"
+
     if (funcName == "save") {
       log debug s"Start tracking lineage for action '$funcName'"
-      val rawLineage = harvester.harvestLineage(qe.sparkSession.sparkContext, qe.analyzed)
+
+      val builder = harvesterFactory.createBuilder(qe.sparkSession.sparkContext)
+
+      val rawLineage = builder.buildLineage(qe.analyzed)
       send(rawLineage)
+
       log debug s"Lineage tracking for action '$funcName' is done."
     } else {
       log debug s"Skipping lineage tracking for action '$funcName'"

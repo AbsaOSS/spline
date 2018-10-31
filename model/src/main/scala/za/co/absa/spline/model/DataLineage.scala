@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package za.co.absa.spline.model
 
 import java.util.UUID
 
+import salat.annotations.Persist
+import za.co.absa.spline.model.dt.DataType
 import za.co.absa.spline.model.op.Operation
 
 /**
@@ -35,27 +37,33 @@ case class DataLineage
   appId: String,
   appName: String,
   timestamp: Long,
+  sparkVer: String,
   operations: Seq[Operation],
   datasets: Seq[MetaDataset],
-  attributes: Seq[Attribute]
+  attributes: Seq[Attribute],
+  dataTypes: Seq[DataType]
 ) {
   require(operations.nonEmpty, "list of operations cannot be empty")
   require(datasets.nonEmpty, "list of datasets cannot be empty")
+  require(rootOperation.mainProps.output == rootDataset.id)
 
   /**
     * A unique identifier of the data lineage
     */
-  lazy val id: String = DataLineageId.fromDatasetId(datasets.head.id)
+  @Persist
+  lazy val id: String = DataLineageId.fromDatasetId(rootDataset.id)
 
   /**
     * A node representing the last operation performed within data lineage graph. Usually, it describes persistence of data set to some file, database, Kafka endpoint, etc.
     */
-  val rootOperation: Operation = operations.head
+  @Persist
+  lazy val rootOperation: Operation = operations.head
 
   /**
     * A descriptor of the data set produced by the computation.
     */
-  val rootDataset: MetaDataset = datasets.head
+  @Persist
+  lazy val rootDataset: MetaDataset = datasets.head
 }
 
 object DataLineageId {

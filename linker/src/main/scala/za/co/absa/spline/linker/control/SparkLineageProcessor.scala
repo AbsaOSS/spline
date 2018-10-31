@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,8 @@ class SparkLineageProcessor
 
   private var openedStream: StreamingQuery = _
 
-  import za.co.absa.spline.linker.boundary.HarvestReader._
+  import za.co.absa.spline.linker.boundary.HarvestReader.LineageEncoder
+
   def start(): SparkLineageProcessor = {
     val configMap = toConfigMap(configuration)
     openedStream = harvestReader

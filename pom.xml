@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2017 Barclays Africa Group Limited
+  ~ Copyright 2017 ABSA Group Limited
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,10 +24,16 @@
 
     <packaging>pom</packaging>
 
+    <properties>
+        <scm.url>http://github.com/AbsaOSS/spline/tree/master</scm.url>
+        <scm.connection>scm:git:git://github.com/AbsaOSS/spline.git</scm.connection>
+        <scm.developerConnection>scm:git:ssh://github.com:AbsaOSS/spline.git</scm.developerConnection>
+    </properties>
+
     <scm>
-        <url>https://bitbucket.absa.co.za/projects/BACIBBD/repos/spline/browse</url>
-        <connection>scm:git:https://bitbucket.absa.co.za/scm/bacibbd/spline.git</connection>
-        <developerConnection>scm:git:https://bitbucket.absa.co.za/scm/bacibbd/spline.git</developerConnection>
+        <url>${scm.url}</url>
+        <connection>${scm.connection}</connection>
+        <developerConnection>${scm.developerConnection}</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
@@ -45,6 +51,7 @@
     <modules>
         <module>parent</module>
         <module>commons</module>
+        <module>test-commons</module>
         <module>model</module>
         <module>linker</module>
         <module>harvester</module>
@@ -54,6 +61,7 @@
         <module>web</module>
         <module>sample</module>
         <module>persistence</module>
+        <module>integration-tests</module>
     </modules>
 
     <profiles>

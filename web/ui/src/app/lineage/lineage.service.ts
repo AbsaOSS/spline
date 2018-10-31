@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,18 @@
 
 import {Injectable} from "@angular/core";
 import {HttpClient} from "@angular/common/http";
-import "rxjs";
 import {IDataLineage} from "../../generated-ts/lineage-model";
+import {PromiseCache} from "../commons/promise-cache";
 
 @Injectable()
 export class LineageService {
-    private lineagePromiseCache: { [id: string]: Promise<IDataLineage>; } = {}
+    private lineagePromiseCache = new PromiseCache<IDataLineage>()
 
     constructor(private httpClient: HttpClient) {
     }
 
     getLineage(dsId: string): Promise<IDataLineage> {
-        let fetchAndCache = (id: string) => {
-            let lp = this.httpClient.get<IDataLineage>(`rest/dataset/${id}/lineage/partial`).toPromise()
-            this.lineagePromiseCache[id] = lp
-            return lp
-        }
-
-        let cachedPromise = this.lineagePromiseCache[dsId]
-        return (cachedPromise) ? cachedPromise : fetchAndCache(dsId)
+        return this.lineagePromiseCache.getOrCreate(dsId, () =>
+            this.httpClient.get<IDataLineage>(`rest/dataset/${dsId}/lineage/partial`).toPromise())
     }
 }

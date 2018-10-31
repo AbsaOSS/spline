@@ -17,7 +17,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class SparkLineageProcessorSpec extends FunSpec with Matchers with BeforeAndAfterEach {
 
   import scala.concurrent.ExecutionContext.Implicits._
+  import za.co.absa.spline.linker.boundary.HarvestReader.LineageEncoder
 
   val localMongoUrl = "mongodb://localhost"
   val analyticsDbName = "spline-test"
@@ -47,7 +48,6 @@ class SparkLineageProcessorSpec extends FunSpec with Matchers with BeforeAndAfte
       val session = LinkerApp.createSession()
       val configuration = DefaultSplineConfig(session)
       val uuid = UUID.randomUUID()
-      import za.co.absa.spline.linker.boundary.HarvestReader._
       val stream = session
         .readStream
         .format("rate")
@@ -82,18 +82,12 @@ class MockPersistenceFactory(configuration: Configuration) extends PersistenceFa
 
   override def createDataLineageWriter: DataLineageWriter = {
     new DataLineageWriter {
-
-      override def store(lineage: LinkedLineage)(implicit ec: ExecutionContext): Future[Unit] = {
-        val linked = lineage.linked
-        Future {
-          // Prevents duplicate storage.
-          if (!MockPersistenceFactory.Stored.exists(l => l.id == linked.id)) {
-            MockPersistenceFactory.Stored += linked
-          }
+      override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = Future {
+        // Prevents duplicate storage.
+        if (!MockPersistenceFactory.Stored.exists(l => l.id == lineage.id)) {
+          MockPersistenceFactory.Stored += lineage
         }
       }
-
-      override def close(): Unit = {}
     }
   }
 
@@ -114,10 +108,12 @@ object SparkLineageProcessorSpec {
                          path: String = "hdfs://foo/bar/path",
                          append: Boolean = false)
   : DataLineage = {
+    val dataTypes = Seq(Simple("StringType", nullable = true))
+
     val attributes = Seq(
-      Attribute(randomUUID(), "_1", Simple("StringType", nullable = true)),
-      Attribute(randomUUID(), "_2", Simple("StringType", nullable = true)),
-      Attribute(randomUUID(), "_3", Simple("StringType", nullable = true))
+      Attribute(randomUUID(), "_1", dataTypes.head.id),
+      Attribute(randomUUID(), "_2", dataTypes.head.id),
+      Attribute(randomUUID(), "_3", dataTypes.head.id)
     )
     val aSchema = Schema(attributes.map(_.id))
     val bSchema = Schema(attributes.map(_.id).tail)
@@ -131,6 +127,7 @@ object SparkLineageProcessorSpec {
       appId,
       appName,
       timestamp,
+      "2.3.0",
       Seq(
         Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path, append),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
@@ -139,7 +136,8 @@ object SparkLineageProcessorSpec {
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md1.id), "rawString4")
       ),
       Seq(md1, md2, md3, md4),
-      attributes
+      attributes,
+      dataTypes
     )
   }
 }

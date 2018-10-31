@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package za.co.absa.spline.web.rest.service
 
 import java.util.UUID
 
+import za.co.absa.spline.common.ARM._
+import za.co.absa.spline.model.dt.DataType
 import za.co.absa.spline.model.op._
 import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset, TypedMetaDataSource}
 import za.co.absa.spline.persistence.api.DataLineageReader
@@ -42,18 +44,19 @@ class LineageService
     * @return A high order lineage of Composite operations packed in a future
     */
 
-  def getDatasetOverviewLineageAsync(datasetId: UUID): Future[DataLineage] = {
+  def getDatasetLineageOverview(datasetId: UUID): Future[HigherLevelLineageOverview] = {
 
-    // Accululation containers holding partial high order lineage
-    val operations: mutable.Set[Operation] = new mutable.HashSet[Operation]()
-    val datasets: mutable.Set[MetaDataset] = new mutable.HashSet[MetaDataset]()
-    val attributes: mutable.Set[Attribute] = new mutable.HashSet[Attribute]()
+    // Accumulation containers holding partial high order lineage
+    val operations: mutable.Set[Composite] = mutable.HashSet.empty
+    val datasets: mutable.Set[MetaDataset] = mutable.HashSet.empty
+    val attributes: mutable.Set[Attribute] = mutable.HashSet.empty
+    val dataTypes: mutable.Set[DataType] = mutable.HashSet.empty
 
     // Containers holding the current state of processing queue
-    val inputDatasetIds: mutable.Queue[UUID] = new mutable.Queue[UUID]
-    val outputDatasetIds: mutable.Queue[UUID] = new mutable.Queue[UUID]
-    val inputDatasetIdsVisited: mutable.Set[UUID] = new mutable.HashSet[UUID]()
-    val outputDatasetIdsVisited: mutable.Set[UUID] = new mutable.HashSet[UUID]()
+    val inputDatasetIds: mutable.Queue[UUID] = mutable.Queue.empty
+    val outputDatasetIds: mutable.Queue[UUID] = mutable.Queue.empty
+    val inputDatasetIdsVisited: mutable.Set[UUID] = mutable.HashSet.empty
+    val outputDatasetIdsVisited: mutable.Set[UUID] = mutable.HashSet.empty
 
     // Enqueue a dataset for processing all lineages it participates as a source dataset
     def enqueueInput(dsIds: Seq[UUID]): Unit = {
@@ -91,22 +94,23 @@ class LineageService
       attributes.synchronized {
         attributes ++= cd.attributes
       }
+      dataTypes.synchronized {
+        dataTypes ++= cd.dataTypes
+      }
     }
 
     // Traverse lineage tree from an dataset Id in the direction from destination to source
     def traverseUp(dsId: UUID): Future[Unit] =
-      reader.loadByDatasetId(dsId).flatMap { a =>
+      reader.loadByDatasetId(dsId, overviewOnly = true).flatMap { a =>
         val maybeLineageToEventualUnit = processAndEnqueue(a)
         maybeLineageToEventualUnit
       }
 
     // Traverse lineage tree from an dataset Id in the direction from source to destination
     def traverseDown(dsId: UUID): Future[Unit] = {
-      import za.co.absa.spline.common.ARMImplicits._
-      reader.findByInputId(dsId).flatMap {
-        for (compositeList <- _) yield
-          processAndEnqueue(compositeList.iterator)
-      }
+      reader.findByInputId(dsId, overviewOnly = true).flatMap(managed(compositeList =>
+        processAndEnqueue(compositeList.iterator)
+      ))
     }
 
     def processAndEnqueue(lineages: GenTraversableOnce[DataLineage]) = {
@@ -142,7 +146,6 @@ class LineageService
 
       val inputDatasetIds = readOps.flatMap(_.mainProps.inputs).distinct
       val outputDatasetId = dataLineage.rootDataset.id
-      val datasetIds: Set[UUID] = inputDatasetIds.toSet + outputDatasetId
 
       val composite = Composite(
         mainProps = OperationProps(
@@ -158,14 +161,31 @@ class LineageService
         dataLineage.appName
       )
 
-      val datasets = dataLineage.datasets.filter(ds => datasetIds(ds.id))
-      val attributes = for {
-        dataset <- datasets
-        attributeId <- dataset.schema.attrs
-        attribute <- dataLineage.attributes if attribute.id == attributeId
-      } yield attribute
+      val datasets = {
+        val datasetIds = inputDatasetIds.toSet + outputDatasetId
+        dataLineage.datasets.filter(ds => datasetIds(ds.id))
+      }
 
-      CompositeWithDependencies(composite, datasets, attributes)
+      val attributes = {
+        val attributeIds = datasets.flatMap(_.schema.attrs).toSet
+        dataLineage.attributes.filter(a => attributeIds(a.id))
+      }
+
+      val dataTypes = {
+        val collectedDTs = mutable.Set.empty[DataType]
+        val dtById = dataLineage.dataTypes.groupBy(_.id).mapValues(_.head)
+
+        def collectRecursively(dtId: UUID): Unit = {
+          val dt = dtById(dtId)
+          if (collectedDTs.add(dt))
+            dt.childDataTypeIds.foreach(collectRecursively)
+        }
+
+        attributes.foreach(a => collectRecursively(a.dataTypeId))
+        collectedDTs.toSeq
+      }
+
+      CompositeWithDependencies(composite, datasets, attributes, dataTypes)
     }
 
 
@@ -204,13 +224,16 @@ class LineageService
       }
     }
 
-    def finalGather(): DataLineage = DataLineage("appId", "appName", 0, operations.toSeq, datasets.toSeq, attributes.toSeq)
+    def finalGather() = HigherLevelLineageOverview(
+      operations.toSeq,
+      datasets.toSeq,
+      attributes.toSeq,
+      dataTypes.toSeq
+    )
 
     // Now, just enqueue the datasetId and process it recursively
     enqueueOutput(Seq(datasetId))
     processQueueAsync().map { _ => finalGather() }
-    // Alternatively, for comprehension may be used:
-    // for ( _ <- processQueueAsync() ) yield finalGather()
   }
 
   /**
@@ -220,6 +243,11 @@ class LineageService
     * @param datasets   Referenced meta data sets
     * @param attributes Referenced attributes
     */
-  case class CompositeWithDependencies(composite: Composite, datasets: Seq[MetaDataset], attributes: Seq[Attribute])
+  case class CompositeWithDependencies
+  (
+    composite: Composite,
+    datasets: Seq[MetaDataset],
+    attributes: Seq[Attribute],
+    dataTypes: Seq[DataType])
 
 }

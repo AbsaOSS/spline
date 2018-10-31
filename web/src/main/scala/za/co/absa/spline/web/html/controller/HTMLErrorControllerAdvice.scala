@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package za.co.absa.spline.web.html.controller
 
-import org.springframework.http.HttpStatus.{INTERNAL_SERVER_ERROR, NOT_FOUND}
+import org.springframework.http.HttpStatus.{INTERNAL_SERVER_ERROR, NOT_FOUND, SERVICE_UNAVAILABLE}
 import org.springframework.web.bind.annotation.{ControllerAdvice, ExceptionHandler, ResponseStatus}
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException
 import org.springframework.web.servlet.ModelAndView
 import za.co.absa.spline.web.exception.LineageNotFoundException
 import za.co.absa.spline.web.logging.ErrorCode
@@ -42,4 +43,12 @@ class HTMLErrorControllerAdvice {
       .addObject("message", "Oops! Something went wrong")
       .addObject("error_code", ErrorCode(e).error_id)
 
+  @ExceptionHandler(Array(
+    classOf[AsyncRequestTimeoutException]
+  ))
+  @ResponseStatus(SERVICE_UNAVAILABLE)
+  def handle_503(e: Throwable): ModelAndView =
+    new ModelAndView("errors/generic")
+      .addObject("message", "Request timed out. Please try again later.")
+      .addObject("error_code", ErrorCode(e).error_id)
 }

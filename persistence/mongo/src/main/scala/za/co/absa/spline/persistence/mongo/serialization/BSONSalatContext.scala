@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,10 @@ class BSONSalatContext extends salat.Context with CommonSalatContext {
 }
 
 object BSONSalatContext {
-  implicit val ctx_with_fix_for_SL_126: Context = new BSONSalatContext {
+  private val ctx_with_fix_for_SL_126: Context = new BSONSalatContext {
     override val name = "BSON Salat Context with fix for SL-126"
     registerCustomTransformer(new AggregateOperationTransformer_SL126)
   }
+
+  implicit val ctx: Context = ctx_with_fix_for_SL_126
 }

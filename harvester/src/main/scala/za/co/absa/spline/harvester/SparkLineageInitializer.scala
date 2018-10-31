@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import org.apache.commons.configuration._
 import org.apache.spark.sql.SparkSession
 import org.slf4s.Logging
 import za.co.absa.spline.common.SplineBuildInfo
-import za.co.absa.spline.sparkadapterapi.SparkVersionRequirement
-import za.co.absa.spline.harvester.conf.{DefaultSplineConfigurer, HadoopConfiguration, SplineConfigurer}
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
+import za.co.absa.spline.harvester.conf.{DefaultSplineConfigurer, HadoopConfiguration, SparkConfiguration, SplineConfigurer}
+import za.co.absa.spline.sparkadapterapi.SparkVersionRequirement
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
@@ -74,7 +74,7 @@ object SparkLineageInitializer extends Logging {
       sparkSession.listenerManager register configurer.queryExecutionListener
 
       // TODO: SL-128
-//       sparkSession.streams addListener configurer.streamingQueryListener
+      // sparkSession.streams addListener configurer.streamingQueryListener
     }
 
     private[harvester] val defaultSplineConfiguration = {
@@ -83,9 +83,11 @@ object SparkLineageInitializer extends Logging {
       val systemConfOpt = Some(new SystemConfiguration)
       val propFileConfOpt = Try(new PropertiesConfiguration(splinePropertiesFileName)).toOption
       val hadoopConfOpt = Some(new HadoopConfiguration(sparkSession.sparkContext.hadoopConfiguration))
+      val sparkConfOpt = Some(new SparkConfiguration(sparkSession.sparkContext.getConf))
 
       new CompositeConfiguration(Seq(
         hadoopConfOpt,
+        sparkConfOpt,
         systemConfOpt,
         propFileConfOpt
       ).flatten.asJava)

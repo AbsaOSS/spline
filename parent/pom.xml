@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2017 Barclays Africa Group Limited
+  ~ Copyright 2017 ABSA Group Limited
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -46,8 +46,8 @@
     </licenses>
 
     <organization>
-        <name>Barclays Africa Group Limited</name>
-        <url>https://www.barclaysafrica.com</url>
+        <name>ABSA Group Limited</name>
+        <url>https://www.absa.africa</url>
     </organization>
 
     <developers>
@@ -64,16 +64,10 @@
             <url>https://github.com/wajda</url>
         </developer>
         <developer>
-            <id>lokm01</id>
-            <name>Jan Scherbaum</name>
+            <id>vackosar</id>
+            <name>Vaclav Kosar</name>
             <timezone>Europe/Prague</timezone>
-            <url>https://github.com/lokm01</url>
-        </developer>
-        <developer>
-            <id>yruslan</id>
-            <name>Ruslan Iushchenko</name>
-            <timezone>Europe/Prague</timezone>
-            <url>https://github.com/yruslan</url>
+            <url>https://github.com/vackosar</url>
         </developer>
     </developers>
 
@@ -159,6 +153,11 @@
                     <groupId>net.alchim31.maven</groupId>
                     <artifactId>scala-maven-plugin</artifactId>
                     <version>3.3.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.scalatest</groupId>
@@ -340,6 +339,11 @@
             </dependency>
             <dependency>
                 <groupId>org.scala-lang</groupId>
+                <artifactId>scala-actors</artifactId>
+                <version>${scala.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
                 <artifactId>scala-library</artifactId>
                 <version>${scala.version}</version>
             </dependency>
@@ -377,6 +381,31 @@
                 <groupId>org.mongodb</groupId>
                 <artifactId>mongo-java-driver</artifactId>
                 <version>3.6.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json4s</groupId>
+                <artifactId>json4s-ast_${scala.compat.version}</artifactId>
+                <version>${json4s.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json4s</groupId>
+                <artifactId>json4s-core_${scala.compat.version}</artifactId>
+                <version>${json4s.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json4s</groupId>
+                <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
+                <version>${json4s.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json4s</groupId>
+                <artifactId>json4s-native_${scala.compat.version}</artifactId>
+                <version>${json4s.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json4s</groupId>
+                <artifactId>json4s-scalap_${scala.compat.version}</artifactId>
+                <version>${json4s.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.json4s</groupId>
@@ -470,14 +499,12 @@
             <dependency>
                 <groupId>org.scalatest</groupId>
                 <artifactId>scalatest_${scala.compat.version}</artifactId>
-                <version>3.0.4</version>
-                <scope>test</scope>
+                <version>3.0.5</version>
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
                 <version>2.13.0</version>
-                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

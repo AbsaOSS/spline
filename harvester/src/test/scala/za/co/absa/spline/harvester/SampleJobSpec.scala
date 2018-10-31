@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 
 import org.apache.commons.configuration.BaseConfiguration
 import org.apache.spark.sql.{SaveMode, SparkSession}
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.{FunSpec, Ignore, Matchers}
 import za.co.absa.spline.harvester.SparkLineageInitializer._
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode
 import za.co.absa.spline.harvester.conf.{DefaultSplineConfigurer, LineageDispatcher}
@@ -32,6 +32,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.concurrent._
 import scala.concurrent.duration.Duration
 
+@Ignore
 class SampleJobSpec extends FunSpec with Matchers with Logging {
 
   describe("sampleJobRun") {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,31 @@ import java.io.Closeable
   * @param closeFunction close callback
   * @tparam T item type
   */
-class CloseableIterable[+T](val iterator: Iterator[T], closeFunction: => Unit) extends Closeable {
+class CloseableIterable[T](val iterator: Iterator[T], closeFunction: => Unit) extends Closeable {
   override def close(): Unit = closeFunction
+
+  def ++(otherIterable: CloseableIterable[T]): CloseableIterable[T] =
+    new CloseableIterable[T](
+      iterator = this.iterator ++ otherIterable.iterator,
+      try this.close()
+      finally otherIterable.close())
+
+  def map[U](fn: T => U): CloseableIterable[U] =
+    new CloseableIterable[U](iterator.map(fn), closeFunction)
+
+  def flatMap[U](fn: T => Iterable[U]): CloseableIterable[U] =
+    new CloseableIterable[U](iterator.flatMap(fn), closeFunction)
+
+  def filter(p: T => Boolean): CloseableIterable[T] =
+    new CloseableIterable[T](iterator.filter(p), closeFunction)
 }
 
 object CloseableIterable {
   def empty[T]: CloseableIterable[T] = new CloseableIterable[T](Iterator.empty, () => {})
+
+  def chain[T](iters: CloseableIterable[T]*): CloseableIterable[T] = {
+    (empty[T] /: iters) {
+      case (accIter, nextIter) => accIter ++ nextIter
+    }
+  }
 }

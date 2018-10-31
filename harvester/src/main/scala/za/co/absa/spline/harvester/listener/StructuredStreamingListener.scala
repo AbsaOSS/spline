@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,10 @@ import org.apache.spark.sql.execution.streaming._
 import org.apache.spark.sql.kafka010.KafkaSinkObj
 import org.apache.spark.sql.streaming.{StreamingQuery, StreamingQueryListener, StreamingQueryManager}
 import org.slf4s.Logging
-import za.co.absa.spline.sparkadapterapi.StructuredStreamingListenerAdapter.instance._
-import za.co.absa.spline.harvester.LogicalPlanLineageHarvester
+import za.co.absa.spline.harvester.DataLineageBuilderFactory
 import za.co.absa.spline.model.endpoint.{FileEndpoint, KafkaEndpoint}
 import za.co.absa.spline.model.op.{OperationProps, StreamWrite}
+import za.co.absa.spline.sparkadapterapi.StructuredStreamingListenerAdapter.instance._
 
 import scala.language.postfixOps
 
@@ -34,7 +34,7 @@ import scala.language.postfixOps
   * Not finished. Please ignore.
   */
 class StructuredStreamingListener(queryManager: StreamingQueryManager,
-                                  lineageHarvester: LogicalPlanLineageHarvester)
+                                  lineageBuilderFactory: DataLineageBuilderFactory)
   extends StreamingQueryListener with Logging {
 
   override def onQueryStarted(event: StreamingQueryListener.QueryStartedEvent): Unit = {
@@ -62,7 +62,7 @@ class StructuredStreamingListener(queryManager: StreamingQueryManager,
   private def processExecution(se: StreamExecution): Unit = {
     assume(se.logicalPlan.resolved, "we harvest lineage from analyzed logic plans")
 
-    val logicalPlanLineage = lineageHarvester.harvestLineage(se.sparkSession.sparkContext, se.logicalPlan)
+    val logicalPlanLineage = lineageBuilderFactory.createBuilder(se.sparkSession.sparkContext).buildLineage(se.logicalPlan)
 
     val maybeEndpoint = se.sink match {
       case FileSinkObj(path, fileFormat) => Some(FileEndpoint(path, fileFormat.toString))
@@ -82,6 +82,8 @@ class StructuredStreamingListener(queryManager: StreamingQueryManager,
           datasets = metaDataset +: lineage.datasets)
     }
 
+    // TODO: Enable streaming support
+    // lineageProcessor.process(streamingLineage)
   }
 
   private def assignableFrom(runtimeClass: Class[_], anyRef: AnyRef) = {

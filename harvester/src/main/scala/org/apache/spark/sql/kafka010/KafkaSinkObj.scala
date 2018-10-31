@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.apache.spark.sql.kafka010
 
 import org.apache.spark.sql.execution.streaming.Sink
-import za.co.absa.spline.common.InstanceInspector
+import za.co.absa.spline.common.ReflectionUtils
 
 /**
   * The object represents a value extractor for [[org.apache.spark.sql.kafka010.KafkaSink KafkaSink]].
@@ -33,11 +33,11 @@ object KafkaSinkObj {
     case x: KafkaSink =>
       Some(
         (
-          InstanceInspector.getFieldValue[java.util.Map[String, Object]](x, "executorKafkaParams")
+          ReflectionUtils.getFieldValue[java.util.Map[String, Object]](x, "executorKafkaParams")
             .getOrDefault("bootstrap.servers",",")
             .asInstanceOf[String]
             .split(','),
-          InstanceInspector.getFieldValue[Option[String]](x, "topic")
+          ReflectionUtils.getFieldValue[Option[String]](x, "topic")
         )
       )
     case _ => None

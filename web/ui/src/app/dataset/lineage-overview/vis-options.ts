@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-export const visOptions = {
+import {Options} from "vis";
+
+export const visOptions: Options = {
 
     autoResize: true,
     interaction: {
@@ -35,8 +37,8 @@ export const visOptions = {
     physics: {
         enabled: true,
         hierarchicalRepulsion: {
-            nodeDistance: 250,
-            springLength: 150,
+            nodeDistance: 270,
+            springLength: 170,
             springConstant: 10,
             damping: 1
         }
@@ -60,12 +62,11 @@ export const visOptions = {
     nodes: {
         shape: 'icon',
         shadow: false,
-        margin: 10,
+        // margin: 10,
         labelHighlightBold: false,
         font: {
             color: '#343434',
-            multi: false,
-            size: 20,
-        },
-    },
+            size: 20
+        }
+    }
 }

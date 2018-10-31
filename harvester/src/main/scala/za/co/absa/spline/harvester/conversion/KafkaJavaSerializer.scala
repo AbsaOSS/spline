@@ -8,7 +8,7 @@ import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.common.WithResources._
 
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

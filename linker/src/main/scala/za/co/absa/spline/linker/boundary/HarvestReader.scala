@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,11 @@ package za.co.absa.spline.linker.boundary
 
 import org.apache.commons.configuration.Configuration
 import org.apache.spark.sql._
-import za.co.absa.spline.model.{DataLineage, LinkedLineage}
+import za.co.absa.spline.model.DataLineage
 
 object HarvestReader {
 
   implicit val LineageEncoder: Encoder[DataLineage] = Encoders.kryo[DataLineage]
-  implicit val LinkedLineageEncoder: Encoder[LinkedLineage] = Encoders.kryo[LinkedLineage]
 
   val HarvesterServersProperty = "harvester.kafka.servers"
   val HarvesterTopicProperty = "harvester.topic"

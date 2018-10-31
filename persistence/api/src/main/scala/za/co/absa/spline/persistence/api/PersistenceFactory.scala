@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import org.apache.commons.configuration.Configuration
   * @param configuration A source of settings
   */
 abstract class PersistenceFactory(protected val configuration: Configuration) extends Logging {
-
   /**
     * The method creates a writer to the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
@@ -38,6 +37,8 @@ abstract class PersistenceFactory(protected val configuration: Configuration) ex
     * @return An optional reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
   def createDataLineageReader: Option[DataLineageReader]
+
+  def destroy(): Unit = ()
 }
 
 object PersistenceFactory extends Logging {
