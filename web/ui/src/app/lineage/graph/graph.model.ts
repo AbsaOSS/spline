@@ -16,9 +16,8 @@
 
 import * as vis from "vis";
 import {IOperation} from "../../../generated-ts/lineage-model";
-import {typeOfOperation} from "../types";
-import {Icon, VisClusterNode} from "../../visjs/vis-model";
-import {getIconForNodeType} from "../details/operation/operation-icon.utils";
+import {Icon, VisClusterNode, VisIcon} from "../../visjs/vis-model";
+import {getOperationIcon} from '../details/operation/operation-icon.utils';
 
 export enum VisNodeType {
     Regular,
@@ -44,7 +43,7 @@ export abstract class VisNode implements vis.Node {
     constructor(public operation: IOperation,
                 public id: string,
                 public label: string,
-                public icon: any,
+                public icon: VisIcon,
                 public type: VisNodeType) {
     }
 }
@@ -55,7 +54,7 @@ export class RegularVisNode extends VisNode {
             operation,
             operation.mainProps.id,
             operation.mainProps.name,
-            RegularVisNode.getIcon(getIconForNodeType(typeOfOperation(operation))),
+            RegularVisNode.getIcon(getOperationIcon(operation)),
             VisNodeType.Regular)
     }
 
@@ -75,7 +74,7 @@ export class HighlightedVisNode extends VisNode {
             operation,
             operation.mainProps.id,
             operation.mainProps.name,
-            HighlightedVisNode.getIcon(getIconForNodeType(typeOfOperation(operation))),
+            HighlightedVisNode.getIcon(getOperationIcon(operation)),
             VisNodeType.Highlighted)
     }
 

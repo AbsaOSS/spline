@@ -23,6 +23,7 @@ import * as _ from "lodash";
 import {MatTabChangeEvent} from "@angular/material";
 import {Tab} from "./tabs";
 import {Subscription} from "rxjs";
+import {ProcessingType} from './details/operation/operation-icon.utils';
 
 @Component({
     templateUrl: 'lineage.component.html',
@@ -33,6 +34,7 @@ export class LineageComponent implements OnInit, OnDestroy {
     lineage: IDataLineage
     selectedTabIndex: Tab = Tab.Summary
     selectedOperation?: IOperation
+    processingType: ProcessingType
     selectedAttrIDs: string[]
     highlightedNodeIDs: string[]
 
@@ -54,6 +56,7 @@ export class LineageComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         this.subscriptions.unshift(this.route.data.subscribe((data: { lineage: IDataLineage }) => {
             this.lineage = data.lineage
+            this.processingType = LineageComponent.parseProcessingType(data.lineage)
             this.lineageStore.lineage = data.lineage
             this.presentHideableOperationTypes =
                 _.intersection(
@@ -82,7 +85,7 @@ export class LineageComponent implements OnInit, OnDestroy {
     }
 
     getDataSourceCount() {
-        return _.sumBy(this.lineage.operations, node => +(typeOfOperation(node) == 'Read'))
+        return _.sumBy(this.lineage.operations, node => +(typeOfOperation(node) == 'BatchRead' || typeOfOperation(node) == 'StreamRead'))
     }
 
     onOperationSelected(opId: string) {
@@ -121,10 +124,28 @@ export class LineageComponent implements OnInit, OnDestroy {
     }
 
     gotoLineageOverview() {
-        this.router.navigate(["overview"], {
+        let originViewType = this.originViewType()
+        this.router.navigate([originViewType], {
             fragment: "datasource",
-            relativeTo: this.route.parent.parent
+            relativeTo: this.route.parent.parent,
+            queryParamsHandling: "merge"
         })
+    }
+
+    originViewTypeName(): string {
+        switch (this.originViewType()) {
+            case "interval": return "Interval View";
+            case "overview": return "Overview";
+        }
+    }
+
+    private originViewType(): ViewType {
+        let queryParamString = this.router.url.replace(/.*\?/, "")
+        if (queryParamString.startsWith("from") || queryParamString.startsWith("to")) {
+            return "interval"
+        } else {
+            return "overview"
+        }
     }
 
     private doSelectAttribute(...attrIds: string[]) {
@@ -133,6 +154,13 @@ export class LineageComponent implements OnInit, OnDestroy {
             queryParamsHandling: "merge",
             preserveFragment: true
         })
+    }
+
+    static parseProcessingType(lineage: IDataLineage): ProcessingType {
+        return lineage.operations
+            .map(typeOfOperation)
+            .find(op => op.endsWith("Write"))
+            .replace("Write", '') as ProcessingType
     }
 
     toggleOperationTypeVisibility(opType: OperationType) {
@@ -148,3 +176,5 @@ export class LineageComponent implements OnInit, OnDestroy {
         })
     }
 }
+
+type ViewType = ( "overview" | "interval" )

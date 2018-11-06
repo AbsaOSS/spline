@@ -1,10 +1,3 @@
-package za.co.absa.spline.linker.boundary
-
-import java.io.{ByteArrayInputStream, ObjectInputStream}
-
-import za.co.absa.spline.common.WithResources._
-import za.co.absa.spline.model.DataLineage
-
 /*
  * Copyright 2017 ABSA Group Limited
  *
@@ -20,16 +13,23 @@ import za.co.absa.spline.model.DataLineage
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-object JavaKafkaDeserializer {
 
-  def deserialize(data: Array[Byte]): DataLineage = {
-    withResources[ObjectInputStream, DataLineage](createReader(data))(read)
+package za.co.absa.spline.linker.boundary
+
+import java.io.{ByteArrayInputStream, ObjectInputStream}
+
+import za.co.absa.spline.common.WithResources._
+
+class JavaKafkaDeserializer[TObject] {
+
+  def deserialize(data: Array[Byte]): TObject = {
+    withResources[ObjectInputStream, TObject](createReader(data))(read)
   }
 
   private def createReader(data: Array[Byte]): ObjectInputStream = {
     new ObjectInputStream(new ByteArrayInputStream(data))
   }
 
-  private def read(objectInputStream: ObjectInputStream): DataLineage =  objectInputStream.readObject().asInstanceOf[DataLineage]
+  private def read(objectInputStream: ObjectInputStream): TObject =  objectInputStream.readObject().asInstanceOf[TObject]
 
 }

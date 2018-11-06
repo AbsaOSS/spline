@@ -22,7 +22,8 @@ import java.util.UUID.randomUUID
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{AsyncFunSpec, BeforeAndAfterEach}
 import za.co.absa.spline.model.dt.Simple
-import za.co.absa.spline.model.op.{Generic, OperationProps, Write}
+import za.co.absa.spline.model.op.{BatchWrite, Generic, OperationProps}
+import za.co.absa.spline.model.streaming.ProgressEvent
 import za.co.absa.spline.model.{Attribute, Schema, _}
 import za.co.absa.spline.persistence.mongo.MongoTestProperties.mongoConnection
 import za.co.absa.spline.persistence.mongo.dao.{LineageDAOv3, LineageDAOv4, MultiVersionLineageDAO}
@@ -36,17 +37,17 @@ abstract class MongoDataLineagePersistenceSpecBase
     new LineageDAOv3(mongoConnection),
     new LineageDAOv4(mongoConnection))
 
-  protected val mongoWriter = new MongoDataLineageWriter(dao)
+  protected val lineageWriter = new MongoDataLineageWriter(dao)
+  protected val eventWriter = new MongoProgressEventWriter(mongoConnection)
   protected val mongoReader = new MongoDataLineageReader(dao)
 
   protected def createDataLineage(
-                                   appId: String,
-                                   appName: String,
-                                   timestamp: Long = 123L,
-                                   datasetId: UUID = randomUUID,
-                                   path: String = "hdfs://foo/bar/path",
-                                   append: Boolean = false)
-  : DataLineage = {
+      appId: String,
+      appName: String,
+      timestamp: Long = 123L,
+      datasetId: UUID = randomUUID,
+      path: String = "hdfs://foo/bar/path",
+      append: Boolean = false): DataLineage = {
     val dataTypes = Seq(Simple("StringType", nullable = true))
     val attributes = Seq(
       Attribute(randomUUID(), "_1", dataTypes.head.id),
@@ -67,7 +68,7 @@ abstract class MongoDataLineagePersistenceSpecBase
       timestamp,
       "0.0.42",
       Seq(
-        Write(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path, append),
+        BatchWrite(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path, append),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md2.id), "rawString2"),
         Generic(OperationProps(randomUUID, "LogicalRDD", Seq.empty, md4.id), "rawString3"),
@@ -76,6 +77,21 @@ abstract class MongoDataLineagePersistenceSpecBase
       Seq(md1, md2, md3, md4),
       attributes,
       dataTypes
+    )
+  }
+
+  protected def createEvent(lineage: DataLineage, timestamp: Long, readCount: Long, readPaths: Seq[String], writePath: String) =
+  {
+    val lineage = lineage
+    ProgressEvent(
+      randomUUID,
+      lineage.id,
+      lineage.appId,
+      lineage.appName,
+      timestamp,
+      readCount,
+      readPaths,
+      writePath
     )
   }
 

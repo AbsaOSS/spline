@@ -1,0 +1,24 @@
+:host {
+  height: 100%;
+  width: 100%;
+
+  /deep/ ul {
+    height: calc(~"100%" - 145px);
+    overflow: auto;
+    padding: 0;
+    background: whitesmoke;
+
+    > li {
+      > a {
+        border-radius: 0;
+
+        > span.small {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          font-size: xx-small;
+        }
+      }
+    }
+  }
+}

@@ -32,7 +32,7 @@ import org.scalatest.{FunSpec, Matchers}
 import za.co.absa.spline.harvester.{ComponentCreatorFactory, FSAwareBuilder, ReadNodeBuilder, TestSparkContext}
 import za.co.absa.spline.model.MetaDataSource
 
-class ReadNodeBuilderSpec extends FunSpec with MockitoSugar with Matchers {
+class BatchReadNodeBuilderSpec extends FunSpec with MockitoSugar with Matchers {
   DriverManager registerDriver new FakeJDBCDriver
   implicit val compCreatorFactory: ComponentCreatorFactory = new ComponentCreatorFactory()
 

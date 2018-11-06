@@ -38,6 +38,8 @@
     "@angular/platform-browser": "6.1.9",
     "@angular/platform-browser-dynamic": "6.1.9",
     "@angular/router": "6.1.9",
+    "moment": "2.22.2",
+    "ng2-datetime-picker": "0.15.1",
     "ajv": "6.5.4",
     "angular-tree-component": "7.2.1",
     "bootstrap": "3.3.7",

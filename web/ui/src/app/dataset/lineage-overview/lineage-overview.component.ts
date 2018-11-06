@@ -23,6 +23,7 @@ import {GraphNode, GraphNodeType} from "./lineage-overview.model";
 import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
 import {LineageAccessors, LineageStore} from "../../lineage/lineage.store";
 import {distinctUntilChanged, filter, map} from "rxjs/operators";
+import {getCompositeIcon, getDatasetIcon, ProcessingType} from '../../lineage/details/operation/operation-icon.utils';
 
 @Component({
     templateUrl: "lineage-overview.component.html",
@@ -73,7 +74,7 @@ export class DatasetLineageOverviewComponent implements OnInit, OnDestroy{
         this.subscriptions.forEach(s => s.unsubscribe())
     }
 
-    updateSelectedState(linAccessors: LineageAccessors, node: GraphNode) {
+    private updateSelectedState(linAccessors: LineageAccessors, node: GraphNode) {
         let compositeOp = <IComposite> linAccessors.getOperation(node.id)
         switch (node.type) {
             case "operation":
@@ -93,23 +94,51 @@ export class DatasetLineageOverviewComponent implements OnInit, OnDestroy{
         }
     }
 
-    selectNode(nodeId: string, nodeType: GraphNodeType) {
+    selectNode(nodeId: string, nodeType: GraphNodeType): void {
         switch (nodeType) {
             case "operation":
             case "datasource":
-                this.router.navigate(
-                    ["dataset", nodeId, "lineage", "overview"], {
-                        relativeTo: this.route.parent.parent.parent,
-                        fragment: nodeType
-                    })
+                if (this.isOverviewNotIntervalView()) {
+                    this.navigateToDatasource(nodeId, "overview", nodeType)
+                } else {
+                    this.navigateToDatasource(nodeId, "interval", nodeType)
+                }
         }
+    }
+
+    isOverviewNotIntervalView(): boolean {
+        return this.router.url.replace(/[#?].*$/, "").endsWith("/overview")
+    }
+
+    private navigateToDatasource(datasetId: string, view: "interval" | "overview", nodeType: GraphNodeType): void {
+        this.router.navigate(
+            ["dataset", datasetId, "lineage", view], {
+                relativeTo: this.route.parent.parent.parent,
+                fragment: nodeType,
+                queryParamsHandling: 'merge'
+            })
     }
 
     gotoPartialLineage(dsId: string) {
         this.router.navigate(
             ["dataset", dsId, "lineage", "partial"], {
-                relativeTo: this.route.parent.parent.parent
+                relativeTo: this.route.parent.parent.parent,
+                queryParamsHandling: 'merge'
             })
+    }
+
+    getSelectedOperationProcessingType(): ProcessingType {
+        if (this.selectedOperation.isBatchNotStream) {
+            return "Batch"
+        } else {
+            return "Stream"
+        }
+    }
+    getSelectedOperationIcon(): string {
+        return getCompositeIcon(this.selectedOperation).name
+    }
+    getSelectedSourceIcon(): string {
+        return getDatasetIcon(this.selectedDataSourceDescription.source.type).name
     }
 }
 

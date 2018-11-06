@@ -22,10 +22,11 @@ import com.databricks.spark.xml.XmlRelation
 import org.apache.spark.sql.catalyst.expressions.{AttributeReference, SortOrder, Attribute => SparkAttribute}
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.{DataSource, HadoopFsRelation, LogicalRelation}
-import org.apache.spark.sql.execution.streaming.StreamingRelation
+import org.apache.spark.sql.execution.streaming.{StreamingRelation, StreamingRelationV2}
 import org.apache.spark.sql.sources.BaseRelation
 import org.apache.spark.sql.{JDBCRelation, SaveMode}
 import za.co.absa.spline.model.endpoint._
+import za.co.absa.spline.model.op.Operation
 import za.co.absa.spline.model.{op, _}
 import za.co.absa.spline.sparkadapterapi.WriteCommand
 
@@ -77,7 +78,7 @@ trait FSAwareBuilder {
   protected def getQualifiedPath(path: String): String
 }
 
-class ReadNodeBuilder
+class BatchReadNodeBuilder
 (val operation: LogicalRelation)
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
   extends OperationNodeBuilder {
@@ -85,7 +86,7 @@ class ReadNodeBuilder
 
   override def build(): op.Read = {
     val (sourceType, paths) = getRelationPaths(operation.relation)
-    op.Read(
+    op.BatchRead(
       operationProps,
       sourceType,
       paths.map(MetaDataSource(_, Nil))
@@ -110,7 +111,7 @@ class ReadNodeBuilder
   }
 }
 
-abstract class WriteNodeBuilder
+abstract class BatchWriteNodeBuilder
 (val operation: WriteCommand)
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
   extends OperationNodeBuilder {
@@ -118,7 +119,7 @@ abstract class WriteNodeBuilder
 
   override val output: AttrGroup = new AttrGroup(operation.query.output)
 
-  override def build() = op.Write(
+  override def build() = op.BatchWrite(
     operationProps,
     operation.format,
     getQualifiedPath(operation.path),
@@ -130,22 +131,28 @@ class StreamReadNodeBuilder
 (val operation: StreamingRelation)
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
   extends OperationNodeBuilder {
+
+  private val endpoint = createEndpoint(operation.dataSource)
   override def build(): op.StreamRead = op.StreamRead(
     operationProps,
-    createEndpoint(operation.dataSource)
+    endpoint.description,
+    endpoint.paths.map(path => MetaDataSource(path.toString, Nil))
   )
 
   private def createEndpoint(dataSource: DataSource): StreamEndpoint = dataSource.sourceInfo.name match {
-    case x if x startsWith "FileSource" => FileEndpoint(dataSource.className, dataSource.options.getOrElse("path", ""))
+    case x if x startsWith "FileSource" => FileEndpoint(
+      dataSource.className,
+      dataSource.options.getOrElse("path", "")
+    )
     case "kafka" => KafkaEndpoint(
-      dataSource.options.getOrElse("kafka.bootstrap.servers", ",").split(","),
-      dataSource.options.getOrElse("subscribe", "")
+      dataSource.options.getOrElse("kafka.bootstrap.servers", "").split(","),
+      dataSource.options.getOrElse("subscribe", "").split(",")
     )
     case "textSocket" => SocketEndpoint(
       dataSource.options.getOrElse("host", ""),
       dataSource.options.getOrElse("port", "")
     )
-    case _ => VirtualEndpoint
+    case _ => VirtualEndpoint()
   }
 }
 
@@ -213,4 +220,17 @@ class UnionNodeBuilder
   override def build() = op.Union(operationProps)
 }
 
+
+class StreamReadV2NodeBuilder(val operation: StreamingRelationV2)(implicit val componentCreatorFactory: ComponentCreatorFactory) extends OperationNodeBuilder {
+
+  override def build(): Operation = {
+    if (operation.v1Relation.isDefined) {
+      val v1Op = new StreamReadNodeBuilder(operation.v1Relation.get).build()
+      v1Op.copy(mainProps = v1Op.mainProps.copy(output = operationProps.output))
+    } else {
+      new GenericNodeBuilder(operation).build()
+    }
+  }
+
+}
 

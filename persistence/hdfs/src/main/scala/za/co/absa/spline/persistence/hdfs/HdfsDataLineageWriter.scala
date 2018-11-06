@@ -22,7 +22,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.slf4s.Logging
 import za.co.absa.spline.common.ARM._
 import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.model.op.Write
+import za.co.absa.spline.model.op.BatchWrite
 import za.co.absa.spline.persistence.api.DataLineageWriter
 import za.co.absa.spline.persistence.hdfs.serialization.JSONSerialization
 
@@ -65,7 +65,7 @@ class HdfsDataLineageWriter(hadoopConfiguration: Configuration, fileName: String
 
   private def getPath(lineage: DataLineage): Option[Path] =
     lineage.rootOperation match {
-      case dn: Write => Some(new Path(dn.path, fileName))
+      case dn: BatchWrite => Some(new Path(dn.path, fileName))
       case _ => None
     }
 }

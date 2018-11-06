@@ -151,7 +151,8 @@
                                 <argument>--option-to-nullable</argument>
                                 <argument>za.co.absa.spline.model.op.Operation</argument>
                                 <argument>za.co.absa.spline.model.op.Alias</argument>
-                                <argument>za.co.absa.spline.model.op.Write</argument>
+                                <argument>za.co.absa.spline.model.op.BatchWrite</argument>
+                                <argument>za.co.absa.spline.model.op.StreamWrite</argument>
                                 <argument>za.co.absa.spline.model.op.Filter</argument>
                                 <argument>za.co.absa.spline.model.op.Sort</argument>
                                 <argument>za.co.absa.spline.model.op.Aggregate</argument>
@@ -159,7 +160,8 @@
                                 <argument>za.co.absa.spline.model.op.Join</argument>
                                 <argument>za.co.absa.spline.model.op.Union</argument>
                                 <argument>za.co.absa.spline.model.op.Projection</argument>
-                                <argument>za.co.absa.spline.model.op.Read</argument>
+                                <argument>za.co.absa.spline.model.op.BatchRead</argument>
+                                <argument>za.co.absa.spline.model.op.StreamRead</argument>
                                 <argument>za.co.absa.spline.model.op.Composite</argument>
                                 <!-- workaround for a scala-ts bug -->
                                 <argument>za.co.absa.spline.model.dt.DataType</argument>
@@ -237,10 +239,10 @@
                 <version>1.7</version>
                 <executions>
                     <execution>
-                        <id>ui-package</id>
-                        <phase>prepare-package</phase>
+                        <id>ui-download-dependencies</id>
+                        <phase>clean</phase>
                         <configuration>
-                            <target name="ui-build">
+                            <target name="ui-download-dependencies">
                                 <echo>Preparing UI build</echo>
                                 <!-- Install NPM dependencies -->
                                 <exec executable="cmd" dir="${webui.basedir}" osfamily="windows" failonerror="true">
@@ -258,6 +260,17 @@
                                     <arg line="run install-typings --no-color" />
                                 </exec>
 
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>ui-package</id>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <target name="ui-build">
                                 <echo>Executing UI build</echo>
                                 <exec executable="cmd" dir="${webui.basedir}" osfamily="windows" failonerror="true">
                                     <env key="SPLINE_VERSION" value="${project.version}" />

@@ -67,4 +67,12 @@ class MongoPersistenceFactory(configuration: Configuration) extends PersistenceF
     * @return An optional reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
   override def createDataLineageReader: Option[DataLineageReader] = Some(new MongoDataLineageReader(dao))
+
+  /**
+    * The method creates a writer to the persistence layer for the [[za.co.absa.spline.model.streaming.ProgressEvent ProgressEvent]] entity.
+    *
+    * @return A writer to the persistence layer for the [[za.co.absa.spline.model.streaming.ProgressEvent ProgressEvent]] entity
+    */
+  override def createProgressEventWriter: ProgressEventWriter = new MongoProgressEventWriter(mongoConnection)
+
 }

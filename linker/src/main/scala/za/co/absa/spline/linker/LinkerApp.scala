@@ -18,9 +18,8 @@ package za.co.absa.spline.linker
 
 import org.apache.spark.sql.SparkSession
 import org.slf4s.Logging
-import za.co.absa.spline.common.WithResources._
-import za.co.absa.spline.linker.boundary.{DefaultSplineConfig, HarvestReader}
-import za.co.absa.spline.linker.control.SparkLineageProcessor
+import za.co.absa.spline.linker.boundary.{DefaultSplineConfig, EventHarvestReader, LineageHarvestReader}
+import za.co.absa.spline.linker.control.{SparkLineageProcessor, StreamingEventProcessor}
 import za.co.absa.spline.sparkadapterapi.SparkVersionRequirement
 
 import scala.concurrent.ExecutionContext
@@ -29,23 +28,19 @@ object LinkerApp extends Logging with App {
 
   private implicit val executionContext: ExecutionContext = ExecutionContext.global
 
-  val sparkSession: SparkSession = createSession()
-  private val configuration = DefaultSplineConfig(sparkSession)
-  val harvestReader = HarvestReader(configuration, sparkSession)
+  val sparkBuilder = SparkSession.builder()
+  sparkBuilder.appName("SplineLinker")
+  val sparkSession: SparkSession =  sparkBuilder.getOrCreate()
 
-  {
-    SparkVersionRequirement.instance.requireSupportedVersion()
-    withResources(createProcessor)(_.start().awaitTermination())
-  }
+  val configuration = DefaultSplineConfig(sparkSession)
+  val lineageProcessor = new SparkLineageProcessor(LineageHarvestReader(configuration, sparkSession), configuration, sparkSession)
+  val eventProcessor = new StreamingEventProcessor(EventHarvestReader(configuration, sparkSession), configuration, sparkSession)
 
-  private def createProcessor = {
-    new SparkLineageProcessor(harvestReader, configuration, sparkSession)
-  }
+  SparkVersionRequirement.instance.requireSupportedVersion()
 
-  def createSession(): SparkSession = {
-    val sparkBuilder = SparkSession.builder()
-    sparkBuilder.appName("SplineLinker")
-    sparkBuilder.getOrCreate()
-  }
-
+  lineageProcessor.start()
+  eventProcessor.start()
+  sparkSession.streams.awaitAnyTermination()
+  lineageProcessor.close()
+  eventProcessor.close()
 }

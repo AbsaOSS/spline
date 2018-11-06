@@ -1,11 +1,3 @@
-package za.co.absa.spline.linker.boundary
-
-import org.apache.commons.configuration.{CompositeConfiguration, PropertiesConfiguration, SystemConfiguration}
-import org.apache.spark.sql.SparkSession
-
-import scala.util.Try
-import scala.collection.JavaConverters._
-
 /*
  * Copyright 2017 ABSA Group Limited
  *
@@ -21,6 +13,15 @@ import scala.collection.JavaConverters._
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package za.co.absa.spline.linker.boundary
+
+import org.apache.commons.configuration.{CompositeConfiguration, PropertiesConfiguration, SystemConfiguration}
+import org.apache.spark.sql.SparkSession
+
+import scala.util.Try
+import scala.collection.JavaConverters._
+
 object DefaultSplineConfig {
 
   def apply(sparkSession: SparkSession): CompositeConfiguration = {

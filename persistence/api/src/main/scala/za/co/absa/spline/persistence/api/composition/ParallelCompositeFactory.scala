@@ -17,7 +17,7 @@
 package za.co.absa.spline.persistence.api.composition
 
 import org.apache.commons.configuration.Configuration
-import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
+import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory, ProgressEventWriter}
 
 object ParallelCompositeFactory {
   val factoriesKey = "spline.persistence.composition.factories"
@@ -65,4 +65,11 @@ class ParallelCompositeFactory(configuration: Configuration) extends Persistence
     if (readers.isEmpty) None
     else Some(new ParallelCompositeDataLineageReader(readers))
   }
+
+  /**
+    * The method creates a writer to the persistence layer for the [[za.co.absa.spline.model.streaming.ProgressEvent ProgressEvent]] entity.
+    *
+    * @return A writer to the persistence layer for the [[za.co.absa.spline.model.streaming.ProgressEvent ProgressEvent]] entity
+    */
+  override def createProgressEventWriter: ProgressEventWriter = throw new UnsupportedOperationException()
 }

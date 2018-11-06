@@ -21,7 +21,6 @@ import salat.grater
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.DataLineageWriter
 import za.co.absa.spline.persistence.mongo.dao.LineageDAO
-import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext._
 
 import scala.concurrent.{ExecutionContext, Future}
 

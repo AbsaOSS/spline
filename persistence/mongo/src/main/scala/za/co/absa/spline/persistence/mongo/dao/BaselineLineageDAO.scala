@@ -26,9 +26,9 @@ import com.mongodb.{Cursor, DBCollection}
 import org.slf4s.Logging
 import za.co.absa.spline.common.ARM._
 import za.co.absa.spline.common.UUIDExtractors.UUIDExtractor
-import za.co.absa.spline.model.DataLineageId
+import za.co.absa.spline.model.{DataLineageId, PersistedDatasetDescriptor}
 import za.co.absa.spline.persistence.api.CloseableIterable
-import za.co.absa.spline.persistence.api.DataLineageReader.{PageRequest, Timestamp}
+import za.co.absa.spline.persistence.api.DataLineageReader.{IntervalPageRequest, PageRequest, SearchRequest, Timestamp}
 import za.co.absa.spline.persistence.mongo.MongoImplicits._
 import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component
 import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component.SubComponent
@@ -211,8 +211,16 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
     *
     * @return Descriptors of all data lineages
     */
-  override def findDatasetDescriptors(maybeText: Option[String], pageRequest: PageRequest)
+  override def findDatasetDescriptors(maybeText: Option[String], searchRequest: SearchRequest)
                                      (implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]] =
+    searchRequest match {
+      case r: PageRequest => findDatasetDescriptors(maybeText, r)
+      case r: IntervalPageRequest => findDatasetDescriptors(maybeText, r)
+    }
+
+  private def findDatasetDescriptors(maybeText: Option[String], pageRequest: PageRequest)
+                          (implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]] = Future {
+
     Future {
       val cursor = selectPersistedDatasets(
         DBObject("$match" → getDatasetDescriptorSearchQuery(maybeText, pageRequest.asAtTime)),
@@ -256,6 +264,8 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
     }
   }
 
+  def getByDatasetIdsByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[Option[DBObject]]
+
   private def selectPersistedDatasets(queryPipeline: DBObject*): Cursor = {
     val projectionPipeline: Seq[DBObject] = Seq(
       DBObject("$addFields" → DBObject(
@@ -278,6 +288,42 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
 
   protected def getMongoCollectionNameForComponent(component: Component): String =
     s"${component.name}_v$version"
+
+
+  private def selectLineageIdsBasedOnEvents(queryPipeline: DBObject*): CloseableIterable[String] = {
+    val eventPipeline = Seq(DBObject("$group" → DBObject(idField → "$lineageId")))
+    val pipeline = (queryPipeline ++ eventPipeline).asJava
+    val cursor = blocking(eventsCollection.aggregate(pipeline, aggOpts))
+    val iterator = cursor.asScala.map(_.get(idField).asInstanceOf[String])
+    new CloseableIterable[String](iterator = iterator, closeFunction = cursor.close())
+  }
+
+
+  def getByDatasetIdsByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[DataLineage]] = {
+    val searchCriteria: Seq[DBObject] = Seq(
+      DBObject("writePath" → path),
+      DBObject("readPaths" → path)
+    )
+
+    val eventCriteria: Seq[DBObject] = Seq(
+      "timestamp" $gte start,
+      "timestamp" $lte end,
+      "readCount" $gt 0
+    )
+
+    val eventFilter = DBObject("$match" → $and(eventCriteria :+ $or(searchCriteria)))
+    val lineageIds = withResources(selectLineageIdsBasedOnEvents(eventFilter))(i => i.iterator.toArray)
+
+    val queryPipeline = Seq(
+      DBObject("$match" → DBObject(idField → DBObject("$in" → DBList(lineageIds: _*)))),
+      DBObject("$sort" → DBObject("timestamp" → -1, "datasetId" → 1))
+    ).asJava
+    val cursor = blocking(dataLineageCollection.aggregate(queryPipeline, aggOpts))
+    val futures = cursor.asScala
+      .map(deserializeWithVersionCheck[TruncatedDataLineage])
+      .map(truncatedDataLineageReader.enrichWithLinked)
+    Future.sequence(futures).map(i => new CloseableIterable[DataLineage](iterator = i, closeFunction = cursor.close()))
+  }
 }
 
 object BaselineLineageDAO {
@@ -300,6 +346,13 @@ object BaselineLineageDAO {
 
     case object Attribute extends Component("attributes") with SubComponent
 
+  }
+
+  sealed trait SearchRequest
+  case class IntervalPageRequest(from: Timestamp, to: Timestamp) extends SearchRequest
+  case class PageRequest(asAtTime: Timestamp, offset: Int, size: Int) extends SearchRequest
+  object PageRequest {
+    val EntireLatestContent = PageRequest(Long.MaxValue, 0, Int.MaxValue)
   }
 
   private object DBOFields {
