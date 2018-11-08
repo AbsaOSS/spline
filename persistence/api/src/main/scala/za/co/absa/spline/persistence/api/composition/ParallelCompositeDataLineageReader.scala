@@ -89,7 +89,7 @@ class ParallelCompositeDataLineageReader(readers: Seq[DataLineageReader]) extend
     Future.firstCompletedOf(readers.map(query))
   }
 
-  override def getByDatasetIdsByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[DataLineage]] =
-    firstCompletedReader(_.getByDatasetIdsByPathAndInterval(path, start, end))
+  override def getLineagesByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[DataLineage]] =
+    firstCompletedReader(_.getLineagesByPathAndInterval(path, start, end))
 
 }

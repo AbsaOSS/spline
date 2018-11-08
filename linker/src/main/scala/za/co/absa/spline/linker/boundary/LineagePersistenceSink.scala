@@ -20,6 +20,7 @@ import com.mongodb.DuplicateKeyException
 import org.apache.spark.sql.ForeachWriter
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.{DataLineageWriter, Logging, PersistenceFactory}
+import za.co.absa.spline.linker.control.ConfigMapConverter.toConfiguration
 
 import scala.concurrent.{Await, ExecutionContext}
 
@@ -30,6 +31,7 @@ class LineagePersistenceSink(serializableConfig: Map[String, Object]) extends Fo
 
   private implicit lazy val executionContext: ExecutionContext = ExecutionContext.global
   private var lineageWriter: DataLineageWriter = _
+  private var lineageWriterFactory: PersistenceFactory = _
 
   /**
     * FIXME Method is missing coherent and general duplicate storage support.
@@ -46,19 +48,19 @@ class LineagePersistenceSink(serializableConfig: Map[String, Object]) extends Fo
   }
 
   def close(errorOrNull: Throwable): Unit = {
-    lineageWriter.close()
+    lineageWriterFactory.destroy()
   }
 
   def open(partitionId: Long, version: Long): Boolean = {
     // todo: Memoize it!
-    import za.co.absa.spline.linker.control.ConfigMapConverter._
-      createWriterFactory.createDataLineageWriter
+    createWriter()
     true
   }
 
-  private def createWriterFactory = {
-    val configuration = toConfiguration(configMap)
-    PersistenceFactory.create(configuration)
+  private def createWriter(): Unit = {
+    val configuration = toConfiguration(serializableConfig)
+    lineageWriterFactory = PersistenceFactory.create(configuration)
+    lineageWriter = lineageWriterFactory.createDataLineageWriter
   }
 }
 

@@ -42,7 +42,7 @@ trait KafkaProperties
   /**
     * The list of servers forming the kafka cluster
     */
-  def kafkaServers = getRequiredString("kafka.servers")
+  def kafkaServers = getRequiredString("harvester.kafka.servers")
 
   /**
     * The name of a topic

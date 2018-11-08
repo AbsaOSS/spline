@@ -82,7 +82,7 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
         this.subscriptions.unshift(combineLatest(lineagePairs$, this.selectedNode$)
             .pipe(
                 filter(([[__, lineage], selectedNode]) => lineageContainsDataset(lineage, selectedNode.id)),
-                distinctUntilChanged(([[__, lin0], node0], [[___, lin1], node1]) => lin0.timestamp == lin1.timestamp && _.isEqual(node0, node1))
+                distinctUntilChanged(([[__, lin0], node0], [[___, lin1], node1]) => lin0.timestamp == lin1.timestamp && _.isEqual(node0, node1)))
             .subscribe(([[prevLineage, nextLineage], selectedNode]) => reactOnChange(prevLineage, nextLineage, selectedNode)))
     }
 
@@ -211,16 +211,15 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
                             src.type + ":" + src.path,
                             label,
                             this.getTypedSourceIcon(src));
-                        )
-                    });
+                        });
+
 
          let processNodes: VisNode[] = lineage.operations.map((op: IComposite) =>
                 new VisProcessNode(
                     op,
                     ID_PREFIXES.operation + op.mainProps.id,
                     LineageOverviewGraphComponent.wrapText(op.appName),
-                    getOperationIcon(op).toVisIcon()))
-                );
+                    getOperationIcon(op).toVisIcon()));
 
          let nodes = processNodes.concat(datasetNodes)
 

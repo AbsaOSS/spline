@@ -22,6 +22,7 @@ import za.co.absa.spline.model.{Attribute, MetaDataset}
 
 case class HigherLevelLineageOverview
 (
+  timestamp: Long,
   operations: Seq[Composite],
   datasets: Seq[MetaDataset],
   attributes: Seq[Attribute],

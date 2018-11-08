@@ -93,11 +93,11 @@ class DataLineageBuilder
       case s: Sort => new SortNodeBuilder(s)
       case s: Aggregate => new AggregateNodeBuilder(s)
       case a: SubqueryAlias => new AliasNodeBuilder(a)
-      case lr: LogicalRelation => new ReadNodeBuilder(lr) with HDFSAwareBuilder
+      case lr: LogicalRelation => new BatchReadNodeBuilder(lr) with HDFSAwareBuilder
       case sr: StreamingRelation => new StreamReadNodeBuilder(sr)
       case sr: StreamingRelationV2 => new StreamReadV2NodeBuilder(sr)
       case wc if writeCommandParser.matches(op) =>
-        new WriteNodeBuilder(writeCommandParser.asWriteCommand(wc)) with HDFSAwareBuilder
+        new BatchWriteNodeBuilder(writeCommandParser.asWriteCommand(wc)) with HDFSAwareBuilder
       case x => new GenericNodeBuilder(x)
     }
   }

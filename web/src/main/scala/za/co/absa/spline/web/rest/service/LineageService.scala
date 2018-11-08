@@ -44,11 +44,11 @@ class LineageService
     * @return A high order lineage of Composite operations packed in a future
     */
 
-  def getPrelinked(datasetId: UUID): Future[DataLineage] = {
+  def getPrelinked(datasetId: UUID): Future[HigherLevelLineageOverview] = {
     prelinkedLineageService(datasetId)
   }
 
-  def getInterval(datasetId: UUID, from: Long, to: Long): Future[DataLineage] = {
+  def getInterval(datasetId: UUID, from: Long, to: Long): Future[HigherLevelLineageOverview] = {
 //    new IntervalLineageService(reader).get(datasetId, )
     // FIXME use interval service
     intervalLineageService(datasetId, from, to)

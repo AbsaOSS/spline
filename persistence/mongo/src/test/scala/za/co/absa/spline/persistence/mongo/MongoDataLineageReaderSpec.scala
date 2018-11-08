@@ -100,7 +100,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase wit
     it("should search by ID fully matched") {
       for {
         _ <- Future.sequence(testLineages.map(lineageWriter.store))
-        searchingLineage = testLineages.head.linked
+        searchingLineage = testLineages.head
         searchingDatasetId = searchingLineage.rootDataset.id.toString
         foundSingleMatch <- mongoReader.findDatasets(searchingDatasetId, EntireLatestContent)
         noResultByPrefix <- mongoReader.findDatasets(searchingDatasetId take 10, EntireLatestContent)
@@ -147,7 +147,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase wit
         _ <- Future.sequence(testEvents.map(eventWriter.store))
         page <- mongoReader.findDatasets("destination", IntervalPageRequest(100, 115))
       } yield {
-        page should ConsistOfItemsWithAppIds("appID5", "appID2")
+        page should consistOfItemsWithAppIds[PersistedDatasetDescriptor]("appID5", "appID2")
       }
     }
   }
@@ -269,7 +269,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase wit
 
       Future.sequence(testLineages.map(i => lineageWriter.store(i))).
         flatMap(_ => {
-          MongoTestProperties.mongoConnection.db.getCollection("lineages_v4") remove DBObject("appId" -> "appID4") // Emulate incomplete lineage #4
+          MongoTestProperties.mongoConnection.db.getCollection("lineages_v5") remove DBObject("appId" -> "appID4") // Emulate incomplete lineage #4
           mongoReader.findByInputId(datasetIdToFindBy, overviewOnly = false)
         }).
         map(_ should consistOfItemsWithAppIds[DataLineage]("appID2", "appID3"))
@@ -303,9 +303,9 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase wit
       for {
         _ <- Future.sequence(testLineages.map(lineageWriter.store))
         _ <- Future.sequence(testEvents.map(eventWriter.store))
-        result <- mongoReader.getByDatasetIdsByPathAndInterval(path, 100, 115)
+        result <- mongoReader.getLineagesByPathAndInterval(path, 100, 115)
       } yield {
-        result should ConsistOfItemsWithAppIds("appID5", "appID2")
+        result should consistOfItemsWithAppIds[DataLineage]("appID5", "appID2")
       }
     }
 

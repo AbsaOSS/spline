@@ -29,7 +29,7 @@ import scala.concurrent.Future
  */
 class PrelinkedLineageSearch(reader: DataLineageReader) extends ExecutionContextImplicit {
 
-  def apply(datasetId: UUID): Future[DataLineage] = {
+  def apply(datasetId: UUID): Future[HigherLevelLineageOverview] = {
     // Now, just enqueue the datasetId and process it recursively
     enqueueOutput(Seq(datasetId))
     processQueueAsync().map { _ => finalGather() }
@@ -219,6 +219,7 @@ class PrelinkedLineageSearch(reader: DataLineageReader) extends ExecutionContext
   }
 
   def finalGather() = HigherLevelLineageOverview(
+    System.currentTimeMillis(),
     operations.toSeq,
     datasets.toSeq,
     attributes.toSeq,
@@ -235,5 +236,5 @@ class PrelinkedLineageSearch(reader: DataLineageReader) extends ExecutionContext
 }
 
 class PrelinkedLineageService(reader: DataLineageReader) {
-  def apply(datasetId: UUID): Future[DataLineage] = new PrelinkedLineageSearch(reader)(datasetId)
+  def apply(datasetId: UUID): Future[HigherLevelLineageOverview] = new PrelinkedLineageSearch(reader)(datasetId)
 }

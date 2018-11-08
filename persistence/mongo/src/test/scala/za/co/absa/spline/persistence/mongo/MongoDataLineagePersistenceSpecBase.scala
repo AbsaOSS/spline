@@ -26,7 +26,7 @@ import za.co.absa.spline.model.op.{BatchWrite, Generic, OperationProps}
 import za.co.absa.spline.model.streaming.ProgressEvent
 import za.co.absa.spline.model.{Attribute, Schema, _}
 import za.co.absa.spline.persistence.mongo.MongoTestProperties.mongoConnection
-import za.co.absa.spline.persistence.mongo.dao.{LineageDAOv3, LineageDAOv4, MultiVersionLineageDAO}
+import za.co.absa.spline.persistence.mongo.dao.{LineageDAOv3, LineageDAOv4, LineageDAOv5, MultiVersionLineageDAO}
 
 abstract class MongoDataLineagePersistenceSpecBase
   extends AsyncFunSpec
@@ -35,10 +35,11 @@ abstract class MongoDataLineagePersistenceSpecBase
 
   private val dao = new MultiVersionLineageDAO(
     new LineageDAOv3(mongoConnection),
-    new LineageDAOv4(mongoConnection))
+    new LineageDAOv4(mongoConnection),
+    new LineageDAOv5(mongoConnection))
 
   protected val lineageWriter = new MongoDataLineageWriter(dao)
-  protected val eventWriter = new MongoProgressEventWriter(mongoConnection)
+  protected val eventWriter = new MongoProgressEventWriter(dao)
   protected val mongoReader = new MongoDataLineageReader(dao)
 
   protected def createDataLineage(
@@ -82,7 +83,6 @@ abstract class MongoDataLineagePersistenceSpecBase
 
   protected def createEvent(lineage: DataLineage, timestamp: Long, readCount: Long, readPaths: Seq[String], writePath: String) =
   {
-    val lineage = lineage
     ProgressEvent(
       randomUUID,
       lineage.id,

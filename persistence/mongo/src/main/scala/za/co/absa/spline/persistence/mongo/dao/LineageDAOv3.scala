@@ -18,8 +18,11 @@ package za.co.absa.spline.persistence.mongo.dao
 
 import com.mongodb.DBObject
 import com.mongodb.casbah.query.Implicits.mongoQueryStatements
+import za.co.absa.spline.persistence.api.CloseableIterable
 import za.co.absa.spline.persistence.mongo.MongoConnection
 import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class LineageDAOv3(override val connection: MongoConnection) extends BaselineLineageDAO {
 
@@ -35,4 +38,8 @@ class LineageDAOv3(override val connection: MongoConnection) extends BaselineLin
         "za.co.absa.spline.model.op.Read",
         "za.co.absa.spline.model.op.Write")
   }
+
+  override def getLineagesByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[DBObject]] =
+    Future.successful(new CloseableIterable[DBObject](Iterable.empty.iterator, () => Unit))
+
 }

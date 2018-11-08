@@ -47,9 +47,6 @@ sealed trait Operation {
     * Common properties of all node types.
     */
   val mainProps: OperationProps
-
-  @Persist
-  val id: UUID = mainProps.id
 }
 
 object Operation {

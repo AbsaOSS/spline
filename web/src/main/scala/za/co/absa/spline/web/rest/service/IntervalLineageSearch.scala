@@ -6,6 +6,7 @@ import java.util.{Collections, UUID}
 import za.co.absa.spline.model.op.Write
 import za.co.absa.spline.model.{DataLineage, MetaDataset, Schema, TypedMetaDataSource}
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
+import za.co.absa.spline.web.rest.service
 
 import scala.concurrent.Future
 
@@ -36,10 +37,10 @@ private var start: Long = _
   private var pathToDataset: collection.concurrent.Map[String, MetaDataset] = new ConcurrentHashMap[String, MetaDataset]().asScala
   private var nextPaths = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean]()).asScala
 
-  def apply(datasetId: UUID, start: Long, end: Long): Future[DataLineage] = {
+  def apply(datasetId: UUID, start: Long, end: Long): Future[HigherLevelLineageOverview] = {
     this.start = start
     this.end = end
-        reader.loadByDatasetId(datasetId)
+        reader.loadByDatasetId(datasetId, true)
         .map(_.get)
         .map(l => {
           // Ensures that path of selected dataset id resolved to that dataset id.
@@ -53,7 +54,7 @@ private var start: Long = _
 
   private def relinkAndAccumulate(path: String): Future[Unit] = {
     reader
-      .getByDatasetIdsByPathAndInterval(path, start, end)
+      .getLineagesByPathAndInterval(path, start, end)
       .map(remapAndAccumulate)
       .flatMap(_ => {
         val originalNextPaths = nextPaths.clone()
@@ -114,7 +115,7 @@ private var start: Long = _
     })
   }
 
-  override def finalGather(): DataLineage = {
+  override def finalGather(): HigherLevelLineageOverview = {
     // While destinations where remapped to correct datasets the sources could be yet relinked.
     // That is due no guarantee of existence of dataset with full schema when resolving a source.
     val operationsWithRelinkedSources = operations
@@ -128,13 +129,12 @@ private var start: Long = _
     val resolvedDatasetsWithTransformedPlaceholders = pathToDataset
       .values
       .map(_.copy())
-    DataLineage(
-      "appId",
-      "appName",
+    HigherLevelLineageOverview(
       System.currentTimeMillis(),
       operationsWithRelinkedSources.toSeq.sortBy(_.mainProps.id),
       (datasets ++ resolvedDatasetsWithTransformedPlaceholders).toSeq.sortBy(_.id),
-      attributes.toSeq.sortBy(_.id))
+      attributes.toSeq.sortBy(_.id),
+      dataTypes.toSeq.sortBy(_.id))
   }
 
 }
@@ -144,7 +144,7 @@ class GeneratedUUIDMetaDataset extends PlaceholderMetaDataset(UUID.randomUUID())
 
 class IntervalLineageService(reader: DataLineageReader) {
 
-  def apply(datasetId: UUID, from: Long, to: Long): Future[DataLineage] = {
+  def apply(datasetId: UUID, from: Long, to: Long): Future[HigherLevelLineageOverview] = {
     new IntervalLineageSearch(reader)(datasetId, from, to)
   }
 }

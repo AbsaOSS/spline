@@ -15,7 +15,8 @@
  */
 
 export interface SearchRequest {
-   readonly text: string
+    readonly text: string
+    readonly offset: number
 
     withOffset(offset: number): SearchRequest
 }
@@ -40,6 +41,8 @@ export class IntervalRequest implements SearchRequest {
     constructor(public readonly text: string,
                 public readonly from: number,
                 public readonly to: number) {}
+
+    readonly offset: number = 0
 
     withOffset(offset: number): SearchRequest {
         return this;

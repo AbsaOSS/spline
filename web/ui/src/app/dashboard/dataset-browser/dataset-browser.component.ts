@@ -75,7 +75,7 @@ export class DatasetBrowserComponent implements OnInit {
                     .getLineageDescriptors(sr)
                     .then(descriptors => {
                         if (sr == this.searchRequest$.getValue()) {
-                            if (sr.offset == 0 ){
+                            if (sr.offset == 0){
                                 this.descriptors = descriptors
                             } else {
                                 this.descriptors.push(...descriptors)

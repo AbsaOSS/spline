@@ -26,6 +26,7 @@ class EventPersistenceSink(configMap: Map[String, Object]) extends ForeachWriter
 
   private implicit lazy val executionContext: ExecutionContext = ExecutionContext.global
   private var eventWriter: ProgressEventWriter = _
+  private var persistenceFactory: PersistenceFactory = _
 
   override def process(event: ProgressEvent): Unit = {
     log debug s"Processing a progress event: '$event'"
@@ -33,13 +34,14 @@ class EventPersistenceSink(configMap: Map[String, Object]) extends ForeachWriter
     Await.result(eventWriter.store(event), 10 minutes)
   }
 
-  def close(errorOrNull: Throwable): Unit = eventWriter.close
+  def close(errorOrNull: Throwable): Unit = persistenceFactory.destroy()
 
   def open(partitionId: Long, version: Long): Boolean = {
     import za.co.absa.spline.linker.control.ConfigMapConverter._
     val configuration = toConfiguration(configMap)
-    eventWriter = PersistenceFactory
+    persistenceFactory = PersistenceFactory
       .create(configuration)
+    eventWriter = persistenceFactory
       .createProgressEventWriter
     true
   }

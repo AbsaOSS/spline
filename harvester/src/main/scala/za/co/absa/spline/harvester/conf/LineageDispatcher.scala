@@ -65,7 +65,8 @@ class LineageDispatcher(sparkSession: SparkSession, configuration: Configuration
   }
 
   def send(dataLineage: DataLineage): Unit = {
-    val record = new ProducerRecord[String, DataLineage](lineagesTopic, appName, dataLineage)
+    val serializableLineage = dataLineage.copy(attributes = dataLineage.attributes.toList, dataTypes = dataLineage.dataTypes.toList)
+    val record = new ProducerRecord[String, DataLineage](lineagesTopic, appName, serializableLineage)
     withResources(createProducerForLineages())(producer => {
       producer.send(record)
       // Awaits message sent and then closes.

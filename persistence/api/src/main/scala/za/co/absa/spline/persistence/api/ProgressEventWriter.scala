@@ -23,7 +23,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
   * The trait represents a writer to a persistence layer for the [[za.co.absa.spline.model.streaming.ProgressEvent ProgressEvent]] entity.
   */
-trait ProgressEventWriter extends AutoCloseable {
+trait ProgressEventWriter {
 
   /**
     * The method stores a particular progress event to the persistence layer.

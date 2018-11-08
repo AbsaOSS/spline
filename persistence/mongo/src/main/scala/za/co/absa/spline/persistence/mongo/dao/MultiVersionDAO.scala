@@ -19,7 +19,7 @@ package za.co.absa.spline.persistence.mongo.dao
 import java.util.UUID
 
 import com.mongodb.DBObject
-import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
+import za.co.absa.spline.persistence.api.DataLineageReader.{IntervalPageRequest, PageRequest, SearchRequest}
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -116,8 +116,20 @@ class MultiVersionLineageDAO(protected val daoChain: VersionedLineageDAO*) exten
   override def findByInputId(datasetId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]] =
     callAndCombine(_.findByInputId(datasetId, overviewOnly))(CloseableIterable.chain)
 
+  /**
+    * The method gets all data lineages stored in persistence layer.
+    *
+    * @return Descriptors of all data lineages
+    */
+  def findDatasetDescriptors(maybeText: Option[String], searchRequest: SearchRequest)
+                                     (implicit ec: ExecutionContext): Future[CloseableIterable[DescriptorDBObject]] =
+    searchRequest match {
+      case r: PageRequest => findDatasetDescriptors(maybeText, r)
+      case r: IntervalPageRequest => findDatasetDescriptors(maybeText, r)
+    }
+
   override def findDatasetDescriptors(maybeText: Option[String], pageRequest: DataLineageReader.PageRequest)
-                                     (implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]] = {
+                                     (implicit ec: ExecutionContext): Future[CloseableIterable[DescriptorDBObject]] = {
     for {
       counts <- callAndCombine(_.countDatasetDescriptors(maybeText, pageRequest.asAtTime))(identity)
       (pages, _) = ((Seq.empty[PageRequest], pageRequest) /: counts) {
@@ -135,11 +147,23 @@ class MultiVersionLineageDAO(protected val daoChain: VersionedLineageDAO*) exten
       results <- callAndCombine(dao => {
         val page = pagesPerDao(dao)
         if (page.size > 0) dao.findDatasetDescriptors(maybeText, page)
-        else Future.successful(CloseableIterable.empty[DBObject])
+        else Future.successful(CloseableIterable.empty[DescriptorDBObject])
       })(CloseableIterable.chain)
     } yield results
   }
 
-  override def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[DBObject] =
+  override def findDatasetDescriptors(maybeText: Option[String], intervalPageRequest: IntervalPageRequest)
+                                     (implicit ec: ExecutionContext): Future[CloseableIterable[DescriptorDBObject]] = {
+    callAndCombine(_.findDatasetDescriptors(maybeText, intervalPageRequest))(CloseableIterable.chain)
+  }
+
+  override def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[DescriptorDBObject] =
     callAndCombine(_.getDatasetDescriptor(id))(_.flatten.headOption).map(_.get)
+
+  override def saveProgress(progress: ProgressDBObject)(implicit e: ExecutionContext): Future[Unit] = {
+    latestDAO.saveProgress(progress)
+  }
+
+  override def getLineagesByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[DBObject]] =
+    callAndCombine(_.getLineagesByPathAndInterval(path, start, end))(CloseableIterable.chain)
 }

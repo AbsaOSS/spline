@@ -18,7 +18,7 @@ package za.co.absa.spline.persistence.mongo
 
 import org.apache.commons.configuration.Configuration
 import za.co.absa.spline.persistence.api._
-import za.co.absa.spline.persistence.mongo.dao.{LineageDAOv3, LineageDAOv4, MultiVersionLineageDAO}
+import za.co.absa.spline.persistence.mongo.dao.{LineageDAOv3, LineageDAOv4, LineageDAOv5, MultiVersionLineageDAO}
 
 /**
   * The object contains static information about settings needed for initialization of the MongoPersistenceWriterFactory class.
@@ -49,7 +49,8 @@ class MongoPersistenceFactory(configuration: Configuration) extends PersistenceF
 
   private val dao = new MultiVersionLineageDAO(
     new LineageDAOv3(mongoConnection),
-    new LineageDAOv4(mongoConnection))
+    new LineageDAOv4(mongoConnection),
+    new LineageDAOv5(mongoConnection))
 
 
   override def destroy(): Unit = mongoConnection.close()
@@ -73,6 +74,6 @@ class MongoPersistenceFactory(configuration: Configuration) extends PersistenceF
     *
     * @return A writer to the persistence layer for the [[za.co.absa.spline.model.streaming.ProgressEvent ProgressEvent]] entity
     */
-  override def createProgressEventWriter: ProgressEventWriter = new MongoProgressEventWriter(mongoConnection)
+  override def createProgressEventWriter: ProgressEventWriter = new MongoProgressEventWriter(dao)
 
 }

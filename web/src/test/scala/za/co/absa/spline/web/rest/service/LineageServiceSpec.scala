@@ -205,7 +205,7 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
 
     for (lin <- svc getPrelinked aUUID) yield {
       lin.operations.size shouldEqual 5
-      lin.datasets.size shouldEqual 4
+      lin.datasets.size shouldEqual 5
       lin.attributes.size shouldEqual 4
       lin.dataTypes.size shouldEqual 2
     }

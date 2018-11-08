@@ -28,6 +28,8 @@ trait LineageDAO {
 
   def save(lineage: DBObject)(implicit e: ExecutionContext): Future[Unit]
 
+  def saveProgress(progress: ProgressDBObject)(implicit e: ExecutionContext): Future[Unit]
+
   def loadByDatasetId(dsId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[Option[DBObject]]
 
   def searchDataset(path: String, applicationId: String)(implicit ec: ExecutionContext): Future[Option[UUID]]
@@ -37,15 +39,22 @@ trait LineageDAO {
   def findByInputId(datasetId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]]
 
   def findDatasetDescriptors(maybeText: Option[String], pageRequest: PageRequest)
-                            (implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]]
+                            (implicit ec: ExecutionContext): Future[CloseableIterable[DescriptorDBObject]]
 
-  def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[DBObject]
+  def findDatasetDescriptors(maybeText: Option[String], intervalPageRequest: IntervalPageRequest)
+                            (implicit ec: ExecutionContext): Future[CloseableIterable[DescriptorDBObject]]
+
+  def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[DescriptorDBObject]
+
+  def getLineagesByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[DBObject]]
 }
 
 trait VersionedLineageDAO extends VersionedDAO {
 
 
   def save(lineage: DBObject)(implicit e: ExecutionContext): Future[Unit]
+
+  def saveProgress(progressDBObject: ProgressDBObject)(implicit e: ExecutionContext): Future[Unit]
 
   def loadByDatasetId(dsId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[Option[DBObject]]
 
@@ -57,16 +66,15 @@ trait VersionedLineageDAO extends VersionedDAO {
 
   def findByInputId(datasetId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]]
 
-  def findDatasetDescriptors(maybeText: Option[String], searchRequest: SearchRequest)
-                                     (implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]]
-
   def findDatasetDescriptors(maybeText: Option[String], pageRequest: PageRequest)
-                            (implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]]
+                            (implicit ec: ExecutionContext): Future[CloseableIterable[DescriptorDBObject]]
 
   def findDatasetDescriptors(maybeText: Option[String], intervalRequest: IntervalPageRequest)
-                            (implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]]
+                            (implicit ec: ExecutionContext): Future[CloseableIterable[DescriptorDBObject]]
 
-  def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[Option[DBObject]]
+  def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[Option[DescriptorDBObject]]
 
   def countDatasetDescriptors(maybeText: Option[String], asAtTime: Timestamp)(implicit ec: ExecutionContext): Future[Int]
+
+  def getLineagesByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[DBObject]]
 }

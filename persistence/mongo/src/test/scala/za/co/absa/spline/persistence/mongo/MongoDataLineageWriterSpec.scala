@@ -22,7 +22,7 @@ import org.scalatest.Matchers
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.op.OperationProps
 
-class MongoDataLineagreWriterSpec extends MongoDataLineagePersistenceSpecBase with Matchers {
+class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase with Matchers {
 
   private val lineage = createDataLineage("appID", "appName")
 
@@ -65,7 +65,7 @@ class MongoDataLineagreWriterSpec extends MongoDataLineagePersistenceSpecBase wi
           expr.UDF("", randomUUID, Nil)
         )))
       for {
-        _ <- mongoWriter store lineageWithExpressions
+        _ <- lineageWriter store lineageWithExpressions
         storedLineage <- mongoReader.loadByDatasetId(lineageWithExpressions.rootDataset.id, overviewOnly = false)
       } yield {
         storedLineage.get shouldEqual lineageWithExpressions
@@ -76,7 +76,7 @@ class MongoDataLineagreWriterSpec extends MongoDataLineagePersistenceSpecBase wi
       val lineageWithExpressions = lineage.copy(operations =
         lineage.operations :+ op.Projection(OperationProps(randomUUID, "", Nil, randomUUID), Nil))
       for {
-        _ <- mongoWriter store lineageWithExpressions
+        _ <- lineageWriter store lineageWithExpressions
         storedLineage <- mongoReader.loadByDatasetId(lineageWithExpressions.rootDataset.id, overviewOnly = false)
       } yield {
         storedLineage.get shouldEqual lineageWithExpressions

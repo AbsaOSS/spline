@@ -21,7 +21,7 @@ import java.nio.file.Files
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.types.StructType
 import org.scalatest.{FlatSpec, Matchers}
-import za.co.absa.spline.harvester.ComponentCreatorFactory
+import za.co.absa.spline.harvester.{ComponentCreatorFactory, StreamReadNodeBuilder}
 import za.co.absa.spline.harvester.TestSparkContext.sparkSession
 import za.co.absa.spline.model.endpoint._
 import za.co.absa.spline.model.op.StreamRead
