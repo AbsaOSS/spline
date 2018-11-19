@@ -92,7 +92,7 @@ case class AttrRef(refId: UUID) extends Expression with LeafExpression with RefL
 
 case class Literal
 (
-  value: Any,
+  value: Any = null, //spline-53: Salat requires nullable non-Option properties to have default values.
   override val dataTypeId: UUID
 ) extends Expression
   with LeafExpression

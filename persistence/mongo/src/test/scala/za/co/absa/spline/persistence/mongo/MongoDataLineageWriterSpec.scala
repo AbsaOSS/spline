@@ -18,9 +18,10 @@ package za.co.absa.spline.persistence.mongo
 
 import java.util.UUID.randomUUID
 
+import org.scalatest.Inside._
 import org.scalatest.Matchers
 import za.co.absa.spline.model._
-import za.co.absa.spline.model.op.OperationProps
+import za.co.absa.spline.model.op.{OperationProps, Projection}
 
 class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase with Matchers {
 
@@ -82,6 +83,23 @@ class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase wit
       }
     }
 
+    it("should support Literal(None) as Literal(null)") {
+      val lineageWithNoneLiteral = lineage.copy(
+        operations = lineage.operations :+ op.Projection(OperationProps(randomUUID, "", Nil, randomUUID),
+          Seq(
+            expr.Literal(null, randomUUID),
+            expr.Literal(None, randomUUID)
+          )))
+      for {
+        _ <- mongoWriter store lineageWithNoneLiteral
+        storedLineage <- mongoReader loadByDatasetId lineageWithNoneLiteral.rootDataset.id
+      } yield {
+        inside(storedLineage.get.operations.last) {
+          case Projection(_, literals) =>
+            every(literals) should have('value (null))
+        }
+      }
+    }
 
   }
 }
