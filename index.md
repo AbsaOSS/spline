@@ -1,3 +1,8 @@
+---
+layout: default
+title: Docs
+---
+
 **Spline** (from **Sp**ark **line**age) project helps people get insight into data processing performed by [Apache Spark](http://spark.apache.org/).
 
 The project consists of two parts:
