@@ -23,7 +23,7 @@ import org.apache.spark
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{AsyncFunSpec, Matchers}
 import za.co.absa.spline.core.transformations.LineageProjectionMerger.mergeProjections
-import za.co.absa.spline.model._
+import za.co.absa.spline.model.{expr, _}
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.expr._
 import za.co.absa.spline.model.op.{Join, Operation, OperationProps, Projection}
@@ -94,6 +94,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
       val typeUsedInAttribute = dt.Array(typeUsedInTypes.id, nullable = true)
       val typeUsedInExpression1 = dt.Array(typeUsedInTypes.id, nullable = true)
       val typeUsedInExpression2 = dt.Array(typeUsedInTypes.id, nullable = true)
+      val typeUsedInExpression3 = dt.Array(typeUsedInTypes.id, nullable = true)
 
       val anAttribute = Attribute(randomUUID, "foo", typeUsedInAttribute.id)
       val aDataset = MetaDataset(randomUUID, Schema(Seq(anAttribute.id)))
@@ -102,7 +103,11 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
         Seq(op.Filter(OperationProps(id = null, "", Seq.empty, aDataset.id),
           Binary("+", typeUsedInExpression1.id, Seq(
             Literal(dataTypeId = typeUsedInExpression2.id),
-            Literal(dataTypeId = typeUsedInExpression2.id)
+            Alias("alias1", Literal(dataTypeId = typeUsedInExpression2.id)),
+            Binary("+", typeUsedInExpression1.id, Seq(
+              Literal(dataTypeId = typeUsedInExpression3.id),
+              Alias("alias2", Literal(dataTypeId = typeUsedInExpression3.id))
+            ))
           ))))
       ).copy(
         datasets = Seq(aDataset),
@@ -114,18 +119,19 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
           typeUsedInTypes,
           typeUsedInAttribute,
           typeUsedInExpression1,
-          typeUsedInExpression2
+          typeUsedInExpression2,
+          typeUsedInExpression3
         ))
 
-      val expectedLineage = testLineage.copy(
-        dataTypes = Seq(
-          typeUsedInTypes,
-          typeUsedInAttribute,
-          typeUsedInExpression1,
-          typeUsedInExpression2
-        ))
+      val cleanedDataTypes = LineageProjectionMerger.cleanupReferences(testLineage).dataTypes.toSet
 
-      LineageProjectionMerger.cleanupReferences(testLineage) shouldEqual expectedLineage
+      cleanedDataTypes shouldEqual Set(
+        typeUsedInTypes,
+        typeUsedInAttribute,
+        typeUsedInExpression1,
+        typeUsedInExpression2,
+        typeUsedInExpression3
+      )
     }
   }
 
