@@ -23,18 +23,19 @@ import org.apache.spark
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{AsyncFunSpec, Matchers}
 import za.co.absa.spline.core.transformations.LineageProjectionMerger.mergeProjections
+import za.co.absa.spline.model.{expr, _}
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.expr._
 import za.co.absa.spline.model.op.{Join, Operation, OperationProps, Projection}
-import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset, Schema}
 
 import scala.collection.mutable
 
 class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with MockitoSugar {
 
-  describe("consolidateReferences() method") {
+  import LineageProjectionMergerSpec._
 
-    it("should filter out unused references") {
+  describe("cleanupReferences() method") {
+    it("should remove unused meta datasets and attributes") {
       val attributeType = Simple("type", nullable = false)
 
       val attributes = Seq(
@@ -83,14 +84,60 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
 
       LineageProjectionMerger.cleanupReferences(lineage) shouldEqual expectedLineage
     }
+
+    it("should remove unused data types") {
+      val orphanSimpleType = dt.Simple("orphan simple type", nullable = true)
+      val orphanChildType = dt.Simple("referred from an orphan parent type", nullable = true)
+      val orphanParentType = dt.Array(orphanChildType.id, nullable = true)
+
+      val typeUsedInTypes = dt.Simple("referred from other types", nullable = true)
+      val typeUsedInAttribute = dt.Array(typeUsedInTypes.id, nullable = true)
+      val typeUsedInExpression1 = dt.Array(typeUsedInTypes.id, nullable = true)
+      val typeUsedInExpression2 = dt.Array(typeUsedInTypes.id, nullable = true)
+      val typeUsedInExpression3 = dt.Array(typeUsedInTypes.id, nullable = true)
+
+      val anAttribute = Attribute(randomUUID, "foo", typeUsedInAttribute.id)
+      val aDataset = MetaDataset(randomUUID, Schema(Seq(anAttribute.id)))
+
+      val testLineage = emptyLineage(
+        Seq(op.Filter(OperationProps(id = null, "", Seq.empty, aDataset.id),
+          Binary("+", typeUsedInExpression1.id, Seq(
+            Literal(dataTypeId = typeUsedInExpression2.id),
+            Alias("alias1", Literal(dataTypeId = typeUsedInExpression2.id)),
+            Binary("+", typeUsedInExpression1.id, Seq(
+              Literal(dataTypeId = typeUsedInExpression3.id),
+              Alias("alias2", Literal(dataTypeId = typeUsedInExpression3.id))
+            ))
+          ))))
+      ).copy(
+        datasets = Seq(aDataset),
+        attributes = Seq(anAttribute),
+        dataTypes = Seq(
+          orphanSimpleType,
+          orphanChildType,
+          orphanParentType,
+          typeUsedInTypes,
+          typeUsedInAttribute,
+          typeUsedInExpression1,
+          typeUsedInExpression2,
+          typeUsedInExpression3
+        ))
+
+      val cleanedDataTypes = LineageProjectionMerger.cleanupReferences(testLineage).dataTypes.toSet
+
+      cleanedDataTypes shouldEqual Set(
+        typeUsedInTypes,
+        typeUsedInAttribute,
+        typeUsedInExpression1,
+        typeUsedInExpression2,
+        typeUsedInExpression3
+      )
+    }
   }
 
   describe("mergeProjections() method") {
 
     val aType = Simple("type", nullable = true)
-
-    def createLineage(operations: Seq[Operation], attributes: Seq[Attribute] = Nil) =
-      DataLineage("", "", -1, spark.SPARK_VERSION, operations, Seq(MetaDataset(operations.head.mainProps.output, null)), attributes, Nil)
 
     def createGenericExpressions(names: String*): Seq[Expression] = {
       names.map(name => Generic(name.toLowerCase, aType.id, Seq.empty, name, None))
@@ -141,7 +188,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
           outputMetaDataset),
         createGenericExpressions("a", "b", "c", "d")))
 
-      val result = mergeProjections(createLineage(inputNodes))
+      val result = mergeProjections(emptyLineage(inputNodes))
 
       result.operations.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes
     }
@@ -184,7 +231,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
         createGenericExpressions("a", "b", "c", "d", "e", "f"))
       )
 
-      val result = mergeProjections(createLineage(inputNodes))
+      val result = mergeProjections(emptyLineage(inputNodes))
 
       result.operations.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes
     }
@@ -211,7 +258,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
           createCompositeExpressions(("a", "b"))(attrs))
       )
 
-      val result = mergeProjections(createLineage(input, attrs.values.toSeq))
+      val result = mergeProjections(emptyLineage(input, attrs.values.toSeq))
 
       result.operations shouldEqual input
     }
@@ -302,7 +349,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
           createGenericExpressions("r"))
       )
 
-      val result = mergeProjections(createLineage(inputNodes))
+      val result = mergeProjections(emptyLineage(inputNodes))
 
       result.operations.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes
     }
@@ -402,9 +449,22 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
           createGenericExpressions("r"))
       )
 
-      val result = mergeProjections(createLineage(inputNodes, attrs.values.toSeq))
+      val result = mergeProjections(emptyLineage(inputNodes, attrs.values.toSeq))
 
       result.operations.map(_.updated(_.copy(id = null))) shouldEqual expectedNodes
     }
   }
+}
+
+object LineageProjectionMergerSpec {
+  def emptyLineage(operations: Seq[Operation], attributes: Seq[Attribute] = Nil) =
+    DataLineage(
+      appId = "",
+      appName = "",
+      timestamp = -1,
+      sparkVer = spark.SPARK_VERSION,
+      operations = operations,
+      datasets = Seq(MetaDataset(operations.head.mainProps.output, Schema(Nil))),
+      attributes = attributes,
+      dataTypes = Nil)
 }

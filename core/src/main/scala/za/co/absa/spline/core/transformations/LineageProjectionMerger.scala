@@ -20,9 +20,9 @@ import java.util.UUID
 import java.util.UUID.randomUUID
 
 import za.co.absa.spline.common.transformations.AsyncTransformation
+import za.co.absa.spline.model.expr.{Alias, AttrRef, Expression, TypedExpression}
+import za.co.absa.spline.model.op.{ExpressionAware, Operation, OperationProps, Projection}
 import za.co.absa.spline.model.{Attribute, DataLineage}
-import za.co.absa.spline.model.expr.{Alias, AttrRef, Expression}
-import za.co.absa.spline.model.op.{Operation, OperationProps, Projection}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -60,8 +60,44 @@ object LineageProjectionMerger extends AsyncTransformation[DataLineage] {
     }
 
     val dataTypes = {
-      val dataTypeIds = attributes.map(_.dataTypeId) // todo: ++ expressions' data types IDs
-      lineage.dataTypes.filter(dt => dataTypeIds.contains(dt.id))
+      val expressions = operations.flatMap {
+        case op: ExpressionAware => op.expressions
+        case _ => Nil
+      }
+
+      val expressionTypeIds: Set[UUID] = {
+        def traverseAndCollect(accumulator: Set[UUID], expressions: List[Expression]): Set[UUID] = expressions match {
+          case Nil => accumulator
+          case exp :: queue =>
+            val updatedAccumulator = exp match {
+              case tex: TypedExpression => accumulator + tex.dataTypeId
+              case _ => accumulator
+            }
+            val updatedQueue = exp.children.toList ++ queue
+            traverseAndCollect(updatedAccumulator, updatedQueue)
+        }
+
+        traverseAndCollect(Set.empty, expressions.toList)
+      }
+
+      val retainedDataTypes = {
+        val allDataTypesById = lineage.dataTypes.map(dt => dt.id -> dt).toMap
+
+        def traverseAndCollectWithChildren(accumulator: Set[UUID], typeIds: List[UUID]): Set[UUID] = typeIds match {
+          case Nil => accumulator
+          case dtId :: queue => traverseAndCollectWithChildren(
+            accumulator = accumulator + dtId,
+            typeIds = allDataTypesById(dtId).childDataTypeIds.toList ++ queue
+          )
+        }
+
+        val referredTypeIds = expressionTypeIds ++ attributes.map(_.dataTypeId)
+        val retainedTypeIds = traverseAndCollectWithChildren(Set.empty, referredTypeIds.toList)
+
+        allDataTypesById.filterKeys(retainedTypeIds).values
+      }
+
+      retainedDataTypes.toSeq
     }
 
     lineage.copy(
