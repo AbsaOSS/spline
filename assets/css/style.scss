@@ -15,3 +15,20 @@
   -o-box-shadow: none;
   -ms-box-shadow: none;
 }
+
+.menu-bar {
+  display: inline-flex;
+  width: 100%;
+}
+
+.menu-item {
+  width: 50px;
+  padding: 12px 50px;
+  font-size: 25px;
+  color: lightgrey;
+  margin: 5px 0;
+}
+
+.menu-item-active {
+  border-bottom: 4px solid #e0e0e0;
+}

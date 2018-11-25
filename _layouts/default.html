@@ -5,12 +5,12 @@
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <meta name="viewport" content="width=device-width,maximum-scale=2">
-    <meta name="description" content="{{ site.title | default: site.github.repository_name }} : {{ site.description | default: site.github.project_tagline }}">
+    <meta name="description" content="{{ site.title | default: site.github.repository_name }} : {{ site.description | default: site.github.project_tagline }} : {{ page.title }}">
 
-    <link rel="icon" type="image/png" href="imgs/favicon.png">
+    <link rel="icon" type="image/png" href="{{ site.url }}/imgs/favicon.png">
     <link rel="stylesheet" type="text/css" media="screen" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
 
-    <title>{{ site.title | default: site.github.repository_name }}</title>
+    <title>{{ site.title | default: site.github.repository_name }} | {{ page.title }}</title>
   </head>
 
   <body>
@@ -20,8 +20,12 @@
         <header class="inner">
           <a id="forkme_banner" href="{{ site.github.repository_url }}">View on GitHub</a>
 
-          <img src="imgs/spline-logo-dark.png" width="660" />
+          <img src="{{ site.url }}/imgs/spline-logo-dark.png" width="400" />
           <h2 id="project_tagline">{{ site.description | default: site.github.project_tagline }}</h2>
+          <section id="navigation" class="menu-bar">
+            <a class="menu-item {% if page.title == 'Docs' %}menu-item-active{% endif %}" href="{{ site.url }}" >Docs</a>
+            <a class="menu-item {% if page.title != 'Docs' %}menu-item-active{% endif %}" href="{{ site.url }}/blog" >Blog</a>
+          </section>
 
           {% if site.show_downloads %}
             <section id="downloads">
@@ -35,6 +39,7 @@
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
+        {% if page.title != "Docs" and page.title != "Blog" %}<h1>{{ page.title }}</h1>{% endif %}
         {{ content }}
       </section>
     </div>
