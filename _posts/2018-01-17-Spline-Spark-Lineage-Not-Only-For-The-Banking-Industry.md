@@ -4,7 +4,7 @@ title: "Spline: Spark Lineage, Not Only for the Banking Industry"
 date: 2018-01-17
 ---
 
-<img src="{{ site.url }}/assets/spline-paper-performance-fig.png" width="90%" />
+<img src="{{ site.url }}{{ site.baseurl }}/assets/spline-paper-performance-fig.png" width="90%" />
 
 Data lineage tracking is one of the significant problems that financial institutions face. Banking and other highly regulated industries are forced to have a good understanding of how data flows through their systems to comply with strict regulatory frameworks. Many of these organizations also utilize big data technologies such as Hadoop and Apache Spark. Spark has become one of the most popular engines for big data computation, but it lacks support for data lineage tracking.
 
