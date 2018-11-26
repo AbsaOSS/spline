@@ -2,7 +2,7 @@ theme: jekyll-theme-slate
 title: Spline
 baseurl: /spline
 spline:
-  version: 0.3.1
+  version: 0.3.5
 gems:
   - jekyll-feed
 future: true
