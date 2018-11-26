@@ -92,7 +92,7 @@ class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase wit
           )))
       for {
         _ <- mongoWriter store lineageWithNoneLiteral
-        storedLineage <- mongoReader loadByDatasetId lineageWithNoneLiteral.rootDataset.id
+        storedLineage <- mongoReader.loadByDatasetId(lineageWithNoneLiteral.rootDataset.id, overviewOnly = false)
       } yield {
         inside(storedLineage.get.operations.last) {
           case Projection(_, literals) =>
