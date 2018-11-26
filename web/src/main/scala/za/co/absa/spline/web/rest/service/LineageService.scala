@@ -101,14 +101,14 @@ class LineageService
 
     // Traverse lineage tree from an dataset Id in the direction from destination to source
     def traverseUp(dsId: UUID): Future[Unit] =
-      reader.loadByDatasetId(dsId).flatMap { a =>
+      reader.loadByDatasetId(dsId, overviewOnly = true).flatMap { a =>
         val maybeLineageToEventualUnit = processAndEnqueue(a)
         maybeLineageToEventualUnit
       }
 
     // Traverse lineage tree from an dataset Id in the direction from source to destination
     def traverseDown(dsId: UUID): Future[Unit] = {
-      reader.findByInputId(dsId).flatMap(managed(compositeList =>
+      reader.findByInputId(dsId, overviewOnly = true).flatMap(managed(compositeList =>
         processAndEnqueue(compositeList.iterator)
       ))
     }
