@@ -20,7 +20,8 @@ import java.util.UUID
 
 import salat.annotations.Persist
 import za.co.absa.spline.model.dt.DataType
-import za.co.absa.spline.model.op.Operation
+import za.co.absa.spline.model.expr.{Expression, TypedExpression}
+import za.co.absa.spline.model.op.{ExpressionAware, Operation}
 
 /**
   * The case class represents a partial data lineage graph of a Spark dataset(s).
@@ -64,6 +65,81 @@ case class DataLineage
     */
   @Persist
   lazy val rootDataset: MetaDataset = datasets.head
+
+  /**
+    * Returns a copy of this [[DataLineage]] with all unused components removed.
+    * A component is considered unused if:
+    * - for a [[MetaDataset]], it's not declared as an input or output of any [[Operation]] in this lineage instance
+    * - for an [[Attribute]], it's not listed in any [[MetaDataset]]'s schema
+    * - for a [[DataType]], it's not referred from any [[Attribute]], [[Expression]] or another parent [[DataType]]
+    * that itself isn't unused.
+    */
+  def rectified: DataLineage = DataLineage.rectify(this)
+}
+
+object DataLineage {
+  private def rectify(lineage: DataLineage): DataLineage = {
+    val operations = lineage.operations
+
+    val datasets = {
+      val datasetIds =
+        (operations.flatMap(_.mainProps.inputs)
+          ++ operations.map(_.mainProps.output)).toSet
+      lineage.datasets.filter(ds => datasetIds(ds.id))
+    }
+
+    val attributes = {
+      val attributeIds = datasets.flatMap(_.schema.attrs).toSet
+      lineage.attributes.filter(attr => attributeIds(attr.id))
+    }
+
+    val dataTypes = {
+      val expressions = operations.flatMap {
+        case op: ExpressionAware => op.expressions
+        case _ => Nil
+      }
+
+      val expressionTypeIds: Set[UUID] = {
+        def traverseAndCollect(accumulator: Set[UUID], expressions: List[Expression]): Set[UUID] = expressions match {
+          case Nil => accumulator
+          case exp :: queue =>
+            val updatedAccumulator = exp match {
+              case tex: TypedExpression => accumulator + tex.dataTypeId
+              case _ => accumulator
+            }
+            val updatedQueue = exp.children.toList ++ queue
+            traverseAndCollect(updatedAccumulator, updatedQueue)
+        }
+
+        traverseAndCollect(Set.empty, expressions.toList)
+      }
+
+      val retainedDataTypes = {
+        val allDataTypesById = lineage.dataTypes.map(dt => dt.id -> dt).toMap
+
+        def traverseAndCollectWithChildren(accumulator: Set[UUID], typeIds: List[UUID]): Set[UUID] = typeIds match {
+          case Nil => accumulator
+          case dtId :: queue => traverseAndCollectWithChildren(
+            accumulator = accumulator + dtId,
+            typeIds = allDataTypesById(dtId).childDataTypeIds.toList ++ queue
+          )
+        }
+
+        val referredTypeIds = expressionTypeIds ++ attributes.map(_.dataTypeId)
+        val retainedTypeIds = traverseAndCollectWithChildren(Set.empty, referredTypeIds.toList)
+
+        allDataTypesById.filterKeys(retainedTypeIds).values
+      }
+
+      retainedDataTypes.toSeq
+    }
+
+    lineage.copy(
+      operations = operations,
+      datasets = datasets,
+      attributes = attributes,
+      dataTypes = dataTypes)
+  }
 }
 
 object DataLineageId {

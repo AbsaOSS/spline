@@ -20,9 +20,9 @@ import java.util.UUID
 import java.util.UUID.randomUUID
 
 import za.co.absa.spline.common.transformations.AsyncTransformation
-import za.co.absa.spline.model.{Attribute, DataLineage}
 import za.co.absa.spline.model.expr.{Alias, AttrRef, Expression}
 import za.co.absa.spline.model.op.{Operation, OperationProps, Projection}
+import za.co.absa.spline.model.{Attribute, DataLineage}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -45,30 +45,7 @@ object LineageProjectionMerger extends AsyncTransformation[DataLineage] {
     Future.successful((lineage /: pipeline) ((lin, f) => f(lin)))
 
   private[transformations] def cleanupReferences(lineage: DataLineage): DataLineage = {
-    val operations = lineage.operations
-
-    val datasets = {
-      val datasetIds =
-        (operations.flatMap(_.mainProps.inputs)
-          ++ operations.map(_.mainProps.output)).distinct
-      lineage.datasets.filter(ds => datasetIds.contains(ds.id))
-    }
-
-    val attributes = {
-      val attributeIds = datasets.flatMap(_.schema.attrs).distinct
-      lineage.attributes.filter(attr => attributeIds.contains(attr.id))
-    }
-
-    val dataTypes = {
-      val dataTypeIds = attributes.map(_.dataTypeId) // todo: ++ expressions' data types IDs
-      lineage.dataTypes.filter(dt => dataTypeIds.contains(dt.id))
-    }
-
-    lineage.copy(
-      operations = operations,
-      datasets = datasets,
-      attributes = attributes,
-      dataTypes = dataTypes)
+    lineage.rectified
   }
 
   private[transformations] def mergeProjections(lineage: DataLineage): DataLineage = {
