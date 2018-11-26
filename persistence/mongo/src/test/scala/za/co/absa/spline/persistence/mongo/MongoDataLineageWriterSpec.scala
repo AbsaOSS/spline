@@ -92,8 +92,8 @@ class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase wit
             expr.Literal(None, randomUUID)
           )))
       for {
-        _ <- mongoWriter store lineageWithNoneLiteral
-        storedLineage <- mongoReader loadByDatasetId lineageWithNoneLiteral.rootDataset.id
+        _ <- lineageWriter store lineageWithNoneLiteral
+        storedLineage <- mongoReader loadByDatasetId(lineageWithNoneLiteral.rootDataset.id, false)
       } yield {
         inside(storedLineage.get.operations.last) {
           case Projection(_, literals) =>

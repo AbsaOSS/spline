@@ -154,32 +154,13 @@ class PrelinkedLineageSearch(reader: DataLineageReader) extends ExecutionContext
       dataLineage.appName,
       outputWriteOperation.isInstanceOf[BatchWrite]
     )
+    val reducedLineage = dataLineage.copy(operations = Seq(composite)).rectified
 
-    val datasets = {
-      val datasetIds = inputDatasetIds.toSet + outputDatasetId
-      dataLineage.datasets.filter(ds => datasetIds(ds.id))
-    }
-
-    val attributes = {
-      val attributeIds = datasets.flatMap(_.schema.attrs).toSet
-      dataLineage.attributes.filter(a => attributeIds(a.id))
-    }
-
-    val dataTypes = {
-      val collectedDTs = mutable.Set.empty[DataType]
-      val dtById = dataLineage.dataTypes.groupBy(_.id).mapValues(_.head)
-
-      def collectRecursively(dtId: UUID): Unit = {
-        val dt = dtById(dtId)
-        if (collectedDTs.add(dt))
-          dt.childDataTypeIds.foreach(collectRecursively)
-      }
-
-      attributes.foreach(a => collectRecursively(a.dataTypeId))
-      collectedDTs.toSeq
-    }
-
-    CompositeWithDependencies(composite, datasets, attributes, dataTypes)
+    CompositeWithDependencies(
+      composite,
+      reducedLineage.datasets,
+      reducedLineage.attributes,
+      reducedLineage.dataTypes)
   }
 
 
