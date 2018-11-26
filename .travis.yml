@@ -2,5 +2,5 @@ language: java
 jdk:
 - oraclejdk8
 script:
-  mvn verify -Dtest.spline.mongodb.url=mongodb://localhost -Dtest.spline.mongodb.name=unit-test
+  mvn verify -P spark-2.3,licence-check -Dtest.spline.mongodb.url=mongodb://localhost -Dtest.spline.mongodb.name=unit-test
 services: mongodb
