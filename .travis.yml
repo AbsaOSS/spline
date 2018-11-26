@@ -2,7 +2,7 @@ language: java
 jdk:
 - oraclejdk8
 services: mongodb
-script: mvn verify -P spark-2.3,licence-check -Dtest.spline.mongodb.url=mongodb://localhost -Dtest.spline.mongodb.name=unit-test
+script: mvn verify -q -P spark-2.3,licence-check -Dtest.spline.mongodb.url=mongodb://localhost -Dtest.spline.mongodb.name=unit-test |grep -v INFO
 install: true
 #install: mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V -P spark-2.3,licence-check -Dtest.spline.mongodb.url=mongodb://localhost -Dtest.spline.mongodb.name=unit-test
 
