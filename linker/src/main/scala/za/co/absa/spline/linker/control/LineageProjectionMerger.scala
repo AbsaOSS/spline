@@ -19,11 +19,8 @@ package za.co.absa.spline.linker.control
 import java.util.UUID
 import java.util.UUID.randomUUID
 
-import za.co.absa.spline.common.transformations.AsyncTransformation
 import za.co.absa.spline.model.expr.{Alias, AttrRef, Expression}
 import za.co.absa.spline.model.op.{Operation, OperationProps, Projection}
-import za.co.absa.spline.model.{Attribute, DataLineage}
-
 import za.co.absa.spline.model.{Attribute, DataLineage}
 
 /**

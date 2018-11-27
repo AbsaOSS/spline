@@ -23,7 +23,7 @@ import org.scalatest.Matchers
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.op.{OperationProps, Projection}
 
-class MongoDataLineagreWriterSpec extends MongoDataLineagePersistenceSpecBase with Matchers {
+class MongoDataLineageWriterSpec extends MongoDataLineagePersistenceSpecBase with Matchers {
 
   private val lineage = createDataLineage("appID", "appName")
 
