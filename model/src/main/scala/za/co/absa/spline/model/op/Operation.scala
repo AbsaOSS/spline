@@ -39,6 +39,10 @@ case class OperationProps
   output: UUID
 )
 
+trait ExpressionAware {
+  def expressions: Seq[Expression]
+}
+
 /**
   * The trait represents one particular node within a lineage graph.
   */
@@ -100,7 +104,9 @@ case class Join(
                  mainProps: OperationProps,
                  condition: Option[Expression],
                  joinType: String
-               ) extends Operation
+               ) extends Operation with ExpressionAware {
+  override def expressions: Seq[Expression] = condition.toSeq
+}
 
 /**
   * The case class represents Spark union operation.
@@ -118,7 +124,9 @@ case class Union(mainProps: OperationProps) extends Operation
 case class Filter(
                    mainProps: OperationProps,
                    condition: Expression
-                 ) extends Operation
+                 ) extends Operation with ExpressionAware {
+  override def expressions: Seq[Expression] = Seq(condition)
+}
 
 /**
   * The case class represents Spark aggregation operation.
@@ -131,7 +139,9 @@ case class Aggregate(
                       mainProps: OperationProps,
                       groupings: Seq[Expression],
                       aggregations: Map[String, Expression]
-                    ) extends Operation
+                    ) extends Operation with ExpressionAware {
+  override def expressions: Seq[Expression] = groupings ++ aggregations.values
+}
 
 /**
   * The case class represents Spark sort operation.
@@ -151,7 +161,9 @@ case class Sort(
   * @param direction  Sorting direction
   * @param nullOrder  Ordering for null values
   */
-case class SortOrder(expression: Expression, direction: String, nullOrder: String)
+case class SortOrder(expression: Expression, direction: String, nullOrder: String) extends ExpressionAware {
+  override def expressions: Seq[Expression] = Seq(expression)
+}
 
 
 /**
@@ -164,7 +176,9 @@ case class SortOrder(expression: Expression, direction: String, nullOrder: Strin
 case class Projection(
                        mainProps: OperationProps,
                        transformations: Seq[Expression]
-                     ) extends Operation
+                     ) extends Operation with ExpressionAware {
+  override def expressions: Seq[Expression] = transformations
+}
 
 /**
   * The case class represents Spark alias (as) operation for assigning a label to data set.
