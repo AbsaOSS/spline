@@ -269,20 +269,20 @@ object MutableLineageUpgraderV5 {
 
   def upgradeLineage(lineage: DBObject): Unit = {
     for (op <- lineage.get(Component.Operation.name).asInstanceOf[ju.List[DBObject]].asScala) {
-      val opType = getOperationType(op)
-      opType match {
-        case "Read" =>
-          op.put(Field.t, hints.encode("za.co.absa.spline.model.op.BatchRead"))
-        case "Write" =>
-          op.put(Field.t, hints.encode("za.co.absa.spline.model.op.BatchWrite"))
+      getOperationClassName(op) match {
+        case "za.co.absa.spline.model.op.Read" =>
+          setOperationClassName(op, "za.co.absa.spline.model.op.BatchRead")
+        case "za.co.absa.spline.model.op.Write" =>
+          setOperationClassName(op, "za.co.absa.spline.model.op.BatchWrite")
         case _ =>
       }
     }
   }
 
-  private def getOperationType(op: DBObject) = extractClassName(hints.decode(op.get(Field.t)))
+  private def setOperationClassName(op: DBObject, fullyQualifiedClassName: String): Unit =
+    op.put(Field.t, hints.encode(fullyQualifiedClassName))
 
-  private def extractClassName(fullQualifiedName: String) = fullQualifiedName.replaceAll(".*\\.", "")
+  private def getOperationClassName(op: DBObject) = hints.decode(op.get(Field.t))
 
 }
 
