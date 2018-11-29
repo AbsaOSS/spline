@@ -21,14 +21,13 @@ import java.util.UUID
 import java.util.function.{Consumer, Predicate}
 import java.{util => ju}
 
-import com.mongodb.casbah.Imports
 import com.mongodb.casbah.query.Implicits.mongoQueryStatements
 import com.mongodb.{BasicDBList, BasicDBObject, DBObject}
 import org.apache.commons.lang.StringUtils
 import salat.{BinaryTypeHintStrategy, TypeHintFrequency}
 import za.co.absa.spline.common.EnumerationMacros.sealedInstancesOf
 import za.co.absa.spline.common.transformations.{AbstractConverter, CachingConverter}
-import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
+import za.co.absa.spline.persistence.api.CloseableIterable
 import za.co.absa.spline.persistence.mongo.MongoConnection
 import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component
 import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component.SubComponent
@@ -50,10 +49,6 @@ class LineageDAOv4(override val connection: MongoConnection) extends BaselineLin
   override def save(lineage: DBObject)(implicit e: ExecutionContext): Future[Unit] = {
     lineage.put(SubComponentV4.Transformation.name, extractTransformationsFromLineage(lineage))
     super.save(lineage)
-  }
-
-  override def saveProgress(event: ProgressDBObject)(implicit e: ExecutionContext): Future[Unit] = {
-    super.saveProgress(event)
   }
 
   private def extractTransformationsFromLineage(lineage: DBObject) = {
@@ -117,9 +112,6 @@ class LineageDAOv4(override val connection: MongoConnection) extends BaselineLin
 
   private def getOperationId(op: DBObject) =
     op.get(Field.mainProps).asInstanceOf[DBObject].get(Field.id).asInstanceOf[UUID]
-
-  override def getLineagesByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[DBObject]] =
-    Future.successful(new CloseableIterable[DBObject](Iterable.empty.iterator, () => Unit))
 }
 
 object LineageDAOv4 {

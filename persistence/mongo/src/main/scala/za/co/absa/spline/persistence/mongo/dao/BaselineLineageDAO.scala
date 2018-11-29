@@ -26,10 +26,9 @@ import com.mongodb.{Cursor, DBCollection}
 import org.slf4s.Logging
 import za.co.absa.spline.common.ARM._
 import za.co.absa.spline.common.UUIDExtractors.UUIDExtractor
-import za.co.absa.spline.common.WithResources.withResources
 import za.co.absa.spline.model.DataLineageId
 import za.co.absa.spline.persistence.api.CloseableIterable
-import za.co.absa.spline.persistence.api.DataLineageReader.{IntervalPageRequest, PageRequest, SearchRequest, Timestamp}
+import za.co.absa.spline.persistence.api.DataLineageReader.{IntervalPageRequest, PageRequest, Timestamp}
 import za.co.absa.spline.persistence.mongo.MongoImplicits._
 import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component
 import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component.SubComponent
@@ -47,7 +46,6 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
   protected lazy val subComponents: Seq[SubComponent] = SubComponent.values
 
   protected lazy val dataLineageCollection: DBCollection = getMongoCollectionForComponent(Component.Root)
-  protected lazy val eventCollection: DBCollection = getMongoCollectionForComponent(Component.Event)
   protected lazy val operationCollection: DBCollection = getMongoCollectionForComponent(Component.Operation)
 
   override def save(lineage: DBObject)(implicit e: ExecutionContext): Future[Unit] = {
@@ -78,9 +76,8 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
       }
   }
 
-  def saveProgress(event: ProgressDBObject)(implicit e: ExecutionContext): Future[Unit] = Future {
-    eventCollection.save(event.o)
-  }
+  override def saveProgress(progressDBObject: ProgressDBObject)(implicit e: ExecutionContext): Future[Unit] =
+    throw new UnsupportedOperationException("saveProgress method is supported only for DAO v5+.")
 
   /**
     * The method loads a particular data lineage from the persistence layer.
@@ -212,9 +209,13 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
       new CloseableIterable(maybeLineages.flatten, opCursor.close())
   }
 
-  override def findDatasetDescriptors(maybeText: Option[String], pageRequest: PageRequest)
-                          (implicit ec: ExecutionContext): Future[CloseableIterable[DescriptorDBObject]] = Future {
+  override def findDatasetDescriptors(maybeText: Option[String], intervalRequest: IntervalPageRequest)
+                          (implicit ec:  ExecutionContext): Future[CloseableIterable[DescriptorDBObject]] =
+    Future.successful(CloseableIterable.empty[DescriptorDBObject])
 
+  override def findDatasetDescriptors(maybeText: Option[String], pageRequest: PageRequest)
+                          (implicit ec: ExecutionContext): Future[CloseableIterable[DescriptorDBObject]] =
+    Future {
       val cursor = selectPersistedDatasets(
         DBObject("$match" → getDatasetDescriptorSearchQuery(maybeText, pageRequest.asAtTime)),
         DBObject("$sort" → DBObject("timestamp" → -1, "rootDataset._id" → 1)),
@@ -222,39 +223,6 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
         DBObject("$limit" → pageRequest.size)
       )
       new DBCursorToCloseableIterableAdapter(cursor).map(new DescriptorDBObject(_))
-  }
-
-  def selectLineageIdsBasedOnEvents(queryPipeline: DBObject*): CloseableIterable[String] = {
-    val eventPipeline = Seq(DBObject("$group" → DBObject(idField → "$lineageId")))
-    val pipeline = (queryPipeline ++ eventPipeline).asJava
-    val cursor = blocking(eventCollection.aggregate(pipeline, aggOpts))
-    val iterator = cursor.asScala.map(_.get(idField).asInstanceOf[String])
-    new CloseableIterable[String](iterator = iterator, closeFunction = cursor.close())
-  }
-
-  // FIXME impl paging
-  override def findDatasetDescriptors(maybeText: Option[String], intervalPageRequest: IntervalPageRequest)
-                          (implicit ec: ExecutionContext): Future[CloseableIterable[DescriptorDBObject]] = Future {
-
-    val searchCriteria = maybeText.map { text =>
-      val regexMatchOnFieldsCriteria = Seq("appId", "appName", "writePath").map(_.$regex(quote(text)).$options("i"))
-      val optDatasetIdMatchCriterion = UUIDExtractor.unapply(text.toLowerCase).map(uuid => DBObject("lineageId" → DataLineageId.fromDatasetId(uuid)))
-      $or(regexMatchOnFieldsCriteria ++ optDatasetIdMatchCriterion)
-    }
-    val eventCriteria: Seq[DBObject] = Seq(
-      "timestamp" $gte intervalPageRequest.from,
-      "timestamp" $lte intervalPageRequest.to,
-      "readCount" $gt 0
-    )
-
-    val eventFilter = DBObject("$match" → $and(eventCriteria ++ searchCriteria))
-    val lineageIds = withResources(selectLineageIdsBasedOnEvents(eventFilter))(i => i.iterator.toArray)
-
-    val cursor = selectPersistedDatasets(
-      DBObject("$match" → DBObject(idField → DBObject("$in" → DBList(lineageIds: _*)))),
-      DBObject("$sort" → DBObject("timestamp" → -1, "datasetId" → 1))
-    )
-    new DBCursorToCloseableIterableAdapter(cursor).map(DescriptorDBObject(_))
   }
 
   override def countDatasetDescriptors(maybeText: Option[String], asAtTime: Timestamp)(implicit ec: ExecutionContext): Future[Int] =
@@ -290,7 +258,7 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
     }
   }
 
-  private def selectPersistedDatasets(queryPipeline: DBObject*): Cursor = {
+  protected def selectPersistedDatasets(queryPipeline: DBObject*): Cursor = {
     val projectionPipeline: Seq[DBObject] = Seq(
       DBObject("$addFields" → DBObject(
         "datasetId" → "$rootDataset._id",
@@ -304,40 +272,19 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
         aggregate(pipeline, aggOpts))
   }
 
+
+  override def getLineagesByPathAndInterval(path: String, start: Long, end: Long)
+                         (implicit ex: ExecutionContext): Future[CloseableIterable[DBObject]] =
+    Future.successful(CloseableIterable.empty)
+
   private val persistedDatasetDescriptorFields =
     Seq("datasetId", "appId", "appName", "path", "timestamp")
 
-  private def getMongoCollectionForComponent(component: Component): DBCollection =
+  protected def getMongoCollectionForComponent(component: Component): DBCollection =
     connection.db.getCollection(getMongoCollectionNameForComponent(component))
 
   protected def getMongoCollectionNameForComponent(component: Component): String =
     s"${component.name}_v$version"
-
-  override def getLineagesByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[DBObject]] = {
-    val searchCriteria: Seq[DBObject] = Seq(
-      DBObject("writePath" → path),
-      DBObject("readPaths" → path)
-    )
-
-    val eventCriteria: Seq[DBObject] = Seq(
-      "timestamp" $gte start,
-      "timestamp" $lte end,
-      "readCount" $gt 0
-    )
-
-    val eventFilter = DBObject("$match" → $and(eventCriteria :+ $or(searchCriteria)))
-    val lineageIds = withResources(selectLineageIdsBasedOnEvents(eventFilter))(i => i.iterator.toArray)
-
-    val queryPipeline = Seq(
-      DBObject("$match" → DBObject(idField → DBObject("$in" → DBList(lineageIds: _*)))),
-      DBObject("$sort" → DBObject("timestamp" → -1, "datasetId" → 1))
-    ).asJava
-    val cursor = blocking(dataLineageCollection.aggregate(queryPipeline, aggOpts))
-
-    Future
-      .traverse(cursor.asScala)(addComponents(_, overviewOnly = false))
-      .map(i => new CloseableIterable[DBObject](iterator = i, closeFunction = cursor.close()))
-  }
 }
 
 object BaselineLineageDAO {
@@ -360,27 +307,12 @@ object BaselineLineageDAO {
 
     case object Attribute extends Component("attributes") with SubComponent
 
-    case object Event extends Component("event")
-
   }
 
-  private object DBOFields {
+  object DBOFields {
     val lineageIdField = "_lineageId"
     val idField = "_id"
     val indexField = "_index"
   }
 
 }
-
-class ProgressDBObject(val o: DBObject) extends AnyVal
-object ProgressDBObject {
-  def apply(o: DBObject) = new ProgressDBObject(o)
-  def unapply(arg: ProgressDBObject): Option[DBObject] = Some(arg.o)
-}
-
-class DescriptorDBObject(val o: DBObject) extends AnyVal
-object DescriptorDBObject {
-  def apply(o: DBObject) = new DescriptorDBObject(o)
-  def unapply(arg: DescriptorDBObject): Option[DBObject] = Some(arg.o)
-}
-

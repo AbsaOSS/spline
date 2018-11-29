@@ -19,20 +19,29 @@ package za.co.absa.spline.persistence.mongo.dao
 import java.util.UUID
 import java.util.function.Consumer
 import java.{util => ju}
+import java.util.regex.Pattern.quote
 
+import za.co.absa.spline.common.WithResources.withResources
 import com.mongodb.casbah.query.Implicits.mongoQueryStatements
-import com.mongodb.{BasicDBList, DBObject}
+import com.mongodb.{BasicDBList, DBCollection}
+import com.mongodb.casbah.Imports._
+import com.mongodb.casbah.AggregationOptions.{default => aggOpts}
 import salat.{BinaryTypeHintStrategy, TypeHintFrequency}
 import za.co.absa.spline.common.EnumerationMacros.sealedInstancesOf
+import za.co.absa.spline.common.UUIDExtractors.UUIDExtractor
+import za.co.absa.spline.model.DataLineageId
 import za.co.absa.spline.persistence.api.CloseableIterable
-import za.co.absa.spline.persistence.mongo.MongoConnection
+import za.co.absa.spline.persistence.api.DataLineageReader.IntervalPageRequest
+import za.co.absa.spline.persistence.mongo.{DBCursorToCloseableIterableAdapter, MongoConnection}
 import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component
 import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component.SubComponent
 import za.co.absa.spline.persistence.mongo.dao.LineageDAOv5.Field
 import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext
+import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.DBOFields._
+import za.co.absa.spline.persistence.mongo.MongoImplicits._
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future, blocking}
 
 class LineageDAOv5(override val connection: MongoConnection) extends BaselineLineageDAO with MutableLineageUpgraderV5 {
 
@@ -43,13 +52,11 @@ class LineageDAOv5(override val connection: MongoConnection) extends BaselineLin
   override protected lazy val subComponents: Seq[SubComponent] =
     SubComponent.values ++ SubComponentV5.values
 
+  protected lazy val eventCollection: DBCollection = getMongoCollectionForComponent(Event)
+
   override def save(lineage: DBObject)(implicit e: ExecutionContext): Future[Unit] = {
     lineage.put(SubComponentV5.Transformation.name, extractTransformationsFromLineage(lineage))
     super.save(lineage)
-  }
-
-  override def saveProgress(event: ProgressDBObject)(implicit e: ExecutionContext): Future[Unit] = {
-    super.saveProgress(event)
   }
 
   override protected def addComponents(rootComponentDBO: DBObject, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[DBObject] = {
@@ -71,6 +78,69 @@ class LineageDAOv5(override val connection: MongoConnection) extends BaselineLin
         "za.co.absa.spline.model.op.StreamRead",
         "za.co.absa.spline.model.op.StreamWrite"
       ).map(binaryTypeHintStrategy.encode)
+  }
+
+  override def saveProgress(event: ProgressDBObject)(implicit e: ExecutionContext): Future[Unit] = Future {
+    eventCollection.save(event.o)
+  }
+
+  def selectLineageIdsBasedOnEvents(queryPipeline: DBObject*): CloseableIterable[String] = {
+    val eventPipeline = Seq(DBObject("$group" → DBObject(idField → "$lineageId")))
+    val pipeline = (queryPipeline ++ eventPipeline).asJava
+    val cursor = blocking(eventCollection.aggregate(pipeline, aggOpts))
+    val iterator = cursor.asScala.map(_.get(idField).asInstanceOf[String])
+    new CloseableIterable[String](iterator = iterator, closeFunction = cursor.close())
+  }
+
+  // FIXME impl paging
+  override def findDatasetDescriptors(maybeText: Option[String], intervalPageRequest: IntervalPageRequest)
+                                     (implicit ec: ExecutionContext): Future[CloseableIterable[DescriptorDBObject]] = Future {
+
+    val searchCriteria = maybeText.map { text =>
+      val regexMatchOnFieldsCriteria = Seq("appId", "appName", "writePath").map(_.$regex(quote(text)).$options("i"))
+      val optDatasetIdMatchCriterion = UUIDExtractor.unapply(text.toLowerCase).map(uuid => DBObject("lineageId" → DataLineageId.fromDatasetId(uuid)))
+      $or(regexMatchOnFieldsCriteria ++ optDatasetIdMatchCriterion)
+    }
+    val eventCriteria: Seq[DBObject] = Seq(
+      "timestamp" $gte intervalPageRequest.from,
+      "timestamp" $lte intervalPageRequest.to,
+      "readCount" $gt 0
+    )
+
+    val eventFilter = DBObject("$match" → $and(eventCriteria ++ searchCriteria))
+    val lineageIds = withResources(selectLineageIdsBasedOnEvents(eventFilter))(i => i.iterator.toArray)
+
+    val cursor = selectPersistedDatasets(
+      DBObject("$match" → DBObject(idField → DBObject("$in" → DBList(lineageIds: _*)))),
+      DBObject("$sort" → DBObject("timestamp" → -1, "datasetId" → 1))
+    )
+    new DBCursorToCloseableIterableAdapter(cursor).map(DescriptorDBObject(_))
+  }
+
+  override def getLineagesByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[DBObject]] = {
+    val searchCriteria: Seq[DBObject] = Seq(
+      DBObject("writePath" → path),
+      DBObject("readPaths" → path)
+    )
+
+    val eventCriteria: Seq[DBObject] = Seq(
+      "timestamp" $gte start,
+      "timestamp" $lte end,
+      "readCount" $gt 0
+    )
+
+    val eventFilter = DBObject("$match" → $and(eventCriteria :+ $or(searchCriteria)))
+    val lineageIds = withResources(selectLineageIdsBasedOnEvents(eventFilter))(i => i.iterator.toArray)
+
+    val queryPipeline = Seq(
+      DBObject("$match" → DBObject(idField → DBObject("$in" → DBList(lineageIds: _*)))),
+      DBObject("$sort" → DBObject("timestamp" → -1, "datasetId" → 1))
+    ).asJava
+    val cursor = blocking(dataLineageCollection.aggregate(queryPipeline, aggOpts))
+
+    Future
+      .traverse(cursor.asScala)(addComponents(_, overviewOnly = false))
+      .map(i => new CloseableIterable[DBObject](iterator = i, closeFunction = cursor.close()))
   }
 }
 
@@ -215,3 +285,18 @@ object MutableLineageUpgraderV5 {
   private def extractClassName(fullQualifiedName: String) = fullQualifiedName.replaceAll(".*\\.", "")
 
 }
+
+class ProgressDBObject(val o: DBObject) extends AnyVal
+object ProgressDBObject {
+  def apply(o: DBObject) = new ProgressDBObject(o)
+  def unapply(arg: ProgressDBObject): Option[DBObject] = Some(arg.o)
+}
+
+class DescriptorDBObject(val o: DBObject) extends AnyVal
+object DescriptorDBObject {
+  def apply(o: DBObject) = new DescriptorDBObject(o)
+  def unapply(arg: DescriptorDBObject): Option[DBObject] = Some(arg.o)
+}
+
+case object Event extends Component("event")
+
