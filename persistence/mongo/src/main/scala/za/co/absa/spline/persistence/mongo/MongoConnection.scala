@@ -26,7 +26,9 @@ trait MongoConnection {
 class MongoConnectionImpl(dbUrl: String, dbName: String) extends MongoConnection {
   private val client: MongoClient = MongoClient(MongoClientURI(dbUrl))
 
-  require(client.databaseNames != null) // check if the connection can be established
-
-  val db: MongoDB = client.getDB(dbName)
+  val db: MongoDB = {
+    val db = client.getDB(dbName)
+    require(db.stats.ok)
+    db
+  }
 }

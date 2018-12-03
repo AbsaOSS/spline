@@ -80,5 +80,9 @@ abstract class MongoDataLineagePersistenceSpecBase
   }
 
   override protected def afterEach(): Unit =
-    mongoConnection.db.collectionNames.foreach(mongoConnection.db(_).drop)
+    for {
+      collectionName <- mongoConnection.db.collectionNames
+      if !(collectionName startsWith "system.")
+      collection = mongoConnection.db(collectionName)
+    } collection.drop()
 }
