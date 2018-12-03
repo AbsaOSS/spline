@@ -1,6 +1,7 @@
+---
 layout: default
 title: "Exploring the Spline Data Tracker and Visualization tool for Apache Spark (Part 1)"
-date: 2018-04-16
+date: 2018-12-02
 author: "Guglielmo Iozzia @ Optum Ireland"
 ---
 
