@@ -28,7 +28,7 @@ import za.co.absa.spline.common.ARM._
 import za.co.absa.spline.common.UUIDExtractors.UUIDExtractor
 import za.co.absa.spline.model.DataLineageId
 import za.co.absa.spline.persistence.api.CloseableIterable
-import za.co.absa.spline.persistence.api.DataLineageReader.{PageRequest, Timestamp}
+import za.co.absa.spline.persistence.api.DataLineageReader.{IntervalPageRequest, PageRequest, Timestamp}
 import za.co.absa.spline.persistence.mongo.MongoImplicits._
 import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component
 import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component.SubComponent
@@ -75,6 +75,9 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
         dataLineageCollection.insert(asList(rootItem))
       }
   }
+
+  override def saveProgress(progressDBObject: ProgressDBObject)(implicit e: ExecutionContext): Future[Unit] =
+    throw new UnsupportedOperationException("saveProgress method is supported only for DAO v5+.")
 
   /**
     * The method loads a particular data lineage from the persistence layer.
@@ -206,13 +209,12 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
       new CloseableIterable(maybeLineages.flatten, opCursor.close())
   }
 
-  /**
-    * The method gets all data lineages stored in persistence layer.
-    *
-    * @return Descriptors of all data lineages
-    */
+  override def findDatasetDescriptors(maybeText: Option[String], intervalRequest: IntervalPageRequest)
+                          (implicit ec:  ExecutionContext): Future[CloseableIterable[DescriptorDBObject]] =
+    Future.successful(CloseableIterable.empty[DescriptorDBObject])
+
   override def findDatasetDescriptors(maybeText: Option[String], pageRequest: PageRequest)
-                                     (implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]] =
+                          (implicit ec: ExecutionContext): Future[CloseableIterable[DescriptorDBObject]] =
     Future {
       val cursor = selectPersistedDatasets(
         DBObject("$match" → getDatasetDescriptorSearchQuery(maybeText, pageRequest.asAtTime)),
@@ -220,8 +222,8 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
         DBObject("$skip" → pageRequest.offset),
         DBObject("$limit" → pageRequest.size)
       )
-      new DBCursorToCloseableIterableAdapter(cursor)
-    }
+      new DBCursorToCloseableIterableAdapter(cursor).map(new DescriptorDBObject(_))
+  }
 
   override def countDatasetDescriptors(maybeText: Option[String], asAtTime: Timestamp)(implicit ec: ExecutionContext): Future[Int] =
     Future {
@@ -248,15 +250,15 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
     * @param id An unique identifier of a dataset
     * @return Descriptors of all data lineages
     */
-  override def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[Option[DBObject]] = Future {
+  override def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[Option[DescriptorDBObject]] = Future {
     using(selectPersistedDatasets(DBObject("$match" → DBObject("rootDataset._id" → id)))) {
       cursor =>
-        if (cursor.hasNext) Some(cursor.next)
+        if (cursor.hasNext) Some(DescriptorDBObject(cursor.next))
         else None
     }
   }
 
-  private def selectPersistedDatasets(queryPipeline: DBObject*): Cursor = {
+  protected def selectPersistedDatasets(queryPipeline: DBObject*): Cursor = {
     val projectionPipeline: Seq[DBObject] = Seq(
       DBObject("$addFields" → DBObject(
         "datasetId" → "$rootDataset._id",
@@ -270,10 +272,15 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
         aggregate(pipeline, aggOpts))
   }
 
+
+  override def getLineagesByPathAndInterval(path: String, start: Long, end: Long)
+                         (implicit ex: ExecutionContext): Future[CloseableIterable[DBObject]] =
+    Future.successful(CloseableIterable.empty)
+
   private val persistedDatasetDescriptorFields =
     Seq("datasetId", "appId", "appName", "path", "timestamp")
 
-  private def getMongoCollectionForComponent(component: Component): DBCollection =
+  protected def getMongoCollectionForComponent(component: Component): DBCollection =
     connection.db.getCollection(getMongoCollectionNameForComponent(component))
 
   protected def getMongoCollectionNameForComponent(component: Component): String =
@@ -302,12 +309,10 @@ object BaselineLineageDAO {
 
   }
 
-  private object DBOFields {
+  object DBOFields {
     val lineageIdField = "_lineageId"
     val idField = "_id"
     val indexField = "_index"
   }
 
 }
-
-

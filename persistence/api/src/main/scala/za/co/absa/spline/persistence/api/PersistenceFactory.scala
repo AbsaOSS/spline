@@ -32,6 +32,13 @@ abstract class PersistenceFactory(protected val configuration: Configuration) ex
   def createDataLineageWriter: DataLineageWriter
 
   /**
+    * The method creates a writer to the persistence layer for the [[za.co.absa.spline.model.streaming.ProgressEvent ProgressEvent]] entity.
+    *
+    * @return A writer to the persistence layer for the [[za.co.absa.spline.model.streaming.ProgressEvent ProgressEvent]] entity
+    */
+  def createProgressEventWriter: ProgressEventWriter
+
+  /**
     * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
     * @return An optional reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity

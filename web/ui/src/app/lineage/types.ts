@@ -19,18 +19,20 @@ import {IExpression} from "../../generated-ts/expression-model";
 import {IDataType} from "../../generated-ts/datatype-model";
 
 export type OperationType =
-    ("Projection"
-        | "Read"
-        | "Join"
-        | "Union"
-        | "Generic"
-        | "Filter"
-        | "Sort"
-        | "Aggregate"
-        | "Write"
-        | "Alias"
-        | "Composite"
-        )
+    ( "Projection"
+    | "BatchRead"
+    | "StreamRead"
+    | "Join"
+    | "Union"
+    | "Generic"
+    | "Filter"
+    | "Sort"
+    | "Aggregate"
+    | "BatchWrite"
+    | "StreamWrite"
+    | "Alias"
+    | "Composite"
+    )
 
 export type ExpressionType =
     ("Binary"

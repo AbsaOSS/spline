@@ -29,10 +29,10 @@ import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FunSpec, Matchers}
-import za.co.absa.spline.harvester.{ComponentCreatorFactory, FSAwareBuilder, ReadNodeBuilder, TestSparkContext}
+import za.co.absa.spline.harvester.{ComponentCreatorFactory, FSAwareBuilder, BatchReadNodeBuilder, TestSparkContext}
 import za.co.absa.spline.model.MetaDataSource
 
-class ReadNodeBuilderSpec extends FunSpec with MockitoSugar with Matchers {
+class BatchReadNodeBuilderSpec extends FunSpec with MockitoSugar with Matchers {
   DriverManager registerDriver new FakeJDBCDriver
   implicit val compCreatorFactory: ComponentCreatorFactory = new ComponentCreatorFactory()
 
@@ -49,7 +49,7 @@ class ReadNodeBuilderSpec extends FunSpec with MockitoSugar with Matchers {
         option("dbtable", "some_table").
         load()
 
-      val bldr = new ReadNodeBuilder(df.queryExecution.analyzed.asInstanceOf[LogicalRelation]) with FSUnawareBuilder
+      val bldr = new BatchReadNodeBuilder(df.queryExecution.analyzed.asInstanceOf[LogicalRelation]) with FSUnawareBuilder
       val readOp = bldr.build()
 
       readOp.sourceType shouldEqual "JDBC"
@@ -57,7 +57,7 @@ class ReadNodeBuilderSpec extends FunSpec with MockitoSugar with Matchers {
     }
 
     it("should handle unrecognized source type") {
-      val bldr = new ReadNodeBuilder(LogicalRelation(FooBarRelation)) with FSUnawareBuilder
+      val bldr = new BatchReadNodeBuilder(LogicalRelation(FooBarRelation)) with FSUnawareBuilder
 
       val readOp = bldr.build()
 

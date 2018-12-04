@@ -31,6 +31,7 @@ import {DatasetLineageOverviewResolver} from "./dataset/lineage-overview/lineage
 import {DatasetLineageOverviewComponent} from "./dataset/lineage-overview/lineage-overview.component";
 import {MiscModule} from "./misc/misc.module";
 import {XHRTimeoutRectifierModule} from "./xhr-timeout-rectifier/xhr-timeout-rectifier.module";
+import {DatasetLineageIntervalResolver} from './dataset/lineage-overview/lineage-interval.resolver';
 
 
 const lineageRoute = {
@@ -56,10 +57,15 @@ const datasetRoute = {
                     component: DatasetLineageOverviewComponent
                 },
                 {
+                    path: "interval",
+                    resolve: {lineage: DatasetLineageIntervalResolver},
+                    component: DatasetLineageOverviewComponent
+                },
+                {
                     path: "partial",
                     resolve: {lineage: LineageByDatasetIdResolver},
                     children: [lineageRoute]
-                }
+                },
             ]
         }
     ]

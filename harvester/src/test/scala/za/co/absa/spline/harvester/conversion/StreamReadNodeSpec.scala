@@ -21,9 +21,10 @@ import java.nio.file.Files
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.types.StructType
 import org.scalatest.{FlatSpec, Matchers}
-import za.co.absa.spline.harvester.TestSparkContext.sparkSession
 import za.co.absa.spline.harvester.{ComponentCreatorFactory, StreamReadNodeBuilder}
-import za.co.absa.spline.model.endpoint.{FileEndpoint, KafkaEndpoint, SocketEndpoint, VirtualEndpoint}
+import za.co.absa.spline.harvester.TestSparkContext.sparkSession
+import za.co.absa.spline.model.endpoint._
+import za.co.absa.spline.model.op.StreamRead
 
 class StreamReadNodeSpec extends FlatSpec with Matchers {
   implicit val hadoopConfiguration: Configuration = sparkSession.sparkContext.hadoopConfiguration
@@ -38,10 +39,11 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
       .format("rate")
       .load()
 
+    // FIXME as part of supporting 2.2 and 2.3
     val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
     val node = builder.build()
 
-    node.source shouldEqual VirtualEndpoint
+    shouldEq(node, VirtualEndpoint())
   }
 
   it should "return StreamRead node with a socket endpoint when reading data from the socket data source" in {
@@ -58,7 +60,7 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
     val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
     val node = builder.build()
 
-    node.source shouldEqual SocketEndpoint(host, port.toString)
+    shouldEq(node, SocketEndpoint(host, port.toString))
   }
 
   it should "return StreamRead node with a kafka endpoint when reading data from a kafka topic." in {
@@ -75,7 +77,7 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
     val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
     val node = builder.build()
 
-    node.source shouldEqual KafkaEndpoint(cluster, topic)
+    shouldEq(node, KafkaEndpoint(cluster, topic :: Nil))
   }
 
   it should "return StreamRead node with a file endpoint when reading data from a csv file" in {
@@ -91,10 +93,15 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
       .schema(schema)
       .load(tempDir.getPath)
 
-    val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.logical))
+    val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
     val node = builder.build()
 
-    node.source shouldEqual FileEndpoint(format, tempDir.getPath)
+    shouldEq(node, FileEndpoint(format, tempDir.getPath))
   }
 
+  private def shouldEq(node: StreamRead, endpoint: StreamEndpoint): Unit = {
+    node.sourceType shouldEqual endpoint.description
+    node.sources.size shouldEqual 1
+    node.sources.head.path shouldEqual endpoint.paths.head.toString
+  }
 }

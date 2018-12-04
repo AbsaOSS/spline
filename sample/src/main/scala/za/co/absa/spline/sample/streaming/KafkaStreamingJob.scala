@@ -42,9 +42,9 @@ object KafkaStreamingJob extends SparkApp("Kafka Streaming Job") with KafkaPrope
   sourceDS
     .writeStream
     .format("kafka")
-    .option("kafka.bootstrap.servers", kafkaServers)
     .option("topic", kafkaTopic)
-    .option("checkpointLocation", "data/kafkaCheckpoint")
+    .option("kafka.bootstrap.servers", kafkaServers)
+    .option("checkpointLocation", "data/checkpoints/streaming/kafka")
     .start()
     .processAllAvailable()
 
@@ -52,8 +52,8 @@ object KafkaStreamingJob extends SparkApp("Kafka Streaming Job") with KafkaPrope
   val df = spark
     .readStream
     .format("kafka")
-    .option("kafka.bootstrap.servers", kafkaServers)
     .option("subscribe", kafkaTopic)
+    .option("kafka.bootstrap.servers", kafkaServers)
     .option("startingOffsets", "earliest")
     .load()
 

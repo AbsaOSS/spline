@@ -24,7 +24,7 @@ import org.springframework.context.annotation.{Bean, Configuration}
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import za.co.absa.spline.persistence.api.DataLineageReader
-import za.co.absa.spline.persistence.mongo.dao.{LineageDAOv3, LineageDAOv4, MultiVersionLineageDAO}
+import za.co.absa.spline.persistence.mongo.dao.{LineageDAOv3, LineageDAOv4, LineageDAOv5, MultiVersionLineageDAO}
 import za.co.absa.spline.persistence.mongo.{MongoConnection, MongoConnectionImpl, MongoDataLineageReader}
 import za.co.absa.spline.web.handler.{ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
 import za.co.absa.spline.web.rest.service.LineageService
@@ -52,7 +52,8 @@ class LineageWebAppConfig extends WebMvcConfigurer with ExecutionContextImplicit
   @Bean def lineageReader: DataLineageReader = {
     val dao = new MultiVersionLineageDAO(
       new LineageDAOv3(mongoConnection),
-      new LineageDAOv4(mongoConnection))
+      new LineageDAOv4(mongoConnection),
+      new LineageDAOv5(mongoConnection))
     new MongoDataLineageReader(dao)
   }
 

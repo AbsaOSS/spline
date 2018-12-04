@@ -30,24 +30,26 @@ import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer.ConfProperty._
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.harvester.conf.{DefaultSplineConfigurer, LineageDispatcher}
 import za.co.absa.spline.harvester.listener.SplineQueryExecutionListener
-import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
+import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory, ProgressEventWriter}
 
 object SparkLineageInitializerSpec {
 
   class MockReadWritePersistenceFactory(conf: Configuration) extends PersistenceFactory(conf) with MockitoSugar {
     override val createDataLineageWriter: DataLineageWriter = mock[DataLineageWriter]
     override val createDataLineageReader: Option[DataLineageReader] = Some(mock[DataLineageReader])
+    override val createProgressEventWriter: ProgressEventWriter = mock[ProgressEventWriter]
   }
 
   class MockWriteOnlyPersistenceFactory(conf: Configuration) extends PersistenceFactory(conf) with MockitoSugar {
     override val createDataLineageWriter: DataLineageWriter = mock[DataLineageWriter]
     override val createDataLineageReader: Option[DataLineageReader] = None
+    override val createProgressEventWriter: ProgressEventWriter = mock[ProgressEventWriter]
   }
 
   class MockFailingPersistenceFactory(conf: Configuration) extends PersistenceFactory(conf) with MockitoSugar {
     override val createDataLineageWriter: DataLineageWriter = sys.error("boom!")
     override val createDataLineageReader: Option[DataLineageReader] = sys.error("bam!")
+    override val createProgressEventWriter: ProgressEventWriter = sys.error("bim!")
   }
 
   private[this] def sparkQueryExecutionListenerClasses: Seq[Class[_ <: QueryExecutionListener]] = {

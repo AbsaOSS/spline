@@ -181,14 +181,11 @@ trait MutableLineageUpgraderV4 {
         Future.traverse(iterable.iterator)(apply).
           map(new CloseableIterable(_, iterable.close()).asInstanceOf[T])
 
+      case descriptor: DescriptorDBObject => Future.successful(data)
       case lineage: DBObject
         if (lineage get Field.id).toString startsWith "ln_" =>
-        if (lineage containsField Field.datasetId)
-          Future.successful(data) // it's a DatasetDescription, no upgrade required
-        else {
           upgradeLineage(lineage)
           Future.successful(lineage.asInstanceOf[T])
-        }
     }
   })
 }

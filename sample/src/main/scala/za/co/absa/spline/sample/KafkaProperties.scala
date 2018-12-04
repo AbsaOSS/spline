@@ -16,18 +16,25 @@
 
 package za.co.absa.spline.sample
 
-import org.apache.commons.configuration.SystemConfiguration
+import org.apache.commons.configuration.{CompositeConfiguration, PropertiesConfiguration, SystemConfiguration}
 import org.apache.commons.lang.StringUtils.isNotBlank
+
+import scala.collection.JavaConverters._
 
 /**
   * The trait holds details important for making connection to Kafka
   */
 trait KafkaProperties
 {
-  private val configuration = new SystemConfiguration
 
-  private def getRequiredString(key: String): String = {
-    val value = configuration.getString(key)
+  val propConf = new PropertiesConfiguration("spline.properties")
+  private val configuration = new CompositeConfiguration(Seq(new SystemConfiguration, propConf).asJavaCollection)
+
+  import scala.collection.JavaConverters._
+
+  protected def getRequiredString(key: String): String = {
+    // Comma delimited values are parsed as List and method getString returns only first value.
+    val value = configuration.getList(key).asScala.mkString(",")
     require(isNotBlank(value), s"Missing configuration property $key in JVM parameters.")
     value
   }
@@ -35,10 +42,10 @@ trait KafkaProperties
   /**
     * The list of servers forming the kafka cluster
     */
-  val kafkaServers = getRequiredString("kafka.servers")
+  def kafkaServers = getRequiredString("harvester.kafka.servers")
 
   /**
     * The name of a topic
     */
-  val kafkaTopic = getRequiredString("kafka.topic")
+  def kafkaTopic = getRequiredString("kafka.topic")
 }

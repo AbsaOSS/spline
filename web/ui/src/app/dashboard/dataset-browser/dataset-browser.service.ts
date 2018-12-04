@@ -21,20 +21,31 @@ import {SearchRequest} from "./dataset-browser.model";
 
 @Injectable()
 export class DatasetBrowserService {
-    constructor(private httpClient: HttpClient) {
-    }
+    constructor(private httpClient: HttpClient) {}
 
     getLineageDescriptors(searchRequest: SearchRequest): Promise<IPersistedDatasetDescriptor[]> {
-        return this.httpClient.get<IPersistedDatasetDescriptor[]>(
-            "rest/dataset/descriptors",
-            {
-                params: {
-                    q: searchRequest.text,
-                    asAtTime: `${searchRequest.asAtTime}`,
-                    offset: `${searchRequest.offset}`,
+            return this.httpClient.get<IPersistedDatasetDescriptor[]>(
+                "rest/dataset/descriptors",
+                {
+                    params: {
+                        q: searchRequest.text,
+                        asAtTime: `${extract(searchRequest, 'asAtTime')}`,
+                        offset: `${extract(searchRequest, 'offset')}`,
+                        from: `${extract(searchRequest, 'from')}`,
+                        to: `${extract(searchRequest, 'to')}`,
                     size: "20"
                 }
             }
         ).toPromise()
+    }
+
+}
+
+function extract(searchRequest: SearchRequest, name: string): string {
+    let val = searchRequest[name]
+    if (typeof val != 'undefined') {
+        return val
+    } else {
+        return ''
     }
 }

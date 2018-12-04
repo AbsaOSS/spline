@@ -33,6 +33,7 @@ import org.scalatest.mockito.MockitoSugar
 import org.slf4s.Logging
 import za.co.absa.spline.common.ByteUnits._
 import za.co.absa.spline.common.TempDirectory
+import za.co.absa.spline.persistence.api.ProgressEventWriter
 //import za.co.absa.spline.core.conf.DefaultSplineConfigurer.ConfProperty.PERSISTENCE_FACTORY
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
@@ -100,6 +101,7 @@ object AbstractSplineFixture {
         Future.successful(())
       }
     }
+    override val createProgressEventWriter: ProgressEventWriter = ???
   }
 
   trait Implicits {

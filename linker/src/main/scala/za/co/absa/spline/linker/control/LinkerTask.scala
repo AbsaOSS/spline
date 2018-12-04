@@ -1,11 +1,3 @@
-package za.co.absa.spline.linker.control
-
-import org.apache.spark.api.java.function.MapFunction
-import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.persistence.api.{Logging, PersistenceFactory}
-
-import scala.concurrent.{Await, ExecutionContext, Future}
-
 /*
  * Copyright 2017 ABSA Group Limited
  *
@@ -22,19 +14,26 @@ import scala.concurrent.{Await, ExecutionContext, Future}
  * limitations under the License.
  */
 
-import za.co.absa.spline.linker.control.ConfigMapConverter._
+package za.co.absa.spline.linker.control
 
+import org.apache.spark.api.java.function.MapFunction
+import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.persistence.api.{Logging, PersistenceFactory}
+
+import scala.concurrent.{Await, ExecutionContext, Future}
+
+import za.co.absa.spline.linker.control.ConfigMapConverter._
 import scala.concurrent.duration.DurationInt
 
-class LinkerTask(configMap: Map[String, Object]) extends MapFunction[DataLineage, DataLineage] with Logging {
+class LinkerTask(serializableConfig: Map[String, Object]) extends MapFunction[DataLineage, DataLineage] with Logging {
 
   private implicit lazy val executionContext: ExecutionContext = ExecutionContext.global
 
   private lazy val transformation: DataLineage => Future[DataLineage] = {
-    val configuration = toConfiguration(configMap)
+    val configuration = toConfiguration(serializableConfig)
     val factory = PersistenceFactory.create(configuration)
     if (factory.createDataLineageReader.isDefined) {
-      new DataLineageLinker(factory.createDataLineageReader.get).apply
+      new BatchDataLineageLinker(factory.createDataLineageReader.get).apply
     } else {
       Future.successful
     }

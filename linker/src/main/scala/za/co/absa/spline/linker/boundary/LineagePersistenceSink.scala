@@ -1,13 +1,3 @@
-package za.co.absa.spline.linker.boundary
-
-import com.mongodb.DuplicateKeyException
-import org.apache.spark.sql.ForeachWriter
-import za.co.absa.spline.linker.control.ConfigMapConverter.toConfiguration
-import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.persistence.api.{DataLineageWriter, Logging, PersistenceFactory}
-
-import scala.concurrent.{Await, ExecutionContext}
-
 /*
  * Copyright 2017 ABSA Group Limited
  *
@@ -24,14 +14,24 @@ import scala.concurrent.{Await, ExecutionContext}
  * limitations under the License.
  */
 
+package za.co.absa.spline.linker.boundary
+
+import com.mongodb.DuplicateKeyException
+import org.apache.spark.sql.ForeachWriter
+import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.persistence.api.{DataLineageWriter, Logging, PersistenceFactory}
+import za.co.absa.spline.linker.control.ConfigMapConverter.toConfiguration
+
+import scala.concurrent.{Await, ExecutionContext}
+
 /**
   * Handles duplicate insert via duplicate key exception ignore.
   */
-class AnalyticsPersistenceSink(configMap: Map[String, Object]) extends ForeachWriter[DataLineage] with Logging {
+class LineagePersistenceSink(serializableConfig: Map[String, Object]) extends ForeachWriter[DataLineage] with Logging {
 
   private implicit lazy val executionContext: ExecutionContext = ExecutionContext.global
-  private var analyticsWriterFactory: PersistenceFactory = _
-  private var analyticsWriter: DataLineageWriter = _
+  private var lineageWriter: DataLineageWriter = _
+  private var lineageWriterFactory: PersistenceFactory = _
 
   /**
     * FIXME Method is missing coherent and general duplicate storage support.
@@ -40,7 +40,7 @@ class AnalyticsPersistenceSink(configMap: Map[String, Object]) extends ForeachWr
     log debug s"Processing raw lineage"
     try {
       import scala.concurrent.duration.DurationInt
-      Await.result(analyticsWriter.store(rawLineage), 10.minutes)
+      Await.result(lineageWriter.store(rawLineage), 10.minutes)
     } catch {
       case e: DuplicateKeyException => log.warn("Duplicate key ignored to tolarate potential duplicate insert to MongoDB.", e)
       case e: Throwable => throw e
@@ -48,19 +48,19 @@ class AnalyticsPersistenceSink(configMap: Map[String, Object]) extends ForeachWr
   }
 
   def close(errorOrNull: Throwable): Unit = {
-    analyticsWriterFactory.destroy()
+    lineageWriterFactory.destroy()
   }
 
   def open(partitionId: Long, version: Long): Boolean = {
     // todo: Memoize it!
-    analyticsWriterFactory = createWriterFactory
-    analyticsWriter = analyticsWriterFactory.createDataLineageWriter
+    createWriter()
     true
   }
 
-  private def createWriterFactory = {
-    val configuration = toConfiguration(configMap)
-    PersistenceFactory.create(configuration)
+  private def createWriter(): Unit = {
+    val configuration = toConfiguration(serializableConfig)
+    lineageWriterFactory = PersistenceFactory.create(configuration)
+    lineageWriter = lineageWriterFactory.createDataLineageWriter
   }
 }
 

@@ -21,13 +21,13 @@ import java.util.UUID
 import _root_.salat._
 import com.mongodb.casbah.Imports._
 import za.co.absa.spline.model._
-import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
+import za.co.absa.spline.persistence.api.DataLineageReader.{PageRequest, SearchRequest}
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
-import za.co.absa.spline.persistence.mongo.dao.LineageDAO
+import za.co.absa.spline.persistence.mongo.dao.{LineageDAO, MultiVersionDAO, MultiVersionLineageDAO}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class MongoDataLineageReader(lineageDAO: LineageDAO) extends DataLineageReader {
+class MongoDataLineageReader(lineageDAO: MultiVersionLineageDAO) extends DataLineageReader {
 
   import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext._
 
@@ -74,10 +74,10 @@ class MongoDataLineageReader(lineageDAO: LineageDAO) extends DataLineageReader {
     *
     * @return Descriptors of all data lineages
     */
-  override def findDatasets(maybeText: Option[String], pageRequest: PageRequest)
+  override def findDatasets(maybeText: Option[String], searchRequest: SearchRequest)
                            (implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]] =
-    lineageDAO.findDatasetDescriptors(maybeText, pageRequest).map(_.map(bObject =>
-      grater[PersistedDatasetDescriptor].asObject(bObject)))
+    lineageDAO.findDatasetDescriptors(maybeText, searchRequest).map(_.map(o =>
+      grater[PersistedDatasetDescriptor].asObject(o.o)))
 
   /**
     * The method returns a dataset descriptor by its ID.
@@ -86,5 +86,8 @@ class MongoDataLineageReader(lineageDAO: LineageDAO) extends DataLineageReader {
     * @return Descriptors of all data lineages
     */
   override def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[PersistedDatasetDescriptor] =
-    lineageDAO.getDatasetDescriptor(id).map(grater[PersistedDatasetDescriptor].asObject(_))
+    lineageDAO.getDatasetDescriptor(id).map(_.o).map(grater[PersistedDatasetDescriptor].asObject(_))
+
+  override def getLineagesByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[DataLineage]] =
+    lineageDAO.getLineagesByPathAndInterval(path, start, end).map(o => o.map(grater[DataLineage].asObject(_)))
 }

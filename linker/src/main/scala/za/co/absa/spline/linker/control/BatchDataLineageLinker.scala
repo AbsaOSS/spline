@@ -20,7 +20,7 @@ import java.util.UUID
 
 import org.slf4s.Logging
 import za.co.absa.spline.common.ARM._
-import za.co.absa.spline.model.op.{Operation, Read}
+import za.co.absa.spline.model.op.{BatchRead, Operation, Read, StreamRead}
 import za.co.absa.spline.model.{DataLineage, MetaDataSource}
 import za.co.absa.spline.persistence.api.DataLineageReader
 
@@ -32,7 +32,7 @@ import scala.language.postfixOps
   *
   * @param reader A reader reading lineage graphs from persistence layer
   */
-class DataLineageLinker(reader: DataLineageReader) extends Logging {
+class BatchDataLineageLinker(reader: DataLineageReader) extends Logging {
 
   /**
     * The method transforms an input instance by a custom logic.
@@ -42,7 +42,8 @@ class DataLineageLinker(reader: DataLineageReader) extends Logging {
     */
   def apply(lineage: DataLineage)(implicit ec: ExecutionContext): Future[DataLineage] = {
     def castIfRead(op: Operation): Option[Read] = op match {
-      case a@Read(_, _, _) => Some(a)
+      case a: StreamRead => None // Prevent batch based linking for streams.
+      case a: Read => Some(a)
       case _ => None
     }
 
@@ -67,8 +68,10 @@ class DataLineageLinker(reader: DataLineageReader) extends Logging {
       } yield
         eventualSources map (newSources => {
           val newProps = read.mainProps.copy(inputs = newSources.flatMap(_.datasetsIds).distinct)
-          val newRead = read.copy(sources = newSources, mainProps = newProps)
-          newRead
+          read match {
+            case r: BatchRead => r.copy(sources = newSources, mainProps = newProps)
+            case r: StreamRead => r.copy(sources = newSources, mainProps = newProps)
+          }
         }))
 
     eventualReadsWithLineages map (newReads => {
