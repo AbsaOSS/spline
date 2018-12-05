@@ -66,7 +66,7 @@ class StructuredStreamingListener(queryManager: StreamingQueryManager,
     val maybeEndpoint = se.sink match {
       case FileSinkObj(path, fileFormat) => Some(FileEndpoint(path, fileFormat.toString))
       case KafkaSinkObj(cluster, topic) => Some(KafkaEndpoint(cluster, topic.getOrElse("")))
-      case x if Set(consoleSinkClass(), classOf[ForeachSink[_]], classOf[MemorySink]).exists(assignableFrom(_, x)) => None
+      case x if Set(consoleSinkClass(), foreachBatchSinkClass(), classOf[MemorySink]).exists(assignableFrom(_, x)) => None
       case sink => throw new IllegalArgumentException(s"Unsupported sink type: ${sink.getClass}")
     }
 
