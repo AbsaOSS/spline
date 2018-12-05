@@ -2,6 +2,8 @@
 
 ---
 
+[![TeamCity build (develop)](https://teamcity.jetbrains.com/app/rest/builds/aggregated/strob:%28locator:%28buildType:%28id:OpenSourceProjects_AbsaOSSSpline_AutomaticBuilds%29,branch:develop%29%29/statusIcon.svg)](https://teamcity.jetbrains.com/viewType.html?buildTypeId=OpenSourceProjects_AbsaOSSSpline_AutomaticBuilds&branch=develop&tab=buildTypeStatusDiv)
+
 Please find the project documentation, usage examples, building, installation and configuration instructions and other information 
 on the Spline website - https://absaoss.github.io/spline
 
