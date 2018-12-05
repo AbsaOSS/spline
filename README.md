@@ -2,6 +2,8 @@
 
 ---
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/5469c979319541bca9a6752059bb4ec4)](https://app.codacy.com/app/ABSA_OSS/spline?utm_source=github.com&utm_medium=referral&utm_content=AbsaOSS/spline&utm_campaign=Badge_Grade_Dashboard)
+
 Please find the project documentation, usage examples, building, installation and configuration instructions and other information 
 on the Spline website - https://absaoss.github.io/spline
 
