@@ -38,14 +38,9 @@ class MongoPersistenceFactory(configuration: Configuration) extends PersistenceF
   import MongoPersistenceFactory._
   import za.co.absa.spline.common.ConfigurationImplicits._
 
-  private val mongoConnection = {
-    val dbUrl = configuration getRequiredString mongoDbUrlKey
-    val dbName = configuration getRequiredString mongoDbNameKey
-    log debug s"Preparing connection: $dbUrl/$dbName"
-    val connection = new MongoConnectionImpl(dbUrl, dbName)
-    log info s"Connected: $dbUrl/$dbName"
-    connection
-  }
+  private val mongoConnection = new MongoConnectionImpl(
+    dbUrl = configuration getRequiredString mongoDbUrlKey,
+    dbName = configuration getRequiredString mongoDbNameKey)
 
   private val dao = new MultiVersionLineageDAO(
     new LineageDAOv3(mongoConnection),
