@@ -19,7 +19,7 @@ import {IAttribute, IOperation} from "../../../../generated-ts/lineage-model";
 import {LineageStore} from "../../lineage.store";
 import {OperationType, typeOfExpr, typeOfOperation} from "../../types";
 import {IExpression} from "../../../../generated-ts/operation-model";
-import {getIconForNodeType} from "./operation-icon.utils";
+import {getOperationIcon} from './operation-icon.utils';
 
 import * as _ from "lodash"
 
@@ -48,8 +48,8 @@ export class OperationDetailsComponent implements OnChanges {
         this.operationType = typeOfOperation(this.operation)
     }
 
-    getOperationIcon() {
-        return getIconForNodeType(this.operationType).name
+    getOperationIcon(): string {
+        return getOperationIcon(this.operation).name
     }
 
     //noinspection JSMethodCanBeStatic

@@ -19,7 +19,7 @@ package za.co.absa.spline.persistence.api
 import java.util.UUID
 
 import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
-import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
+import za.co.absa.spline.persistence.api.DataLineageReader.{PageRequest, SearchRequest}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -27,7 +27,9 @@ object DataLineageReader {
 
   type Timestamp = Long
 
-  case class PageRequest(asAtTime: Timestamp, offset: Int, size: Int)
+  sealed trait SearchRequest
+  case class IntervalPageRequest(from: Timestamp, to: Timestamp) extends SearchRequest
+  case class PageRequest(asAtTime: Timestamp, offset: Int, size: Int) extends SearchRequest
   object PageRequest {
     val EntireLatestContent = PageRequest(Long.MaxValue, 0, Int.MaxValue)
   }
@@ -78,7 +80,7 @@ trait DataLineageReader {
     *
     * @return Descriptors of all data lineages
     */
-  def findDatasets(text: Option[String], page: PageRequest)(implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]]
+  def findDatasets(text: Option[String], page: SearchRequest)(implicit ec: ExecutionContext): Future[CloseableIterable[PersistedDatasetDescriptor]]
 
   /**
     * The method returns a dataset descriptor by its ID.
@@ -87,4 +89,6 @@ trait DataLineageReader {
     * @return Descriptors of all data lineages
     */
   def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[PersistedDatasetDescriptor]
+
+  def getLineagesByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[DataLineage]]
 }

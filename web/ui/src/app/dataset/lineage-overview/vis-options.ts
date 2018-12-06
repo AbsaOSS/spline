@@ -36,6 +36,7 @@ export const visOptions: Options = {
     },
     physics: {
         enabled: true,
+        maxVelocity: 300,
         hierarchicalRepulsion: {
             nodeDistance: 270,
             springLength: 170,
@@ -62,7 +63,7 @@ export const visOptions: Options = {
     nodes: {
         shape: 'icon',
         shadow: false,
-        // margin: 10,
+        // margin: 25,
         labelHighlightBold: false,
         font: {
             color: '#343434',

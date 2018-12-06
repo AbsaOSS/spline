@@ -1,0 +1,16 @@
+<!--
+  ~ Copyright 2017 ABSA Group Limited
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<svg height="300px" width="300px" fill="#000000" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 100 100" enable-background="new 0 0 100 100" xml:space="preserve"><g><path d="M69.057,68.762h-7.949v-4.607c0-0.276-0.24-0.537-0.557-0.537h-3.691v-3.713c0-0.277-0.242-0.538-0.559-0.538H43.682   c-0.275,0-0.539,0.24-0.539,0.557v3.694h-3.715c-0.275,0-0.535,0.24-0.535,0.559v4.586h-7.967c-0.275,0-0.539,0.24-0.539,0.559   v18.27c0,0.276,0.24,0.537,0.561,0.537h38.129c0.275,0,0.539-0.24,0.539-0.559v-18.27C69.615,69.022,69.373,68.762,69.057,68.762z    M66.551,85.065h-4.207v-2.946c0-1.355-2.033-1.355-2.033,0v2.946h-1.189v-2.946c0-1.355-2.033-1.355-2.033,0v2.946h-1.184v-2.946   c0-1.355-2.035-1.355-2.035,0v2.946h-1.188v-2.946c0-1.355-2.033-1.355-2.033,0v2.946h-1.184l-0.002-2.946   c0-1.355-2.033-1.355-2.033,0v2.946h-1.188v-2.946c0-1.355-2.033-1.355-2.033,0v2.946h-1.186v-2.946c0-1.355-2.033-1.355-2.033,0   v2.946h-1.188v-2.946c0-1.355-2.033-1.355-2.033,0v2.946h-3.469h-0.85V71.823l8.502-0.001v-5.144h4.252v-4.253h7.59v4.253h4.254   v5.144l8.502,0.001V85.065z"/><path d="M69.057,52.493H30.926c-4.086,0-7.412,3.333-7.412,7.43V87.59c0,4.086,3.334,7.41,7.434,7.41h38.129   c4.088,0,7.41-3.334,7.41-7.432V59.904C76.486,55.815,73.154,52.493,69.057,52.493z M73.014,87.568c0,2.19-1.775,3.96-3.938,3.96   H30.947c-2.189,0-3.959-1.778-3.959-3.938V59.923c0-2.188,1.775-3.958,3.938-3.958h38.131c2.188,0,3.957,1.777,3.957,3.939V87.568z   "/></g></svg>

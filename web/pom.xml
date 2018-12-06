@@ -25,7 +25,7 @@
         <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>0.3.6-SNAPSHOT</version>
+        <version>0.4.0-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -151,7 +151,8 @@
                                 <argument>--option-to-nullable</argument>
                                 <argument>za.co.absa.spline.model.op.Operation</argument>
                                 <argument>za.co.absa.spline.model.op.Alias</argument>
-                                <argument>za.co.absa.spline.model.op.Write</argument>
+                                <argument>za.co.absa.spline.model.op.BatchWrite</argument>
+                                <argument>za.co.absa.spline.model.op.StreamWrite</argument>
                                 <argument>za.co.absa.spline.model.op.Filter</argument>
                                 <argument>za.co.absa.spline.model.op.Sort</argument>
                                 <argument>za.co.absa.spline.model.op.Aggregate</argument>
@@ -159,7 +160,8 @@
                                 <argument>za.co.absa.spline.model.op.Join</argument>
                                 <argument>za.co.absa.spline.model.op.Union</argument>
                                 <argument>za.co.absa.spline.model.op.Projection</argument>
-                                <argument>za.co.absa.spline.model.op.Read</argument>
+                                <argument>za.co.absa.spline.model.op.BatchRead</argument>
+                                <argument>za.co.absa.spline.model.op.StreamRead</argument>
                                 <argument>za.co.absa.spline.model.op.Composite</argument>
                                 <!-- workaround for a scala-ts bug -->
                                 <argument>za.co.absa.spline.model.dt.DataType</argument>

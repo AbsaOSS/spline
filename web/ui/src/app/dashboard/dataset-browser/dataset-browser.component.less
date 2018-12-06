@@ -18,12 +18,58 @@
   height: 100%;
   width: 100%;
 
-  > div.search {
+  /deep/ .mat-tab-group {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /deep/ .mat-tab-body-wrapper {
+    height: 100%;
+  }
+
+  /deep/ .mat-tab-body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /deep/ .mat-tab-body-content {
+    overflow: hidden;
+    height: 100%;
+  }
+
+  /deep/ .search {
     width: 100%;
+    height: 145px;
     background-color: lighten(whitesmoke, 2.5%);
     position: relative;
 
-    input, .input-group-addon {
+    /deep/ .form-group {
+      width: 100%;
+      display: inline-flex;
+
+      .input-group-addon, label {
+        width: 40px;
+        margin-right: 10px;
+        margin-left: 10px;
+        margin-bottom: 0;
+      }
+
+      .input-group-addon {
+        width: fit-content;
+        margin-right: 10px;
+        padding-right: 0;
+      }
+    }
+
+    /deep/ .form-control {
+      border: none;
+      padding: 0;
+      outline: none;
+      box-shadow: none;
+      background: none;
+    }
+
+    /deep/ input, .input-group-addon {
       border: none;
       outline: none;
       box-shadow: none;
@@ -36,35 +82,13 @@
       padding-right: 36px;
     }
 
-    .input-group-addon {
-      padding-right: 0;
-    }
-
-    button.cancel {
-      position: absolute;
-      top: -3px;
-      right: 0;
-      z-index: 10;
-    }
   }
 
-  > ul {
-    height: calc(~"100%" - 35px);
-    overflow-y: auto;
-    padding: 0;
-    background: whitesmoke;
-
-    > li {
-      > a {
-        border-radius: 0;
-
-        > span.small {
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          font-size: xx-small;
-        }
-      }
-    }
+  button.cancel {
+    position: absolute;
+    top: -3px;
+    right: 0;
+    z-index: 10;
   }
+
 }

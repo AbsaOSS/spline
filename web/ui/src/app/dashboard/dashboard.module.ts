@@ -20,6 +20,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/css/bootstrap-theme.min.css";
 import "@angular/material/prebuilt-themes/indigo-pink.css";
 import {MaterialModule} from "../material-extension/material.module";
+import { Ng2DatetimePickerModule } from 'ng2-datetime-picker';
 
 // Other imports
 import {CommonModule} from "@angular/common";
@@ -33,6 +34,7 @@ import {DatasetBrowserService} from "./dataset-browser/dataset-browser.service";
 import {WelcomeComponent} from "./welcome/welcome.component";
 import {MiscModule} from "../misc/misc.module";
 import {ScrollEventModule} from "ngx-scroll-event";
+import {DatasetResultsComponent} from './dataset-browser/dataset-results.component';
 
 @NgModule({
     imports: [
@@ -42,12 +44,14 @@ import {ScrollEventModule} from "ngx-scroll-event";
         HttpClientModule,
         MaterialModule,
         MiscModule,
-        ScrollEventModule
+        ScrollEventModule,
+        Ng2DatetimePickerModule
     ],
     declarations: [
         DashboardComponent,
         DatasetBrowserComponent,
-        WelcomeComponent
+        WelcomeComponent,
+        DatasetResultsComponent
     ],
     providers: [
         DatasetBrowserService

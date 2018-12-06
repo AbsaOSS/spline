@@ -21,7 +21,7 @@ import za.co.absa.spline.sample.SparkApp
 object FileStreamingJob extends SparkApp("File Streaming Job"){
 
   // Initializing library to hook up to Apache Spark
-  import za.co.absa.spline.core.SparkLineageInitializer._
+  import za.co.absa.spline.harvester.SparkLineageInitializer._
   spark.enableLineageTracking()
 
   // A business logic of a spark job ...
@@ -46,7 +46,7 @@ object FileStreamingJob extends SparkApp("File Streaming Job"){
   val sink = sourceDS
     .writeStream
     .format("parquet")
-    .option("checkpointLocation", "data/fileCheckpoint")
+    .option("checkpointLocation", "data/checkpoints/streaming/file")
     .option("path", "data/results/streaming/wikidataResult")
 
   sourceDS

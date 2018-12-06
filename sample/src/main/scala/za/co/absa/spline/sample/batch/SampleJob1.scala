@@ -17,7 +17,7 @@
 package za.co.absa.spline.sample.batch
 
 import org.apache.spark.sql.SaveMode
-import za.co.absa.spline.core.SparkLineageInitializer._
+import za.co.absa.spline.harvester.SparkLineageInitializer._
 import za.co.absa.spline.sample.SparkApp
 
 object SampleJob1 extends SparkApp("Sample Job 1") {
