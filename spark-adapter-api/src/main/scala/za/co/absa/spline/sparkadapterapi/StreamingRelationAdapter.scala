@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.coresparkadapterapi
+package za.co.absa.spline.sparkadapterapi
 
-import org.apache.spark.sql.catalyst.plans.logical.{LeafNode, LogicalPlan}
+import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.streaming.StreamingRelation
 
 trait StreamingRelationAdapter {
