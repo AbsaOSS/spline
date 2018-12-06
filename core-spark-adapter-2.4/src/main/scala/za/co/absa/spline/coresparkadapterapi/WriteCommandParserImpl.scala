@@ -1,5 +1,3 @@
-package za.co.absa.spline.coresparkadapterapi
-
 /*
  * Copyright 2017 ABSA Group Limited
  *
@@ -16,9 +14,12 @@ package za.co.absa.spline.coresparkadapterapi
  * limitations under the License.
  */
 
-import org.apache.spark.sql.execution.streaming.{ConsoleSink, ForeachSink}
+package za.co.absa.spline.coresparkadapterapi
 
-class StructuredStreamingListenerAdapterImpl extends StructuredStreamingListenerAdapter {
-  override def consoleSinkClass(): Class[_] = classOf[ConsoleSink]
-  override def foreachBatchSinkClass(): Class[_] = classOf[ForeachSink[_]]
+import org.apache.spark.sql.execution.datasources.InsertIntoHadoopFsRelationCommand
+
+class WriteCommandParserImpl extends WriteCommandParser[InsertIntoHadoopFsRelationCommand] {
+  override def asWriteCommand(operation: InsertIntoHadoopFsRelationCommand): WriteCommand = {
+    WriteCommand(operation.outputPath.toString, operation.mode, operation.fileFormat.toString, operation.query)
+  }
 }

@@ -1,8 +1,3 @@
-package za.co.absa.spline.coresparkadapterapi
-
-import org.apache.spark.sql.catalyst.plans.logical.{LeafNode, LogicalPlan}
-import org.apache.spark.sql.execution.streaming.StreamingRelation
-
 /*
  * Copyright 2017 ABSA Group Limited
  *
@@ -18,6 +13,11 @@ import org.apache.spark.sql.execution.streaming.StreamingRelation
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package za.co.absa.spline.coresparkadapterapi
+
+import org.apache.spark.sql.catalyst.plans.logical.{LeafNode, LogicalPlan}
+import org.apache.spark.sql.execution.streaming.StreamingRelation
 trait StreamingRelationAdapter {
 
   def toStreamingRelation(streamingRelation: LogicalPlan): StreamingRelation

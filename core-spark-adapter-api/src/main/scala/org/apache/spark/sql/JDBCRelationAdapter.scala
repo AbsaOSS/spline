@@ -1,5 +1,3 @@
-package za.co.absa.spline.coresparkadapterapi
-
 /*
  * Copyright 2017 ABSA Group Limited
  *
@@ -16,9 +14,18 @@ package za.co.absa.spline.coresparkadapterapi
  * limitations under the License.
  */
 
-import org.apache.spark.sql.execution.streaming.{ConsoleSink, ForeachSink}
+package org.apache.spark.sql
 
-class StructuredStreamingListenerAdapterImpl extends StructuredStreamingListenerAdapter {
-  override def consoleSinkClass(): Class[_] = classOf[ConsoleSink]
-  override def foreachBatchSinkClass(): Class[_] = classOf[ForeachSink[_]]
+import org.apache.spark.sql.sources.BaseRelation
+import za.co.absa.spline.coresparkadapterapi.AdapterFactory
+trait JDBCRelationAdapter {
+  def extractJDBCOptions(jdbcRelation: BaseRelation): Option[SplineJDBCOptions]
 }
+
+object JDBCRelationAdapter extends AdapterFactory[JDBCRelationAdapter]
+
+object JDBCRelation {
+  def unapply(arg: BaseRelation): Option[SplineJDBCOptions] = JDBCRelationAdapter.instance.extractJDBCOptions(arg)
+}
+
+case class SplineJDBCOptions(url: String, table: String)

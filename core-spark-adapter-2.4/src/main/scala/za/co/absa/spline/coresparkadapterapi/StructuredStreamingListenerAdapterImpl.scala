@@ -1,5 +1,3 @@
-package za.co.absa.spline.coresparkadapterapi
-
 /*
  * Copyright 2017 ABSA Group Limited
  *
@@ -16,9 +14,12 @@ package za.co.absa.spline.coresparkadapterapi
  * limitations under the License.
  */
 
-import org.apache.spark.sql.execution.streaming.{ConsoleSink, ForeachSink}
+package za.co.absa.spline.coresparkadapterapi
+
+import org.apache.spark.sql.execution.streaming.ConsoleSinkProvider
+import org.apache.spark.sql.execution.streaming.sources.ForeachBatchSink
 
 class StructuredStreamingListenerAdapterImpl extends StructuredStreamingListenerAdapter {
-  override def consoleSinkClass(): Class[_] = classOf[ConsoleSink]
-  override def foreachBatchSinkClass(): Class[_] = classOf[ForeachSink[_]]
+  override def consoleSinkClass(): Class[_] = classOf[ConsoleSinkProvider]
+  override def foreachBatchSinkClass(): Class[_] = classOf[ForeachBatchSink[_]]
 }
