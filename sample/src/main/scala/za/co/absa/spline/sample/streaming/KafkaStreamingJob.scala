@@ -24,6 +24,8 @@ object KafkaStreamingJob extends SparkApp("Kafka Streaming Job") with KafkaPrope
   import za.co.absa.spline.harvester.SparkLineageInitializer._
   spark.enableLineageTracking()
 
+  override val kafkaTopic = "kafka-streaming-jobs-test"
+
   // reading file
   val schemaImp = spark.read
     .format("csv")

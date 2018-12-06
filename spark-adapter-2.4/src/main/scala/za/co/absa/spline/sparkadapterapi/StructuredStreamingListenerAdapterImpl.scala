@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.coresparkadapterapi
+package za.co.absa.spline.sparkadapterapi
 
-class SparkVersionRequirementImpl extends SparkVersionRequirement {
+import org.apache.spark.sql.execution.streaming.ConsoleSinkProvider
 
-  val versionPrefix: String = "2.4"
-
+class StructuredStreamingListenerAdapterImpl extends StructuredStreamingListenerAdapter {
+  override def consoleSinkClass(): Class[_] = classOf[ConsoleSinkProvider]
 }

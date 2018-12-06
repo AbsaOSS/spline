@@ -113,6 +113,7 @@
                         <configuration>
                             <excludes combine.children="append">
                                 <exclude>src/test/resources/data/**</exclude>
+                                <exclude>data/**</exclude>
                             </excludes>
                         </configuration>
                     </plugin>

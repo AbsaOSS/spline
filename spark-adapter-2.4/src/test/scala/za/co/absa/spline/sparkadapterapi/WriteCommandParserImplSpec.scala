@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.coresparkadapterapi
+package za.co.absa.spline.sparkadapterapi
 
 import org.apache.hadoop.fs.Path
 import org.apache.spark.sql.SaveMode

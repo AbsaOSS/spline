@@ -20,5 +20,4 @@ import org.apache.spark.sql.execution.streaming.{ConsoleSinkProvider, ForeachSin
 
 class StructuredStreamingListenerAdapterImpl extends StructuredStreamingListenerAdapter {
   override def consoleSinkClass(): Class[_] = classOf[ConsoleSinkProvider]
-  override def foreachBatchSinkClass(): Class[_] = classOf[ForeachSink[_]]
 }

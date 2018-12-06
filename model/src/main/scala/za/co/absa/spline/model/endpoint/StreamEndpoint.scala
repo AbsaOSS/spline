@@ -33,8 +33,8 @@ trait StreamEndpoint {
 /**
   * The object represents an endpoint non-referring to any source of data
   */
-case class VirtualEndpoint() extends StreamEndpoint {
-  override def paths: Seq[URI] = Seq(URI.create("virtual://virtual"))
+case class VirtualEndpoint(clazz: Class[_]) extends StreamEndpoint {
+  override def paths: Seq[URI] = Seq(URI.create("virtual://" + clazz.getCanonicalName))
 }
 
 /**

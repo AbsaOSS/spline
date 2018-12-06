@@ -1,8 +1,3 @@
-package za.co.absa.spline.sparkadapterapi
-
-import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
-import org.apache.spark.sql.execution.streaming.StreamingRelation
-
 /*
  * Copyright 2017 ABSA Group Limited
  *
@@ -18,11 +13,18 @@ import org.apache.spark.sql.execution.streaming.StreamingRelation
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package za.co.absa.spline.sparkadapterapi
+
+import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
+import org.apache.spark.sql.execution.streaming.StreamingRelation
+
 class StreamingRelationAdapterImpl extends StreamingRelationAdapter {
-  override def toStreamingRelation(streamingRelation: LogicalPlan): StreamingRelation = {
+  override def extractDataSourceInfo(streamingRelation: LogicalPlan): Option[DataSourceInfo] = {
     streamingRelation match {
-      case x: StreamingRelation => x
-      case _ => throw new IllegalArgumentException("Unexpected type: " + streamingRelation)
+      case x: StreamingRelation =>
+        Some(DataSourceInfo(x.dataSource.sourceInfo.name, x.dataSource.className, x.dataSource.options, x.schema))
+      case _ => None
     }
   }
 }

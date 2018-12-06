@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.coresparkadapterapi
+package za.co.absa.spline.sparkadapterapi
 
-import org.apache.spark.sql.execution.streaming.ConsoleSinkProvider
-import org.apache.spark.sql.execution.streaming.sources.ForeachBatchSink
+import org.apache.spark.sql.execution.streaming.StreamExecution
 
-class StructuredStreamingListenerAdapterImpl extends StructuredStreamingListenerAdapter {
-  override def consoleSinkClass(): Class[_] = classOf[ConsoleSinkProvider]
-  override def foreachBatchSinkClass(): Class[_] = classOf[ForeachBatchSink[_]]
+trait KafkaSinkAdapter {
+  def extractKafkaInfo(streamExecution: StreamExecution): Option[KafkaSinkInfo]
+}
+
+object KafkaSinkAdapter  extends AdapterFactory[KafkaSinkAdapter]
+
+case class KafkaSinkInfo(topics: Seq[String], servers: Seq[String])
+
+object KafkaSinkVersionAgnostic {
+  def unapply(streamExecution: StreamExecution): Option[KafkaSinkInfo] =
+    KafkaSinkAdapter.instance.extractKafkaInfo(streamExecution)
 }

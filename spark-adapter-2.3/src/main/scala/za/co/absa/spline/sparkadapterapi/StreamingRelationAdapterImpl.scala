@@ -19,14 +19,13 @@ package za.co.absa.spline.sparkadapterapi
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.streaming.{StreamingRelation, StreamingRelationV2}
 
-// TODO SL-128 Review implementation and consider need for expanding supported logicalPlans. See JavaDoc on StreamingRelationV2.
 class StreamingRelationAdapterImpl extends StreamingRelationAdapter {
-  override def toStreamingRelation(streamingRelation: LogicalPlan): StreamingRelation = {
+  def extractDataSourceInfo(streamingRelation: LogicalPlan): Option[DataSourceInfo] =
     streamingRelation match {
-      case x: StreamingRelationV2 => x.v1Relation
-        .getOrElse(throw new UnsupportedOperationException("Continuous streaming without microbatch support is not implemented: Used StreamingRelation does not contain v1Relation: " + streamingRelation))
-      case x: StreamingRelation => x
-      case _ => throw new IllegalArgumentException("Unexpected type: " + streamingRelation)
-    }
-  }
+      case x: StreamingRelationV2 =>
+        Some(DataSourceInfo(x.sourceName, x.dataSource.getClass.getName, x.extraOptions, x.schema))
+      case x: StreamingRelation =>
+        Some(DataSourceInfo(x.dataSource.sourceInfo.name, x.dataSource.className, x.dataSource.options, x.schema))
+      case _ => None
+   }
 }

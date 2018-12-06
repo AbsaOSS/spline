@@ -20,19 +20,16 @@ import java.util.UUID
 import java.util.UUID.randomUUID
 import java.util.concurrent.ConcurrentHashMap
 
-import org.apache.spark.sql.FileSinkObj
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.streaming._
 import org.apache.spark.sql.streaming.{StreamingQuery, StreamingQueryListener, StreamingQueryManager}
 import org.slf4s.Logging
 import za.co.absa.spline.common.ReflectionUtils
-import za.co.absa.spline.harvester.DataLineageBuilderFactory
 import za.co.absa.spline.harvester.conf.LineageDispatcher
+import za.co.absa.spline.harvester.{DataLineageBuilderFactory, StreamWriteBuilder}
 import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.model.endpoint.{ConsoleEndpoint, FileEndpoint, KafkaEndpoint}
-import za.co.absa.spline.model.op.{OperationProps, StreamRead, StreamWrite}
+import za.co.absa.spline.model.op.{StreamRead, StreamWrite}
 import za.co.absa.spline.model.streaming.ProgressEvent
-import za.co.absa.spline.sparkadapterapi.StructuredStreamingListenerAdapter.instance._
 
 import scala.language.postfixOps
 
@@ -97,29 +94,10 @@ class StructuredStreamingListener(
   private def processExecution(se: StreamExecution): Unit = {
     assume(se.logicalPlan.resolved, "we harvest lineage from analyzed logic plans")
     val logicalPlan = ReflectionUtils.getFieldValue[LogicalPlan](se, "analyzedPlan")
-
     val logicalPlanLineage = lineageBuilderFactory.createBuilder(se.sparkSession.sparkContext).buildLineage(logicalPlan)
-
-    val endpoint = se.sink match {
-      // FIXME Extract 2.2 version is case KafkaSinkObj(cluster, topic) => KafkaEndpoint(cluster, topic.getOrElse(""))
-      case FileSinkObj(path, fileFormat) => FileEndpoint(fileFormat.toString, path)
-      case x if x.getClass.getSimpleName == "KafkaSourceProvider" => {
-        val extraOptions = ReflectionUtils.getFieldValue[Map[String, String]](se, "extraOptions")
-        val topic = extraOptions("topic")
-        val bootstrapServers = extraOptions("kafka.bootstrap.servers").split("[\t ]*,[\t ]*")
-        KafkaEndpoint(bootstrapServers, Seq(topic))
-      }
-      // FIXME Remove MemorySink.
-      case x if Set(consoleSinkClass(), foreachBatchSinkClass(), classOf[MemorySink]).exists(assignableFrom(_, x)) => ConsoleEndpoint()
-      case sink => throw new IllegalArgumentException(s"Unsupported sink type: ${sink.getClass}")
-    }
-
-    val metaDataset = logicalPlanLineage.rootDataset.copy(se.runId)
-    val mainProps = OperationProps(randomUUID, endpoint.description, Seq(logicalPlanLineage.rootDataset.id), metaDataset.id)
-    val writeOperation = StreamWrite(mainProps, endpoint.paths.mkString(","), endpoint.description)
-
+    val (streamWrite, metaDataset) = StreamWriteBuilder.build(se, logicalPlanLineage)
     val streamingLineage = logicalPlanLineage.copy(
-      operations = writeOperation +: logicalPlanLineage.operations,
+      operations = streamWrite +: logicalPlanLineage.operations,
       datasets = metaDataset +: logicalPlanLineage.datasets)
     runIdToLineages.put(se.runId, streamingLineage)
     lineageDispatcher.send(streamingLineage)

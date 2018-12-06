@@ -18,8 +18,6 @@ package za.co.absa.spline.web.rest.service
 
 import java.util.UUID
 
-import za.co.absa.spline.model.op._
-import za.co.absa.spline.model.{Attribute, DataLineage, MetaDataset, TypedMetaDataSource}
 import za.co.absa.spline.persistence.api.DataLineageReader
 import za.co.absa.spline.web.ExecutionContextImplicit
 
@@ -49,8 +47,6 @@ class LineageService
   }
 
   def getInterval(datasetId: UUID, from: Long, to: Long): Future[HigherLevelLineageOverview] = {
-//    new IntervalLineageService(reader).get(datasetId, )
-    // FIXME use interval service
     intervalLineageService(datasetId, from, to)
   }
 

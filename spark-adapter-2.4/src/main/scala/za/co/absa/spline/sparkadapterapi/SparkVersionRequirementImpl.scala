@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.coresparkadapterapi
+package za.co.absa.spline.sparkadapterapi
 
-import org.apache.spark.sql.execution.datasources.InsertIntoHadoopFsRelationCommand
+class SparkVersionRequirementImpl extends SparkVersionRequirement {
 
-class WriteCommandParserImpl extends WriteCommandParser[InsertIntoHadoopFsRelationCommand] {
-  override def asWriteCommand(operation: InsertIntoHadoopFsRelationCommand): WriteCommand = {
-    WriteCommand(operation.outputPath.toString, operation.mode, operation.fileFormat.toString, operation.query)
-  }
+  val versionPrefix: String = "2.4"
+
 }

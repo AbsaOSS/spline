@@ -19,7 +19,6 @@ package za.co.absa.spline.sparkadapterapi
 
 trait StructuredStreamingListenerAdapter {
   def consoleSinkClass(): Class[_]
-  def foreachBatchSinkClass(): Class[_]
 }
 
 object StructuredStreamingListenerAdapter extends AdapterFactory[StructuredStreamingListenerAdapter]

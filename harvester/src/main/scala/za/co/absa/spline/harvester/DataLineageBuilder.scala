@@ -22,10 +22,9 @@ import org.apache.spark
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.LogicalRelation
-import org.apache.spark.sql.execution.streaming.{StreamingRelation, StreamingRelationV2}
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.op.Operation
-import za.co.absa.spline.sparkadapterapi.WriteCommandParser
+import za.co.absa.spline.sparkadapterapi.{StreamingRelationVersionAgnostic, WriteCommandParser}
 
 class DataLineageBuilder
 (
@@ -94,8 +93,7 @@ class DataLineageBuilder
       case s: Aggregate => new AggregateNodeBuilder(s)
       case a: SubqueryAlias => new AliasNodeBuilder(a)
       case lr: LogicalRelation => new BatchReadNodeBuilder(lr) with HDFSAwareBuilder
-      case sr: StreamingRelation => new StreamReadNodeBuilder(sr)
-      case sr: StreamingRelationV2 => new StreamReadV2NodeBuilder(sr)
+      case StreamingRelationVersionAgnostic(dataSourceInfo) => new StreamReadNodeBuilder(op)
       case wc if writeCommandParser.matches(op) =>
         new BatchWriteNodeBuilder(writeCommandParser.asWriteCommand(wc)) with HDFSAwareBuilder
       case x => new GenericNodeBuilder(x)

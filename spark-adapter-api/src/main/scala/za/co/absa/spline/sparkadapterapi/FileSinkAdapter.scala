@@ -16,17 +16,17 @@
 
 package za.co.absa.spline.sparkadapterapi
 
-import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
-import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.execution.datasources.FileFormat
+import org.apache.spark.sql.execution.streaming.StreamExecution
 
-trait StreamingRelationAdapter {
-  def extractDataSourceInfo(streamingRelation: LogicalPlan): Option[DataSourceInfo]
+trait FileSinkAdapter {
+  def extractFileInfo(streamExecution: StreamExecution): Option[FileSinkInfo]
 }
 
-object StreamingRelationAdapter extends AdapterFactory[StreamingRelationAdapter]
+object FileSinkAdapter extends AdapterFactory[FileSinkAdapter]
 
-case class DataSourceInfo(name: String, className: String, options: Map[String, String], schema: StructType)
+case class FileSinkInfo(path: String, format: FileFormat)
 
-object StreamingRelationVersionAgnostic {
-  def unapply(arg: LogicalPlan): Option[DataSourceInfo] = StreamingRelationAdapter.instance.extractDataSourceInfo(arg)
+object FileSinkVersionAgnostic {
+  def unapply(streamExecution: StreamExecution): Option[FileSinkInfo] = FileSinkAdapter.instance.extractFileInfo(streamExecution)
 }
