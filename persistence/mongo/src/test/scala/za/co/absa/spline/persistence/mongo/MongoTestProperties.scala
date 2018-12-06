@@ -22,8 +22,7 @@ object MongoTestProperties {
 
   import za.co.absa.spline.common.ConfigurationImplicits._
 
-  private val mongoDBUri: String = new SystemConfiguration() getRequiredString "test.spline.mongodb.url"
-  private val mongoDBName: String = new SystemConfiguration() getRequiredString "test.spline.mongodb.name"
+  private val conf = new SystemConfiguration()
 
-  val mongoConnection: MongoConnection = new MongoConnectionImpl(mongoDBUri, mongoDBName)
+  val mongoConnection = new MongoConnectionImpl(conf getRequiredString "test.spline.mongodb.url")
 }

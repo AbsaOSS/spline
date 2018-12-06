@@ -18,17 +18,31 @@ package za.co.absa.spline.persistence.mongo
 
 import com.mongodb.casbah.Imports.MongoClientURI
 import com.mongodb.casbah.{MongoClient, MongoDB}
+import org.slf4s.Logging
 
 trait MongoConnection {
   def db: MongoDB
 }
 
-class MongoConnectionImpl(dbUrl: String, dbName: String) extends MongoConnection {
-  private val client: MongoClient = MongoClient(MongoClientURI(dbUrl))
+class MongoConnectionImpl
+(
+  dbUrl: String,
+
+  // TODO: REMOVE in Spline 0.4. Deprecated since 0.3.6
+  dbName: => String = throw new IllegalArgumentException("The connection string must contain a database name")
+) extends MongoConnection
+  with Logging {
+
+  private val clientUri = MongoClientURI(dbUrl)
+  private val client: MongoClient = MongoClient(clientUri)
+
 
   val db: MongoDB = {
-    val db = client.getDB(dbName)
-    require(db.stats.ok)
-    db
+    val databaseName = clientUri.database getOrElse dbName
+    log debug s"Preparing connection: $dbUrl, database = $databaseName"
+    val database = client.getDB(databaseName)
+    require(database.stats.ok, "database is not OK")
+    log debug s"Connected: $dbUrl, database = $databaseName"
+    database
   }
 }
