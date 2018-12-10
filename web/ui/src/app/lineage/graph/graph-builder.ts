@@ -20,8 +20,11 @@ import * as vis from "vis";
 import * as _ from "lodash";
 import {OperationType, typeOfOperation} from "../types";
 import {VisModel} from "../../visjs/vis-model";
+import { ExpressionRenderService } from "../details/expression/expression-render.service";
+import { IJoin, IFilter, ISort, IRead } from "../../../generated-ts/operation-model";
 
 export function lineageToGraph(lineage: IDataLineage,
+                               expressionRenderService : ExpressionRenderService,
                                selectedOperationId?: string,
                                hiddenOperationTypes: OperationType[] = []): VisModel<VisNode, VisEdge> {
     let operationVisibilityPredicate = (op: IOperation) => {
@@ -34,12 +37,73 @@ export function lineageToGraph(lineage: IDataLineage,
         visibleOperations: IOperation[] = operationsByVisibility.true,
         hiddenOperations: IOperation[] = operationsByVisibility.false,
         hiddenOpIds: string[] = _.map(hiddenOperations, "mainProps.id"),
-        visibleNodes = visibleOperations.map(op => new RegularVisNode(op)),
+        visibleNodes = visibleOperations.map(op => new RegularVisNode(op, getLabel(op, expressionRenderService))),
         visibleEdges = createVisibleEdges(lineage, hiddenOpIds)
 
     return new VisModel(
         new vis.DataSet<VisNode>(visibleNodes),
         new vis.DataSet<VisEdge>(visibleEdges))
+}
+/**
+ * Get label from an operation
+ * 
+ * @param operation the operation where the label should be retrieved
+ * @param expressionRenderService service to render expressions
+ * 
+ * @returns the label from the operation
+ */
+export function getLabel(operation : (IOperation), expressionRenderService : ExpressionRenderService){
+    let label = operation.mainProps.name + "\n"; 
+    switch(typeOfOperation(operation)){
+        case "Aggregate":
+            let aggregations = (<any> operation).aggregations;
+            label += Object.keys(aggregations).join(",");break;
+        case "Join":
+            let joins = (<IJoin> operation).condition;
+            label += expressionRenderService.getText(joins);break;
+        case "Filter":
+            let filters = (<IFilter> operation).condition; 
+            label += expressionRenderService.getText(filters);break;
+        case "Projection":
+            // TODO : Define what to display for the second label
+            break;
+        case "Sort":
+        let sorts = (<ISort> operation).orders; 
+        label += sorts[0].direction + " " + expressionRenderService.getText(sorts[0]);break;
+        case "Read":
+            let read = (<IRead> operation).sources;
+            label += getFileName(read[0].path);break; 
+        default: 
+            label = operation.mainProps.name;
+    }
+
+    return formalLabel(label);
+}
+
+/**
+ * Get the filename from a path
+ * 
+ * @param path string where the filename should be extracted
+ * 
+ * @returns the the filename of the path in parameters
+ */
+function getFileName(path: string): string{
+    return path.replace(/^.*[\\\/]/, '');
+}
+
+/**
+ * Takes the first maxSize characters and add ellipsis to it
+ * @param label the label to format
+ * @param maxSize the size of the final string
+ * 
+ * return the input label formated
+ */
+function formalLabel(label: string, maxSize: number = 50): string{
+    label = label.substr(0, maxSize);
+    if(label.length >= maxSize){
+        label += "...";
+    }
+    return label;
 }
 
 function createVisibleEdges(lineage: IDataLineage, hiddenOpIds: string[]): VisEdge[] {
