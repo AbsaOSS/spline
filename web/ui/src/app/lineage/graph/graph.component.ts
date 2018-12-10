@@ -34,9 +34,7 @@ import * as _ from "lodash";
 import {ClusterManager} from "../../visjs/cluster-manager";
 import {
     HighlightedVisClusterNode,
-    HighlightedVisNode,
     RegularVisClusterNode,
-    RegularVisNode,
     VisEdge,
     VisNode,
     VisNodeType
@@ -160,19 +158,12 @@ export class GraphComponent implements OnChanges, OnDestroy {
     }
 
     private refreshHighlightedNodes() {
-        const createNode = (id: string, type: VisNodeType): VisNode => {
-            let nodeConstructor = type == VisNodeType.Highlighted ? HighlightedVisNode : RegularVisNode
-            let operation = this.lineageStore.lineageAccessors.getOperation(id);
-            let label = getLabel(operation, this.expressionRenderService);
-            return new nodeConstructor(operation, label);
-        }
-
         let nodeDataSet = <vis.DataSet<VisNode>> this.graph.nodes
         let currentNodes = nodeDataSet.get()
         let updatedNodes = currentNodes.map(node => {
             let desiredType = _.includes(this.highlightedNodeIDs, node.id) ? VisNodeType.Highlighted : VisNodeType.Regular
             return (node.type != desiredType)
-                ? createNode(node.id, desiredType)
+                ? node.copy()
                 : node
         })
 

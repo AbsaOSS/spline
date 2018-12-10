@@ -47,6 +47,13 @@ export abstract class VisNode implements vis.Node {
                 public icon: any,
                 public type: VisNodeType) {
     }
+    
+    /**
+     * copy
+     */
+    public copy() {
+        return Object.assign({}, this);
+    }
 }
 
 export class RegularVisNode extends VisNode {
