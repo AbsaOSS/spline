@@ -25,13 +25,13 @@ import {
     SimpleChange,
     SimpleChanges
 } from "@angular/core";
-import {IDataLineage} from "../../../generated-ts/lineage-model";
+import { IDataLineage } from "../../../generated-ts/lineage-model";
 import "vis/dist/vis.min.css";
-import {visOptions} from "./vis-options";
-import {lineageToGraph, getLabel} from "./graph-builder";
+import { visOptions } from "./vis-options";
+import { lineageToGraph, getLabel } from "./graph-builder";
 import * as vis from "vis";
 import * as _ from "lodash";
-import {ClusterManager} from "../../visjs/cluster-manager";
+import { ClusterManager } from "../../visjs/cluster-manager";
 import {
     HighlightedVisClusterNode,
     RegularVisClusterNode,
@@ -39,10 +39,10 @@ import {
     VisNode,
     VisNodeType
 } from "./graph.model";
-import {LineageStore} from "../lineage.store";
-import {OperationType} from "../types";
-import {VisModel} from "../../visjs/vis-model";
-import {Subscription} from "rxjs";
+import { LineageStore } from "../lineage.store";
+import { OperationType } from "../types";
+import { VisModel } from "../../visjs/vis-model";
+import { Subscription } from "rxjs";
 import { ExpressionRenderService } from "../details/expression/expression-render.service";
 
 const isDistinct = (change: SimpleChange): boolean => change && !_.isEqual(change.previousValue, change.currentValue)
@@ -64,7 +64,7 @@ export class GraphComponent implements OnChanges, OnDestroy {
     private clusterManager: ClusterManager<VisNode, VisEdge>
     private lineage$Subscription: Subscription
 
-    constructor(private container: ElementRef, private expressionRenderService : ExpressionRenderService, private lineageStore: LineageStore) {
+    constructor(private container: ElementRef, private expressionRenderService: ExpressionRenderService, private lineageStore: LineageStore) {
         this.lineage$Subscription = this.lineageStore.lineage$.subscribe(lineage => {
             this.rebuildGraph(lineage, expressionRenderService)
         })
@@ -158,12 +158,12 @@ export class GraphComponent implements OnChanges, OnDestroy {
     }
 
     private refreshHighlightedNodes() {
-        let nodeDataSet = <vis.DataSet<VisNode>> this.graph.nodes
+        let nodeDataSet = <vis.DataSet<VisNode>>this.graph.nodes
         let currentNodes = nodeDataSet.get()
         let updatedNodes = currentNodes.map(node => {
             let desiredType = _.includes(this.highlightedNodeIDs, node.id) ? VisNodeType.Highlighted : VisNodeType.Regular
             return (node.type != desiredType)
-                ? node.copy()
+                ? _.clone(node)
                 : node
         })
 
