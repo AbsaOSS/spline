@@ -21,14 +21,13 @@ import java.util.UUID.randomUUID
 import com.databricks.spark.xml.XmlRelation
 import org.apache.spark.sql.catalyst.expressions.{AttributeReference, SortOrder, Attribute => SparkAttribute}
 import org.apache.spark.sql.catalyst.plans.logical._
-import org.apache.spark.sql.execution.datasources.{DataSource, HadoopFsRelation, LogicalRelation}
-import org.apache.spark.sql.execution.streaming.{StreamingRelation, StreamingRelationV2}
+import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation}
 import org.apache.spark.sql.sources.BaseRelation
 import org.apache.spark.sql.{JDBCRelation, SaveMode}
 import za.co.absa.spline.model.endpoint._
-import za.co.absa.spline.model.op.Operation
 import za.co.absa.spline.model.{op, _}
-import za.co.absa.spline.sparkadapterapi.WriteCommand
+import za.co.absa.spline.sparkadapterapi.StreamingRelationAdapter.instance.extractDataSourceInfo
+import za.co.absa.spline.sparkadapterapi.{DataSourceInfo, WriteCommand}
 
 sealed trait OperationNodeBuilder {
 
@@ -128,18 +127,18 @@ abstract class BatchWriteNodeBuilder
 }
 
 class StreamReadNodeBuilder
-(val operation: StreamingRelation)
+(val operation: LogicalPlan)
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
   extends OperationNodeBuilder {
 
-  private val endpoint = createEndpoint(operation.dataSource)
+  private val endpoint = createEndpoint(extractDataSourceInfo(operation).get)
   override def build(): op.StreamRead = op.StreamRead(
     operationProps,
     endpoint.description,
     endpoint.paths.map(path => MetaDataSource(path.toString, Nil))
   )
 
-  private def createEndpoint(dataSource: DataSource): StreamEndpoint = dataSource.sourceInfo.name match {
+  private def createEndpoint(dataSource: DataSourceInfo): StreamEndpoint = dataSource.name match {
     case x if x startsWith "FileSource" => FileEndpoint(
       dataSource.className,
       dataSource.options.getOrElse("path", "")
@@ -148,11 +147,11 @@ class StreamReadNodeBuilder
       dataSource.options.getOrElse("kafka.bootstrap.servers", "").split(","),
       dataSource.options.getOrElse("subscribe", "").split(",")
     )
-    case "textSocket" => SocketEndpoint(
+    case "textSocket" | "socket" => SocketEndpoint(
       dataSource.options.getOrElse("host", ""),
       dataSource.options.getOrElse("port", "")
     )
-    case _ => VirtualEndpoint()
+    case _ => VirtualEndpoint(operation.getClass)
   }
 }
 
@@ -219,18 +218,3 @@ class UnionNodeBuilder
   extends OperationNodeBuilder {
   override def build() = op.Union(operationProps)
 }
-
-
-class StreamReadV2NodeBuilder(val operation: StreamingRelationV2)(implicit val componentCreatorFactory: ComponentCreatorFactory) extends OperationNodeBuilder {
-
-  override def build(): Operation = {
-    if (operation.v1Relation.isDefined) {
-      val v1Op = new StreamReadNodeBuilder(operation.v1Relation.get).build()
-      v1Op.copy(mainProps = v1Op.mainProps.copy(output = operationProps.output))
-    } else {
-      new GenericNodeBuilder(operation).build()
-    }
-  }
-
-}
-

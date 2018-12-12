@@ -79,8 +79,6 @@
         <logback.version>1.2.3</logback.version>
         <slf4j.version>1.7.25</slf4j.version>
         <salat.version>1.11.2</salat.version>
-        <!-- Don't upgrade json4s.version to newer version. An upgrade would cause binary incompatibility of json4s between Spark and Spline. -->
-        <json4s.version>3.2.11</json4s.version>
     </properties>
 
     <build>
@@ -222,6 +220,7 @@
             <properties>
                 <spark.compat.version>2.2</spark.compat.version>
                 <spark.version>2.2.1</spark.version>
+                <json4s.version>3.2.11</json4s.version>
             </properties>
         </profile>
         <profile>
@@ -229,6 +228,15 @@
             <properties>
                 <spark.compat.version>2.3</spark.compat.version>
                 <spark.version>2.3.0</spark.version>
+                <json4s.version>3.2.11</json4s.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>spark-2.4</id>
+            <properties>
+                <spark.compat.version>2.4</spark.compat.version>
+                <spark.version>2.4.0</spark.version>
+                <json4s.version>3.5.3</json4s.version>
             </properties>
         </profile>
         <profile>

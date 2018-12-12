@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.sparkadapterapi
+package org.apache.spark.sql
 
-import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
-import org.apache.spark.sql.execution.streaming.StreamingRelation
-
-class StreamingRelationAdapterImpl extends StreamingRelationAdapter {
-  override def extractDataSourceInfo(streamingRelation: LogicalPlan): Option[DataSourceInfo] = {
-    streamingRelation match {
-      case x: StreamingRelation =>
-        Some(DataSourceInfo(x.dataSource.sourceInfo.name, x.dataSource.className, x.dataSource.options, x.schema))
-      case _ => None
-    }
-  }
+import org.apache.spark.sql.sources.BaseRelation
+import za.co.absa.spline.sparkadapterapi.AdapterFactory
+trait JDBCRelationAdapter {
+  def extractJDBCOptions(jdbcRelation: BaseRelation): Option[SplineJDBCOptions]
 }
+
+object JDBCRelationAdapter extends AdapterFactory[JDBCRelationAdapter]
+
+object JDBCRelation {
+  def unapply(arg: BaseRelation): Option[SplineJDBCOptions] = JDBCRelationAdapter.instance.extractJDBCOptions(arg)
+}
+
+case class SplineJDBCOptions(url: String, table: String)

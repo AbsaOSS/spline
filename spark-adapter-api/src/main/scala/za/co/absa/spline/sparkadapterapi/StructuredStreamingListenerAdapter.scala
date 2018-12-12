@@ -1,5 +1,3 @@
-package za.co.absa.spline.sparkadapterapi
-
 /*
  * Copyright 2017 ABSA Group Limited
  *
@@ -15,6 +13,9 @@ package za.co.absa.spline.sparkadapterapi
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
+package za.co.absa.spline.sparkadapterapi
 
 trait StructuredStreamingListenerAdapter {
   def consoleSinkClass(): Class[_]

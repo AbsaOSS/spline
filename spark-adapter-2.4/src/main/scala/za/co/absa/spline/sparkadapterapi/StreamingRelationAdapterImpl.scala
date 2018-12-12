@@ -17,16 +17,15 @@
 package za.co.absa.spline.sparkadapterapi
 
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
-import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.execution.streaming.{StreamingRelation, StreamingRelationV2}
 
-trait StreamingRelationAdapter {
-  def extractDataSourceInfo(streamingRelation: LogicalPlan): Option[DataSourceInfo]
-}
-
-object StreamingRelationAdapter extends AdapterFactory[StreamingRelationAdapter]
-
-case class DataSourceInfo(name: String, className: String, options: Map[String, String], schema: StructType)
-
-object StreamingRelationVersionAgnostic {
-  def unapply(arg: LogicalPlan): Option[DataSourceInfo] = StreamingRelationAdapter.instance.extractDataSourceInfo(arg)
+class StreamingRelationAdapterImpl extends StreamingRelationAdapter {
+  override def extractDataSourceInfo(streamingRelation: LogicalPlan): Option[DataSourceInfo] =
+    streamingRelation match {
+      case x: StreamingRelationV2 =>
+        Some(DataSourceInfo(x.sourceName, x.dataSource.getClass.getName, x.extraOptions, x.schema))
+      case x: StreamingRelation => x
+        Some(DataSourceInfo(x.dataSource.sourceInfo.name, x.dataSource.className, x.dataSource.options, x.schema))
+      case _ => None
+    }
 }

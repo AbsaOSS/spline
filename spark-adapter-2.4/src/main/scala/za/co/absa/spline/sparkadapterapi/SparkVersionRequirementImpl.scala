@@ -16,17 +16,8 @@
 
 package za.co.absa.spline.sparkadapterapi
 
-import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
-import org.apache.spark.sql.types.StructType
+class SparkVersionRequirementImpl extends SparkVersionRequirement {
 
-trait StreamingRelationAdapter {
-  def extractDataSourceInfo(streamingRelation: LogicalPlan): Option[DataSourceInfo]
-}
+  val versionPrefix: String = "2.4"
 
-object StreamingRelationAdapter extends AdapterFactory[StreamingRelationAdapter]
-
-case class DataSourceInfo(name: String, className: String, options: Map[String, String], schema: StructType)
-
-object StreamingRelationVersionAgnostic {
-  def unapply(arg: LogicalPlan): Option[DataSourceInfo] = StreamingRelationAdapter.instance.extractDataSourceInfo(arg)
 }

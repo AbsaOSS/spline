@@ -39,11 +39,11 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
       .format("rate")
       .load()
 
-    // FIXME as part of supporting 2.2 and 2.3
-    val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
+    val builder = new StreamReadNodeBuilder(df.queryExecution.analyzed)
     val node = builder.build()
 
-    shouldEq(node, VirtualEndpoint())
+    node.sourceType shouldBe "Virtual"
+    node.sources.size shouldBe 1
   }
 
   it should "return StreamRead node with a socket endpoint when reading data from the socket data source" in {
@@ -57,7 +57,7 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
       .option("port", port)
       .load()
 
-    val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
+    val builder = new StreamReadNodeBuilder(df.queryExecution.analyzed)
     val node = builder.build()
 
     shouldEq(node, SocketEndpoint(host, port.toString))
@@ -74,7 +74,7 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
       .option("kafka.bootstrap.servers", cluster.mkString(","))
       .load()
 
-    val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
+    val builder = new StreamReadNodeBuilder(df.queryExecution.analyzed)
     val node = builder.build()
 
     shouldEq(node, KafkaEndpoint(cluster, topic :: Nil))
@@ -93,7 +93,7 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
       .schema(schema)
       .load(tempDir.getPath)
 
-    val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
+    val builder = new StreamReadNodeBuilder(df.queryExecution.analyzed)
     val node = builder.build()
 
     shouldEq(node, FileEndpoint(format, tempDir.getPath))

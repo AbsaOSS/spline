@@ -16,7 +16,7 @@ package za.co.absa.spline.sparkadapterapi
  * limitations under the License.
  */
 
-import org.apache.spark.sql.execution.streaming.ConsoleSink
+import org.apache.spark.sql.execution.streaming.{ConsoleSink, ForeachSink}
 
 class StructuredStreamingListenerAdapterImpl extends StructuredStreamingListenerAdapter {
   override def consoleSinkClass(): Class[_] = classOf[ConsoleSink]

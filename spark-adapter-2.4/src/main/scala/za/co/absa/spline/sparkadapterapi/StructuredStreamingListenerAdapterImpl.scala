@@ -16,17 +16,8 @@
 
 package za.co.absa.spline.sparkadapterapi
 
-import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
-import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.execution.streaming.ConsoleSinkProvider
 
-trait StreamingRelationAdapter {
-  def extractDataSourceInfo(streamingRelation: LogicalPlan): Option[DataSourceInfo]
-}
-
-object StreamingRelationAdapter extends AdapterFactory[StreamingRelationAdapter]
-
-case class DataSourceInfo(name: String, className: String, options: Map[String, String], schema: StructType)
-
-object StreamingRelationVersionAgnostic {
-  def unapply(arg: LogicalPlan): Option[DataSourceInfo] = StreamingRelationAdapter.instance.extractDataSourceInfo(arg)
+class StructuredStreamingListenerAdapterImpl extends StructuredStreamingListenerAdapter {
+  override def consoleSinkClass(): Class[_] = classOf[ConsoleSinkProvider]
 }
