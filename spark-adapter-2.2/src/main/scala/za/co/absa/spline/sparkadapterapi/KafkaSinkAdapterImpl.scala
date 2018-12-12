@@ -15,7 +15,8 @@
  */
 
 package za.co.absa.spline.sparkadapterapi
-import za.co.absa.spline.common.ReflectionUtils
+
+import za.co.absa.spline.common.ReflectionUtils.getFieldValue
 import java.{util => ju}
 
 import org.apache.spark.sql.execution.streaming.StreamExecution
@@ -24,13 +25,15 @@ import scala.collection.JavaConverters._
 
 class KafkaSinkAdapterImpl extends KafkaSinkAdapter {
   override def extractKafkaInfo(streamExecution: StreamExecution): Option[KafkaSinkInfo] = {
-    streamExecution.sink match {
-      case x if x.getClass.getCanonicalName == "org.apache.spark.sql.kafka010.KafkaSink" =>
-        val params = ReflectionUtils.getFieldValue[ju.Map[String, String]](x, "executorKafkaParams").asScala
-        val topics = ReflectionUtils.getFieldValue[Option[String]](x, "topic").get.split(",").toList
-        val bootstrapServers = params("bootstrap.servers").split("[\t ]*,[\t ]*")
-        Some(KafkaSinkInfo(topics, bootstrapServers))
-      case _ => None
+    val sink = streamExecution.sink
+    if (sink.getClass.getCanonicalName == "org.apache.spark.sql.kafka010.KafkaSink") {
+      val params = getFieldValue[ju.Map[String, String]](sink, "executorKafkaParams").asScala
+      val topics = getFieldValue[Option[String]](sink, "topic")
+        .map(_.split(",").toSeq).getOrElse(Seq())
+      val bootstrapServers = params("bootstrap.servers").split("[\t ]*,[\t ]*")
+      Some(KafkaSinkInfo(topics, bootstrapServers))
+    } else {
+      None
     }
   }
 }

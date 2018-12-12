@@ -93,6 +93,6 @@ class StreamWriteBuilderSpec extends FunSpec with Matchers {
 
   private def shouldEq(node: StreamWrite, endpoint: StreamEndpoint): Unit = {
     node.destinationType shouldEqual endpoint.description
-    node.path shouldEqual endpoint.paths.head.toString
+    Seq(node.path) shouldEqual endpoint.paths.map(_.toString)
   }
 }

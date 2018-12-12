@@ -24,7 +24,7 @@ class KafkaSinkAdapterImpl extends KafkaSinkAdapter {
   override def extractKafkaInfo(streamExecution: StreamExecution): Option[KafkaSinkInfo] = {
     if (streamExecution.sink.getClass.getCanonicalName == "org.apache.spark.sql.kafka010.KafkaSourceProvider") {
       val params = ReflectionUtils.getFieldValue[Map[String, String]](streamExecution, "extraOptions")
-      val topics = params("topic").split(",")
+      val topics = params.get("topic").map(_.split(",").toSeq).getOrElse(Seq())
       val bootstrapServers = params("kafka.bootstrap.servers").split("[\t ]*,[\t ]*")
       Some(KafkaSinkInfo(topics, bootstrapServers))
     } else {
