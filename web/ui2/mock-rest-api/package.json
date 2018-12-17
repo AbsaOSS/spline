@@ -1,0 +1,15 @@
+{
+  "name": "spline-rest-api-mock",
+  "version": "1.0.0",
+  "description": "Mock Rest API for spline UI 2",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "romain leborgne",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.3"
+  }
+}

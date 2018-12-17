@@ -23,16 +23,22 @@ export class LineageGraphComponent implements OnInit, AfterViewInit {
   ) { }
 
   ngOnInit(): void {
-    this.graphData = this.graphService.getGraphData()
+    let that = this;
+    this.graphService.getGraphData().subscribe(response => {
+      that.graphData = response
+    })
   }
 
   ngAfterViewInit(): void {
-    if (this.cytograph.cy) {
-      this.cytograph.cy.cxtmenu(this.contextualMenuService.getConfiguration())
-      this.cytograph.cy.panzoom()
-      this.cytograph.cy.layout(this.layoutService.getConfiguration()).run()
-    }
-  }
+    let that = this;
+    this.graphService.getGraphData().subscribe(() => {
+      if (that.cytograph.cy) {
+        that.cytograph.cy.cxtmenu(that.contextualMenuService.getConfiguration())
+        that.cytograph.cy.panzoom()
+        that.cytograph.cy.layout(that.layoutService.getConfiguration()).run()
+      }
+    })
 
+  }
 
 }

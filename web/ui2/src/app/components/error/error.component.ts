@@ -9,7 +9,7 @@ import { ErrorService } from 'src/app/services/error/error.service';
 })
 export class ErrorComponent implements OnInit {
 
-  private errorText: string;
+  private errorText: string
 
   constructor(private route: ActivatedRoute, private errorService: ErrorService) { }
 
