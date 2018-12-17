@@ -30,8 +30,8 @@ export class LineageStore {
     }
 
     public set lineage(lineage: IDataLineage) {
-        this._lineage$.next(lineage)
         this._lineageAccessors = new LineageAccessors(lineage)
+        this._lineage$.next(lineage)
     }
 
     private _lineageAccessors: LineageAccessors
