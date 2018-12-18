@@ -2,6 +2,8 @@ package za.co.absa.spline.migrator
 
 import za.co.absa.spline.common.SplineBuildInfo
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 object MigratorCLI extends App {
 
   val cliParser = new scopt.OptionParser[MigratorConfig]("migrator-tool") {
@@ -24,15 +26,18 @@ object MigratorCLI extends App {
       validate (x => if (x > 0) success else failure("<batch-size> should be a positive number"))
       action ((value, conf) => conf.copy(batchSize = value)))
 
+    (opt[Int]('x', "batch-max")
+      text s"Number of batches to process. Negative value means unbounded. (Default is ${MigratorConfig.empty.batchesMax})"
+      action ((value, conf) => conf.copy(batchesMax = value)))
+
     help("help").text("prints this usage text")
   }
 
-
-  cliParser.parse(args, MigratorConfig.empty) match {
-    case Some(config) =>
-      MigratorTool.migrate(config)
-
-    case None =>
-    // arguments are bad, error message will have been displayed
+  for {
+    config <- cliParser.parse(args, MigratorConfig.empty)
+    stats <- MigratorTool.migrate(config)
+  } {
+    println(s"DONE. Processed total: ${stats.processed} (of which failures: ${stats.failures})")
   }
+
 }

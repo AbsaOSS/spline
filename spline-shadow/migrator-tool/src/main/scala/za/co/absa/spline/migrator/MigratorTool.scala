@@ -16,7 +16,7 @@ object MigratorTool {
   private val akkaConf = ConfigFactory.parseString(
     s"akka.actor.guardian-supervisor-strategy = ${classOf[EscalatingSupervisorStrategy].getName}")
 
-  def migrate(migratorConf: MigratorConfig): Future[MigratorActor.Stats] = {
+  def migrate(migratorConf: MigratorConfig): Future[Stats] = {
     val actorSystem = ActorSystem("system", akkaConf)
 
     val migratorActor = actorSystem.actorOf(Props(classOf[MigratorActor], migratorConf), "migrator")

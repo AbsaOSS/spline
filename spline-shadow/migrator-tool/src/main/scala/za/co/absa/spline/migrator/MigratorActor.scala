@@ -20,23 +20,6 @@ object MigratorActor {
 
   case class Result(stats: Stats)
 
-
-  object Stats {
-    def empty: Stats = Stats(0, 0, Some(Stats(0, 0, None)))
-  }
-
-  case class Stats private(success: Int, failures: Int, totals: Option[Stats]) {
-
-    def processed: Int = success + failures
-
-    def incSuccess: Stats = inc(1, 0)
-
-    def incFailure: Stats = inc(0, 1)
-
-    private def inc(successInc: Int, failureInc: Int): Stats =
-      Stats(success + successInc, failures + failureInc, totals.map(_.inc(successInc, failureInc)))
-  }
-
 }
 
 class MigratorActor(conf: MigratorConfig)
@@ -53,13 +36,13 @@ class MigratorActor(conf: MigratorConfig)
   }
 
   private def pumpAllLineagesAndReportTo(watcher: ActorRef): Unit = {
-    processPage(PageRequest(System.currentTimeMillis, 0, conf.batchSize), Some(Stats.empty))
+    processPage(PageRequest(System.currentTimeMillis, 0, conf.batchSize), Stats.empty)
 
-    def processPage(page: PageRequest, prevTotals: Option[Stats]): Unit = {
-      context become processingPage(Stats.empty.copy(totals = prevTotals), None)
+    def processPage(page: PageRequest, prevTotals: Stats): Unit = {
+      context become processingPage(Stats.emptyTree.copy(parentStats = prevTotals), None)
       mongoActor ! MongoActor.GetLineages(page)
 
-      def processingPage(pageStats: Stats, pageActualSize: Option[Int]): Receive = {
+      def processingPage(pageStats: TreeStats, pageActualSize: Option[Int]): Receive = {
         case lineage: DataLineage =>
           arangoActor ! ArangoActor.LineagePersistRequest(lineage)
 
@@ -76,21 +59,25 @@ class MigratorActor(conf: MigratorConfig)
           }
       }
 
-      def onCountsUpdate(pageStats: Stats, pageActualSize: Option[Int]): Unit = pageActualSize match {
+      def onCountsUpdate(pageStats: TreeStats, pageActualSize: Option[Int]): Unit = pageActualSize match {
         case Some(pageSize) if pageSize == pageStats.processed =>
           onPageComplete(pageStats)
         case _ =>
           context become processingPage(pageStats, pageActualSize)
       }
 
-      def onPageComplete(pageStats: Stats): Unit = {
-        if (pageStats.processed == page.size) {
-          val nextPage = page.copy(offset = page.offset + pageStats.processed)
-          processPage(nextPage, pageStats.totals)
+      def onPageComplete(pageStats: TreeStats): Unit =
+        if (isLastPage(page, pageStats)) {
+          watcher ! Result(pageStats.parentStats)
         } else {
-          watcher ! Result(pageStats.totals.get)
+          val nextPage = page.copy(offset = page.offset + pageStats.processed)
+          processPage(nextPage, pageStats.parentStats)
         }
-      }
     }
+  }
+
+  private def isLastPage(page: PageRequest, pageStats: TreeStats): Boolean = {
+    pageStats.processed != page.size ||
+      conf.batchesMax > -1 && (pageStats.parentStats.processed / page.size) >= conf.batchesMax
   }
 }
