@@ -9,28 +9,26 @@ import com.typesafe.config.ConfigFactory
 import za.co.absa.spline.migrator.MigratorActor.Start
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-object MigratorTool extends App {
+object MigratorTool {
 
-  private val conf = ConfigFactory.parseString(
+  private val akkaConf = ConfigFactory.parseString(
     s"akka.actor.guardian-supervisor-strategy = ${classOf[EscalatingSupervisorStrategy].getName}")
 
-  val actorSystem = ActorSystem("system", conf)
+  def migrate(migratorConf: MigratorConfig): Future[MigratorActor.Stats] = {
+    val actorSystem = ActorSystem("system", akkaConf)
 
-  val migratorActor = actorSystem.actorOf(
-    Props(new MigratorActor(
-      batchSize = 100,
-      mongoConnectionUrl = "mongodb://localhost/spline-dev",
-      arangoConnectionUrl = "arangodb://localhost/spline-dev"
-    )),
-    "migrator")
+    val migratorActor = actorSystem.actorOf(Props(classOf[MigratorActor], migratorConf), "migrator")
 
-  implicit val timeout: Timeout = Timeout(42, TimeUnit.DAYS)
+    implicit val timeout: Timeout = Timeout(42, TimeUnit.DAYS)
 
-  migratorActor ? Start onSuccess {
-    case MigratorActor.Result(stats: MigratorActor.Stats) =>
-      actorSystem.terminate()
-      println(s"DONE. Processed total: ${stats.processed} (of which failures: ${stats.failures})")
+    val eventualResult =
+      (migratorActor ? Start).
+        map({ case MigratorActor.Result(stats) => stats })
+
+    eventualResult.onComplete(_ => actorSystem.terminate())
+    eventualResult
   }
 }
 

@@ -25,6 +25,11 @@
             <artifactId>persistence</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.scopt</groupId>
+            <artifactId>scopt_${scala.compat.version}</artifactId>
+            <version>3.7.1</version>
+        </dependency>
     </dependencies>
 
 </project>

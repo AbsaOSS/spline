@@ -39,14 +39,12 @@ object MigratorActor {
 
 }
 
-class MigratorActor(mongoConnectionUrl: String, arangoConnectionUrl: String, batchSize: Int)
+class MigratorActor(conf: MigratorConfig)
   extends Actor
     with ActorLogging {
 
-  require(batchSize > 0)
-
-  private val mongoActor = context.actorOf(Props(new MongoActor(mongoConnectionUrl)), "mongo")
-  private val arangoActor = context.actorOf(Props(new ArangoActor(arangoConnectionUrl)), "arango")
+  private val mongoActor = context.actorOf(Props(new MongoActor(conf.mongoConnectionUrl)), "mongo")
+  private val arangoActor = context.actorOf(Props(new ArangoActor(conf.arangoConnectionUrl)), "arango")
 
   override def supervisorStrategy: SupervisorStrategy = OneForOneStrategy()({ case _ => Escalate })
 
@@ -55,7 +53,7 @@ class MigratorActor(mongoConnectionUrl: String, arangoConnectionUrl: String, bat
   }
 
   private def pumpAllLineagesAndReportTo(watcher: ActorRef): Unit = {
-    processPage(PageRequest(System.currentTimeMillis, 0, batchSize), Some(Stats.empty))
+    processPage(PageRequest(System.currentTimeMillis, 0, conf.batchSize), Some(Stats.empty))
 
     def processPage(page: PageRequest, prevTotals: Option[Stats]): Unit = {
       context become processingPage(Stats.empty.copy(totals = prevTotals), None)
