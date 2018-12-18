@@ -4,6 +4,7 @@ import java.util.UUID
 
 import akka.actor.Actor
 import akka.pattern.pipe
+import co.za.absa.spline.persistence.Persister
 import za.co.absa.spline.migrator.ArangoActor._
 import za.co.absa.spline.model.DataLineage
 
@@ -43,8 +44,8 @@ class ArangoActor(connectionUrl: String) extends Actor {
         pipeTo(sender)
   }
 
-  private def save(lineage: DataLineage): Future[Unit] = Future {
+  private def save(lineage: DataLineage): Future[Unit] = {
     println("Save lineage: " + lineage.id)
-    // TODO: save it
+    Persister.save(lineage)
   }
 }

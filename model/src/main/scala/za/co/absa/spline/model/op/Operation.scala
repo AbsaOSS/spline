@@ -205,8 +205,8 @@ case class BatchWrite(
                   destinationType: String,
                   path: String,
                   append: Boolean,
-                  writeMetrics: Map[String, Long],
-                  readMetrics: Map[String, Long]
+                  writeMetrics: Map[String, Long] = Map.empty,
+                  readMetrics: Map[String, Long] = Map.empty
                 ) extends Write
 
 @Salat
