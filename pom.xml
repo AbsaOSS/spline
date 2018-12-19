@@ -60,6 +60,7 @@
         <module>spark-adapter-2.3</module>
         <module>spark-adapter-2.4</module>
         <module>web</module>
+        <module>spline-shadow</module>
         <module>sample</module>
         <module>persistence</module>
         <module>integration-tests</module>
