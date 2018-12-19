@@ -58,5 +58,4 @@ package-lock.json
 /src/app/**/*.jsx
 /src/app/**/*.jsx.map
 /dist/
-/typings/
 package-lock.json
