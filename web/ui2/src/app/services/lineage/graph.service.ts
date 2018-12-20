@@ -12,14 +12,20 @@ export class GraphService {
 
   constructor(private http: HttpClient) { }
 
+  // TODO : Define constants to the whole app in a seperated file with a service accessor
   private mockRestApi = 'http://localhost:3000/lineage/datasourceId/timestamp';
 
   /**
    * Get the graph data from the API
    * TODO : Specify the return type when the API will be finished
    */
-  public getGraphData(): Observable<any> {
-    return this.http.get(this.mockRestApi).pipe(
+  public getGraphData(nodeFocus: string = null, depth: number = null): Observable<any> {
+    // TODO : Use a Url Builder Service 
+    let url = this.mockRestApi;
+    if (nodeFocus && depth) {
+      url = url + "/" + nodeFocus + "/" + depth;
+    }
+    return this.http.get(url).pipe(
       catchError(this.handleError)
     );
   }

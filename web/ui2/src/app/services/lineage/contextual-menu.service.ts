@@ -1,13 +1,19 @@
 import { Injectable } from '@angular/core';
+import { GraphService } from './graph.service';
+import { LayoutService } from './layout.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ContextualMenuService {
 
-  constructor() { }
+  constructor(
+    private graphService: GraphService,
+    private layoutService: LayoutService
+  ) { }
 
   public getConfiguration() {
+    let that = this;
     return {
       menuRadius: 90, // the radius of the circular menu in pixels
       selector: 'node', // elements matching this Cytoscape.js selector will trigger cxtmenus
@@ -34,14 +40,29 @@ export class ContextualMenuService {
         {
           content: '<span class="fa fa-plus-circle fa-2x"></span><b>Expand</b>',
           select: function (ele, event) {
-            console.log("Define here whatever callback you want");
+            console.log("Define here whatever callback you want")
           },
           enabled: false
         },
         {
           content: '<span class="fa fa-crop fa-2x"></span><b>Focus</b>',
-          select: function (ele) {
-            console.log(ele.position())
+          select: function (ele, event) {
+            console.log(ele.id())
+            event.cy.elements().remove()
+            that.graphService.getGraphData(ele.id(), 5).subscribe(
+              response => {
+                console.log(response);
+                event.cy.add(response)
+              },
+              error => {
+                //Simply log the error from now
+                console.log(error)
+                //TODO : Implement a notification tool for letting know what is happening to the user
+              },
+              () => {
+                event.cy.layout(that.layoutService.getConfiguration()).run()
+              }
+            )
           }
         }
       ]
