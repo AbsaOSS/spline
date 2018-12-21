@@ -111,7 +111,7 @@ class ReadNodeBuilder
 }
 
 abstract class WriteNodeBuilder
-(val operation: WriteCommand)
+(val operation: WriteCommand, val writeMetrics: Map[String, Long], val readMetrics: Map[String, Long])
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
   extends OperationNodeBuilder {
   this: FSAwareBuilder =>
@@ -122,7 +122,9 @@ abstract class WriteNodeBuilder
     operationProps,
     operation.format,
     getQualifiedPath(operation.path),
-    append = operation.mode == SaveMode.Append
+    append = operation.mode == SaveMode.Append,
+    writeMetrics = writeMetrics,
+    readMetrics = readMetrics
   )
 }
 

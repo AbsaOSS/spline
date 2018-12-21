@@ -368,6 +368,11 @@
                 <version>${scala.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.scalaz</groupId>
+                <artifactId>scalaz-core_${scala.compat.version}</artifactId>
+                <version>7.2.27</version>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.spark</groupId>
                 <artifactId>spark-core_${scala.compat.version}</artifactId>
                 <version>${spark.version}</version>

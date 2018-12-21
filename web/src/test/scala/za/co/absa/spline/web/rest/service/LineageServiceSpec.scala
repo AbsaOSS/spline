@@ -59,7 +59,7 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
   private val intType = Simple("int", nullable = false)
 
   val lineage1 = DataLineage("AppId1", "AppName1", 0, "0.0.42", Seq(
-    Write(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa1", "SaveIntoDataSourceCommand", Seq(), UUIDS1), "fileS1", "fileS1.txt", append = false)),
+    Write(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa1", "SaveIntoDataSourceCommand", Seq(), UUIDS1), "fileS1", "fileS1.txt", append = false, Map.empty, Map.empty)),
     Seq(MetaDataset(UUIDS1, Schema(Seq(xUUID3)))),
     Seq(Attribute(xUUID3, "a", intType.id)),
     Seq(intType)
@@ -67,7 +67,7 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
 
   private val longType = Simple("long", nullable = false)
   val lineage2 = DataLineage("AppId2", "AppName2", 0, "0.0.42", Seq(
-    Write(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa3", "SaveIntoDataSourceCommand", Seq(xUUID2), UUIDS2), "fileOut", "fileOut.txt", append = false),
+    Write(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa3", "SaveIntoDataSourceCommand", Seq(xUUID2), UUIDS2), "fileOut", "fileOut.txt", append = false, Map.empty, Map.empty),
     Read(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa2", "LogicalRelation", Seq(UUIDS1), xUUID2), "fileS1", Seq(MetaDataSource("fileS1.txt", Seq(UUIDS1))))),
     Seq(
       MetaDataset(UUIDS2, Schema(Seq(xUUID3))),
@@ -124,20 +124,20 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
   private val stringType2 = Simple("String", true)
 
   private val lineageD = DataLineage("AppId", "AppNameD", 0, "0.0.42",
-    operations = Seq(Write(OperationProps(operationDUUID, "Save", Seq(), dUUID), "fileD", "fileD.csv", append = false)),
+    operations = Seq(Write(OperationProps(operationDUUID, "Save", Seq(), dUUID), "fileD", "fileD.csv", append = false, Map.empty, Map.empty)),
     datasets = Seq(MetaDataset(dUUID, Schema(Seq(xUUID1)))),
     attributes = Seq(Attribute(xUUID1, "attributeD", stringType1.id)),
     dataTypes = Seq(stringType1))
 
   private val lineageE = DataLineage("AppId", "AppNameE", 0, "0.0.42",
-    operations = Seq(Write(OperationProps(operationEUUID, "Save", Seq(), eUUID), "fileE", "fileE.csv", append = false)),
+    operations = Seq(Write(OperationProps(operationEUUID, "Save", Seq(), eUUID), "fileE", "fileE.csv", append = false, Map.empty, Map.empty)),
     datasets = Seq(MetaDataset(eUUID, Schema(Seq(xUUID2)))),
     attributes = Seq(Attribute(xUUID2, "attributeE", stringType1.id)),
     dataTypes = Seq(stringType1))
 
   private val lineageA = DataLineage("AppId", "AppNameA", 0, "0.0.42",
     operations = Seq(
-      Write(OperationProps(operationAUUID, "Save", null, aUUID), "fileA", "fileA.csv", append = false),
+      Write(OperationProps(operationAUUID, "Save", null, aUUID), "fileA", "fileA.csv", append = false, Map.empty, Map.empty),
       Read(OperationProps(operationAUUID, "Read", Seq(dUUID), null), "fileD", Seq(MetaDataSource("dileD.csv", Seq(dUUID)))),
       Read(OperationProps(operationAUUID, "Read", Seq(eUUID), null), "fileE", Seq(MetaDataSource("dileE.csv", Seq(eUUID))))),
     datasets = Seq(MetaDataset(aUUID, Schema(Seq(xUUID3)))),
@@ -146,7 +146,7 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
 
   private val lineageB = DataLineage("AppId", "AppNameB", 0, "0.0.42",
     operations = Seq(
-      Write(OperationProps(operationBUUID, "Save", null, bUUID), "fileB", "fileB.csv", append = false),
+      Write(OperationProps(operationBUUID, "Save", null, bUUID), "fileB", "fileB.csv", append = false, Map.empty, Map.empty),
       Read(OperationProps(operationBUUID, "Read", Seq(aUUID), null), "fileA", Seq(MetaDataSource("dileA.csv", Seq(aUUID))))
     ),
     datasets = Seq(MetaDataset(bUUID, Schema(Seq(xUUID4)))),
@@ -162,7 +162,7 @@ class LineageServiceSpec extends AsyncFlatSpec with Matchers with MockitoSugar {
     val dt2Id = UUID.randomUUID
     DataLineage("AppId", "AppNameC", 0, "0.0.42",
       operations = Seq(
-        Write(OperationProps(operationCUUID, "Save", Seq(ds2Id), cUUID), "fileC", "fileC.csv", append = false),
+        Write(OperationProps(operationCUUID, "Save", Seq(ds2Id), cUUID), "fileC", "fileC.csv", append = false, Map.empty, Map.empty),
         Filter(OperationProps(UUID.randomUUID, "Filter 2", Seq(ds1Id), ds2Id), expr.Binary(">", dt1Id, children = Seq(AttrRef(attr1Id)))),
         Filter(OperationProps(UUID.randomUUID, "Filter 1", Seq(aUUID), ds1Id), expr.Binary("<", dt2Id, children = Seq(AttrRef(attr2Id)))),
         Read(OperationProps(operationCUUID, "Read", Seq(aUUID), null), "fileA", Seq(MetaDataSource("dileA.csv", Seq(aUUID))))

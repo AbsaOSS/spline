@@ -22,19 +22,19 @@ import org.apache.spark
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.LogicalRelation
+import org.apache.spark.sql.execution.{LeafExecNode, SparkPlan}
+import scalaz.Scalaz._
+import za.co.absa.spline.core.harvester.DataLineageBuilder._
 import za.co.absa.spline.coresparkadapterapi.WriteCommandParser
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.op.Operation
 
-class DataLineageBuilder
-(
-  sparkContext: SparkContext,
-  hadoopConfiguration: Configuration,
-  writeCommandParser: WriteCommandParser[LogicalPlan]) {
+class DataLineageBuilder(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPlan], sparkContext: SparkContext)
+                        (hadoopConfiguration: Configuration, writeCommandParser: WriteCommandParser[LogicalPlan]) {
 
   private val componentCreatorFactory: ComponentCreatorFactory = new ComponentCreatorFactory
 
-  def buildLineage(logicalPlan: LogicalPlan): DataLineage = {
+  def buildLineage(): DataLineage = {
     DataLineage(
       sparkContext.applicationId,
       sparkContext.appName,
@@ -94,7 +94,11 @@ class DataLineageBuilder
       case a: SubqueryAlias => new AliasNodeBuilder(a)
       case lr: LogicalRelation => new ReadNodeBuilder(lr) with HDFSAwareBuilder
       case wc if writeCommandParser.matches(op) =>
-        new WriteNodeBuilder(writeCommandParser.asWriteCommand(wc)) with HDFSAwareBuilder
+        val writeCmd = writeCommandParser.asWriteCommand(wc)
+        val (readMetrics: Metrics, writeMetrics: Metrics) = executedPlanOpt.
+          map(getExecutedReadWriteMetrics).
+          getOrElse((Map.empty, Map.empty))
+        new WriteNodeBuilder(writeCmd, writeMetrics, readMetrics) with HDFSAwareBuilder
       case x => new GenericNodeBuilder(x)
     }
   }
@@ -108,4 +112,28 @@ class DataLineageBuilder
     }
   }
 
+}
+
+object DataLineageBuilder {
+  private type Metrics = Map[String, Long]
+
+  private def getExecutedReadWriteMetrics(executedPlan: SparkPlan): (Metrics, Metrics) = {
+    def getNodeMetrics(node: SparkPlan): Metrics = node.metrics.mapValues(_.value)
+
+    val cumulatedReadMetrics: Metrics = {
+      def traverseAndCollect(acc: Metrics, nodes: Seq[SparkPlan]): Metrics = {
+        nodes match {
+          case Nil => acc
+          case (leaf: LeafExecNode) :: queue =>
+            traverseAndCollect(acc |+| getNodeMetrics(leaf), queue)
+          case (node: SparkPlan) :: queue =>
+            traverseAndCollect(acc, node.children ++ queue)
+        }
+      }
+
+      traverseAndCollect(Map.empty, Seq(executedPlan))
+    }
+
+    (cumulatedReadMetrics, getNodeMetrics(executedPlan))
+  }
 }

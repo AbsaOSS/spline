@@ -39,9 +39,11 @@ class SplineQueryExecutionListener(harvesterFactory: DataLineageBuilderFactory, 
     if (funcName == "save") {
       log debug s"Start tracking lineage for action '$funcName'"
 
-      val builder = harvesterFactory.createBuilder(qe.sparkSession.sparkContext)
+      val rawLineage =
+        harvesterFactory.
+          createBuilder(qe.analyzed, Some(qe.executedPlan), qe.sparkSession.sparkContext).
+          buildLineage()
 
-      val rawLineage = builder.buildLineage(qe.analyzed)
       lineageProcessor.process(rawLineage)
 
       log debug s"Lineage tracking for action '$funcName' is done."

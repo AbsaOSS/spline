@@ -18,6 +18,8 @@ package za.co.absa.spline.core.harvester
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.SparkContext
+import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
+import org.apache.spark.sql.execution.SparkPlan
 import za.co.absa.spline.coresparkadapterapi.WriteCommandParser
 
 import scala.language.postfixOps
@@ -32,10 +34,9 @@ class DataLineageBuilderFactory(hadoopConfiguration: Configuration) {
 
   /** A main method of the object that performs transformation of Spark internal structures to library lineage representation.
    *
-   * @param sparkContext a spark context
    * @return A lineage representation
    */
-  def createBuilder(sparkContext: SparkContext): DataLineageBuilder = {
-    new DataLineageBuilder(sparkContext, hadoopConfiguration, writeCommandParser)
+  def createBuilder(logicalPlan: LogicalPlan, executedPlan: Option[SparkPlan], sparkContext: SparkContext): DataLineageBuilder = {
+    new DataLineageBuilder(logicalPlan, executedPlan, sparkContext)(hadoopConfiguration, writeCommandParser)
   }
 }
