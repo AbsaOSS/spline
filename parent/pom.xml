@@ -224,9 +224,12 @@
     <profiles>
         <profile>
             <id>spark-2.2</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <properties>
                 <spark.compat.version>2.2</spark.compat.version>
-                <spark.version>2.2.1</spark.version>
+                <spark.version>2.2.2</spark.version>
                 <json4s.version>3.2.11</json4s.version>
             </properties>
         </profile>
@@ -234,7 +237,7 @@
             <id>spark-2.3</id>
             <properties>
                 <spark.compat.version>2.3</spark.compat.version>
-                <spark.version>2.3.0</spark.version>
+                <spark.version>2.3.2</spark.version>
                 <json4s.version>3.2.11</json4s.version>
             </properties>
         </profile>
@@ -366,6 +369,11 @@
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scalap</artifactId>
                 <version>${scala.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scalaz</groupId>
+                <artifactId>scalaz-core_${scala.compat.version}</artifactId>
+                <version>7.2.27</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.spark</groupId>

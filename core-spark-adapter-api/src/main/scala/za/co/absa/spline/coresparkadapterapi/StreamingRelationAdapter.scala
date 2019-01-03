@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.coresparkadapterapi
 
-import org.apache.spark.sql.catalyst.plans.logical.{LeafNode, LogicalPlan}
+import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.streaming.StreamingRelation
 trait StreamingRelationAdapter {
 
