@@ -32,19 +32,12 @@ import {lineageToGraph} from "./graph-builder";
 import * as vis from "vis";
 import * as _ from "lodash";
 import {ClusterManager} from "../../visjs/cluster-manager";
-import {
-    HighlightedVisClusterNode,
-    HighlightedVisNode,
-    RegularVisClusterNode,
-    RegularVisNode,
-    VisEdge,
-    VisNode,
-    VisNodeType
-} from "./graph.model";
+import {HighlightedVisClusterNode, RegularVisClusterNode, VisEdge, VisNode, VisNodeType} from "./graph.model";
 import {LineageStore} from "../lineage.store";
 import {OperationType} from "../types";
 import {VisModel} from "../../visjs/vis-model";
 import {Subscription} from "rxjs";
+import {ExpressionRenderService} from "../details/expression/expression-render.service";
 
 const isDistinct = (change: SimpleChange): boolean => change && !_.isEqual(change.previousValue, change.currentValue)
 
@@ -65,9 +58,9 @@ export class GraphComponent implements OnChanges, OnDestroy {
     private clusterManager: ClusterManager<VisNode, VisEdge>
     private lineage$Subscription: Subscription
 
-    constructor(private container: ElementRef, private lineageStore: LineageStore) {
+    constructor(private container: ElementRef, private expressionRenderService: ExpressionRenderService, private lineageStore: LineageStore) {
         this.lineage$Subscription = this.lineageStore.lineage$.subscribe(lineage => {
-            this.rebuildGraph(lineage)
+            this.rebuildGraph(lineage, expressionRenderService)
         })
     }
 
@@ -79,7 +72,7 @@ export class GraphComponent implements OnChanges, OnDestroy {
         }
 
         if (isDistinct(changes["hiddenOperationTypes"])) {
-            this.rebuildGraph(this.lineageStore.lineageAccessors.lineage)
+            this.rebuildGraph(this.lineageStore.lineageAccessors.lineage, this.expressionRenderService)
             this.refreshSelectedNode()
             this.refreshHighlightedNodes()
         }
@@ -89,8 +82,8 @@ export class GraphComponent implements OnChanges, OnDestroy {
         this.lineage$Subscription.unsubscribe()
     }
 
-    private rebuildGraph(lineage: IDataLineage) {
-        this.graph = lineageToGraph(lineage, this.selectedOperationId, this.hiddenOperationTypes)
+    private rebuildGraph(lineage: IDataLineage, expressionRenderService: ExpressionRenderService) {
+        this.graph = lineageToGraph(lineage, expressionRenderService, this.selectedOperationId, this.hiddenOperationTypes)
         this.network = new vis.Network(this.container.nativeElement, this.graph, visOptions)
 
         this.clusterManager =
@@ -159,18 +152,12 @@ export class GraphComponent implements OnChanges, OnDestroy {
     }
 
     private refreshHighlightedNodes() {
-        const createNode = (id: string, type: VisNodeType): VisNode => {
-            let nodeConstructor = type == VisNodeType.Highlighted ? HighlightedVisNode : RegularVisNode
-            let operation = this.lineageStore.lineageAccessors.getOperation(id)
-            return new nodeConstructor(operation)
-        }
-
-        let nodeDataSet = <vis.DataSet<VisNode>> this.graph.nodes
+        let nodeDataSet = <vis.DataSet<VisNode>>this.graph.nodes
         let currentNodes = nodeDataSet.get()
         let updatedNodes = currentNodes.map(node => {
             let desiredType = _.includes(this.highlightedNodeIDs, node.id) ? VisNodeType.Highlighted : VisNodeType.Regular
             return (node.type != desiredType)
-                ? createNode(node.id, desiredType)
+                ? _.clone(node)
                 : node
         })
 

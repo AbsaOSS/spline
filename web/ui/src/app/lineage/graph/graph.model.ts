@@ -49,13 +49,14 @@ export abstract class VisNode implements vis.Node {
 }
 
 export class RegularVisNode extends VisNode {
-    constructor(public operation: IOperation) {
+    constructor(public operation: IOperation, public label: string) {
         super(
             operation,
             operation.mainProps.id,
-            operation.mainProps.name,
+            label,
             RegularVisNode.getIcon(getOperationIcon(operation)),
-            VisNodeType.Regular)
+            VisNodeType.Regular
+        );
     }
 
     static getIcon(icon: Icon) {
@@ -69,11 +70,11 @@ export class RegularVisNode extends VisNode {
 }
 
 export class HighlightedVisNode extends VisNode {
-    constructor(public operation: IOperation) {
+    constructor(public operation: IOperation, public label: string) {
         super(
             operation,
             operation.mainProps.id,
-            operation.mainProps.name,
+            label,
             HighlightedVisNode.getIcon(getOperationIcon(operation)),
             VisNodeType.Highlighted)
     }

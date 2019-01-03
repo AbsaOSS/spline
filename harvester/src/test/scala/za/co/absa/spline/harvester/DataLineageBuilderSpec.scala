@@ -159,7 +159,9 @@ class DataLineageBuilderSpec extends FlatSpec with Matchers {
 
     val sut = new DataLineageBuilderFactory(hadoopConfiguration)
 
-    val result = sut.createBuilder(sparkSession.sparkContext).buildLineage(sparkSession.emptyDataFrame.queryExecution.analyzed)
+    val result = sut.
+      createBuilder(sparkSession.emptyDataFrame.queryExecution.analyzed, None, sparkSession.sparkContext).
+      buildLineage()
 
     assertDataLineage(expectedOperations, expectedDatasets, Seq.empty, result)
   }
@@ -191,7 +193,7 @@ class DataLineageBuilderSpec extends FlatSpec with Matchers {
 
     val sut = new DataLineageBuilderFactory(hadoopConfiguration)
 
-    val result = sut.createBuilder(sparkSession.sparkContext).buildLineage(df.queryExecution.analyzed)
+    val result = sut.createBuilder(df.queryExecution.analyzed, None, sparkSession.sparkContext).buildLineage()
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }
@@ -242,7 +244,7 @@ class DataLineageBuilderSpec extends FlatSpec with Matchers {
 
     val sut = new DataLineageBuilderFactory(hadoopConfiguration)
 
-    val result = sut.createBuilder(sparkSession.sparkContext).buildLineage(df.queryExecution.analyzed)
+    val result = sut.createBuilder(df.queryExecution.analyzed, None, sparkSession.sparkContext).buildLineage()
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }
@@ -308,7 +310,7 @@ class DataLineageBuilderSpec extends FlatSpec with Matchers {
 
     val sut = new DataLineageBuilderFactory(hadoopConfiguration)
 
-    val result = sut.createBuilder(sparkSession.sparkContext).buildLineage(df.queryExecution.analyzed)
+    val result = sut.createBuilder(df.queryExecution.analyzed, None, sparkSession.sparkContext).buildLineage()
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }
@@ -382,7 +384,7 @@ class DataLineageBuilderSpec extends FlatSpec with Matchers {
 
     val sut = new DataLineageBuilderFactory(hadoopConfiguration)
 
-    val result = sut.createBuilder(sparkSession.sparkContext).buildLineage(df.queryExecution.analyzed)
+    val result = sut.createBuilder(df.queryExecution.analyzed, None, sparkSession.sparkContext).buildLineage()
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }

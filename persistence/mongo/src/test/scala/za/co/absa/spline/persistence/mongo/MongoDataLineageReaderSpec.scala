@@ -26,8 +26,8 @@ import za.co.absa.spline.common.OptionImplicits._
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op._
-import za.co.absa.spline.persistence.api.DataLineageReader.{IntervalPageRequest, PageRequest}
 import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest.EntireLatestContent
+import za.co.absa.spline.persistence.api.DataLineageReader.{IntervalPageRequest, PageRequest}
 
 import scala.concurrent.Future
 
@@ -341,7 +341,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase wit
       timestamp,
       "0.0.42",
       Seq(
-        BatchWrite(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", outputPath, append = false),
+        BatchWrite(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", outputPath, append = false, Map("x" -> 42), Map.empty),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md2.id), "rawString2"),
         BatchRead(OperationProps(randomUUID, "Read", sources.flatMap(_.datasetsIds), md4.id), "rawString3", sources),

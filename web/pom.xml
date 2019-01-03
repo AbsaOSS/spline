@@ -244,20 +244,11 @@
                         <configuration>
                             <target name="ui-build">
                                 <echo>Preparing UI build</echo>
-                                <!-- Install NPM dependencies -->
                                 <exec executable="cmd" dir="${webui.basedir}" osfamily="windows" failonerror="true">
                                     <arg line="/c npm install --no-color" />
                                 </exec>
                                 <exec executable="npm" dir="${webui.basedir}" osfamily="unix" failonerror="true">
                                     <arg line="install --no-color" />
-                                </exec>
-
-                                <!-- Install typings -->
-                                <exec executable="cmd" dir="${webui.basedir}" osfamily="windows" failonerror="true">
-                                    <arg line="/c npm run install-typings --no-color" />
-                                </exec>
-                                <exec executable="npm" dir="${webui.basedir}" osfamily="unix" failonerror="true">
-                                    <arg line="run install-typings --no-color" />
                                 </exec>
 
                                 <echo>Executing UI build</echo>
@@ -349,7 +340,6 @@
                             <excludes combine.children="append">
                                 <exclude>ui/dist/**</exclude>
                                 <exclude>ui/node_modules/**</exclude>
-                                <exclude>ui/typings/**</exclude>
                                 <exclude>ui/src/third-party-scripts/**</exclude>
                                 <exclude>ui/src/generated-ts/**</exclude>
                             </excludes>

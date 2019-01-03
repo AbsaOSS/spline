@@ -28,7 +28,7 @@ import {ProcessingType} from './details/operation/operation-icon.utils';
 @Component({
     templateUrl: 'lineage.component.html',
     styleUrls: ['lineage.component.less'],
-    providers: [LineageStore]
+    providers: []
 })
 export class LineageComponent implements OnInit, OnDestroy {
     lineage: IDataLineage

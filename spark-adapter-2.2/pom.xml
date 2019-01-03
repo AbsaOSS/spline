@@ -31,7 +31,7 @@
     <properties>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssX</maven.build.timestamp.format>
-        <spark.version>2.2.1</spark.version>
+        <spark.version>2.2.2</spark.version>
     </properties>
 
     <dependencies>
@@ -39,21 +39,6 @@
             <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-spark-adapter-api</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_${scala.compat.version}</artifactId>
-            <version>${spark.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_${scala.compat.version}</artifactId>
-            <version>${spark.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql-kafka-0-10_${scala.compat.version}</artifactId>
-            <version>${spark.version}</version>
         </dependency>
     </dependencies>
 

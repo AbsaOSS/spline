@@ -37,9 +37,9 @@ import scala.language.postfixOps
   * Not finished. Please ignore.
   */
 class StructuredStreamingListener(
-  queryManager: StreamingQueryManager,
-  lineageBuilderFactory: DataLineageBuilderFactory,
-  lineageDispatcher: LineageDispatcher)
+                                   queryManager: StreamingQueryManager,
+                                   lineageBuilderFactory: DataLineageBuilderFactory,
+                                   lineageDispatcher: LineageDispatcher)
   extends StreamingQueryListener with Logging {
 
   val runIdToLineages = new ConcurrentHashMap[UUID, DataLineage]()
@@ -59,10 +59,10 @@ class StructuredStreamingListener(
 
   private def lineageToEvent(lineage: DataLineage, numberOfRecords: Long): ProgressEvent = {
     val writePath = lineage.rootOperation.asInstanceOf[StreamWrite].path
-    val readPaths = for(
-        op <- lineage.operations if op.isInstanceOf[StreamRead];
-        ds <- op.asInstanceOf[StreamRead].sources
-      ) yield ds.path
+    val readPaths = for (
+      op <- lineage.operations if op.isInstanceOf[StreamRead];
+      ds <- op.asInstanceOf[StreamRead].sources
+    ) yield ds.path
 
     ProgressEvent(
       randomUUID,
@@ -94,7 +94,7 @@ class StructuredStreamingListener(
   private def processExecution(se: StreamExecution): Unit = {
     assume(se.logicalPlan.resolved, "we harvest lineage from analyzed logic plans")
     val logicalPlan = ReflectionUtils.getFieldValue[LogicalPlan](se, "analyzedPlan")
-    val logicalPlanLineage = lineageBuilderFactory.createBuilder(se.sparkSession.sparkContext).buildLineage(logicalPlan)
+    val logicalPlanLineage = lineageBuilderFactory.createBuilder(logicalPlan, None, se.sparkSession.sparkContext).buildLineage()
     val (streamWrite, metaDataset) = StreamWriteBuilder.build(se, logicalPlanLineage)
     val streamingLineage = logicalPlanLineage.copy(
       operations = streamWrite +: logicalPlanLineage.operations,
@@ -102,9 +102,4 @@ class StructuredStreamingListener(
     runIdToLineages.put(se.runId, streamingLineage)
     lineageDispatcher.send(streamingLineage)
   }
-
-  private def assignableFrom(runtimeClass: Class[_], anyRef: AnyRef) = {
-    runtimeClass.isAssignableFrom(anyRef.getClass)
-  }
-
 }

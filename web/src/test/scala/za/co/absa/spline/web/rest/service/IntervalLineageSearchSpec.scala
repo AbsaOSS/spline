@@ -7,7 +7,7 @@ import org.mockito.ArgumentMatchers.{eq => ≡, _}
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{AsyncFlatSpec, Matchers}
-import za.co.absa.spline.model.dt.{DataType, Simple}
+import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op._
 import za.co.absa.spline.model.{Attribute, MetaDataset, Schema, _}
 import za.co.absa.spline.persistence.api.{CloseableIterable, DataLineageReader}
@@ -53,14 +53,14 @@ class IntervalLineageSearchSpec extends AsyncFlatSpec with Matchers with Mockito
   val xUUID4: UUID = UUID fromString "44444444-4444-4444-4444-444444444444"
 
   val lineage1 = DataLineage("AppId1", "AppName1", 0, "2.x", Seq(
-    BatchWrite(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa1", "SaveIntoDataSourceCommand", Seq(xUUID4), UUIDS1x), "fileS1", "fileS1.txt", append = false),
+    BatchWrite(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa1", "SaveIntoDataSourceCommand", Seq(xUUID4), UUIDS1x), "fileS1", "fileS1.txt", append = false, Map.empty, Map.empty),
     BatchRead(OperationProps(xUUID4, "LogicalRelation", Seq(), xUUID4), "file", Seq(MetaDataSource("fileS4.txt", Seq())))),
     Seq(MetaDataset(UUIDS1x, Schema(Seq(xUUID3))), MetaDataset(xUUID4, Schema(Seq()))),
     Seq(Attribute(xUUID3, "a", dataTypeId1)),
-    Seq(Simple(dataTypeId1, "int", false)))
+    Seq(Simple(dataTypeId1, "int", nullable = false)))
 
   val lineage2 = DataLineage("AppId2", "AppName2", 0, "2.x", Seq(
-    BatchWrite(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa3", "SaveIntoDataSourceCommand", Seq(xUUID2), UUIDS2), "fileOut", "fileOut.txt", append = false),
+    BatchWrite(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa3", "SaveIntoDataSourceCommand", Seq(xUUID2), UUIDS2), "fileOut", "fileOut.txt", append = false, Map.empty, Map.empty),
     BatchRead(OperationProps(UUID fromString "6d4d9268-2cf1-19d8-b654-d3a52f0affa2", "LogicalRelation", Seq(UUIDS1), xUUID2), "fileS1", Seq(MetaDataSource("fileS1.txt", Seq(UUIDS1))))),
     Seq(
       MetaDataset(UUIDS2, Schema(Seq(xUUID3))),

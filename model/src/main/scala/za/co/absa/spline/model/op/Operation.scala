@@ -18,7 +18,7 @@ package za.co.absa.spline.model.op
 
 import java.util.UUID
 
-import salat.annotations.{Persist, Salat}
+import salat.annotations.Salat
 import za.co.absa.spline.model.expr.Expression
 import za.co.absa.spline.model.{MetaDataSource, TypedMetaDataSource}
 
@@ -65,7 +65,7 @@ object Operation {
     def updated(fn: OperationProps => OperationProps): T = (op.asInstanceOf[Operation] match {
       case op@BatchRead(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@StreamRead(mp, _, _) => op.copy(mainProps = fn(mp))
-      case op@BatchWrite(mp, _, _, _) => op.copy(mainProps = fn(mp))
+      case op@BatchWrite(mp, _, _, _, _, _) => op.copy(mainProps = fn(mp))
       case op@StreamWrite(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Alias(mp, _) => op.copy(mainProps = fn(mp))
       case op@Filter(mp, _) => op.copy(mainProps = fn(mp))
@@ -204,7 +204,9 @@ case class BatchWrite(
                   mainProps: OperationProps,
                   destinationType: String,
                   path: String,
-                  append: Boolean
+                  append: Boolean,
+                  writeMetrics: Map[String, Long],
+                  readMetrics: Map[String, Long]
                 ) extends Write
 
 @Salat

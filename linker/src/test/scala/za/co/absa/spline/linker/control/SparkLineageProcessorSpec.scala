@@ -22,7 +22,6 @@ import java.util.UUID.randomUUID
 import org.apache.commons.configuration.Configuration
 import org.apache.spark.sql.SparkSession
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
-import za.co.absa.spline.linker.LinkerApp
 import za.co.absa.spline.linker.boundary.DefaultSplineConfig
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.dt.Simple
@@ -135,7 +134,7 @@ object SparkLineageProcessorSpec {
       timestamp,
       "2.3.0",
       Seq(
-        BatchWrite(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path, append),
+        BatchWrite(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path, append, Map.empty, Map.empty),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md2.id), "rawString2"),
         Generic(OperationProps(randomUUID, "LogicalRDD", Seq.empty, md4.id), "rawString3"),
