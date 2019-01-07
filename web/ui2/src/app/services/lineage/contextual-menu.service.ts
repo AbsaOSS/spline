@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { GraphService } from './graph.service';
 import { LayoutService } from './layout.service';
+import { OperationType } from 'src/app/types/operationTypes';
 
 @Injectable({
   providedIn: 'root'
@@ -47,11 +48,13 @@ export class ContextualMenuService {
         {
           content: '<span class="fa fa-crop fa-2x"></span><b>Focus</b>',
           select: function (ele, event) {
-            console.log(ele.id())
             event.cy.elements().remove()
             that.graphService.getGraphData(ele.id(), 5).subscribe(
               response => {
-                console.log(response);
+                response.nodes.forEach(node => {
+                  node.data["icon"] = that.graphService.getIconFromOperationType(<any>OperationType[node.data.operationType])
+                  node.data["color"] = that.graphService.getColorFromOperationType(<any>OperationType[node.data.operationType])
+                });
                 event.cy.add(response)
               },
               error => {

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { OperationType } from 'src/app/types/operationTypes';
 
 
 @Injectable({
@@ -28,6 +29,42 @@ export class GraphService {
     return this.http.get(url).pipe(
       catchError(this.handleError)
     );
+  }
+
+  public getIconFromOperationType(operation: OperationType): string {
+    switch (operation) {
+      case OperationType.Projection: return "f13a"
+      case OperationType.BatchRead: return "f085"
+      case OperationType.StreamRead: return "f085"
+      case OperationType.Join: return "f126"
+      case OperationType.Union: return "f0c9"
+      case OperationType.Generic: return "f0c8"
+      case OperationType.Filter: return "f0b0"
+      case OperationType.Sort: return "f161"
+      case OperationType.Aggregate: return "f0e8"
+      case OperationType.BatchWrite: return "f085"
+      case OperationType.StreamWrite: return "f085"
+      case OperationType.Alias: return "f111"
+      default: return "f15b"
+    }
+  }
+
+  public getColorFromOperationType(operation: OperationType): string {
+    switch (operation) {
+      case OperationType.Projection: return "#337AB7"
+      case OperationType.BatchRead: return "#337AB7"
+      case OperationType.StreamRead: return "#337AB7"
+      case OperationType.Join: return "#FFA500"
+      case OperationType.Union: return "#337AB7"
+      case OperationType.Generic: return "#337AB7"
+      case OperationType.Filter: return "#F04100"
+      case OperationType.Sort: return "#E0E719"
+      case OperationType.Aggregate: return "#008000"
+      case OperationType.BatchWrite: return "#337AB7"
+      case OperationType.StreamWrite: return "#337AB7"
+      case OperationType.Alias: return "#337AB7"
+      default: return "#808080"
+    }
   }
 
   private handleError(err: HttpErrorResponse) {
