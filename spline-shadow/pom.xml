@@ -18,6 +18,7 @@
     <modules>
         <module>model</module>
         <module>persistence</module>
+        <module>rest-gateway</module>
         <module>migrator-tool</module>
     </modules>
 

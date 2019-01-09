@@ -19,6 +19,7 @@ package za.co.absa.spline.web.handler
 import org.scalatest.{FlatSpec, Matchers}
 import org.springframework.core.MethodParameter
 import org.springframework.web.method.support.ModelAndViewContainer
+import za.co.absa.spline.common.webmvc.UnitMethodReturnValueHandler
 import za.co.absa.spline.web.handler.UnitMethodReturnValueHandlerSpec.{ClassWithNonUnitMethods, ClassWithUnitMethods}
 
 import scala.runtime.BoxedUnit

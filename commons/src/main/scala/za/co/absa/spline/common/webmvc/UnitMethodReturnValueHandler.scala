@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.web.handler
+package za.co.absa.spline.common.webmvc
 
 import org.springframework.core.MethodParameter
 import org.springframework.web.context.request.NativeWebRequest
 import org.springframework.web.method.support.{HandlerMethodReturnValueHandler, ModelAndViewContainer}
-import za.co.absa.spline.web.handler.UnitMethodReturnValueHandler.unitClasses
 
 import scala.runtime.BoxedUnit
 
@@ -30,6 +29,8 @@ object UnitMethodReturnValueHandler {
 }
 
 class UnitMethodReturnValueHandler extends HandlerMethodReturnValueHandler {
+
+  import UnitMethodReturnValueHandler.unitClasses
 
   override def supportsReturnType(returnType: MethodParameter): Boolean =
     unitClasses contains returnType.getGenericParameterType

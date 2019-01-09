@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.web.handler
+package za.co.absa.spline.common.future
 
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.LongBinaryOperator

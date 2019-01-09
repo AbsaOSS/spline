@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.{ControllerAdvice, ExceptionHandl
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException
 import za.co.absa.spline.web.NonStandardResponseEntity
 import za.co.absa.spline.web.json.StringJSONConverters.EntityToJson
-import za.co.absa.spline.web.logging.ErrorCode
+import za.co.absa.spline.common.logging.ErrorCode
 
 @ControllerAdvice(basePackageClasses = Array(classOf[_package]))
 class RESTErrorControllerAdvice {

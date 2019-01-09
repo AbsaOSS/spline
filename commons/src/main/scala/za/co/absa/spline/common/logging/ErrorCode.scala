@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.web.logging
+package za.co.absa.spline.common.logging
 
 import java.util.UUID
 import java.util.UUID.randomUUID

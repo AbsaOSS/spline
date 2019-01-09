@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.web.handler
+package za.co.absa.spline.common.webmvc
 
 import org.springframework.core.MethodParameter
 import org.springframework.web.context.request.async.{DeferredResult, WebAsyncUtils}
 import org.springframework.web.context.request.{NativeWebRequest, WebRequest}
 import org.springframework.web.method.support.{AsyncHandlerMethodReturnValueHandler, ModelAndViewContainer}
 import org.springframework.web.servlet.mvc.method.annotation.DeferredResultMethodReturnValueHandler
+import za.co.absa.spline.common.future.EstimableFuture
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
