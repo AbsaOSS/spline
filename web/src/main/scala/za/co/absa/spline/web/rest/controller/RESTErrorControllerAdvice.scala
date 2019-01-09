@@ -20,9 +20,9 @@ import org.springframework.http.HttpStatus.{INTERNAL_SERVER_ERROR, NOT_FOUND}
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.{ControllerAdvice, ExceptionHandler}
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException
-import za.co.absa.spline.web.NonStandardResponseEntity
 import za.co.absa.spline.web.json.StringJSONConverters.EntityToJson
 import za.co.absa.spline.common.logging.ErrorCode
+import za.co.absa.spline.common.webmvc.NonStandardResponseEntity
 
 @ControllerAdvice(basePackageClasses = Array(classOf[_package]))
 class RESTErrorControllerAdvice {
