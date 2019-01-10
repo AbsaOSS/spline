@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.common
 
-import za.co.absa.spline.common.TypeFreaks.`not a subtype of`
+import za.co.absa.spline.common.TypeConstraints.not
 
 import scala.language.implicitConversions
 
@@ -32,5 +32,5 @@ object OptionImplicits {
     * @tparam T A source type
     * @return An option
     */
-  implicit def anyToOption[T <: Any : `not a subtype of`[Option[_]]#λ : Manifest](o: T): Option[T] = Option(o)
+  implicit def anyToOption[T <: Any : not[Option[_]]#λ : Manifest](o: T): Option[T] = Option(o)
 }

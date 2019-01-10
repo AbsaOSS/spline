@@ -22,7 +22,7 @@ import java.util.UUID.randomUUID
 
 import com.mongodb.casbah.commons.Imports.DBObject
 import org.scalatest.Matchers
-import za.co.absa.spline.common.OptionImplicits._
+import za.co.absa.spline.common.OptionImplicits.anyToOption
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op._

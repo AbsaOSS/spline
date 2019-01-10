@@ -16,15 +16,12 @@
 
 package za.co.absa.spline.common
 
-/**
-  * The object contains auxiliary data types needed implicit type conversions.
-  */
-object TypeFreaks {
+object TypeConstraints {
 
   // Encoding for "A is not a subtype of B"
   trait !<:[A, B]
 
-  type `not a subtype of`[T] = {type λ[U] = U !<: T} //NOSONAR
+  type not[T] = {type λ[U] = U !<: T} //NOSONAR
 
   // use ambiguous method declarations to rule out excluding type conditions
   implicit def passingProbe[A, B]: A !<: B = null //NOSONAR
