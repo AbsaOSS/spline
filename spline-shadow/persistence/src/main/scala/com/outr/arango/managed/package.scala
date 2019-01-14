@@ -1,11 +1,10 @@
 package com.outr.arango
 
 import co.za.absa.spline.persistence.{Attribute, DataType, Schema}
+import io.circe.generic.semiauto._
+import io.circe.{Decoder, Encoder}
 
 package object managed {
-
-  import io.circe.generic.semiauto._
-  import io.circe.{Decoder, Encoder}
   implicit val attrDec: Decoder[Attribute] = deriveDecoder[Attribute]
   implicit val schemaDec: Decoder[Schema] = deriveDecoder[Schema]
   implicit val attrEnc: Encoder[Attribute] = deriveEncoder[Attribute]

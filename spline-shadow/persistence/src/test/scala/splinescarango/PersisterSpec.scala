@@ -44,14 +44,13 @@ import za.co.absa.spline.model.op.{BatchRead, BatchWrite, Generic, OperationProp
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
+import scala.util.Try
 
 class PersisterSpec extends FunSpec with Matchers with MockitoSugar {
 
   describe("Persister") {
     it("Persister should be able to insert an example lineage to an empty database") {
-      try {
-        awaitForever(Database.delete(true))
-      } catch { case _: Exception =>  }
+      Try(awaitForever(Database.delete(true)))
       awaitForever(Database.init(force = true))
       awaitForever(Persister.save(datalineage()))
     }
@@ -70,12 +69,13 @@ class PersisterSpec extends FunSpec with Matchers with MockitoSugar {
                            path: String = "hdfs://foo/bar/path",
                            append: Boolean = false)
     : DataLineage = {
-      val dataTypes = Seq(Simple("StringType", nullable = true))
+      val dataType = Simple("StringType", nullable = true)
+      val dataTypes = Seq(dataType)
 
       val attributes = Seq(
-        splinemodel.Attribute(randomUUID(), "_1", dataTypes.head.id),
-        splinemodel.Attribute(randomUUID(), "_2", dataTypes.head.id),
-        splinemodel.Attribute(randomUUID(), "_3", dataTypes.head.id)
+        splinemodel.Attribute(randomUUID(), "_1", dataType.id),
+        splinemodel.Attribute(randomUUID(), "_2", dataType.id),
+        splinemodel.Attribute(randomUUID(), "_3", dataType.id)
       )
       val aSchema = splinemodel.Schema(attributes.map(_.id))
       val bSchema = splinemodel.Schema(attributes.map(_.id).tail)

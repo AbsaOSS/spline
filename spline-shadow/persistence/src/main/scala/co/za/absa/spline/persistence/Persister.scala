@@ -166,9 +166,14 @@ object Persister {
   })
 
   private def findOutputSchema(dataLineage: DataLineage, operation: splinemodel.op.Operation): Schema = {
-    val metaDataset: MetaDataset = dataLineage.datasets.find((dts: MetaDataset) => dts.id == operation.mainProps.output).get
+    val metaDataset: MetaDataset = dataLineage.datasets.find((dts: MetaDataset) => dts.id == operation.mainProps.output)
+      .getOrElse(throw new IllegalArgumentException(
+        s"Operation output id ${operation.mainProps.output} not found in datasets of dataLineage ${dataLineage.id}"))
     val attributes = metaDataset.schema.attrs.map(attrId => {
-      val attribute = dataLineage.attributes.find(_.id == attrId).get
+      val attribute = dataLineage.attributes.find(_.id == attrId)
+        .getOrElse(throw new IllegalArgumentException(
+          s"MetaDataset ${metaDataset.id} contains Attribute $attrId " +
+            s"that is not available in Datalineage#attributes of ${dataLineage.id}."))
       Attribute(attribute.name, attribute.dataTypeId.toString)
     })
     Schema(attributes)
