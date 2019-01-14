@@ -33,12 +33,10 @@ package co.za.absa.spline.persistence
 
 import java.security.MessageDigest
 
-import za.co.absa.spline.model.op
-
 import org.apache.commons.lang.builder.ToStringBuilder.reflectionToString
-import za.co.absa.spline.model.op.BatchWrite
-import za.co.absa.spline.model.{DataLineage, MetaDataset}
 import za.co.absa.spline.{model => splinemodel}
+import splinemodel.{op, DataLineage, MetaDataset}
+import splinemodel.op.BatchWrite
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
