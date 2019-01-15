@@ -17,8 +17,11 @@
 package co.za.absa.spline.persistence
 
 // Underscore import is needed
+import java.net.URI
+
 import com.outr.arango.{DocumentOption, Edge, _}
 import com.outr.arango.managed._
+import io.youi.net.{Protocol, URL}
 
 case class Progress(timestamp: Long, readCount: Long, _key: Option[String] = None, _id: Option[String] = None,  _rev: Option[String] = None) extends DocumentOption
 case class Execution(id: String, sparkVer: String, timestamp: Long,  _key: Option[String] = None, _id: Option[String] = None, _rev: Option[String] = None) extends DocumentOption
@@ -46,7 +49,7 @@ case class WritesTo(_from: String, _to: String,  _key: Option[String] = None, _i
 case class Implements(_from: String, _to: String, _key: Option[String] = None,  _id: Option[String] = None,  _rev: Option[String] = None) extends Edge with DocumentOption
 case class Executes(_from: String, _to: String, _key: Option[String] = None,  _id: Option[String] = None,  _rev: Option[String] = None) extends Edge with DocumentOption
 
-object Database extends Graph("lineages") {
+class Database(db: String, url: URL, credentials: Option[Credentials]) extends Graph("lineages", db, url, credentials) {
 
   val progress: VertexCollection[Progress] = vertex[Progress]("progress")
   val progressOf: EdgeCollection[ProgressOf] = edge[ProgressOf]("progressOf", ("progress", "execution"))
@@ -64,4 +67,15 @@ object Database extends Graph("lineages") {
     def copy(_key: Option[String], _id: Option[String], _rev: Option[String]): T
   }
 
+}
+
+object Database {
+
+  def apply(uri: URI): Database = {
+    val db = uri.getPath.replaceFirst("/", "")
+    val protocol: Protocol = Option(uri.getScheme).map(Protocol(_)).getOrElse(Protocol.Https)
+    val url = new URL(protocol, uri.getHost, uri.getPort)
+    val credentials = Option(uri.getUserInfo).map(_.split(':')).map(s => Credentials(s(0), s(1)))
+    new Database(uri.getPath, url, credentials)
+  }
 }

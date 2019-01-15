@@ -34,6 +34,9 @@ object ArangoActor {
 }
 
 class ArangoActor(connectionUrl: String) extends Actor {
+
+  val persister = new Persister(connectionUrl)
+
   override def receive: Receive = {
     case LineagePersistRequest(lineage) =>
       save(lineage).
@@ -46,6 +49,6 @@ class ArangoActor(connectionUrl: String) extends Actor {
 
   private def save(lineage: DataLineage): Future[Unit] = {
     println("Save lineage: " + lineage.id)
-    Persister.save(lineage)
+    persister.save(lineage)
   }
 }

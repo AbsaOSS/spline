@@ -16,18 +16,21 @@
 
 package co.za.absa.spline.persistence
 
+import java.net.URI
 import java.security.MessageDigest
 
 import org.apache.commons.lang.builder.ToStringBuilder.reflectionToString
 import za.co.absa.spline.{model => splinemodel}
-import splinemodel.{op, DataLineage, MetaDataset}
+import splinemodel.{DataLineage, MetaDataset, op}
 import splinemodel.op.BatchWrite
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import Future.sequence
 
-object Persister {
+class Persister(arangoUri: String) {
+
+  val database = Database(new URI(arangoUri))
 
   // TODO rewrite with bulk insert ArangoSession see https://github.com/outr/scarango/blob/master/driver/src/test/scala/spec/CollectionSpec.scala
   def save(dataLineage: DataLineage): Future[Unit] = {
@@ -52,17 +55,17 @@ object Persister {
 
   private def createExecutes(app: App, execution: Execution) = {
     val executes = Executes(execution._id.get, app._id.get, app._key, execution._id)
-    Database.executes.upsert(executes)
+    database.executes.upsert(executes)
   }
 
   private def createImplements(dataLineage: DataLineage, app: App) = {
     val implements = Implements(app._id.get, "operation/" + dataLineage.rootOperation.mainProps.id.toString, app._key)
-    Database.implements.upsert(implements)
+    database.implements.upsert(implements)
   }
 
   private def createProgressOf(progress: Progress, execution: Execution) = {
     val progressOf = ProgressOf(progress._id.get, execution._id.get, progress._key)
-    Database.progressOf.upsert(progressOf)
+    database.progressOf.upsert(progressOf)
   }
 
   /**  progress for batch jobs need to be generated during migration for consistency with stream jobs **/
@@ -73,20 +76,20 @@ object Persister {
       .asInstanceOf[BatchWrite]
     val readCount = batchWrites.readMetrics.values.sum
     val progress = Progress(dataLineage.timestamp, readCount, Some(dataLineage.id.toString))
-    Database.progress.upsert(progress)
+    database.progress.upsert(progress)
   }
 
   private def createApp(dataLineage: DataLineage) = {
     val dataTypes = dataLineage.dataTypes.map(d => DataType(d.id.toString, d.getClass.getSimpleName, d.nullable, d.childDataTypeIds.map(_.toString)))
     //  Spline 0.3 DataLineage AppId is rather an app execution id. But for migration it will be used for App#id as well.
     val app = App(dataLineage.appId, dataLineage.appName, dataTypes, Some(sha256(dataLineage.appId.toString)))
-    Database.app.upsert(app)
+    database.app.upsert(app)
   }
 
   private def createExecution(dataLineage: DataLineage) = {
     // Spline 0.3 AppId represents rather an app execution id.
     val execution = Execution(dataLineage.appId, dataLineage.sparkVer, dataLineage.timestamp, Some(dataLineage.id.toString))
-    Database.execution.upsert(execution)
+    database.execution.upsert(execution)
   }
 
   private def createReadsFrom(dataLineage: DataLineage) : Future[Seq[ReadsFrom]] = Future.sequence(
@@ -94,13 +97,13 @@ object Persister {
       .filter(_.isInstanceOf[op.Read])
       .map(_.asInstanceOf[op.Read])
       .flatMap(op => op.sources.map(s => ReadsFrom("operation/" + op.mainProps.id.toString, "dataSource/" + sha256(s.path), Some(op.mainProps.id.toString))))
-      .map(o => Database.readsFrom.upsert(o))
+      .map(o => database.readsFrom.upsert(o))
   )
 
   private def createWritesTos(dataLineage: DataLineage) = Future.sequence({
     dataLineage.operations.filter(_.isInstanceOf[op.Write]).map(_.asInstanceOf[op.Write])
       .map(o => WritesTo("operation/" + o.mainProps.id.toString, "dataSource/" + sha256(o.path), Some(o.mainProps.id.toString)))
-      .map(o => Database.writesTo.upsert(o))
+      .map(o => database.writesTo.upsert(o))
   })
 
   private def createDatasources(dataLineage: DataLineage): Future[Seq[DataSource]] = Future.sequence({
@@ -111,7 +114,7 @@ object Persister {
     })
       .distinct
       .map(path => DataSource(path, Some(sha256(path))))
-      .map(d => Database.dataSource.upsert(d))
+      .map(d => database.dataSource.upsert(d))
   })
 
   private def createOperations(dataLineage: DataLineage): Future[Seq[Operation]] = Future.sequence({
@@ -125,7 +128,7 @@ object Persister {
         case w: splinemodel.op.Write => Write(name, expression, w.destinationType, outputSchema, _key)
         case _ => Transformation(name, expression, outputSchema, _key)
       }})
-      .map(o => Database.operation.upsert(o))
+      .map(o => database.operation.upsert(o))
   })
 
   private def createFollows(dataLineage: DataLineage) = Future.sequence({
@@ -145,7 +148,7 @@ object Persister {
           "operation/" + opId.toString,
           Some(op.mainProps.id.toString + '-' + opId.toString)))
         })
-      .map(o => Database.follows.upsert(o))
+      .map(o => database.follows.upsert(o))
   })
 
   private def findOutputSchema(dataLineage: DataLineage, operation: splinemodel.op.Operation): Schema = {

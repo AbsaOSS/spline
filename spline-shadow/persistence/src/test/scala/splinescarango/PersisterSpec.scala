@@ -16,6 +16,7 @@
 
 package splinescarango
 
+import java.net.URI
 import java.util.UUID
 import java.util.UUID.randomUUID
 
@@ -33,11 +34,15 @@ import scala.util.Try
 
 class PersisterSpec extends FunSpec with Matchers with MockitoSugar {
 
+  val arangoUri = "http://root:root@localhost:8529/_SYSTEM"
+
   describe("Persister") {
     it("Persister should be able to insert an example lineage to an empty database") {
-      Try(awaitForever(Database.delete(true)))
-      awaitForever(Database.init(force = true))
-      awaitForever(Persister.save(datalineage()))
+      val database = Database(new URI(arangoUri))
+      Try(awaitForever(database.delete(true)))
+      awaitForever(database.init(force = true))
+      val persister = new Persister(arangoUri)
+      awaitForever(persister.save(datalineage()))
     }
 
   }
