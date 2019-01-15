@@ -20,13 +20,14 @@ import java.net.URI
 import java.util.UUID
 import java.util.UUID.randomUUID
 
-import co.za.absa.spline.persistence.{Database, Persister}
+import za.co.absa.spline.model.arango._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FunSpec, Matchers}
 import za.co.absa.spline.model.{DataLineage, MetaDataSource, MetaDataset}
 import za.co.absa.spline.{model => splinemodel}
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op.{BatchRead, BatchWrite, Generic, OperationProps}
+import za.co.absa.spline.persistence.Persister
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
@@ -34,7 +35,7 @@ import scala.util.Try
 
 class PersisterSpec extends FunSpec with Matchers with MockitoSugar {
 
-  val arangoUri = "http://root:root@localhost:8529/_SYSTEM"
+  val arangoUri = "http://root:root@localhost:8529/_system"
 
   describe("Persister") {
     it("Persister should be able to insert an example lineage to an empty database") {

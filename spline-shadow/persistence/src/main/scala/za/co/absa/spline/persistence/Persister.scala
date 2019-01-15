@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package co.za.absa.spline.persistence
+package za.co.absa.spline.persistence
 
 import java.net.URI
 import java.security.MessageDigest
 
 import org.apache.commons.lang.builder.ToStringBuilder.reflectionToString
+import za.co.absa.spline.model.op.BatchWrite
+import za.co.absa.spline.model.{DataLineage, MetaDataset, op}
+import za.co.absa.spline.model.arango._
 import za.co.absa.spline.{model => splinemodel}
-import splinemodel.{DataLineage, MetaDataset, op}
-import splinemodel.op.BatchWrite
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import Future.sequence
+import scala.concurrent.Future
+import scala.concurrent.Future.sequence
 
 class Persister(arangoUri: String) {
 

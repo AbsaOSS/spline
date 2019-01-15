@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2017 ABSA Group Limited
  *
@@ -14,13 +15,13 @@
  * limitations under the License.
  */
 
-package co.za.absa.spline.persistence
+package za.co.absa.spline.model.arango
 
 // Underscore import is needed
 import java.net.URI
 
-import com.outr.arango.{DocumentOption, Edge, _}
 import com.outr.arango.managed._
+import com.outr.arango.{DocumentOption, Edge, _}
 import io.youi.net.{Protocol, URL}
 
 case class Progress(timestamp: Long, readCount: Long, _key: Option[String] = None, _id: Option[String] = None,  _rev: Option[String] = None) extends DocumentOption
@@ -38,7 +39,6 @@ trait Operation extends PolymorphicDocumentOption {
 case class Read(name: String, expression: String, format: String, outputSchema: Schema, _key: Option[String] = None,   _id: Option[String] = None,  _rev: Option[String] = None, _type: String = "read") extends Operation
 case class Write(name: String, expression: String, format: String, outputSchema: Schema,  _key: Option[String] = None,   _id: Option[String] = None,  _rev: Option[String] = None, _type: String = "write") extends Operation
 case class Transformation(name: String, expression: String, outputSchema: Schema, _key: Option[String] = None, _id: Option[String] = None, _rev: Option[String] = None, _type: String = "transformation") extends Operation
-
 case class DataSource(uri: String, _key: Option[String] = None, _rev: Option[String] = None, _id: Option[String] = None) extends DocumentOption
 case class Attribute(name: String, dataTypeId: String)
 
@@ -76,6 +76,6 @@ object Database {
     val protocol: Protocol = Option(uri.getScheme).map(Protocol(_)).getOrElse(Protocol.Https)
     val url = new URL(protocol, uri.getHost, uri.getPort)
     val credentials = Option(uri.getUserInfo).map(_.split(':')).map(s => Credentials(s(0), s(1)))
-    new Database(uri.getPath, url, credentials)
+    new Database(db, url, credentials)
   }
 }
