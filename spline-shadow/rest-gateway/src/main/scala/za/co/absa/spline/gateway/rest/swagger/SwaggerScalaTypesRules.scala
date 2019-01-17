@@ -34,6 +34,10 @@ trait SwaggerScalaTypesRules extends AlternateTypeRuleConvention {
       GENERIC_SUBSTITUTION_RULE_ORDER)
 
   override def rules(): util.List[AlternateTypeRule] = util.Arrays.asList(
+    newRule(classOf[java.util.Date], classOf[Long]),
+    newRule(classOf[java.sql.Date], classOf[Long]),
+    newRule(classOf[java.sql.Timestamp], classOf[Long]),
+
     newUnboxingRule[Option[_]],
     newUnboxingRule[Future[_]],
 
