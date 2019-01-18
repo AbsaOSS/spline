@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.web.handler
+package za.co.absa.spline.common.logging
 
-import java.util.concurrent.atomic.AtomicLong
-import java.util.function.LongBinaryOperator
+import org.slf4j.{Logger, LoggerFactory}
 
-class MovingAverageCalculator(initialValue: Long, alpha: Double) {
-
-  private val lastAvg = new AtomicLong(initialValue)
-
-  def currentAverage: Long = lastAvg.get
-
-  def addMeasurement(elapsedTime: Long): Unit =
-    lastAvg.accumulateAndGet(elapsedTime, new LongBinaryOperator {
-      override def applyAsLong(left: Long, right: Long): Long =
-        (alpha * elapsedTime + (1 - alpha) * lastAvg.get).toLong
-    })
+trait Logging {
+  @transient
+  protected lazy val log: Logger = LoggerFactory getLogger getClass
 }

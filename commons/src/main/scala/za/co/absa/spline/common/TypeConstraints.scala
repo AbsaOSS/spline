@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.web.logging
+package za.co.absa.spline.common
 
-import org.slf4j.{Logger, LoggerFactory}
+object TypeConstraints {
 
-trait Logging {
-  @transient
-  protected lazy val log: Logger = LoggerFactory getLogger getClass
+  // Encoding for "A is not a subtype of B"
+  trait !<:[A, B]
+
+  type not[T] = {type λ[U] = U !<: T} //NOSONAR
+
+  // use ambiguous method declarations to rule out excluding type conditions
+  implicit def passingProbe[A, B]: A !<: B = null //NOSONAR
+
+  implicit def failingProbe1[A, B >: A]: A !<: B = null //NOSONAR
+
+  implicit def failingProbe2[A, B >: A]: A !<: B = null //NOSONAR
 }

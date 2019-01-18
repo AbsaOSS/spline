@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.web
+package za.co.absa.spline.common.webmvc
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.springframework.http.HttpHeaders

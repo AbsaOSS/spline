@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.common
+package za.co.absa.spline.common.future
 
-/**
-  * The object contains auxiliary data types needed implicit type conversions.
-  */
-object TypeFreaks {
+import java.util.concurrent.atomic.AtomicLong
+import java.util.function.LongBinaryOperator
 
-  // Encoding for "A is not a subtype of B"
-  trait !<:[A, B]
+class MovingAverageCalculator(initialValue: Long, alpha: Double) {
 
-  type `not a subtype of`[T] = {type λ[U] = U !<: T} //NOSONAR
+  private val lastAvg = new AtomicLong(initialValue)
 
-  // use ambiguous method declarations to rule out excluding type conditions
-  implicit def passingProbe[A, B]: A !<: B = null //NOSONAR
+  def currentAverage: Long = lastAvg.get
 
-  implicit def failingProbe1[A, B >: A]: A !<: B = null //NOSONAR
-
-  implicit def failingProbe2[A, B >: A]: A !<: B = null //NOSONAR
+  def addMeasurement(elapsedTime: Long): Unit =
+    lastAvg.accumulateAndGet(elapsedTime, new LongBinaryOperator {
+      override def applyAsLong(left: Long, right: Long): Long =
+        (alpha * elapsedTime + (1 - alpha) * lastAvg.get).toLong
+    })
 }
