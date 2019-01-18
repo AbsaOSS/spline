@@ -123,8 +123,9 @@ abstract class BatchWriteNodeBuilder
     operation.format,
     getQualifiedPath(operation.path),
     append = operation.mode == SaveMode.Append,
-    writeMetrics = writeMetrics,
-    readMetrics = readMetrics
+    // Transforming to new Map to make sure the it is serializable
+    writeMetrics = writeMetrics.map(identity),
+    readMetrics = readMetrics.map(identity)
   )
 }
 
