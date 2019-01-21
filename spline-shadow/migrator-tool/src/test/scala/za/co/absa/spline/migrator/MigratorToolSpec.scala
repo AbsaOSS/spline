@@ -16,18 +16,29 @@
 
 package za.co.absa.spline.migrator
 
-import org.scalatest.{FunSpec, Ignore}
+import java.net.URI
 
-import scala.concurrent.Await
+import org.scalatest.FunSpec
+import za.co.absa.spline.model.arango.Database
+
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
+import scala.util.Try
 
-@Ignore
 class MigratorToolSpec extends FunSpec {
+
+  private val arangoUri = "http://root:root@localhost:8529/_system"
 
   describe("migration tool test") {
     it("migrate from mongo to arango") {
-      Await.result(MigratorTool.migrate(new MigratorConfig("mongodb://localhost:27017/migration-test", arangoConnectionUrl = "http://root:root@localhost:8529/_system", batchSize = 10, batchesMax = 1)), Duration.Inf)
+      val database = Database(new URI(arangoUri))
+      Try(awaitForever(database.delete(true)))
+      awaitForever(database.init(force = true))
+      Await.result(MigratorTool.migrate(new MigratorConfig("mongodb://localhost:27017/migration-test", arangoConnectionUrl = arangoUri, batchSize = 10, batchesMax = 1)), Duration.Inf)
     }
   }
 
+  def awaitForever(future: Future[_]): Unit = {
+    Await.result(future, Duration.Inf)
+  }
 }
