@@ -9,6 +9,7 @@ import { LineageGraphComponent } from './components/lineage/lineage-graph/lineag
 import { LineageDetailsComponent } from './components/lineage/lineage-details/lineage-details.component';
 import { ErrorComponent } from './components/error/error.component';
 import { HttpClientModule } from '@angular/common/http';
+import { SchemaComponent } from './components/lineage/lineage-details/schema/schema.component';
 
 @NgModule({
   declarations: [
@@ -16,7 +17,8 @@ import { HttpClientModule } from '@angular/common/http';
     LineageGraphComponent,
     LineageDetailsComponent,
     LineageComponent,
-    ErrorComponent
+    ErrorComponent,
+    SchemaComponent
   ],
   imports: [
     BrowserModule,

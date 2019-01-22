@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { GraphService } from './graph.service';
 import { LayoutService } from './layout.service';
 import { OperationType } from 'src/app/types/operationTypes';
+import { ExecutionPlanControllerService } from 'src/app/generated/services';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,8 @@ export class ContextualMenuService {
 
   constructor(
     private graphService: GraphService,
-    private layoutService: LayoutService
+    private layoutService: LayoutService,
+    private executionPlanControllerService: ExecutionPlanControllerService
   ) { }
 
   public getConfiguration() {
@@ -35,7 +37,8 @@ export class ContextualMenuService {
         {
           content: '<span class="fa fa-info-circle fa-2x"></span><b>Details</b>',
           select: function (ele) {
-            console.log(ele.id())
+            var t = that.executionPlanControllerService.lineageUsingGETResponse("2280281c-1d89-11e9-8eba-d663bd873d93").subscribe();
+            console.log(t)
           }
         },
         {

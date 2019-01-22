@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, BehaviorSubject, Subject } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { OperationType } from 'src/app/types/operationTypes';
 
@@ -11,10 +11,67 @@ import { OperationType } from 'src/app/types/operationTypes';
 
 export class GraphService {
 
-  constructor(private http: HttpClient) { }
+  graph = {
+    nodes: [
+      { data: { id: 'op-uuid-1', name: 'op-uuid-1', } },
+      { data: { id: 'op-uuid-2', name: 'op-uuid-2', operationType: 'Alias' } },
+      { data: { id: 'op-uuid-3', name: 'op-uuid-3', operationType: 'Projection' } },
+      { data: { id: 'op-uuid-5', name: 'op-uuid-5', operationType: 'Projection' } },
+      { data: { id: 'op-uuid-7', name: 'op-uuid-7', operationType: 'Projection' } },
+      { data: { id: 'op-uuid-8', name: 'op-uuid-8', operationType: 'Projection' } },
+      { data: { id: 'op-uuid-9', name: 'op-uuid-9', operationType: 'Join' } },
+      { data: { id: 'op-uuid-10', name: 'op-uuid-10', operationType: 'Projection' } },
+      { data: { id: 'op-uuid-12', name: 'op-uuid-12', operationType: 'Join' } },
+      { data: { id: 'op-uuid-14', name: 'op-uuid-14', operationType: 'Projection' } },
+      { data: { id: 'op-uuid-15', name: 'op-uuid-15', operationType: 'Projection' } },
+      { data: { id: 'op-uuid-17', name: 'op-uuid-17', operationType: 'Join' } },
+      { data: { id: 'op-uuid-21', name: 'op-uuid-21', nativeRoot: 'true' } },
+      { data: { id: 'op-uuid-23', name: 'op-uuid-23', operationType: 'Projection' } },
+      { data: { id: 'op-uuid-24', name: 'op-uuid-24', operationType: 'Projection' } },
+      { data: { id: 'op-uuid-26', name: 'op-uuid-26', nativeRoot: 'true' } },
+      { data: { id: 'op-uuid-28', name: 'op-uuid-28', operationType: 'Projection' } },
+      { data: { id: 'op-uuid-30', name: 'op-uuid-30', nativeRoot: 'true' } },
+      { data: { id: 'op-uuid-32', name: 'op-uuid-32', operationType: 'Aggregate' } },
+      { data: { id: 'op-uuid-18', name: 'op-uuid-18', operationType: 'Projection' } },
+      { data: { id: '57767d87-909b-49dd-9800-e7dc59e95340', name: '57767d87-909b-49dd-9800-e7dc59e95340', operationType: 'Filter' } },
+      { data: { id: 'c0ec33fd-aaaa-41f6-8aa2-e610e899fb75', name: 'c0ec33fd-aaaa-41f6-8aa2-e610e899fb75', operationType: 'Sort' } }
+    ],
+    edges: [
+      { data: { source: 'op-uuid-2', target: 'op-uuid-1' } },
+      { data: { source: 'op-uuid-3', target: 'op-uuid-2' } },
+      { data: { source: 'op-uuid-5', target: 'op-uuid-3' } },
+      { data: { source: 'op-uuid-7', target: 'op-uuid-5' } },
+      { data: { source: 'op-uuid-32', target: 'op-uuid-5' } },
+      { data: { source: 'op-uuid-8', target: 'op-uuid-7' } },
+      { data: { source: 'op-uuid-9', target: 'op-uuid-8' } },
+      { data: { source: 'op-uuid-9', target: 'op-uuid-18' } },
+      { data: { source: 'op-uuid-10', target: 'op-uuid-9' } },
+      { data: { source: 'op-uuid-12', target: 'op-uuid-10' } },
+      { data: { source: 'op-uuid-14', target: 'op-uuid-12' } },
+      { data: { source: 'op-uuid-28', target: 'op-uuid-12' } },
+      { data: { source: 'op-uuid-15', target: 'op-uuid-14' } },
+      { data: { source: 'op-uuid-17', target: 'op-uuid-15' } },
+      { data: { source: 'op-uuid-21', target: 'op-uuid-17' } },
+      { data: { source: 'op-uuid-23', target: 'op-uuid-17' } },
+      { data: { source: 'op-uuid-24', target: 'op-uuid-23' } },
+      { data: { source: 'op-uuid-26', target: 'op-uuid-24' } },
+      { data: { source: 'op-uuid-30', target: 'op-uuid-28' } },
+      { data: { source: 'c0ec33fd-aaaa-41f6-8aa2-e610e899fb75', target: 'op-uuid-32' } },
+      { data: { source: 'op-uuid-18', target: '57767d87-909b-49dd-9800-e7dc59e95340' } },
+      { data: { source: '57767d87-909b-49dd-9800-e7dc59e95340', target: 'c0ec33fd-aaaa-41f6-8aa2-e610e899fb75' } }
+    ]
+  }
 
   // TODO : Define constants to the whole app in a seperated file with a service accessor
-  private mockRestApi = 'http://localhost:3000/lineage/datasourceId/timestamp';
+  private mockRestApiGraph = 'http://localhost:3000/lineage/datasourceId/timestamp';
+
+  // TODO : Define constants to the whole app in a seperated file with a service accessor
+  private mockRestApiDetails = 'http://localhost:3000/details/';
+
+  private detailsInfoSubject = new BehaviorSubject<any>(null)
+  detailsInfo = this.detailsInfoSubject.asObservable()
+
+  constructor(private http: HttpClient) { }
 
   /**
    * Get the graph data from the API
@@ -22,13 +79,26 @@ export class GraphService {
    */
   public getGraphData(nodeFocus: string = null, depth: number = null): Observable<any> {
     // TODO : Use a Url Builder Service 
-    let url = this.mockRestApi;
+    let url = this.mockRestApiGraph;
     if (nodeFocus && depth) {
       url = url + "/" + nodeFocus + "/" + depth;
     }
     return this.http.get(url).pipe(
       catchError(this.handleError)
     );
+  }
+
+  /**
+   * Get the details of a node and push it to the behavior subject
+   */
+  public getDetailsInfo(nodeId: string) {
+    // TODO : Use a Url Builder Service
+    let url = this.mockRestApiDetails + nodeId
+    this.http.get(url).pipe(
+      catchError(this.handleError)
+    ).subscribe(res => {
+      this.detailsInfoSubject.next(res)
+    });
   }
 
   public getIconFromOperationType(operation: OperationType): string {

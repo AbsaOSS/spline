@@ -8,7 +8,8 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "dev": "concurrently --kill-others \"ng serve \" \"node ./mock-rest-api/server.js\""
+    "swagger-gen": "node_modules/.bin/ng-swagger-gen -i http://localhost:8080/v2/api-docs -o src/app/generated",
+    "dev": "npm run swagger-gen && concurrently --kill-others \"ng serve \" \"node ./mock-rest-api/server.js\""
   },
   "private": true,
   "dependencies": {
@@ -34,7 +35,7 @@
     "zone.js": "~0.8.26"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~0.10.0",
+    "@angular-devkit/build-angular": "^0.12.2",
     "@angular/cli": "~7.0.5",
     "@angular/compiler-cli": "~7.0.0",
     "@angular/language-service": "~7.0.0",
@@ -50,6 +51,7 @@
     "karma-coverage-istanbul-reporter": "~2.0.1",
     "karma-jasmine": "~1.1.2",
     "karma-jasmine-html-reporter": "^0.2.2",
+    "ng-swagger-gen": "^1.4.3",
     "protractor": "~5.4.0",
     "ts-node": "~7.0.0",
     "tslint": "~5.11.0",
