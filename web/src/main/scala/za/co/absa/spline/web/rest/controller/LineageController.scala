@@ -25,10 +25,10 @@ import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMethod._
 import org.springframework.web.bind.annotation.{PathVariable, RequestMapping, RequestParam, ResponseBody}
+import za.co.absa.spline.common.future.EstimableFuture
 import za.co.absa.spline.persistence.api.DataLineageReader
 import za.co.absa.spline.persistence.api.DataLineageReader.{IntervalPageRequest, PageRequest}
 import za.co.absa.spline.web.ExecutionContextImplicit
-import za.co.absa.spline.web.handler.EstimableFuture
 import za.co.absa.spline.web.json.StringJSONConverters
 import za.co.absa.spline.web.rest.service.LineageService
 

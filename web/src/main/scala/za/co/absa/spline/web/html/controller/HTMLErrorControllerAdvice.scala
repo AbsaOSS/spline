@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.{ControllerAdvice, ExceptionHandl
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException
 import org.springframework.web.servlet.ModelAndView
 import za.co.absa.spline.web.exception.LineageNotFoundException
-import za.co.absa.spline.web.logging.ErrorCode
+import za.co.absa.spline.common.logging.ErrorCode
 
 @ControllerAdvice(basePackageClasses = Array(classOf[_package]))
 class HTMLErrorControllerAdvice {

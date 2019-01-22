@@ -20,7 +20,7 @@ import de.sciss.chart.XYChart
 import de.sciss.chart.module.ChartFactories
 import org.jfree.chart.axis.NumberAxis
 import org.jfree.chart.renderer.xy.{SamplingXYLineRenderer, XYDotRenderer}
-import za.co.absa.spline.web.handler.MovingAverageCalculator
+import za.co.absa.spline.common.future.MovingAverageCalculator
 
 object MovingAverageChart extends App with ChartFactories {
 
