@@ -11,3 +11,29 @@ html, body {
 .cxtmenu-disabled{
     opacity: 0.35;
 }
+
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    margin-top:5px;
+    margin-bottom: 5px;
+    background: transparent; 
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    border-radius: 45px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    -webkit-box-shadow: inset 0 0 5px rgba(227, 146, 85, 0.9); 
+    box-shadow: inset 0 0 5px rgba(227, 146, 85,0.9); 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #e39255; 
+}

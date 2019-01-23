@@ -1,5 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { SchemaType } from 'src/app/types/schemaType';
+import { PropertyType } from 'src/app/types/propertyType';
 
 @Component({
   selector: 'schema',
@@ -9,15 +10,18 @@ import { SchemaType } from 'src/app/types/schemaType';
 export class SchemaComponent implements OnInit {
 
   @Input()
-  schemaType: SchemaType;
+  schemaId: string
 
   @Input()
-  schema: any;
+  schemaType: SchemaType
+
+  @Input()
+  schema: any
 
   constructor() { }
 
   ngOnInit() {
-    console.log(this.schemaType)
+    console.log(this.schemaId)
   }
 
   getSchemaTypeLabel(): any {
@@ -28,4 +32,13 @@ export class SchemaComponent implements OnInit {
     }
   }
 
+
+  getPropertyType(propertyType: string): any {
+    switch (propertyType) {
+      case PropertyType.Struct: return "Struct"
+      case PropertyType.Array: return "Array"
+      case PropertyType.Simple: return "Simple"
+      default: return ""
+    }
+  }
 }

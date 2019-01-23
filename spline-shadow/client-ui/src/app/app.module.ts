@@ -10,6 +10,8 @@ import { LineageDetailsComponent } from './components/lineage/lineage-details/li
 import { ErrorComponent } from './components/error/error.component';
 import { HttpClientModule } from '@angular/common/http';
 import { SchemaComponent } from './components/lineage/lineage-details/schema/schema.component';
+import { PropertyDetailsComponent } from './components/lineage/lineage-details/property-details/property-details.component';
+import { SchemaDetailsComponent } from './components/lineage/lineage-details/schema-details/schema-details.component';
 
 @NgModule({
   declarations: [
@@ -18,7 +20,9 @@ import { SchemaComponent } from './components/lineage/lineage-details/schema/sch
     LineageDetailsComponent,
     LineageComponent,
     ErrorComponent,
-    SchemaComponent
+    SchemaComponent,
+    PropertyDetailsComponent,
+    SchemaDetailsComponent
   ],
   imports: [
     BrowserModule,
