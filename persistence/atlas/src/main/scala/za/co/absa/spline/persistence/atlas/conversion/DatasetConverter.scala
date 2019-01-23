@@ -48,7 +48,7 @@ object DatasetConverter {
         case op.Read(_, st, paths) =>
           val path = paths.map(_.path) mkString ", "
           new EndpointDataset(name, qualifiedName, attributes, new FileEndpoint(path, path), EndpointType.file, EndpointDirection.input, st)
-        case op.Write(_, dt, path, _) => new EndpointDataset(name, qualifiedName, attributes, new FileEndpoint(path, path), EndpointType.file, EndpointDirection.output, dt)
+        case op.Write(_, dt, path, _, _, _) => new EndpointDataset(name, qualifiedName, attributes, new FileEndpoint(path, path), EndpointType.file, EndpointDirection.output, dt)
         case _ => new Dataset(name, qualifiedName, attributes)
       }
     }
