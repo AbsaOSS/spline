@@ -29,6 +29,7 @@
 
     <modules>
         <module>api</module>
+        <module>atlas</module>
         <module>mongo</module>
         <module>hdfs</module>
     </modules>
