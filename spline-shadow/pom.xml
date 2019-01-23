@@ -35,6 +35,9 @@
         <module>model</module>
         <module>persistence</module>
         <module>rest-gateway</module>
+        <module>client-ui</module>
+        <module>client-webjar</module>
+        <module>client-web</module>
         <module>migrator-tool</module>
     </modules>
 
