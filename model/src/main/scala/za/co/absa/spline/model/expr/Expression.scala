@@ -28,12 +28,12 @@ sealed trait Expression {
 }
 
 @Salat
-trait LeafExpression extends Expression {
+sealed trait LeafExpression extends Expression {
   override final def children: Seq[Expression] = Nil
 }
 
 @Salat
-trait RefLikeExpression extends Expression {
+sealed trait RefLikeExpression extends Expression {
   override final def allRefLikeChildrenFlattened: Seq[Expression] = this +: super.allRefLikeChildrenFlattened
 }
 
