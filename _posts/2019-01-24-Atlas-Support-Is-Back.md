@@ -4,12 +4,12 @@ title: "Atlas Support Is Back!"
 date: 2019-01-24
 author: "Vaclav Kosar @ Absa"
 ---
-<img src="{{ site.url }}{{ site.baseurl }}/assets/spline-atlas-ingested-lineage.png" width="560" height="315" />
+<img src="{{ site.url }}{{ site.baseurl }}/assets/spline-atlas-ingested-lineage-2.png" width="560" height="315" />
 
 Apache Atlas is meta data management platform for big data, which is often also used for data lineage. Spline support of Atlas was temporarily removed due to large refactoring on version 0.3. But now Atlas support is back thanks to [Marek Novotny](https://github.com/mn-mikke) and will be released soon. Supported Atlas version now is 1.0.
 
 
-# Spline Atlas Integration vs Hortonworks Spark Atlas Connector
+## Spline Atlas Integration vs Hortonworks Spark Atlas Connector
 
 Those who need to use Atlas only and are not worried about loosing Spline's UI closely tailored for data lineage and improved lineage linking (Spline links exact file versions that were used) may consider using also Hortonworks Spark Atlas connector.
 
@@ -18,7 +18,7 @@ In short differences between these tools are:
 - Spline doesn't support ML and Hive data lineages
 
 
-# How To Try Out Spline Atlas Integration
+## How To Try Out Spline Atlas Integration
 
 1. Download Hortonworks Data Platform 3.0.1 Virtualbox Image.
 2. Install VirtualBox.
