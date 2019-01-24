@@ -342,6 +342,13 @@
                                 <exclude>ui/node_modules/**</exclude>
                                 <exclude>ui/src/third-party-scripts/**</exclude>
                                 <exclude>ui/src/generated-ts/**</exclude>
+                                <exclude>ui2/dist/**</exclude>
+                                <exclude>ui2/node_modules/**</exclude>
+                                <exclude>ui2/src/third-party-scripts/**</exclude>
+                                <exclude>ui2/src/generated-ts/**</exclude>
+                                <exclude>ui2/.editorconfig</exclude>
+                                <exclude>ui2/src/browserslist</exclude>
+                                <exclude>ui2/src/assets/.gitkeep</exclude>
                             </excludes>
                         </configuration>
                     </plugin>

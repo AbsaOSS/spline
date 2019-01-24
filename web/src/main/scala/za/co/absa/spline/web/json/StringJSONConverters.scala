@@ -24,7 +24,7 @@ import org.json4s.ext.UUIDSerializer
 import org.json4s.native.Serialization
 import org.json4s.{CustomSerializer, DateFormat, DefaultFormats, Formats, FullTypeHints, JNull, JString, Serializer}
 import za.co.absa.spline.common.ReflectionUtils.subClassesOf
-import za.co.absa.spline.common.TypeFreaks._
+import za.co.absa.spline.common.TypeConstraints._
 import za.co.absa.spline.model._
 import za.co.absa.spline.persistence.api.CloseableIterable
 
@@ -95,7 +95,7 @@ object StringJSONConverters {
     def asJsonArrayInto(out: Writer): Unit = Serialization.write(xs, out)
   }
 
-  implicit class EntityToJson[T <: AnyRef with io.Serializable : `not a subtype of`[Traversable[_]]#λ : Manifest](entity: T) {
+  implicit class EntityToJson[T <: AnyRef with io.Serializable : not[Traversable[_]]#λ : Manifest](entity: T) {
     def toJson: String = Serialization.write(entity)
 
     def asJsonInto(out: Writer): Unit = Serialization.write(entity, out)
