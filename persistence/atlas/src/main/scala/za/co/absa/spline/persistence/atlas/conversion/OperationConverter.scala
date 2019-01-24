@@ -44,7 +44,7 @@ class OperationConverter(expressionConverter: ExpressionConverter) {
         Seq(dataSetIdMap(o.mainProps.output))
       )
       o match {
-        case op.Write(_, _, _, append, _, _) => new WriteOperation(commonProperties, append)
+        case op.BatchWrite(_, _, _, append, _, _) => new WriteOperation(commonProperties, append)
         case op.Sort(_, orders) =>
           val atlasOrders = orders.zipWithIndex.map{
             case (op.SortOrder(expression, direction, nullOrder), i) =>
