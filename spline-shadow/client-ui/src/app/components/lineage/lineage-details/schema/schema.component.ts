@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { Component, OnInit, Input } from '@angular/core';
 import { SchemaType } from 'src/app/types/schemaType';
+import { PropertyType } from 'src/app/types/propertyType';;
+import * as $ from 'jquery';
 
 @Component({
   selector: 'schema',
@@ -25,15 +26,18 @@ import { SchemaType } from 'src/app/types/schemaType';
 export class SchemaComponent implements OnInit {
 
   @Input()
-  schemaType: SchemaType;
+  schemaId: string
 
   @Input()
-  schema: any;
+  schemaType: SchemaType
+
+  @Input()
+  schema: any
 
   constructor() { }
 
   ngOnInit() {
-    console.log(this.schemaType)
+    console.log(this.schema)
   }
 
   getSchemaTypeLabel(): any {
@@ -44,4 +48,19 @@ export class SchemaComponent implements OnInit {
     }
   }
 
+
+  getPropertyType(propertyType: any): any {
+    switch (propertyType.dataType._typeHint) {
+      case PropertyType.Struct: return "{[...]}"
+      case PropertyType.Array: return "[...]"
+      case PropertyType.Simple: return propertyType.dataType.name
+      default: return ""
+    }
+  }
+
+  getPropertyDetails(property: any, event: any) {
+    console.log(property)
+    $("tr").removeClass("selected")
+    $(event.currentTarget).addClass('selected')
+  }
 }

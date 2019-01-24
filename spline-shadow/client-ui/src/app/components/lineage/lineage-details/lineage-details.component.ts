@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,42 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { Component, OnInit } from '@angular/core';
-import { GraphService } from 'src/app/services/lineage/graph.service';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'lineage-details',
   templateUrl: './lineage-details.component.html',
   styleUrls: ['./lineage-details.component.less']
 })
-export class LineageDetailsComponent implements OnInit {
+export class LineageDetailsComponent {
 
-  detailsInfo: any = null
-
-  constructor(private graphService: GraphService) { }
-
-  ngOnInit() {
-    this.graphService.detailsInfo.subscribe(detailsInfo => {
-      this.detailsInfo = detailsInfo
-      console.log(this.detailsInfo)
-    })
-  }
-
-  getType(): string {
-    return this.detailsInfo._typeHint.split('.').pop()
-  }
-
-  getInputs() {
-    let inputs = []
-    this.detailsInfo.mainProps.inputs.forEach(input => {
-      inputs.push(this.detailsInfo.mainProps.schemas[input])
-    });
-    return inputs
-  }
-
-  getOutput() {
-    return this.detailsInfo.mainProps.schemas[this.detailsInfo.mainProps.output]
-  }
-
+  constructor() { }
 }

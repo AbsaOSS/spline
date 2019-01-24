@@ -30,6 +30,7 @@
     "cytoscape-ng-lib": "^1.0.1",
     "cytoscape-panzoom": "^2.5.3",
     "font-awesome": "^4.7.0",
+    "jquery": "^3.3.1",
     "less": "^3.9.0",
     "rxjs": "~6.3.3",
     "zone.js": "~0.8.26"
@@ -41,6 +42,7 @@
     "@angular/language-service": "~7.0.0",
     "@types/jasmine": "~2.8.8",
     "@types/jasminewd2": "~2.0.3",
+    "@types/jquery": "^3.3.29",
     "@types/node": "~8.9.4",
     "codelyzer": "~4.5.0",
     "concurrently": "^4.1.0",

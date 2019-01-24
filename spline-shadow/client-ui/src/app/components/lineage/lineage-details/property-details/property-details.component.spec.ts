@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { SchemaComponent } from './schema.component';
+import { PropertyDetailsComponent } from './property-details.component';
 
-describe('SchemaComponent', () => {
-  let component: SchemaComponent;
-  let fixture: ComponentFixture<SchemaComponent>;
+describe('PropertyDetailsComponent', () => {
+  let component: PropertyDetailsComponent;
+  let fixture: ComponentFixture<PropertyDetailsComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [SchemaComponent]
+      declarations: [PropertyDetailsComponent]
     })
       .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(SchemaComponent);
+    fixture = TestBed.createComponent(PropertyDetailsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

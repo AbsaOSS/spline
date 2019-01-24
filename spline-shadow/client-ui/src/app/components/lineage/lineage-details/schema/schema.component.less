@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-.schema-title{
+ .schema-title{
+    position: relative;
     font-weight: bold;
     color:#e39255;
+    cursor: pointer;
+}
+
+.schema-title:hover{
+    color:#555;
+}
+
+.schema-title[data-toggle="collapse"]:after {
+  font-family: 'Glyphicons Halflings';
+  content: "\e072";
+  position: absolute;
+  font-size: 14px;
+  line-height: 30px;
+  right: 20px;
+  -webkit-transform: rotate(-90deg);
+  -moz-transform:    rotate(-90deg);
+  -ms-transform:     rotate(-90deg);
+  -o-transform:      rotate(-90deg);
+  transform:         rotate(-90deg);
+}
+
+.schema-title[data-toggle="collapse"].collapsed:after {
+  -webkit-transform: rotate(90deg);
+  -moz-transform:    rotate(90deg);
+  -ms-transform:     rotate(90deg);
+  -o-transform:      rotate(90deg);
+  transform:         rotate(90deg);
+}
+
+.table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
+  background-color: #e39255;
+  cursor: pointer;
+}
+
+tr.selected{
+    background-color: #b6b6b6;
 }

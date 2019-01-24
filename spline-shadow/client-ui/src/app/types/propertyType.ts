@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-export const environment = {
-  production: true,
-  configFile: "./assets/config.json"
-};
+export const enum PropertyType {
+    Struct = "za.co.absa.spline.core.model.dt.Struct",
+    Array = "za.co.absa.spline.core.model.dt.Array",
+    Simple = "za.co.absa.spline.core.model.dt.Simple"
+}

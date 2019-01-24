@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { TestBed } from '@angular/core/testing';
 
-export const environment = {
-  production: true,
-  configFile: "./assets/config.json"
-};
+import { ConfigService } from './config.service';
+
+describe('ConfigService', () => {
+  beforeEach(() => TestBed.configureTestingModule({}));
+
+  it('should be created', () => {
+    const service: ConfigService = TestBed.get(ConfigService);
+    expect(service).toBeTruthy();
+  });
+});

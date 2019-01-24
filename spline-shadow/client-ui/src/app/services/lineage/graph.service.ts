@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError, BehaviorSubject, Subject } from 'rxjs';
+import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { OperationType } from 'src/app/types/operationTypes';
 
@@ -94,7 +94,7 @@ export class GraphService {
    * TODO : Specify the return type when the API will be finished
    */
   public getGraphData(nodeFocus: string = null, depth: number = null): Observable<any> {
-    // TODO : Use a Url Builder Service 
+    // // TODO : Use a Url Builder Service 
     // let url = this.mockRestApiGraph;
     // if (nodeFocus && depth) {
     //   url = url + "/" + nodeFocus + "/" + depth;
