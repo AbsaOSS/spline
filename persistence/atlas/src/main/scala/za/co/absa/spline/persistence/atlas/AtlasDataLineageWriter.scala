@@ -42,7 +42,10 @@ class AtlasDataLineageWriter extends AtlasHook with DataLineageWriter with Loggi
     val entityCollections = DataLineageToTypeSystemConverter.convert(lineage)
     blocking {
       log debug s"Sending lineage entries (${entityCollections.length})"
-      this.notifyEntities("Anonymous", entityCollections.asJava)
+
+      val atlasUser = AtlasHook.getUser()
+      val user = if(atlasUser == null || atlasUser.isEmpty) "Anonymous" else atlasUser
+      this.notifyEntities(s"$user via Spline", entityCollections.asJava)
     }
   }
 }
