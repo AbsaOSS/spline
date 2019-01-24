@@ -1,6 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { SchemaType } from 'src/app/types/schemaType';
-import { PropertyType } from 'src/app/types/propertyType';
+import { PropertyType } from 'src/app/types/propertyType';;
+import * as $ from 'jquery';
 
 @Component({
   selector: 'schema',
@@ -21,7 +22,7 @@ export class SchemaComponent implements OnInit {
   constructor() { }
 
   ngOnInit() {
-    console.log(this.schemaId)
+    console.log(this.schema)
   }
 
   getSchemaTypeLabel(): any {
@@ -33,12 +34,18 @@ export class SchemaComponent implements OnInit {
   }
 
 
-  getPropertyType(propertyType: string): any {
-    switch (propertyType) {
-      case PropertyType.Struct: return "Struct"
-      case PropertyType.Array: return "Array"
-      case PropertyType.Simple: return "Simple"
+  getPropertyType(propertyType: any): any {
+    switch (propertyType.dataType._typeHint) {
+      case PropertyType.Struct: return "{[...]}"
+      case PropertyType.Array: return "[...]"
+      case PropertyType.Simple: return propertyType.dataType.name
       default: return ""
     }
+  }
+
+  getPropertyDetails(property: any, event: any) {
+    console.log(property)
+    $("tr").removeClass("selected")
+    $(event.currentTarget).addClass('selected')
   }
 }

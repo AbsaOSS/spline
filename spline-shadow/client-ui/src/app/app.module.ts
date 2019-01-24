@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 import { AppComponent } from './app.component';
@@ -12,6 +12,13 @@ import { HttpClientModule } from '@angular/common/http';
 import { SchemaComponent } from './components/lineage/lineage-details/schema/schema.component';
 import { PropertyDetailsComponent } from './components/lineage/lineage-details/property-details/property-details.component';
 import { SchemaDetailsComponent } from './components/lineage/lineage-details/schema-details/schema-details.component';
+import { ConfigService } from './services/config/config.service';
+import { environment } from '../environments/environment';
+
+
+export function initializeApp(appConfig: ConfigService) {
+  return () => appConfig.load(environment);
+}
 
 @NgModule({
   declarations: [
@@ -35,7 +42,13 @@ import { SchemaDetailsComponent } from './components/lineage/lineage-details/sch
       { path: '**', redirectTo: 'error/404', pathMatch: 'full' }
     ]),
   ],
-  providers: [],
+  providers: [
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeApp,
+      deps: [ConfigService], multi: true
+    }
+  ],
   exports: [RouterModule],
   bootstrap: [AppComponent]
 })
