@@ -66,11 +66,11 @@
                 <echo message="building client application"/>
                 <exec executable="cmd" osfamily="windows" failonerror="true">
                   <env key="SPLINE_VERSION" value="${project.version}"/>
-                  <arg line="/c npm run build --no-color"/>
+                  <arg line="/c npm run build-prod --no-color"/>
                 </exec>
                 <exec executable="npm" osfamily="unix" failonerror="true">
                   <env key="SPLINE_VERSION" value="${project.version}"/>
-                  <arg line="run build --no-color"/>
+                  <arg line="run build-prod --no-color"/>
                 </exec>
               </target>
             </configuration>
