@@ -29,30 +29,34 @@ import za.co.absa.spline.common.SplineBuildInfo
 @Controller
 class WebController @Autowired()(webJarAssetLocator: WebJarAssetLocator) {
 
-  import WebController._
+  @RequestMapping(path = Array("/"))
+  def root(httpRequest: HttpServletRequest): String = s"redirect:/absaoss-spline-client/spline/"
 
-  @RequestMapping(path = Array("/", "/partial-lineage/**"), produces = Array(TEXT_HTML_VALUE))
+  @RequestMapping(path = Array("/absaoss-spline-client/spline/**"), produces = Array(TEXT_HTML_VALUE))
   @ResponseBody
   def index(httpRequest: HttpServletRequest): String = {
-    val resourceName = webJarAssetLocator.getFullPathExact(splineClientWebJarName, "index.html")
+    val resourceName = webJarAssetLocator.getFullPath("index.html")
     val resource = new ClassPathResource(resourceName)
-
-    val indexHtml: String = IOUtils.toString(resource.getInputStream, "UTF-8")
 
     val baseUrlPrefix = httpRequest.getContextPath match {
       case path if !path.isEmpty => s"/$path"
       case _ => ""
     }
-    indexHtml.replaceAll(
-      """<base href="/">""",
-      s"""<base href="$baseUrlPrefix/assets/$splineClientWebJarName/">""")
+
+    // todo: do something with it!
+    IOUtils.toString(resource.getInputStream, "UTF-8")
+      .replaceAll(
+        """<base href="[^"]*">""",
+        s"""<base href="$baseUrlPrefix/absaoss-spline-client/">""")
+      .replaceAll(
+        "PUT_YOUR_SPLINE_REST_ENDPOINT_URL_HERE",
+        AppConfig.Server.restEndpoint.toExternalForm)
+      .replaceAll(
+        """(?m)^\s*((/\*)|(\*/)|(//.*))""",
+        "")
   }
 
   @RequestMapping(path = Array("/build-info"), produces = Array("text/x-java-properties"))
   def buildInfo(res: HttpServletResponse): Unit =
     SplineBuildInfo.buildProps.store(res.getWriter, "Spline Web Client")
-}
-
-object WebController {
-  val splineClientWebJarName = "absaoss-spline-client"
 }

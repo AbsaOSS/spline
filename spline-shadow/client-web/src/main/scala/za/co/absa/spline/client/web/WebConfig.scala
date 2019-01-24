@@ -30,11 +30,10 @@ class WebConfig extends WebMvcConfigurer {
   @Bean def webJarAssetLocator = new WebJarAssetLocator()
 
   override def addResourceHandlers(registry: ResourceHandlerRegistry) {
-    val webJarAssetLocator = this.webJarAssetLocator
     val webjarsResourceResolver = new WebJarsResourceResolver(webJarAssetLocator)
 
     registry
-      .addResourceHandler("/assets/**")
+      .addResourceHandler("/**")
       .addResourceLocations("/webjars/")
       .resourceChain(true)
       .addResolver(webjarsResourceResolver)
