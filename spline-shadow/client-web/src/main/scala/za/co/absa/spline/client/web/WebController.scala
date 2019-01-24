@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.client.web
 
-import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.apache.commons.io.IOUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ClassPathResource
@@ -24,6 +24,7 @@ import org.springframework.http.MediaType._
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.{RequestMapping, ResponseBody}
 import org.webjars.WebJarAssetLocator
+import za.co.absa.spline.common.SplineBuildInfo
 
 @Controller
 class WebController @Autowired()(webJarAssetLocator: WebJarAssetLocator) {
@@ -46,6 +47,10 @@ class WebController @Autowired()(webJarAssetLocator: WebJarAssetLocator) {
       """<base href="/">""",
       s"""<base href="$baseUrlPrefix/assets/$splineClientWebJarName/">""")
   }
+
+  @RequestMapping(path = Array("/build-info"), produces = Array("text/x-java-properties"))
+  def buildInfo(res: HttpServletResponse): Unit =
+    SplineBuildInfo.buildProps.store(res.getWriter, "Spline Web Client")
 }
 
 object WebController {

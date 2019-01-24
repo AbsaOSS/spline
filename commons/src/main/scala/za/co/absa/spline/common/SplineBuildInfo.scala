@@ -21,8 +21,7 @@ import java.util.Properties
 import za.co.absa.spline.common.ARM._
 
 object SplineBuildInfo {
-
-  private val buildProps =
+  val buildProps: Properties =
     using(this.getClass getResourceAsStream "/build.properties") { stream =>
       new Properties() {
         load(stream)
