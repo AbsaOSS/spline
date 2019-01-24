@@ -2,7 +2,7 @@
 layout: default
 title: "Atlas Support Is Back!"
 date: 2019-01-24
-author: "Vaclav Kosar @ Absa
+author: "Vaclav Kosar @ Absa"
 ---
 
 Apache Atlas is meta data management platform for big data, which is often also used for data lineage. Spline support of Atlas was temporarily removed due to large refactoring on version 0.3. But now Atlas support is back thanks to [Marek Novotny](https://github.com/mn-mikke) and will be released soon. Supported Atlas version now is 1.0.
