@@ -19,7 +19,6 @@ package za.co.absa.spline.client.web
 import org.springframework.beans.factory.annotation.Configurable
 import org.springframework.context.annotation.{Bean, ComponentScan}
 import org.springframework.web.servlet.config.annotation.{EnableWebMvc, ResourceHandlerRegistry, WebMvcConfigurer}
-import org.springframework.web.servlet.resource.WebJarsResourceResolver
 import org.webjars.WebJarAssetLocator
 
 @Configurable
@@ -30,13 +29,11 @@ class WebConfig extends WebMvcConfigurer {
   @Bean def webJarAssetLocator = new WebJarAssetLocator()
 
   override def addResourceHandlers(registry: ResourceHandlerRegistry) {
-    val webjarsResourceResolver = new WebJarsResourceResolver(webJarAssetLocator)
-
     registry
       .addResourceHandler("/**")
-      .addResourceLocations("/webjars/")
+      .addResourceLocations("/webjars/absaoss-spline-client/")
       .resourceChain(true)
-      .addResolver(webjarsResourceResolver)
+      .addResolver(new WebJarsResourceFuzzyResolver(webJarAssetLocator))
   }
 
 }

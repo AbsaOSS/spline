@@ -30,9 +30,9 @@ import za.co.absa.spline.common.SplineBuildInfo
 class WebController @Autowired()(webJarAssetLocator: WebJarAssetLocator) {
 
   @RequestMapping(path = Array("/"))
-  def root(httpRequest: HttpServletRequest): String = s"redirect:/absaoss-spline-client/spline/"
+  def root(httpRequest: HttpServletRequest): String = s"redirect:/app/"
 
-  @RequestMapping(path = Array("/absaoss-spline-client/spline/**"), produces = Array(TEXT_HTML_VALUE))
+  @RequestMapping(path = Array("/app/**"), produces = Array(TEXT_HTML_VALUE))
   @ResponseBody
   def index(httpRequest: HttpServletRequest): String = {
     val resourceName = webJarAssetLocator.getFullPath("index.html")
@@ -46,8 +46,8 @@ class WebController @Autowired()(webJarAssetLocator: WebJarAssetLocator) {
     // todo: do something with it!
     IOUtils.toString(resource.getInputStream, "UTF-8")
       .replaceAll(
-        """<base href="[^"]*">""",
-        s"""<base href="$baseUrlPrefix/absaoss-spline-client/">""")
+        """<base href="/?([^"]*)">""",
+        s"""<base href="$baseUrlPrefix/$$1">""")
       .replaceAll(
         "PUT_YOUR_SPLINE_REST_ENDPOINT_URL_HERE",
         AppConfig.Server.restEndpoint.toExternalForm)
