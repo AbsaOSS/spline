@@ -5,10 +5,11 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build-prod": "ng build --prod",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "swagger-gen": "node_modules/.bin/ng-swagger-gen -i http://localhost:8080/v2/api-docs -o src/app/generated",
+    "swagger-gen": "node_modules/.bin/ng-swagger-gen -i ./src/swagger.json -o src/app/generated",
     "dev": "npm run swagger-gen && concurrently --kill-others \"ng serve \" \"node ./mock-rest-api/server.js\""
   },
   "private": true,

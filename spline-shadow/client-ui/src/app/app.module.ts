@@ -36,6 +36,8 @@ export function initializeApp(appConfig: ConfigService) {
   return () => appConfig.load(environment);
 }
 
+const ROOT_ROUTING = "app/"
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -52,10 +54,10 @@ export function initializeApp(appConfig: ConfigService) {
     CytoscapeNgLibModule,
     HttpClientModule,
     RouterModule.forRoot([
-      { path: 'partial-lineage/:datasourceId/:timestamp', component: LineageComponent },
-      { path: 'error/:httpCode', component: ErrorComponent },
-      { path: '', redirectTo: 'error/404', pathMatch: 'full' },
-      { path: '**', redirectTo: 'error/404', pathMatch: 'full' }
+      { path: ROOT_ROUTING + 'partial-lineage/:datasourceId/:timestamp', component: LineageComponent },
+      { path: ROOT_ROUTING + 'error/:httpCode', component: ErrorComponent },
+      { path: ROOT_ROUTING, redirectTo: ROOT_ROUTING + 'error/404', pathMatch: 'full' },
+      { path: '**', redirectTo: ROOT_ROUTING + 'error/404', pathMatch: 'full' }
     ]),
   ],
   providers: [

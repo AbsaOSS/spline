@@ -17,18 +17,16 @@
 package za.co.absa.spline.web.html.controller
 
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMethod.{GET, HEAD}
 import org.springframework.web.bind.annotation.{RequestMapping, RequestParam, ResponseBody}
-import za.co.absa.spline.common.ARM._
+import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.persistence.api.DataLineageReader
 import za.co.absa.spline.web.ExecutionContextImplicit
 import za.co.absa.spline.web.exception.LineageNotFoundException
 
 import scala.concurrent.Future
-import scala.io.Source.fromInputStream
 import scala.language.postfixOps
 
 @Controller
@@ -51,13 +49,8 @@ class MainController @Autowired()
       case None => throw new LineageNotFoundException(s"dataset_path=$path AND app_id=$applicationId")
     }
 
-  @RequestMapping(path = Array("/build-info"), method = Array(GET), produces = Array("text/x-java-properties"))
+  @RequestMapping(path = Array("/build-info"), produces = Array("text/x-java-properties"))
   @ResponseBody
-  def buildInfo: String = {
-    val lines = for {
-      stream <- managed(this.getClass getResourceAsStream "/build.properties")
-      line <- fromInputStream(stream).getLines if line.nonEmpty && !line.startsWith("#")
-    } yield line
-    lines.mkString("\n")
-  }
+  def buildInfo(res: HttpServletResponse): Unit =
+    SplineBuildInfo.buildProps.store(res.getWriter, "Spline Server")
 }
