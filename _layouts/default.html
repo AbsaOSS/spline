@@ -23,7 +23,7 @@
           <img src="{{ site.url }}{{ site.baseurl }}/imgs/spline-logo-dark.png" width="400" />
           <h2 id="project_tagline">{{ site.description | default: site.github.project_tagline }}</h2>
           <section id="navigation" class="menu-bar">
-            <a class="menu-item {% if page.title == 'Docs' %}menu-item-active{% endif %}" href="{{ site.url }}{{ site.baseurl }}" >Docs</a>
+            <a class="menu-item {% if page.title == 'Docs' %}menu-item-active{% endif %}" href="{{ site.url }}{{ site.baseurl }}/" >Docs</a>
             <a class="menu-item {% if page.title != 'Docs' %}menu-item-active{% endif %}" href="{{ site.url }}{{ site.baseurl }}/blog" >Blog</a>
           </section>
 
@@ -48,9 +48,8 @@
     <div id="footer_wrap" class="outer">
       <footer class="inner">
         {% if site.github.is_project_page %}
-        <p class="copyright">{{ site.title | default: site.github.repository_name }} maintained by <a href="{{ site.github.owner_url }}">{{ site.github.owner_name }}</a></p>
+        <p class="copyright"><a href="{{ site.github.owner_url }}"><img src="https://avatars2.githubusercontent.com/u/18133719?s=200&v=4" alt="ABSA" height="100px" width="100px" /></a></p>
         {% endif %}
-        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
       </footer>
     </div>
 

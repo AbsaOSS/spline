@@ -143,10 +143,9 @@ Spline can persist harvested lineages in various ways. It uses [PersistenceFacto
 Out of the box Spline supports three types of persisters:
 - [MongoPersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/mongo/src/main/scala/za/co/absa/spline/persistence/mongo/MongoPersistenceFactory.scala) (stores lineages to the MongoDB)
 - [HdfsPersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/hdfs/src/main/scala/za/co/absa/spline/persistence/hdfs/HdfsPersistenceFactory.scala) (stores lineages as a JSON file)
-- [AtlasPersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/atlas/src/main/scala/za/co/absa/spline/persistence/atlas/AtlasPersistenceFactory.scala) (is used for integration with Apache Atlas)
 
 There is also a [ParallelCompositeFactory]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/composition/ParallelCompositeFactory.scala) that works as a proxy and delegate work to other persisters.
-So for example, you can store the lineages to, say, Mongo and Atlas simultaneously.
+So for example, you can store the lineages to, say, Mongo and HDFS simultaneously.
 
 
 
@@ -181,14 +180,6 @@ def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfig
 | --- | --- | --- |
 | `spline.mongodb.url` | Mongo connection URL <br> | mongodb://1.2.3.4
 | `spline.mongodb.name` | Mongo database name <br> | my_job_lineage_data
-
-#### Atlas Persistence Only
-Apart from property configuration Atlas persistence requires a copy of [spline meta model file](<https://github.com/AbsaOSS/spline/blob/master/persistence/atlas/src/main/atlas/spline-meta-model.json>) in Atlas meta model directory e.g. Hortonworks distribution in `/usr/hdp/current/atlas/models`.
-
-| Property | Description | Example
-| --- | --- | --- |
-|`atlas.kafka.bootstrap.servers` | [A list of host/port pairs to use for establishing the initial connection to the Kafka cluster.](http://kafka.apache.org/documentation.html#producerconfigs) | localhost:6667 |
-| [Other possible Kafka properties prefixed with `atlas.kafka.`](http://kafka.apache.org/documentation.html#producerconfigs) | Depends on your setup.
 
 #### Composition Factories Only
 

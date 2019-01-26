@@ -2,6 +2,7 @@
 layout: default
 title: "Spline: Spark Lineage, Not Only for the Banking Industry"
 date: 2018-01-17
+author: "Jan Scherbaum, Marek Novotny, Oleksandr Vayda @ ABSA"
 ---
 
 <img src="{{ site.url }}{{ site.baseurl }}/assets/spline-paper-performance-fig.png" width="90%" />
@@ -12,4 +13,3 @@ This paper describes Spline - a data lineage tracking and visualization tool for
 
 [Full paper](https://github.com/AbsaOSS/spline/releases/download/release%2F0.2.7/Spline_paper_IEEE_2018.pdf)<br>
 [Proceedings](https://www.computer.org/csdl/proceedings/bigcomp/2018/3649/00/364901a495-abs.html)
-

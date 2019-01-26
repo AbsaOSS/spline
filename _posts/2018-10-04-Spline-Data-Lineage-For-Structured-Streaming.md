@@ -2,6 +2,7 @@
 layout: default
 title: "Spline: Data Lineage For Spark Structured Streaming"
 date: 2018-10-04
+author: "Vaclav Kosar, Marek Novotny @ ABSA"
 ---
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/953PcioD6tk" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>

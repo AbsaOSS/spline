@@ -2,6 +2,7 @@
 layout: default
 title: "Spline: Apache Spark Lineage, Not Only for the Banking Industry"
 date: 2017-10-24
+author: "Jan Scherbaum, Marek Novotny @ ABSA"
 ---
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/T2vNPBCfA64" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
