@@ -1,8 +1,15 @@
-theme: jekyll-theme-slate
 title: Spline
+url: https://absaoss.github.io/spline
+keywords: apache spark,spark,dataframe,sql,structured streaming,data lineage,data provenance,tracking,big data,scala,cluster
 baseurl: /spline
+future: true
 spline:
   version: 0.3.1
+theme: jekyll-theme-slate
+
 gems:
   - jekyll-feed
-future: true
+  - jekyll-sitemap
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
