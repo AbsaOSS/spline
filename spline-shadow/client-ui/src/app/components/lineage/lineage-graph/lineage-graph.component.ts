@@ -19,6 +19,7 @@ import { GraphService } from 'src/app/services/lineage/graph.service';
 import { ContextualMenuService } from 'src/app/services/lineage/contextual-menu.service';
 import { LayoutService } from 'src/app/services/lineage/layout.service';
 import { OperationType } from 'src/app/types/operationTypes';
+import { PropertyService } from 'src/app/services/details/property.service';
 
 @Component({
   selector: 'lineage-graph',
@@ -33,7 +34,8 @@ export class LineageGraphComponent implements OnInit {
   constructor(
     private graphService: GraphService,
     private contextualMenuService: ContextualMenuService,
-    private layoutService: LayoutService
+    private layoutService: LayoutService,
+    private propertyService: PropertyService
   ) { }
 
 
@@ -51,6 +53,7 @@ export class LineageGraphComponent implements OnInit {
         that.cytograph.cy.nodes().on('click', function (event) {
           var clickedNode = event.target
           that.graphService.getDetailsInfo(clickedNode.id())
+          that.propertyService.changeCurrentProperty(null)
         });
       },
       error => {

@@ -14,6 +14,16 @@
   ~ limitations under the License.
   -->
 
-<p>
-  property-details works!
-</p>
+<div *ngIf="isTypeSimple()">
+  <div class="property-title">
+    Property details : {{property.name}} {{property.dataType.name}}
+  </div>
+</div>
+
+<div *ngIf="!isTypeSimple()">
+  <table class="table table-hover table-sm">
+    <tr *ngFor="let prop of getProperties()">
+      <td class="col-sm-8">{{prop.name}}</td>
+    </tr>
+  </table>
+</div>

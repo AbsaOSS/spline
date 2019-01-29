@@ -17,6 +17,7 @@ import { Component, OnInit, Input } from '@angular/core';
 import { SchemaType } from 'src/app/types/schemaType';
 import { PropertyType } from 'src/app/types/propertyType';;
 import * as $ from 'jquery';
+import { PropertyService } from 'src/app/services/details/property.service';
 
 @Component({
   selector: 'schema',
@@ -34,10 +35,13 @@ export class SchemaComponent implements OnInit {
   @Input()
   schema: any
 
-  constructor() { }
+  property: any
+
+  constructor(private propertyService: PropertyService) { }
 
   ngOnInit() {
-    console.log(this.schema)
+    //console.log(this.schema)
+    this.propertyService.currentProperty.subscribe(property => this.property = property)
   }
 
   getSchemaTypeLabel(): any {
@@ -59,8 +63,8 @@ export class SchemaComponent implements OnInit {
   }
 
   getPropertyDetails(property: any, event: any) {
-    console.log(property)
     $("tr").removeClass("selected")
     $(event.currentTarget).addClass('selected')
+    this.propertyService.changeCurrentProperty(property)
   }
 }
