@@ -19,6 +19,7 @@ import { GraphService } from './graph.service';
 import { LayoutService } from './layout.service';
 import { OperationType } from 'src/app/types/operationTypes';
 import { ExecutionPlanControllerService } from 'src/app/generated/services';
+import { ConfigService } from '../config/config.service';
 
 @Injectable({
   providedIn: 'root'
@@ -29,7 +30,9 @@ export class ContextualMenuService {
     private graphService: GraphService,
     private layoutService: LayoutService,
     private executionPlanControllerService: ExecutionPlanControllerService
-  ) { }
+  ) {
+    executionPlanControllerService.rootUrl = ConfigService.settings.apiUrl
+  }
 
   public getConfiguration() {
     let that = this;
