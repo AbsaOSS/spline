@@ -27,6 +27,7 @@
               "src/assets"
             ],
             "styles": [
+              "./node_modules/datatables.net-bs4/css/dataTables.bootstrap4.min.css",
               "src/styles.less"
             ],
             "scripts": [
@@ -36,7 +37,10 @@
               "./node_modules/cytoscape-panzoom/cytoscape-panzoom.js",
               "./node_modules/bootstrap/dist/js/bootstrap.min.js",
               "./node_modules/klayjs/klay.js",
-              "./node_modules/cytoscape-klay/cytoscape-klay.js"
+              "./node_modules/cytoscape-klay/cytoscape-klay.js",
+              "./node_modules/datatables.net/js/jquery.dataTables.js",
+              "./node_modules/datatables.net-bs4/js/dataTables.bootstrap4.js",
+              "./node_modules/datatables.net-responsive/js/dataTables.responsive.min.js"
             ]
           },
           "configurations": {

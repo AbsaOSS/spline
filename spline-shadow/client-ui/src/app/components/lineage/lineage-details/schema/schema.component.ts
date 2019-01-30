@@ -46,25 +46,10 @@ export class SchemaComponent implements OnInit {
 
   getSchemaTypeLabel(): any {
     switch (this.schemaType) {
-      case SchemaType.Input: return "<i class='fa fa-arrow-circle-right text-success'></i> Input"
-      case SchemaType.Output: return "<i class='fa fa-arrow-circle-left text-danger'></i> Output"
-      default: return "<i class='fa fa-arrow-circle-right'></i> Schema"
+      case SchemaType.Input: return "&nbsp;<i class='fa fa-lg fa-arrow-circle-right text-success'></i> Input"
+      case SchemaType.Output: return "&nbsp;<i class='fa fa-arrow-circle-left text-danger'></i> Output"
+      default: return "&nbsp;<i class='fa fa-arrow-circle-right'></i> Schema"
     }
   }
 
-
-  getPropertyType(propertyType: any): any {
-    switch (propertyType.dataType._typeHint) {
-      case PropertyType.Struct: return "{[...]}"
-      case PropertyType.Array: return "[...]"
-      case PropertyType.Simple: return propertyType.dataType.name
-      default: return ""
-    }
-  }
-
-  getPropertyDetails(property: any, event: any) {
-    $("tr").removeClass("selected")
-    $(event.currentTarget).addClass('selected')
-    this.propertyService.changeCurrentProperty(property)
-  }
 }

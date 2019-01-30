@@ -24,6 +24,21 @@ html, body {
 }
 
 
+@media screen and (max-width : 1536px)
+{
+  table, .details
+  {
+    font-size: 10px;
+  }
+}
+@media screen and (max-width : 3536px)
+{
+  table,  .details
+  {
+    font-size: 12px;
+  }
+}
+
 .cxtmenu-disabled{
     opacity: 0.35;
 }
@@ -51,5 +66,27 @@ html, body {
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #e39255; 
+    background: #e39255; 
+}
+
+.page-item.active .page-link {
+    z-index: 1;
+    color: #fff;
+    background-color: #e39255;
+    border-color: #e39255;
+}
+
+.page-link, a{
+    color: #555;
+}
+
+
+.btn-xs{
+    padding: .2rem .3rem;
+    font-size: .875rem;
+    line-height: 0.0;
+}
+
+table.noheader thead{
+    display:none;
 }
