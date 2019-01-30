@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2017 ABSA Group Limited
+  ~ Copyright 2019 ABSA Group Limited
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,23 +23,35 @@
     <parent>
         <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
-        <relativePath>../parent/pom.xml</relativePath>
+        <relativePath>../../parent/pom.xml</relativePath>
         <version>0.4.0-SNAPSHOT</version>
     </parent>
 
     <groupId>za.co.absa.spline.shadow</groupId>
-    <artifactId>spline-shadow</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>rest-api-doc-generator</artifactId>
+    <packaging>jar</packaging>
 
-    <modules>
-        <module>model</module>
-        <module>persistence</module>
-        <module>rest-gateway</module>
-        <module>rest-api-doc-generator</module>
-        <module>client-ui</module>
-        <module>client-webjar</module>
-        <module>client-web</module>
-        <module>migrator-tool</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>za.co.absa.spline.shadow</groupId>
+            <artifactId>rest-gateway</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>5.1.3.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.scopt</groupId>
+            <artifactId>scopt_${scala.compat.version}</artifactId>
+            <version>3.7.1</version>
+        </dependency>
+    </dependencies>
 
 </project>

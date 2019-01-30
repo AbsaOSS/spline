@@ -32,7 +32,6 @@
     <packaging>war</packaging>
 
     <properties>
-        <webui.basedir>${project.basedir}/ui</webui.basedir>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssX</maven.build.timestamp.format>
 
@@ -116,7 +115,7 @@
     </dependencies>
 
     <build>
-        <finalName>spline-ui-${project.version}</finalName>
+        <finalName>spline-rest-server-${project.version}</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
