@@ -16,7 +16,10 @@
 
 package za.co.absa.spline.migrator
 
+import java.net.URI
+
 import za.co.absa.spline.common.SplineBuildInfo
+import za.co.absa.spline.persistence.{ArangoFactory, ArangoInit}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -46,14 +49,24 @@ object MigratorCLI extends App {
       text s"Number of batches to process. Negative value means unbounded. (Default is ${MigratorConfig.empty.batchesMax})"
       action ((value, conf) => conf.copy(batchesMax = value)))
 
+    (opt[Unit]('i', "init-arango-db")
+      text s"Initialize Arango DB"
+      action ((value, conf) => conf.copy(initializeArangodb = true)))
+
     help("help").text("prints this usage text")
   }
 
-  for {
-    config <- cliParser.parse(args, MigratorConfig.empty)
-    stats <- MigratorTool.migrate(config)
-  } {
-    println(s"DONE. Processed total: ${stats.processed} (of which failures: ${stats.failures})")
+  val config = cliParser.parse(args, MigratorConfig.empty)
+    .getOrElse(throw new IllegalArgumentException("Invalid config state."))
+  initArangoIfConfigured(config)
+  MigratorTool.migrate(config)
+    .map(stats => println(s"DONE. Processed total: ${stats.processed} (of which failures: ${stats.failures})"))
+
+  private def initArangoIfConfigured(config: MigratorConfig): Unit = {
+    if (config.initializeArangodb) {
+      val db = ArangoFactory.create(new URI(config.arangoConnectionUrl))
+      ArangoInit.initialize(db)
+    }
   }
 
 }

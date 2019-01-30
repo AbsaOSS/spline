@@ -18,8 +18,12 @@ package za.co.absa.spline.migrator
 
 import java.net.URI
 
-import org.scalatest.{FunSpec, Ignore}
-import za.co.absa.spline.model.arango.Database
+import com.arangodb.ArangoDBException
+import com.arangodb.model.{OptionsBuilder, TransactionOptions}
+import org.scalatest.{FunSpec, Ignore, Matchers}
+import org.scalatest.Matchers._
+import org.slf4j.LoggerFactory
+import za.co.absa.spline.persistence.{ArangoFactory, ArangoInit}
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
@@ -28,14 +32,20 @@ import scala.util.Try
 @Ignore
 class MigratorToolSpec extends FunSpec {
 
-  private val arangoUri = "http://root:root@localhost:8529/_system"
+
+  private val arangoUri = "http://root:root@localhost:8529/unit-test"
+  private val mongoUri = "mongodb://localhost:27017/migration-test"
 
   describe("migration tool test") {
     it("migrate from mongo to arango") {
-      val database = Database(new URI(arangoUri))
-      Try(awaitForever(database.delete(true)))
-      awaitForever(database.init(force = true))
-      Await.result(MigratorTool.migrate(new MigratorConfig("mongodb://localhost:27017/migration-test", arangoConnectionUrl = arangoUri, batchSize = 10, batchesMax = 1)), Duration.Inf)
+      val db = ArangoFactory.create(new URI(arangoUri))
+      Try(db.drop())
+      db.create()
+      ArangoInit.initialize(db)
+      val config = new MigratorConfig(mongoUri, arangoConnectionUrl = arangoUri, batchSize = 20, batchesMax = 1)
+      awaitForever(MigratorTool.migrate(config))
+      // Dual insert should only warn on arango.
+//      awaitForever(MigratorTool.migrate(config))
     }
   }
 

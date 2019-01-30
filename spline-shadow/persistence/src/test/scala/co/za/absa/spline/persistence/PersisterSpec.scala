@@ -14,48 +14,87 @@
  * limitations under the License.
  */
 
-package splinescarango
+package co.za.absa.spline.persistence
 
 import java.net.URI
 import java.util.UUID
 import java.util.UUID.randomUUID
 
+import com.arangodb._
+import com.arangodb.model.{OptionsBuilder, TransactionOptions}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FunSpec, Matchers}
 import za.co.absa.spline.model.arango._
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op.{BatchRead, BatchWrite, Generic, OperationProps}
 import za.co.absa.spline.model.{DataLineage, MetaDataSource, MetaDataset}
-import za.co.absa.spline.persistence.Persister
+import za.co.absa.spline.persistence.{ArangoFactory, ArangoInit, Persister}
 import za.co.absa.spline.{model => splinemodel}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 import scala.util.Try
+import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers._
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.stubbing.{Answer, Answer3}
+import io.circe.generic.semiauto.deriveDecoder
+import com.outr.arango.managed._
+import io.circe.Decoder.Result
+import io.circe.{DecodingFailure, Json, ParsingFailure}
+import io.circe.parser.parse
+
+import scala.collection.JavaConverters._
 
 
 class PersisterSpec extends FunSpec with Matchers with MockitoSugar {
 
-  val arangoUri = "http://root:root@localhost:8529/_system"
+  val arangoUri = "http://root:root@localhost:8529/unit-test"
 
   describe("Persister") {
 
     it("Persister should be able to insert an example lineage to an empty database") {
-      val database = Database(new URI(arangoUri))
-      Try(awaitForever(database.delete(true)))
-      awaitForever(database.init(force = true))
-      val persister = new Persister(arangoUri)
-      awaitForever(persister.save(datalineage()))
+      val db = ArangoFactory.create(new URI(arangoUri))
+      Try(db.drop())
+      db.create()
+      db.util()
+      ArangoInit.initialize(db)
+      val persister = new Persister(db, true)
+      val dataLineage = bigDataLineage()
+      awaitForever(persister.save(dataLineage))
+      // Dupe insert should only log warning on Arango server.
+      val thrown = intercept[IllegalArgumentException] {
+        awaitForever(persister.save(dataLineage))
+      }
+      thrown.getCause.getMessage.contains("unique constraint violated") shouldBe true
+    }
+
+    // Useful for debugging
+    it("print transaction js") {
+      val db = ArangoFactory.create(new URI(arangoUri))
+      val dbMock: ArangoDatabase = mock[ArangoDatabase]
+      when(dbMock.transaction(anyString(), any(), any())).thenAnswer(new Answer[Unit] {
+        override def answer(invocation: InvocationOnMock): Unit = {
+          val action = invocation.getArgument(0).asInstanceOf[String]
+          val options = invocation.getArgument(2).asInstanceOf[TransactionOptions]
+          println(db.util().serialize(OptionsBuilder.build(options, action)).toString.replaceAll("\\\\n", " "))
+        }
+      })
+
+      val cursor =mock[ArangoCursor[String]]
+      when(cursor.hasNext).thenReturn(false)
+      when(dbMock.query(anyString(), any[Class[String]])).thenReturn(cursor)
+      awaitForever(new Persister(dbMock, true).save(shortLineage()))
     }
 
   }
 
 
-  def awaitForever(future: Future[_]): Unit = {
+  def awaitForever[T](future: Future[T]): T = {
     Await.result(future, Duration.Inf)
   }
 
-  private def datalineage(
+  private def bigDataLineage(
                            appId: String = "appId1",
                            appName: String = "appName1",
                            timestamp: Long = 123L,
@@ -99,6 +138,22 @@ class PersisterSpec extends FunSpec with Matchers with MockitoSugar {
       )
     }
 
-
+  def shortLineage(): DataLineage = {
+    val dataTypes = Seq()
+    val aSchema = splinemodel.Schema(Seq())
+    val mdOutput = MetaDataset(randomUUID, aSchema)
+    DataLineage(
+      "app1",
+      "appName1",
+      System.currentTimeMillis(),
+      "2.3.0",
+      Seq(
+        BatchWrite(OperationProps(randomUUID, "Union", Seq(), mdOutput.id), "parquet", "nopath", append = false)
+      ),
+      Seq(mdOutput),
+      Seq(),
+      dataTypes
+    )
+  }
 
 }
