@@ -27,7 +27,7 @@
     <properties>
         <scm.url>http://github.com/AbsaOSS/spline/tree/master</scm.url>
         <scm.connection>scm:git:git://github.com/AbsaOSS/spline.git</scm.connection>
-        <scm.developerConnection>scm:git:ssh://github.com:AbsaOSS/spline.git</scm.developerConnection>
+        <scm.developerConnection>scm:git:ssh://github.com/AbsaOSS/spline.git</scm.developerConnection>
     </properties>
 
     <scm>
