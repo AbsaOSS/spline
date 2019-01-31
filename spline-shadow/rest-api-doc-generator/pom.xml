@@ -34,7 +34,7 @@
     <dependencies>
         <dependency>
             <groupId>za.co.absa.spline.shadow</groupId>
-            <artifactId>rest-gateway</artifactId>
+            <artifactId>rest-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

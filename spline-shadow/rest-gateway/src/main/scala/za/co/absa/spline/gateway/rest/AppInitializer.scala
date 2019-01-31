@@ -22,7 +22,7 @@ import org.springframework.web.context.ContextLoaderListener
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext
 import org.springframework.web.servlet.DispatcherServlet
 
-object App extends WebApplicationInitializer {
+object AppInitializer extends WebApplicationInitializer {
   override def onStartup(container: ServletContext): Unit = {
     container.addListener(new ContextLoaderListener(new AnnotationConfigWebApplicationContext {
       register(classOf[AppConfig])
