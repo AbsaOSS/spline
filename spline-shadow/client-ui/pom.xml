@@ -36,6 +36,39 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>gen-swagger-json</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <includePluginDependencies>true</includePluginDependencies>
+              <executableDependency>
+                <groupId>za.co.absa.spline.shadow</groupId>
+                <artifactId>rest-api-doc-generator</artifactId>
+              </executableDependency>
+              <mainClass>za.co.absa.spline.gateway.rest.swagger.SwaggerDocGenCLI</mainClass>
+              <arguments>
+                <argument>-o</argument>
+                <argument>${project.basedir}/src/app/generated/swagger.json</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>za.co.absa.spline.shadow</groupId>
+            <artifactId>rest-api-doc-generator</artifactId>
+            <version>${project.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>1.8</version>
