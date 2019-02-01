@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.gateway.rest
+package za.co.absa.spline.gateway.rest.swagger
 
-import org.springframework.context.annotation.Configuration
+import java.io.File
 
-@Configuration
-class AppConfig {
-  //todo: define services and other components here
-}
-
-
-
-
+case class SwaggerDocGenConfig(out: File = null)

@@ -17,15 +17,19 @@
 package za.co.absa.spline.gateway.rest
 
 import java.util
+import java.util.Arrays.asList
 
+import org.apache.commons.configuration.{CompositeConfiguration, EnvironmentConfiguration, SystemConfiguration}
 import org.springframework.context.annotation.{ComponentScan, Configuration}
 import org.springframework.http.converter.HttpMessageConverter
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
 import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
+import za.co.absa.spline.common.config.ConfTyped
 import za.co.absa.spline.common.webmvc.{ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
 import za.co.absa.spline.gateway.rest.swagger.SwaggerConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 @Configuration
 @EnableWebMvc
@@ -43,8 +47,23 @@ class RESTConfig extends WebMvcConfigurer {
   override def addReturnValueHandlers(returnValueHandlers: util.List[HandlerMethodReturnValueHandler]): Unit = {
     returnValueHandlers.add(new UnitMethodReturnValueHandler)
     returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler(
-      minEstimatedTimeout = AppConfig.AdaptiveTimeout.min,
-      durationToleranceFactor = AppConfig.AdaptiveTimeout.durationFactor
+      minEstimatedTimeout = RESTConfig.AdaptiveTimeout.min,
+      durationToleranceFactor = RESTConfig.AdaptiveTimeout.durationFactor
     ))
   }
+}
+
+object RESTConfig extends CompositeConfiguration(asList(
+  new SystemConfiguration,
+  new EnvironmentConfiguration))
+  with ConfTyped {
+
+  override val rootPrefix: String = "spline"
+
+  object AdaptiveTimeout extends Conf("adaptive_timeout") {
+
+    val min: Long = getLong(Prop("min"), 3.seconds.toMillis)
+    val durationFactor: Double = getDouble(Prop("duration_factor"), 1.5)
+  }
+
 }

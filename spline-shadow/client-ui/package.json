@@ -9,7 +9,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "swagger-gen": "node_modules/.bin/ng-swagger-gen -i ./src/swagger.json -o src/app/generated",
+    "swagger-gen": "node_modules/.bin/ng-swagger-gen -i src/app/generated/swagger.json -o src/app/generated",
     "dev": "npm run swagger-gen && concurrently --kill-others \"ng serve \" \"node ./mock-rest-api/server.js\""
   },
   "private": true,
