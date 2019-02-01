@@ -20,6 +20,7 @@ import { RouterModule } from '@angular/router';
 
 import { AppComponent } from './app.component';
 import { CytoscapeNgLibModule } from 'cytoscape-ng-lib';
+import { DataTablesModule } from 'angular-datatables';
 import { LineageComponent } from './components/lineage/lineage.component';
 import { LineageGraphComponent } from './components/lineage/lineage-graph/lineage-graph.component';
 import { LineageDetailsComponent } from './components/lineage/lineage-details/lineage-details.component';
@@ -30,6 +31,7 @@ import { PropertyDetailsComponent } from './components/lineage/lineage-details/p
 import { SchemaDetailsComponent } from './components/lineage/lineage-details/schema-details/schema-details.component';
 import { ConfigService } from './services/config/config.service';
 import { environment } from '../environments/environment';
+import { SchemaTableComponent } from './components/lineage/lineage-details/schema-table/schema-table.component';
 
 
 export function initializeApp(appConfig: ConfigService) {
@@ -47,12 +49,17 @@ const ROOT_ROUTING = "app/"
     ErrorComponent,
     SchemaComponent,
     PropertyDetailsComponent,
-    SchemaDetailsComponent
+    SchemaDetailsComponent,
+    SchemaTableComponent
+  ],
+  entryComponents: [
+    SchemaTableComponent
   ],
   imports: [
     BrowserModule,
     CytoscapeNgLibModule,
     HttpClientModule,
+    DataTablesModule,
     RouterModule.forRoot([
       { path: ROOT_ROUTING + 'partial-lineage/:datasourceId/:timestamp', component: LineageComponent },
       { path: ROOT_ROUTING + 'error/:httpCode', component: ErrorComponent },

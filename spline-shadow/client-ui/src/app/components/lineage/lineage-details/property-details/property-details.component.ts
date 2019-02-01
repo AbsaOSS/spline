@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { PropertyService } from 'src/app/services/details/property.service';
+import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
+import { LayoutService } from 'src/app/services/lineage/layout.service';
 
 @Component({
   selector: 'property-details',
@@ -22,9 +25,30 @@ import { Component, OnInit } from '@angular/core';
 })
 export class PropertyDetailsComponent implements OnInit {
 
-  constructor() { }
+  @ViewChild(CytoscapeNgLibComponent)
+  private cytograph: CytoscapeNgLibComponent
 
-  ngOnInit() {
+  property: any
+
+  constructor(
+    private propertyService: PropertyService,
+    private layoutService: LayoutService
+  ) { }
+
+  ngOnInit(): void {
+    let that = this
+    this.propertyService.currentProperty.subscribe(property => {
+      that.property = property
+      if (property) {
+        that.cytograph.cy.remove(that.cytograph.cy.elements())
+        let graph = that.propertyService.buildPropertyGraph(property)
+        that.cytograph.cy.add(graph)
+
+        that.cytograph.cy.layout(that.layoutService.getConfiguration()).run()
+        that.cytograph.cy.panzoom()
+      }
+    })
   }
+
 
 }

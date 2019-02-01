@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError, BehaviorSubject } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { OperationType } from 'src/app/types/operationTypes';
 
@@ -25,7 +25,7 @@ import { OperationType } from 'src/app/types/operationTypes';
   providedIn: 'root'
 })
 
-export class GraphService {
+export class LineageGraphService {
 
   graph = {
     nodes: [
@@ -103,13 +103,13 @@ export class GraphService {
     //   catchError(this.handleError)
     // );
     // TODO : This code is just for testing the integration with menas. It should be replace by a normal call to the api
-    let that = this;
+    let that = this
     let observable = Observable.create(observer => {
       setTimeout(() => {
-        observer.next(that.graph); // This method same as resolve() method from Angular 1
-        observer.complete();//to show we are done with our processing
+        observer.next(that.graph) // This method same as resolve() method from Angular 1
+        observer.complete()//to show we are done with our processing
         // observer.error(new Error("error message"));
-      }, 1000);
+      }, 1000)
 
     })
 
@@ -166,7 +166,7 @@ export class GraphService {
   }
 
   private handleError(err: HttpErrorResponse) {
-    let errorMessage = '';
+    let errorMessage = ''
     if (err.error instanceof ErrorEvent) {
       // A client-side or network error occurred. Handle it accordingly.
       errorMessage = `An error occurred: ${err.error.message}`

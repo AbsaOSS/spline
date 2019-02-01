@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ViewChild, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, ViewChild, OnInit } from '@angular/core';
 import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
-import { GraphService } from 'src/app/services/lineage/graph.service';
+import { LineageGraphService } from 'src/app/services/lineage/lineage-graph.service';
 import { ContextualMenuService } from 'src/app/services/lineage/contextual-menu.service';
 import { LayoutService } from 'src/app/services/lineage/layout.service';
 import { OperationType } from 'src/app/types/operationTypes';
+import { PropertyService } from 'src/app/services/details/property.service';
 
 @Component({
   selector: 'lineage-graph',
@@ -31,27 +32,29 @@ export class LineageGraphComponent implements OnInit {
   private cytograph: CytoscapeNgLibComponent
 
   constructor(
-    private graphService: GraphService,
+    private lineageGraphService: LineageGraphService,
     private contextualMenuService: ContextualMenuService,
-    private layoutService: LayoutService
+    private layoutService: LayoutService,
+    private propertyService: PropertyService
   ) { }
 
 
   ngOnInit(): void {
     let that = this
-    this.graphService.getGraphData().subscribe(
+    this.lineageGraphService.getGraphData().subscribe(
       response => {
         console.log("response", response)
         response.nodes.forEach(node => {
-          node.data["icon"] = that.graphService.getIconFromOperationType(<any>OperationType[node.data.operationType])
-          node.data["color"] = that.graphService.getColorFromOperationType(<any>OperationType[node.data.operationType])
-        });
+          node.data["icon"] = that.lineageGraphService.getIconFromOperationType(<any>OperationType[node.data.operationType])
+          node.data["color"] = that.lineageGraphService.getColorFromOperationType(<any>OperationType[node.data.operationType])
+        })
         that.cytograph.cy.add(response)
 
         that.cytograph.cy.nodes().on('click', function (event) {
-          var clickedNode = event.target
-          that.graphService.getDetailsInfo(clickedNode.id())
-        });
+          let clickedNode = event.target
+          that.lineageGraphService.getDetailsInfo(clickedNode.id())
+          that.propertyService.changeCurrentProperty(null)
+        })
       },
       error => {
         //Simply log the error from now

@@ -15,8 +15,7 @@
  */
 import { Component, OnInit, Input } from '@angular/core';
 import { SchemaType } from 'src/app/types/schemaType';
-import { PropertyType } from 'src/app/types/propertyType';;
-import * as $ from 'jquery';
+import { PropertyService } from 'src/app/services/details/property.service';
 
 @Component({
   selector: 'schema',
@@ -34,33 +33,20 @@ export class SchemaComponent implements OnInit {
   @Input()
   schema: any
 
-  constructor() { }
+  property: any
+
+  constructor(private propertyService: PropertyService) { }
 
   ngOnInit() {
-    console.log(this.schema)
+    this.propertyService.currentProperty.subscribe(property => this.property = property)
   }
 
   getSchemaTypeLabel(): any {
     switch (this.schemaType) {
-      case SchemaType.Input: return "<i class='fa fa-arrow-circle-right text-success'></i> Input"
-      case SchemaType.Output: return "<i class='fa fa-arrow-circle-left text-danger'></i> Output"
-      default: return "<i class='fa fa-arrow-circle-right'></i> Schema"
+      case SchemaType.Input: return "&nbsp;<i class='fa fa-lg fa-arrow-circle-right text-success'></i> Input"
+      case SchemaType.Output: return "&nbsp;<i class='fa fa-lg fa-arrow-circle-left text-danger'></i> Output"
+      default: return "&nbsp;<i class='fa fa-arrow-circle-right'></i> Schema"
     }
   }
 
-
-  getPropertyType(propertyType: any): any {
-    switch (propertyType.dataType._typeHint) {
-      case PropertyType.Struct: return "{[...]}"
-      case PropertyType.Array: return "[...]"
-      case PropertyType.Simple: return propertyType.dataType.name
-      default: return ""
-    }
-  }
-
-  getPropertyDetails(property: any, event: any) {
-    console.log(property)
-    $("tr").removeClass("selected")
-    $(event.currentTarget).addClass('selected')
-  }
 }

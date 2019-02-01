@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 ABSA Group Limited
+ * Copyright 2019 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
- .property-title{
-    font-weight: bold;
-    font-size: 20px;
-    color:#e39255;
- }
+import { TestBed } from '@angular/core/testing';
 
- 
-cytoscape-ng {
-    height:50vh;
-    float: left;
-    width:100%;
-}
+import { LineageGraphService } from './lineage-graph.service';
+
+describe('GraphService', () => {
+  beforeEach(() => TestBed.configureTestingModule({}));
+
+  it('should be created', () => {
+    const service: LineageGraphService = TestBed.get(LineageGraphService);
+    expect(service).toBeTruthy();
+  });
+});

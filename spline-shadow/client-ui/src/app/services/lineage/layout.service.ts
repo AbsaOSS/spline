@@ -30,10 +30,10 @@ export class LayoutService {
       fit: true, // Whether to fit
       padding: 40, // Padding on fit
       animate: false, // Whether to transition the node positions
-      animateFilter: function (node, i) { return true; }, // Whether to animate specific nodes when animation is on; non-animated nodes immediately go to their final positions
+      animateFilter: function (node, i) { return true }, // Whether to animate specific nodes when animation is on; non-animated nodes immediately go to their final positions
       animationDuration: 800, // Duration of animation in ms if enabled
       animationEasing: 'cubic-bezier(.85,.19,.07,.58)', // Easing of animation if enabled
-      transform: function (node, pos) { return pos; }, // A function that applies a transform to the final node position
+      transform: function (node, pos) { return pos }, // A function that applies a transform to the final node position
       ready: undefined, // Callback on layoutready
       stop: undefined, // Callback on layoutstop
       klay: {
@@ -80,7 +80,7 @@ export class LayoutService {
         spacing: 100, // Overall setting for the minimal amount of space to be left between objects
         thoroughness: 8 // How much effort should be spent to produce a nice layout..
       },
-      priority: function (edge) { return null; }, // Edges with a non-nil value are skipped when geedy edge cycle breaking is enabled
+      priority: function (edge) { return null }, // Edges with a non-nil value are skipped when geedy edge cycle breaking is enabled
     }
   }
 }
