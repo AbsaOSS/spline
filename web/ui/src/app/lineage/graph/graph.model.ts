@@ -15,10 +15,10 @@
  */
 
 import * as vis from "vis";
-import {IOperation} from "../../../generated-ts/lineage-model";
-import {typeOfOperation} from "../types";
-import {Icon, VisClusterNode} from "../../visjs/vis-model";
-import {getIconForNodeType} from "../details/operation/operation-icon.utils";
+import { IOperation } from "../../../generated-ts/lineage-model";
+import { typeOfOperation } from "../types";
+import { Icon, VisClusterNode } from "../../visjs/vis-model";
+import { getIconForNodeType } from "../details/operation/operation-icon.utils";
 
 export enum VisNodeType {
     Regular,
@@ -42,21 +42,22 @@ export class HighlightedVisClusterNode extends VisClusterNode<VisNode> {
 
 export abstract class VisNode implements vis.Node {
     constructor(public operation: IOperation,
-                public id: string,
-                public label: string,
-                public icon: any,
-                public type: VisNodeType) {
+        public id: string,
+        public label: string,
+        public icon: any,
+        public type: VisNodeType) {
     }
 }
 
 export class RegularVisNode extends VisNode {
-    constructor(public operation: IOperation) {
+    constructor(public operation: IOperation, public label: string) {
         super(
             operation,
             operation.mainProps.id,
-            operation.mainProps.name,
+            label,
             RegularVisNode.getIcon(getIconForNodeType(typeOfOperation(operation))),
-            VisNodeType.Regular)
+            VisNodeType.Regular
+        );
     }
 
     static getIcon(icon: Icon) {
@@ -70,11 +71,11 @@ export class RegularVisNode extends VisNode {
 }
 
 export class HighlightedVisNode extends VisNode {
-    constructor(public operation: IOperation) {
+    constructor(public operation: IOperation, public label: string) {
         super(
             operation,
             operation.mainProps.id,
-            operation.mainProps.name,
+            label,
             HighlightedVisNode.getIcon(getIconForNodeType(typeOfOperation(operation))),
             VisNodeType.Highlighted)
     }

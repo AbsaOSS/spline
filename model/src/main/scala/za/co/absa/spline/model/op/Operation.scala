@@ -69,7 +69,7 @@ object Operation {
     def updated(fn: OperationProps => OperationProps): T = (op.asInstanceOf[Operation] match {
       case op@Read(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@StreamRead(mp, _) => op.copy(mainProps = fn(mp))
-      case op@Write(mp, _, _, _) => op.copy(mainProps = fn(mp))
+      case op@Write(mp, _, _, _, _, _) => op.copy(mainProps = fn(mp))
       case op@StreamWrite(mp, _) => op.copy(mainProps = fn(mp))
       case op@Alias(mp, _) => op.copy(mainProps = fn(mp))
       case op@Filter(mp, _) => op.copy(mainProps = fn(mp))
@@ -203,7 +203,9 @@ case class Write(
                   mainProps: OperationProps,
                   destinationType: String,
                   path: String,
-                  append: Boolean
+                  append: Boolean,
+                  writeMetrics: Map[String, Long],
+                  readMetrics: Map[String, Long]
                 ) extends Operation
 
 /**

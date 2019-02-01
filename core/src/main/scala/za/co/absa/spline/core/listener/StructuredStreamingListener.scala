@@ -61,12 +61,15 @@ class StructuredStreamingListener(queryManager: StreamingQueryManager,
   private def processExecution(se: StreamExecution): Unit = {
     assume(se.logicalPlan.resolved, "we harvest lineage from analyzed logic plans")
 
-    val logicalPlanLineage = lineageHarvester.createBuilder(se.sparkSession.sparkContext).buildLineage(se.logicalPlan)
+    val logicalPlanLineage =
+      lineageHarvester.
+        createBuilder(se.logicalPlan, None, se.sparkSession.sparkContext).
+        buildLineage()
 
     val maybeEndpoint = se.sink match {
       case FileSinkObj(path, fileFormat) => Some(FileEndpoint(path, fileFormat.toString))
       case KafkaSinkObj(cluster, topic) => Some(KafkaEndpoint(cluster, topic.getOrElse("")))
-      case x if Set(consoleSinkClass(), classOf[ForeachSink[_]], classOf[MemorySink]).exists(assignableFrom(_, x)) => None
+      case x if Set(consoleSinkClass(), foreachBatchSinkClass(), classOf[MemorySink]).exists(assignableFrom(_, x)) => None
       case sink => throw new IllegalArgumentException(s"Unsupported sink type: ${sink.getClass}")
     }
 

@@ -34,6 +34,8 @@ import {GraphComponent} from "./graph/graph.component";
 import {LineageByDatasetIdResolver} from "./lineage.resolver";
 import {DetailsModule} from "./details/details.module";
 import {MiscModule} from "../misc/misc.module";
+import { ExpressionRenderService } from "./details/expression/expression-render.service";
+import { LineageStore } from "./lineage.store";
 
 @NgModule({
     imports: [
@@ -51,7 +53,9 @@ import {MiscModule} from "../misc/misc.module";
     ],
     providers: [
         LineageService,
-        LineageByDatasetIdResolver
+        LineageByDatasetIdResolver,
+        ExpressionRenderService,
+        LineageStore
     ],
     exports: [
         LineageComponent,

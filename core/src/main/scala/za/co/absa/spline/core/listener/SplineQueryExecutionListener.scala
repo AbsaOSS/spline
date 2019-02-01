@@ -21,6 +21,7 @@ import org.apache.spark.sql.util.QueryExecutionListener
 import org.slf4s.Logging
 import za.co.absa.spline.core.SparkLineageProcessor
 import za.co.absa.spline.core.harvester.DataLineageBuilderFactory
+import za.co.absa.spline.model.{DataLineage, _}
 
 import scala.language.postfixOps
 
@@ -39,10 +40,16 @@ class SplineQueryExecutionListener(harvesterFactory: DataLineageBuilderFactory, 
     if (funcName == "save") {
       log debug s"Start tracking lineage for action '$funcName'"
 
-      val builder = harvesterFactory.createBuilder(qe.sparkSession.sparkContext)
+      val rawLineage =
+        harvesterFactory.
+          createBuilder(qe.analyzed, Some(qe.executedPlan), qe.sparkSession.sparkContext).
+          buildLineage()
 
-      val rawLineage = builder.buildLineage(qe.analyzed)
-      lineageProcessor.process(rawLineage)
+      if (wasResultIgnored(rawLineage)) {
+        log debug s"The write result was ignored. Skipping lineage."
+      } else {
+        lineageProcessor.process(rawLineage)
+      }
 
       log debug s"Lineage tracking for action '$funcName' is done."
     }
@@ -50,6 +57,14 @@ class SplineQueryExecutionListener(harvesterFactory: DataLineageBuilderFactory, 
       log debug s"Skipping lineage tracking for action '$funcName'"
     }
   }
+
+  def wasResultIgnored(lineage: DataLineage): Boolean =
+    lineage.rootOperation match {
+      case op.Write(_, _, _, _, writeMetrics, readMetrics) =>
+        writeMetrics get "numFiles" exists 0.==
+      case _ =>
+        sys.error(s"Unexpected root operation: ${lineage.rootOperation.getClass}")
+    }
 
   /**
     * The method is executed when an error occurs during an action execution.

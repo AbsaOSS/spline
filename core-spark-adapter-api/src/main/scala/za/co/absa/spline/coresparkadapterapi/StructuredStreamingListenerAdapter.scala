@@ -1,5 +1,3 @@
-package za.co.absa.spline.coresparkadapterapi
-
 /*
  * Copyright 2017 ABSA Group Limited
  *
@@ -16,8 +14,11 @@ package za.co.absa.spline.coresparkadapterapi
  * limitations under the License.
  */
 
+package za.co.absa.spline.coresparkadapterapi
+
 trait StructuredStreamingListenerAdapter {
   def consoleSinkClass(): Class[_]
+  def foreachBatchSinkClass(): Class[_]
 }
 
 object StructuredStreamingListenerAdapter extends AdapterFactory[StructuredStreamingListenerAdapter]

@@ -32,19 +32,17 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
 
   behavior of "The build method"
 
-  it should "return StreamRead node with a virtual endpoint when reading data from the rate data source" in {
+  ignore should "return StreamRead node with a virtual endpoint when reading data from the rate data source" in {
     val df = sparkSession
       .readStream
       .format("rate")
       .load()
-
     val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
     val node = builder.build()
-
     node.source shouldEqual VirtualEndpoint
   }
 
-  it should "return StreamRead node with a socket endpoint when reading data from the socket data source" in {
+  ignore should "return StreamRead node with a socket endpoint when reading data from the socket data source" in {
     val host = "somehost"
     val port = 9999L
 
@@ -54,10 +52,8 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
       .option("host", host)
       .option("port", port)
       .load()
-
     val builder = new StreamReadNodeBuilder(toStreamingRelation(df.queryExecution.analyzed))
     val node = builder.build()
-
     node.source shouldEqual SocketEndpoint(host, port.toString)
   }
 
