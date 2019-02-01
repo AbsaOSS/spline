@@ -16,13 +16,13 @@
 
 import { TestBed } from '@angular/core/testing';
 
-import { GraphService } from './graph.service';
+import { LineageGraphService } from './lineage-graph.service';
 
 describe('GraphService', () => {
   beforeEach(() => TestBed.configureTestingModule({}));
 
   it('should be created', () => {
-    const service: GraphService = TestBed.get(GraphService);
+    const service: LineageGraphService = TestBed.get(LineageGraphService);
     expect(service).toBeTruthy();
   });
 });

@@ -15,8 +15,6 @@
  */
 import { Component, OnInit, Input } from '@angular/core';
 import { SchemaType } from 'src/app/types/schemaType';
-import { PropertyType } from 'src/app/types/propertyType';;
-import * as $ from 'jquery';
 import { PropertyService } from 'src/app/services/details/property.service';
 
 @Component({
@@ -40,14 +38,13 @@ export class SchemaComponent implements OnInit {
   constructor(private propertyService: PropertyService) { }
 
   ngOnInit() {
-    //console.log(this.schema)
     this.propertyService.currentProperty.subscribe(property => this.property = property)
   }
 
   getSchemaTypeLabel(): any {
     switch (this.schemaType) {
       case SchemaType.Input: return "&nbsp;<i class='fa fa-lg fa-arrow-circle-right text-success'></i> Input"
-      case SchemaType.Output: return "&nbsp;<i class='fa fa-arrow-circle-left text-danger'></i> Output"
+      case SchemaType.Output: return "&nbsp;<i class='fa fa-lg fa-arrow-circle-left text-danger'></i> Output"
       default: return "&nbsp;<i class='fa fa-arrow-circle-right'></i> Schema"
     }
   }

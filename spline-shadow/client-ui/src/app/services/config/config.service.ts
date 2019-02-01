@@ -21,7 +21,7 @@ import { HttpClient } from '@angular/common/http';
 })
 export class ConfigService {
 
-  static settings: any;
+  static settings: any
 
   constructor(private http: HttpClient) { }
 
@@ -29,18 +29,18 @@ export class ConfigService {
     if (window["SplineConfiguration"]) {
       return new Promise<void>((resolve, reject) => {
         ConfigService.settings = window["SplineConfiguration"]
-        resolve();
-      });
+        resolve()
+      })
     } else {
       const jsonFile = `${environment.configFile}`
       return new Promise<void>((resolve, reject) => {
         this.http.get(jsonFile).toPromise().then((response: any) => {
-          ConfigService.settings = <any>response;
-          resolve();
+          ConfigService.settings = <any>response
+          resolve()
         }).catch((response: any) => {
-          reject(`Could not load file '${jsonFile}': ${JSON.stringify(response)}`);
-        });
-      });
+          reject(`Could not load file '${jsonFile}': ${JSON.stringify(response)}`)
+        })
+      })
     }
   }
 }

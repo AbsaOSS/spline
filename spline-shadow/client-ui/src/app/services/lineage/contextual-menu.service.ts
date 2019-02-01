@@ -15,7 +15,7 @@
  */
 
 import { Injectable } from '@angular/core';
-import { GraphService } from './graph.service';
+import { LineageGraphService } from './lineage-graph.service';
 import { LayoutService } from './layout.service';
 import { OperationType } from 'src/app/types/operationTypes';
 import { ExecutionPlanControllerService } from 'src/app/generated/services';
@@ -27,7 +27,7 @@ import { ConfigService } from '../config/config.service';
 export class ContextualMenuService {
 
   constructor(
-    private graphService: GraphService,
+    private lineageGraphService: LineageGraphService,
     private layoutService: LayoutService,
     private executionPlanControllerService: ExecutionPlanControllerService
   ) {
@@ -35,7 +35,7 @@ export class ContextualMenuService {
   }
 
   public getConfiguration() {
-    let that = this;
+    let that = this
     return {
       menuRadius: 90, // the radius of the circular menu in pixels
       selector: 'node', // elements matching this Cytoscape.js selector will trigger cxtmenus
@@ -56,7 +56,7 @@ export class ContextualMenuService {
         {
           content: '<span class="fa fa-info-circle fa-2x"></span><b>Details</b>',
           select: function (ele) {
-            var t = that.executionPlanControllerService.lineageUsingGETResponse("2280281c-1d89-11e9-8eba-d663bd873d93").subscribe();
+            let t = that.executionPlanControllerService.lineageUsingGETResponse("2280281c-1d89-11e9-8eba-d663bd873d93").subscribe()
             console.log(t)
           }
         },
@@ -71,12 +71,12 @@ export class ContextualMenuService {
           content: '<span class="fa fa-crop fa-2x"></span><b>Focus</b>',
           select: function (ele, event) {
             event.cy.elements().remove()
-            that.graphService.getGraphData(ele.id(), 5).subscribe(
+            that.lineageGraphService.getGraphData(ele.id(), 5).subscribe(
               response => {
                 response.nodes.forEach(node => {
-                  node.data["icon"] = that.graphService.getIconFromOperationType(<any>OperationType[node.data.operationType])
-                  node.data["color"] = that.graphService.getColorFromOperationType(<any>OperationType[node.data.operationType])
-                });
+                  node.data["icon"] = that.lineageGraphService.getIconFromOperationType(<any>OperationType[node.data.operationType])
+                  node.data["color"] = that.lineageGraphService.getColorFromOperationType(<any>OperationType[node.data.operationType])
+                })
                 event.cy.add(response)
               },
               error => {

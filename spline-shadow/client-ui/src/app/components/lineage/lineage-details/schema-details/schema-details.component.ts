@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { GraphService } from 'src/app/services/lineage/graph.service';
+import { LineageGraphService } from 'src/app/services/lineage/lineage-graph.service';
 
 @Component({
   selector: 'schema-details',
@@ -25,12 +25,11 @@ export class SchemaDetailsComponent implements OnInit {
 
   public detailsInfo: any = null
 
-  constructor(private graphService: GraphService) { }
+  constructor(private lineageGraphService: LineageGraphService) { }
 
   ngOnInit() {
-    this.graphService.detailsInfo.subscribe(detailsInfo => {
+    this.lineageGraphService.detailsInfo.subscribe(detailsInfo => {
       this.detailsInfo = detailsInfo
-      console.log(this.detailsInfo)
     })
   }
 
@@ -42,7 +41,7 @@ export class SchemaDetailsComponent implements OnInit {
     let inputs = []
     this.detailsInfo.mainProps.inputs.forEach(input => {
       inputs.push(this.detailsInfo.mainProps.schemas[input])
-    });
+    })
     return inputs
   }
 

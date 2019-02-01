@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { PropertyService } from 'src/app/services/details/property.service';
-import { PropertyType } from 'src/app/types/propertyType';
+import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
+import { LayoutService } from 'src/app/services/lineage/layout.service';
 
 @Component({
   selector: 'property-details',
@@ -24,35 +25,30 @@ import { PropertyType } from 'src/app/types/propertyType';
 })
 export class PropertyDetailsComponent implements OnInit {
 
+  @ViewChild(CytoscapeNgLibComponent)
+  private cytograph: CytoscapeNgLibComponent
+
   property: any
 
-  constructor(private propertyService: PropertyService) { }
+  constructor(
+    private propertyService: PropertyService,
+    private layoutService: LayoutService
+  ) { }
 
   ngOnInit(): void {
+    let that = this
     this.propertyService.currentProperty.subscribe(property => {
-      this.property = property
-      console.log("received property", property)
+      that.property = property
+      if (property) {
+        that.cytograph.cy.remove(that.cytograph.cy.elements())
+        let graph = that.propertyService.buildPropertyGraph(property)
+        that.cytograph.cy.add(graph)
+
+        that.cytograph.cy.layout(that.layoutService.getConfiguration()).run()
+        that.cytograph.cy.panzoom()
+      }
     })
   }
 
-  isTypeSimple(): boolean {
-    return this.property && this.property.dataType._typeHint === PropertyType.Simple
-  }
-
-  getProperties(): any {
-    if (!this.property) return null
-    if (this.property.dataType._typeHint === PropertyType.Struct) return this.property.dataType.fields
-    if (this.property.dataType._typeHint === PropertyType.Array) return this.property.dataType.elementDataType.fields
-    return null
-  }
-
-  getPropertyType(propertyType: any): any {
-    switch (propertyType.dataType._typeHint) {
-      case PropertyType.Struct: return "{[...]}"
-      case PropertyType.Array: return "[...]"
-      case PropertyType.Simple: return propertyType.dataType.name
-      default: return ""
-    }
-  }
 
 }
