@@ -1,6 +1,6 @@
 title: Spline
 url: https://absaoss.github.io
-keywords: apache spark,spark,dataframe,sql,structured streaming,data lineage,data provenance,tracking,big data,scala,cluster
+keywords: apache spark, spark, dataframe, sql, structured streaming, data lineage, data provenance, tracking, big data, scala, cluster
 baseurl: /spline
 future: true
 spline:

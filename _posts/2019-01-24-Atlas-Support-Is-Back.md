@@ -6,7 +6,7 @@ author: "Vaclav Kosar @ Absa"
 ---
 <img src="{{ site.url }}{{ site.baseurl }}/assets/spline-atlas-ingested-lineage.png" width="560" height="315" />
 
-Apache Atlas is meta data management platform for big data, which is often also used for data lineage. Spline support of Atlas was temporarily removed due to large refactoring on version 0.3. But now Atlas support is back thanks to [Marek Novotny](https://github.com/mn-mikke) and will be released soon. Supported Atlas version now is 1.0.
+Apache Atlas is meta data management platform for big data, which is often also used for data lineage. Spline support of Atlas was temporarily removed due to large refactoring on version 0.3. But now Atlas support is back thanks to [Marek Novotny](https://github.com/mn-mikke) released in 0.3.6. Supported Atlas version now is 1.0.
 
 
 ### Spline Atlas Integration vs Hortonworks Spark Atlas Connector
