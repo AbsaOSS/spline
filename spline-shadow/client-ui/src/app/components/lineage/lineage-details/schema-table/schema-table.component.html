@@ -25,7 +25,7 @@
     <tr *ngFor="let item of schema" (click)="rowClick(item, $event)" [ngClass]="{'details' : item.name == selectedItemName }">
       <td style=" width: 1%" class="details-control"><button *ngIf="item.dataType._typeHint != 'za.co.absa.spline.core.model.dt.Simple'"
           (click)="detailsControlClick(item, $event)" class="btn btn-xs" [ngClass]="{'btn-warning' :  expandedRows.has(item), 'btn-secondary' : !expandedRows.has(item) }"><i
-            class="fa fa-plus fa-xs text-white"></i></button></td>
+            class="fa fa-xs text-white" [ngClass]="{'fa-minus' :  expandedRows.has(item), 'fa-plus' : !expandedRows.has(item) }"></i></button></td>
       <td style="width: 69%">{{item.name}}</td>
       <td style="width: 30%" class="text-right">{{getPropertyType(item)}}</td>
     </tr>

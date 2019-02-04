@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { PropertyType } from 'src/app/types/propertyType';
+import * as _ from 'lodash';
+import { enableDebugTools } from '@angular/platform-browser';
 
 @Injectable({
   providedIn: 'root'
@@ -17,21 +19,39 @@ export class PropertyService {
     this.propertySource.next(property)
   }
 
-  public buildPropertyGraph(property: any): any {
+  public buildPropertyGraph(property: any, parentProperty: any, graph: any): any {
 
     if (!property) return null
 
-    let graph = {
-      nodes: [],
-      edges: []
+    if (graph == null) {
+      graph = {
+        nodes: [],
+        edges: []
+      }
     }
 
-    //retrieves the parent node
-    let node = { data: { id: property.id, name: property.name } }
+    let node = { data: { id: property.name, name: property.name, icon: "f111" } }
     graph.nodes.push(node)
 
-    // TODO: build graph according to the type
+    if (parentProperty != null) {
+      let edge = { data: { source: parentProperty.name, target: property.name, id: property.name + parentProperty.name } }
+      graph.edges.push(edge)
+    }
+    let childrenProperties = this.getChildrenProperties(property)
+    _.each(childrenProperties, item => this.buildPropertyGraph(item, property, graph))
 
     return graph
+  }
+
+
+  public getChildrenProperties(property: any): any {
+    switch (property.dataType._typeHint) {
+      case PropertyType.Array:
+        return property.dataType.elementDataType.fields
+      case PropertyType.Struct:
+        return property.dataType.fields
+      default:
+        return null
+    }
   }
 }

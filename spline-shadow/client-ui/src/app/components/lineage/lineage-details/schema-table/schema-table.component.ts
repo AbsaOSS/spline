@@ -82,15 +82,7 @@ export class SchemaTableComponent implements OnInit {
   expandRow(item, row) {
     let factory = this.componentFactoryResolver.resolveComponentFactory(SchemaTableComponent)
     let cmp = this._detailsLine.createComponent(factory)
-
-    switch (item.dataType._typeHint) {
-      case PropertyType.Struct:
-        cmp.instance.schema = item.dataType.fields
-        break
-      case PropertyType.Array:
-        cmp.instance.schema = item.dataType.elementDataType.fields
-        break
-    }
+    cmp.instance.schema = this.propertyService.getChildrenProperties(item)
     row.child(cmp.location.nativeElement).show()
   }
 
