@@ -38,5 +38,5 @@ class SwaggerConfig @Autowired()(val typeResolver: TypeResolver)
       paths(PathSelectors.any).
       build
 
-  @Bean def aaa = new SwaggerRequiredPropertyBuilderPlugin
+  @Bean def rpbPlugin = new SwaggerRequiredPropertyBuilderPlugin
 }

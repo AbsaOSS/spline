@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.gateway.rest
+package za.co.absa.spline.gateway.rest.swagger
 
-import org.springframework.context.annotation.Configuration
+import org.scalatest.{FunSuite, Matchers}
 
-@Configuration
-class AppConfig {
-  //todo: define services and other components here
+class SwaggerDocGenTest extends FunSuite with Matchers {
+
+  test("testGenerate") {
+    val output = SwaggerDocGen.generate
+    output should not be empty
+    output should startWith("""{"swagger":"2.0"""")
+    output should endWith("}")
+  }
+
 }
-
-
-
-
