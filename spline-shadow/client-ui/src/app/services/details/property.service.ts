@@ -29,8 +29,7 @@ export class PropertyService {
         edges: []
       }
     }
-
-    let node = { data: { id: property.name, name: property.name, icon: "f111" } }
+    let node = { data: { id: property.name, name: property.name + " : " + this.getPropertyType(property), icon: "f111", color: this.getPropertyColor(property) } }
     graph.nodes.push(node)
 
     if (parentProperty != null) {
@@ -41,6 +40,23 @@ export class PropertyService {
     _.each(childrenProperties, item => this.buildPropertyGraph(item, property, graph))
 
     return graph
+  }
+
+  public getPropertyColor(property: any): any {
+    switch (property.dataType._typeHint) {
+      case PropertyType.Struct:
+      case PropertyType.Array: return '#FFA500'
+      default: return '#337AB7'
+    }
+  }
+
+  public getPropertyType(property: any): any {
+    switch (property.dataType._typeHint) {
+      case PropertyType.Struct: return '{ ... }'
+      case PropertyType.Array: return '[ ... ]'
+      case PropertyType.Simple: return property.dataType.name
+      default: return ''
+    }
   }
 
 

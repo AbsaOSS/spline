@@ -87,12 +87,7 @@ export class SchemaTableComponent implements OnInit {
   }
 
   getPropertyType(propertyType: any): any {
-    switch (propertyType.dataType._typeHint) {
-      case PropertyType.Struct: return '{ ... }'
-      case PropertyType.Array: return '[ ... ]'
-      case PropertyType.Simple: return propertyType.dataType.name
-      default: return ''
-    }
+    return this.propertyService.getPropertyType(propertyType)
   }
 
 
