@@ -22,11 +22,9 @@ import com.databricks.spark.xml.XmlRelation
 import org.apache.spark.sql.catalyst.expressions.{AttributeReference, SortOrder, Attribute => SparkAttribute}
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.{DataSource, HadoopFsRelation, LogicalRelation}
-import org.apache.spark.sql.execution.streaming.StreamingRelation
 import org.apache.spark.sql.sources.BaseRelation
 import org.apache.spark.sql.{JDBCRelation, SaveMode}
 import za.co.absa.spline.coresparkadapterapi.WriteCommand
-import za.co.absa.spline.model.endpoint._
 import za.co.absa.spline.model.{op, _}
 
 sealed trait OperationNodeBuilder {
@@ -126,29 +124,6 @@ abstract class WriteNodeBuilder
     writeMetrics = writeMetrics,
     readMetrics = readMetrics
   )
-}
-
-class StreamReadNodeBuilder
-(val operation: StreamingRelation)
-(implicit val componentCreatorFactory: ComponentCreatorFactory)
-  extends OperationNodeBuilder {
-  override def build(): op.StreamRead = op.StreamRead(
-    operationProps,
-    createEndpoint(operation.dataSource)
-  )
-
-  private def createEndpoint(dataSource: DataSource): StreamEndpoint = dataSource.sourceInfo.name match {
-    case x if x startsWith "FileSource" => FileEndpoint(dataSource.className, dataSource.options.getOrElse("path", ""))
-    case "kafka" => KafkaEndpoint(
-      dataSource.options.getOrElse("kafka.bootstrap.servers", ",").split(","),
-      dataSource.options.getOrElse("subscribe", "")
-    )
-    case "textSocket" => SocketEndpoint(
-      dataSource.options.getOrElse("host", ""),
-      dataSource.options.getOrElse("port", "")
-    )
-    case _ => VirtualEndpoint
-  }
 }
 
 class ProjectionNodeBuilder

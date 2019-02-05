@@ -33,12 +33,6 @@ trait SplineConfigurer {
   def queryExecutionListener : QueryExecutionListener
 
   /**
-    * A listener handling events from structured-streaming processing
-    * @return [[StreamingQueryListener]]
-    */
-  def streamingQueryListener : StreamingQueryListener
-
-  /**
     * Spline mode designates how Spline should behave in a context of a Spark application.
     * It mostly relates to error handling. E.g. is lineage tracking a mandatory for the given Spark app or is it good to have.
     * Should the Spark app be aborted on Spline errors or not.

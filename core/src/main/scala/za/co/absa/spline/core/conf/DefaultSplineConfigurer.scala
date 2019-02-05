@@ -27,7 +27,7 @@ import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.core.transformations.{DataLineageLinker, LineageProjectionMerger}
 import za.co.absa.spline.core.SparkLineageProcessor
 import za.co.absa.spline.core.harvester.DataLineageBuilderFactory
-import za.co.absa.spline.core.listener.{SplineQueryExecutionListener, StructuredStreamingListener}
+import za.co.absa.spline.core.listener.SplineQueryExecutionListener
 import za.co.absa.spline.persistence.api.{DataLineageReader, NopDataLineageReader, PersistenceFactory}
 
 import scala.concurrent.ExecutionContext
@@ -75,10 +75,6 @@ class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkS
 
   lazy val queryExecutionListener: QueryExecutionListener =
     new SplineQueryExecutionListener(lineageHarvester, lineageProcessor)
-
-  lazy val streamingQueryListener: StreamingQueryListener =
-    new StructuredStreamingListener(sparkSession.streams, lineageHarvester, lineageProcessor)
-
 
   private lazy val lineageHarvester = new DataLineageBuilderFactory(sparkSession.sparkContext.hadoopConfiguration)
 
