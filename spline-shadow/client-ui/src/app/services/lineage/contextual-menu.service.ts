@@ -17,7 +17,7 @@
 import { Injectable } from '@angular/core';
 import { LineageGraphService } from './lineage-graph.service';
 import { LayoutService } from './layout.service';
-import { OperationType } from 'src/app/types/operationTypes';
+import { OperationType } from 'src/app/types/operationType';
 import { ExecutionPlanControllerService } from 'src/app/generated/services';
 import { ConfigService } from '../config/config.service';
 
@@ -74,8 +74,8 @@ export class ContextualMenuService {
             that.lineageGraphService.getGraphData(ele.id(), 5).subscribe(
               response => {
                 response.nodes.forEach(node => {
-                  node.data["icon"] = that.lineageGraphService.getIconFromOperationType(<any>OperationType[node.data.operationType])
-                  node.data["color"] = that.lineageGraphService.getColorFromOperationType(<any>OperationType[node.data.operationType])
+                  node.data["icon"] = that.lineageGraphService.getIconFromOperationType(node.data.operationType)
+                  node.data["color"] = that.lineageGraphService.getColorFromOperationType(node.data.operationType)
                 })
                 event.cy.add(response)
               },

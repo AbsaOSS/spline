@@ -45,7 +45,7 @@ export class PropertyService {
   public getPropertyColor(property: any): any {
     switch (property.dataType._typeHint) {
       case PropertyType.Struct:
-      case PropertyType.Array: return '#FFA500'
+      case PropertyType.Array: return '#e39255'
       default: return '#337AB7'
     }
   }

@@ -15,6 +15,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { LineageGraphService } from 'src/app/services/lineage/lineage-graph.service';
+import { OperationType } from 'src/app/types/operationType';
 
 @Component({
   selector: 'schema-details',
@@ -33,8 +34,26 @@ export class SchemaDetailsComponent implements OnInit {
     })
   }
 
+  getIcon(): string {
+    return "&#x" + this.lineageGraphService.getIconFromOperationType(this.getType()) + "&nbsp;"
+  }
+
+  getOperationColor(): string {
+    return this.lineageGraphService.getColorFromOperationType(this.getType())
+  }
+
   getType(): string {
     return this.detailsInfo._typeHint.split('.').pop()
+  }
+
+  getExpression(): string {
+    switch (this.getType()) {
+      case OperationType.Join:
+        return "<div class=expression>" + this.detailsInfo.joinType + " join on</div><code>" + this.detailsInfo.condition.text + "</code>"
+      default:
+        //TODO : Implement the other expressions. 
+        return "..."
+    }
   }
 
   getInputs() {

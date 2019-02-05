@@ -18,7 +18,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { OperationType } from 'src/app/types/operationTypes';
+import { OperationType } from 'src/app/types/operationType';
 
 
 @Injectable({
@@ -95,25 +95,25 @@ export class LineageGraphService {
    */
   public getGraphData(nodeFocus: string = null, depth: number = null): Observable<any> {
     // // TODO : Use a Url Builder Service 
-    // let url = this.mockRestApiGraph;
-    // if (nodeFocus && depth) {
-    //   url = url + "/" + nodeFocus + "/" + depth;
-    // }
-    // return this.http.get(url).pipe(
-    //   catchError(this.handleError)
-    // );
+    let url = this.mockRestApiGraph;
+    if (nodeFocus && depth) {   
+      url = url + "/" + nodeFocus + "/" + depth;
+    }
+    return this.http.get(url).pipe(
+      catchError(this.handleError)
+    );
     // TODO : This code is just for testing the integration with menas. It should be replace by a normal call to the api
-    let that = this
-    let observable = Observable.create(observer => {
-      setTimeout(() => {
-        observer.next(that.graph) // This method same as resolve() method from Angular 1
-        observer.complete()//to show we are done with our processing
-        // observer.error(new Error("error message"));
-      }, 1000)
+    // let that = this
+    // let observable = Observable.create(observer => {
+    //   setTimeout(() => {
+    //     observer.next(that.graph) // This method same as resolve() method from Angular 1
+    //     observer.complete()//to show we are done with our processing
+    //     // observer.error(new Error("error message"));
+    //   }, 1000)
 
-    })
+    // })
 
-    return observable
+    // return observable
   }
 
   /**
@@ -129,7 +129,7 @@ export class LineageGraphService {
     });
   }
 
-  public getIconFromOperationType(operation: OperationType): string {
+  public getIconFromOperationType(operation: string): string {
     switch (operation) {
       case OperationType.Projection: return "f13a"
       case OperationType.BatchRead: return "f085"
@@ -147,12 +147,12 @@ export class LineageGraphService {
     }
   }
 
-  public getColorFromOperationType(operation: OperationType): string {
+  public getColorFromOperationType(operation: string): string {
     switch (operation) {
       case OperationType.Projection: return "#337AB7"
       case OperationType.BatchRead: return "#337AB7"
       case OperationType.StreamRead: return "#337AB7"
-      case OperationType.Join: return "#FFA500"
+      case OperationType.Join: return "#e39255"
       case OperationType.Union: return "#337AB7"
       case OperationType.Generic: return "#337AB7"
       case OperationType.Filter: return "#F04100"

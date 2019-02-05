@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-export enum OperationType {
-    Projection,
-    BatchRead,
-    StreamRead,
-    Join,
-    Union,
-    Generic,
-    Filter,
-    Sort,
-    Aggregate,
-    BatchWrite,
-    StreamWrite,
-    Alias
+export const enum OperationType {
+    Projection = 'Projection',
+    BatchRead = 'BatchRead',
+    StreamRead = 'StreamRead',
+    Join = 'Join',
+    Union = 'Union',
+    Generic = 'Generic',
+    Filter = 'Filter',
+    Sort = 'Sort',
+    Aggregate = 'Aggregate',
+    BatchWrite = 'BatchWrite',
+    StreamWrite = 'StreamWrite',
+    Alias = 'Alias'
 }
