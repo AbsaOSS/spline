@@ -18,7 +18,7 @@ import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
 import { LineageGraphService } from 'src/app/services/lineage/lineage-graph.service';
 import { ContextualMenuService } from 'src/app/services/lineage/contextual-menu.service';
 import { LayoutService } from 'src/app/services/lineage/layout.service';
-import { OperationType } from 'src/app/types/operationTypes';
+import { OperationType } from 'src/app/types/operationType';
 import { PropertyService } from 'src/app/services/details/property.service';
 
 @Component({
@@ -43,10 +43,9 @@ export class LineageGraphComponent implements OnInit {
     let that = this
     this.lineageGraphService.getGraphData().subscribe(
       response => {
-        console.log("response", response)
         response.nodes.forEach(node => {
-          node.data["icon"] = that.lineageGraphService.getIconFromOperationType(<any>OperationType[node.data.operationType])
-          node.data["color"] = that.lineageGraphService.getColorFromOperationType(<any>OperationType[node.data.operationType])
+          node.data["icon"] = that.lineageGraphService.getIconFromOperationType(node.data.operationType)
+          node.data["color"] = that.lineageGraphService.getColorFromOperationType(node.data.operationType)
         })
         that.cytograph.cy.add(response)
 

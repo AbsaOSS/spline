@@ -41,7 +41,7 @@ export class PropertyDetailsComponent implements OnInit {
       that.property = property
       if (property) {
         that.cytograph.cy.remove(that.cytograph.cy.elements())
-        let graph = that.propertyService.buildPropertyGraph(property)
+        let graph = that.propertyService.buildPropertyGraph(property, null, null)
         that.cytograph.cy.add(graph)
 
         that.cytograph.cy.layout(that.layoutService.getConfiguration()).run()

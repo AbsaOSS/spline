@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { Component, OnInit, Input, ComponentFactoryResolver, ViewChild, ViewContainerRef } from '@angular/core';
-import { PropertyType } from 'src/app/types/propertyType';
 import { PropertyService } from 'src/app/services/details/property.service';
 
 @Component({
@@ -79,28 +78,17 @@ export class SchemaTableComponent implements OnInit {
 
   }
 
-  expandRow(item, row) {
+  private expandRow(item, row) {
     let factory = this.componentFactoryResolver.resolveComponentFactory(SchemaTableComponent)
-    let cmp = this._detailsLine.createComponent(factory)
-
-    switch (item.dataType._typeHint) {
-      case PropertyType.Struct:
-        cmp.instance.schema = item.dataType.fields
-        break
-      case PropertyType.Array:
-        cmp.instance.schema = item.dataType.elementDataType.fields
-        break
-    }
-    row.child(cmp.location.nativeElement).show()
+    let component = this._detailsLine.createComponent(factory)
+    let componentInstance = component.instance
+    let componentLocation = component.location
+    componentInstance.schema = this.propertyService.getChildrenProperties(item)
+    row.child(componentLocation.nativeElement).show()
   }
 
   getPropertyType(propertyType: any): any {
-    switch (propertyType.dataType._typeHint) {
-      case PropertyType.Struct: return '{ ... }'
-      case PropertyType.Array: return '[ ... ]'
-      case PropertyType.Simple: return propertyType.dataType.name
-      default: return ''
-    }
+    return this.propertyService.getPropertyType(propertyType)
   }
 
 
