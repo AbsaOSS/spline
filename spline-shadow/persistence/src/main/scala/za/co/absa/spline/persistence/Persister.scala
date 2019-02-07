@@ -28,7 +28,8 @@ import za.co.absa.spline.model.arango.DataSource
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.{model => splinemodel}
 
-import scala.util.Try
+import scala.annotation.tailrec
+import scala.util.{Failure, Success, Try}
 
 // import com.outr.arango.managed._ needed for decoder creation
 import com.outr.arango.managed._
@@ -43,30 +44,28 @@ class Persister(db: ArangoDatabase, debug: Boolean = false) {
   private val TotalRetriesOnConflictingKey = 3
 
   def save(dataLineage: DataLineage) = Future {
-    saveWithRetry(dataLineage)
+    val attempts = saveWithRetry(dataLineage, TotalRetriesOnConflictingKey)
+    if (attempts.isFailure) {
+       throw new IllegalArgumentException("Exhausted retries.", attempts.failed.get)
+    }
   }
 
-
-  private def saveWithRetry(dataLineage: DataLineage): Unit = {
-    val results: Seq[Try[Throwable]] = for {
-        retries <- TotalRetriesOnConflictingKey to 1 by -1
-      } yield {
-        Try(attemptSave(dataLineage))
-          // Immediately returns on success.
-          .map(_ => return)
-          .recover(logOrThrow(retries))
+  @tailrec
+  private def saveWithRetry(dataLineage: DataLineage, retries: Int): Try[Unit] = {
+    val left = retries - 1
+    Try(attemptSave(dataLineage))
+      match {
+        case s: Success[Unit] => s
+        case Failure(e) if e.isInstanceOf[ArangoDBException] && e.asInstanceOf[ArangoDBException].getErrorNum == 1210 =>
+            log.warn(s"Ignoring ${e.getClass.getSimpleName} and $left left. Exception message: ${e.getMessage}.")
+            if (retries == 0) {
+              Failure(e)
+            } else {
+              saveWithRetry(dataLineage, left)
+            }
+        case Failure(e) =>
+          throw new IllegalArgumentException(s"Unexpected exception aborting remaining $left retries.", e)
       }
-    throw new IllegalArgumentException("Exhausted retries.", results.reverse.head.get)
-  }
-
-  private def logOrThrow(retries: Int): PartialFunction[Throwable, Throwable] = {
-    case e if
-    e.isInstanceOf[ArangoDBException]
-      && e.asInstanceOf[ArangoDBException].getErrorNum == 1210 =>
-      log.warn(s"Ignoring ${e.getClass.getSimpleName} and $retries left. Exception message: ${e.getMessage}.")
-      e
-    case e: Exception =>
-      throw new IllegalArgumentException(s"Unexpected exception aborting remaining $retries retries.", e)
   }
 
   private def attemptSave(dataLineage: DataLineage): Unit = {
