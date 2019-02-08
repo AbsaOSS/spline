@@ -37,11 +37,11 @@ import com.outr.arango.managed._
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import Persister._
 
 class Persister(db: ArangoDatabase, debug: Boolean = false) {
 
   private val log = LoggerFactory.getLogger(getClass)
-  private val TotalRetriesOnConflictingKey = 3
 
   def save(dataLineage: DataLineage) = Future {
     val attempts = saveWithRetry(dataLineage, TotalRetriesOnConflictingKey)
@@ -136,5 +136,7 @@ object Persister {
 
   def create(arangoUri: String): Persister =
     new Persister(ArangoFactory.create(new URI(arangoUri)))
+
+  private val TotalRetriesOnConflictingKey = 5
 
 }
