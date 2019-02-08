@@ -56,11 +56,13 @@ object MigratorCLI extends App {
     help("help").text("prints this usage text")
   }
 
-  val config = cliParser.parse(args, MigratorConfig.empty)
-    .getOrElse(throw new IllegalArgumentException("Invalid config state."))
-  initArangoIfConfigured(config)
-  MigratorTool.migrate(config)
-    .map(stats => println(s"DONE. Processed total: ${stats.processed} (of which failures: ${stats.failures})"))
+  cliParser.parse(args, MigratorConfig.empty) match {
+    case Some(config) =>
+      initArangoIfConfigured(config)
+      MigratorTool.migrate(config)
+        .map(stats => println(s"DONE. Processed total: ${stats.processed} (of which failures: ${stats.failures})"))
+    case None => cliParser.terminate(Left(""))
+  }
 
   private def initArangoIfConfigured(config: MigratorConfig): Unit = {
     if (config.initializeArangodb) {
