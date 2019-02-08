@@ -71,7 +71,7 @@ class Persister(db: ArangoDatabase, debug: Boolean = false) {
   private def attemptSave(dataLineage: DataLineage): Unit = {
     val uris = referencedUris(dataLineage)
     val uriExistingKey = queryExistingToKey(uris)
-    val uriToNewKey = filterUriToNewKey(uris, uriExistingKey)
+    val uriToNewKey = generateNewKeys(uris, uriExistingKey)
     val uriToKey = uriExistingKey ++ uriToNewKey
     val params = DataLineageTransactionParams
       .create(dataLineage, uriToNewKey, uriToKey)
@@ -84,14 +84,6 @@ class Persister(db: ArangoDatabase, debug: Boolean = false) {
            params.saveCollectionsJs +
         "}\n"
     db.transaction(action, classOf[Void], options)
-  }
-
-  def onDebug(varName: String): String = {
-    if (debug) {
-      s"  console.info('$varName: ' + JSON.stringify($varName));\n"
-    } else {
-      ""
-    }
   }
 
   private def referencedUris(dataLineage: DataLineage) = {
@@ -122,11 +114,10 @@ class Persister(db: ArangoDatabase, debug: Boolean = false) {
       .toMap
   }
 
-  private def filterUriToNewKey(uris: Seq[String], uriToExistingKey: Map[String, String]) = {
-    uris
-      .filter(uri => !uriToExistingKey.keys.exists(_ == uri))
-      .map(uri => uri -> randomUUID.toString)
-      .toMap
+  private def generateNewKeys(uris: Seq[String], uriToExistingKey: Map[String, String]) = {
+    (uris.toSet -- uriToExistingKey.keys)
+        .map(_ -> randomUUID.toString)
+        .toMap
   }
 
 }

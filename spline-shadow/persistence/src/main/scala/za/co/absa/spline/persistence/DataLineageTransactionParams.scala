@@ -31,13 +31,14 @@ case class DataLineageTransactionParams(
       .filter(_ != "$outer")
 
     def saveCollectionsJs: String = fields
-      .map(field =>
-        s"  console.log('start $field');\n" +
-          s"  params.$field.forEach(o => {\n" +
-          "    const doc = JSON.parse(o);\n" +
-          s"    db.$field.save(doc);\n" +
-          "  });\n" +
-          s"  console.info('end $field');\n")
+      .map(field => s"""
+          |  console.log('start $field');
+          |  params.$field.forEach(o => {
+          |    const doc = JSON.parse(o);
+          |    db.$field.save(doc);
+          |  });
+          |  console.info('end $field');
+        """.stripMargin)
       .mkString("\n")
 }
 
