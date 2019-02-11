@@ -94,26 +94,26 @@ export class LineageGraphService {
    * TODO : Specify the return type when the API will be finished
    */
   public getGraphData(nodeFocus: string = null, depth: number = null): Observable<any> {
-    // // TODO : Use a Url Builder Service 
-    let url = this.mockRestApiGraph;
-    if (nodeFocus && depth) {   
-      url = url + "/" + nodeFocus + "/" + depth;
-    }
-    return this.http.get(url).pipe(
-      catchError(this.handleError)
-    );
-    // TODO : This code is just for testing the integration with menas. It should be replace by a normal call to the api
-    // let that = this
-    // let observable = Observable.create(observer => {
-    //   setTimeout(() => {
-    //     observer.next(that.graph) // This method same as resolve() method from Angular 1
-    //     observer.complete()//to show we are done with our processing
-    //     // observer.error(new Error("error message"));
-    //   }, 1000)
+    // TODO : Use a Url Builder Service 
+    // let url = this.mockRestApiGraph;
+    // if (nodeFocus && depth) {
+    //   url = url + "/" + nodeFocus + "/" + depth;
+    // }
+    // return this.http.get(url).pipe(
+    //   catchError(this.handleError)
+    // );
+    //TODO : This code is just for testing the integration with menas. It should be replace by a normal call to the api
+    let that = this
+    let observable = Observable.create(observer => {
+      setTimeout(() => {
+        observer.next(that.graph) // This method same as resolve() method from Angular 1
+        observer.complete()//to show we are done with our processing
+        // observer.error(new Error("error message"));
+      }, 1000)
 
-    // })
+    })
 
-    // return observable
+    return observable
   }
 
   /**

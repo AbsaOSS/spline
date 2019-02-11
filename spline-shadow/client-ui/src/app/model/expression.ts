@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestBed } from '@angular/core/testing';
+export class Expression {
 
-import { PropertyService } from './property.service';
+    title: string
+    values: string[]
 
-describe('PropertyService', () => {
-  beforeEach(() => TestBed.configureTestingModule({}));
+    constructor(title: string, values: string[]) {
+        this.title = title
+        this.values = values
+    }
 
-  it('should be created', () => {
-    const service: PropertyService = TestBed.get(PropertyService);
-    expect(service).toBeTruthy();
-  });
-});
+
+}

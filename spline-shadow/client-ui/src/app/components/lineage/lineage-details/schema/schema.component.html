@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<div class="schema-title" [innerHTML]="getSchemaTypeLabel()" data-toggle="collapse" [attr.data-target]="'#'+schemaId"
+<div class="schema-title collapsible" [innerHTML]="getSchemaTypeLabel()" data-toggle="collapse" [attr.data-target]="'#'+schemaId"
   aria-expanded="true"></div>
 <div id="{{schemaId}}" class="accordion-body collapse in show">
   <schema-table [schema]="schema"></schema-table>
