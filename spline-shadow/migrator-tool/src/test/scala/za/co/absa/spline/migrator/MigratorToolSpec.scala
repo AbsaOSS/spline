@@ -18,15 +18,15 @@ package za.co.absa.spline.migrator
 
 import java.net.URI
 
-import org.scalatest.{FunSpec, Ignore, Matchers}
+import org.scalatest.{AsyncFunSpec, Ignore, Matchers}
 import za.co.absa.spline.persistence.{ArangoFactory, ArangoInit}
 
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 import scala.util.Try
 
 @Ignore
-class MigratorToolSpec extends FunSpec {
+class MigratorToolSpec extends AsyncFunSpec with Matchers {
 
   private val arangoUri = "http://root:root@localhost:8529/unit-test"
   private val mongoUri = "mongodb://localhost:27017/migration-test"
@@ -38,7 +38,8 @@ class MigratorToolSpec extends FunSpec {
       db.create()
       ArangoInit.initialize(db)
       val config = new MigratorConfig(mongoUri, arangoConnectionUrl = arangoUri, batchSize = 20, batchesMax = 1)
-      awaitForever(MigratorTool.migrate(config))
+      MigratorTool.migrate(config)
+        .flatMap(stats => stats.failures shouldBe 0)
     }
   }
 
