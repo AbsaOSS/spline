@@ -46,11 +46,10 @@ class PersisterSpec extends AsyncFunSpec with Matchers with MockitoSugar {
       ArangoInit.initialize(db)
       val persister = new Persister(db, true)
       val dataLineage = bigDataLineage()
-      val thrown = for {
+      for {
         _ <- persister.save(dataLineage)
         thrown <- recoverToExceptionIf[IllegalArgumentException] { persister.save(dataLineage) }
-      } yield thrown
-      thrown.map(t => t.getCause.getMessage should include ("unique constraint violated"))
+      } yield thrown.getCause.getMessage should include ("unique constraint violated")
     }
 
   }
