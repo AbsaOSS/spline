@@ -17,6 +17,7 @@
 package za.co.absa.spline.persistence
 
 import java.lang.Iterable
+import java.util.UUID
 
 import scala.collection.JavaConverters._
 import za.co.absa.spline.model.{DataLineage, MetaDataset}
@@ -25,6 +26,7 @@ import za.co.absa.spline.model.arango._
 import io.circe.ObjectEncoder
 import io.circe.generic.semiauto.deriveEncoder
 import org.apache.commons.lang.builder.ToStringBuilder.reflectionToString
+import java.util.UUID.randomUUID
 // import com.outr.arango.managed._ needed for decoder creation
 import com.outr.arango.managed._
 
@@ -124,7 +126,7 @@ object DataLineageTransactionParams {
       .flatMap(op => op.sources.map(s => {
         val opId = op.mainProps.id.toString
         val dsId = dsUriToKey(s.path)
-        ReadsFrom("operation/" + opId, "dataSource/" + dsId, Some(opId + "--" + dsId))
+        ReadsFrom("operation/" + opId, "dataSource/" + dsId, Some(randomUUID.toString))
       }))
       .distinct
       .map(deriveEncoder[ReadsFrom].apply)
@@ -183,16 +185,19 @@ object DataLineageTransactionParams {
       .map(o => (o.mainProps.output, o.mainProps.id))
       .toMap
     dataLineage.operations.iterator.toIterable
-      .flatMap(op =>
-        op.mainProps.inputs
-          .flatMap(outputToOperationId.get)
-          .map(opId => Follows(
-            "operation/" + op.mainProps.id.toString,
-            "operation/" + opId.toString,
-            Some(op.mainProps.id.toString + '-' + opId.toString)))
-      )
+      .flatMap(op => createOperationFollows(outputToOperationId)(op))
       .map(deriveEncoder[Follows].apply)
       .map(_.noSpaces)
+  }
+
+  private def createOperationFollows(outputIdToOperationId: Map[UUID, UUID])
+      (op: splinemodel.op.Operation): Seq[Follows] = {
+    op.mainProps.inputs
+      .flatMap(outputIdToOperationId.get)
+      .map(opId => Follows(
+        s"operation/${op.mainProps.id.toString}",
+        s"operation/${opId.toString}",
+        Some(randomUUID().toString)))
   }
 
   private def findOutputSchema(dataLineage: DataLineage, operation: splinemodel.op.Operation): Schema = {
