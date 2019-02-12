@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory
 import za.co.absa.spline.model.arango.DataSource
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.{model => splinemodel}
+import com.outr.arango.ArangoCode
 
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
@@ -56,7 +57,9 @@ class Persister(db: ArangoDatabase, debug: Boolean = false) {
     Try(attemptSave(dataLineage))
       match {
         case s: Success[Unit] => s
-        case Failure(e) if e.isInstanceOf[ArangoDBException] && e.asInstanceOf[ArangoDBException].getErrorNum == 1210 =>
+        case Failure(e) if
+          e.isInstanceOf[ArangoDBException]
+          && e.asInstanceOf[ArangoDBException].getErrorNum == ArangoCode.ArangoUniqueConstraintViolated.code =>
             if (retries == 0) {
               Failure(e)
             } else {

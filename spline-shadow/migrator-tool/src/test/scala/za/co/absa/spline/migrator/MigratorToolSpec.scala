@@ -23,7 +23,6 @@ import za.co.absa.spline.persistence.{ArangoFactory, ArangoInit}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
-import scala.util.Try
 
 @Ignore
 class MigratorToolSpec extends AsyncFunSpec with Matchers {
@@ -34,8 +33,9 @@ class MigratorToolSpec extends AsyncFunSpec with Matchers {
   describe("migration tool test") {
     it("migrate from mongo to arango") {
       val db = ArangoFactory.create(new URI(arangoUri))
-      Try(db.drop())
-      db.create()
+      if (db.exists()) {
+        db.drop()
+      }
       ArangoInit.initialize(db)
       val config = new MigratorConfig(mongoUri, arangoConnectionUrl = arangoUri, batchSize = 20, batchesMax = 1)
       MigratorTool.migrate(config)

@@ -40,9 +40,9 @@ class PersisterSpec extends AsyncFunSpec with Matchers with MockitoSugar {
 
     it("Persister should be able to insert an example lineage to an empty database") {
       val db = ArangoFactory.create(new URI(arangoUri))
-      Try(db.drop())
-      db.create()
-      db.util()
+      if (db.exists()) {
+        db.drop()
+      }
       ArangoInit.initialize(db)
       val persister = new Persister(db, true)
       val dataLineage = bigDataLineage()
