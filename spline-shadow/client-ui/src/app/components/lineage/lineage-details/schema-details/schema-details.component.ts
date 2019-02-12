@@ -29,7 +29,7 @@ import { ExpressionType } from 'src/app/types/expressionType';
 })
 export class SchemaDetailsComponent implements OnInit {
 
-  private detailsInfo: any = null
+  public detailsInfo: any = null
 
 
   private expressions: Expression[] = new Array();
