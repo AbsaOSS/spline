@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory
 import za.co.absa.spline.model.arango.DataSource
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.{model => splinemodel}
+import com.outr.arango.ArangoCode
 
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
@@ -56,11 +57,13 @@ class Persister(db: ArangoDatabase, debug: Boolean = false) {
     Try(attemptSave(dataLineage))
       match {
         case s: Success[Unit] => s
-        case Failure(e) if e.isInstanceOf[ArangoDBException] && e.asInstanceOf[ArangoDBException].getErrorNum == 1210 =>
-            log.warn(s"Ignoring ${e.getClass.getSimpleName} and $left left. Exception message: ${e.getMessage}.")
+        case Failure(e) if
+          e.isInstanceOf[ArangoDBException]
+          && e.asInstanceOf[ArangoDBException].getErrorNum == ArangoCode.ArangoUniqueConstraintViolated.code =>
             if (retries == 0) {
               Failure(e)
             } else {
+              log.warn(s"Ignoring ${e.getClass.getSimpleName} and $left left. Exception message: ${e.getMessage}.")
               saveWithRetry(dataLineage, left)
             }
         case Failure(e) =>
@@ -78,11 +81,12 @@ class Persister(db: ArangoDatabase, debug: Boolean = false) {
     val options = new TransactionOptions()
       .params(params) // Serialized hash map with json string values.
       .writeCollections(params.fields: _*)
-    val action: String =
-        "function (params) {\n" +
-        "  var db = require('internal').db;\n" +
-           params.saveCollectionsJs +
-        "}\n"
+    val action: String = s"""
+        |function (params) {
+        |  var db = require('internal').db;
+        |  ${params.saveCollectionsJs}
+        |}
+        |""".stripMargin
     db.transaction(action, classOf[Void], options)
   }
 
