@@ -53,7 +53,7 @@ case class DataLineageTransactionParams(
           |  console.log('start $field');
           |  params.$field.forEach(o => {
           |    const doc = JSON.parse(o);
-          |    db.$field.save(doc);
+          |    db.$field.insert(doc);
           |  });
           |  console.info('end $field');
         """.stripMargin)

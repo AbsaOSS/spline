@@ -57,9 +57,7 @@ class Persister(db: ArangoDatabase, debug: Boolean = false) {
     Try(attemptSave(dataLineage))
       match {
         case s: Success[Unit] => s
-        case Failure(e) if
-          e.isInstanceOf[ArangoDBException]
-          && e.asInstanceOf[ArangoDBException].getErrorNum == ArangoCode.ArangoUniqueConstraintViolated.code =>
+        case Failure(RetryableException(e)) =>
             if (retries == 0) {
               Failure(e)
             } else {
@@ -81,6 +79,7 @@ class Persister(db: ArangoDatabase, debug: Boolean = false) {
     val options = new TransactionOptions()
       .params(params) // Serialized hash map with json string values.
       .writeCollections(params.fields: _*)
+      .allowImplicit(false)
     val action: String = s"""
         |function (params) {
         |  var db = require('internal').db;
