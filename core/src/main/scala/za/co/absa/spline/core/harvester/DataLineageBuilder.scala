@@ -55,7 +55,7 @@ class DataLineageBuilder(logicalPlan: LogicalPlan, executedPlanOpt: Option[Spark
                           ): Seq[OperationNodeBuilder] = {
       enqueuedEntries match {
         case Nil => accBuilders
-        case (curOpNode, parentBuilder) :: restEnqueuedEntries =>
+        case (curOpNode, parentBuilder) +: restEnqueuedEntries =>
           val maybeExistingBuilder = processedEntries.get(curOpNode)
           val curBuilder = maybeExistingBuilder.getOrElse(createOperationBuilder(curOpNode))
 
@@ -124,9 +124,9 @@ object DataLineageBuilder {
       def traverseAndCollect(acc: Metrics, nodes: Seq[SparkPlan]): Metrics = {
         nodes match {
           case Nil => acc
-          case (leaf: LeafExecNode) :: queue =>
+          case (leaf: LeafExecNode) +: queue =>
             traverseAndCollect(acc |+| getNodeMetrics(leaf), queue)
-          case (node: SparkPlan) :: queue =>
+          case (node: SparkPlan) +: queue =>
             traverseAndCollect(acc, node.children ++ queue)
         }
       }
