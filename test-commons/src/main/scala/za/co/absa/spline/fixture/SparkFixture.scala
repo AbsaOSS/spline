@@ -17,7 +17,8 @@
 package za.co.absa.spline.fixture
 
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.SparkContext
+import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.scalatest._
 
 trait AbstractSparkFixture extends BeforeAndAfterAll {
@@ -27,6 +28,9 @@ trait AbstractSparkFixture extends BeforeAndAfterAll {
   AbstractSparkFixture.touch()
 
   protected val spark: SparkSession = SparkSession.builder.getOrCreate
+
+  protected implicit lazy val sparkContext: SparkContext = spark.sparkContext
+  protected implicit lazy val sqlContext: SQLContext = spark.sqlContext
 
   abstract override protected def afterAll(): Unit = try super.afterAll() finally spark.stop()
 }
