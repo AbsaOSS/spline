@@ -21,20 +21,19 @@ import java.nio.file.Files
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.types.StructType
 import org.scalatest.{FlatSpec, Matchers}
+import za.co.absa.spline.fixture.SparkFixture
 import za.co.absa.spline.harvester.{ComponentCreatorFactory, StreamReadNodeBuilder}
-import za.co.absa.spline.harvester.TestSparkContext.sparkSession
 import za.co.absa.spline.model.endpoint._
 import za.co.absa.spline.model.op.StreamRead
 
-class StreamReadNodeSpec extends FlatSpec with Matchers {
-  implicit val hadoopConfiguration: Configuration = sparkSession.sparkContext.hadoopConfiguration
+class StreamReadNodeSpec extends FlatSpec with Matchers with SparkFixture {
+  implicit val hadoopConfiguration: Configuration = spark.sparkContext.hadoopConfiguration
   implicit val compCreatorFactory: ComponentCreatorFactory = new ComponentCreatorFactory()
-  import za.co.absa.spline.sparkadapterapi.StreamingRelationAdapter.instance._
 
   behavior of "The build method"
 
   it should "return StreamRead node with a virtual endpoint when reading data from the rate data source" in {
-    val df = sparkSession
+    val df = spark
       .readStream
       .format("rate")
       .load()
@@ -50,7 +49,7 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
     val host = "somehost"
     val port = 9999L
 
-    val df = sparkSession
+    val df = spark
       .readStream
       .format("socket")
       .option("host", host)
@@ -67,7 +66,7 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
     val cluster = Seq("127.0.0.1:1111", "127.0.0.1:2222")
     val topic = "someTopic"
 
-    val df = sparkSession
+    val df = spark
       .readStream
       .format("kafka")
       .option("subscribe", topic)
@@ -87,7 +86,7 @@ class StreamReadNodeSpec extends FlatSpec with Matchers {
     val schema = new StructType().add("value", "string")
     tempDir.deleteOnExit()
 
-    val df = sparkSession
+    val df = spark
       .readStream
       .format(format)
       .schema(schema)

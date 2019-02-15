@@ -21,12 +21,12 @@ import java.util.UUID
 import org.apache.spark.sql.{ForeachWriter, Row}
 import org.apache.spark.sql.execution.streaming.StreamingQueryWrapper
 import org.scalatest.{FunSpec, Matchers}
-import za.co.absa.spline.harvester.TestSparkContext.sparkSession
+import za.co.absa.spline.fixture.SparkFixture
 import za.co.absa.spline.model.endpoint.{FileEndpoint, KafkaEndpoint, StreamEndpoint}
 import za.co.absa.spline.model.op.{Generic, OperationProps, StreamWrite}
 import za.co.absa.spline.model.{DataLineage, MetaDataset, Schema}
 
-class StreamWriteBuilderSpec extends FunSpec with Matchers {
+class StreamWriteBuilderSpec extends FunSpec with Matchers with SparkFixture {
 
   describe("stream write builder should to parse correctly") {
 
@@ -79,7 +79,7 @@ class StreamWriteBuilderSpec extends FunSpec with Matchers {
     }
   }
 
-  private def createRateStream() = sparkSession
+  private def createRateStream() = spark
     .readStream
     .format("rate")
     .load()
