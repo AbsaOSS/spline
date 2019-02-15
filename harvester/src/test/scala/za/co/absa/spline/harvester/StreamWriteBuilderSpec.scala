@@ -20,12 +20,15 @@ import java.util.UUID
 
 import org.apache.spark.sql.{ForeachWriter, Row}
 import org.apache.spark.sql.execution.streaming.StreamingQueryWrapper
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.{FunSpec, Ignore, Matchers}
 import za.co.absa.spline.fixture.SparkFixture
 import za.co.absa.spline.model.endpoint.{FileEndpoint, KafkaEndpoint, StreamEndpoint}
 import za.co.absa.spline.model.op.{Generic, OperationProps, StreamWrite}
 import za.co.absa.spline.model.{DataLineage, MetaDataset, Schema}
 
+//todo: turn it into a proper integration tests with running Kafka. Also move it to the integration tests module.
+
+@Ignore
 class StreamWriteBuilderSpec extends FunSpec with Matchers with SparkFixture {
 
   describe("stream write builder should to parse correctly") {
