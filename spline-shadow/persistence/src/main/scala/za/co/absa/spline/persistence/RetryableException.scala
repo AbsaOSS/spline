@@ -17,7 +17,7 @@
 package za.co.absa.spline.persistence
 
 import com.arangodb.ArangoDBException
-import com.outr.arango.ArangoCode._
+import ArangoCode._
 
 object RetryableException {
 
