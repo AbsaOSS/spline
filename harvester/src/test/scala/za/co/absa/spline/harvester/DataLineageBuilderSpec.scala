@@ -20,6 +20,7 @@ import java.util.UUID.randomUUID
 
 import org.apache.spark.sql.functions._
 import org.scalatest.{FlatSpec, Matchers}
+import za.co.absa.spline.fixture.SparkFixture
 import za.co.absa.spline.harvester.DataLineageBuilderSpec.TestRow
 import za.co.absa.spline.model.dt.Simple
 import za.co.absa.spline.model.op._
@@ -33,13 +34,12 @@ object DataLineageBuilderSpec {
 
 }
 
-class DataLineageBuilderSpec extends FlatSpec with Matchers {
+class DataLineageBuilderSpec extends FlatSpec with Matchers with SparkFixture {
 
-  import TestSparkContext._
-  import sparkSession.implicits._
+  import spark.implicits._
 
-  private val initialDataFrame = sparkSession.createDataset(Seq(TestRow(1, 2.3, "text")))
-  private val hadoopConfiguration = sparkSession.sparkContext.hadoopConfiguration
+  private val initialDataFrame = spark.createDataset(Seq(TestRow(1, 2.3, "text")))
+  private val hadoopConfiguration = spark.sparkContext.hadoopConfiguration
 
   private val integerType = Simple("integer", nullable = false)
   private val doubleType = Simple("double", nullable = false)
@@ -160,7 +160,7 @@ class DataLineageBuilderSpec extends FlatSpec with Matchers {
     val sut = new DataLineageBuilderFactory(hadoopConfiguration)
 
     val result = sut.
-      createBuilder(sparkSession.emptyDataFrame.queryExecution.analyzed, None, sparkSession.sparkContext).
+      createBuilder(spark.emptyDataFrame.queryExecution.analyzed, None, spark.sparkContext).
       buildLineage()
 
     assertDataLineage(expectedOperations, expectedDatasets, Seq.empty, result)
@@ -193,7 +193,7 @@ class DataLineageBuilderSpec extends FlatSpec with Matchers {
 
     val sut = new DataLineageBuilderFactory(hadoopConfiguration)
 
-    val result = sut.createBuilder(df.queryExecution.analyzed, None, sparkSession.sparkContext).buildLineage()
+    val result = sut.createBuilder(df.queryExecution.analyzed, None, spark.sparkContext).buildLineage()
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }
@@ -244,7 +244,7 @@ class DataLineageBuilderSpec extends FlatSpec with Matchers {
 
     val sut = new DataLineageBuilderFactory(hadoopConfiguration)
 
-    val result = sut.createBuilder(df.queryExecution.analyzed, None, sparkSession.sparkContext).buildLineage()
+    val result = sut.createBuilder(df.queryExecution.analyzed, None, spark.sparkContext).buildLineage()
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }
@@ -310,7 +310,7 @@ class DataLineageBuilderSpec extends FlatSpec with Matchers {
 
     val sut = new DataLineageBuilderFactory(hadoopConfiguration)
 
-    val result = sut.createBuilder(df.queryExecution.analyzed, None, sparkSession.sparkContext).buildLineage()
+    val result = sut.createBuilder(df.queryExecution.analyzed, None, spark.sparkContext).buildLineage()
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }
@@ -384,7 +384,7 @@ class DataLineageBuilderSpec extends FlatSpec with Matchers {
 
     val sut = new DataLineageBuilderFactory(hadoopConfiguration)
 
-    val result = sut.createBuilder(df.queryExecution.analyzed, None, sparkSession.sparkContext).buildLineage()
+    val result = sut.createBuilder(df.queryExecution.analyzed, None, spark.sparkContext).buildLineage()
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
   }

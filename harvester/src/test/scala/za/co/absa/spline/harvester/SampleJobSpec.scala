@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 
 import org.apache.commons.configuration.BaseConfiguration
 import org.apache.spark.sql.{SaveMode, SparkSession}
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.{FunSpec, Ignore, Matchers}
 import za.co.absa.spline.harvester.SparkLineageInitializer._
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode
 import za.co.absa.spline.harvester.conf.{DefaultSplineConfigurer, LineageDispatcher}
@@ -32,6 +32,9 @@ import scala.collection.mutable.ArrayBuffer
 import scala.concurrent._
 import scala.concurrent.duration.Duration
 
+//TODO: The spec seems to test nothing. Remove it or turn it into a proper SampleJob.
+
+@Ignore
 class SampleJobSpec extends FunSpec with Matchers with Logging {
 
   describe("sampleJobRun") {

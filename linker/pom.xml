@@ -72,6 +72,12 @@
             <version>0.4.1</version>
         </dependency>
         <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>spline-test-commons</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
