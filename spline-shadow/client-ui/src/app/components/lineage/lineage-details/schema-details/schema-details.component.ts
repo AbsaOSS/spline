@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, ComponentFactoryResolver, ViewContainerRef, AfterViewInit, ViewChildren, QueryList, ChangeDetectorRef } from '@angular/core';
 import { LineageGraphService } from 'src/app/services/lineage/lineage-graph.service';
-import { OperationType } from 'src/app/types/operationType';
+import { OperationType, ExpressionComponents } from 'src/app/types/operationType';
 import { IExpression, ILiteral, IBinary, IAttrRef, IAlias, IUDF, IGenericLeaf, IGeneric } from 'src/app/model/expression-model';
 import * as _ from 'lodash';
 import { Expression } from 'src/app/model/expression';
@@ -27,20 +27,40 @@ import { ExpressionType } from 'src/app/types/expressionType';
   templateUrl: './schema-details.component.html',
   styleUrls: ['./schema-details.component.less']
 })
-export class SchemaDetailsComponent implements OnInit {
+export class SchemaDetailsComponent implements AfterViewInit {
 
   public detailsInfo: any = null
 
-
   private expressions: Expression[] = new Array();
 
-  constructor(private lineageGraphService: LineageGraphService) { }
+  @ViewChildren('expressionPanel', { read: ViewContainerRef })
+  expressionPanel: QueryList<ViewContainerRef>;
 
-  ngOnInit() {
+
+  constructor(
+    private lineageGraphService: LineageGraphService,
+    private componentFactoryResolver: ComponentFactoryResolver,
+    private changedetectorRef: ChangeDetectorRef
+  ) { }
+
+  ngAfterViewInit(): void {
     this.lineageGraphService.detailsInfo.subscribe(detailsInfo => {
       this.detailsInfo = detailsInfo
       if (this.detailsInfo) {
         this.expressions = this.getExpressions()
+        this.expressionPanel.changes.subscribe(() => {
+          // The container has been added to the DOM
+          const container = this.expressionPanel.first
+          if (container) {
+            const type = this.getType()
+            container.remove(0)
+            const factory = this.componentFactoryResolver.resolveComponentFactory(ExpressionComponents.get(type))
+            let instance = container.createComponent(factory).instance
+            instance.expressions = this.expressions
+            instance.expressionType = type
+            this.changedetectorRef.detectChanges()
+          }
+        });
       }
     })
   }
@@ -65,8 +85,8 @@ export class SchemaDetailsComponent implements OnInit {
     switch (this.getType()) {
       case OperationType.Join:
         // Build the join expression
-        const title = this.detailsInfo.joinType + " join on"
-        const values = ["<code>" + this.detailsInfo.condition.text + "</code>"]
+        const title = this.detailsInfo.joinType
+        const values = [this.detailsInfo.condition.text]
         const expression = new Expression(title, values)
         expressions.push(expression)
         break
@@ -75,7 +95,7 @@ export class SchemaDetailsComponent implements OnInit {
         if (this.detailsInfo.transformations) {
           const title = "Transformations"
           const values = new Array()
-          _.each(this.detailsInfo.transformations, transformation => values.push("<i class='transformation-prexif'>λ = </i><code>" + this.getText(transformation) + "</code>"))
+          _.each(this.detailsInfo.transformations, transformation => values.push(this.getText(transformation)))
           const transformationExpression: Expression = new Expression(title, values)
           expressions.push(transformationExpression)
         }
@@ -86,11 +106,10 @@ export class SchemaDetailsComponent implements OnInit {
         const diff = _.differenceBy(inputs, output, 'name')
         if (diff.length > 0) {
           const title = "Dropped Attributes"
-          const values = diff.map(item => "<i class='dropped-attribute-prexif'>a = </i><code><del>" + item.name + "</del></code>");
+          const values = diff.map(item => item.name);
           const droppedAttributes = new Expression(title, values)
           expressions.push(droppedAttributes)
         }
-        //console.log(this.detailsInfo.mainProps.schemas[0])
         break
       //TODO : Implement the other expressions for the other types
     }

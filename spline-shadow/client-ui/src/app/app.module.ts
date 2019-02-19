@@ -32,6 +32,9 @@ import { SchemaDetailsComponent } from './components/lineage/lineage-details/sch
 import { ConfigService } from './services/config/config.service';
 import { environment } from '../environments/environment';
 import { SchemaTableComponent } from './components/lineage/lineage-details/schema-table/schema-table.component';
+import { JoinComponent } from './components/lineage/lineage-details/schema-details/join/join.component';
+import { ExpressionComponent } from './components/lineage/lineage-details/schema-details/expression/expression.component';
+import { ProjectionComponent } from './components/lineage/lineage-details/schema-details/projection/projection.component';
 
 
 export function initializeApp(appConfig: ConfigService) {
@@ -50,10 +53,15 @@ const ROOT_ROUTING = "app/"
     SchemaComponent,
     PropertyDetailsComponent,
     SchemaDetailsComponent,
-    SchemaTableComponent
+    SchemaTableComponent,
+    JoinComponent,
+    ExpressionComponent,
+    ProjectionComponent
   ],
   entryComponents: [
-    SchemaTableComponent
+    SchemaTableComponent,
+    JoinComponent,
+    ProjectionComponent
   ],
   imports: [
     BrowserModule,

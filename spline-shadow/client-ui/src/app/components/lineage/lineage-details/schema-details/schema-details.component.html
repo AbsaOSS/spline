@@ -19,14 +19,7 @@
   <div class="details-title">
     <i class="fa fa-xs" [innerHTML]=getIcon() [style.color]=getOperationColor()></i>{{getType()}}
   </div>
-  <div *ngFor="let expression of expressions ;let i=index">
-    <div class="collapsible" data-toggle="collapse" [attr.data-target]="'#expression'+i" aria-expanded="true">
-      <i class="fa fa-xs" [innerHTML]=getIcon() [style.color]=getOperationColor()></i>{{expression.title}}
-    </div>
-    <div id="expression{{i}}" *ngFor="let value of expression.values" class="accordion-body collapse in show">
-      <div [innerHTML]=value></div>
-    </div>
-  </div>
+  <div #expressionPanel></div>
   <div class="details">
     <div *ngFor="let input of getInputs();index as i">
       <hr />
