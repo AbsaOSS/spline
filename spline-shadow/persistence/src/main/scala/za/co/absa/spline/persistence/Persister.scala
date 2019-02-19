@@ -19,26 +19,21 @@ package za.co.absa.spline.persistence
 import java.net.URI
 import java.util.UUID.randomUUID
 
-import com.arangodb.{ArangoDBException, ArangoDatabase}
+import com.arangodb.ArangoDatabase
 import com.arangodb.model.TransactionOptions
-import io.circe.generic.semiauto.deriveDecoder
-import io.circe.parser.parse
+import com.arangodb.velocypack.module.scala.VPackScalaModule
+import com.arangodb.velocypack.{VPack, VPackSlice}
 import org.slf4j.LoggerFactory
-import za.co.absa.spline.model.arango.DataSource
 import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.persistence.Persister._
+import za.co.absa.spline.persistence.model.DataSource
 import za.co.absa.spline.{model => splinemodel}
-import com.outr.arango.ArangoCode
 
 import scala.annotation.tailrec
-import scala.util.{Failure, Success, Try}
-
-// import com.outr.arango.managed._ needed for decoder creation
-import com.outr.arango.managed._
-
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import Persister._
+import scala.util.{Failure, Success, Try}
 
 class Persister(db: ArangoDatabase, debug: Boolean = false) {
 
@@ -103,16 +98,11 @@ class Persister(db: ArangoDatabase, debug: Boolean = false) {
       .map(uri => "\"" + uri + "\"")
       .mkString(", ")
     val query = s"for ds in dataSource filter ds.uri in [$urisList] return ds"
-    val result = db.query(query, classOf[String])
+    val result = db.query(query, classOf[VPackSlice])
     result
-      .asInstanceOf[java.util.Iterator[String]]
+      .asInstanceOf[java.util.Iterator[VPackSlice]]
       .asScala
-      .map(s => {
-        val json = parse(s).right.get
-        deriveDecoder[DataSource]
-          .decodeJson(json)
-          .right.get
-      })
+      .map(vpack.deserialize[DataSource](_, classOf[DataSource]))
       .map(ds => ds.uri -> ds._key.get)
       .toMap
   }
@@ -133,4 +123,7 @@ object Persister {
 
   private val TotalRetriesOnConflictingKey = 5
 
+  val vpack: VPack = new VPack.Builder()
+    .registerModule(new VPackScalaModule)
+    .build
 }

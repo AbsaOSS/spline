@@ -31,7 +31,6 @@
             <modules>
                 <module>../../commons</module>
                 <module>../../model</module>
-                <module>../model</module>
                 <module>../persistence</module>
                 <module>../rest-core</module>
                 <module>../rest-api-doc-generator</module>
@@ -43,7 +42,6 @@
             <modules>
                 <module>../../commons</module>
                 <module>../../model</module>
-                <module>../model</module>
                 <module>../persistence</module>
                 <module>../rest-core</module>
                 <module>../rest-gateway</module>
@@ -54,7 +52,6 @@
             <modules>
                 <module>../../commons</module>
                 <module>../../model</module>
-                <module>../model</module>
                 <module>../persistence</module>
                 <module>../rest-core</module>
                 <module>../rest-api-doc-generator</module>

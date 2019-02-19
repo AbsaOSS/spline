@@ -18,105 +18,92 @@ package za.co.absa.spline.persistence
 
 import java.lang.Iterable
 import java.util.UUID
+import java.util.UUID.randomUUID
+
+import com.arangodb.velocypack.VPackSlice
+import org.apache.commons.lang.builder.ToStringBuilder.reflectionToString
+import za.co.absa.spline.model.{DataLineage, MetaDataset}
+import za.co.absa.spline.persistence.model._
+import za.co.absa.spline.{model => splinemodel}
 
 import scala.collection.JavaConverters._
-import za.co.absa.spline.model.{DataLineage, MetaDataset}
-import za.co.absa.spline.{model => splinemodel}
-import za.co.absa.spline.model.arango._
-import io.circe.ObjectEncoder
-import io.circe.generic.semiauto.deriveEncoder
-import org.apache.commons.lang.builder.ToStringBuilder.reflectionToString
-import java.util.UUID.randomUUID
-// import com.outr.arango.managed._ needed for decoder creation
-import com.outr.arango.managed._
+import scala.language.implicitConversions
 
-case class DataLineageTransactionParams(
-  operation: Iterable[String],
-  follows: Iterable[String],
-  dataSource: Iterable[String],
-  writesTo: Iterable[String],
-  readsFrom: Iterable[String],
-  app: Iterable[String],
-  implements: Iterable[String],
-  execution: Iterable[String],
-  executes: Iterable[String],
-  progress: Iterable[String],
-  progressOf: Iterable[String]) {
+case class DataLineageTransactionParams
+(
+  operation: Iterable[VPackSlice],
+  follows: Iterable[VPackSlice],
+  dataSource: Iterable[VPackSlice],
+  writesTo: Iterable[VPackSlice],
+  readsFrom: Iterable[VPackSlice],
+  app: Iterable[VPackSlice],
+  implements: Iterable[VPackSlice],
+  execution: Iterable[VPackSlice],
+  executes: Iterable[VPackSlice],
+  progress: Iterable[VPackSlice],
+  progressOf: Iterable[VPackSlice]) {
 
-    def fields: Array[String] = getClass
-      .getDeclaredFields
-      .map(_.getName)
-      .filter(_ != "$outer")
+  def fields: Array[String] = getClass
+    .getDeclaredFields
+    .map(_.getName)
+    .filter(_ != "$outer")
 
-    def saveCollectionsJs: String = fields
-      .map(field => s"""
-          |  console.log('start $field');
-          |  params.$field.forEach(o => {
-          |    const doc = JSON.parse(o);
-          |    db.$field.insert(doc);
-          |  });
-          |  console.info('end $field');
+  def saveCollectionsJs: String = fields
+    .map(field =>
+      s"""
+         |  params.$field.forEach(o => db.$field.insert(o));
         """.stripMargin)
-      .mkString("\n")
+    .mkString("\n")
 }
 
 object DataLineageTransactionParams {
 
-  def create(dataLineage: DataLineage, uriToNewKey: Map[String, String], uriToKey: Map[String, String]) = DataLineageTransactionParams(
-      createEncodedOperations(dataLineage).asJava,
-      createFollows(dataLineage).asJava,
-      createDataSources(uriToNewKey).asJava,
-      createWritesTos(dataLineage, uriToKey).asJava,
-      createReadsFrom(dataLineage, uriToKey).asJava,
-      createApp(dataLineage).asJava,
-      createImplements(dataLineage).asJava,
-      createExecution(dataLineage).asJava,
-      createExecutes(dataLineage).asJava,
-      createProgressForBatchJob(dataLineage).asJava,
-      createProgressOf(dataLineage).asJava
+  def create(dataLineage: DataLineage, uriToNewKey: Map[String, String], uriToKey: Map[String, String]): DataLineageTransactionParams = {
+
+    implicit def ser(it: scala.collection.Iterable[AnyRef]): Iterable[VPackSlice] = it.map(Persister.vpack.serialize).asJava
+
+    DataLineageTransactionParams(
+      createEncodedOperations(dataLineage),
+      createFollows(dataLineage),
+      createDataSources(uriToNewKey),
+      createWritesTos(dataLineage, uriToKey),
+      createReadsFrom(dataLineage, uriToKey),
+      createApp(dataLineage),
+      createImplements(dataLineage),
+      createExecution(dataLineage),
+      createExecutes(dataLineage),
+      createProgressForBatchJob(dataLineage),
+      createProgressOf(dataLineage)
     )
+  }
 
   private def createExecutes(dataLineage: DataLineage) =
-    Seq(Executes("execution/" + dataLineage.id.toString, "app/" + dataLineage.id.toString, Some(dataLineage.id.toString)))
-      .map(deriveEncoder[Executes].apply)
-      .map(_.noSpaces)
-
+    Seq(Executes("execution/" + dataLineage.id, "app/" + dataLineage.id, Some(dataLineage.id)))
 
   private def createImplements(dataLineage: DataLineage) =
-    Seq(Implements("app/" + dataLineage.id.toString, "operation/" + dataLineage.rootOperation.mainProps.id.toString, Some(dataLineage.id.toString)))
-      .map(deriveEncoder[Implements].apply)
-      .map(_.noSpaces)
-
+    Seq(Implements("app/" + dataLineage.id, "operation/" + dataLineage.rootOperation.mainProps.id, Some(dataLineage.id)))
 
   private def createProgressOf(dataLineage: DataLineage) =
-    Seq(deriveEncoder[ProgressOf]
-      .apply(ProgressOf("progress/" + dataLineage.id.toString, "execution/" + dataLineage.id.toString, Some(dataLineage.id.toString)))
-      .noSpaces)
+    Seq(ProgressOf("progress/" + dataLineage.id, "execution/" + dataLineage.id, Some(dataLineage.id)))
 
-  /**  progress for batch jobs need to be generated during migration for consistency with stream jobs **/
+  /** progress for batch jobs need to be generated during migration for consistency with stream jobs **/
   private def createProgressForBatchJob(dataLineage: DataLineage) = {
     val batchWrites = dataLineage.operations
       .find(_.isInstanceOf[splinemodel.op.BatchWrite])
       .getOrElse(throw new IllegalArgumentException("All pumped lineages are expected to be batch."))
       .asInstanceOf[splinemodel.op.BatchWrite]
     val readCount = batchWrites.readMetrics.values.sum
-    val encoder = deriveEncoder[Progress]
-    val progress = Progress(dataLineage.timestamp, readCount, Some(dataLineage.id.toString))
-    Seq(encoder(progress).noSpaces)
+    Seq(Progress(dataLineage.timestamp, readCount, Some(dataLineage.id)))
   }
 
   private def createApp(dataLineage: DataLineage) = {
     val dataTypes = dataLineage.dataTypes
       .map(d => DataType(d.id.toString, d.getClass.getSimpleName, d.nullable, d.childDataTypeIds.map(_.toString)))
-    val encoder = deriveEncoder[App]
-    val app = App(dataLineage.appId, dataLineage.appName, dataTypes, Some(dataLineage.id.toString))
-    Seq(encoder(app).noSpaces)
+    Seq(App(dataLineage.appId, dataLineage.appName, dataTypes, Some(dataLineage.id)))
   }
 
   private def createExecution(dataLineage: DataLineage) = {
-    val encoder = deriveEncoder[Execution]
-    val execution = Execution(dataLineage.appId, dataLineage.sparkVer, dataLineage.timestamp, Some(dataLineage.id.toString))
-    Seq(encoder(execution).noSpaces)
+    Seq(Execution(dataLineage.appId, dataLineage.sparkVer, dataLineage.timestamp, Some(dataLineage.id)))
   }
 
   private def createReadsFrom(dataLineage: DataLineage, dsUriToKey: Map[String, String]) =
@@ -124,29 +111,21 @@ object DataLineageTransactionParams {
       .filter(_.isInstanceOf[splinemodel.op.Read])
       .map(_.asInstanceOf[splinemodel.op.Read])
       .flatMap(op => op.sources.map(s => {
-        val opId = op.mainProps.id.toString
+        val opId = op.mainProps.id
         val dsId = dsUriToKey(s.path)
-        ReadsFrom("operation/" + opId, "dataSource/" + dsId, Some(randomUUID.toString))
+        ReadsFrom(s"operation/$opId", s"dataSource/$dsId", Some(randomUUID.toString))
       }))
       .distinct
-      .map(deriveEncoder[ReadsFrom].apply)
-      .map(_.noSpaces)
-
 
   private def createWritesTos(dataLineage: DataLineage, dsUriToKey: Map[String, String]) = {
     dataLineage.operations
       .iterator.toIterable
       .filter(_.isInstanceOf[splinemodel.op.Write]).map(_.asInstanceOf[splinemodel.op.Write])
-      .map(o => WritesTo("operation/" + o.mainProps.id.toString, "dataSource/" + dsUriToKey(o.path), Some(o.mainProps.id.toString)))
-      .map(deriveEncoder[WritesTo].apply)
-      .map(_.noSpaces)
+      .map(o => WritesTo("operation/" + o.mainProps.id, "dataSource/" + dsUriToKey(o.path), Some(o.mainProps.id.toString)))
   }
 
   private def createDataSources(dsUriToNewKey: Map[String, String]) = {
-    dsUriToNewKey
-      .map(o => DataSource(o._1, Some(o._2)))
-      .map(deriveEncoder[DataSource].apply)
-      .map(_.noSpaces)
+    dsUriToNewKey.map { case (uri, key) => DataSource(uri, Some(key)) }
   }
 
 
@@ -165,16 +144,7 @@ object DataLineageTransactionParams {
   }
 
   private def createEncodedOperations(dataLineage: DataLineage) = {
-    val encoderWrite: ObjectEncoder[Write] = deriveEncoder[Write]
-    val encoderRead: ObjectEncoder[Read] = deriveEncoder[Read]
-    val encoderTransformation: ObjectEncoder[Transformation] = deriveEncoder[Transformation]
     createOperations(dataLineage)
-      .map {
-        case read: Read => encoderRead(read)
-        case transformation: Transformation => encoderTransformation(transformation)
-        case write: Write => encoderWrite(write)
-      }
-      .map(_.noSpaces)
   }
 
   private def createFollows(dataLineage: DataLineage) = {
@@ -186,18 +156,16 @@ object DataLineageTransactionParams {
       .toMap
     dataLineage.operations.iterator.toIterable
       .flatMap(op => createOperationFollows(outputToOperationId)(op))
-      .map(deriveEncoder[Follows].apply)
-      .map(_.noSpaces)
   }
 
   private def createOperationFollows(outputIdToOperationId: Map[UUID, UUID])
-      (op: splinemodel.op.Operation): Seq[Follows] = {
+                                    (op: splinemodel.op.Operation): Seq[Follows] = {
     op.mainProps.inputs
       .flatMap(outputIdToOperationId.get)
       .map(opId => Follows(
-        s"operation/${op.mainProps.id.toString}",
-        s"operation/${opId.toString}",
-        Some(randomUUID().toString)))
+        s"operation/${op.mainProps.id}",
+        s"operation/$opId",
+        Some(randomUUID.toString)))
   }
 
   private def findOutputSchema(dataLineage: DataLineage, operation: splinemodel.op.Operation): Schema = {

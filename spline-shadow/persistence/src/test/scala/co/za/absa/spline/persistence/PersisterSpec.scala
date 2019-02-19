@@ -28,9 +28,6 @@ import za.co.absa.spline.model.{DataLineage, MetaDataSource, MetaDataset}
 import za.co.absa.spline.persistence.{ArangoFactory, ArangoInit, Persister}
 import za.co.absa.spline.{model => splinemodel}
 
-import scala.concurrent.Future
-import scala.util.Try
-
 
 class PersisterSpec extends AsyncFunSpec with Matchers with MockitoSugar {
 

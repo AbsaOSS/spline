@@ -32,7 +32,6 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>model</module>
         <module>persistence</module>
         <module>rest-core</module>
         <module>rest-api-doc-generator</module>
