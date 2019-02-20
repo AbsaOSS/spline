@@ -19,8 +19,7 @@ import { LineageGraphService } from 'src/app/services/lineage/lineage-graph.serv
 
 @Component({
   selector: 'app-expression',
-  templateUrl: './expression.component.html',
-  styleUrls: ['./expression.component.less']
+  template: ''
 })
 export class ExpressionComponent {
 
