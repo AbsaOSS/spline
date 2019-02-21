@@ -13,9 +13,11 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
-<div class="schema-title collapsible" [innerHTML]="getSchemaTypeLabel()" data-toggle="collapse" [attr.data-target]="'#'+schemaId"
-  aria-expanded="true"></div>
-<div id="{{schemaId}}" class="accordion-body collapse in show">
-  <schema-table [schema]="schema"></schema-table>
+<div *ngFor="let expression of expressions ;let i=index">
+  <div class="collapsible" data-toggle="collapse" [attr.data-target]="'#expression'+i" aria-expanded="true">
+    <i class="fa fa-xs" [innerHTML]=getIcon() [style.color]=getOperationColor()></i>{{expression.title}} join on
+  </div>
+  <div id="expression{{i}}" *ngFor="let value of expression.values" class="accordion-body collapse in show">
+    <code>{{value}}</code>
+  </div>
 </div>

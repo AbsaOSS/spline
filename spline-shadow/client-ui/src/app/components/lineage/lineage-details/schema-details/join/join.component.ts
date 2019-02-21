@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestBed } from '@angular/core/testing';
+import { Component } from '@angular/core';
+import { ExpressionComponent } from '../expression/expression.component';
 
-import { PropertyService } from './property.service';
+@Component({
+  selector: 'join',
+  templateUrl: './join.component.html',
+  styleUrls: ['./join.component.less']
+})
 
-describe('PropertyService', () => {
-  beforeEach(() => TestBed.configureTestingModule({}));
+export class JoinComponent extends ExpressionComponent {
 
-  it('should be created', () => {
-    const service: PropertyService = TestBed.get(PropertyService);
-    expect(service).toBeTruthy();
-  });
-});
+}

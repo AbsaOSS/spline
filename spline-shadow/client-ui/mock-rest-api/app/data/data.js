@@ -4176,7 +4176,197 @@ const details =
                 ]
             },
             "joinType": "LeftOuter"
+        },
+        {
+            "_typeHint": "za.co.absa.spline.model.op.Projection",
+            "mainProps": {
+                "id": "op-uuid-3",
+                "name": "Project",
+                "schemas": [
+                    [
+                        {
+                            "name": "MappingMainType",
+                            "dataType": {
+                                "_typeHint": "za.co.absa.spline.core.model.dt.Simple",
+                                "name": "string",
+                                "nullable": true
+                            }
+                        },
+                        {
+                            "name": "ProductMainType",
+                            "dataType": {
+                                "_typeHint": "za.co.absa.spline.core.model.dt.Simple",
+                                "name": "string",
+                                "nullable": true
+                            }
+                        },
+                        {
+                            "name": "ProductSubType",
+                            "dataType": {
+                                "_typeHint": "za.co.absa.spline.core.model.dt.Simple",
+                                "name": "string",
+                                "nullable": true
+                            }
+                        },
+                        {
+                            "name": "MoneyMarketInstrumentType",
+                            "dataType": {
+                                "_typeHint": "za.co.absa.spline.core.model.dt.Simple",
+                                "name": "string",
+                                "nullable": true
+                            }
+                        },
+                        {
+                            "name": "AdditionalInstrumentOverride",
+                            "dataType": {
+                                "_typeHint": "za.co.absa.spline.core.model.dt.Simple",
+                                "name": "string",
+                                "nullable": true
+                            }
+                        },
+                        {
+                            "name": "FundingInstrumentType",
+                            "dataType": {
+                                "_typeHint": "za.co.absa.spline.core.model.dt.Simple",
+                                "name": "string",
+                                "nullable": true
+                            }
+                        },
+                        {
+                            "name": "OTCOverride",
+                            "dataType": {
+                                "_typeHint": "za.co.absa.spline.core.model.dt.Simple",
+                                "name": "string",
+                                "nullable": true
+                            }
+                        },
+                        {
+                            "name": "EnterpriseProduct",
+                            "dataType": {
+                                "_typeHint": "za.co.absa.spline.core.model.dt.Simple",
+                                "name": "string",
+                                "nullable": true
+                            }
+                        }
+                    ],
+                    [
+                        {
+                            "name": "MappingMainType",
+                            "dataType": {
+                                "_typeHint": "za.co.absa.spline.core.model.dt.Simple",
+                                "name": "string",
+                                "nullable": true
+                            }
+                        },
+                        {
+                            "name": "ProductMainType",
+                            "dataType": {
+                                "_typeHint": "za.co.absa.spline.core.model.dt.Simple",
+                                "name": "string",
+                                "nullable": true
+                            }
+                        },
+                        {
+                            "name": "ProductSubType",
+                            "dataType": {
+                                "_typeHint": "za.co.absa.spline.core.model.dt.Simple",
+                                "name": "string",
+                                "nullable": true
+                            }
+                        },
+                        {
+                            "name": "MoneyMarketInstrumentType",
+                            "dataType": {
+                                "_typeHint": "za.co.absa.spline.core.model.dt.Simple",
+                                "name": "string",
+                                "nullable": true
+                            }
+                        },
+                        {
+                            "name": "AdditionalInstrumentOverride",
+                            "dataType": {
+                                "_typeHint": "za.co.absa.spline.core.model.dt.Simple",
+                                "name": "string",
+                                "nullable": true
+                            }
+                        }
+                    ]
+                ],
+                "inputs": [
+                    "0"
+                ],
+                "output": "1"
+            },
+            "transformations": [
+                {
+                    "_typeHint": "za.co.absa.spline.model.expr.Generic",
+                    "name": "some_cool",
+                    "exprType": "SomeCoolExpression",
+                    "params": {
+                        "a": "foo",
+                        "b": [
+                            "bar",
+                            [
+                                "baz",
+                                42
+                            ]
+                        ],
+                        "c": true,
+                        "d": {
+                            "x": 1,
+                            "y": [
+                                2,
+                                3
+                            ]
+                        },
+                        "otherExpression": {
+                            "_typeHint": "za.co.absa.spline.model.expr.Literal",
+                            "value": "777",
+                            "dataTypeId": 6
+                        }
+                    },
+                    "dataTypeId": "1",
+                    "children": [
+                        {
+                            "_typeHint": "za.co.absa.spline.model.expr.UDF",
+                            "name": "selectBalance",
+                            "dataTypeId": "1",
+                            "children": [
+                                {
+                                    "_typeHint": "za.co.absa.spline.model.expr.AttrRef",
+                                    "refId": "attr-uuid-106"
+                                },
+                                {
+                                    "_typeHint": "za.co.absa.spline.model.expr.Generic",
+                                    "name": "getstructfield",
+                                    "exprType": "GetStructField",
+                                    "dataTypeId": "1",
+                                    "children": [
+                                        {
+                                            "_typeHint": "za.co.absa.spline.model.expr.AttrRef",
+                                            "refId": "attr-uuid-0"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "_typeHint": "za.co.absa.spline.model.expr.Generic",
+                                    "name": "getstructfield",
+                                    "exprType": "GetStructField",
+                                    "dataTypeId": "1",
+                                    "children": [
+                                        {
+                                            "_typeHint": "za.co.absa.spline.model.expr.AttrRef",
+                                            "refId": "attr-uuid-0"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
         }
+
     ]
 
 

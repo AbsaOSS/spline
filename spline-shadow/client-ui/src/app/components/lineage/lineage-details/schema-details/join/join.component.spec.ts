@@ -13,15 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestBed } from '@angular/core/testing';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { JoinComponent } from './join.component';
 
-import { PropertyService } from './property.service';
+describe('JoinComponent', () => {
+  let component: JoinComponent;
+  let fixture: ComponentFixture<JoinComponent>;
 
-describe('PropertyService', () => {
-  beforeEach(() => TestBed.configureTestingModule({}));
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [JoinComponent]
+    })
+      .compileComponents();
+  }));
 
-  it('should be created', () => {
-    const service: PropertyService = TestBed.get(PropertyService);
-    expect(service).toBeTruthy();
+  beforeEach(() => {
+    fixture = TestBed.createComponent(JoinComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
 });

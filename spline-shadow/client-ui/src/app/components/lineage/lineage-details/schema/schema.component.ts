@@ -19,8 +19,7 @@ import { PropertyService } from 'src/app/services/details/property.service';
 
 @Component({
   selector: 'schema',
-  templateUrl: './schema.component.html',
-  styleUrls: ['./schema.component.less']
+  templateUrl: './schema.component.html'
 })
 export class SchemaComponent implements OnInit {
 

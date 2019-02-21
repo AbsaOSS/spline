@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 ABSA Group Limited
+ * Copyright 2019 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestBed } from '@angular/core/testing';
 
-import { PropertyService } from './property.service';
-
-describe('PropertyService', () => {
-  beforeEach(() => TestBed.configureTestingModule({}));
-
-  it('should be created', () => {
-    const service: PropertyService = TestBed.get(PropertyService);
-    expect(service).toBeTruthy();
-  });
-});
+export const enum ExpressionType {
+    Binary = 'Binary',
+    Literal = 'Literal',
+    Alias = 'Alias',
+    UDF = 'UDF',
+    Union = 'Union',
+    Generic = 'Generic',
+    GenericLeaf = 'GenericLeaf',
+    AttrRef = 'AttrRef'
+}

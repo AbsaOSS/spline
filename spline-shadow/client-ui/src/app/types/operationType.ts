@@ -1,3 +1,8 @@
+import { JoinComponent } from "../components/lineage/lineage-details/schema-details/join/join.component";
+import { Type } from "@angular/core";
+import { ProjectionComponent } from "../components/lineage/lineage-details/schema-details/projection/projection.component";
+import { ExpressionComponent } from "../components/lineage/lineage-details/schema-details/expression/expression.component";
+
 /*
  * Copyright 2019 ABSA Group Limited
  *
@@ -28,3 +33,9 @@ export const enum OperationType {
     StreamWrite = 'StreamWrite',
     Alias = 'Alias'
 }
+
+
+export const ExpressionComponents: Map<string, Type<ExpressionComponent>> = new Map([
+    [OperationType.Join, JoinComponent],
+    [OperationType.Projection, ProjectionComponent]
+])
