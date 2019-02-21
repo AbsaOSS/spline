@@ -29,10 +29,11 @@ import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FunSpec, Matchers}
-import za.co.absa.spline.harvester.{ComponentCreatorFactory, FSAwareBuilder, BatchReadNodeBuilder, TestSparkContext}
+import za.co.absa.spline.fixture.SparkFixture
+import za.co.absa.spline.harvester.{BatchReadNodeBuilder, ComponentCreatorFactory, FSAwareBuilder}
 import za.co.absa.spline.model.MetaDataSource
 
-class BatchReadNodeBuilderSpec extends FunSpec with MockitoSugar with Matchers {
+class BatchReadNodeBuilderSpec extends FunSpec with MockitoSugar with Matchers with SparkFixture {
   DriverManager registerDriver new FakeJDBCDriver
   implicit val compCreatorFactory: ComponentCreatorFactory = new ComponentCreatorFactory()
 
@@ -43,7 +44,7 @@ class BatchReadNodeBuilderSpec extends FunSpec with MockitoSugar with Matchers {
   describe("support for different types of data source") {
 
     it("should support JDBC") {
-      val df = TestSparkContext.sparkSession.
+      val df = spark.
         read.format("jdbc").
         option("url", "jdbc:fake:sql@some_host:4242:some_database").
         option("dbtable", "some_table").
@@ -92,7 +93,7 @@ class FakeJDBCDriver extends Driver with MockitoSugar {
 }
 
 object FooBarRelation extends BaseRelation {
-  override def sqlContext: SQLContext = TestSparkContext.sparkSession.sqlContext
+  override def sqlContext: SQLContext = ???
 
   override def schema = new StructType
 }

@@ -18,24 +18,28 @@ package za.co.absa.spline.migrator
 
 import java.net.URI
 
-import org.scalatest.{FunSpec, Ignore}
-import za.co.absa.spline.model.arango.Database
+import org.scalatest.{AsyncFunSpec, Ignore, Matchers}
+import za.co.absa.spline.persistence.{ArangoFactory, ArangoInit}
 
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
-import scala.util.Try
+import scala.concurrent.{Await, Future}
 
 @Ignore
-class MigratorToolSpec extends FunSpec {
+class MigratorToolSpec extends AsyncFunSpec with Matchers {
 
-  private val arangoUri = "http://root:root@localhost:8529/_system"
+  private val arangoUri = "http://root:root@localhost:8529/unit-test"
+  private val mongoUri = "mongodb://localhost:27017/migration-test"
 
   describe("migration tool test") {
     it("migrate from mongo to arango") {
-      val database = Database(new URI(arangoUri))
-      Try(awaitForever(database.delete(true)))
-      awaitForever(database.init(force = true))
-      Await.result(MigratorTool.migrate(new MigratorConfig("mongodb://localhost:27017/migration-test", arangoConnectionUrl = arangoUri, batchSize = 10, batchesMax = 1)), Duration.Inf)
+      val db = ArangoFactory.create(new URI(arangoUri))
+      if (db.exists()) {
+        db.drop()
+      }
+      ArangoInit.initialize(db)
+      val config = new MigratorConfig(mongoUri, arangoConnectionUrl = arangoUri, batchSize = 20, batchesMax = 1)
+      MigratorTool.migrate(config)
+        .flatMap(stats => stats.failures shouldBe 0)
     }
   }
 
