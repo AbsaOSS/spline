@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.persistence.mongo
 
+import com.mongodb.casbah.query.dsl.QueryExpressionObject
 import org.scalatest.{FunSpec, Matchers}
 
 class MongoImplicitsTest extends FunSpec with Matchers {
@@ -26,12 +27,15 @@ class MongoImplicitsTest extends FunSpec with Matchers {
   describe("$options") {
 
     it("should add $options to $regex") {
-      ("foo" $regex "my_regex" $options "i").toString shouldEqual """{ "foo" : { "$regex" : "my_regex" , "$options" : "i"}}"""
+      spaceLess("foo" $regex "my_regex" $options "i") shouldEqual """{"foo":{"$regex":"my_regex","$options":"i"}}"""
     }
 
     it("should support field names with dots") {
-      ("foo.bar" $regex "my_regex" $options "i").toString shouldEqual """{ "foo.bar" : { "$regex" : "my_regex" , "$options" : "i"}}"""
+      spaceLess("foo.bar" $regex "my_regex" $options "i") shouldEqual """{"foo.bar":{"$regex":"my_regex","$options":"i"}}"""
     }
   }
+
+
+  private def spaceLess(e: QueryExpressionObject): String = e.toString.replaceAll(" ", "")
 
 }

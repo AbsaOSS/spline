@@ -55,6 +55,16 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>za.co.absa.spline.shadow</groupId>
+            <artifactId>persistence</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa.spline.shadow</groupId>
+            <artifactId>migrator-tool</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_${scala.compat.version}</artifactId>
         </dependency>
@@ -62,7 +72,21 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
         </dependency>
-
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.scalatest</groupId>
+                <artifactId>scalatest-maven-plugin</artifactId>
+                <configuration>
+                    <systemProperties>
+                        <test.spline.mongodb.url>${test.spline.mongodb.url}</test.spline.mongodb.url>
+                        <test.spline.arangodb.url>${test.spline.arangodb.url}</test.spline.arangodb.url>
+                    </systemProperties>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

@@ -23,7 +23,8 @@ case class MigratorConfig
   batchSize: Int = 100,
   batchesMax: Int = -1,
   initializeArangodb: Boolean = false,
-  removeExistingArangodb: Boolean = false
+  removeExistingArangodb: Boolean = false,
+  streamNewLineages: Boolean = false
 )
 
 object MigratorConfig {

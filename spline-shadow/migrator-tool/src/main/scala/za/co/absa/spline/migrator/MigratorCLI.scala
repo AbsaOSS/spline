@@ -51,7 +51,11 @@ object MigratorCLI extends App {
 
     (opt[Unit]('i', "init-arango-db")
       text s"Initialize Arango DB"
-      action ((value, conf) => conf.copy(initializeArangodb = true)))
+      action ((_, conf) => conf.copy(initializeArangodb = true)))
+
+    (opt[Unit]('s', "stream-new-lineages")
+      text s"Migrate in parallel all new lineages that will arrive after start of this tool."
+      action ((_, conf) => conf.copy(streamNewLineages = true)))
 
     (opt[Unit]('f', "force")
       text s"In combination with option '-i' it removes existing Arango database before creating a new one"

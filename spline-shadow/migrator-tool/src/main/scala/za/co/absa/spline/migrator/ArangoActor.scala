@@ -18,7 +18,7 @@ package za.co.absa.spline.migrator
 
 import java.util.UUID
 
-import akka.actor.Actor
+import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
 import za.co.absa.spline.migrator.ArangoActor._
 import za.co.absa.spline.model.DataLineage
@@ -49,7 +49,7 @@ object ArangoActor {
 
 }
 
-class ArangoActor(connectionUrl: String) extends Actor {
+class ArangoActor(connectionUrl: String) extends Actor with ActorLogging {
 
   private val persister: Persister = Persister.create(connectionUrl)
 
@@ -64,7 +64,7 @@ class ArangoActor(connectionUrl: String) extends Actor {
   }
 
   private def save(lineage: DataLineage): Future[Unit] = {
-    println("Save lineage: " + lineage.id)
+    log.info("Save lineage: " + lineage.id)
     persister.save(lineage)
   }
 }
