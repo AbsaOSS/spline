@@ -36,3 +36,13 @@
 #subscribe {
   text-align: right;
 }
+
+#logos {
+  display: inline-flex;
+ img {
+   padding: 0;
+   border: 0;
+   margin-right: 25px;
+ }
+}
+
