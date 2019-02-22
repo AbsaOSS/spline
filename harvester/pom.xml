@@ -79,6 +79,12 @@
             <artifactId>scalaz-core_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>spline-test-commons</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
