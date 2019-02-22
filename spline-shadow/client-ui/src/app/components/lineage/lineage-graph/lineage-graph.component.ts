@@ -18,7 +18,6 @@ import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
 import { LineageGraphService } from 'src/app/services/lineage/lineage-graph.service';
 import { ContextualMenuService } from 'src/app/services/lineage/contextual-menu.service';
 import { LayoutService } from 'src/app/services/lineage/layout.service';
-import { OperationType } from 'src/app/types/operationType';
 import { PropertyService } from 'src/app/services/details/property.service';
 
 @Component({
@@ -61,6 +60,12 @@ export class LineageGraphComponent implements OnInit {
         //TODO : Implement a notification tool for letting know what is happening to the user
       },
       () => {
+        that.cytograph.cy.nodeHtmlLabel([{
+          tpl: function (data) {
+            if (data.icon) return '<i class="fa fa-3x" style="color:' + data.color + '">' + String.fromCharCode(data.icon) + '</i>'
+            return null
+          }
+        }]);
         that.cytograph.cy.cxtmenu(that.contextualMenuService.getConfiguration())
         that.cytograph.cy.panzoom()
         that.cytograph.cy.layout(that.layoutService.getConfiguration()).run()

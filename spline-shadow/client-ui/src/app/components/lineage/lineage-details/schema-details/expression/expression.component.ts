@@ -34,7 +34,7 @@ export class ExpressionComponent {
   ) { }
 
   getIcon(): string {
-    return "&#x" + this.lineageGraphService.getIconFromOperationType(this.expressionType) + "&nbsp;"
+    return String.fromCharCode(this.lineageGraphService.getIconFromOperationType(this.expressionType))
   }
 
   getOperationColor(): string {

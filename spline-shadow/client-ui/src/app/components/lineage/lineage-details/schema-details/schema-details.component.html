@@ -17,7 +17,7 @@
   width="40px" height="40px" />
 <div *ngIf="detailsInfo">
   <div class="details-title">
-    <i class="fa fa-xs" [innerHTML]=getIcon() [style.color]=getOperationColor()></i>{{getType()}}
+    <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp;{{getType()}}
   </div>
   <div #expressionPanel></div>
   <div class="details">
