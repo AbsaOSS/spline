@@ -15,7 +15,7 @@
   -->
 <div *ngFor="let expression of expressions ;let i=index">
   <div class="collapsible" data-toggle="collapse" [attr.data-target]="'#expression'+i" aria-expanded="true">
-    <i class="fa fa-xs" [innerHTML]=getIcon() [style.color]=getOperationColor()></i>{{expression.title}} join on
+    <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp;{{expression.title}} join on
   </div>
   <div id="expression{{i}}" *ngFor="let value of expression.values" class="accordion-body collapse in show">
     <code>{{value}}</code>

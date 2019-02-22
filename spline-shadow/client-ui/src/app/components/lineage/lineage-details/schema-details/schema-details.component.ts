@@ -66,7 +66,7 @@ export class SchemaDetailsComponent implements AfterViewInit {
   }
 
   getIcon(): string {
-    return "&#x" + this.lineageGraphService.getIconFromOperationType(this.getType()) + "&nbsp;"
+    return String.fromCharCode(this.lineageGraphService.getIconFromOperationType(this.getType()))
   }
 
   getOperationColor(): string {

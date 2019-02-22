@@ -129,21 +129,21 @@ export class LineageGraphService {
     });
   }
 
-  public getIconFromOperationType(operation: string): string {
+  public getIconFromOperationType(operation: string): number {
     switch (operation) {
-      case OperationType.Projection: return "f13a"
-      case OperationType.BatchRead: return "f085"
-      case OperationType.StreamRead: return "f085"
-      case OperationType.Join: return "f126"
-      case OperationType.Union: return "f0c9"
-      case OperationType.Generic: return "f0c8"
-      case OperationType.Filter: return "f0b0"
-      case OperationType.Sort: return "f161"
-      case OperationType.Aggregate: return "f0e8"
-      case OperationType.BatchWrite: return "f085"
-      case OperationType.StreamWrite: return "f085"
-      case OperationType.Alias: return "f111"
-      default: return "f15b"
+      case OperationType.Projection: return 0xf13a
+      case OperationType.BatchRead: return 0xf085
+      case OperationType.StreamRead: return 0xf085
+      case OperationType.Join: return 0xf126
+      case OperationType.Union: return 0xf0c9
+      case OperationType.Generic: return 0xf0c8
+      case OperationType.Filter: return 0xf0b0
+      case OperationType.Sort: return 0xf161
+      case OperationType.Aggregate: return 0xf1ec
+      case OperationType.BatchWrite: return 0xf085
+      case OperationType.StreamWrite: return 0xf085
+      case OperationType.Alias: return 0xf111
+      default: return 0xf15b
     }
   }
 
