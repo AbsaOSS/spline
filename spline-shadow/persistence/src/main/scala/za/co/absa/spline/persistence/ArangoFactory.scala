@@ -18,6 +18,7 @@ package za.co.absa.spline.persistence
 
 import java.net.URI
 
+import com.arangodb.velocypack.module.scala.VPackScalaModule
 import com.arangodb.{ArangoDB, ArangoDatabase, Protocol}
 
 object ArangoFactory {
@@ -32,6 +33,7 @@ object ArangoFactory {
       .map(s => (s(0), s(1)))
       .getOrElse(("root", "root"))
     new ArangoDB.Builder()
+      .registerModule(new VPackScalaModule)
       .user(user)
       .password(password)
       .host(uri.getHost, uri.getPort)

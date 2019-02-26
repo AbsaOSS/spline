@@ -16,13 +16,9 @@
 
 package za.co.absa.spline.gateway.rest
 
-import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.{Configuration, Import}
 
 @Configuration
-class AppConfig {
-  //todo: define services and other components here
-}
-
-
-
+@Import(Array(classOf[ArangoRepoConfig]))
+class AppConfig
 

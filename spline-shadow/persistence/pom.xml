@@ -48,7 +48,7 @@
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
-            <artifactId>arangodb-java-driver</artifactId>
+            <artifactId>arangodb-java-driver-async</artifactId>
             <version>5.0.4</version>
         </dependency>
         <dependency>

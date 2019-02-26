@@ -16,18 +16,19 @@
 
 package za.co.absa.spline.gateway.rest.model
 
-import java.util.{Date, UUID}
+import java.util.UUID
 
 import za.co.absa.spline.gateway.rest.model.ExecutionInfo.Id
 
 case class ExecutionInfo
 (
   _id: Id,
-  nativeId: Option[String],
-  startTime: Option[Date],
-  finishTime: Option[Date]
+  _type: String,
+  startTime: Option[Long],
+  endTime: Option[Long],
+  extra: Map[String, Any]
 ) {
-  require(Seq(startTime, finishTime).exists(_.isDefined), "at least one of 'start' or 'finish' time should be defined")
+  def this() = this(null, null, null, null, null)
 }
 
 object ExecutionInfo {
