@@ -24,7 +24,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FunSuite, Matchers}
-import za.co.absa.spline.coresparkadapterapi.WriteCommandParser
+import za.co.absa.spline.coresparkadapterapi.{WriteCommandParser, WriteCommandParserFactory}
 import za.co.absa.spline.fixture.SparkFixture
 
 
@@ -48,7 +48,7 @@ class DataLineageBuilderTest extends FunSuite with Matchers with SparkFixture {
     val lineageBuilder = lineageBuilderFor(tripleUnionDF)
     val lineage = lineageBuilder.buildLineage()
 
-    lineage.operations should have size 4 // 3 LogicalRDD + 1 Union
+    lineage.getOrElse(fail).operations should have size 4 // 3 LogicalRDD + 1 Union
   }
 }
 
@@ -59,8 +59,12 @@ object DataLineageBuilderTest extends MockitoSugar {
     val plan = df.queryExecution.analyzed
     val mockWriteCommandParser = mock[WriteCommandParser[LogicalPlan]]
 
-    when(mockWriteCommandParser asWriteCommandIfPossible any()) thenReturn None
+    val factory = mock[WriteCommandParserFactory]
 
-    new DataLineageBuilder(plan, None, sparkContext)(mock[Configuration], mockWriteCommandParser)
+    when(mockWriteCommandParser asWriteCommandIfPossible any()) thenReturn None
+    when(factory writeParser()) thenReturn mockWriteCommandParser
+    when(factory saveAsTableParser(any())) thenReturn mockWriteCommandParser
+
+    new DataLineageBuilder(plan, None, sparkContext)(mock[Configuration], factory)
   }
 }

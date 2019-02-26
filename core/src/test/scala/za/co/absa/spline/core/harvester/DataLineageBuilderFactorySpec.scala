@@ -163,7 +163,7 @@ class DataLineageBuilderFactorySpec extends FlatSpec with Matchers {
       createBuilder(sparkSession.emptyDataFrame.queryExecution.analyzed, None, sparkSession.sparkContext).
       buildLineage()
 
-    assertDataLineage(expectedOperations, expectedDatasets, Seq.empty, result)
+    assertDataLineage(expectedOperations, expectedDatasets, Seq.empty, result.getOrElse(fail))
   }
 
   "When harvest method is called with a simple non-empty data frame" should "return a data lineage with one node." in {
@@ -195,7 +195,7 @@ class DataLineageBuilderFactorySpec extends FlatSpec with Matchers {
 
     val result = sut.createBuilder(df.queryExecution.analyzed, None, sparkSession.sparkContext).buildLineage()
 
-    assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
+    assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result.getOrElse(fail))
   }
 
   "When harvest method is called with a filtered data frame" should "return a data lineage forming a path with three nodes." in {
@@ -246,7 +246,7 @@ class DataLineageBuilderFactorySpec extends FlatSpec with Matchers {
 
     val result = sut.createBuilder(df.queryExecution.analyzed, None, sparkSession.sparkContext).buildLineage()
 
-    assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
+    assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result.getOrElse(fail))
   }
 
   "When harvest method is called with an union data frame" should "return a data lineage forming a diamond graph." in {
@@ -312,7 +312,7 @@ class DataLineageBuilderFactorySpec extends FlatSpec with Matchers {
 
     val result = sut.createBuilder(df.queryExecution.analyzed, None, sparkSession.sparkContext).buildLineage()
 
-    assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
+    assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result.getOrElse(fail))
   }
 
   "When harvest method is called with a joined data frame" should "return a data lineage forming a diamond graph." in {
@@ -386,6 +386,6 @@ class DataLineageBuilderFactorySpec extends FlatSpec with Matchers {
 
     val result = sut.createBuilder(df.queryExecution.analyzed, None, sparkSession.sparkContext).buildLineage()
 
-    assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result)
+    assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result.getOrElse(fail))
   }
 }

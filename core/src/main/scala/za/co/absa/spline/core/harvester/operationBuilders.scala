@@ -24,7 +24,7 @@ import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.{DataSource, HadoopFsRelation, LogicalRelation}
 import org.apache.spark.sql.sources.BaseRelation
 import org.apache.spark.sql.{JDBCRelation, SaveMode}
-import za.co.absa.spline.coresparkadapterapi.WriteCommand
+import za.co.absa.spline.coresparkadapterapi.{SaveAsTableCommand, SaveJDBCCommand, WriteCommand}
 import za.co.absa.spline.model.{op, _}
 
 sealed trait OperationNodeBuilder {
@@ -111,7 +111,7 @@ class ReadNodeBuilder
 abstract class WriteNodeBuilder
 (val operation: WriteCommand, val writeMetrics: Map[String, Long], val readMetrics: Map[String, Long])
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
-  extends OperationNodeBuilder {
+  extends OperationNodeBuilder with RootNode {
   this: FSAwareBuilder =>
 
   override val output: AttrGroup = new AttrGroup(operation.query.output)
@@ -124,6 +124,52 @@ abstract class WriteNodeBuilder
     writeMetrics = writeMetrics,
     readMetrics = readMetrics
   )
+
+  override def ignoreLineageWrite:Boolean = {
+    writeMetrics.get("numFiles").filter(0.==).isDefined
+  }
+}
+
+class SaveAsTableNodeBuilder
+(val operation: SaveAsTableCommand, val writeMetrics: Map[String, Long], val readMetrics: Map[String, Long])
+(implicit val componentCreatorFactory: ComponentCreatorFactory)
+  extends OperationNodeBuilder with RootNode {
+
+  override val output: AttrGroup = new AttrGroup(operation.query.output)
+
+  override def build() = op.Write(
+    operationProps,
+    operation.format,
+    operation.tableName,
+    append = operation.mode == SaveMode.Append,
+    writeMetrics = writeMetrics,
+    readMetrics = readMetrics
+  )
+
+  override def ignoreLineageWrite:Boolean = {
+    false
+  }
+}
+
+class SaveJDBCCommandNodeBuilder
+(val operation: SaveJDBCCommand, val writeMetrics: Map[String, Long], val readMetrics: Map[String, Long])
+(implicit val componentCreatorFactory: ComponentCreatorFactory)
+  extends OperationNodeBuilder {
+
+  override val output: AttrGroup = new AttrGroup(operation.query.output)
+
+  override def build() = op.Write(
+    operationProps,
+    operation.format,
+    operation.tableName,
+    append = operation.mode == SaveMode.Append,
+    writeMetrics = writeMetrics,
+    readMetrics = readMetrics
+  )
+}
+
+trait RootNode {
+  def ignoreLineageWrite:Boolean
 }
 
 class ProjectionNodeBuilder
