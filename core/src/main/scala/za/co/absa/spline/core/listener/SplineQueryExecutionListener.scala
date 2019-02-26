@@ -37,7 +37,7 @@ class SplineQueryExecutionListener(harvesterFactory: DataLineageBuilderFactory, 
   def onSuccess(funcName: String, qe: QueryExecution, durationNs: Long): Unit = {
     log debug s"Action '$funcName' execution succeeded"
 
-    if (funcName == "save") {
+    if (funcName == "save" || funcName == "saveAsTable" ) {
       log debug s"Start tracking lineage for action '$funcName'"
 
       val rawLineage =
@@ -45,7 +45,7 @@ class SplineQueryExecutionListener(harvesterFactory: DataLineageBuilderFactory, 
           createBuilder(qe.analyzed, Some(qe.executedPlan), qe.sparkSession.sparkContext).
           buildLineage()
 
-      if (wasResultIgnored(rawLineage)) {
+      if (rawLineage.writeIgnored) {
         log debug s"The write result was ignored. Skipping lineage."
       } else {
         lineageProcessor.process(rawLineage)
@@ -57,14 +57,6 @@ class SplineQueryExecutionListener(harvesterFactory: DataLineageBuilderFactory, 
       log debug s"Skipping lineage tracking for action '$funcName'"
     }
   }
-
-  def wasResultIgnored(lineage: DataLineage): Boolean =
-    lineage.rootOperation match {
-      case op.Write(_, _, _, _, writeMetrics, readMetrics) =>
-        writeMetrics get "numFiles" exists 0.==
-      case _ =>
-        sys.error(s"Unexpected root operation: ${lineage.rootOperation.getClass}")
-    }
 
   /**
     * The method is executed when an error occurs during an action execution.
