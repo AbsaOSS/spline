@@ -16,10 +16,40 @@
 
 package za.co.absa.spline.coresparkadapterapi
 
-import org.apache.spark.sql.execution.datasources.InsertIntoHadoopFsRelationCommand
+import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
+import org.apache.spark.sql.execution.command.CreateDataSourceTableAsSelectCommand
+import org.apache.spark.sql.execution.datasources.{InsertIntoHadoopFsRelationCommand}
 
-class WriteCommandParserImpl extends WriteCommandParser[InsertIntoHadoopFsRelationCommand] {
-  override def asWriteCommand(operation: InsertIntoHadoopFsRelationCommand): WriteCommand = {
-    WriteCommand(operation.outputPath.toString, operation.mode, operation.fileFormat.toString, operation.query)
+
+class WriteCommandParserFactoryImpl extends WriteCommandParserFactory {
+  override def getWriteParser(): WriteCommandParser[LogicalPlan] = new WriteCommandParserImpl()
+  override def getSaveAsTableParser(): WriteCommandParser[LogicalPlan] = new SaveAsTableCommandParserImpl()
+  override def getJDBCParser(): WriteCommandParser[LogicalPlan] = new SaveJdbcCommandParserImpl()
+}
+
+class SaveAsTableCommandParserImpl extends WriteCommandParser[LogicalPlan] {
+  override def matches(operation: LogicalPlan): Boolean = operation.isInstanceOf[CreateDataSourceTableAsSelectCommand]
+
+  override def asWriteCommand(operation: LogicalPlan): AbstractWriteCommand = {
+    val op = operation.asInstanceOf[CreateDataSourceTableAsSelectCommand]
+    SaveAsTableCommand(op.table.identifier.identifier, op.mode, "table", op.query)
+  }
+}
+
+class SaveJdbcCommandParserImpl extends WriteCommandParser[LogicalPlan] {
+  override def matches(operation: LogicalPlan): Boolean = false
+
+  override def asWriteCommand(operation: LogicalPlan): AbstractWriteCommand = null //TODO
+}
+
+
+class WriteCommandParserImpl extends WriteCommandParser[LogicalPlan] {
+
+  override def matches(operation: LogicalPlan): Boolean = {
+    operation.isInstanceOf[InsertIntoHadoopFsRelationCommand]
+  }
+  override def asWriteCommand(operation: LogicalPlan): WriteCommand = {
+    val op = operation.asInstanceOf[InsertIntoHadoopFsRelationCommand]
+    WriteCommand(op.outputPath.toString, op.mode, op.fileFormat.toString, op.query)
   }
 }

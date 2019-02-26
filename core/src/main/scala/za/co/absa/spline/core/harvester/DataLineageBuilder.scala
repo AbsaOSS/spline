@@ -25,29 +25,42 @@ import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.execution.{LeafExecNode, SparkPlan}
 import scalaz.Scalaz._
 import za.co.absa.spline.core.harvester.DataLineageBuilder._
-import za.co.absa.spline.coresparkadapterapi.WriteCommandParser
+import za.co.absa.spline.coresparkadapterapi.{SaveAsTableCommand, SaveJDBCCommand, WriteCommand, WriteCommandParserFactory}
 import za.co.absa.spline.model._
-import za.co.absa.spline.model.op.Operation
 
 class DataLineageBuilder(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPlan], sparkContext: SparkContext)
-                        (hadoopConfiguration: Configuration, writeCommandParser: WriteCommandParser[LogicalPlan]) {
+                        (hadoopConfiguration: Configuration, writeCommandParserFactory: WriteCommandParserFactory) {
 
   private val componentCreatorFactory: ComponentCreatorFactory = new ComponentCreatorFactory
 
+  private val writeCommandParser = writeCommandParserFactory.getWriteParser()
+  private val tableCommandParser = writeCommandParserFactory.getSaveAsTableParser()
+  private val jdbcCommandParser = writeCommandParserFactory.getJDBCParser()
+
   def buildLineage(): DataLineage = {
+    val builders = getOperations(logicalPlan)
+    val someRootBuilder = builders.lastOption
+
+    val writeIgnored = if (someRootBuilder.isDefined && someRootBuilder.get.isInstanceOf[RootNode]) {
+      someRootBuilder.get.asInstanceOf[RootNode].ignoreLineageWrite
+    } else false
+
+    val operations = builders.map(_.build())
+
     DataLineage(
       sparkContext.applicationId,
       sparkContext.appName,
       System.currentTimeMillis(),
       spark.SPARK_VERSION,
-      getOperations(logicalPlan).reverse,
+      operations.reverse,
       componentCreatorFactory.metaDatasetConverter.values.reverse,
       componentCreatorFactory.attributeConverter.values,
-      componentCreatorFactory.dataTypeConverter.values
+      componentCreatorFactory.dataTypeConverter.values,
+      writeIgnored = writeIgnored
     )
   }
 
-  private def getOperations(rootOp: LogicalPlan): Seq[Operation] = {
+    private def getOperations(rootOp: LogicalPlan): Seq[OperationNodeBuilder] = {
     def traverseAndCollect(
                             accBuilders: Seq[OperationNodeBuilder],
                             processedEntries: Map[LogicalPlan, OperationNodeBuilder],
@@ -79,7 +92,7 @@ class DataLineageBuilder(logicalPlan: LogicalPlan, executedPlanOpt: Option[Spark
       }
     }
 
-    traverseAndCollect(Nil, Map.empty, Seq((rootOp, null))).map(_.build())
+      traverseAndCollect(Nil, Map.empty, Seq((rootOp, null)))
   }
 
   private def createOperationBuilder(op: LogicalPlan): OperationNodeBuilder = {
@@ -94,13 +107,25 @@ class DataLineageBuilder(logicalPlan: LogicalPlan, executedPlanOpt: Option[Spark
       case a: SubqueryAlias => new AliasNodeBuilder(a)
       case lr: LogicalRelation => new ReadNodeBuilder(lr) with HDFSAwareBuilder
       case wc if writeCommandParser.matches(op) =>
-        val writeCmd = writeCommandParser.asWriteCommand(wc)
-        val (readMetrics: Metrics, writeMetrics: Metrics) = executedPlanOpt.
-          map(getExecutedReadWriteMetrics).
-          getOrElse((Map.empty, Map.empty))
+        val (readMetrics: Metrics, writeMetrics: Metrics) = makeMetrics()
+        val writeCmd = writeCommandParser.asWriteCommand(wc).asInstanceOf[WriteCommand]
         new WriteNodeBuilder(writeCmd, writeMetrics, readMetrics) with HDFSAwareBuilder
+      case wc if tableCommandParser.matches(op) =>
+        val (readMetrics: Metrics, writeMetrics: Metrics) = makeMetrics()
+        val tableCmd = tableCommandParser.asWriteCommand(wc).asInstanceOf[SaveAsTableCommand]
+        new SaveAsTableNodeBuilder(tableCmd, writeMetrics, readMetrics)
+      case wc if jdbcCommandParser.matches(op) =>
+        val (readMetrics: Metrics, writeMetrics: Metrics) = makeMetrics()
+        val jdbcCmd = jdbcCommandParser.asWriteCommand(wc).asInstanceOf[SaveJDBCCommand]
+        new SaveJDBCCommandNodeBuilder(jdbcCmd, writeMetrics, readMetrics)
       case x => new GenericNodeBuilder(x)
     }
+  }
+
+  private def makeMetrics(): (Metrics, Metrics) = {
+    executedPlanOpt.
+      map(getExecutedReadWriteMetrics).
+      getOrElse((Map.empty, Map.empty))
   }
 
   trait HDFSAwareBuilder extends FSAwareBuilder {
