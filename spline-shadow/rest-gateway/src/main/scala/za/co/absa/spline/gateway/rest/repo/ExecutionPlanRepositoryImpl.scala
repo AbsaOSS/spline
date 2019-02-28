@@ -31,7 +31,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     db.queryOne[ExecutedLogicalPlan](
       """
       FOR exec IN execution
-          FILTER exec._key == CONCAT("ln_", @execId)
+          FILTER exec._key == @execId
           LET opWithEdgePairs = (
               FOR v, e IN 1..99999
               OUTBOUND exec executes, follows
@@ -48,11 +48,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
 
           RETURN {
               "plan": {nodes, edges},
-              "execInfo": {
-                  "_id": @execId,
-                  "endTime": exec.timestamp,
-                  "extra": UNSET(exec, "dataTypes", "_id", "_key", "_rev", "timestamp")
-              }
+              "execution": MERGE(UNSET(exec, "_rev", "_key"), {"_id": exec._key})
           }
       """,
       Map("execId" -> execId)

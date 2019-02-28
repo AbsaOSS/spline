@@ -36,8 +36,6 @@ case class DataLineageTransactionParams
   dataSource: Iterable[VPackSlice],
   writesTo: Iterable[VPackSlice],
   readsFrom: Iterable[VPackSlice],
-  app: Iterable[VPackSlice],
-  implements: Iterable[VPackSlice],
   execution: Iterable[VPackSlice],
   executes: Iterable[VPackSlice],
   progress: Iterable[VPackSlice],
@@ -68,8 +66,6 @@ object DataLineageTransactionParams {
       createDataSources(uriToNewKey),
       createWritesTos(dataLineage, uriToKey),
       createReadsFrom(dataLineage, uriToKey),
-      createApp(dataLineage),
-      createImplements(dataLineage),
       createExecution(dataLineage),
       createExecutes(dataLineage),
       createProgressForBatchJob(dataLineage),
@@ -77,14 +73,13 @@ object DataLineageTransactionParams {
     )
   }
 
-  private def createExecutes(dataLineage: DataLineage) =
-    Seq(Executes("execution/" + dataLineage.id, "app/" + dataLineage.id, Some(dataLineage.id)))
+  @inline private def getDSId(ln:DataLineage): String = ln.rootDataset.id.toString
 
-  private def createImplements(dataLineage: DataLineage) =
-    Seq(Implements("app/" + dataLineage.id, "operation/" + dataLineage.rootOperation.mainProps.id, Some(dataLineage.id)))
+  private def createExecutes(dataLineage: DataLineage) =
+    Seq(Executes("execution/" + getDSId(dataLineage), "operation/" + dataLineage.rootOperation.mainProps.id, Some(getDSId(dataLineage))))
 
   private def createProgressOf(dataLineage: DataLineage) =
-    Seq(ProgressOf("progress/" + dataLineage.id, "execution/" + dataLineage.id, Some(dataLineage.id)))
+    Seq(ProgressOf("progress/" + getDSId(dataLineage), "execution/" + getDSId(dataLineage), Some(getDSId(dataLineage))))
 
   /** progress for batch jobs need to be generated during migration for consistency with stream jobs **/
   private def createProgressForBatchJob(dataLineage: DataLineage) = {
@@ -93,17 +88,18 @@ object DataLineageTransactionParams {
       .getOrElse(throw new IllegalArgumentException("All pumped lineages are expected to be batch."))
       .asInstanceOf[splinemodel.op.BatchWrite]
     val readCount = batchWrites.readMetrics.values.sum
-    Seq(Progress(dataLineage.timestamp, readCount, Some(dataLineage.id)))
-  }
-
-  private def createApp(dataLineage: DataLineage) = {
-    val dataTypes = dataLineage.dataTypes
-      .map(d => DataType(d.id.toString, d.getClass.getSimpleName, d.nullable, d.childDataTypeIds.map(_.toString)))
-    Seq(App(dataLineage.appId, dataLineage.appName, dataTypes, Some(dataLineage.id)))
+    Seq(Progress(dataLineage.timestamp, readCount, Some(getDSId(dataLineage))))
   }
 
   private def createExecution(dataLineage: DataLineage) = {
-    Seq(Execution(dataLineage.appId, dataLineage.sparkVer, dataLineage.timestamp, Some(dataLineage.id)))
+    val dataTypes = dataLineage.dataTypes
+      .map(d => DataType(d.id.toString, d.getClass.getSimpleName, d.nullable, d.childDataTypeIds.map(_.toString)))
+    val extras = Map(
+      "sparkVer" -> dataLineage.sparkVer,
+      "appId" -> dataLineage.appId,
+      "appName" -> dataLineage.appName
+    )
+    Seq(Execution(dataLineage.appId, dataTypes, None, Some(dataLineage.timestamp), extras, Some(getDSId(dataLineage))))
   }
 
   private def createReadsFrom(dataLineage: DataLineage, dsUriToKey: Map[String, String]) =
