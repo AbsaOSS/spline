@@ -40,7 +40,7 @@ class PersisterSpec extends AsyncFunSpec with Matchers with MockitoSugar {
       if (db.exists()) {
         db.drop()
       }
-      ArangoInit.initialize(db)
+      ArangoInit.initialize(db, dropIfExists = true)
       val persister = new Persister(db, true)
       val dataLineage = bigDataLineage()
       for {

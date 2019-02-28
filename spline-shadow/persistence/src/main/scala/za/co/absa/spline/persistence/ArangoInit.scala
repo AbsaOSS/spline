@@ -24,9 +24,10 @@ import scala.collection.JavaConverters._
 
 object ArangoInit {
 
-  def initialize(db: ArangoDatabase): Unit = {
+  def initialize(db: ArangoDatabase, dropIfExists: Boolean): Unit = {
     if (db.exists()) {
-      throw new IllegalArgumentException(s"Database ${db.name()} already exists. Cannot initialize.")
+      if (dropIfExists) db.drop()
+      else throw new IllegalArgumentException(s"Arango Database ${db.name()} already exists")
     }
     db.create()
     db.createCollection("progress")
