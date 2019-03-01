@@ -1,6 +1,5 @@
 /*
  * Copyright 2019 ABSA Group Limited
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,19 +15,17 @@
 
 package za.co.absa.spline.gateway.rest.swagger
 
-import org.springframework.http.MediaType.APPLICATION_JSON
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders._
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers._
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.beans.factory.support.DefaultListableBeanFactory
+import org.springframework.mock.web.MockServletContext
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext
+import za.co.absa.spline.gateway.rest.RESTConfig
 
-object SwaggerDocGen {
-  def generate: String =
-    MockMvcBuilders
-      .webAppContextSetup(new SwaggerDocGenAppContext)
-      .build
-      .perform(get("/v2/api-docs") accept APPLICATION_JSON)
-      .andExpect(status.isOk)
-      .andReturn
-      .getResponse
-      .getContentAsString
+class SwaggerDocGenAppContext extends AnnotationConfigWebApplicationContext {
+
+  override def createBeanFactory: DefaultListableBeanFactory = new MockingBeanFactory(getInternalParentBeanFactory)
+
+  register(classOf[RESTConfig])
+
+  setServletContext(new MockServletContext())
+  refresh()
 }
