@@ -54,7 +54,7 @@ export class LineageGraphComponent implements OnInit {
         that.cytograph.cy.add(response)
 
         that.cytograph.cy.on('click', function (event) {
-          const clikedTarget = event.target;
+          const clikedTarget = event.target
           let nodeId = null
           if (clikedTarget != that.cytograph.cy && clikedTarget.isNode()) {
             nodeId = clikedTarget.id()
@@ -87,7 +87,7 @@ export class LineageGraphComponent implements OnInit {
             if (data.icon) return '<i class="fa fa-4x" style="color:' + data.color + '">' + String.fromCharCode(data.icon) + '</i>'
             return null
           }
-        }]);
+        }])
         that.cytograph.cy.cxtmenu(that.contextualMenuService.getConfiguration())
         that.cytograph.cy.panzoom()
         that.cytograph.cy.layout(that.layoutService.getConfiguration()).run()

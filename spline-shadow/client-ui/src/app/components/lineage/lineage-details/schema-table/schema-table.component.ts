@@ -28,9 +28,9 @@ import * as _ from 'lodash';
 export class SchemaTableComponent implements AfterViewInit {
 
   @ViewChild('table')
-  table: any;
+  table: any
 
-  expanded: any = {};
+  expanded: any = {}
 
   @Input()
   schema: any
