@@ -22,7 +22,7 @@ import akka.actor.Actor
 import akka.pattern.pipe
 import za.co.absa.spline.migrator.ArangoActor._
 import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.persistence.Persister
+import za.co.absa.spline.persistence.{ArangoFactory, Persister}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -51,7 +51,7 @@ object ArangoActor {
 
 class ArangoActor(connectionUrl: String) extends Actor {
 
-  val persister = new Persister(connectionUrl)
+  private val persister: Persister = Persister.create(connectionUrl)
 
   override def receive: Receive = {
     case LineagePersistRequest(lineage) =>

@@ -14,12 +14,29 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.harvester
+package za.co.absa.spline.persistence
 
-import org.apache.spark.sql.SparkSession
+import com.arangodb.ArangoDBException
+import ArangoCode._
 
-object TestSparkContext {
-  val appName = "test"
-  val sparkSession : SparkSession = SparkSession.builder().master("local[4]").appName(appName).getOrCreate()
+object RetryableException {
+
+  private val retryableCodes = Set(
+    ArangoConflict,
+    ArangoUniqueConstraintViolated,
+    Deadlock,
+    ArangoSyncTimeout,
+    LockTimeout,
+    ArangoWriteThrottleTimeout,
+    ClusterTimeout)
+    .map(_.code)
+
+  def unapply(exception: Exception): Option[ArangoDBException] = {
+    exception match {
+      case e: ArangoDBException if retryableCodes.contains(e.getErrorNum)  => Some(e)
+      case _ => None
+    }
+
+  }
 
 }

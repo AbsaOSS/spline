@@ -30,7 +30,12 @@ import scala.concurrent.Future
 object MigratorTool {
 
   private val akkaConf = ConfigFactory.parseString(
-    s"akka.actor.guardian-supervisor-strategy = ${classOf[EscalatingSupervisorStrategy].getName}")
+    "akka {\n"
+      + s"    actor.guardian-supervisor-strategy = ${classOf[EscalatingSupervisorStrategy].getName}" + "\n"
+      + "    event-handlers = [\"akka.event.slf4j.Slf4jEventHandler\"]\n"
+      + "    loglevel = INFO\n"
+      + "}"
+  )
 
   def migrate(migratorConf: MigratorConfig): Future[Stats] = {
     val actorSystem = ActorSystem("system", akkaConf)

@@ -49,6 +49,12 @@
             <groupId>org.apache.atlas</groupId>
             <artifactId>atlas-intg</artifactId>
             <version>1.0.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>jdk.tools</groupId>
+                    <artifactId>jdk.tools</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
     </dependencies>

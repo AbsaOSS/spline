@@ -17,13 +17,13 @@
 package za.co.absa.spline.harvester
 
 import org.apache.commons.configuration.{BaseConfiguration, Configuration}
-import org.apache.commons.configuration.Configuration
-import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.util.QueryExecutionListener
+import org.apache.spark.sql.util.{ExecutionListenerManager, QueryExecutionListener}
+import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest.Matchers._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
+import za.co.absa.spline.fixture.SparkFixture
 import za.co.absa.spline.harvester.SparkLineageInitializer._
 import za.co.absa.spline.harvester.SparkLineageInitializerSpec._
 import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer.ConfProperty._
@@ -52,32 +52,25 @@ object SparkLineageInitializerSpec {
     override val createProgressEventWriter: ProgressEventWriter = sys.error("bim!")
   }
 
-  private[this] def sparkQueryExecutionListenerClasses: Seq[Class[_ <: QueryExecutionListener]] = {
-    val session = createSession
-    (session.listenerManager.getClass.getDeclaredFields collectFirst {
-      case f if f.getName endsWith "listeners" =>
-        f setAccessible true
-        (f get session.listenerManager).asInstanceOf[Seq[QueryExecutionListener]].map(_.getClass)
-    }).get
+  private[this] val getSparkQueryExecutionListenerClasses: () => Seq[Class[_ <: QueryExecutionListener]] = {
+    val listenersField = classOf[ExecutionListenerManager] getDeclaredField "org$apache$spark$sql$util$ExecutionListenerManager$$listeners"
+    listenersField setAccessible true
+    () =>
+      for {
+        session <- SparkSession.getActiveSession.toSeq
+        listenerManager = session.listenerManager.clone // to avoid potential race on mutable field
+        listener <- (listenersField get listenerManager).asInstanceOf[Seq[QueryExecutionListener]]
+      } yield listener.getClass
   }
 
-  private def assertSplineIsEnabled() = sparkQueryExecutionListenerClasses should contain(classOf[SplineQueryExecutionListener])
+  private def assertSplineIsEnabled() = getSparkQueryExecutionListenerClasses() should contain(classOf[SplineQueryExecutionListener])
 
-  private def assertSplineIsDisabled() = sparkQueryExecutionListenerClasses should not contain classOf[SplineQueryExecutionListener]
-
-  def createSession: SparkSession = {
-    val builder = SparkSession.builder
-    builder.master("local")
-    builder.getOrCreate
-  }
+  private def assertSplineIsDisabled() = getSparkQueryExecutionListenerClasses() should not contain classOf[SplineQueryExecutionListener]
 }
 
-class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with Matchers {
+class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with Matchers with SparkFixture {
   private val configuration = new BaseConfiguration
   configuration.setProperty("spark.master", "local")
-  configuration.setProperty(LineageDispatcher.kafkaServersProperty, "example.com:9092")
-
-  override protected def afterEach(): Unit = createSession.stop
 
   describe("defaultConfiguration") {
 
@@ -94,108 +87,117 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
     val valueFromSpline = "value from spline.properties"
 
     it("should look through the multiple sources for the configuration properties") {
-      val jvmProps = System.getProperties
-//      jvmProps.setProperty("spark.master", "local")
+      withNewSession(sparkSession => {
+        val jvmProps = System.getProperties
+        //      jvmProps.setProperty("spark.master", "local")
 
-      val sparkSession = createSession
-      val sparkConf = (classOf[SparkContext] getMethod "conf" invoke sparkSession.sparkContext).asInstanceOf[SparkConf]
-      val hadoopConf = sparkSession.sparkContext.hadoopConfiguration
+        val sparkConf = (classOf[SparkContext] getMethod "conf" invoke sparkSession.sparkContext).asInstanceOf[SparkConf]
+        val hadoopConf = sparkSession.sparkContext.hadoopConfiguration
 
-      for (key <- Some(keyDefinedEverywhere)) {
-        jvmProps.setProperty(key, valueFromJVM)
-        hadoopConf.set(key, valueFromHadoop)
-        sparkConf.set(s"spark.$key", valueFromSpark)
-        // skip setting spline prop as it's already hardcoded in spline.properties
-      }
+        for (key <- Some(keyDefinedEverywhere)) {
+          jvmProps.setProperty(key, valueFromJVM)
+          hadoopConf.set(key, valueFromHadoop)
+          sparkConf.set(s"spark.$key", valueFromSpark)
+          // skip setting spline prop as it's already hardcoded in spline.properties
+        }
 
-      for (key <- Some(keyDefinedInJVMAndSpline)) {
-        jvmProps.setProperty(key, valueFromJVM)
-        // skip setting spline prop as it's already hardcoded in spline.properties
-      }
+        for (key <- Some(keyDefinedInJVMAndSpline)) {
+          jvmProps.setProperty(key, valueFromJVM)
+          // skip setting spline prop as it's already hardcoded in spline.properties
+        }
 
-      for (key <- Some(keyDefinedInHadoopAndSpline)) {
-        hadoopConf.set(key, valueFromHadoop)
-        // skip setting spline prop as it's already hardcoded in spline.properties
-      }
+        for (key <- Some(keyDefinedInHadoopAndSpline)) {
+          hadoopConf.set(key, valueFromHadoop)
+          // skip setting spline prop as it's already hardcoded in spline.properties
+        }
 
-      for (key <- Some(keyDefinedInHadoopAndSpark)) {
-        hadoopConf.set(key, valueFromHadoop)
-        sparkConf.set(s"spark.$key", valueFromSpark)
-      }
+        for (key <- Some(keyDefinedInHadoopAndSpark)) {
+          hadoopConf.set(key, valueFromHadoop)
+          sparkConf.set(s"spark.$key", valueFromSpark)
+        }
 
-      for (key <- Some(keyDefinedInSparkAndSpline)) {
-        sparkConf.set(s"spark.$key", valueFromSpark)
-        // skip setting spline prop as it's already hardcoded in spline.properties
-      }
+        for (key <- Some(keyDefinedInSparkAndSpline)) {
+          sparkConf.set(s"spark.$key", valueFromSpark)
+          // skip setting spline prop as it's already hardcoded in spline.properties
+        }
 
-      val splineConfiguration = sparkSession.defaultSplineConfiguration
+        val splineConfiguration = sparkSession.defaultSplineConfiguration
 
-      splineConfiguration getString keyDefinedEverywhere shouldEqual valueFromHadoop
-      splineConfiguration getString keyDefinedInJVMAndSpline shouldEqual valueFromJVM
-      splineConfiguration getString keyDefinedInHadoopAndSpline shouldEqual valueFromHadoop
-      splineConfiguration getString keyDefinedInHadoopAndSpark shouldEqual valueFromHadoop
-      splineConfiguration getString keyDefinedInSparkAndSpline shouldEqual valueFromSpark
-      splineConfiguration getString keyDefinedInSplineOnly shouldEqual valueFromSpline
-      splineConfiguration getString "key.undefined" shouldBe null
+        splineConfiguration getString keyDefinedEverywhere shouldEqual valueFromHadoop
+        splineConfiguration getString keyDefinedInJVMAndSpline shouldEqual valueFromJVM
+        splineConfiguration getString keyDefinedInHadoopAndSpline shouldEqual valueFromHadoop
+        splineConfiguration getString keyDefinedInHadoopAndSpark shouldEqual valueFromHadoop
+        splineConfiguration getString keyDefinedInSparkAndSpline shouldEqual valueFromSpark
+        splineConfiguration getString keyDefinedInSplineOnly shouldEqual valueFromSpline
+        splineConfiguration getString "key.undefined" shouldBe null
+      })
     }
   }
 
   describe("enableLineageTracking()") {
     it("should not allow double initialization") {
       intercept[IllegalStateException] {
-        val session = createSession
-        session
-          .enableLineageTracking(createConfigurer(session)) // 1st is fine
-          .enableLineageTracking(createConfigurer(session)) // 2nd should fail
+        withNewSession(session =>
+          session
+            .enableLineageTracking(createConfigurer(session)) // 1st is fine
+            .enableLineageTracking(createConfigurer(session)) // 2nd should fail
+        )
       }
     }
 
     it("should return the spark session back to the caller") {
-      val session = createSession
-      session.enableLineageTracking(createConfigurer(session)) shouldBe session
+      withNewSession(session =>
+        session.enableLineageTracking(createConfigurer(session)) shouldBe session
+      )
     }
 
     describe("modes") {
 
       it("should disable Spline and proceed, when is in BEST_EFFORT (default) mode") {
-        configuration.setProperty(MODE, BEST_EFFORT.toString)
-        val sparkSession = createSession
-        sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
-        assertSplineIsDisabled()
+        withNewSession(sparkSession => {
+          configuration.setProperty(MODE, BEST_EFFORT.toString)
+          sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
+          assertSplineIsDisabled()
+        })
       }
 
       it("should disable Spline and proceed, when is in DEFAULT mode") {
-        configuration.clearProperty(MODE) // default mode is BEST_EFFORT
-        val sparkSession = createSession
-        sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
-        assertSplineIsDisabled()
+        withNewSession(sparkSession => {
+          configuration.clearProperty(MODE) // default mode is BEST_EFFORT
+          sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
+          assertSplineIsDisabled()
+        })
       }
 
       it("should abort application, when is in REQUIRED mode") {
         intercept[Exception] {
-          configuration.setProperty(MODE, REQUIRED.toString)
-          val session = createSession
-          session.enableLineageTracking(createFailingConfigurer(session))
+          withNewSession(session => {
+            configuration.setProperty(MODE, REQUIRED.toString)
+            session.enableLineageTracking(createFailingConfigurer(session))
+          })
         }
       }
 
       it("should have no effect, when is in DISABLED mode") {
-        configuration.setProperty(MODE, DISABLED.toString)
-        val sparkSession = createSession
-        sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
-        assertSplineIsDisabled()
+        withNewSession(sparkSession => {
+          configuration.setProperty(MODE, DISABLED.toString)
+          sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
+          assertSplineIsDisabled()
+        })
       }
 
       def createFailingConfigurer(sparkSession: SparkSession) = {
         new DefaultSplineConfigurer(configuration, sparkSession) {
-          override lazy val lineageDispatcher: LineageDispatcher =  { throw new RuntimeException("Testing exception - please ignore.")}
+          override lazy val lineageDispatcher: LineageDispatcher = {
+            throw new RuntimeException("Testing exception - please ignore.")
+          }
         }
       }
 
     }
   }
 
-  def createConfigurer(sparkSession: SparkSession) = {
+  def createConfigurer(sparkSession: SparkSession): DefaultSplineConfigurer = {
     new DefaultSplineConfigurer(configuration, sparkSession)
   }
 

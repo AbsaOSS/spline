@@ -21,7 +21,8 @@ case class MigratorConfig
   mongoConnectionUrl: String = "",
   arangoConnectionUrl: String = "",
   batchSize: Int = 100,
-  batchesMax: Int = -1
+  batchesMax: Int = -1,
+  initializeArangodb: Boolean = false
 )
 
 object MigratorConfig {

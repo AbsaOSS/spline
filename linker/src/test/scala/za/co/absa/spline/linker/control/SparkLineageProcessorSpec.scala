@@ -20,8 +20,8 @@ import java.util.UUID
 import java.util.UUID.randomUUID
 
 import org.apache.commons.configuration.Configuration
-import org.apache.spark.sql.SparkSession
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
+import za.co.absa.spline.fixture.SparkFixture
 import za.co.absa.spline.linker.boundary.DefaultSplineConfig
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.dt.Simple
@@ -32,7 +32,7 @@ import scala.collection.immutable
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
-class SparkLineageProcessorSpec extends FunSpec with Matchers with BeforeAndAfterEach {
+class SparkLineageProcessorSpec extends FunSpec with Matchers with BeforeAndAfterEach with SparkFixture {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
@@ -45,19 +45,16 @@ class SparkLineageProcessorSpec extends FunSpec with Matchers with BeforeAndAfte
     it("linker should process harvested lineages") {
       System.setProperty(PersistenceFactory.PersistenceFactoryPropName, classOf[MockPersistenceFactory].getName)
 
-      val sparkBuilder = SparkSession.builder()
-      sparkBuilder.appName("SplineLinker")
-      val session: SparkSession =  sparkBuilder.getOrCreate()
-      val configuration = DefaultSplineConfig(session)
+      val configuration = DefaultSplineConfig(spark)
       val uuid = UUID.randomUUID()
       import za.co.absa.spline.linker.boundary.LineageHarvestReader._
-      val stream = session
+      val stream = spark
         .readStream
         .format("rate")
         .load()
         .map(_ => SparkLineageProcessorSpec.createDataLineage(datasetId = uuid))
         .as[DataLineage]
-      val processor = new SparkLineageProcessor(stream, configuration, session)
+      val processor = new SparkLineageProcessor(stream, configuration, spark)
       processor.start()
       val found: immutable.Seq[Boolean] = for (_ <- 1 to 10) yield {
         Thread.sleep(1000)
