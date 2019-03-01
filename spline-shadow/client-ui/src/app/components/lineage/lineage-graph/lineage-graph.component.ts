@@ -19,6 +19,8 @@ import { LineageGraphService } from 'src/app/services/lineage/lineage-graph.serv
 import { ContextualMenuService } from 'src/app/services/lineage/contextual-menu.service';
 import { LayoutService } from 'src/app/services/lineage/layout.service';
 import { PropertyService } from 'src/app/services/details/property.service';
+import { RouterService } from 'src/app/services/router/router.service';
+import { Params } from '@angular/router';
 
 @Component({
   selector: 'lineage-graph',
@@ -33,13 +35,16 @@ export class LineageGraphComponent implements OnInit {
   constructor(
     private lineageGraphService: LineageGraphService,
     private contextualMenuService: ContextualMenuService,
+    private propertyService: PropertyService,
     private layoutService: LayoutService,
-    private propertyService: PropertyService
+    private routerService: RouterService
+
   ) { }
 
 
   ngOnInit(): void {
     let that = this
+
     this.lineageGraphService.getGraphData().subscribe(
       response => {
         response.nodes.forEach(node => {
@@ -48,11 +53,28 @@ export class LineageGraphComponent implements OnInit {
         })
         that.cytograph.cy.add(response)
 
-        that.cytograph.cy.nodes().on('click', function (event) {
-          let clickedNode = event.target
-          that.lineageGraphService.getDetailsInfo(clickedNode.id())
+        that.cytograph.cy.on('click', function (event) {
+          const clikedTarget = event.target;
+          let nodeId = null
+          if (clikedTarget != that.cytograph.cy && clikedTarget.isNode()) {
+            nodeId = clikedTarget.id()
+          }
+          that.lineageGraphService.getDetailsInfo(nodeId)
           that.propertyService.changeCurrentProperty(null)
+
+          const params: Params = { selectedNode: nodeId, schemaId: null, property: null }
+          that.routerService.mergeParam(params, true)
         })
+
+        this.routerService.getParams().subscribe(
+          params => {
+            if (params.has('selectedNode')) {
+              const nodeId = params.get('selectedNode')
+              that.cytograph.cy.nodes().filter("[id='" + nodeId + "']").select()
+              that.lineageGraphService.getDetailsInfo(nodeId)
+            }
+          }
+        )
       },
       error => {
         //Simply log the error from now
@@ -62,7 +84,7 @@ export class LineageGraphComponent implements OnInit {
       () => {
         that.cytograph.cy.nodeHtmlLabel([{
           tpl: function (data) {
-            if (data.icon) return '<i class="fa fa-3x" style="color:' + data.color + '">' + String.fromCharCode(data.icon) + '</i>'
+            if (data.icon) return '<i class="fa fa-4x" style="color:' + data.color + '">' + String.fromCharCode(data.icon) + '</i>'
             return null
           }
         }]);
@@ -71,6 +93,10 @@ export class LineageGraphComponent implements OnInit {
         that.cytograph.cy.layout(that.layoutService.getConfiguration()).run()
       }
     )
+
+
+
+
 
   }
 

@@ -39,13 +39,15 @@ export class PropertyDetailsComponent implements OnInit {
     let that = this
     this.propertyService.currentProperty.subscribe(property => {
       that.property = property
-      if (property) {
+      if (that.cytograph.cy) {
         that.cytograph.cy.remove(that.cytograph.cy.elements())
-        let graph = that.propertyService.buildPropertyGraph(property, null, null)
-        that.cytograph.cy.add(graph)
+        if (property) {
+          let graph = that.propertyService.buildPropertyGraph(property, null, null)
+          that.cytograph.cy.add(graph)
 
-        that.cytograph.cy.layout(that.layoutService.getConfiguration()).run()
-        that.cytograph.cy.panzoom()
+          that.cytograph.cy.layout(that.layoutService.getConfiguration()).run()
+          that.cytograph.cy.panzoom()
+        }
       }
     })
   }
