@@ -18,7 +18,7 @@ package za.co.absa.spline.coresparkadapterapi
 
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.command.CreateDataSourceTableAsSelectCommand
-import org.apache.spark.sql.execution.datasources.{InsertIntoHadoopFsRelationCommand}
+import org.apache.spark.sql.execution.datasources.InsertIntoHadoopFsRelationCommand
 
 
 class WriteCommandParserFactoryImpl extends WriteCommandParserFactory {
@@ -34,7 +34,10 @@ class SaveAsTableCommandParserImpl extends WriteCommandParser[LogicalPlan] {
 
   override def asWriteCommand(operation: LogicalPlan): AbstractWriteCommand = {
     val op = operation.asInstanceOf[CreateDataSourceTableAsSelectCommand]
-    SaveAsTableCommand(op.table.identifier.identifier, op.mode, "table", op.query)
+    val identifier = if (op.table.storage.locationUri.isDefined)
+      op.table.storage.locationUri.get.toURL().toString
+    else "table:/" + op.table.identifier.identifier
+      SaveAsTableCommand(identifier, op.mode, "table", op.query)
   }
 }
 

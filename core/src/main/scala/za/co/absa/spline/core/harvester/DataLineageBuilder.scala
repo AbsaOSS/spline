@@ -75,11 +75,25 @@ class DataLineageBuilder(logicalPlan: LogicalPlan, executedPlanOpt: Option[Spark
           if (parentBuilder != null) parentBuilder += curBuilder
 
           if (maybeExistingBuilder.isEmpty) {
-            val newNodesToProcess =
-              writeCommandParser.
+
+            //try to find all possible commands for traversing- save to filesystem, saveAsTable, JDBC
+            val writes = writeCommandParser.
                 asWriteCommandIfPossible(curOpNode).
                 map(wc => Seq(wc.query)).
-                getOrElse(curOpNode.children)
+                getOrElse(Seq())
+
+            val tables = tableCommandParser.
+              asWriteCommandIfPossible(curOpNode).
+              map(wc => Seq(wc.query)).
+              getOrElse(Seq())
+
+            val jdbc = jdbcCommandParser.
+              asWriteCommandIfPossible(curOpNode).
+              map(wc => Seq(wc.query)).
+              getOrElse(Seq())
+
+            var newNodesToProcess: Seq[LogicalPlan] = writes ++ tables ++ jdbc
+            if (newNodesToProcess.isEmpty) newNodesToProcess = curOpNode.children
 
             traverseAndCollect(
               curBuilder +: accBuilders,
