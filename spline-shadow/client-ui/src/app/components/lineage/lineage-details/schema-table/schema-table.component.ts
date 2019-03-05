@@ -46,25 +46,27 @@ export class SchemaTableComponent implements AfterViewInit {
   ) { }
 
   ngAfterViewInit(): void {
-    const self = this
     this.routerService.getParams().subscribe(config => {
-      const that = this
+      const paramsSubscriber = this
       const schemaIdParam = config.get("schemaId")
       const tablesWithSelection = schemaIdParam ? schemaIdParam.split(".") : []
-      if (that.table.rows && that.schemaId.includes(tablesWithSelection[0])) {
+      if (paramsSubscriber.table.rows && paramsSubscriber.schemaId.includes(tablesWithSelection[0])) {
         for (let i = 0; i < tablesWithSelection.length + 1; i++) {
           //The property ID can be nested to several data structures, the last one is the selected property itself
           let propertyIdParam = (i < tablesWithSelection.length) ? tablesWithSelection[i + 1] : config.get("property")
-          let selectedRow = that.getSelectedRowFromName(propertyIdParam)
-          if (selectedRow) {
-            that.propertyService.changeCurrentProperty(selectedRow[1])
-            that.table.selected.push(selectedRow[1])
-            let page = Math.floor(selectedRow[0] / that.tablePageSize)
-            that.table.offset = page
+          let selectedRow = paramsSubscriber.getSelectedRowFromName(propertyIdParam)
+          const selectedRowIndex = selectedRow[0]
+          const selectedRowContent = selectedRow[1]
+
+          if (selectedRowIndex > -1) {
+            paramsSubscriber.propertyService.changeCurrentProperty(selectedRowContent)
+            paramsSubscriber.table.selected.push(selectedRowContent)
+            let page = Math.floor(selectedRowIndex / paramsSubscriber.tablePageSize)
+            paramsSubscriber.table.offset = page
             // TODO : Remove the setTimeout as soon as this issue is fixed :https://github.com/swimlane/ngx-datatable/issues/1204
             setTimeout(function () {
-              if (selectedRow[1].dataType._typeHint != 'za.co.absa.spline.core.model.dt.Simple') {
-                that.table.rowDetail.toggleExpandRow(selectedRow[1])
+              if (selectedRowContent.dataType._typeHint != 'za.co.absa.spline.core.model.dt.Simple') {
+                paramsSubscriber.table.rowDetail.toggleExpandRow(selectedRowContent)
               }
             })
           }
@@ -79,14 +81,8 @@ export class SchemaTableComponent implements AfterViewInit {
    * @returns a tuple containing the row itself and it's index in case the table is pageable
    */
   getSelectedRowFromName(name) {
-    let selectedRow = null
-    _.each(this.table.rows, function (row, index) {
-      if (row.name === name) {
-        selectedRow = [index, row]
-        return
-      }
-    })
-    return selectedRow
+    const index = _.findIndex(this.table.rows, { name: name })
+    return [index, this.table.rows[index]]
   }
 
 

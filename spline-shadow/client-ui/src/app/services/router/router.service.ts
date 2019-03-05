@@ -26,7 +26,7 @@ export class RouterService {
         queryParamsHandling: "merge"
       }).toString()
     if (saveState) {
-      this.location.go(url)
+      this.router.navigateByUrl(url)
     } else {
       this.location.replaceState(url)
     }
