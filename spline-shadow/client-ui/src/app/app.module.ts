@@ -20,7 +20,6 @@ import { RouterModule } from '@angular/router';
 
 import { AppComponent } from './app.component';
 import { CytoscapeNgLibModule } from 'cytoscape-ng-lib';
-import { DataTablesModule } from 'angular-datatables';
 import { LineageComponent } from './components/lineage/lineage.component';
 import { LineageGraphComponent } from './components/lineage/lineage-graph/lineage-graph.component';
 import { LineageDetailsComponent } from './components/lineage/lineage-details/lineage-details.component';
@@ -35,6 +34,7 @@ import { SchemaTableComponent } from './components/lineage/lineage-details/schem
 import { JoinComponent } from './components/lineage/lineage-details/schema-details/join/join.component';
 import { ExpressionComponent } from './components/lineage/lineage-details/schema-details/expression/expression.component';
 import { ProjectionComponent } from './components/lineage/lineage-details/schema-details/projection/projection.component';
+import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 
 
 export function initializeApp(appConfig: ConfigService) {
@@ -67,9 +67,9 @@ const ROOT_ROUTING = "app/"
     BrowserModule,
     CytoscapeNgLibModule,
     HttpClientModule,
-    DataTablesModule,
+    NgxDatatableModule,
     RouterModule.forRoot([
-      { path: ROOT_ROUTING + 'partial-lineage/:datasourceId/:timestamp', component: LineageComponent },
+      { path: ROOT_ROUTING + 'partial-lineage/:uid', component: LineageComponent },
       { path: ROOT_ROUTING + 'error/:httpCode', component: ErrorComponent },
       { path: ROOT_ROUTING, redirectTo: ROOT_ROUTING + 'error/404', pathMatch: 'full' },
       { path: '**', redirectTo: ROOT_ROUTING + 'error/404', pathMatch: 'full' }
