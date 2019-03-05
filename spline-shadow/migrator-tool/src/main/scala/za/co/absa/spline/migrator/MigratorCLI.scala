@@ -53,6 +53,10 @@ object MigratorCLI extends App {
       text s"Initialize Arango DB"
       action ((value, conf) => conf.copy(initializeArangodb = true)))
 
+    (opt[Unit]('f', "force")
+      text s"In combination with option '-i' it removes existing Arango database before creating a new one"
+      action ((value, conf) => conf.copy(removeExistingArangodb = true)))
+
     help("help").text("prints this usage text")
   }
 
@@ -67,7 +71,7 @@ object MigratorCLI extends App {
   private def initArangoIfConfigured(config: MigratorConfig): Unit = {
     if (config.initializeArangodb) {
       val db = ArangoFactory.create(new URI(config.arangoConnectionUrl))
-      ArangoInit.initialize(db)
+      ArangoInit.initialize(db, config.removeExistingArangodb)
     }
   }
 

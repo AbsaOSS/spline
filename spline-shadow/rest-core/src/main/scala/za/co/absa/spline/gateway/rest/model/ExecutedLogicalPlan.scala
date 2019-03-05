@@ -22,24 +22,31 @@ import za.co.absa.spline.gateway.rest.model.ExecutedLogicalPlan._
 
 case class ExecutedLogicalPlan
 (
-  app: AppInfo,
   execution: ExecutionInfo,
-  dag: LogicalPlan
-)
+  plan: LogicalPlan
+) {
+  def this() = this(null, null)
+}
 
 object ExecutedLogicalPlan {
   type OperationID = UUID
 
-  case class LogicalPlan(nodes: Seq[Operation], edges: Seq[Transition]) extends Graph {
+  case class LogicalPlan(nodes: Array[Operation], edges: Array[Transition]) extends Graph {
+    def this() = this(null, null)
+
     override type Node = Operation
     override type Edge = Transition
   }
 
   case class Operation(_id: OperationID, _type: String, name: String) extends Graph.Node {
+    def this() = this(null, null, null)
+
     override type Id = OperationID
   }
 
   case class Transition(_from: OperationID, _to: OperationID) extends Graph.Edge {
+    def this() = this(null, null)
+
     override type JointId = OperationID
   }
 

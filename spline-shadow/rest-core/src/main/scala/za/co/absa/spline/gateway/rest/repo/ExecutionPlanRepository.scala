@@ -1,6 +1,5 @@
 /*
  * Copyright 2019 ABSA Group Limited
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,10 +13,15 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.gateway.rest.model
+package za.co.absa.spline.gateway.rest.repo
 
-case class AppInfo
-(
-  name: String,
-  props: Map[String, Any]
-)
+import za.co.absa.spline.gateway.rest.model.ExecutedLogicalPlan
+import za.co.absa.spline.gateway.rest.model.ExecutionInfo.Id
+
+import scala.concurrent.{ExecutionContext, Future}
+
+trait ExecutionPlanRepository {
+
+  def findById(execId: Id)
+              (implicit ec: ExecutionContext): Future[ExecutedLogicalPlan]
+}

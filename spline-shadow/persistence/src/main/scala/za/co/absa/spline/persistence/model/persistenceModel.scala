@@ -19,9 +19,7 @@ package za.co.absa.spline.persistence.model
 
 case class Progress(timestamp: Long, readCount: Long, _key: Option[String] = None, _id: Option[String] = None, _rev: Option[String] = None) extends DocumentOption
 
-case class Execution(id: String, sparkVer: String, timestamp: Long, _key: Option[String] = None, _id: Option[String] = None, _rev: Option[String] = None) extends DocumentOption
-
-case class App(appId: String, appName: String, dataTypes: Seq[DataType], _key: Option[String] = None, _id: Option[String] = None, _rev: Option[String] = None) extends DocumentOption
+case class Execution(id: String, dataTypes: Seq[DataType], startTime: Option[Long], endTime: Option[Long], extra: Map[String, Any], _key: Option[String] = None, _id: Option[String] = None, _rev: Option[String] = None) extends DocumentOption
 
 case class DataType(id: String, name: String, nullable: Boolean, childrenIds: Seq[String])
 
@@ -75,11 +73,6 @@ case class ReadsFrom(_from: String, _to: String, _key: Option[String] = None, _i
 
 
 case class WritesTo(_from: String, _to: String, _key: Option[String] = None, _id: Option[String] = None, _rev: Option[String] = None) extends Edge with DocumentOption {
-  def this() = this("", "")
-}
-
-
-case class Implements(_from: String, _to: String, _key: Option[String] = None, _id: Option[String] = None, _rev: Option[String] = None) extends Edge with DocumentOption {
   def this() = this("", "")
 }
 

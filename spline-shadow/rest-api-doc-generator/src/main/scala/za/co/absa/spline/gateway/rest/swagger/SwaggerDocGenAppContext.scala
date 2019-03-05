@@ -1,6 +1,5 @@
 /*
  * Copyright 2019 ABSA Group Limited
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,23 +13,19 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.gateway.rest.model
+package za.co.absa.spline.gateway.rest.swagger
 
-import java.util.UUID
+import org.springframework.beans.factory.support.DefaultListableBeanFactory
+import org.springframework.mock.web.MockServletContext
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext
+import za.co.absa.spline.gateway.rest.RESTConfig
 
-import za.co.absa.spline.gateway.rest.model.ExecutionInfo.Id
+class SwaggerDocGenAppContext extends AnnotationConfigWebApplicationContext {
 
-case class ExecutionInfo
-(
-  _id: Id,
-  _type: String,
-  startTime: Option[Long],
-  endTime: Option[Long],
-  extra: Map[String, Any]
-) {
-  def this() = this(null, null, null, null, null)
-}
+  override def createBeanFactory: DefaultListableBeanFactory = new MockingBeanFactory(getInternalParentBeanFactory)
 
-object ExecutionInfo {
-  type Id = UUID
+  register(classOf[RESTConfig])
+
+  setServletContext(new MockServletContext())
+  refresh()
 }
