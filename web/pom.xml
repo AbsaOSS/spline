@@ -67,7 +67,6 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
-            <version>5.0.2.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.thymeleaf</groupId>

@@ -17,21 +17,14 @@
 package za.co.absa.spline.gateway.rest.swagger
 
 import org.springframework.http.MediaType.APPLICATION_JSON
-import org.springframework.mock.web.MockServletContext
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders._
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers._
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext
-import za.co.absa.spline.gateway.rest.RESTConfig
 
 object SwaggerDocGen {
   def generate: String =
     MockMvcBuilders
-      .webAppContextSetup(new AnnotationConfigWebApplicationContext {
-        register(classOf[RESTConfig])
-        setServletContext(new MockServletContext())
-        refresh()
-      })
+      .webAppContextSetup(new SwaggerDocGenAppContext)
       .build
       .perform(get("/v2/api-docs") accept APPLICATION_JSON)
       .andExpect(status.isOk)

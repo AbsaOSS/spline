@@ -36,7 +36,7 @@ class MigratorToolSpec extends AsyncFunSpec with Matchers {
       if (db.exists()) {
         db.drop()
       }
-      ArangoInit.initialize(db)
+      ArangoInit.initialize(db, dropIfExists = true)
       val config = new MigratorConfig(mongoUri, arangoConnectionUrl = arangoUri, batchSize = 20, batchesMax = 1)
       MigratorTool.migrate(config)
         .flatMap(stats => stats.failures shouldBe 0)

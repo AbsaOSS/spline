@@ -23,17 +23,17 @@ class NonStandardResponseEntitySpec extends FlatSpec with Matchers {
 
   it should "support non-standard HTTP response statuses" in {
     NonStandardResponseEntity(42).getStatusCodeValue shouldEqual 42
-    NonStandardResponseEntity(42).toString shouldEqual "<42,{}>"
+    NonStandardResponseEntity(42).toString shouldEqual "<42,[]>"
 
-    NonStandardResponseEntity(42, "foo").toString shouldEqual "<42,foo,{}>"
+    NonStandardResponseEntity(42, "foo").toString shouldEqual "<42,foo,[]>"
 
     NonStandardResponseEntity(42, "foo", new HttpHeaders() {
       add("bar", "baz")
-    }).toString shouldEqual "<42,foo,{bar=[baz]}>"
+    }).toString shouldEqual """<42,foo,[bar:"baz"]>"""
 
     NonStandardResponseEntity(42, null, new HttpHeaders() {
       add("bar", "baz")
-    }).toString shouldEqual "<42,{bar=[baz]}>"
+    }).toString shouldEqual """<42,[bar:"baz"]>"""
   }
 
   it should "not support standard HTTP response codes" in {
