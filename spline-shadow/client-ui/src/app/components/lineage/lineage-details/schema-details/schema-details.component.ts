@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 ABSA Group Limited
+ * Copyright 2019 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 import { Component, ComponentFactoryResolver, ViewContainerRef, AfterViewInit, ViewChildren, QueryList, ChangeDetectorRef } from '@angular/core';
 import { LineageGraphService } from 'src/app/services/lineage/lineage-graph.service';
 import { OperationType, ExpressionComponents } from 'src/app/types/operationType';
-import { IExpression, ILiteral, IBinary, IAttrRef, IAlias, IUDF, IGenericLeaf, IGeneric } from 'src/app/model/expression-model';
+import { IExpression, ILiteral, IBinary, IAttrRef, IAlias, IUDF, IGenericLeaf, IGeneric } from 'src/app/viewModels/expression-model';
 import * as _ from 'lodash';
-import { Expression } from 'src/app/model/expression';
+import { Expression } from 'src/app/viewModels/expression';
 import { ExpressionType } from 'src/app/types/expressionType';
 
 

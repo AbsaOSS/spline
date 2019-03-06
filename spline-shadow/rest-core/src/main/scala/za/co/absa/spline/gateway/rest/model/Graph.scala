@@ -27,13 +27,13 @@ object Graph {
 
   trait Node {
     type Id
-    val _id: Id
+    val id: Id
   }
 
   trait Edge {
     type JointId
-    val _from: JointId
-    val _to: JointId
+    val source: JointId
+    val target: JointId
   }
 
 }

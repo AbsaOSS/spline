@@ -17,8 +17,16 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { OperationType } from 'src/app/types/operationType';
+import { ExecutedLogicalPlan, Operation } from 'src/app/generated/models';
+import { CytoscapeGraphVM } from 'src/app/viewModels/cytoscape/cytoscapeGraphVM';
+import { ExecutedLogicalPlanVM } from 'src/app/viewModels/executedLogicalPlanVM';
+import { CytoscapeOperationVM } from 'src/app/viewModels/cytoscape/cytoscapeOperationVM';
+import * as _ from 'lodash';
+import { ExecutionPlanControllerService } from 'src/app/generated/services';
+import { StrictHttpResponse } from 'src/app/generated/strict-http-response';
+import { ConfigService } from '../config/config.service';
 
 
 @Injectable({
@@ -27,93 +35,50 @@ import { OperationType } from 'src/app/types/operationType';
 
 export class LineageGraphService {
 
-  graph = {
-    nodes: [
-      { data: { id: 'op-uuid-1', name: 'op-uuid-1', } },
-      { data: { id: 'op-uuid-2', name: 'op-uuid-2', operationType: 'Alias' } },
-      { data: { id: 'op-uuid-3', name: 'op-uuid-3', operationType: 'Projection' } },
-      { data: { id: 'op-uuid-5', name: 'op-uuid-5', operationType: 'Projection' } },
-      { data: { id: 'op-uuid-7', name: 'op-uuid-7', operationType: 'Projection' } },
-      { data: { id: 'op-uuid-8', name: 'op-uuid-8', operationType: 'Projection' } },
-      { data: { id: 'op-uuid-9', name: 'op-uuid-9', operationType: 'Join' } },
-      { data: { id: 'op-uuid-10', name: 'op-uuid-10', operationType: 'Projection' } },
-      { data: { id: 'op-uuid-12', name: 'op-uuid-12', operationType: 'Join' } },
-      { data: { id: 'op-uuid-14', name: 'op-uuid-14', operationType: 'Projection' } },
-      { data: { id: 'op-uuid-15', name: 'op-uuid-15', operationType: 'Projection' } },
-      { data: { id: 'op-uuid-17', name: 'op-uuid-17', operationType: 'Join' } },
-      { data: { id: 'op-uuid-21', name: 'op-uuid-21', nativeRoot: 'true' } },
-      { data: { id: 'op-uuid-23', name: 'op-uuid-23', operationType: 'Projection' } },
-      { data: { id: 'op-uuid-24', name: 'op-uuid-24', operationType: 'Projection' } },
-      { data: { id: 'op-uuid-26', name: 'op-uuid-26', nativeRoot: 'true' } },
-      { data: { id: 'op-uuid-28', name: 'op-uuid-28', operationType: 'Projection' } },
-      { data: { id: 'op-uuid-30', name: 'op-uuid-30', nativeRoot: 'true' } },
-      { data: { id: 'op-uuid-32', name: 'op-uuid-32', operationType: 'Aggregate' } },
-      { data: { id: 'op-uuid-18', name: 'op-uuid-18', operationType: 'Projection' } },
-      { data: { id: '57767d87-909b-49dd-9800-e7dc59e95340', name: '57767d87-909b-49dd-9800-e7dc59e95340', operationType: 'Filter' } },
-      { data: { id: 'c0ec33fd-aaaa-41f6-8aa2-e610e899fb75', name: 'c0ec33fd-aaaa-41f6-8aa2-e610e899fb75', operationType: 'Sort' } }
-    ],
-    edges: [
-      { data: { source: 'op-uuid-2', target: 'op-uuid-1' } },
-      { data: { source: 'op-uuid-3', target: 'op-uuid-2' } },
-      { data: { source: 'op-uuid-5', target: 'op-uuid-3' } },
-      { data: { source: 'op-uuid-7', target: 'op-uuid-5' } },
-      { data: { source: 'op-uuid-32', target: 'op-uuid-5' } },
-      { data: { source: 'op-uuid-8', target: 'op-uuid-7' } },
-      { data: { source: 'op-uuid-9', target: 'op-uuid-8' } },
-      { data: { source: 'op-uuid-9', target: 'op-uuid-18' } },
-      { data: { source: 'op-uuid-10', target: 'op-uuid-9' } },
-      { data: { source: 'op-uuid-12', target: 'op-uuid-10' } },
-      { data: { source: 'op-uuid-14', target: 'op-uuid-12' } },
-      { data: { source: 'op-uuid-28', target: 'op-uuid-12' } },
-      { data: { source: 'op-uuid-15', target: 'op-uuid-14' } },
-      { data: { source: 'op-uuid-17', target: 'op-uuid-15' } },
-      { data: { source: 'op-uuid-21', target: 'op-uuid-17' } },
-      { data: { source: 'op-uuid-23', target: 'op-uuid-17' } },
-      { data: { source: 'op-uuid-24', target: 'op-uuid-23' } },
-      { data: { source: 'op-uuid-26', target: 'op-uuid-24' } },
-      { data: { source: 'op-uuid-30', target: 'op-uuid-28' } },
-      { data: { source: 'c0ec33fd-aaaa-41f6-8aa2-e610e899fb75', target: 'op-uuid-32' } },
-      { data: { source: 'op-uuid-18', target: '57767d87-909b-49dd-9800-e7dc59e95340' } },
-      { data: { source: '57767d87-909b-49dd-9800-e7dc59e95340', target: 'c0ec33fd-aaaa-41f6-8aa2-e610e899fb75' } }
-    ]
-  }
-
-  // TODO : Define constants to the whole app in a seperated file with a service accessor
-  private mockRestApiGraph = 'http://localhost:3000/lineage/datasourceId/timestamp';
-
   // TODO : Define constants to the whole app in a seperated file with a service accessor
   private mockRestApiDetails = 'http://localhost:3000/details/';
 
   private detailsInfoSubject = new BehaviorSubject<any>(null)
   detailsInfo = this.detailsInfoSubject.asObservable()
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private executionPlanControllerService: ExecutionPlanControllerService
+  ) {
+    executionPlanControllerService.rootUrl = ConfigService.settings.apiUrl
+  }
 
-  /**
-   * Get the graph data from the API
-   * TODO : Specify the return type when the API will be finished
-   */
-  public getGraphData(nodeFocus: string = null, depth: number = null): Observable<any> {
-    // TODO : Use a Url Builder Service 
-    // let url = this.mockRestApiGraph;
-    // if (nodeFocus && depth) {
-    //   url = url + "/" + nodeFocus + "/" + depth;
-    // }
-    // return this.http.get(url).pipe(
-    //   catchError(this.handleError)
-    // );
-    //TODO : This code is just for testing the integration with menas. It should be replace by a normal call to the api
+  public getExecutedLogicalPlan(executionPlanId: string): Observable<ExecutedLogicalPlanVM> {
     let that = this
-    let observable = Observable.create(observer => {
-      setTimeout(() => {
-        observer.next(that.graph) // This method same as resolve() method from Angular 1
-        observer.complete()//to show we are done with our processing
-        // observer.error(new Error("error message"));
-      }, 1000)
+    return that.executionPlanControllerService.lineageUsingGETResponse(executionPlanId).pipe(
+      map(response => {
+        return that.convertFromExecutedLogicalPlanToFromExecutedLogicalPlanViewModel(response)
+      }),
+      catchError(this.handleError)
+    );
+  }
 
+  private convertFromExecutedLogicalPlanToFromExecutedLogicalPlanViewModel(executedLogicalPlanHttpResponse: StrictHttpResponse<ExecutedLogicalPlan>): ExecutedLogicalPlanVM {
+    const lineageGraphService = this
+    const cytoscapeGraphVM = {} as CytoscapeGraphVM
+    cytoscapeGraphVM.nodes = []
+    cytoscapeGraphVM.edges = []
+    _.each(executedLogicalPlanHttpResponse.body.plan.nodes, function (node: Operation) {
+      let cytoscapeOperation = {} as CytoscapeOperationVM
+      cytoscapeOperation.operationType = node.operationType
+      cytoscapeOperation.id = node.id
+      cytoscapeOperation.name = node.name
+      cytoscapeOperation.color = lineageGraphService.getColorFromOperationType(node.name)
+      cytoscapeOperation.icon = lineageGraphService.getIconFromOperationType(node.name)
+      cytoscapeGraphVM.nodes.push({ data: cytoscapeOperation })
     })
-
-    return observable
+    _.each(executedLogicalPlanHttpResponse.body.plan.edges, function (edge) {
+      cytoscapeGraphVM.edges.push({ data: edge })
+    })
+    const executedLogicalPlanVM = {} as ExecutedLogicalPlanVM
+    executedLogicalPlanVM.execution = executedLogicalPlanHttpResponse.body.execution
+    executedLogicalPlanVM.plan = cytoscapeGraphVM
+    return executedLogicalPlanVM
   }
 
   /**
@@ -133,6 +98,7 @@ export class LineageGraphService {
     switch (operation) {
       case OperationType.Projection: return 0xf13a
       case OperationType.BatchRead: return 0xf085
+      case OperationType.LogicalRelation: return 0xf1c0
       case OperationType.StreamRead: return 0xf085
       case OperationType.Join: return 0xf126
       case OperationType.Union: return 0xf0c9
@@ -140,8 +106,9 @@ export class LineageGraphService {
       case OperationType.Filter: return 0xf0b0
       case OperationType.Sort: return 0xf161
       case OperationType.Aggregate: return 0xf1ec
-      case OperationType.BatchWrite: return 0xf085
-      case OperationType.StreamWrite: return 0xf085
+      case OperationType.WriteCommand: return 0xf0c7
+      case OperationType.BatchWrite: return 0xf0c7
+      case OperationType.StreamWrite: return 0xf0c7
       case OperationType.Alias: return 0xf111
       default: return 0xf15b
     }
@@ -151,6 +118,7 @@ export class LineageGraphService {
     switch (operation) {
       case OperationType.Projection: return "#337AB7"
       case OperationType.BatchRead: return "#337AB7"
+      case OperationType.LogicalRelation: return "#e39255"
       case OperationType.StreamRead: return "#337AB7"
       case OperationType.Join: return "#e39255"
       case OperationType.Union: return "#337AB7"
@@ -158,8 +126,9 @@ export class LineageGraphService {
       case OperationType.Filter: return "#F04100"
       case OperationType.Sort: return "#E0E719"
       case OperationType.Aggregate: return "#008000"
-      case OperationType.BatchWrite: return "#337AB7"
-      case OperationType.StreamWrite: return "#337AB7"
+      case OperationType.BatchWrite: return "#e39255"
+      case OperationType.WriteCommand: return "#e39255"
+      case OperationType.StreamWrite: return "#e39255"
       case OperationType.Alias: return "#337AB7"
       default: return "#808080"
     }

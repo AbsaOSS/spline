@@ -13,22 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export class Expression {
 
-const data = require('../data/data.js')
-const graphOperations = require('../lib/graph-operations.js')
-const detailsOperations = require('../lib/details-operations.js')
+    title: string
+    values: string[]
 
-const defaultDepth = 30
+    constructor(title: string, values: string[]) {
+        this.title = title
+        this.values = values
+    }
 
-// Find a lineage with a datasourceId and a timestamp
-exports.findOne = (req, res) => {
-    //res.send(graphOperations.cutGraph(data.graph, nodeFocus, depth))
-    res.send(data.executionPlan)
+
 }
-
-exports.details = (req, res) => {
-    let datasourceId = req.params.operationId
-    res.send(detailsOperations.getDetails(data.details, datasourceId))
-}
-
-

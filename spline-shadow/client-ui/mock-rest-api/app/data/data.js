@@ -14,55 +14,68 @@
  * limitations under the License.
  */
 
-const graph = {
-    nodes: [
-        { data: { id: 'op-uuid-1', name: 'op-uuid-1', } },
-        { data: { id: 'op-uuid-2', name: 'op-uuid-2', operationType: 'Alias' } },
-        { data: { id: 'op-uuid-3', name: 'op-uuid-3', operationType: 'Projection' } },
-        { data: { id: 'op-uuid-5', name: 'op-uuid-5', operationType: 'Projection' } },
-        { data: { id: 'op-uuid-7', name: 'op-uuid-7', operationType: 'Projection' } },
-        { data: { id: 'op-uuid-8', name: 'op-uuid-8', operationType: 'Projection' } },
-        { data: { id: 'op-uuid-9', name: 'op-uuid-9', operationType: 'Join' } },
-        { data: { id: 'op-uuid-10', name: 'op-uuid-10', operationType: 'Projection' } },
-        { data: { id: 'op-uuid-12', name: 'op-uuid-12', operationType: 'Join' } },
-        { data: { id: 'op-uuid-14', name: 'op-uuid-14', operationType: 'Projection' } },
-        { data: { id: 'op-uuid-15', name: 'op-uuid-15', operationType: 'Projection' } },
-        { data: { id: 'op-uuid-17', name: 'op-uuid-17', operationType: 'Join' } },
-        { data: { id: 'op-uuid-21', name: 'op-uuid-21', nativeRoot: 'true' } },
-        { data: { id: 'op-uuid-23', name: 'op-uuid-23', operationType: 'Projection' } },
-        { data: { id: 'op-uuid-24', name: 'op-uuid-24', operationType: 'Projection' } },
-        { data: { id: 'op-uuid-26', name: 'op-uuid-26', nativeRoot: 'true' } },
-        { data: { id: 'op-uuid-28', name: 'op-uuid-28', operationType: 'Projection' } },
-        { data: { id: 'op-uuid-30', name: 'op-uuid-30', nativeRoot: 'true' } },
-        { data: { id: 'op-uuid-32', name: 'op-uuid-32', operationType: 'Aggregate' } },
-        { data: { id: 'op-uuid-18', name: 'op-uuid-18', operationType: 'Projection' } },
-        { data: { id: '57767d87-909b-49dd-9800-e7dc59e95340', name: '57767d87-909b-49dd-9800-e7dc59e95340', operationType: 'Filter' } },
-        { data: { id: 'c0ec33fd-aaaa-41f6-8aa2-e610e899fb75', name: 'c0ec33fd-aaaa-41f6-8aa2-e610e899fb75', operationType: 'Sort' } }
-    ],
-    edges: [
-        { data: { source: 'op-uuid-2', target: 'op-uuid-1' } },
-        { data: { source: 'op-uuid-3', target: 'op-uuid-2' } },
-        { data: { source: 'op-uuid-5', target: 'op-uuid-3' } },
-        { data: { source: 'op-uuid-7', target: 'op-uuid-5' } },
-        { data: { source: 'op-uuid-32', target: 'op-uuid-5' } },
-        { data: { source: 'op-uuid-8', target: 'op-uuid-7' } },
-        { data: { source: 'op-uuid-9', target: 'op-uuid-8' } },
-        { data: { source: 'op-uuid-9', target: 'op-uuid-18' } },
-        { data: { source: 'op-uuid-10', target: 'op-uuid-9' } },
-        { data: { source: 'op-uuid-12', target: 'op-uuid-10' } },
-        { data: { source: 'op-uuid-14', target: 'op-uuid-12' } },
-        { data: { source: 'op-uuid-28', target: 'op-uuid-12' } },
-        { data: { source: 'op-uuid-15', target: 'op-uuid-14' } },
-        { data: { source: 'op-uuid-17', target: 'op-uuid-15' } },
-        { data: { source: 'op-uuid-21', target: 'op-uuid-17' } },
-        { data: { source: 'op-uuid-23', target: 'op-uuid-17' } },
-        { data: { source: 'op-uuid-24', target: 'op-uuid-23' } },
-        { data: { source: 'op-uuid-26', target: 'op-uuid-24' } },
-        { data: { source: 'op-uuid-30', target: 'op-uuid-28' } },
-        { data: { source: 'c0ec33fd-aaaa-41f6-8aa2-e610e899fb75', target: 'op-uuid-32' } },
-        { data: { source: 'op-uuid-18', target: '57767d87-909b-49dd-9800-e7dc59e95340' } },
-        { data: { source: '57767d87-909b-49dd-9800-e7dc59e95340', target: 'c0ec33fd-aaaa-41f6-8aa2-e610e899fb75' } }
-    ]
+const executionPlan = {
+    "execution": {
+        "_id": "f55760e7-8dfc-45ae-a5df-3cf8baf4e68a",
+        "_type": null,
+        "startTime": null,
+        "endTime": 1.54717932036E12,
+        "extra": {
+            "appName": "Standardisation 1adw_audit_info 1 2019-01-11 1",
+            "appId": "application_1547101161076_1025",
+            "sparkVer": "2.x"
+        }
+    },
+    "plan": {
+        "nodes": [
+            { id: 'op-uuid-1', name: 'op-uuid-1' },
+            { id: 'op-uuid-2', name: 'Alias' },
+            { id: 'op-uuid-3', name: 'Project' },
+            { id: 'op-uuid-5', name: 'Project' },
+            { id: 'op-uuid-7', name: 'Project' },
+            { id: 'op-uuid-8', name: 'Project' },
+            { id: 'op-uuid-9', name: 'Join' },
+            { id: 'op-uuid-10', name: 'Project' },
+            { id: 'op-uuid-12', name: 'Join' },
+            { id: 'op-uuid-14', name: 'Project' },
+            { id: 'op-uuid-15', name: 'Project' },
+            { id: 'op-uuid-17', name: 'Join' },
+            { id: 'op-uuid-21', name: 'op-uuid-21' },
+            { id: 'op-uuid-23', name: 'Project' },
+            { id: 'op-uuid-24', name: 'Project' },
+            { id: 'op-uuid-26', name: 'op-uuid-26' },
+            { id: 'op-uuid-28', name: 'Project' },
+            { id: 'op-uuid-30', name: 'op-uuid-30' },
+            { id: 'op-uuid-32', name: 'Aggregate' },
+            { id: 'op-uuid-18', name: 'Project' },
+            { id: '57767d87-909b-49dd-9800-e7dc59e95340', name: 'Filter' },
+            { id: 'c0ec33fd-aaaa-41f6-8aa2-e610e899fb75', name: 'Sort' },
+        ],
+        edges: [
+            { source: 'op-uuid-2', target: 'op-uuid-1' },
+            { source: 'op-uuid-3', target: 'op-uuid-2' },
+            { source: 'op-uuid-5', target: 'op-uuid-3' },
+            { source: 'op-uuid-7', target: 'op-uuid-5' },
+            { source: 'op-uuid-32', target: 'op-uuid-5' },
+            { source: 'op-uuid-8', target: 'op-uuid-7' },
+            { source: 'op-uuid-9', target: 'op-uuid-8' },
+            { source: 'op-uuid-9', target: 'op-uuid-18' },
+            { source: 'op-uuid-10', target: 'op-uuid-9' },
+            { source: 'op-uuid-12', target: 'op-uuid-10' },
+            { source: 'op-uuid-14', target: 'op-uuid-12' },
+            { source: 'op-uuid-28', target: 'op-uuid-12' },
+            { source: 'op-uuid-15', target: 'op-uuid-14' },
+            { source: 'op-uuid-17', target: 'op-uuid-15' },
+            { source: 'op-uuid-21', target: 'op-uuid-17' },
+            { source: 'op-uuid-23', target: 'op-uuid-17' },
+            { source: 'op-uuid-24', target: 'op-uuid-23' },
+            { source: 'op-uuid-26', target: 'op-uuid-24' },
+            { source: 'op-uuid-30', target: 'op-uuid-28' },
+            { source: 'c0ec33fd-aaaa-41f6-8aa2-e610e899fb75', target: 'op-uuid-32' },
+            { source: 'op-uuid-18', target: '57767d87-909b-49dd-9800-e7dc59e95340' },
+            { source: '57767d87-909b-49dd-9800-e7dc59e95340', target: 'c0ec33fd-aaaa-41f6-8aa2-e610e899fb75' }
+        ]
+    }
 }
 
 
@@ -4178,7 +4191,7 @@ const details =
             "joinType": "LeftOuter"
         },
         {
-            "_typeHint": "za.co.absa.spline.model.op.Projection",
+            "_typeHint": "za.co.absa.spline.model.op.Project",
             "mainProps": {
                 "id": "op-uuid-3",
                 "name": "Project",
@@ -4370,5 +4383,5 @@ const details =
     ]
 
 
-module.exports = { graph, details }
+module.exports = { executionPlan, details }
 

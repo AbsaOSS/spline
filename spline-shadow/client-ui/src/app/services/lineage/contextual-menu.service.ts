@@ -56,8 +56,7 @@ export class ContextualMenuService {
         {
           content: '<span class="fa fa-info-circle fa-2x"></span><b>Details</b>',
           select: function (ele) {
-            let t = that.executionPlanControllerService.lineageUsingGETResponse("2280281c-1d89-11e9-8eba-d663bd873d93").subscribe()
-            console.log(t)
+            console.log(ele)
           }
         },
         {
@@ -70,24 +69,7 @@ export class ContextualMenuService {
         {
           content: '<span class="fa fa-crop fa-2x"></span><b>Focus</b>',
           select: function (ele, event) {
-            event.cy.elements().remove()
-            that.lineageGraphService.getGraphData(ele.id(), 5).subscribe(
-              response => {
-                response.nodes.forEach(node => {
-                  node.data["icon"] = that.lineageGraphService.getIconFromOperationType(node.data.operationType)
-                  node.data["color"] = that.lineageGraphService.getColorFromOperationType(node.data.operationType)
-                })
-                event.cy.add(response)
-              },
-              error => {
-                //Simply log the error from now
-                console.log(error)
-                //TODO : Implement a notification tool for letting know what is happening to the user
-              },
-              () => {
-                event.cy.layout(that.layoutService.getConfiguration()).run()
-              }
-            )
+            console.log(event)
           }
         }
       ]
