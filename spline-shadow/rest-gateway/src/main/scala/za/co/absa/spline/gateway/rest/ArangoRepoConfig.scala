@@ -25,6 +25,8 @@ import org.springframework.beans.factory.InitializingBean
 import org.springframework.context.annotation.{Bean, ComponentScan, Configuration}
 import za.co.absa.spline.common.config.ConfTyped
 
+import scala.util.matching.Regex
+
 @Configuration
 @ComponentScan(basePackageClasses = Array(classOf[repo._package]))
 class ArangoRepoConfig extends InitializingBean with Logging {
@@ -65,21 +67,18 @@ trait ArangoRepoConfigLike extends ConfTyped {
 
   object Database extends Conf("database") {
 
-    // todo: allow symbols '@' and ':' in passwords
-    private val ArangoConnectionUrlRegex =
-      ("arangodb://"
-        + "(?:"
-        + "([^@:]+)" //         user
-        + "(?::(.+))?" //       :password
-        + "@)?" //              @
-        + "([^@:]+)" //         host
-        + ":(\\d+)" //          :port
-        + "/(\\S+)" //          /database
-        ).r
+    private val arangoConnectionUrlRegex = {
+      val user = "([^@:]+)"
+      val password = "(.+)"
+      val host = "([^@:]+)"
+      val port = "(\\d+)"
+      val dbName = "(\\S+)"
+      new Regex(s"arangodb://(?:$user(?::$password)?@)?$host:$port/$dbName")
+    }
 
     val url: String = getString(Prop("connectionUrl"))
 
-    val ArangoConnectionUrlRegex(user, password, host, port, name) = url
+    val arangoConnectionUrlRegex(user, password, host, port, name) = url
   }
 
 }
