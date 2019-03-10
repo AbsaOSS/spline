@@ -20,11 +20,12 @@ package za.co.absa.spline.client.web
 import java.net.URL
 import java.util.Arrays.asList
 
-import org.apache.commons.configuration.{CompositeConfiguration, EnvironmentConfiguration, SystemConfiguration}
+import org.apache.commons.configuration.{CompositeConfiguration, EnvironmentConfiguration, JNDIConfiguration, SystemConfiguration}
 import za.co.absa.spline.common.config.ConfTyped
 
 object AppConfig
   extends CompositeConfiguration(asList(
+    new JNDIConfiguration("java:comp/env"),
     new SystemConfiguration,
     new EnvironmentConfiguration))
     with ConfTyped {
