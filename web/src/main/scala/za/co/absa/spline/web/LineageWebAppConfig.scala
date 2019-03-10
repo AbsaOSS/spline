@@ -19,7 +19,7 @@ package za.co.absa.spline.web
 import java.util.Arrays.asList
 import java.{util => ju}
 
-import org.apache.commons.configuration.{CompositeConfiguration, EnvironmentConfiguration, SystemConfiguration}
+import org.apache.commons.configuration.{CompositeConfiguration, EnvironmentConfiguration, JNDIConfiguration, SystemConfiguration}
 import org.springframework.context.annotation.{Bean, Configuration}
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
@@ -37,6 +37,7 @@ class LineageWebAppConfig extends WebMvcConfigurer with ExecutionContextImplicit
   import za.co.absa.spline.common.ConfigurationImplicits._
 
   private val confProps = new CompositeConfiguration(asList(
+    new JNDIConfiguration("java:comp/env"),
     new SystemConfiguration,
     new EnvironmentConfiguration
   ))
