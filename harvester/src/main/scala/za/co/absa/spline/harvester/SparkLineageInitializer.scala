@@ -34,6 +34,14 @@ import scala.util.control.NonFatal
   */
 object SparkLineageInitializer extends Logging {
 
+  def enableLineageTracking(sparkSession: SparkSession): SparkSession = {
+    SparkSessionWrapper(sparkSession).enableLineageTracking()
+  }
+
+  def enableLineageTracking(sparkSession: SparkSession, configurer: SplineConfigurer): SparkSession = {
+    SparkSessionWrapper(sparkSession).enableLineageTracking(configurer)
+  }
+
   /**
     * The class is a wrapper around Spark session and performs all necessary registrations and procedures for initialization of the library.
     *
@@ -42,6 +50,7 @@ object SparkLineageInitializer extends Logging {
   implicit class SparkSessionWrapper(sparkSession: SparkSession) {
 
     private implicit val executionContext: ExecutionContext = ExecutionContext.global
+    private def defaultSplineConfigurer = new DefaultSplineConfigurer(defaultSplineConfiguration, sparkSession)
 
     /**
       * The method performs all necessary registrations and procedures for initialization of the library.
@@ -49,7 +58,7 @@ object SparkLineageInitializer extends Logging {
       * @param configurer A collection of settings for the library initialization
       * @return An original Spark session
       */
-    def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfigurer(defaultSplineConfiguration, sparkSession)): SparkSession = {
+    def enableLineageTracking(configurer: SplineConfigurer = defaultSplineConfigurer): SparkSession = {
       if (configurer.splineMode != DISABLED) sparkSession.synchronized {
         preventDoubleInitialization()
         log info s"Spline v${SplineBuildInfo.version} is initializing..."
