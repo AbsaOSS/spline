@@ -15,10 +15,10 @@
   -->
 
 <div class="details-container">
-  <div class="container-fluid schema-details">
+  <div class="container-fluid" [ngClass]="getDetails() ? 'schema-details' : 'execution-details'">
     <schema-details></schema-details>
   </div>
-  <div class="container-fluid property-details">
+  <div *ngIf="getDetails()" class="container-fluid property-details">
     <property-details></property-details>
   </div>
 </div>

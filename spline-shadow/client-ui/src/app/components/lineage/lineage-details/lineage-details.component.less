@@ -19,32 +19,35 @@ hr{
     border-color:#e39255;
 }
 
- .schema-details{
-    display:block;
-    width: 100%;
-    height: 40%; 
-    background-color: #F5F5F5;
-    overflow-y: scroll;
-    border: 3px solid #e39255;
-    border-radius: 25px;
-    margin-bottom: 10px;
-}
-
-.property-details{
-    display:block;
-    width: 100%;
-    height: 60%; 
-    overflow-y: scroll;
-    background-color: #F5F5F5;
-    border: 3px solid #e39255;
-    border-radius: 25px;
-    margin-bottom: 10px;
-}
-
 .details-container{
     position: fixed;
     display:block;
     padding: 10px;
     width: 50%;
     height: 99%;
+}
+
+.details{
+    display:block;
+    width: 100%;
+    background-color: #F5F5F5;
+    overflow-y: scroll;
+    border: 3px solid #e39255;
+    border-radius: 25px;
+    margin-bottom: 10px;
+}
+
+ .execution-details{
+    .details;
+    height: 100%; 
+}
+
+ .schema-details{
+    .details;
+    height: 40%; 
+}
+
+.property-details{
+    .details;
+    height: 60%; 
 }

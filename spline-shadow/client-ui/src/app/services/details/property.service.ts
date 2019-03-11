@@ -43,12 +43,14 @@ export class PropertyService {
         edges: []
       }
     }
-    let node = { data: { id: property.name, name: property.name + " : " + this.getPropertyType(property), icon: "f111", color: this.getPropertyColor(property) } }
-    graph.nodes.push(node)
+    if (property.name) {
+      let node = { data: { id: property.name, name: property.name + " : " + this.getPropertyType(property), icon: "f111", color: this.getPropertyColor(property) } }
+      graph.nodes.push(node)
 
-    if (parentProperty != null) {
-      let edge = { data: { source: parentProperty.name, target: property.name, id: property.name + parentProperty.name } }
-      graph.edges.push(edge)
+      if (parentProperty != null) {
+        let edge = { data: { source: parentProperty.name, target: property.name, id: property.name + parentProperty.name } }
+        graph.edges.push(edge)
+      }
     }
     let childrenProperties = this.getChildrenProperties(property)
     _.each(childrenProperties, item => this.buildPropertyGraph(item, property, graph))
@@ -67,7 +69,11 @@ export class PropertyService {
   public getPropertyType(property: any): any {
     switch (property.dataType._typeHint) {
       case PropertyType.Struct: return '{ ... }'
-      case PropertyType.Array: return '[ ... ]'
+      case PropertyType.Array:
+        if (property.dataType.elementDataType.fields) {
+          return '[{ ... }]'
+        }
+        return '[' + property.dataType.elementDataType.dataType.name + ']'
       case PropertyType.Simple: return property.dataType.name
       default: return ''
     }
@@ -77,7 +83,7 @@ export class PropertyService {
   public getChildrenProperties(property: any): any {
     switch (property.dataType._typeHint) {
       case PropertyType.Array:
-        return property.dataType.elementDataType.fields
+        return property.dataType.elementDataType.fields ? property.dataType.elementDataType.fields : { 0: property.dataType.elementDataType }
       case PropertyType.Struct:
         return property.dataType.fields
       default:

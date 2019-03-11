@@ -16,7 +16,7 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { OperationType } from 'src/app/types/operationType';
 import { ExecutedLogicalPlan, Operation } from 'src/app/generated/models';
@@ -38,8 +38,9 @@ export class LineageGraphService {
   // TODO : Define constants to the whole app in a seperated file with a service accessor
   private mockRestApiDetails = 'http://localhost:3000/details/';
 
-  private detailsInfoSubject = new BehaviorSubject<any>(null)
-  detailsInfo = this.detailsInfoSubject.asObservable()
+  detailsInfo: any
+
+  executedLogicalPlan: ExecutedLogicalPlanVM
 
   constructor(
     private http: HttpClient,
@@ -49,16 +50,16 @@ export class LineageGraphService {
   }
 
   public getExecutedLogicalPlan(executionPlanId: string): Observable<ExecutedLogicalPlanVM> {
-    let that = this
-    return that.executionPlanControllerService.lineageUsingGETResponse(executionPlanId).pipe(
+    return this.executionPlanControllerService.lineageUsingGETResponse(executionPlanId).pipe(
       map(response => {
-        return that.convertFromExecutedLogicalPlanToFromExecutedLogicalPlanViewModel(response)
+        this.executedLogicalPlan = this.toLogicalPlanView(response)
+        return this.executedLogicalPlan
       }),
       catchError(this.handleError)
-    );
+    )
   }
 
-  private convertFromExecutedLogicalPlanToFromExecutedLogicalPlanViewModel(executedLogicalPlanHttpResponse: StrictHttpResponse<ExecutedLogicalPlan>): ExecutedLogicalPlanVM {
+  private toLogicalPlanView(executedLogicalPlanHttpResponse: StrictHttpResponse<ExecutedLogicalPlan>): ExecutedLogicalPlanVM {
     const lineageGraphService = this
     const cytoscapeGraphVM = {} as CytoscapeGraphVM
     cytoscapeGraphVM.nodes = []
@@ -90,7 +91,7 @@ export class LineageGraphService {
     this.http.get(url).pipe(
       catchError(this.handleError)
     ).subscribe(res => {
-      this.detailsInfoSubject.next(res)
+      this.detailsInfo = res
     });
   }
 

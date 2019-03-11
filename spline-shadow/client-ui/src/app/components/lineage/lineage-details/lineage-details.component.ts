@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
+import { LineageGraphService } from 'src/app/services/lineage/lineage-graph.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'lineage-details',
@@ -22,5 +24,12 @@ import { Component } from '@angular/core';
 })
 export class LineageDetailsComponent {
 
-  constructor() { }
+  constructor(
+    private lineageGraphService: LineageGraphService,
+  ) { }
+
+  getDetails(): any {
+    return this.lineageGraphService.detailsInfo
+  }
+
 }

@@ -28,8 +28,6 @@ export class PropertyDetailsComponent implements OnInit {
   @ViewChild(CytoscapeNgLibComponent)
   private cytograph: CytoscapeNgLibComponent
 
-  property: any
-
   constructor(
     private propertyService: PropertyService,
     private layoutService: LayoutService
@@ -38,7 +36,6 @@ export class PropertyDetailsComponent implements OnInit {
   ngOnInit(): void {
     let that = this
     this.propertyService.currentProperty.subscribe(property => {
-      that.property = property
       if (that.cytograph.cy) {
         that.cytograph.cy.remove(that.cytograph.cy.elements())
         if (property) {

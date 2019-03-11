@@ -20,6 +20,7 @@ import { IExpression, ILiteral, IBinary, IAttrRef, IAlias, IUDF, IGenericLeaf, I
 import * as _ from 'lodash';
 import { Expression } from 'src/app/viewModels/expression';
 import { ExpressionType } from 'src/app/types/expressionType';
+import { ExecutedLogicalPlanVM } from 'src/app/viewModels/executedLogicalPlanVM';
 
 
 @Component({
@@ -29,13 +30,8 @@ import { ExpressionType } from 'src/app/types/expressionType';
 })
 export class SchemaDetailsComponent implements AfterViewInit {
 
-  public detailsInfo: any = null
-
-  private expressions: Expression[] = new Array();
-
   @ViewChildren('expressionPanel', { read: ViewContainerRef })
-  expressionPanel: QueryList<ViewContainerRef>;
-
+  expressionPanel: QueryList<ViewContainerRef>
 
   constructor(
     private lineageGraphService: LineageGraphService,
@@ -44,65 +40,64 @@ export class SchemaDetailsComponent implements AfterViewInit {
   ) { }
 
   ngAfterViewInit(): void {
-    this.lineageGraphService.detailsInfo.subscribe(detailsInfo => {
-      this.detailsInfo = detailsInfo
-      if (this.detailsInfo) {
-        this.expressions = this.getExpressions()
-        this.expressionPanel.changes.subscribe(() => {
-          // The container has been added to the DOM
-          const container = this.expressionPanel.first
-          if (container) {
-            const type = this.getType()
-            container.remove(0)
-            const factory = this.componentFactoryResolver.resolveComponentFactory(ExpressionComponents.get(type))
-            let instance = container.createComponent(factory).instance
-            instance.expressions = this.expressions
-            instance.expressionType = type
-            this.changedetectorRef.detectChanges()
-          }
-        });
+    this.expressionPanel.changes.subscribe(_ => {
+      const container = this.expressionPanel.first
+      if (container) {
+        container.remove(0)
+      }
+      if (this.getDetails()) {
+        const type = this.getType(this.getDetails())
+        const factory = this.componentFactoryResolver.resolveComponentFactory(ExpressionComponents.get(type))
+        let instance = container.createComponent(factory).instance
+        instance.expressions = this.getExpressions(this.getDetails())
+        instance.expressionType = type
+        this.changedetectorRef.detectChanges()
       }
     })
   }
 
+  getDetails(): any {
+    return this.lineageGraphService.detailsInfo
+  }
+
   getIcon(): string {
-    return String.fromCharCode(this.lineageGraphService.getIconFromOperationType(this.getType()))
+    return this.getDetails() ? String.fromCharCode(this.lineageGraphService.getIconFromOperationType(this.getType(this.getDetails()))) : undefined
   }
 
   getOperationColor(): string {
-    return this.lineageGraphService.getColorFromOperationType(this.getType())
+    return this.getDetails() ? this.lineageGraphService.getColorFromOperationType(this.getType(this.getDetails())) : undefined
   }
 
-  getType(property?: any): string {
-    if (property) {
-      return property._typeHint ? property._typeHint.split('.').pop() : undefined
+  getType(property?: any): any {
+    if (!property) {
+      property = this.getDetails()
     }
-    return this.detailsInfo._typeHint.split('.').pop()
+    return property._typeHint ? property._typeHint.split('.').pop() : undefined
   }
 
-  getExpressions(): Expression[] {
+  getExpressions(property: any): Expression[] {
     let expressions = []
-    switch (this.getType()) {
+    switch (this.getType(property)) {
       case OperationType.Join:
         // Build the join expression
-        const title = this.detailsInfo.joinType
-        const values = [this.detailsInfo.condition.text]
+        const title = property.joinType
+        const values = [property.condition.text]
         const expression = new Expression(title, values)
         expressions.push(expression)
         break
       case OperationType.Projection:
         // Build the transformations expressions
-        if (this.detailsInfo.transformations) {
+        if (property.transformations) {
           const title = "Transformations"
           const values = new Array()
-          _.each(this.detailsInfo.transformations, transformation => values.push(this.getText(transformation)))
+          _.each(property.transformations, transformation => values.push(this.getText(transformation)))
           const transformationExpression: Expression = new Expression(title, values)
           expressions.push(transformationExpression)
         }
         // Build the dropped Attributes expressions
         let inputs = []
-        _.each(this.detailsInfo.mainProps.inputs, schemaIndex => inputs = _.concat(inputs, this.detailsInfo.mainProps.schemas[schemaIndex]))
-        const output = this.detailsInfo.mainProps.schemas[this.detailsInfo.mainProps.output]
+        _.each(property.mainProps.inputs, schemaIndex => inputs = _.concat(inputs, property.mainProps.schemas[schemaIndex]))
+        const output = property.mainProps.schemas[property.mainProps.output]
         const diff = _.differenceBy(inputs, output, 'name')
         if (diff.length > 0) {
           const title = "Dropped Attributes"
@@ -116,7 +111,6 @@ export class SchemaDetailsComponent implements AfterViewInit {
     return expressions
 
   }
-
 
   public getText(expr: IExpression): string {
     switch (this.getType(expr)) {
@@ -174,16 +168,24 @@ export class SchemaDetailsComponent implements AfterViewInit {
     }
   }
 
-  getInputs() {
-    let inputs = []
-    this.detailsInfo.mainProps.inputs.forEach(input => {
-      inputs.push(this.detailsInfo.mainProps.schemas[input])
-    })
-    return inputs
+  getInputs(): any[] {
+    if (this.getDetails()) {
+      let inputs = []
+      this.getDetails().mainProps.inputs.forEach(input => {
+        inputs.push(this.getDetails().mainProps.schemas[input])
+      })
+      return inputs
+    } else {
+      return null
+    }
   }
 
-  getOutput() {
-    return this.detailsInfo.mainProps.schemas[this.detailsInfo.mainProps.output]
+  getOutput(): any {
+    return this.getDetails() ? this.getDetails().mainProps.schemas[this.getDetails().mainProps.output] : null
+  }
+
+  getExecutionPlanVM(): ExecutedLogicalPlanVM {
+    return this.lineageGraphService.executedLogicalPlan
   }
 }
 

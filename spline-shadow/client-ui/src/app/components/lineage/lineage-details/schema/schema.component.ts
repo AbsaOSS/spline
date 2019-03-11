@@ -16,12 +16,13 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { SchemaType } from 'src/app/types/schemaType';
 import { PropertyService } from 'src/app/services/details/property.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'schema',
   templateUrl: './schema.component.html'
 })
-export class SchemaComponent implements OnInit {
+export class SchemaComponent {
 
   @Input()
   schemaId: string
@@ -32,13 +33,8 @@ export class SchemaComponent implements OnInit {
   @Input()
   schema: any
 
-  property: any
+  constructor() { }
 
-  constructor(private propertyService: PropertyService) { }
-
-  ngOnInit() {
-    this.propertyService.currentProperty.subscribe(property => this.property = property)
-  }
 
   getSchemaTypeLabel(): any {
     switch (this.schemaType) {
