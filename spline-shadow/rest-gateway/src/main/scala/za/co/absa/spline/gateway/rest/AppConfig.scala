@@ -16,45 +16,28 @@
 
 package za.co.absa.spline.gateway.rest
 
-import java.util.Arrays.asList
-
-import org.apache.commons.configuration.{CompositeConfiguration, EnvironmentConfiguration, SystemConfiguration}
 import org.springframework.context.annotation.{Bean, Configuration, Import}
+import org.springframework.web.cors.{CorsConfiguration, UrlBasedCorsConfigurationSource}
 import org.springframework.web.filter.CorsFilter
-import org.springframework.web.cors.CorsConfiguration
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource
-import za.co.absa.spline.common.config.ConfTyped
 import za.co.absa.spline.gateway.rest.CorsConfig.CorsFilterConf
 
 @Configuration
 @Import(Array(classOf[ArangoRepoConfig]))
-class AppConfig{
-
-
-
-  val source: UrlBasedCorsConfigurationSource  = new UrlBasedCorsConfigurationSource()
-  val config = new CorsConfiguration
-  config.setAllowCredentials(true)
-  if(CorsFilterConf.allowedOrigin != null) config.addAllowedOrigin(CorsFilterConf.allowedOrigin) else config.addAllowedOrigin("*")
-  CorsFilterConf.allowedHeader match {
-    case ls if ls.nonEmpty => CorsFilterConf.allowedHeader.foreach(config.addAllowedHeader)
-    case _ =>  config.addAllowedHeader("*")
+class AppConfig {
+  @Bean def springFilterProxy = {
+    val source = new UrlBasedCorsConfigurationSource
+    val config = new CorsConfiguration
+    config.setAllowCredentials(true)
+    if (CorsFilterConf.allowedOrigin != null)
+      config.addAllowedOrigin(CorsFilterConf.allowedOrigin)
+    else
+      config.addAllowedOrigin("*")
+    CorsFilterConf.allowedHeader match {
+      case ls if ls.nonEmpty => CorsFilterConf.allowedHeader.foreach(config.addAllowedHeader)
+      case _ => config.addAllowedHeader("*")
+    }
+    config.addAllowedMethod("GET")
+    source.registerCorsConfiguration("/**", config)
+    new CorsFilter(source)
   }
-  config.addAllowedMethod("GET")
-  source.registerCorsConfiguration("/**", config)
-
-  @Bean def springFilterProxy = new CorsFilter(source)
-}
-
-
-object CorsConfig extends CompositeConfiguration(asList(
-  new SystemConfiguration,
-  new EnvironmentConfiguration))
-  with ConfTyped {
-  override val rootPrefix: String = "spline"
-  object CorsFilterConf extends Conf("corsFilter") {
-    val allowedOrigin: String = getString(Prop("allowedOrigin"))
-    val allowedHeader: Array[String] = getStringArray(Prop("allowedHeader"))
-  }
-
 }
