@@ -20,7 +20,7 @@ import { ContextualMenuService } from 'src/app/services/lineage/contextual-menu.
 import { LayoutService } from 'src/app/services/lineage/layout.service';
 import { PropertyService } from 'src/app/services/details/property.service';
 import { RouterService } from 'src/app/services/router/router.service';
-import { Params } from '@angular/router';
+import { Params, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'lineage-graph',
@@ -37,21 +37,18 @@ export class LineageGraphComponent implements OnInit {
     private contextualMenuService: ContextualMenuService,
     private propertyService: PropertyService,
     private layoutService: LayoutService,
-    private routerService: RouterService
+    private routerService: RouterService,
+    private activatedRoute: ActivatedRoute
 
   ) { }
 
 
   ngOnInit(): void {
     let that = this
-
-    this.lineageGraphService.getGraphData().subscribe(
+    const uid = that.activatedRoute.snapshot.params.uid
+    this.lineageGraphService.getExecutedLogicalPlan(uid).subscribe(
       response => {
-        response.nodes.forEach(node => {
-          node.data["icon"] = that.lineageGraphService.getIconFromOperationType(node.data.operationType)
-          node.data["color"] = that.lineageGraphService.getColorFromOperationType(node.data.operationType)
-        })
-        that.cytograph.cy.add(response)
+        that.cytograph.cy.add(response.plan)
 
         that.cytograph.cy.on('click', function (event) {
           const clikedTarget = event.target
@@ -93,11 +90,6 @@ export class LineageGraphComponent implements OnInit {
         that.cytograph.cy.layout(that.layoutService.getConfiguration()).run()
       }
     )
-
-
-
-
-
   }
 
 

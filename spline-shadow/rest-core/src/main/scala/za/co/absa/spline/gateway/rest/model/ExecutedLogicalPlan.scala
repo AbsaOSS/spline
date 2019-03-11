@@ -38,13 +38,13 @@ object ExecutedLogicalPlan {
     override type Edge = Transition
   }
 
-  case class Operation(_id: OperationID, _type: String, name: String) extends Graph.Node {
+  case class Operation(id: OperationID, operationType: String, name: String) extends Graph.Node {
     def this() = this(null, null, null)
 
     override type Id = OperationID
   }
 
-  case class Transition(_from: OperationID, _to: OperationID) extends Graph.Edge {
+  case class Transition(source: OperationID, target: OperationID) extends Graph.Edge {
     def this() = this(null, null)
 
     override type JointId = OperationID

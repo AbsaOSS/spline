@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 ABSA Group Limited
+ * Copyright 2019 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,43 +17,43 @@ export interface IExpression {
 }
 
 export interface IAttrRef {
-  refId: string;
+  refId: string
 }
 
 export interface IGeneric {
-  params: ({ [key: string]: string } | null);
-  exprType: string;
-  children: IExpression[];
-  dataTypeId: string;
-  name: string;
+  params: ({ [key: string]: string } | null)
+  exprType: string
+  children: IExpression[]
+  dataTypeId: string
+  name: string
 }
 
 export interface IGenericLeaf {
-  params: ({ [key: string]: string } | null);
-  exprType: string;
-  dataTypeId: string;
-  name: string;
+  params: ({ [key: string]: string } | null)
+  exprType: string
+  dataTypeId: string
+  name: string
 }
 
 export interface IAlias {
-  child: IExpression;
-  alias: string;
+  child: IExpression
+  alias: string
 }
 
 export interface IBinary {
-  children: IExpression[];
-  dataTypeId: string;
-  symbol: string;
+  children: IExpression[]
+  dataTypeId: string
+  symbol: string
 }
 
 export interface IUDF {
-  children: IExpression[];
-  dataTypeId: string;
-  name: string;
+  children: IExpression[]
+  dataTypeId: string
+  name: string
 }
 
 export interface ILiteral {
-  dataTypeId: string;
-  value: string;
+  dataTypeId: string
+  value: string
 }
 

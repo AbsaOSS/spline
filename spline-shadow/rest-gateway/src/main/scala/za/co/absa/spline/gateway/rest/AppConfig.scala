@@ -16,9 +16,28 @@
 
 package za.co.absa.spline.gateway.rest
 
-import org.springframework.context.annotation.{Configuration, Import}
+import org.springframework.context.annotation.{Bean, Configuration, Import}
+import org.springframework.web.cors.{CorsConfiguration, UrlBasedCorsConfigurationSource}
+import org.springframework.web.filter.CorsFilter
+import za.co.absa.spline.gateway.rest.CorsConfig.CorsFilterConf
 
 @Configuration
 @Import(Array(classOf[ArangoRepoConfig]))
-class AppConfig
-
+class AppConfig {
+  @Bean def springFilterProxy = {
+    val source = new UrlBasedCorsConfigurationSource
+    val config = new CorsConfiguration
+    config.setAllowCredentials(true)
+    if (CorsFilterConf.allowedOrigin != null)
+      config.addAllowedOrigin(CorsFilterConf.allowedOrigin)
+    else
+      config.addAllowedOrigin("*")
+    CorsFilterConf.allowedHeader match {
+      case ls if ls.nonEmpty => CorsFilterConf.allowedHeader.foreach(config.addAllowedHeader)
+      case _ => config.addAllowedHeader("*")
+    }
+    config.addAllowedMethod("GET")
+    source.registerCorsConfiguration("/**", config)
+    new CorsFilter(source)
+  }
+}

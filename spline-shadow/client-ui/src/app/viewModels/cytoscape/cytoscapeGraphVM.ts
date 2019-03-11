@@ -13,22 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-const data = require('../data/data.js')
-const graphOperations = require('../lib/graph-operations.js')
-const detailsOperations = require('../lib/details-operations.js')
-
-const defaultDepth = 30
-
-// Find a lineage with a datasourceId and a timestamp
-exports.findOne = (req, res) => {
-    //res.send(graphOperations.cutGraph(data.graph, nodeFocus, depth))
-    res.send(data.executionPlan)
+import { GraphNode } from './graphNodeVM';
+import { GraphEdge } from './graphEdgeVM';
+export interface CytoscapeGraphVM {
+    nodes: Array<GraphNode>
+    edges: Array<GraphEdge>
 }
-
-exports.details = (req, res) => {
-    let datasourceId = req.params.operationId
-    res.send(detailsOperations.getDetails(data.details, datasourceId))
-}
-
-

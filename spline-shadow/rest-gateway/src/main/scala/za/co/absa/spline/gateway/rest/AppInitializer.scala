@@ -16,14 +16,18 @@
 
 package za.co.absa.spline.gateway.rest
 
-import javax.servlet.ServletContext
+import java.util
+
+import javax.servlet.{DispatcherType, ServletContext}
 import org.springframework.web.WebApplicationInitializer
 import org.springframework.web.context.ContextLoaderListener
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext
 import org.springframework.web.servlet.DispatcherServlet
+import org.springframework.web.filter.DelegatingFilterProxy
 
 object AppInitializer extends WebApplicationInitializer {
   override def onStartup(container: ServletContext): Unit = {
+    container.addFilter("springFilterProxy", new DelegatingFilterProxy).addMappingForUrlPatterns( util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC), false, "/*")
     container.addListener(new ContextLoaderListener(new AnnotationConfigWebApplicationContext {
       register(classOf[AppConfig])
     }))

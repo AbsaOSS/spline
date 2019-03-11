@@ -1,8 +1,3 @@
-import { JoinComponent } from "../components/lineage/lineage-details/schema-details/join/join.component";
-import { Type } from "@angular/core";
-import { ProjectionComponent } from "../components/lineage/lineage-details/schema-details/projection/projection.component";
-import { ExpressionComponent } from "../components/lineage/lineage-details/schema-details/expression/expression.component";
-
 /*
  * Copyright 2019 ABSA Group Limited
  *
@@ -19,8 +14,15 @@ import { ExpressionComponent } from "../components/lineage/lineage-details/schem
  * limitations under the License.
  */
 
+import { JoinComponent } from "../components/lineage/lineage-details/schema-details/join/join.component";
+import { Type } from "@angular/core";
+import { ProjectionComponent } from "../components/lineage/lineage-details/schema-details/projection/projection.component";
+import { ExpressionComponent } from "../components/lineage/lineage-details/schema-details/expression/expression.component";
+
+
 export const enum OperationType {
-    Projection = 'Projection',
+    Projection = 'Project',
+    LogicalRelation = 'LogicalRelation',
     BatchRead = 'BatchRead',
     StreamRead = 'StreamRead',
     Join = 'Join',
@@ -29,6 +31,7 @@ export const enum OperationType {
     Filter = 'Filter',
     Sort = 'Sort',
     Aggregate = 'Aggregate',
+    WriteCommand = 'WriteCommand',
     BatchWrite = 'BatchWrite',
     StreamWrite = 'StreamWrite',
     Alias = 'Alias'
