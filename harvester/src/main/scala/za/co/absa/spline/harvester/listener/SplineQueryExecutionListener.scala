@@ -20,8 +20,7 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.util.QueryExecutionListener
 import org.slf4s.Logging
-import za.co.absa.spline.harvester.DataLineageBuilderFactory
-import za.co.absa.spline.harvester.conf.LineageDispatcher
+import za.co.absa.spline.harvester.{DataLineageBuilderFactory, LineageDispatcher}
 import za.co.absa.spline.model.{DataLineage, _}
 
 import scala.language.postfixOps

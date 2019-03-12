@@ -20,7 +20,6 @@ package za.co.absa.spline.linker.control
 import java.util.UUID
 import java.util.UUID.randomUUID
 
-import org.apache.spark
 import org.mockito.ArgumentMatchers.{eq => ≡, _}
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
@@ -51,7 +50,7 @@ class BatchDataLineageLinkerSpec extends AsyncFlatSpec with Matchers with Mockit
       val operation1 = BatchRead(OperationProps(randomUUID, "read", Seq.empty, dataset.id), "parquet", Seq(MetaDataSource("some/path_known", Nil)))
       val operation2 = BatchRead(OperationProps(randomUUID, "read", Seq.empty, dataset.id), "parquet", Seq(MetaDataSource("some/path_unknown", Nil)))
 
-      DataLineage("appId2", "appName2", 2L, spark.SPARK_VERSION, Seq(operation1, operation2), Seq(dataset), attributes, Seq(dataType))
+      DataLineage("appId2", "appName2", 2L, "2.3", Seq(operation1, operation2), Seq(dataset), attributes, Seq(dataType))
     }
 
     (when(dataLineageReader.findLatestDatasetIdsByPath(any())(any()))

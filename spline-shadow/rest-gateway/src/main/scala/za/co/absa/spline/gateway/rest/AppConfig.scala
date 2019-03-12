@@ -22,7 +22,7 @@ import org.springframework.web.filter.CorsFilter
 import za.co.absa.spline.gateway.rest.CorsConfig.CorsFilterConf
 
 @Configuration
-@Import(Array(classOf[ArangoRepoConfig]))
+@Import(Array(classOf[ArangoRepoConfig], classOf[MongoRepoConfig]))
 class AppConfig {
   @Bean def springFilterProxy = {
     val source = new UrlBasedCorsConfigurationSource
