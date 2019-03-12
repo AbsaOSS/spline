@@ -20,7 +20,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.SparkPlan
-import za.co.absa.spline.coresparkadapterapi.WriteCommandParser
+import za.co.absa.spline.coresparkadapterapi.WriteCommandParserFactory
 
 import scala.language.postfixOps
 
@@ -30,13 +30,13 @@ import scala.language.postfixOps
  */
 class DataLineageBuilderFactory(hadoopConfiguration: Configuration) {
 
-  private val writeCommandParser = WriteCommandParser.instance
+  private val writeCommandParserFactory = WriteCommandParserFactory.instance
 
   /** A main method of the object that performs transformation of Spark internal structures to library lineage representation.
    *
    * @return A lineage representation
    */
   def createBuilder(logicalPlan: LogicalPlan, executedPlan: Option[SparkPlan], sparkContext: SparkContext): DataLineageBuilder = {
-    new DataLineageBuilder(logicalPlan, executedPlan, sparkContext)(hadoopConfiguration, writeCommandParser)
+    new DataLineageBuilder(logicalPlan, executedPlan, sparkContext)(hadoopConfiguration, writeCommandParserFactory)
   }
 }

@@ -29,6 +29,13 @@
     <packaging>jar</packaging>
 
     <dependencies>
+        <!--<dependency>-->
+            <!--<groupId>jdk.tools</groupId>-->
+            <!--<artifactId>jdk.tools</artifactId>-->
+            <!--<scope>system</scope>-->
+            <!--<version>1.6</version>-->
+            <!--<systemPath>C:/Program Files/Java/jdk1.8.0_191/lib/tools.jar</systemPath>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>

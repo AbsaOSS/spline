@@ -25,29 +25,48 @@ import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.execution.{LeafExecNode, SparkPlan}
 import scalaz.Scalaz._
 import za.co.absa.spline.core.harvester.DataLineageBuilder._
-import za.co.absa.spline.coresparkadapterapi.WriteCommandParser
+import za.co.absa.spline.coresparkadapterapi.{SaveAsTableCommand, SaveJDBCCommand, WriteCommand, WriteCommandParserFactory}
 import za.co.absa.spline.model._
-import za.co.absa.spline.model.op.Operation
 
 class DataLineageBuilder(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPlan], sparkContext: SparkContext)
-                        (hadoopConfiguration: Configuration, writeCommandParser: WriteCommandParser[LogicalPlan]) {
+                        (hadoopConfiguration: Configuration, writeCommandParserFactory: WriteCommandParserFactory) {
 
   private val componentCreatorFactory: ComponentCreatorFactory = new ComponentCreatorFactory
 
-  def buildLineage(): DataLineage = {
-    DataLineage(
-      sparkContext.applicationId,
-      sparkContext.appName,
-      System.currentTimeMillis(),
-      spark.SPARK_VERSION,
-      getOperations(logicalPlan).reverse,
-      componentCreatorFactory.metaDatasetConverter.values.reverse,
-      componentCreatorFactory.attributeConverter.values,
-      componentCreatorFactory.dataTypeConverter.values
-    )
+  private val writeCommandParser = writeCommandParserFactory.writeParser()
+  private val clusterUrl: Option[String] = sparkContext.getConf.getOption("spark.master")
+  private val tableCommandParser = writeCommandParserFactory.saveAsTableParser(clusterUrl)
+
+  def buildLineage(): Option[DataLineage] = {
+    val builders = getOperations(logicalPlan)
+    val someRootBuilder = builders.lastOption
+
+    val writeIgnored = someRootBuilder match {
+      case Some(rootNode:RootNode) => rootNode.ignoreLineageWrite
+      case _ => false
+    }
+
+    val operations = builders.map(_.build())
+
+    writeIgnored match {
+      case true => None
+      case false =>
+        Some(
+          DataLineage(
+            sparkContext.applicationId,
+            sparkContext.appName,
+            System.currentTimeMillis(),
+            spark.SPARK_VERSION,
+            operations.reverse,
+            componentCreatorFactory.metaDatasetConverter.values.reverse,
+            componentCreatorFactory.attributeConverter.values,
+            componentCreatorFactory.dataTypeConverter.values
+          )
+        )
+    }
   }
 
-  private def getOperations(rootOp: LogicalPlan): Seq[Operation] = {
+    private def getOperations(rootOp: LogicalPlan): Seq[OperationNodeBuilder] = {
     def traverseAndCollect(
                             accBuilders: Seq[OperationNodeBuilder],
                             processedEntries: Map[LogicalPlan, OperationNodeBuilder],
@@ -62,11 +81,20 @@ class DataLineageBuilder(logicalPlan: LogicalPlan, executedPlanOpt: Option[Spark
           if (parentBuilder != null) parentBuilder += curBuilder
 
           if (maybeExistingBuilder.isEmpty) {
-            val newNodesToProcess =
-              writeCommandParser.
+
+            //try to find all possible commands for traversing- save to filesystem, saveAsTable, JDBC
+            val writes = writeCommandParser.
                 asWriteCommandIfPossible(curOpNode).
                 map(wc => Seq(wc.query)).
-                getOrElse(curOpNode.children)
+                getOrElse(Nil)
+
+            val tables = tableCommandParser.
+              asWriteCommandIfPossible(curOpNode).
+              map(wc => Seq(wc.query)).
+              getOrElse(Nil)
+
+            var newNodesToProcess: Seq[LogicalPlan] = writes ++ tables
+            if (newNodesToProcess.isEmpty) newNodesToProcess = curOpNode.children
 
             traverseAndCollect(
               curBuilder +: accBuilders,
@@ -79,7 +107,7 @@ class DataLineageBuilder(logicalPlan: LogicalPlan, executedPlanOpt: Option[Spark
       }
     }
 
-    traverseAndCollect(Nil, Map.empty, Seq((rootOp, null))).map(_.build())
+      traverseAndCollect(Nil, Map.empty, Seq((rootOp, null)))
   }
 
   private def createOperationBuilder(op: LogicalPlan): OperationNodeBuilder = {
@@ -94,13 +122,21 @@ class DataLineageBuilder(logicalPlan: LogicalPlan, executedPlanOpt: Option[Spark
       case a: SubqueryAlias => new AliasNodeBuilder(a)
       case lr: LogicalRelation => new ReadNodeBuilder(lr) with HDFSAwareBuilder
       case wc if writeCommandParser.matches(op) =>
-        val writeCmd = writeCommandParser.asWriteCommand(wc)
-        val (readMetrics: Metrics, writeMetrics: Metrics) = executedPlanOpt.
-          map(getExecutedReadWriteMetrics).
-          getOrElse((Map.empty, Map.empty))
+        val (readMetrics: Metrics, writeMetrics: Metrics) = makeMetrics()
+        val writeCmd = writeCommandParser.asWriteCommand(wc).asInstanceOf[WriteCommand]
         new WriteNodeBuilder(writeCmd, writeMetrics, readMetrics) with HDFSAwareBuilder
+      case wc if tableCommandParser.matches(op) =>
+        val (readMetrics: Metrics, writeMetrics: Metrics) = makeMetrics()
+        val tableCmd = tableCommandParser.asWriteCommand(wc).asInstanceOf[SaveAsTableCommand]
+        new SaveAsTableNodeBuilder(tableCmd, writeMetrics, readMetrics)
       case x => new GenericNodeBuilder(x)
     }
+  }
+
+  private def makeMetrics(): (Metrics, Metrics) = {
+    executedPlanOpt.
+      map(getExecutedReadWriteMetrics).
+      getOrElse((Map.empty, Map.empty))
   }
 
   trait HDFSAwareBuilder extends FSAwareBuilder {
