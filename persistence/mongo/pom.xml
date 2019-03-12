@@ -28,12 +28,6 @@
     <artifactId>spline-persistence-mongo</artifactId>
     <packaging>jar</packaging>
 
-    <properties>
-        <!-- Test properties -->
-        <test.spline.mongodb.url />
-        <test.spline.mongodb.name />
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
@@ -43,6 +37,10 @@
         <dependency>
             <groupId>com.github.salat</groupId>
             <artifactId>salat-core_${scala.compat.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>

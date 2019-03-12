@@ -80,6 +80,8 @@
         <slf4j.version>1.7.25</slf4j.version>
         <salat.version>1.11.2</salat.version>
         <spring.version>5.1.5.RELEASE</spring.version>
+        <test.spline.mongodb.url>mongodb://localhost/test</test.spline.mongodb.url>
+        <test.spline.arangodb.url>http://localhost:8529/test</test.spline.arangodb.url>
     </properties>
 
     <build>
@@ -397,7 +399,7 @@
             <dependency>
                 <groupId>org.mongodb</groupId>
                 <artifactId>mongo-java-driver</artifactId>
-                <version>3.6.3</version>
+                <version>3.10.1</version>
             </dependency>
             <dependency>
                 <groupId>org.json4s</groupId>

@@ -29,7 +29,7 @@ object ArangoFactory {
       .map(parseProtocol)
       .getOrElse(Protocol.HTTP_VPACK)
     val (user, password) = Option(uri.getUserInfo)
-      .map(_.split(':'))
+      .map(_.split(':').padTo(2, ""))
       .map(s => (s(0), s(1)))
       .getOrElse(("root", "root"))
     new ArangoDB.Builder()

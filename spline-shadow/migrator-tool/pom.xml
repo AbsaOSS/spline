@@ -61,6 +61,11 @@
             <artifactId>akka-slf4j_${scala.compat.version}</artifactId>
             <version>2.5.19</version>
         </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+        </dependency>
     </dependencies>
+
 
 </project>

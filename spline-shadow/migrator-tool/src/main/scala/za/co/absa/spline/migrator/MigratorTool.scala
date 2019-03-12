@@ -29,13 +29,13 @@ import scala.concurrent.Future
 
 object MigratorTool {
 
-  private val akkaConf = ConfigFactory.parseString(
-    "akka {\n"
-      + s"    actor.guardian-supervisor-strategy = ${classOf[EscalatingSupervisorStrategy].getName}" + "\n"
-      + "    event-handlers = [\"akka.event.slf4j.Slf4jEventHandler\"]\n"
-      + "    loglevel = INFO\n"
-      + "}"
-  )
+  private val conf =
+    s"""akka {
+       |  loglevel = "INFO"
+       |  actor.guardian-supervisor-strategy = "${classOf[EscalatingSupervisorStrategy].getName}"
+       |  event-handlers = ["akka.event.slf4j.Slf4jEventHandler"]
+       |}""".stripMargin
+  private val akkaConf = ConfigFactory.parseString(conf)
 
   def migrate(migratorConf: MigratorConfig): Future[Stats] = {
     val actorSystem = ActorSystem("system", akkaConf)
@@ -44,13 +44,18 @@ object MigratorTool {
 
     implicit val timeout: Timeout = Timeout(42, TimeUnit.DAYS)
 
-    val eventualResult =
+    val eventualBatchResultStats =
       (migratorActor ? Start).
         map({ case MigratorActor.Result(stats) => stats })
 
-    eventualResult.onComplete(_ => actorSystem.terminate())
-    eventualResult
+    eventualBatchResultStats.onComplete(_ => actorSystem.terminate())
+    if (migratorConf.streamNewLineages) {
+      eventualBatchResultStats.onComplete(stats => println(s"Batch subproccess finished with stats: $stats"))
+      new MongoStreamMigrator(migratorConf.mongoConnectionUrl, migratorConf.arangoConnectionUrl).start()
+    }
+    eventualBatchResultStats
   }
+
 }
 
 

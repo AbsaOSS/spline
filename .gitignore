@@ -94,5 +94,6 @@ project/boot/
 .cache-tests
 .project
 .settings/
+.extract
 
 spark-warehouse/

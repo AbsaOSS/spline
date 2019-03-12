@@ -27,8 +27,8 @@ import scala.concurrent.{Await, Future}
 @Ignore
 class MigratorToolSpec extends AsyncFunSpec with Matchers {
 
+  private val mongoUri = "mongodb://localhost:27017/manual-test"
   private val arangoUri = "http://root:root@localhost:8529/unit-test"
-  private val mongoUri = "mongodb://localhost:27017/migration-test"
 
   describe("migration tool test") {
     it("migrate from mongo to arango") {
@@ -37,7 +37,7 @@ class MigratorToolSpec extends AsyncFunSpec with Matchers {
         db.drop()
       }
       ArangoInit.initialize(db, dropIfExists = true)
-      val config = new MigratorConfig(mongoUri, arangoConnectionUrl = arangoUri, batchSize = 20, batchesMax = 1)
+      val config = new MigratorConfig(mongoUri, arangoConnectionUrl = arangoUri, batchSize = 20, batchesMax = 1, streamNewLineages = true)
       MigratorTool.migrate(config)
         .flatMap(stats => stats.failures shouldBe 0)
     }
