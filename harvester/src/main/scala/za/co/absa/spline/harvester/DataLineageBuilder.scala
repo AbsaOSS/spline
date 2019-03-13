@@ -26,6 +26,8 @@ import org.apache.spark.sql.execution.{LeafExecNode, SparkPlan}
 import scalaz.Scalaz._
 import za.co.absa.spline.harvester.DataLineageBuilder._
 import za.co.absa.spline.sparkadapterapi._
+import za.co.absa.spline.core.harvester.DataLineageBuilder._
+import za.co.absa.spline.coresparkadapterapi._
 import za.co.absa.spline.model._
 
 class DataLineageBuilder(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPlan], sparkContext: SparkContext)
@@ -36,6 +38,7 @@ class DataLineageBuilder(logicalPlan: LogicalPlan, executedPlanOpt: Option[Spark
   private val writeCommandParser = writeCommandParserFactory.writeParser()
   private val clusterUrl: Option[String] = sparkContext.getConf.getOption("spark.master")
   private val tableCommandParser = writeCommandParserFactory.saveAsTableParser(clusterUrl)
+  private val jdbcCommandParser = writeCommandParserFactory.jdbcParser()
 
   def buildLineage(): Option[DataLineage] = {
     val builders = getOperations(logicalPlan)
@@ -82,19 +85,19 @@ class DataLineageBuilder(logicalPlan: LogicalPlan, executedPlanOpt: Option[Spark
 
           if (maybeExistingBuilder.isEmpty) {
 
-            //try to find all possible commands for traversing- save to filesystem, saveAsTable, JDBC
-            val writes = writeCommandParser.
-                asWriteCommandIfPossible(curOpNode).
-                map(wc => Seq(wc.query)).
-                getOrElse(Nil)
+            val parsers = Array(jdbcCommandParser, writeCommandParser, tableCommandParser)
 
-            val tables = tableCommandParser.
-              asWriteCommandIfPossible(curOpNode).
-              map(wc => Seq(wc.query)).
-              getOrElse(Nil)
+            val maybePlan: Option[LogicalPlan] = parsers.
+              map(_.asWriteCommandIfPossible(curOpNode)).
+              collectFirst {
+                case Some(wc) => wc.query
+              }
 
-            var newNodesToProcess: Seq[LogicalPlan] = writes ++ tables
-            if (newNodesToProcess.isEmpty) newNodesToProcess = curOpNode.children
+            val newNodesToProcess: Seq[LogicalPlan] =
+              maybePlan match {
+                case Some(q) => Seq(q)
+                case None => curOpNode.children
+              }
 
             traverseAndCollect(
               curBuilder +: accBuilders,
@@ -120,21 +123,25 @@ class DataLineageBuilder(logicalPlan: LogicalPlan, executedPlanOpt: Option[Spark
       case s: Sort => new SortNodeBuilder(s)
       case s: Aggregate => new AggregateNodeBuilder(s)
       case a: SubqueryAlias => new AliasNodeBuilder(a)
-      case lr: LogicalRelation => new BatchReadNodeBuilder(lr) with HDFSAwareBuilder
+      case lr: LogicalRelation => new ReadNodeBuilder(lr) with HDFSAwareBuilder
       case StreamingRelationVersionAgnostic(dataSourceInfo) => new StreamReadNodeBuilder(op)
+      case wc if jdbcCommandParser.matches(op) =>
+        val (readMetrics: Metrics, writeMetrics: Metrics) = getMetrics()
+        val tableCmd = jdbcCommandParser.asWriteCommand(wc).asInstanceOf[SaveJDBCCommand]
+        new SaveJDBCCommandNodeBuilder(tableCmd, writeMetrics, readMetrics)
       case wc if writeCommandParser.matches(op) =>
-        val (readMetrics: Metrics, writeMetrics: Metrics) = makeMetrics()
+        val (readMetrics: Metrics, writeMetrics: Metrics) = getMetrics()
         val writeCmd = writeCommandParser.asWriteCommand(wc).asInstanceOf[WriteCommand]
         new BatchWriteNodeBuilder(writeCmd, writeMetrics, readMetrics) with HDFSAwareBuilder
       case wc if tableCommandParser.matches(op) =>
-        val (readMetrics: Metrics, writeMetrics: Metrics) = makeMetrics()
+        val (readMetrics: Metrics, writeMetrics: Metrics) = getMetrics()
         val tableCmd = tableCommandParser.asWriteCommand(wc).asInstanceOf[SaveAsTableCommand]
         new SaveAsTableNodeBuilder(tableCmd, writeMetrics, readMetrics)
       case x => new GenericNodeBuilder(x)
     }
   }
 
-  private def makeMetrics(): (Metrics, Metrics) = {
+  private def getMetrics(): (Metrics, Metrics) = {
     executedPlanOpt.
       map(getExecutedReadWriteMetrics).
       getOrElse((Map.empty, Map.empty))

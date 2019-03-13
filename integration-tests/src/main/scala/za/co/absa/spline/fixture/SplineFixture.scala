@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.fixture
 
+import java.util.Properties
 import java.{util => ju}
 
 import com.mongodb.casbah.MongoDB
@@ -119,6 +120,15 @@ object AbstractSplineFixture {
       /** Writes dataframe to table and returns captured lineage*/
       def saveAsTableLineage(tableName: String = "tableName", mode: SaveMode = SaveMode.ErrorIfExists): DataLineage = {
         df.write.mode(mode).saveAsTable(tableName)
+        AbstractSplineFixture.justCapturedLineage
+      }
+
+      /** Writes dataframe to table and returns captured lineage*/
+      def jdbcLineage(connectionString:String,
+                      tableName:String,
+                      properties:Properties = new Properties(),
+                      mode: SaveMode = SaveMode.ErrorIfExists): DataLineage = {
+        df.write.mode(mode).jdbc(connectionString, tableName, properties)
         AbstractSplineFixture.justCapturedLineage
       }
     }
