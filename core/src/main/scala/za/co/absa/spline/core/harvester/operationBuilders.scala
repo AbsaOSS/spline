@@ -154,7 +154,7 @@ class SaveAsTableNodeBuilder
 class SaveJDBCCommandNodeBuilder
 (val operation: SaveJDBCCommand, val writeMetrics: Map[String, Long], val readMetrics: Map[String, Long])
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
-  extends OperationNodeBuilder {
+  extends OperationNodeBuilder with RootNode {
 
   override val output: AttrGroup = new AttrGroup(operation.query.output)
 
@@ -166,6 +166,10 @@ class SaveJDBCCommandNodeBuilder
     writeMetrics = writeMetrics,
     readMetrics = readMetrics
   )
+
+  override def ignoreLineageWrite:Boolean = {
+    false
+  }
 }
 
 trait RootNode {

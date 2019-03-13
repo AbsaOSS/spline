@@ -35,6 +35,7 @@ abstract class WriteCommandParser[T <: LogicalPlan](implicit tag: ClassTag[T]) {
 abstract class WriteCommandParserFactory {
   def writeParser(): WriteCommandParser[LogicalPlan]
   def saveAsTableParser(clusterUrl: Option[String]) : WriteCommandParser[LogicalPlan]
+  def jdbcParser(): WriteCommandParser[LogicalPlan]
 }
 
 object WriteCommandParserFactory extends AdapterFactory[WriteCommandParserFactory]
@@ -47,9 +48,10 @@ case class WriteCommand(path:String, mode: SaveMode, format: String, query: Logi
 
 case class SaveAsTableCommand(tableName:String, mode: SaveMode, format: String, query: LogicalPlan) extends AbstractWriteCommand
 
-object SaveAsTableCommand {
+object URIPrefixes {
   //prefix used in identifiers for saveAsTable writes
-  val protocolPrefix = "table://"
+  val managedTablePrefix = "table://"
+  val jdbcTablePrefix = "jdbc://"
 }
 
 case class SaveJDBCCommand(tableName:String, mode: SaveMode, format: String, query: LogicalPlan) extends AbstractWriteCommand
