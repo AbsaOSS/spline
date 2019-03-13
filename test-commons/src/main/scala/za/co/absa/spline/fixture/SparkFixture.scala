@@ -30,7 +30,7 @@ trait AbstractSparkFixture {
   protected implicit lazy val sparkContext: SparkContext = spark.sparkContext
   protected implicit lazy val sqlContext: SQLContext = spark.sqlContext
 
-  def withNewSession[T >: AnyRef](testBody: SparkSession => T): T = {
+  def withNewSession[T](testBody: SparkSession => T): T = {
     testBody(spark.newSession)
   }
 }
