@@ -38,10 +38,7 @@ class WebController @Autowired()(webJarAssetLocator: WebJarAssetLocator) {
     val resourceName = webJarAssetLocator.getFullPath("index.html")
     val resource = new ClassPathResource(resourceName)
 
-    val baseUrlPrefix = httpRequest.getContextPath match {
-      case path if !path.isEmpty => s"/$path"
-      case _ => ""
-    }
+    val baseUrlPrefix = httpRequest.getContextPath
 
     // todo: do something with it!
     IOUtils.toString(resource.getInputStream, "UTF-8")
