@@ -13,9 +13,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
-<div class="schema-title collapsible" [innerHTML]="getSchemaTypeLabel()" data-toggle="collapse"
-  [attr.data-target]="'#schema'+schemaId" aria-expanded="true"></div>
-<div id="schema{{schemaId}}" class="accordion-body collapse in show">
-  <schema-table [schema]="schema" [schemaId]=schemaId></schema-table>
+<div *ngIf="schema != null">
+  <div class="schema-title collapsible" [innerHTML]="getSchemaTypeLabel()" data-toggle="collapse"
+    [attr.data-target]="'#schema'+schemaId" aria-expanded="true"></div>
+  <div id="schema{{schemaId}}" class="accordion-body collapse in show">
+    <schema-table [schema]="schema" [schemaId]=schemaId></schema-table>
+  </div>
 </div>

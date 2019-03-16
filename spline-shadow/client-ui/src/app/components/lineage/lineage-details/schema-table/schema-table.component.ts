@@ -30,8 +30,6 @@ export class SchemaTableComponent implements AfterViewInit {
   @ViewChild('table')
   table: any
 
-  expanded: any = {}
-
   @Input()
   schema: any
 

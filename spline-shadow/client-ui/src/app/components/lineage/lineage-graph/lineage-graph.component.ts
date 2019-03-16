@@ -39,7 +39,6 @@ export class LineageGraphComponent implements OnInit {
     private layoutService: LayoutService,
     private routerService: RouterService,
     private activatedRoute: ActivatedRoute
-
   ) { }
 
 
@@ -61,17 +60,15 @@ export class LineageGraphComponent implements OnInit {
 
           const params: Params = { selectedNode: nodeId, schemaId: null, property: null }
           that.routerService.mergeParam(params, true)
-        })
 
-        this.routerService.getParams().subscribe(
-          params => {
-            if (params.has('selectedNode')) {
-              const nodeId = params.get('selectedNode')
-              that.cytograph.cy.nodes().filter("[id='" + nodeId + "']").select()
-              that.lineageGraphService.getDetailsInfo(nodeId)
-            }
+        })
+        this.activatedRoute.queryParamMap.forEach(param => {
+          if (param.has('selectedNode')) {
+            const nodeId = param.get('selectedNode')
+            this.cytograph.cy.nodes().filter("[id='" + nodeId + "']").select()
+            this.lineageGraphService.getDetailsInfo(nodeId)
           }
-        )
+        })
       },
       error => {
         //Simply log the error from now
@@ -91,7 +88,6 @@ export class LineageGraphComponent implements OnInit {
       }
     )
   }
-
 
 }
 
