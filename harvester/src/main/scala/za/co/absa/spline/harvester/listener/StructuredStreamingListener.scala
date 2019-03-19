@@ -95,11 +95,16 @@ class StructuredStreamingListener(
     assume(se.logicalPlan.resolved, "we harvest lineage from analyzed logic plans")
     val logicalPlan = ReflectionUtils.getFieldValue[LogicalPlan](se, "analyzedPlan")
     val logicalPlanLineage = lineageBuilderFactory.createBuilder(logicalPlan, None, se.sparkSession.sparkContext).buildLineage()
-    val (streamWrite, metaDataset) = StreamWriteBuilder.build(se, logicalPlanLineage)
-    val streamingLineage = logicalPlanLineage.copy(
-      operations = streamWrite +: logicalPlanLineage.operations,
-      datasets = metaDataset +: logicalPlanLineage.datasets)
-    runIdToLineages.put(se.runId, streamingLineage)
-    lineageDispatcher.send(streamingLineage)
+
+    logicalPlanLineage match {
+      case Some(lineage) => {
+        val (streamWrite, metaDataset) = StreamWriteBuilder.build(se, lineage)
+        val streamingLineage = lineage.copy(
+          operations = streamWrite +: lineage.operations,
+          datasets = metaDataset +: lineage.datasets)
+        runIdToLineages.put(se.runId, streamingLineage)
+        lineageDispatcher.send(streamingLineage)
+      }
+    }
   }
 }
