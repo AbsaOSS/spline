@@ -21,11 +21,14 @@ import java.util.UUID.randomUUID
 import com.databricks.spark.xml.XmlRelation
 import org.apache.spark.sql.catalyst.expressions.{AttributeReference, SortOrder, Attribute => SparkAttribute}
 import org.apache.spark.sql.catalyst.plans.logical._
-import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation}
+import org.apache.spark.sql.execution.datasources.{DataSource, HadoopFsRelation, LogicalRelation}
 import org.apache.spark.sql.sources.BaseRelation
 import org.apache.spark.sql.{JDBCRelation, SaveMode}
+import za.co.absa.spline.sparkadapterapi.WriteCommand
 import za.co.absa.spline.model.endpoint._
 import za.co.absa.spline.model.{op, _}
+import za.co.absa.spline.sparkadapterapi.{DataSourceInfo, SaveAsTableCommand}
+import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation}
 import za.co.absa.spline.sparkadapterapi.StreamingRelationAdapter.instance.extractDataSourceInfo
 import za.co.absa.spline.sparkadapterapi.{DataSourceInfo, WriteCommand}
 
@@ -113,7 +116,7 @@ class BatchReadNodeBuilder
 abstract class BatchWriteNodeBuilder
 (val operation: WriteCommand, val writeMetrics: Map[String, Long], val readMetrics: Map[String, Long])
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
-  extends OperationNodeBuilder {
+  extends OperationNodeBuilder with RootNode {
   this: FSAwareBuilder =>
 
   override val output: AttrGroup = new AttrGroup(operation.query.output)
@@ -127,6 +130,10 @@ abstract class BatchWriteNodeBuilder
     writeMetrics = writeMetrics.map(identity),
     readMetrics = readMetrics.map(identity)
   )
+
+  override def ignoreLineageWrite:Boolean = {
+    writeMetrics.get("numFiles").filter(0.==).isDefined
+  }
 }
 
 class StreamReadNodeBuilder
@@ -156,6 +163,31 @@ class StreamReadNodeBuilder
     )
     case _ => VirtualEndpoint(operation.getClass)
   }
+}
+
+class SaveAsTableNodeBuilder
+(val operation: SaveAsTableCommand, val writeMetrics: Map[String, Long], val readMetrics: Map[String, Long])
+(implicit val componentCreatorFactory: ComponentCreatorFactory)
+  extends OperationNodeBuilder with RootNode {
+
+  override val output: AttrGroup = new AttrGroup(operation.query.output)
+
+  override def build() = op.BatchWrite(
+    operationProps,
+    operation.format,
+    operation.tableName,
+    append = operation.mode == SaveMode.Append,
+    writeMetrics = writeMetrics,
+    readMetrics = readMetrics
+  )
+
+  override def ignoreLineageWrite:Boolean = {
+    false
+  }
+}
+
+trait RootNode {
+  def ignoreLineageWrite:Boolean
 }
 
 class ProjectionNodeBuilder

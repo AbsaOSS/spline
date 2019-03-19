@@ -23,18 +23,33 @@ import scala.language.implicitConversions
 import scala.reflect.ClassTag
 
 abstract class WriteCommandParser[T <: LogicalPlan](implicit tag: ClassTag[T]) {
-  def matches(operation: LogicalPlan): Boolean = {
-    tag.runtimeClass.isAssignableFrom(operation.getClass)
-  }
+  def matches(operation: LogicalPlan): Boolean
 
-  def asWriteCommand(operation: T): WriteCommand
+  def asWriteCommand(operation: T): AbstractWriteCommand
 
-  def asWriteCommandIfPossible(operation: T): Option[WriteCommand] =
+  def asWriteCommandIfPossible(operation: T): Option[AbstractWriteCommand] =
     if (matches(operation)) Some(asWriteCommand(operation))
     else None
-
 }
 
-object WriteCommandParser extends AdapterFactory[WriteCommandParser[LogicalPlan]]
+abstract class WriteCommandParserFactory {
+  def writeParser(): WriteCommandParser[LogicalPlan]
+  def saveAsTableParser(clusterUrl: Option[String]) : WriteCommandParser[LogicalPlan]
+}
 
-case class WriteCommand(path: String, mode: SaveMode, format: String, query: LogicalPlan) extends Command
+object WriteCommandParserFactory extends AdapterFactory[WriteCommandParserFactory]
+
+abstract class AbstractWriteCommand extends Command {
+val query: LogicalPlan
+}
+
+case class WriteCommand(path:String, mode: SaveMode, format: String, query: LogicalPlan) extends AbstractWriteCommand
+
+case class SaveAsTableCommand(tableName:String, mode: SaveMode, format: String, query: LogicalPlan) extends AbstractWriteCommand
+
+object SaveAsTableCommand {
+  //prefix used in identifiers for saveAsTable writes
+  val protocolPrefix = "table://"
+}
+
+case class SaveJDBCCommand(tableName:String, mode: SaveMode, format: String, query: LogicalPlan) extends AbstractWriteCommand
