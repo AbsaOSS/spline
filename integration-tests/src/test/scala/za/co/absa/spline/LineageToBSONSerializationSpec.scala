@@ -35,7 +35,7 @@ class LineageToBSONSerializationSpec
     import org.apache.spark.sql.functions._
 
     val smallLineage =
-      Seq((1, 2), (3, 4)).toDF().agg(concat(sum('_1), min('_2)) as "forty_two").lineage
+      Seq((1, 2), (3, 4)).toDF().agg(concat(sum('_1), min('_2)) as "forty_two").writtenLineage()
 
     smallLineage.operations.length shouldBe 3
     smallLineage shouldHaveEveryComponentSizeInBSONLessThan 2.kb
@@ -65,7 +65,7 @@ class LineageToBSONSerializationSpec
       .createDataFrame(Seq.empty[Tuple1[Int]])
       .select((List.empty[Column] /: columnNames) ((cs, c) => (lit(0) as c) :: cs): _*)
       .select(columnNames map aComplexExpression: _*)
-      .lineage
+      .writtenLineage()
 
     bigLineage shouldHaveEveryComponentSizeInBSONLessThan 100.kb
   }
