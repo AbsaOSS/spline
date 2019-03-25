@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from "@angular/core";
-import {IAttribute, IOperation} from "../../../../generated-ts/lineage-model";
-import {LineageStore} from "../../lineage.store";
-import {OperationType, typeOfExpr, typeOfOperation} from "../../types";
-import {IExpression} from "../../../../generated-ts/operation-model";
-import {getOperationIcon} from './operation-icon.utils';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
+import { IAttribute, IOperation } from "../../../../generated-ts/lineage-model";
+import { LineageStore } from "../../lineage.store";
+import { OperationType, typeOfExpr, typeOfOperation } from "../../types";
+import { IExpression } from "../../../../generated-ts/operation-model";
+import { getOperationIcon } from './operation-icon.utils';
 
 import * as _ from "lodash"
 

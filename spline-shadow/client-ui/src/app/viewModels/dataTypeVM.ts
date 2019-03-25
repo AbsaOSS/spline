@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Operation } from 'src/app/generated/models/operation';
+import { AttributeVM } from './attributeVM';
 
-export interface CytoscapeOperationVM extends Operation {
-    id: string
-    color: string
-    icon: number
+export interface DataTypeVM {
+    _type: string
+    name: string
+    children: Array<AttributeVM>
+    elementDataType: AttributeVM
 }

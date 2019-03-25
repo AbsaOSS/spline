@@ -40,5 +40,17 @@ export const enum OperationType {
 
 export const ExpressionComponents: Map<string, Type<ExpressionComponent>> = new Map([
     [OperationType.Join, JoinComponent],
-    [OperationType.Projection, ProjectionComponent]
+    [OperationType.Projection, ProjectionComponent],
+    [OperationType.LogicalRelation, ExpressionComponent],
+    [OperationType.BatchRead, ExpressionComponent],
+    [OperationType.StreamRead, ExpressionComponent],
+    [OperationType.Union, ExpressionComponent],
+    [OperationType.Generic, ExpressionComponent],
+    [OperationType.Filter, ExpressionComponent],
+    [OperationType.Sort, ExpressionComponent],
+    [OperationType.Aggregate, ExpressionComponent],
+    [OperationType.WriteCommand, ExpressionComponent],
+    [OperationType.BatchWrite, ExpressionComponent],
+    [OperationType.StreamWrite, ExpressionComponent],
+    [OperationType.Alias, ExpressionComponent]
 ])

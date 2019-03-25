@@ -20,18 +20,18 @@
   <!-- Row Detail Template -->
   <ngx-datatable-row-detail [rowHeight]="'100%'" #detailRow>
     <ng-template let-row="row" let-expanded="expanded" ngx-datatable-row-detail-template>
-      <schema-table *ngIf="row.dataType._typeHint == 'za.co.absa.spline.core.model.dt.Struct'"
-        [schema]="row.dataType.fields" [schemaId]=getChildSchemaId(schemaId,row.name)></schema-table>
-      <schema-table *ngIf="row.dataType._typeHint == 'za.co.absa.spline.core.model.dt.Array'"
-        [schema]="row.dataType.elementDataType.fields" [schemaId]=getChildSchemaId(schemaId,row.name)></schema-table>
+      <schema-table *ngIf="row.dataType._type == 'StructDataType'" [schema]="row.dataType.children"
+        [schemaId]=getChildSchemaId(schemaId,row.name)></schema-table>
+      <schema-table *ngIf="row.dataType._type == 'ArrayDataType' && row.dataType.elementDataType.dataType.children"
+        [schema]="row.dataType.elementDataType.dataType.children" [schemaId]=getChildSchemaId(schemaId,row.name)>
+      </schema-table>
     </ng-template>
   </ngx-datatable-row-detail>
   <!-- Column Templates -->
   <ngx-datatable-column name="Name">
     <ng-template let-expanded="expanded" let-row="row" ngx-datatable-cell-template>
-      <a *ngIf="row.dataType._typeHint != 'za.co.absa.spline.core.model.dt.Simple'" href="javascript:void(0)"
-        style=" text-decoration: none;" [class.datatable-icon-right]="!expanded" [class.datatable-icon-down]="expanded"
-        title="Expand/Collapse Row">
+      <a *ngIf="row.dataType._type != 'SimpleDataType'" href="javascript:void(0)" style=" text-decoration: none;"
+        [class.datatable-icon-right]="!expanded" [class.datatable-icon-down]="expanded" title="Expand/Collapse Row">
       </a> {{row.name}}
     </ng-template>
   </ngx-datatable-column>

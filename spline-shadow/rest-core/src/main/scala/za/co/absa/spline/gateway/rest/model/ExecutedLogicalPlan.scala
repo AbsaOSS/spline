@@ -18,7 +18,6 @@ package za.co.absa.spline.gateway.rest.model
 
 import java.util.UUID
 
-import za.co.absa.spline.gateway.rest.model.ExecutedLogicalPlan._
 
 case class ExecutedLogicalPlan
 (
@@ -30,24 +29,4 @@ case class ExecutedLogicalPlan
 
 object ExecutedLogicalPlan {
   type OperationID = UUID
-
-  case class LogicalPlan(nodes: Array[Operation], edges: Array[Transition]) extends Graph {
-    def this() = this(null, null)
-
-    override type Node = Operation
-    override type Edge = Transition
-  }
-
-  case class Operation(id: OperationID, operationType: String, name: String) extends Graph.Node {
-    def this() = this(null, null, null)
-
-    override type Id = OperationID
-  }
-
-  case class Transition(source: OperationID, target: OperationID) extends Graph.Edge {
-    def this() = this(null, null)
-
-    override type JointId = OperationID
-  }
-
 }

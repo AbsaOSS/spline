@@ -22,12 +22,12 @@
   </div>
   <div #expressionPanel></div>
   <div class="details">
-    <div *ngFor="let input of getInputs() ;index as i">
+    <div *ngFor="let inputSchema of getInputSchemas() ;index as i">
       <hr />
-      <schema [schemaId]="'input_schema'+i" [schemaType]=0 [schema]="input"></schema>
+      <schema [schemaId]="'input_schema'+i" [schemaType]=0 [schema]="inputSchema"></schema>
     </div>
     <hr />
-    <schema [schemaId]="'output_schema'" [schemaType]=1 [schema]="getOutput()">
+    <schema [schemaId]="'output_schema'" [schemaType]=1 [schema]="getOutputSchema()">
     </schema>
   </div>
 </div>

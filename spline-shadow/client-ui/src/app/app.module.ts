@@ -60,6 +60,7 @@ const ROOT_ROUTING = "app/"
   ],
   entryComponents: [
     SchemaTableComponent,
+    ExpressionComponent,
     JoinComponent,
     ProjectionComponent
   ],

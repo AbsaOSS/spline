@@ -27,7 +27,7 @@ object Graph {
 
   trait Node {
     type Id
-    val id: Id
+    val _id: Id
   }
 
   trait Edge {
