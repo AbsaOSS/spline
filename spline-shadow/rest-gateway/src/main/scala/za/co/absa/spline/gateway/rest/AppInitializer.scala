@@ -29,10 +29,12 @@ object AppInitializer extends WebApplicationInitializer {
   override def onStartup(container: ServletContext): Unit = {
     container.addFilter("springFilterProxy", new DelegatingFilterProxy).addMappingForUrlPatterns( util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC), false, "/*")
     container.addListener(new ContextLoaderListener(new AnnotationConfigWebApplicationContext {
+      setAllowBeanDefinitionOverriding(false)
       register(classOf[AppConfig])
     }))
 
     val dispatcher = container.addServlet("dispatcher", new DispatcherServlet(new AnnotationConfigWebApplicationContext {
+      setAllowBeanDefinitionOverriding(false)
       register(classOf[RESTConfig])
     }))
 

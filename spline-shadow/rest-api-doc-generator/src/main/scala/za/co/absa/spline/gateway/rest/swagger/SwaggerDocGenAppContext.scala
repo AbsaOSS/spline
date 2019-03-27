@@ -27,5 +27,6 @@ class SwaggerDocGenAppContext extends AnnotationConfigWebApplicationContext {
   register(classOf[RESTConfig])
 
   setServletContext(new MockServletContext())
+  setAllowBeanDefinitionOverriding(false)
   refresh()
 }

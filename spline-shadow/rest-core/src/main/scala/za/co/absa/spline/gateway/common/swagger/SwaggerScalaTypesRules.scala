@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.gateway.rest.swagger
+package za.co.absa.spline.gateway.common.swagger
 
 import java.util
 
