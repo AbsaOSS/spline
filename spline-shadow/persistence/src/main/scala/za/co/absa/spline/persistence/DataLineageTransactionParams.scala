@@ -93,13 +93,25 @@ object DataLineageTransactionParams {
 
   private def createExecution(dataLineage: DataLineage) = {
     val dataTypes = dataLineage.dataTypes
-      .map(d => DataType(d.id.toString, d.getClass.getSimpleName, d.nullable, d.childDataTypeIds.map(_.toString)))
+      .map(createDataType)
     val extras = Map(
       "sparkVer" -> dataLineage.sparkVer,
       "appId" -> dataLineage.appId,
       "appName" -> dataLineage.appName
     )
     Seq(Execution(dataLineage.appId, dataTypes, None, Some(dataLineage.timestamp), extras, Some(getDSId(dataLineage))))
+  }
+
+  private def createDataType(input: splinemodel.dt.DataType): DataType = {
+    input match {
+      case splinemodel.dt.Simple(id, name, nullable) =>
+        SimpleDataType(id.toString, nullable, name)
+      case splinemodel.dt.Struct(id, fields, nullable) =>
+        val newFields = fields.map(f => StructDataTypeField(f.name, f.dataTypeId.toString))
+        StructDataType(id.toString, nullable, newFields)
+      case splinemodel.dt.Array(id, elementDataTypeId, nullable) =>
+        ArrayDataType(id.toString, nullable, elementDataTypeId.toString)
+    }
   }
 
   private def createReadsFrom(dataLineage: DataLineage, dsUriToKey: Map[String, String]) =

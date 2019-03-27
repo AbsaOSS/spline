@@ -33,9 +33,6 @@ class MigratorToolSpec extends AsyncFunSpec with Matchers {
   describe("migration tool test") {
     it("migrate from mongo to arango") {
       val db = ArangoFactory.create(new URI(arangoUri))
-      if (db.exists()) {
-        db.drop()
-      }
       ArangoInit.initialize(db, dropIfExists = true)
       val config = new MigratorConfig(mongoUri, arangoConnectionUrl = arangoUri, batchSize = 20, batchesMax = 1, streamNewLineages = true)
       MigratorTool.migrate(config)
@@ -43,7 +40,4 @@ class MigratorToolSpec extends AsyncFunSpec with Matchers {
     }
   }
 
-  def awaitForever(future: Future[_]): Unit = {
-    Await.result(future, Duration.Inf)
-  }
 }
