@@ -47,20 +47,32 @@
             <version>3.8.1</version>
         </dependency>
         <dependency>
-            <groupId>com.arangodb</groupId>
-            <artifactId>arangodb-java-driver-async</artifactId>
-            <version>5.0.4</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.wajda.com.arangodb</groupId>
-            <artifactId>velocypack1.4-module-scala_${scala.compat.version}</artifactId>
-            <version>1.0.3.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.5.4</version>
         </dependency>
+
+        <!-- ArangoDB -->
+
+        <dependency>
+            <groupId>com.arangodb</groupId>
+            <artifactId>arangodb-java-driver-async</artifactId>
+            <version>5.0.4</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.arangodb</groupId>
+                    <artifactId>velocypack</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.wajda.com.arangodb</groupId>
+            <artifactId>velocypack1.4-module-scala_${scala.compat.version}</artifactId>
+            <version>1.0.3.2</version>
+        </dependency>
+
+        <!-- test scope -->
+
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
