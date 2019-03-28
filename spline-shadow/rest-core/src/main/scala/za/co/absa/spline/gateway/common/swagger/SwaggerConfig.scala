@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.gateway.rest.swagger
+package za.co.absa.spline.gateway.common.swagger
 
 import com.fasterxml.classmate.TypeResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.{Bean, Configuration}
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import springfox.documentation.builders.{PathSelectors, RequestHandlerSelectors}
 import springfox.documentation.spi.DocumentationType
 import springfox.documentation.spring.web.plugins.Docket
@@ -27,7 +28,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2
 @Configuration
 @EnableSwagger2
 class SwaggerConfig @Autowired()(val typeResolver: TypeResolver)
-  extends SwaggerJacksonScalaSupport
+  extends WebMvcConfigurer
     with SwaggerScalaTypesRules
     with SwaggerUISupport {
 

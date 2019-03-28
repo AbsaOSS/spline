@@ -21,12 +21,12 @@ import java.util.Arrays.asList
 
 import org.apache.commons.configuration.{CompositeConfiguration, EnvironmentConfiguration, SystemConfiguration}
 import org.springframework.context.annotation.{ComponentScan, Configuration}
-import org.springframework.http.converter.HttpMessageConverter
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
 import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
 import za.co.absa.spline.common.config.ConfTyped
 import za.co.absa.spline.common.webmvc.{ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
-import za.co.absa.spline.gateway.rest.swagger.SwaggerConfig
+import za.co.absa.spline.gateway.common.jackson.JacksonConfig
+import za.co.absa.spline.gateway.common.swagger.SwaggerConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -35,14 +35,10 @@ import scala.concurrent.duration._
 @EnableWebMvc
 @ComponentScan(basePackageClasses = Array(
   classOf[SwaggerConfig],
+  classOf[JacksonConfig],
   classOf[controller._package]
 ))
 class RESTConfig extends WebMvcConfigurer {
-
-  override def extendMessageConverters(converters: util.List[HttpMessageConverter[_]]): Unit = {
-    //todo: remove this if Jackson Scala module does the job
-    //converters.add(0, new Json4sHttpMessageConverter)
-  }
 
   override def addReturnValueHandlers(returnValueHandlers: util.List[HandlerMethodReturnValueHandler]): Unit = {
     returnValueHandlers.add(new UnitMethodReturnValueHandler)

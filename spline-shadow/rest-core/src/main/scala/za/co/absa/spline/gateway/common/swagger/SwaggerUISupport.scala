@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.gateway.rest.swagger
+package za.co.absa.spline.gateway.common.swagger
 
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import org.springframework.context.ApplicationListener
-import springfox.documentation.schema.configuration.ObjectMapperConfigured
+import org.springframework.web.servlet.config.annotation.{ResourceHandlerRegistry, WebMvcConfigurer}
 
-trait SwaggerJacksonScalaSupport extends ApplicationListener[ObjectMapperConfigured] {
-  override def onApplicationEvent(event: ObjectMapperConfigured): Unit =
-    event.getObjectMapper.registerModule(DefaultScalaModule)
+trait SwaggerUISupport {
+  this: WebMvcConfigurer =>
+
+  override def addResourceHandlers(registry: ResourceHandlerRegistry): Unit = {
+    registry.
+      addResourceHandler("swagger-ui.html").
+      addResourceLocations("classpath:/META-INF/resources/")
+    registry.
+      addResourceHandler("/webjars/**").
+      addResourceLocations("classpath:/META-INF/resources/webjars/")
+  }
 }
