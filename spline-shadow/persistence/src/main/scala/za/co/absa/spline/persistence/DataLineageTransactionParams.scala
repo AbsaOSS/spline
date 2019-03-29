@@ -21,10 +21,9 @@ import java.util.UUID
 import java.util.UUID.randomUUID
 
 import com.arangodb.velocypack.VPackSlice
-import org.apache.commons.lang.builder.ToStringBuilder.reflectionToString
 import za.co.absa.spline.model.{DataLineage, MetaDataset}
 import za.co.absa.spline.persistence.model._
-import za.co.absa.spline.{model => splinemodel}
+import za.co.absa.spline.{model => old}
 
 import scala.collection.JavaConverters._
 import scala.language.implicitConversions
@@ -84,9 +83,9 @@ object DataLineageTransactionParams {
   /** progress for batch jobs need to be generated during migration for consistency with stream jobs **/
   private def createProgressForBatchJob(dataLineage: DataLineage) = {
     val batchWrites = dataLineage.operations
-      .find(_.isInstanceOf[splinemodel.op.BatchWrite])
+      .find(_.isInstanceOf[old.op.BatchWrite])
       .getOrElse(throw new IllegalArgumentException("All pumped lineages are expected to be batch."))
-      .asInstanceOf[splinemodel.op.BatchWrite]
+      .asInstanceOf[old.op.BatchWrite]
     val readCount = batchWrites.readMetrics.values.sum
     Seq(Progress(dataLineage.timestamp, readCount, Some(getDSId(dataLineage))))
   }
@@ -102,22 +101,22 @@ object DataLineageTransactionParams {
     Seq(Execution(dataLineage.appId, dataTypes, None, Some(dataLineage.timestamp), extras, Some(getDSId(dataLineage))))
   }
 
-  private def createDataType(input: splinemodel.dt.DataType): DataType = {
+  private def createDataType(input: old.dt.DataType): DataType = {
     input match {
-      case splinemodel.dt.Simple(id, name, nullable) =>
+      case old.dt.Simple(id, name, nullable) =>
         SimpleDataType(id.toString, nullable, name)
-      case splinemodel.dt.Struct(id, fields, nullable) =>
+      case old.dt.Struct(id, fields, nullable) =>
         val newFields = fields.map(f => StructDataTypeField(f.name, f.dataTypeId.toString))
         StructDataType(id.toString, nullable, newFields)
-      case splinemodel.dt.Array(id, elementDataTypeId, nullable) =>
+      case old.dt.Array(id, elementDataTypeId, nullable) =>
         ArrayDataType(id.toString, nullable, elementDataTypeId.toString)
     }
   }
 
   private def createReadsFrom(dataLineage: DataLineage, dsUriToKey: Map[String, String]) =
     dataLineage.operations
-      .filter(_.isInstanceOf[splinemodel.op.Read])
-      .map(_.asInstanceOf[splinemodel.op.Read])
+      .filter(_.isInstanceOf[old.op.Read])
+      .map(_.asInstanceOf[old.op.Read])
       .flatMap(op => op.sources.map(s => {
         val opId = op.mainProps.id
         val dsId = dsUriToKey(s.path)
@@ -128,7 +127,7 @@ object DataLineageTransactionParams {
   private def createWritesTos(dataLineage: DataLineage, dsUriToKey: Map[String, String]) = {
     dataLineage.operations
       .iterator.toIterable
-      .filter(_.isInstanceOf[splinemodel.op.Write]).map(_.asInstanceOf[splinemodel.op.Write])
+      .filter(_.isInstanceOf[old.op.Write]).map(_.asInstanceOf[old.op.Write])
       .map(o => WritesTo("operation/" + o.mainProps.id, "dataSource/" + dsUriToKey(o.path), Some(o.mainProps.id.toString)))
   }
 
@@ -141,12 +140,21 @@ object DataLineageTransactionParams {
     dataLineage.operations.iterator.toIterable.map(op => {
       val outputSchema = findOutputSchema(dataLineage, op)
       val _key = Some(op.mainProps.id.toString)
-      val expression = reflectionToString(op)
       val name = op.mainProps.name
+      def transformation(properties: (String, AnyRef)*) = Transformation(name, properties.toMap, outputSchema, _key)
       op match {
-        case r: splinemodel.op.Read => Read(name, expression, r.sourceType, outputSchema, _key) // USE
-        case w: splinemodel.op.Write => Write(name, expression, w.destinationType, outputSchema, _key)
-        case _ => Transformation(name, expression, outputSchema, _key)
+        case r: old.op.Read => Read(name, Map(), r.sourceType, outputSchema, _key) // USE
+        case w: old.op.Write => Write(name, Map(), w.destinationType, outputSchema, _key)
+        case old.op.Aggregate(_, groupings, aggregations) => transformation(
+          "groupings" -> groupings, "aggregations" -> aggregations)
+        case old.op.Alias(_, alias) => transformation("alias" -> alias)
+        case old.op.Filter(_, condition) => transformation("condition" -> condition)
+        case old.op.Generic(_, rawString) => transformation("rawString" -> rawString)
+        case old.op.Join(_, condition, joinType) => transformation(
+          "condition" -> condition, "joinType" -> joinType)
+        case old.op.Projection(_, transformations) => transformation("transformations" -> transformations)
+        case old.op.Sort(_, orders) => transformation("orders" -> orders)
+        case _ => transformation()
       }
     })
   }
@@ -167,7 +175,7 @@ object DataLineageTransactionParams {
   }
 
   private def createOperationFollows(outputIdToOperationId: Map[UUID, UUID])
-                                    (op: splinemodel.op.Operation): Seq[Follows] = {
+                                    (op: old.op.Operation): Seq[Follows] = {
     op.mainProps.inputs
       .flatMap(outputIdToOperationId.get)
       .map(opId => Follows(
@@ -176,7 +184,7 @@ object DataLineageTransactionParams {
         Some(randomUUID.toString)))
   }
 
-  private def findOutputSchema(dataLineage: DataLineage, operation: splinemodel.op.Operation): Schema = {
+  private def findOutputSchema(dataLineage: DataLineage, operation: old.op.Operation): Schema = {
     val metaDataset: MetaDataset = dataLineage.datasets.find((dts: MetaDataset) => dts.id == operation.mainProps.output)
       .getOrElse(throw new IllegalArgumentException(
         s"Operation output id ${operation.mainProps.output} not found in datasets of dataLineage ${dataLineage.id}"))
