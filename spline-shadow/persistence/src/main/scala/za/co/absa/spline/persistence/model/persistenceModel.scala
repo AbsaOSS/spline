@@ -98,50 +98,50 @@ trait ArangoEdge extends ArangoDocument {
 
 trait Operation extends ArangoDocument {
   def name: String
-  def expression: String
+  def properties: Map[String, AnyRef]
   def outputSchema: Schema
   def _type: String
 }
 
 case class Read(
-    name: String,
-    expression: String,
+    override val name: String,
+    override val properties: Map[String, AnyRef],
     format: String,
-    outputSchema: Schema,
+    override val outputSchema: Schema,
     override val _key: Option[String] = None,
     override val _id: Option[String] = None,
     override val _rev: Option[String] = None,
     override val _type: String = "Read"
   ) extends Operation {
 
-  def this() = this("", "", "", null)
+  def this() = this("", null, "", null)
 }
 
 case class Write(
-    name: String,
-    expression: String,
+    override val name: String,
+    override val properties: Map[String, AnyRef],
     format: String,
-    outputSchema: Schema,
+    override val outputSchema: Schema,
     override val _key: Option[String] = None,
     override val _id: Option[String] = None,
     override val _rev: Option[String] = None,
     override val _type: String = "Write"
   ) extends Operation {
 
-  def this() = this("", "", "", null)
+  def this() = this("", null, "", null)
 }
 
 case class Transformation(
-    name: String,
-    expression: String,
-    outputSchema: Schema,
+    override val name: String,
+    override val properties: Map[String, AnyRef],
+    override val outputSchema: Schema,
     override val _key: Option[String] = None,
     override val _id: Option[String] = None,
     override val _rev: Option[String] = None,
     override val _type: String = "Transformation"
   ) extends Operation {
 
-  def this() = this("", "", null)
+  def this() = this("", null, null)
 }
 
 case class DataSource(
