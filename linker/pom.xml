@@ -63,6 +63,10 @@
             <version>${springfox-swagger.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.scalaz</groupId>
+            <artifactId>scalaz-core_${scala.compat.version}</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.compat.version}</artifactId>
             <scope>provided</scope>
