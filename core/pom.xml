@@ -52,19 +52,12 @@
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.compat.version}</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_${scala.compat.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.databricks</groupId>
-            <artifactId>spark-xml_${scala.compat.version}</artifactId>
-            <version>0.4.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scalaz</groupId>
-            <artifactId>scalaz-core_${scala.compat.version}</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
