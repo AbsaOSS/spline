@@ -59,7 +59,7 @@ object SocketMeteoDataReader  extends SparkApp("SocketMeteoDataReader") with Kaf
     .writeStream
     .format("kafka")
     .option("kafka.bootstrap.servers", kafkaServers)
-    .option("checkpointLocation", s"data/checkpoints/streamingWithDependencies/socket/${UUID.randomUUID}")
+    .option("checkpointLocation", s"sample/data/checkpoints/streamingWithDependencies/socket/${UUID.randomUUID}")
     .option("topic", SocketMeteoDataReaderConstants.outputTopic)
     .start()
     .awaitTermination()

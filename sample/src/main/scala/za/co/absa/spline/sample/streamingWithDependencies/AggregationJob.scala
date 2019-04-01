@@ -58,8 +58,8 @@ object AggregationJob extends SparkApp("AggregationJob", conf = ("spark.sql.shuf
 
   resultDF
     .writeStream
-    .option("checkpointLocation", "data/checkpoints/streamingWithDependencies/aggregation")
-    .option("path", "data/results/streamingWithDependencies/temperature.prague.aggregate")
+    .option("checkpointLocation", "sample/data/checkpoints/streamingWithDependencies/aggregation")
+    .option("path", "sample/data/results/streamingWithDependencies/temperature.prague.aggregate")
     .option("header", "true")
     .partitionBy("date")
     .format("parquet")

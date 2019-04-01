@@ -29,7 +29,7 @@ object SampleJob3 extends SparkApp("Sample Job 3") {
     .format("com.databricks.spark.xml")
     .option("rowTag", "dataset")
     .option("rootTag", "datasets")
-    .load("data/input/batch/nasa.xml")
+    .load("sample/data/input/batch/nasa.xml")
 
   val astronomySubjectsDS = ds.filter($"_subject" === lit("astronomy")).cache
   val journalReferencesDS = astronomySubjectsDS
@@ -45,5 +45,5 @@ object SampleJob3 extends SparkApp("Sample Job 3") {
   (journalReferencesDS union otherReferencesDS).limit(100)
     .write
     .mode(SaveMode.Overwrite)
-    .parquet("data/results/batch/job3_results")
+    .parquet("sample/data/results/batch/job3_results")
 }

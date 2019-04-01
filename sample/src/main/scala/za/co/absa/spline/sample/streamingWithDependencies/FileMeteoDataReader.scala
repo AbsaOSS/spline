@@ -55,7 +55,7 @@ object FileMeteoDataReader extends SparkApp("FileMeteoDataReader") with KafkaPro
     .writeStream
     .format("kafka")
     .option("kafka.bootstrap.servers", kafkaServers)
-    .option("checkpointLocation", "data/checkpoints/streamingWithDependencies/file")
+    .option("checkpointLocation", "sample/data/checkpoints/streamingWithDependencies/file")
     .option("topic", FileMeteoDataReaderConstants.outputTopic)
     .start()
     .awaitTermination()

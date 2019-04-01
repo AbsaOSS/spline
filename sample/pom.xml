@@ -207,6 +207,7 @@
                         </executions>
                         <configuration>
                             <executable>java</executable>
+                            <workingDirectory>${project.basedir}/..</workingDirectory>
                             <arguments>
                                 <argument>-Dharvester.publishUrl=${harvester.publishUrl}</argument>
                                 <argument>-classpath</argument>

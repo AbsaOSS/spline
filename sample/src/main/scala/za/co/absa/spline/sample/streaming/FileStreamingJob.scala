@@ -31,13 +31,13 @@ object FileStreamingJob extends SparkApp("File Streaming Job"){
     .format("csv")
     .option("header", true)
     .option("inferSchema", true)
-    .load("data/input/streaming")
+    .load("sample/data/input/streaming")
     .schema
 
   val sourceDS = spark.readStream
     .option("header", "true")
     .schema(schemaImp)
-    .csv("data/input/streaming")
+    .csv("sample/data/input/streaming")
     .as("source")
     .filter($"total_response_size" > 1000)
     .filter($"count_views" > 10)
@@ -46,8 +46,8 @@ object FileStreamingJob extends SparkApp("File Streaming Job"){
   val sink = sourceDS
     .writeStream
     .format("parquet")
-    .option("checkpointLocation", "data/checkpoints/streaming/file")
-    .option("path", "data/results/streaming/wikidataResult")
+    .option("checkpointLocation", "sample/data/checkpoints/streaming/file")
+    .option("path", "sample/data/results/streaming/wikidataResult")
 
   sourceDS
     .writeStream
