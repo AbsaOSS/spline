@@ -19,12 +19,13 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory
 import org.springframework.mock.web.MockServletContext
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext
 import za.co.absa.spline.gateway.rest.RESTConfig
+import za.co.absa.spline.linker.LinkerRESTConfig
 
 class SwaggerDocGenAppContext extends AnnotationConfigWebApplicationContext {
 
   override def createBeanFactory: DefaultListableBeanFactory = new MockingBeanFactory(getInternalParentBeanFactory)
 
-  register(classOf[RESTConfig])
+  register(classOf[RESTConfig], classOf[LinkerRESTConfig])
 
   setServletContext(new MockServletContext())
   setAllowBeanDefinitionOverriding(false)

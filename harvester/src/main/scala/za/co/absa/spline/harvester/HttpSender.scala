@@ -14,22 +14,29 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.linker.boundary
+package za.co.absa.spline.harvester
 
-import java.io.{ByteArrayInputStream, ObjectInputStream}
+import scalaj.http.Http
+import za.co.absa.spline.common.logging.Logging
 
-import za.co.absa.spline.common.WithResources._
+trait HttpSender {
 
-class JavaKafkaDeserializer[TObject] {
+  def attemptSend(url: String, bson: Array[Byte]): Boolean
 
-  def deserialize(data: Array[Byte]): TObject = {
-    withResources[ObjectInputStream, TObject](createReader(data))(read)
+}
+
+object HttpSenderImpl extends HttpSender with Logging {
+
+  override def attemptSend(url: String, bson: Array[Byte]): Boolean = {
+    val response = Http(url)
+      .postData(bson)
+      .compress(true)
+      .header("content-type", "application/bson")
+      .asString
+    if (!response.isSuccess) {
+      log.warn(s"Failed to send. Got response: $response")
+    }
+    response.isSuccess
   }
-
-  private def createReader(data: Array[Byte]): ObjectInputStream = {
-    new ObjectInputStream(new ByteArrayInputStream(data))
-  }
-
-  private def read(objectInputStream: ObjectInputStream): TObject =  objectInputStream.readObject().asInstanceOf[TObject]
 
 }

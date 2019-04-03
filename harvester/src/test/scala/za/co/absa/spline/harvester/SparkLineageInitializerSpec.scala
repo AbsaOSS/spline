@@ -28,7 +28,7 @@ import za.co.absa.spline.harvester.SparkLineageInitializer._
 import za.co.absa.spline.harvester.SparkLineageInitializerSpec._
 import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer.ConfProperty._
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
-import za.co.absa.spline.harvester.conf.{DefaultSplineConfigurer, LineageDispatcher}
+import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer
 import za.co.absa.spline.harvester.listener.SplineQueryExecutionListener
 import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory, ProgressEventWriter}
 

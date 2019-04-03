@@ -143,7 +143,7 @@ object DataLineageTransactionParams {
       val name = op.mainProps.name
       def transformation(properties: (String, AnyRef)*) = Transformation(name, properties.toMap, outputSchema, _key)
       op match {
-        case r: old.op.Read => Read(name, Map(), r.sourceType, outputSchema, _key) // USE
+        case r: old.op.Read => Read(name, Map(), r.sourceType, outputSchema, _key)
         case w: old.op.Write => Write(name, Map(), w.destinationType, outputSchema, _key)
         case old.op.Aggregate(_, groupings, aggregations) => transformation(
           "groupings" -> groupings, "aggregations" -> aggregations)

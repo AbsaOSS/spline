@@ -79,6 +79,11 @@
             <artifactId>scalaz-core_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
+             <groupId>org.scalaj</groupId>
+             <artifactId>scalaj-http_${scala.compat.version}</artifactId>
+             <version>2.4.1</version>
+        </dependency>
+        <dependency>
             <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-test-commons</artifactId>
             <version>${project.version}</version>

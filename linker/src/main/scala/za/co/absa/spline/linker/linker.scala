@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 ABSA Group Limited
+ * Copyright 2019 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.sample
+package za.co.absa.spline
 
-import za.co.absa.spline.linker.LinkerApp
-object LinkerRunnerApp extends App {
+package object linker {
 
-  System.setProperty("spark.master", "local")
-  LinkerApp.main(args)
+  trait _package
 
 }

@@ -1,6 +1,6 @@
 Run sample command:
 ```
-mvn test -Psamples -Dspline.mongodb.url=... -Dspline.mongodb.name=... -DsampleClass=za.co.absa.spline.sample.SampleJob1
+mvn test -Psamples -Dharvester.publishUrl=http://localhost:8080/spline -DsampleClass=za.co.absa.spline.sample.batch.SampleJob1
 ``` 
 
 ---

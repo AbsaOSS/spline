@@ -27,6 +27,10 @@
         <version>0.4.0-SNAPSHOT</version>
     </parent>
 
+    <properties>
+        <harvester.publishUrl>http://localhost:8080/spline</harvester.publishUrl>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.spark</groupId>
@@ -204,9 +208,7 @@
                         <configuration>
                             <executable>java</executable>
                             <arguments>
-                                <argument>-Dspline.persistence.factory=za.co.absa.spline.persistence.mongo.MongoPersistenceFactory</argument>
-                                <argument>-Dspline.mongodb.url=${spline.mongodb.url}</argument>
-                                <argument>-Dspline.mongodb.name=${spline.mongodb.name}</argument>
+                                <argument>-Dharvester.publishUrl=${harvester.publishUrl}</argument>
                                 <argument>-classpath</argument>
                                 <classpath />
                                 <argument>${sampleClass}</argument>

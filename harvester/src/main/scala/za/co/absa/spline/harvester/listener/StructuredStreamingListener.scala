@@ -25,8 +25,7 @@ import org.apache.spark.sql.execution.streaming._
 import org.apache.spark.sql.streaming.{StreamingQuery, StreamingQueryListener, StreamingQueryManager}
 import org.slf4s.Logging
 import za.co.absa.spline.common.ReflectionUtils
-import za.co.absa.spline.harvester.conf.LineageDispatcher
-import za.co.absa.spline.harvester.{DataLineageBuilderFactory, StreamWriteBuilder}
+import za.co.absa.spline.harvester.{DataLineageBuilderFactory, LineageDispatcher, StreamWriteBuilder}
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.model.op.{StreamRead, StreamWrite}
 import za.co.absa.spline.model.streaming.ProgressEvent

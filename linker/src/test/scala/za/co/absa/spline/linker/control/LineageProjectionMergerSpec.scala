@@ -19,7 +19,6 @@ package za.co.absa.spline.linker.control
 import java.util.UUID
 import java.util.UUID.randomUUID
 
-import org.apache.spark
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{AsyncFunSpec, Matchers}
 import za.co.absa.spline.linker.control.LineageProjectionMerger.mergeProjections
@@ -73,7 +72,7 @@ class LineageProjectionMergerSpec extends AsyncFunSpec with Matchers with Mockit
         "appId",
         "appName",
         1L,
-        spark.SPARK_VERSION,
+        "2.3",
         operations,
         datasets,
         attributes,
@@ -462,7 +461,7 @@ object LineageProjectionMergerSpec {
       appId = "",
       appName = "",
       timestamp = -1,
-      sparkVer = spark.SPARK_VERSION,
+      sparkVer = "2.3",
       operations = operations,
       datasets = Seq(MetaDataset(operations.head.mainProps.output, Schema(Nil))),
       attributes = attributes,

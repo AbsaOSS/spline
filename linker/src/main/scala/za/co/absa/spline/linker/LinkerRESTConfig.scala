@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Barclays Africa Group Limited
+ * Copyright 2019 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.linker.boundary
+package za.co.absa.spline.linker
 
-object ReaderProperties {
-  val harvesterServersProperty = "harvester.kafka.servers"
-  val lineageTopicProperty = "harvester.topic.lineage"
-  val eventsTopicProperty = "harvester.topic.events"
-  val defaultLineageTopic = "lineages"
-  val defaultEventsTopic = "events"
-  val harvesterStartingOffsetsProperty = "harvester.startingOffsets"
-  val defaultStartingOffsets = "latest"
-}
+import org.springframework.context.annotation.{ComponentScan, Configuration}
+import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
+
+@Configuration
+@EnableWebMvc
+@ComponentScan(basePackageClasses = Array(
+  classOf[za.co.absa.spline.linker._package]
+))
+class LinkerRESTConfig extends WebMvcConfigurer

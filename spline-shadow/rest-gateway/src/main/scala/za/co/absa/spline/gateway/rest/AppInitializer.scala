@@ -24,6 +24,7 @@ import org.springframework.web.context.ContextLoaderListener
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext
 import org.springframework.web.servlet.DispatcherServlet
 import org.springframework.web.filter.DelegatingFilterProxy
+import za.co.absa.spline.linker.LinkerRESTConfig
 
 object AppInitializer extends WebApplicationInitializer {
   override def onStartup(container: ServletContext): Unit = {
@@ -35,7 +36,7 @@ object AppInitializer extends WebApplicationInitializer {
 
     val dispatcher = container.addServlet("dispatcher", new DispatcherServlet(new AnnotationConfigWebApplicationContext {
       setAllowBeanDefinitionOverriding(false)
-      register(classOf[RESTConfig])
+      register(classOf[RESTConfig], classOf[LinkerRESTConfig])
     }))
 
     dispatcher.setLoadOnStartup(1)

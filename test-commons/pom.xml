@@ -30,6 +30,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>spline-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_${scala.compat.version}</artifactId>
         </dependency>
