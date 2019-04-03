@@ -64,7 +64,7 @@ object KafkaMeteoDataReader extends SparkApp("KafkaMeteoDataReader") with KafkaP
     .writeStream
     .format("kafka")
     .option("kafka.bootstrap.servers", kafkaServers)
-    .option("checkpointLocation", "data/checkpoints/streamingWithDependencies/kafka")
+    .option("checkpointLocation", "sample/data/checkpoints/streamingWithDependencies/kafka")
     .option("topic", KafkaMeteoDataReaderConstants.outputTopic)
     .start()
     .awaitTermination()

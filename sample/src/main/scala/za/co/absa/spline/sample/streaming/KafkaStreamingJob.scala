@@ -31,13 +31,13 @@ object KafkaStreamingJob extends SparkApp("Kafka Streaming Job") with KafkaPrope
     .format("csv")
     .option("header", true)
     .option("inferSchema", true)
-    .load("data/input/streaming")
+    .load("sample/data/input/streaming")
     .schema
 
   val sourceDS = spark.readStream
     .option("header", "true")
     .schema(schemaImp)
-    .csv("data/input/streaming")
+    .csv("sample/data/input/streaming")
     .select($"page_title" as "value")
 
   // writting data to kafka topic
@@ -46,7 +46,7 @@ object KafkaStreamingJob extends SparkApp("Kafka Streaming Job") with KafkaPrope
     .format("kafka")
     .option("topic", kafkaTopic)
     .option("kafka.bootstrap.servers", kafkaServers)
-    .option("checkpointLocation", "data/checkpoints/streaming/kafka")
+    .option("checkpointLocation", "sample/data/checkpoints/streaming/kafka")
     .start()
     .processAllAvailable()
 

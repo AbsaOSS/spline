@@ -80,5 +80,5 @@ object FileMeteoStation extends App with MeteoDataGenerator with Timer {
 
 
 object FileMeteoStationConstants {
-  val outputPath = "data/input/streamingWithDependencies/stationPragueKbely"
+  val outputPath = "sample/data/input/streamingWithDependencies/stationPragueKbely"
 }

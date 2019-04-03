@@ -33,11 +33,11 @@ object ParquetToCsvJob extends SparkApp("Parquet to CSV Job", conf = Seq("spark.
   def date = getRequiredString("date")
 
   spark
-    .read.parquet(s"data/results/streamingWithDependencies/parquet/date=$date")
+    .read.parquet(s"sample/data/results/streamingWithDependencies/parquet/date=$date")
     .repartition(1)
     .sort('hour)
     .write.mode("overwrite")
     .option("header", "true")
-    .csv(s"data/results/streamingWithDependencies/csv/$date")
+    .csv(s"sample/data/results/streamingWithDependencies/csv/$date")
 
 }

@@ -30,10 +30,10 @@ public class JavaSampleJob {
         session.read()
             .option("header", "true")
             .option("inferSchema", "true")
-            .csv("data/input/batch/wikidata.csv")
+            .csv("sample/data/input/batch/wikidata.csv")
             .as("source")
             .write()
             .mode(SaveMode.Overwrite)
-            .csv("data/output/batch/java-sample.csv");
+            .csv("sample/data/output/batch/java-sample.csv");
     }
 }
