@@ -18,7 +18,6 @@ package za.co.absa.spline.persistence.mongo.dao
 
 import java.util.Arrays._
 import java.util.UUID
-import java.util.regex.Pattern.quote
 
 import com.mongodb.casbah.AggregationOptions.{default => aggOpts}
 import com.mongodb.casbah.Imports._
@@ -47,6 +46,8 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
 
   protected lazy val dataLineageCollection: DBCollection = getMongoCollectionForComponent(Component.Root)
   protected lazy val operationCollection: DBCollection = getMongoCollectionForComponent(Component.Operation)
+
+  private final val NON_WORD_CHAR = "\\W".r
 
   override def save(lineage: DBObject)(implicit e: ExecutionContext): Future[Unit] = {
     val lineageId = lineage.get(idField).toString
@@ -235,11 +236,23 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
     )
     val optionalTextSearchCriterion = maybeText map {
       text =>
-        val regexMatchOnFieldsCriteria = Seq("appId", "appName", "rootOperation.path") map (_ $regex quote(text) $options "i")
+        val regexMatchOnFieldsCriteria = Seq("appId", "appName", "rootOperation.path") map (_ $regex quoteSafely(text) $options "i")
         val optDatasetIdMatchCriterion = UUIDExtractor unapply text.toLowerCase map (uuid => DBObject("rootDataset._id" → uuid))
         $or(regexMatchOnFieldsCriteria ++ optDatasetIdMatchCriterion)
     }
     $and(paginationDeduplicationCriteria ++ optionalTextSearchCriterion)
+  }
+
+  /**
+    * Escape special characters in a regular expression.
+    * Does not use Pattern.quote() for Cosmos DB compatibility.
+    * @see <a href="https://github.com/AbsaOSS/spline/issues/166">issue #166</a>
+    *
+    * @param text A string
+    * @return A regular expression searching for the exact literal text string
+    */
+  protected def quoteSafely(text: String): String = {
+    return NON_WORD_CHAR.replaceAllIn(text, "\\\\" + _.matched)
   }
 
   /**
