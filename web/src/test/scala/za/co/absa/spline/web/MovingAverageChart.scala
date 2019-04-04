@@ -20,7 +20,7 @@ import de.sciss.chart.XYChart
 import de.sciss.chart.module.ChartFactories
 import org.jfree.chart.axis.NumberAxis
 import org.jfree.chart.renderer.xy.{SamplingXYLineRenderer, XYDotRenderer}
-import za.co.absa.spline.web.handler.MovingAverageCalculator
+import za.co.absa.spline.common.future.MovingAverageCalculator
 
 object MovingAverageChart extends App with ChartFactories {
 
@@ -34,10 +34,10 @@ object MovingAverageChart extends App with ChartFactories {
         val phase = i * 10 * math.Pi / SCALE
         val base = i + (1 + math.sin(phase)) * SCALE / 5
         val deviationFactor = 1 + 0.5 * (math.random - 0.5)
-        val a = (base * deviationFactor).toInt
-        val b = measurer.currentAverage.toInt
+        val a = (base * deviationFactor).toLong
+        val b = measurer.currentAverage
         measurer.addMeasurement(a)
-        (i, a, b)
+        (i, a.toInt, b.toInt)
       }
 
   val data1 = data.map { case (i, a, _) => (i, a) }

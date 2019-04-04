@@ -24,8 +24,12 @@
         <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>0.3.7-SNAPSHOT</version>
+        <version>0.4.0-SNAPSHOT</version>
     </parent>
+
+    <properties>
+        <harvester.publishUrl>http://localhost:8080/spline</harvester.publishUrl>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -41,13 +45,24 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql-kafka-0-10_${scala.compat.version}</artifactId>
+            <version>${spark.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>spline-core</artifactId>
+            <artifactId>spline-harvester</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>spline-core-spark-adapter-${spark.compat.version}</artifactId>
+            <artifactId>spline-linker</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>spline-spark-adapter-${spark.compat.version}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -70,6 +85,11 @@
             <artifactId>spark-xml_${scala.compat.version}</artifactId>
             <version>0.4.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor_${scala.compat.version}</artifactId>
+            <version>2.5.15</version>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>
@@ -83,6 +103,11 @@
                 <dependency>
                     <groupId>org.apache.spark</groupId>
                     <artifactId>spark-sql_${scala.compat.version}</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.spark</groupId>
+                    <artifactId>spark-sql-kafka-0-10_${scala.compat.version}</artifactId>
                     <scope>provided</scope>
                 </dependency>
                 <dependency>
@@ -182,10 +207,9 @@
                         </executions>
                         <configuration>
                             <executable>java</executable>
+                            <workingDirectory>${project.basedir}/..</workingDirectory>
                             <arguments>
-                                <argument>-Dspline.persistence.factory=za.co.absa.spline.persistence.mongo.MongoPersistenceFactory</argument>
-                                <argument>-Dspline.mongodb.url=${spline.mongodb.url}</argument>
-                                <argument>-Dspline.mongodb.name=${spline.mongodb.name}</argument>
+                                <argument>-Dharvester.publishUrl=${harvester.publishUrl}</argument>
                                 <argument>-classpath</argument>
                                 <classpath />
                                 <argument>${sampleClass}</argument>

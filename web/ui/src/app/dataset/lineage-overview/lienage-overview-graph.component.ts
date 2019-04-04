@@ -21,7 +21,6 @@ import * as vis from "vis";
 import * as _ from "lodash";
 import {combineLatest, concat, Observable, Subscription} from "rxjs";
 import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
-import {typeOfOperation} from "../../lineage/types";
 import {visOptions} from "./vis-options";
 import {
     GraphNode,
@@ -34,8 +33,8 @@ import {
     VisProcessNode
 } from "./lineage-overview.model";
 import {ClusterManager} from "../../visjs/cluster-manager";
-import {Icon, VisClusterNode, VisModel} from "../../visjs/vis-model";
-import {getIconForNodeType} from "../../lineage/details/operation/operation-icon.utils";
+import {VisClusterNode, VisIcon, VisModel} from "../../visjs/vis-model";
+import {getDatasetIcon, getOperationIcon} from "../../lineage/details/operation/operation-icon.utils";
 import {distinctUntilChanged, filter, first, pairwise} from "rxjs/operators";
 
 @Component({
@@ -46,6 +45,7 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
 
     @Input() lineage$: Observable<IDataLineage>
     @Input() selectedNode$: Observable<GraphNode>
+    @Input() isOverviewNotIntervalView: boolean
 
     @Output() nodeSelected = new EventEmitter<GraphNode>()
     @Output() nodeActioned = new EventEmitter<GraphNode>()
@@ -60,21 +60,29 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
-        let lineageContainsDataset = (lin: IDataLineage, dsId: string) => _.some(lin.datasets, {id: dsId}),
-            reactOnChange = (prevLineage: IDataLineage, nextLineage: IDataLineage, selectedNode: GraphNode) => {
-                if (!this.network || nextLineage !== prevLineage)
-                    this.rebuildGraph(nextLineage)
-                this.selectedNode = selectedNode
-                this.refreshSelectedNode(selectedNode)
+        let lineageContainsDataset = (lin: IDataLineage, dsId: string) => {
+                return _.some(lin.datasets, {id: dsId})
             }
+        let reactOnChange = (prevLineage: IDataLineage, nextLineage: IDataLineage, selectedNode: GraphNode) => {
+                    if (!this.network || nextLineage.timestamp !== prevLineage.timestamp)
+                        this.rebuildGraph(nextLineage)
+                    this.selectedNode = selectedNode
+                    try {
+                        this.refreshSelectedNode(selectedNode)
+                    } catch (e) {
+                        // FIXME resolve bug of failing to find dataset.
+                        console.log("WARN Ignoring failed selection: \n" + e)
+                    }
+                }
 
         let lineagePairs$ =
             concat(this.lineage$.pipe(first()), this.lineage$).pipe(pairwise())
 
+        // FIXME refactor preplace remove pairwise on lineagePairs$
         this.subscriptions.unshift(combineLatest(lineagePairs$, this.selectedNode$)
             .pipe(
                 filter(([[__, lineage], selectedNode]) => lineageContainsDataset(lineage, selectedNode.id)),
-                distinctUntilChanged(([[__, lin0], node0], [[___, lin1], node1]) => lin0.id == lin1.id && _.isEqual(node0, node1)))
+                distinctUntilChanged(([[__, lin0], node0], [[___, lin1], node1]) => lin0.timestamp == lin1.timestamp && _.isEqual(node0, node1)))
             .subscribe(([[prevLineage, nextLineage], selectedNode]) => reactOnChange(prevLineage, nextLineage, selectedNode)))
     }
 
@@ -137,7 +145,9 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
             if (event.nodes.length == 1) {
                 console.log("DOUBLE CLICK", event.nodes[0])
                 let node = LineageOverviewGraphComponent.eventToClickableNode(event)
-                if (node) this.nodeActioned.emit(node)
+                if (this.isOverviewNotIntervalView || node.type != "datasource") {
+                    if (node) this.nodeActioned.emit(node)
+                }
             }
         })
 
@@ -165,10 +175,17 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
     private static buildVisModel(lineage: IDataLineage): VisModel<VisNode, vis.Edge> {
         const getIdentifiableDataSourcesOf =
             (op: IComposite): ITypedMetaDataSource[] =>
-                _.flatMap(op.sources, (src, i) =>
-                    _.isEmpty(src.datasetsIds)
-                        ? _.assign({}, src, {datasetsIds: [ID_PREFIXES.extra + i + "_" + op.mainProps.id]})
-                        : src)
+                _.flatMap(op.sources, (src, i) => {
+                    let maybeFirstDataset = lineage.datasets.find(d => d.id == src.datasetsIds[0])
+                    if (_.isEmpty(src.datasetsIds)) {
+                        return _.assign({}, src, {datasetsIds: [ID_PREFIXES.extra + i + "_" + op.mainProps.id]})
+                    } else if (src.datasetsIds.length == 1 && maybeFirstDataset.schema.attrs.length == 0) {
+                        // FIXME avoid this hack. It prevent duplicate paths displayed in interval view for generated readonly metaDatasets with empty schema.
+                        return _.assign({}, src, {datasetsIds: [ID_PREFIXES.extra + "_" + maybeFirstDataset.id]})
+                    } else {
+                        return src
+                    }
+                })
 
         const recombineByDatasetIdAndLongestAppendSequence =
             (typedMetadataSources: ITypedMetaDataSource[]): [string, ITypedMetaDataSource][] =>
@@ -181,9 +198,9 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
 
         let dataSources =
                 _.flatMap(lineage.operations, (op: IComposite) =>
-                    getIdentifiableDataSourcesOf(op).concat(op.destination)),
+                    getIdentifiableDataSourcesOf(op).concat(op.destination))
 
-            datasetNodes: VisNode[] =
+        let datasetNodes: VisNode[] =
                 recombineByDatasetIdAndLongestAppendSequence(dataSources)
                     .map(([datasetId, src]) => {
                         let lastPathItemName = src.path.substring(src.path.replace(/\/$/, '').lastIndexOf("/") + 1)
@@ -193,23 +210,20 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
                             ID_PREFIXES.datasource + datasetId,
                             src.type + ":" + src.path,
                             label,
-                            LineageOverviewGraphComponent.getIcon(
-                                new Icon("fa-file", "\uf15b", "FontAwesome"),
-                                datasetId.startsWith(ID_PREFIXES.extra) ? "#c0cdd6" : undefined)
-                        )
-                    }),
+                            this.getTypedSourceIcon(src));
+                        });
 
-            processNodes: VisNode[] = lineage.operations.map((op: IComposite) =>
+
+         let processNodes: VisNode[] = lineage.operations.map((op: IComposite) =>
                 new VisProcessNode(
                     op,
                     ID_PREFIXES.operation + op.mainProps.id,
                     LineageOverviewGraphComponent.wrapText(op.appName),
-                    LineageOverviewGraphComponent.getIcon(getIconForNodeType(typeOfOperation(op)))
-                )),
+                    getOperationIcon(op).toVisIcon()));
 
-            nodes = processNodes.concat(datasetNodes),
+         let nodes = processNodes.concat(datasetNodes)
 
-            edges: vis.Edge[] = _.flatMap(lineage.operations, (op: IComposite) => {
+         let edges: vis.Edge[] = _.flatMap(lineage.operations, (op: IComposite) => {
                 let opNodeId = ID_PREFIXES.operation + op.mainProps.id
                 let inputEdges: vis.Edge[] =
                         recombineByDatasetIdAndLongestAppendSequence(getIdentifiableDataSourcesOf(op))
@@ -248,13 +262,15 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
         ).join("\n")
     }
 
-    static getIcon(icon: Icon, color: string = "#337ab7") {
-        return {
-            face: icon.font,
-            size: 80,
-            code: icon.code,
-            color: color
+    private static getTypedSourceIcon(source: ITypedMetaDataSource): VisIcon {
+        let sourceIcon = getDatasetIcon(source.type).toVisIcon();
+        if (source.datasetsIds[0].startsWith(ID_PREFIXES.extra)) {
+            sourceIcon.color = "#c0cdd6"
+            return sourceIcon;
+        } else {
+            return sourceIcon;
         }
     }
+
 }
 

@@ -26,7 +26,7 @@
             <div class="graph-toolbar top left">
                 <button mat-button (click)="gotoLineageOverview()" title="Show a high level lineage graph">
                     <mat-icon>keyboard_arrow_left</mat-icon>
-                    Lineage Overview
+                    Lineage {{ originViewTypeName() }}
                 </button>
             </div>
             <div class="graph-toolbar top right">
@@ -58,11 +58,20 @@
                 <mat-tab-group [selectedIndex]="selectedTabIndex"
                                (selectChange)="onTabChanged($event)">
 
-                    <mat-tab label="Summary">
-                        <h2>{{lineage.appName}}</h2>
+                    <mat-tab>
+                        <ng-template mat-tab-label>
+                            <processing-type-icon [processingType]="processingType" class="spl-tab-node"></processing-type-icon>
+                            Summary
+                        </ng-template>
+
+                        <h2>
+                            <processing-type-icon [processingType]="processingType" class="fa-2x"></processing-type-icon>
+                            {{lineage.appName}}
+                        </h2>
                         <pre class="small">#{{lineage.appId}}</pre>
                         <p>Spark version: <b>{{lineage.sparkVer}}</b></p>
                         <p>Timestamp: <b>{{lineage.timestamp | date:'long'}}</b></p>
+                        <p>Type: <b>{{processingType}}</b></p>
                         <p>Operations: <b>{{lineage.operations.length}}</b></p>
                         <p>Input data sources: <b>{{getDataSourceCount()}}</b></p>
                     </mat-tab>

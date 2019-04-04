@@ -14,25 +14,33 @@
  * limitations under the License.
  */
 
-import { IAttribute, IDataLineage, IMetaDataset, IOperation } from "../../../generated-ts/lineage-model";
-import { RegularVisNode, VisEdge, VisNode } from "./graph.model";
+import {IAttribute, IDataLineage, IMetaDataset, IOperation} from "../../../generated-ts/lineage-model";
+import {RegularVisNode, VisEdge, VisNode} from "./graph.model";
 import * as vis from "vis";
 import * as _ from "lodash";
-import { OperationType, typeOfOperation } from "../types";
-import { VisModel } from "../../visjs/vis-model";
-import { ExpressionRenderService } from "../details/expression/expression-render.service";
-import { IJoin, IFilter, ISort, IRead, IWrite } from "../../../generated-ts/operation-model";
+import {OperationType, typeOfOperation} from "../types";
+import {VisModel} from "../../visjs/vis-model";
+import {ExpressionRenderService} from "../details/expression/expression-render.service";
+import {
+    IJoin,
+    IFilter,
+    ISort,
+    IBatchRead,
+    IBatchWrite,
+    IStreamRead,
+    IStreamWrite
+} from "../../../generated-ts/operation-model";
 
 export function lineageToGraph(lineage: IDataLineage,
-    expressionRenderService: ExpressionRenderService,
-    selectedOperationId?: string,
-    hiddenOperationTypes: OperationType[] = []): VisModel<VisNode, VisEdge> {
+                               expressionRenderService: ExpressionRenderService,
+                               selectedOperationId?: string,
+                               hiddenOperationTypes: OperationType[] = []): VisModel<VisNode, VisEdge> {
     let operationVisibilityPredicate = (op: IOperation) => {
-        let opType = typeOfOperation(op)
-        return op.mainProps.id == selectedOperationId
-            || opType != "Alias"
-            && hiddenOperationTypes.indexOf(opType) < 0
-    },
+            let opType = typeOfOperation(op)
+            return op.mainProps.id == selectedOperationId
+                || opType != "Alias"
+                && hiddenOperationTypes.indexOf(opType) < 0
+        },
         operationsByVisibility = _.groupBy(lineage.operations, operationVisibilityPredicate),
         visibleOperations: IOperation[] = operationsByVisibility.true,
         hiddenOperations: IOperation[] = operationsByVisibility.false,
@@ -44,12 +52,13 @@ export function lineageToGraph(lineage: IDataLineage,
         new vis.DataSet<VisNode>(visibleNodes),
         new vis.DataSet<VisEdge>(visibleEdges))
 }
+
 /**
  * Get label from an operation
- * 
+ *
  * @param operation the operation where the label should be retrieved
  * @param expressionRenderService service to render expressions
- * 
+ *
  * @returns the label from the operation
  */
 export function getLabel(operation: IOperation, expressionRenderService: ExpressionRenderService) {
@@ -74,25 +83,32 @@ export function getLabel(operation: IOperation, expressionRenderService: Express
             let sortExpressions = (<ISort>operation).orders
             label += sortExpressions[0].direction + " " + expressionRenderService.getText(sortExpressions[0])
             break
-        case "Read":
-            let readExpression = (<IRead>operation).sources
+        case "BatchRead":
+            let readExpression = (<IBatchRead>operation).sources
             label += getFileName(readExpression[0].path)
             break
-        case "Write":
-            label += (<IWrite>operation).path
+        case "BatchWrite":
+            label += (<IBatchWrite>operation).path
+            break
+        case "StreamRead":
+            readExpression = (<IStreamRead>operation).sources
+            label += getFileName(readExpression[0].path)
+            break
+        case "StreamWrite":
+            label += (<IStreamWrite>operation).path
             break
         default:
             label = operation.mainProps.name
     }
 
-    return _.truncate(label, { length: 50 });
+    return _.truncate(label, {length: 50});
 }
 
 /**
  * Get the filename from a path
- * 
+ *
  * @param path string where the filename should be extracted
- * 
+ *
  * @returns the the filename of the path in parameters
  */
 function getFileName(path: string): string {

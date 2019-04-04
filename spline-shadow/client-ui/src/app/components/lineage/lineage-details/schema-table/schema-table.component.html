@@ -1,0 +1,54 @@
+<!--
+  ~ Copyright 2019 ABSA Group Limited
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<ngx-datatable #table class='material expandable' [columnMode]="'force'" [headerHeight]="0" [footerHeight]="'auto'"
+  [rowHeight]="'auto'" [scrollbarV]="false" [rows]='schema' [limit]=tablePageSize [selectionType]="'single'"
+  (select)='onSelect($event)' [id]=schemaId>
+  <!-- Row Detail Template -->
+  <ngx-datatable-row-detail [rowHeight]="'100%'" #detailRow>
+    <ng-template let-row="row" let-expanded="expanded" ngx-datatable-row-detail-template>
+      <schema-table *ngIf="row.dataType._typeHint == 'za.co.absa.spline.core.model.dt.Struct'"
+        [schema]="row.dataType.fields" [schemaId]=getChildSchemaId(schemaId,row.name)></schema-table>
+      <schema-table *ngIf="row.dataType._typeHint == 'za.co.absa.spline.core.model.dt.Array'"
+        [schema]="row.dataType.elementDataType.fields" [schemaId]=getChildSchemaId(schemaId,row.name)></schema-table>
+    </ng-template>
+  </ngx-datatable-row-detail>
+  <!-- Column Templates -->
+  <ngx-datatable-column name="Name">
+    <ng-template let-expanded="expanded" let-row="row" ngx-datatable-cell-template>
+      <a *ngIf="row.dataType._typeHint != 'za.co.absa.spline.core.model.dt.Simple'" href="javascript:void(0)"
+        style=" text-decoration: none;" [class.datatable-icon-right]="!expanded" [class.datatable-icon-down]="expanded"
+        title="Expand/Collapse Row">
+      </a> {{row.name}}
+    </ng-template>
+  </ngx-datatable-column>
+  <ngx-datatable-column name="Type">
+    <ng-template let-type="type" let-row="row" ngx-datatable-cell-template>
+      <div class="text-right">{{getPropertyType(row)}}</div>
+    </ng-template>
+  </ngx-datatable-column>
+  <!--Footer -->
+  <ngx-datatable-footer>
+    <ng-template ngx-datatable-footer-template let-rowCount="rowCount" let-pageSize="pageSize"
+      let-selectedCount="selectedCount" let-curPage="curPage" let-offset="offset" let-isVisible="isVisible">
+      <datatable-pager [pagerLeftArrowIcon]="'datatable-icon-left'" [pagerRightArrowIcon]="'datatable-icon-right'"
+        [pagerPreviousIcon]="'datatable-icon-prev'" [pagerNextIcon]="'datatable-icon-skip'" [page]="curPage"
+        [size]="pageSize" [count]="rowCount" [hidden]="!((rowCount / pageSize) > 1)"
+        (change)="table.onFooterPage($event)">
+      </datatable-pager>
+    </ng-template>
+  </ngx-datatable-footer>
+</ngx-datatable>

@@ -28,7 +28,7 @@ Build project Sample with Shade profile to create Fat-JAR containing all needed 
   mvn package -P spark-2.3,shade
 
 Execute pyspark with Fat-JAR on class path:
-  pyspark --jars 'target/spline-sample-0.3.7-SNAPSHOT.jar'
+  pyspark --jars 'target/spline-sample-0.4.0-SNAPSHOT.jar'
 
 Execute rest of this file inside PySpark.
 """

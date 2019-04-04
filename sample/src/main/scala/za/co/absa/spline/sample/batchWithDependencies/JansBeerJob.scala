@@ -23,13 +23,13 @@ import za.co.absa.spline.sample.SparkApp
 object JansBeerJob extends SparkApp("Jan's Beer Job", conf = Seq("spark.sql.shuffle.partitions" -> "4")) {
 
   // Initializing library to hook up to Apache Spark
-  import za.co.absa.spline.core.SparkLineageInitializer._
+  import za.co.absa.spline.harvester.SparkLineageInitializer._
 
   spark.enableLineageTracking()
 
-  val beerConsumption = spark.read.option("header", "true").csv("data/input/batchWithDependencies/beerConsum.csv")
+  val beerConsumption = spark.read.option("header", "true").csv("sample/data/input/batchWithDependencies/beerConsum.csv")
 
-  val population = spark.read.option("header", "true").csv("data/input/batchWithDependencies/population.csv")
+  val population = spark.read.option("header", "true").csv("sample/data/input/batchWithDependencies/population.csv")
 
   def calculateConsumptionPerCapita(year: String) =
     (col(year) * 100) / col("y" + year) as "Year" + year
@@ -51,6 +51,6 @@ object JansBeerJob extends SparkApp("Jan's Beer Job", conf = Seq("spark.sql.shuf
       calculateConsumptionPerCapita("2011")
     )
 
-  result.write.mode(SaveMode.Append).parquet("data/results/batchWithDependencies/beerConsCtl")
+  result.write.mode(SaveMode.Append).parquet("sample/data/results/batchWithDependencies/beerConsCtl")
 
 }

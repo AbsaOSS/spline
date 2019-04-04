@@ -20,13 +20,15 @@ import java.util.UUID
 
 import com.mongodb.casbah.Imports.DBObject
 import za.co.absa.spline.persistence.api.CloseableIterable
-import za.co.absa.spline.persistence.api.DataLineageReader.{PageRequest, Timestamp}
+import za.co.absa.spline.persistence.api.DataLineageReader.{IntervalPageRequest, PageRequest, SearchRequest, Timestamp}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait LineageDAO {
 
   def save(lineage: DBObject)(implicit e: ExecutionContext): Future[Unit]
+
+  def saveProgress(progress: ProgressDBObject)(implicit e: ExecutionContext): Future[Unit]
 
   def loadByDatasetId(dsId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[Option[DBObject]]
 
@@ -37,14 +39,22 @@ trait LineageDAO {
   def findByInputId(datasetId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]]
 
   def findDatasetDescriptors(maybeText: Option[String], pageRequest: PageRequest)
-                            (implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]]
+                            (implicit ec: ExecutionContext): Future[CloseableIterable[DescriptorDBObject]]
 
-  def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[DBObject]
+  def findDatasetDescriptors(maybeText: Option[String], intervalPageRequest: IntervalPageRequest)
+                            (implicit ec: ExecutionContext): Future[CloseableIterable[DescriptorDBObject]]
+
+  def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[DescriptorDBObject]
+
+  def getLineagesByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[DBObject]]
 }
 
 trait VersionedLineageDAO extends VersionedDAO {
 
+
   def save(lineage: DBObject)(implicit e: ExecutionContext): Future[Unit]
+
+  def saveProgress(progressDBObject: ProgressDBObject)(implicit e: ExecutionContext): Future[Unit]
 
   def loadByDatasetId(dsId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[Option[DBObject]]
 
@@ -57,9 +67,14 @@ trait VersionedLineageDAO extends VersionedDAO {
   def findByInputId(datasetId: UUID, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]]
 
   def findDatasetDescriptors(maybeText: Option[String], pageRequest: PageRequest)
-                            (implicit ec: ExecutionContext): Future[CloseableIterable[DBObject]]
+                            (implicit ec: ExecutionContext): Future[CloseableIterable[DescriptorDBObject]]
 
-  def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[Option[DBObject]]
+  def findDatasetDescriptors(maybeText: Option[String], intervalRequest: IntervalPageRequest)
+                            (implicit ec: ExecutionContext): Future[CloseableIterable[DescriptorDBObject]]
+
+  def getDatasetDescriptor(id: UUID)(implicit ec: ExecutionContext): Future[Option[DescriptorDBObject]]
 
   def countDatasetDescriptors(maybeText: Option[String], asAtTime: Timestamp)(implicit ec: ExecutionContext): Future[Int]
+
+  def getLineagesByPathAndInterval(path: String, start: Long, end: Long)(implicit ex: ExecutionContext): Future[CloseableIterable[DBObject]]
 }

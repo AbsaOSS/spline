@@ -25,7 +25,7 @@
         <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>0.3.7-SNAPSHOT</version>
+        <version>0.4.0-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -67,7 +67,6 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
-            <version>5.0.2.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.thymeleaf</groupId>
@@ -151,7 +150,8 @@
                                 <argument>--option-to-nullable</argument>
                                 <argument>za.co.absa.spline.model.op.Operation</argument>
                                 <argument>za.co.absa.spline.model.op.Alias</argument>
-                                <argument>za.co.absa.spline.model.op.Write</argument>
+                                <argument>za.co.absa.spline.model.op.BatchWrite</argument>
+                                <argument>za.co.absa.spline.model.op.StreamWrite</argument>
                                 <argument>za.co.absa.spline.model.op.Filter</argument>
                                 <argument>za.co.absa.spline.model.op.Sort</argument>
                                 <argument>za.co.absa.spline.model.op.Aggregate</argument>
@@ -159,7 +159,8 @@
                                 <argument>za.co.absa.spline.model.op.Join</argument>
                                 <argument>za.co.absa.spline.model.op.Union</argument>
                                 <argument>za.co.absa.spline.model.op.Projection</argument>
-                                <argument>za.co.absa.spline.model.op.Read</argument>
+                                <argument>za.co.absa.spline.model.op.BatchRead</argument>
+                                <argument>za.co.absa.spline.model.op.StreamRead</argument>
                                 <argument>za.co.absa.spline.model.op.Composite</argument>
                                 <!-- workaround for a scala-ts bug -->
                                 <argument>za.co.absa.spline.model.dt.DataType</argument>

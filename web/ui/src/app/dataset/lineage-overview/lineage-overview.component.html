@@ -21,7 +21,8 @@
                                     [lineage$]="lineageStore.lineage$"
                                     [selectedNode$]="selectedNode$"
                                     (nodeSelected)="selectNode($event.id, $event.type)"
-                                    (nodeActioned)="gotoPartialLineage($event.id)">
+                                    (nodeActioned)="gotoPartialLineage($event.id)"
+                                    [isOverviewNotIntervalView]="isOverviewNotIntervalView()">
             </lineage-overview-graph>
             <div class="graph-footer">
                 <button mat-button (click)="graph.collapseNodes()" title="Collapse groups of nodes">
@@ -41,14 +42,14 @@
                     <div style="height: 280px">
                         <details-panel-header
                                 [caption]="selectedDataSourceDescription.source.path"
-                                faIcon="fa-file"
+                                [faIcon]="getSelectedSourceIcon()"
                                 iconColor="steelblue">
                         </details-panel-header>
                         <hr>
                         <h5>Type: <b>{{selectedDataSourceDescription.source.type}}</b></h5>
                         <h5>Timestamp: <b>{{selectedDataSourceDescription.timestamp | date:'long'}}</b></h5>
                         <hr>
-                        <div style="text-align: center">
+                        <div style="text-align: center" *ngIf="isOverviewNotIntervalView()">
                             <button mat-raised-button (click)="gotoPartialLineage(selectedDataSourceDescription.source.datasetsIds[0])">
                                 Show detailed lineage graph
                             </button>
@@ -67,12 +68,13 @@
                 <div *ngIf="selectedOperation">
                     <details-panel-header
                             [caption]="selectedOperation.appName"
-                            faIcon="fa-cogs"
+                            [faIcon]="getSelectedOperationIcon()"
                             iconColor="steelblue">
                     </details-panel-header>
                     <hr>
                     <h5>Application ID: <b>{{selectedOperation.appId}}</b></h5>
                     <h5>Timestamp: <b>{{selectedOperation.timestamp | date:'long'}}</b></h5>
+                    <h5>Type: <b>{{getSelectedOperationProcessingType()}}</b></h5>
                     <hr>
                     <div style="text-align: center">
                         <button mat-raised-button (click)="gotoPartialLineage(selectedOperation.mainProps.id)">

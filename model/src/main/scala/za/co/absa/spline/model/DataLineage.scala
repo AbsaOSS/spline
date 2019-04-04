@@ -42,8 +42,7 @@ case class DataLineage
   operations: Seq[Operation],
   datasets: Seq[MetaDataset],
   attributes: Seq[Attribute],
-  dataTypes: Seq[DataType],
-  writeIgnored: Boolean = false
+  dataTypes: Seq[DataType]
 ) {
   require(operations.nonEmpty, "list of operations cannot be empty")
   require(datasets.nonEmpty, "list of datasets cannot be empty")

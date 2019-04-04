@@ -16,7 +16,6 @@
 
 package za.co.absa.spline.persistence.mongo
 
-
 import org.slf4s.Logging
 import salat.grater
 import za.co.absa.spline.model.DataLineage
@@ -27,6 +26,7 @@ import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext._
 import scala.concurrent.{ExecutionContext, Future}
 
 class MongoDataLineageWriter(lineageDAO: LineageDAO) extends DataLineageWriter with Logging {
+
   override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = {
     log debug s"Storing lineage objects"
     lineageDAO.save(grater[DataLineage].asDBObject(lineage))

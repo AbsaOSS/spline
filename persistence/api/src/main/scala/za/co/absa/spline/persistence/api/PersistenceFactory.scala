@@ -17,7 +17,6 @@
 package za.co.absa.spline.persistence.api
 
 import org.apache.commons.configuration.Configuration
-import org.slf4s.Logging
 
 /**
   * The abstract class represents a factory of persistence readers and writers for all main data lineage entities.
@@ -25,7 +24,6 @@ import org.slf4s.Logging
   * @param configuration A source of settings
   */
 abstract class PersistenceFactory(protected val configuration: Configuration) extends Logging {
-
   /**
     * The method creates a writer to the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
@@ -34,9 +32,34 @@ abstract class PersistenceFactory(protected val configuration: Configuration) ex
   def createDataLineageWriter: DataLineageWriter
 
   /**
+    * The method creates a writer to the persistence layer for the [[za.co.absa.spline.model.streaming.ProgressEvent ProgressEvent]] entity.
+    *
+    * @return A writer to the persistence layer for the [[za.co.absa.spline.model.streaming.ProgressEvent ProgressEvent]] entity
+    */
+  def createProgressEventWriter: ProgressEventWriter
+
+  /**
     * The method creates a reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity.
     *
     * @return An optional reader from the persistence layer for the [[za.co.absa.spline.model.DataLineage DataLineage]] entity
     */
   def createDataLineageReader: Option[DataLineageReader]
+
+  def destroy(): Unit = ()
+}
+
+object PersistenceFactory extends Logging {
+
+  val PersistenceFactoryPropName = "spline.persistence.factory"
+
+  import za.co.absa.spline.common.ConfigurationImplicits._
+
+  def create(configuration: Configuration): PersistenceFactory = {
+    val persistenceFactoryClassName = configuration.getRequiredString(PersistenceFactoryPropName)
+    log debug s"Instantiating persistence factory: $persistenceFactoryClassName"
+    Class.forName(persistenceFactoryClassName)
+      .getConstructor(classOf[Configuration])
+      .newInstance(configuration)
+      .asInstanceOf[PersistenceFactory]
+  }
 }

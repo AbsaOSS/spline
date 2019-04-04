@@ -22,6 +22,7 @@ import org.scalatest._
 import za.co.absa.spline.common.ByteUnits._
 import za.co.absa.spline.fixture.{AsyncSparkFixture, AsyncSplineFixture}
 
+@Ignore
 class LineageToBSONSerializationSpec
   extends AsyncFlatSpec
     with Matchers

@@ -23,12 +23,12 @@ import scala.language.postfixOps
 object MareksJob extends SparkApp("Marek's Job", conf = Seq("spark.sql.shuffle.partitions" -> "4")) {
 
   // Initializing library to hook up to Apache Spark
-  import za.co.absa.spline.core.SparkLineageInitializer._
+  import za.co.absa.spline.harvester.SparkLineageInitializer._
 
   spark.enableLineageTracking()
 
   // A business logic of a spark job ...
-  val input = spark.read.option("header", "true").csv("data/input/batchWithDependencies/devIndicators.csv")
+  val input = spark.read.option("header", "true").csv("sample/data/input/batchWithDependencies/devIndicators.csv")
 
   val cleaned = input.select(
     $"Country Name" as "country_name",
@@ -40,12 +40,12 @@ object MareksJob extends SparkApp("Marek's Job", conf = Seq("spark.sql.shuffle.p
 
   val gdpPerCapita = cleaned.filter($"metric" === "GDP per capita (current US$)")
 
-  val beerConsumtion = spark.read.parquet("data/results/batchWithDependencies/beerConsCtl")
+  val beerConsumtion = spark.read.parquet("sample/data/results/batchWithDependencies/beerConsCtl")
 
   val result = beerConsumtion
     .join(gdpPerCapita, $"country_code" === $"Code", "inner")
     .select($"country_name", $"Year2011" as "beer_consumption", $"2011" as "gdp_per_capita")
     .sort($"beer_consumption" desc)
 
-  result.write.mode("overwrite").parquet("data/results/batchWithDependencies/gdpPerCapitaUSD")
+  result.write.mode("overwrite").parquet("sample/data/results/batchWithDependencies/gdpPerCapitaUSD")
 }

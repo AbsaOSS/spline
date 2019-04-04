@@ -18,7 +18,7 @@ package za.co.absa.spline.model.op
 
 import java.util.UUID
 
-import salat.annotations.{Persist, Salat}
+import salat.annotations.Salat
 import za.co.absa.spline.model.expr.Expression
 import za.co.absa.spline.model.{MetaDataSource, TypedMetaDataSource}
 
@@ -51,9 +51,6 @@ sealed trait Operation {
     * Common properties of all node types.
     */
   val mainProps: OperationProps
-
-  @Persist
-  val id: UUID = mainProps.id
 }
 
 object Operation {
@@ -66,8 +63,10 @@ object Operation {
       * @return A copy with new main properties
       */
     def updated(fn: OperationProps => OperationProps): T = (op.asInstanceOf[Operation] match {
-      case op@Read(mp, _, _) => op.copy(mainProps = fn(mp))
-      case op@Write(mp, _, _, _, _, _) => op.copy(mainProps = fn(mp))
+      case op@BatchRead(mp, _, _) => op.copy(mainProps = fn(mp))
+      case op@StreamRead(mp, _, _) => op.copy(mainProps = fn(mp))
+      case op@BatchWrite(mp, _, _, _, _, _) => op.copy(mainProps = fn(mp))
+      case op@StreamWrite(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Alias(mp, _) => op.copy(mainProps = fn(mp))
       case op@Filter(mp, _) => op.copy(mainProps = fn(mp))
       case op@Sort(mp, _) => op.copy(mainProps = fn(mp))
@@ -76,7 +75,7 @@ object Operation {
       case op@Join(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Union(mp) => op.copy(mainProps = fn(mp))
       case op@Projection(mp, _) => op.copy(mainProps = fn(mp))
-      case op@Composite(mp, _, _, _, _, _) => op.copy(mainProps = fn(mp))
+      case op@Composite(mp, _, _, _, _, _, _) => op.copy(mainProps = fn(mp))
     }).asInstanceOf[T]
   }
 
@@ -188,6 +187,11 @@ case class Alias(
                   alias: String
                 ) extends Operation
 
+@Salat
+sealed trait Write extends Operation {
+  def path: String
+  def destinationType: String
+}
 /**
   * The case class represents Spark operations for persisting data sets to HDFS, Hive etc. Operations are usually performed via DataFrameWriters.
   *
@@ -196,14 +200,25 @@ case class Alias(
   * @param path            A path to the place where data set will be stored (file, table, ...)
   * @param append          `true` for "APPEND" write mode, `false` otherwise.
   */
-case class Write(
+case class BatchWrite(
                   mainProps: OperationProps,
                   destinationType: String,
                   path: String,
                   append: Boolean,
-                  writeMetrics: Map[String, Long],
-                  readMetrics: Map[String, Long]
-                ) extends Operation
+                  writeMetrics: Map[String, Long] = Map.empty,
+                  readMetrics: Map[String, Long] = Map.empty
+                ) extends Write
+
+@Salat
+sealed trait Read extends Operation {
+  def sourceType: String
+  def sources: Seq[MetaDataSource]
+
+  def unapply(arg: Read): Option[(String, Seq[MetaDataSource])] = {
+    Some(arg.sourceType, sources)
+  }
+
+}
 
 /**
   * The case class represents Spark operations for loading data from HDFS, Hive, Kafka, etc.
@@ -213,11 +228,11 @@ case class Write(
   * @param sources    A sequence of meta data sources for the operation. When the data is read from multiple files by one "read" operation,
   *                   every file will be represented by one meta data source instance
   */
-case class Read(
+case class BatchRead(
                  mainProps: OperationProps,
                  sourceType: String,
                  sources: Seq[MetaDataSource]
-               ) extends Operation {
+               ) extends Read {
 
   private val knownSourceLineagesCount = sources.flatMap(_.datasetsIds).distinct.size
   private val inputDatasetsCount = mainProps.inputs.size
@@ -229,12 +244,24 @@ case class Read(
       s"But was $inputDatasetsCount and $knownSourceLineagesCount respectively")
 }
 
+case class StreamRead(
+                      mainProps: OperationProps,
+                      sourceType: String,
+                      sources: Seq[MetaDataSource]
+                     ) extends Read
+
+case class StreamWrite(
+                        mainProps: OperationProps,
+                        path: String,
+                        destinationType: String
+                      ) extends Write
+
 /**
   * The case class represents a partial data lineage at its boundary level.
   * I.e. only focusing on its inputs, output and related Spark application meta data, omitting all the transformations in between.
   *
   * @param mainProps   Common node properties
-  * @param sources     represents the embedded [[Read]] operations
+  * @param sources     represents the embedded [[BatchRead]] operations
   * @param destination represents the embedded [[Write]] operation
   * @param timestamp   output dataset lineage created timestamp
   * @param appId       related Spark application ID
@@ -246,7 +273,8 @@ case class Composite(
                       destination: TypedMetaDataSource,
                       timestamp: Long,
                       appId: String,
-                      appName: String
+                      appName: String,
+                      isBatchNotStream: Boolean
                     ) extends Operation {
   private def knownSourceLineagesCount = sources.flatMap(_.datasetsIds).distinct.size
 

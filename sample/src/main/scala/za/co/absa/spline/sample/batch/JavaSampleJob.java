@@ -18,7 +18,7 @@ package za.co.absa.spline.sample.batch;
 
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
-import za.co.absa.spline.core.SparkLineageInitializer;
+import za.co.absa.spline.harvester.SparkLineageInitializer;
 
 public class JavaSampleJob {
 
@@ -30,10 +30,10 @@ public class JavaSampleJob {
         session.read()
             .option("header", "true")
             .option("inferSchema", "true")
-            .csv("data/input/batch/wikidata.csv")
+            .csv("sample/data/input/batch/wikidata.csv")
             .as("source")
             .write()
             .mode(SaveMode.Overwrite)
-            .csv("data/output/batch/java-sample.csv");
+            .csv("sample/data/output/batch/java-sample.csv");
     }
 }

@@ -45,4 +45,9 @@ export class DatasetService {
 
         return this.overviewPromiseCache.getOrCreate(datasetId, fetchAndExpandCache)
     }
+
+    getLineageInterval(datasetId: string, from: number, to: number): Promise<IDataLineage> {
+        let url = `rest/dataset/${datasetId}/lineage/interval?from=${from}&to=${to}`;
+        return this.http.get<IDataLineage>(url).toPromise()
+    }
 }

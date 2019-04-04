@@ -21,14 +21,14 @@ import za.co.absa.spline.sample.SparkApp
 object OtherJob extends SparkApp("Other Job", conf = Seq("spark.sql.shuffle.partitions" -> "4")) {
 
   // Initializing library to hook up to Apache Spark
-  import za.co.absa.spline.core.SparkLineageInitializer._
+  import za.co.absa.spline.harvester.SparkLineageInitializer._
 
   spark.enableLineageTracking()
 
   // A business logic of a spark job ...
-  val beerConsumption = spark.read.parquet("data/results/batchWithDependencies/beerConsCtl")
+  val beerConsumption = spark.read.parquet("sample/data/results/batchWithDependencies/beerConsCtl")
 
   val result = beerConsumption.select($"Country", $"Code", $"Year2011" as "BeerConsumption2011")
 
-  result.write.mode("overwrite").parquet("data/results/batchWithDependencies/otherJobResults")
+  result.write.mode("overwrite").parquet("sample/data/results/batchWithDependencies/otherJobResults")
 }

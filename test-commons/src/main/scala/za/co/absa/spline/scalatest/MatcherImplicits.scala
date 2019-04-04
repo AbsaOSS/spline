@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.scalatest
 
+import org.scalactic.{AbstractStringUniformity, Uniformity}
 import org.scalatest.matchers.{MatchResult, Matcher}
 
 import scala.language.implicitConversions
@@ -26,6 +27,18 @@ trait MatcherImplicits {
 
   private class MatcherAdapter[T](matchingFn: T => MatchResult) extends Matcher[T] {
     override def apply(left: T): MatchResult = matchingFn(left)
+  }
+
+  val whiteSpaceNormalised: Uniformity[String] = new AbstractStringUniformity {
+    def normalized(s: String): String = s.replaceAll("\\s+", " ")
+
+    override def toString: String = "whiteSpaceNormalised"
+  }
+
+  val whiteSpaceRemoved: Uniformity[String] = new AbstractStringUniformity {
+    def normalized(s: String): String = s.replaceAll("\\s", "")
+
+    override def toString: String = "whiteSpaceRemoved"
   }
 
 }

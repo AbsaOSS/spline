@@ -16,6 +16,8 @@
 
 package za.co.absa.spline.persistence.mongo
 
+import java.io.Closeable
+
 import com.mongodb.casbah.Imports.MongoClientURI
 import com.mongodb.casbah.{MongoClient, MongoDB}
 import org.slf4s.Logging
@@ -31,11 +33,13 @@ class MongoConnectionImpl
   // TODO: REMOVE in Spline 0.4. Deprecated since 0.3.6
   dbName: => String = throw new IllegalArgumentException("The connection string must contain a database name")
 ) extends MongoConnection
+  with Closeable
   with Logging {
 
   private val clientUri = MongoClientURI(dbUrl)
   private val client: MongoClient = MongoClient(clientUri)
 
+  override def close(): Unit = client.close()
 
   val db: MongoDB = {
     val databaseName = clientUri.database getOrElse dbName

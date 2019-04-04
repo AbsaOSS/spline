@@ -21,18 +21,18 @@ import org.apache.spark.SparkContext
 import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.scalatest._
 
-trait AbstractSparkFixture extends BeforeAndAfterAll {
-
+trait AbstractSparkFixture {
   this: Suite =>
 
   AbstractSparkFixture.touch()
 
   protected val spark: SparkSession = SparkSession.builder.getOrCreate
-
   protected implicit lazy val sparkContext: SparkContext = spark.sparkContext
   protected implicit lazy val sqlContext: SQLContext = spark.sqlContext
 
-  abstract override protected def afterAll(): Unit = try super.afterAll() finally spark.stop()
+  def withNewSession[T >: AnyRef](testBody: SparkSession => T): T = {
+    testBody(spark.newSession)
+  }
 }
 
 trait SparkFixture extends AbstractSparkFixture with TestSuiteMixin {

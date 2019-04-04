@@ -25,25 +25,19 @@ import {
     SimpleChange,
     SimpleChanges
 } from "@angular/core";
-import { IDataLineage } from "../../../generated-ts/lineage-model";
+import {IDataLineage} from "../../../generated-ts/lineage-model";
 import "vis/dist/vis.min.css";
-import { visOptions } from "./vis-options";
-import { lineageToGraph, getLabel } from "./graph-builder";
+import {visOptions} from "./vis-options";
+import {lineageToGraph} from "./graph-builder";
 import * as vis from "vis";
 import * as _ from "lodash";
-import { ClusterManager } from "../../visjs/cluster-manager";
-import {
-    HighlightedVisClusterNode,
-    RegularVisClusterNode,
-    VisEdge,
-    VisNode,
-    VisNodeType
-} from "./graph.model";
-import { LineageStore } from "../lineage.store";
-import { OperationType } from "../types";
-import { VisModel } from "../../visjs/vis-model";
-import { Subscription } from "rxjs";
-import { ExpressionRenderService } from "../details/expression/expression-render.service";
+import {ClusterManager} from "../../visjs/cluster-manager";
+import {HighlightedVisClusterNode, RegularVisClusterNode, VisEdge, VisNode, VisNodeType} from "./graph.model";
+import {LineageStore} from "../lineage.store";
+import {OperationType} from "../types";
+import {VisModel} from "../../visjs/vis-model";
+import {Subscription} from "rxjs";
+import {ExpressionRenderService} from "../details/expression/expression-render.service";
 
 const isDistinct = (change: SimpleChange): boolean => change && !_.isEqual(change.previousValue, change.currentValue)
 
