@@ -16,8 +16,7 @@
 
 package za.co.absa.spline.core.conf
 
-import org.apache.spark.sql.streaming.StreamingQueryListener
-import org.apache.spark.sql.util.QueryExecutionListener
+import za.co.absa.spline.core.harvester.QueryExecutionEventHandler
 
 /**
   * The trait describes settings needed for initialization of the library.
@@ -28,9 +27,9 @@ trait SplineConfigurer {
 
   /**
     * A listener handling events from batch processing
-    * @return [[QueryExecutionListener]]
+    * @return [[QueryExecutionEventHandler]]
     */
-  def queryExecutionListener : QueryExecutionListener
+  def queryExecutionEventHandler: QueryExecutionEventHandler
 
   /**
     * Spline mode designates how Spline should behave in a context of a Spark application.
