@@ -46,8 +46,8 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase wit
       createDataLineage("appID5", "App Five", path = "file://some/path/5.csv", timestamp = 105),
       createDataLineage("appID6", "App Six", path = "file://some/path/6.csv", timestamp = 106),
       createDataLineage("appID7", "App Seven", path = "file://some/path/7.csv", timestamp = 107),
-      createDataLineage("appID8", "App Eight", path = "file://some/path/8.csv", timestamp = 108),
-      createDataLineage("appID9", "App Nine", path = "file://some/path/9.csv", timestamp = 109)
+      createDataLineage("appID8", "App Eight (text)", path = "file://some/path/8.csv", timestamp = 108),
+      createDataLineage("appID9", "App Nine (text2)", path = "file://some/path/9.csv", timestamp = 109)
     )
 
     it("should load descriptions from a database.") {
@@ -109,6 +109,15 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase wit
         foundSingleMatch should consistOfItemsWithAppIds[PersistedDatasetDescriptor](searchingLineage.appId)
         noResultByPrefix.iterator shouldBe empty
         noResultBySuffix.iterator shouldBe empty
+      }
+    }
+
+    it("should search verbatim text") {
+      for {
+        _ <- Future.sequence(testLineages.map(mongoWriter.store))
+        page <- mongoReader.findDatasets("(text)", EntireLatestContent)
+      } yield {
+        page should consistOfItemsWithAppIds[PersistedDatasetDescriptor]("appID8")
       }
     }
   }

@@ -47,7 +47,9 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
   protected lazy val dataLineageCollection: DBCollection = getMongoCollectionForComponent(Component.Root)
   protected lazy val operationCollection: DBCollection = getMongoCollectionForComponent(Component.Operation)
 
-  private final val NON_WORD_CHAR = "\\W".r
+  object BaselineLineageDao {
+    final val NON_WORD_CHAR = "\\W".r
+  }
 
   override def save(lineage: DBObject)(implicit e: ExecutionContext): Future[Unit] = {
     val lineageId = lineage.get(idField).toString
@@ -251,8 +253,8 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
     * @param text A string
     * @return A regular expression searching for the exact literal text string
     */
-  protected def quoteSafely(text: String): String = {
-    return NON_WORD_CHAR.replaceAllIn(text, "\\\\" + _.matched)
+  private def quoteSafely(text: String): String = {
+    BaselineLineageDao.NON_WORD_CHAR.replaceAllIn(text, m => s"\\\\${m.matched}")
   }
 
   /**
