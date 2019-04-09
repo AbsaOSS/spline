@@ -31,6 +31,7 @@ import za.co.absa.spline.persistence.api.DataLineageReader.{PageRequest, Timesta
 import za.co.absa.spline.persistence.mongo.MongoImplicits._
 import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component
 import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component.SubComponent
+import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.NON_WORD_CHAR
 import za.co.absa.spline.persistence.mongo.{DBCursorToCloseableIterableAdapter, MongoConnection}
 
 import scala.collection.JavaConverters._
@@ -46,10 +47,6 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
 
   protected lazy val dataLineageCollection: DBCollection = getMongoCollectionForComponent(Component.Root)
   protected lazy val operationCollection: DBCollection = getMongoCollectionForComponent(Component.Operation)
-
-  object BaselineLineageDao {
-    final val NON_WORD_CHAR = "\\W".r
-  }
 
   override def save(lineage: DBObject)(implicit e: ExecutionContext): Future[Unit] = {
     val lineageId = lineage.get(idField).toString
@@ -254,7 +251,7 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
     * @return A regular expression searching for the exact literal text string
     */
   private def quoteSafely(text: String): String = {
-    BaselineLineageDao.NON_WORD_CHAR.replaceAllIn(text, m => s"\\\\${m.matched}")
+    NON_WORD_CHAR.replaceAllIn(text, m => s"\\\\${m.matched}")
   }
 
   /**
@@ -296,6 +293,8 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
 }
 
 object BaselineLineageDAO {
+
+  final val NON_WORD_CHAR = "\\W".r
 
   abstract class Component(val name: String)
 
