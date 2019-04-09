@@ -53,7 +53,7 @@ sparkSession.enableLineageTracking()
 
 ### download [Spline Web UI executable JAR](https://search.maven.org/remotecontent?filepath=za/co/absa/spline/spline-web/{{site.spline.version}}/spline-web-{{site.spline.version}}-exec-war.jar) and run:
 ```shell
-java -jar spline-web-{{site.spline.version}}-exec-war.jar -Dspline.mongodb.url=... -Dspline.mongodb.name=...
+java -jar spline-web-{{site.spline.version}}-exec-war.jar -Dspline.mongodb.url=...
 ```
 
 ### in your browser open [localhost:8080](http://localhost:8080) and you will get:
@@ -108,7 +108,7 @@ There are two ways how to run Spline Web UI:
 ###### Standalone application (executable JAR)
 
 Execute: <br>
-```java -jar spline-web-{{site.spline.version}}-exec-war.jar -Dspline.mongodb.url=... -Dspline.mongodb.name=...```
+```java -jar spline-web-{{site.spline.version}}-exec-war.jar -Dspline.mongodb.url=...```
 and then point your browser to [http://localhost:8080](http://localhost:8080).
 
 To change the port number from *8080* to say *1234* add ```-httpPort 1234``` to the command line.
@@ -121,8 +121,7 @@ section.
 1. In your Java web container (e.g. Tomcat) setup the Spline database connection properties
 (either via system environment variables or JVM system properties) in the following format:
     ```properties
-    spline.mongodb.url=mongodb://11.22.33.44
-    spline.mongodb.name=my_lineage_database_name
+    spline.mongodb.url=mongodb://11.22.33.44/my_lineage_database_name
     ```
 
 1. Deploy Spline WAR file to your Java web container (tested on Tomcat 7, but other containers should also work)
@@ -178,8 +177,7 @@ def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfig
 
 | Property | Description | Example
 | --- | --- | --- |
-| `spline.mongodb.url` | Mongo connection URL <br> | mongodb://1.2.3.4
-| `spline.mongodb.name` | Mongo database name <br> | my_job_lineage_data
+| `spline.mongodb.url` | Mongo connection URL <br> | mongodb://1.2.3.4/my_lineage_database
 
 #### Composition Factories Only
 
