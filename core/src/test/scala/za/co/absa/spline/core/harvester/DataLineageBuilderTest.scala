@@ -58,12 +58,16 @@ object DataLineageBuilderTest extends MockitoSugar {
   private def lineageBuilderFor(df: DataFrame)(implicit sparkContext: SparkContext): DataLineageBuilder = {
     val plan = df.queryExecution.analyzed
     val mockWriteCommandParser = mock[WriteCommandParser[LogicalPlan]]
+    val mockJdbcCommandParser = mock[WriteCommandParser[LogicalPlan]]
 
     val factory = mock[WriteCommandParserFactory]
 
     when(mockWriteCommandParser asWriteCommandIfPossible any()) thenReturn None
+    when(mockJdbcCommandParser asWriteCommandIfPossible any()) thenReturn None
+
     when(factory writeParser()) thenReturn mockWriteCommandParser
     when(factory saveAsTableParser(any())) thenReturn mockWriteCommandParser
+    when(factory jdbcParser()) thenReturn mockJdbcCommandParser
 
     new DataLineageBuilder(plan, None, sparkContext)(mock[Configuration], factory)
   }
