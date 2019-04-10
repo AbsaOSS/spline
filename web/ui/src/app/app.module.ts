@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { NgModule } from "@angular/core";
-import { BrowserModule } from "@angular/platform-browser";
-import { RouterModule, Routes, UrlSegment } from "@angular/router";
+import {NgModule} from "@angular/core";
+import {BrowserModule} from "@angular/platform-browser";
+import {RouterModule, Routes, UrlSegment} from "@angular/router";
 import "hammerjs/hammer";
 import {AppComponent} from "./app.component";
 import {DashboardModule} from "./dashboard/dashboard.module";
@@ -39,22 +39,22 @@ const lineageRoute = {
     component: LineageComponent,
     matcher: (url: UrlSegment[]) =>
         (url.length === 0)
-            ? { consumed: url }
+            ? {consumed: url}
             : (url.length === 2 && url[0].path === 'op')
-                ? { consumed: url, posParams: { 'operationId': url[1] } }
-                : null
+            ? {consumed: url, posParams: {'operationId': url[1]}}
+            : null
 }
 
 const datasetRoute = {
     path: "dataset/:id",
-    resolve: { dataset: PersistentDatasetResolver },
+    resolve: {dataset: PersistentDatasetResolver},
     children: [
         {
             path: "lineage",
             children: [
                 {
                     path: "overview",
-                    resolve: { lineage: DatasetLineageOverviewResolver },
+                    resolve: {lineage: DatasetLineageOverviewResolver},
                     component: DatasetLineageOverviewComponent
                 },
                 {
@@ -64,7 +64,7 @@ const datasetRoute = {
                 },
                 {
                     path: "partial",
-                    resolve: { lineage: LineageByDatasetIdResolver },
+                    resolve: {lineage: LineageByDatasetIdResolver},
                     children: [lineageRoute]
                 },
             ]
@@ -100,7 +100,7 @@ const routes: Routes = [
 @NgModule({
     imports: [
         BrowserModule,
-        RouterModule.forRoot(routes, { enableTracing: false }),
+        RouterModule.forRoot(routes, {enableTracing: false}),
         XHRTimeoutRectifierModule,
         DashboardModule,
         LineageModule,
