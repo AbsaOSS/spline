@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import {Injectable} from "@angular/core";
-import {IAttribute, IDataLineage, IDataType, IMetaDataset, IOperation} from "../../generated-ts/lineage-model";
-import {Observable, ReplaySubject, Subject} from "rxjs";
+import { Injectable } from "@angular/core";
+import { IAttribute, IDataLineage, IDataType, IMetaDataset, IOperation } from "../../generated-ts/lineage-model";
+import { Observable, ReplaySubject, Subject } from "rxjs";
 import * as _ from "lodash";
-import {typeOfOperation} from "./types";
+import { typeOfOperation } from "./types";
 
 @Injectable()
 export class LineageStore {
 
-    private _lineage$: Subject<IDataLineage> = new ReplaySubject()
+    private _lineage$: Subject<IDataLineage> = new ReplaySubject(1)
 
     public get lineage$(): Observable<IDataLineage> {
         return this._lineage$

@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import {Component, OnDestroy, OnInit} from "@angular/core";
-import {ActivatedRoute, Router} from "@angular/router";
-import {IAttribute, IDataLineage} from "../../../generated-ts/lineage-model";
-import {combineLatest, Observable, Subscription} from "rxjs";
+import { Component, OnDestroy, OnInit } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
+import { IAttribute, IDataLineage } from "../../../generated-ts/lineage-model";
+import { combineLatest, Observable, Subscription } from "rxjs";
 import * as _ from "lodash";
-import {GraphNode, GraphNodeType} from "./lineage-overview.model";
-import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
-import {LineageAccessors, LineageStore} from "../../lineage/lineage.store";
-import {distinctUntilChanged, filter, map} from "rxjs/operators";
+import { GraphNode, GraphNodeType } from "./lineage-overview.model";
+import { IComposite, ITypedMetaDataSource } from "../../../generated-ts/operation-model";
+import { LineageAccessors, LineageStore } from "../../lineage/lineage.store";
+import { distinctUntilChanged, filter, map } from "rxjs/operators";
 
 @Component({
     templateUrl: "lineage-overview.component.html",
@@ -30,7 +30,7 @@ import {distinctUntilChanged, filter, map} from "rxjs/operators";
     providers: [LineageStore]
 })
 
-export class DatasetLineageOverviewComponent implements OnInit, OnDestroy{
+export class DatasetLineageOverviewComponent implements OnInit, OnDestroy {
 
     selectedNode$: Observable<GraphNode>
 
@@ -74,7 +74,7 @@ export class DatasetLineageOverviewComponent implements OnInit, OnDestroy{
     }
 
     updateSelectedState(linAccessors: LineageAccessors, node: GraphNode) {
-        let compositeOp = <IComposite> linAccessors.getOperation(node.id)
+        let compositeOp = <IComposite>linAccessors.getOperation(node.id)
         switch (node.type) {
             case "operation":
                 this.selectedDataSourceDescription = undefined
@@ -85,7 +85,7 @@ export class DatasetLineageOverviewComponent implements OnInit, OnDestroy{
                     attrs = selectedDataset.schema.attrs.map(attrId => linAccessors.getAttribute(attrId))
                 this.selectedDataSourceDescription = {
                     source: compositeOp.destination,
-                    schema: {attrs: attrs},
+                    schema: { attrs: attrs },
                     timestamp: compositeOp.timestamp
                 }
                 this.selectedOperation = undefined
