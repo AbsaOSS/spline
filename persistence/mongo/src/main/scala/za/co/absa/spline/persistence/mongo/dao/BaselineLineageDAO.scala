@@ -36,6 +36,7 @@ import za.co.absa.spline.persistence.mongo.{DBCursorToCloseableIterableAdapter, 
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future, blocking}
+import scala.util.matching.Regex.quoteReplacement
 
 abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
 
@@ -251,7 +252,7 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
     * @return A regular expression searching for the exact literal text string
     */
   private def quoteSafely(text: String): String = {
-    NON_WORD_CHAR.replaceAllIn(text, m => s"\\\\${m.matched}")
+    NON_WORD_CHAR.replaceAllIn(text, m => s"\\\\${quoteReplacement(m.matched)}")
   }
 
   /**
