@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
-import { LineageGraphService } from 'src/app/services/lineage/lineage-graph.service';
-import { Observable } from 'rxjs';
+import {Component} from '@angular/core';
+import {LineageGraphService} from 'src/app/services/lineage/lineage-graph.service';
 
 @Component({
   selector: 'lineage-details',

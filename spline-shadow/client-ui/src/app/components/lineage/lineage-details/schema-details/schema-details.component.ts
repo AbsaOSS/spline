@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ComponentFactoryResolver, ViewContainerRef, AfterViewInit, ViewChildren, QueryList, ChangeDetectorRef } from '@angular/core';
+import { Component, ComponentFactoryResolver, ViewContainerRef, AfterViewInit, ViewChildren, QueryList, ChangeDetectorRef, Input } from '@angular/core';
 import { LineageGraphService } from 'src/app/services/lineage/lineage-graph.service';
 import { OperationType, ExpressionComponents } from 'src/app/types/operationType';
 import { IExpression, ILiteral, IBinary, IAttrRef, IAlias, IUDF, IGenericLeaf, IGeneric } from 'src/app/viewModels/expression-model';
@@ -21,6 +21,8 @@ import * as _ from 'lodash';
 import { Expression } from 'src/app/viewModels/expression';
 import { ExpressionType } from 'src/app/types/expressionType';
 import { ExecutedLogicalPlanVM } from 'src/app/viewModels/executedLogicalPlanVM';
+import { OperationDetailsVM } from 'src/app/viewModels/operationDetailsVM';
+import { AttributeVM } from 'src/app/viewModels/attributeVM';
 
 
 @Component({
@@ -45,8 +47,8 @@ export class SchemaDetailsComponent implements AfterViewInit {
       if (container) {
         container.remove(0)
       }
-      if (this.getDetails()) {
-        const type = this.getType(this.getDetails())
+      const type = this.getType()
+      if (type) {
         const factory = this.componentFactoryResolver.resolveComponentFactory(ExpressionComponents.get(type))
         let instance = container.createComponent(factory).instance
         instance.expressions = this.getExpressions(this.getDetails())
@@ -56,23 +58,28 @@ export class SchemaDetailsComponent implements AfterViewInit {
     })
   }
 
-  getDetails(): any {
+  getDetails(): OperationDetailsVM {
     return this.lineageGraphService.detailsInfo
   }
 
   getIcon(): string {
-    return this.getDetails() ? String.fromCharCode(this.lineageGraphService.getIconFromOperationType(this.getType(this.getDetails()))) : undefined
+    return this.getDetails()
+      ? String.fromCharCode(this.lineageGraphService.getIconFromOperationType(this.getType()))
+      : undefined
   }
 
   getOperationColor(): string {
-    return this.getDetails() ? this.lineageGraphService.getColorFromOperationType(this.getType(this.getDetails())) : undefined
+    return this.getDetails()
+      ? this.lineageGraphService.getColorFromOperationType(this.getType())
+      : undefined
   }
 
-  getType(property?: any): any {
-    if (!property) {
-      property = this.getDetails()
-    }
-    return property._typeHint ? property._typeHint.split('.').pop() : undefined
+  getType(property?: any): string {
+    return property
+      ? property._type
+      : this.getDetails()
+        ? this.getDetails().operation.name
+        : undefined
   }
 
   getExpressions(property: any): Expression[] {
@@ -90,14 +97,14 @@ export class SchemaDetailsComponent implements AfterViewInit {
         if (property.transformations) {
           const title = "Transformations"
           const values = new Array()
-          _.each(property.transformations, transformation => values.push(this.getText(transformation)))
+          property.transformations.forEach(transformation => values.push(this.getText(transformation)))
           const transformationExpression: Expression = new Expression(title, values)
           expressions.push(transformationExpression)
         }
         // Build the dropped Attributes expressions
         let inputs = []
-        _.each(property.mainProps.inputs, schemaIndex => inputs = _.concat(inputs, property.mainProps.schemas[schemaIndex]))
-        const output = property.mainProps.schemas[property.mainProps.output]
+        _.each(property.inputs, schemaIndex => inputs = _.concat(inputs, property.schemas[schemaIndex]))
+        const output = property.schemas[property.output]
         const diff = _.differenceBy(inputs, output, 'name')
         if (diff.length > 0) {
           const title = "Dropped Attributes"
@@ -168,20 +175,20 @@ export class SchemaDetailsComponent implements AfterViewInit {
     }
   }
 
-  getInputs(): any[] {
+  getInputSchemas(): AttributeVM[] {
     if (this.getDetails()) {
-      let inputs = []
-      this.getDetails().mainProps.inputs.forEach(input => {
-        inputs.push(this.getDetails().mainProps.schemas[input])
+      let inputSchemas = []
+      this.getDetails().inputs.forEach(input => {
+        inputSchemas.push(this.getDetails().schemas[input])
       })
-      return inputs
+      return inputSchemas
     } else {
       return null
     }
   }
 
-  getOutput(): any {
-    return this.getDetails() ? this.getDetails().mainProps.schemas[this.getDetails().mainProps.output] : null
+  getOutputSchema(): AttributeVM[] {
+    return this.getDetails() ? this.getDetails().schemas[this.getDetails().output] : null
   }
 
   getExecutionPlanVM(): ExecutedLogicalPlanVM {

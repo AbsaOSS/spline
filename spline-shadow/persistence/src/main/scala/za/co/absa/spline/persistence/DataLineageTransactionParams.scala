@@ -72,7 +72,7 @@ object DataLineageTransactionParams {
     )
   }
 
-  @inline private def getDSId(ln:DataLineage): String = ln.rootDataset.id.toString
+  @inline private def getDSId(ln: DataLineage): String = ln.rootDataset.id.toString
 
   private def createExecutes(dataLineage: DataLineage) =
     Seq(Executes("execution/" + getDSId(dataLineage), "operation/" + dataLineage.rootOperation.mainProps.id, Some(getDSId(dataLineage))))
@@ -91,7 +91,7 @@ object DataLineageTransactionParams {
   }
 
   private def createExecution(dataLineage: DataLineage) = {
-    val dataTypes = dataLineage.dataTypes
+    val dataTypes = dataLineage.dataTypes.toArray
       .map(createDataType)
     val extras = Map(
       "sparkVer" -> dataLineage.sparkVer,

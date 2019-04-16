@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 ABSA Group Limited
+ * Copyright 2019 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ import { Component, Input, ViewChild, ViewEncapsulation, AfterViewInit } from '@
 import { PropertyService } from 'src/app/services/details/property.service';
 import { RouterService } from 'src/app/services/router/router.service';
 import * as _ from 'lodash';
+import { AttributeVM } from 'src/app/viewModels/attributeVM';
+import { PropertyType } from 'src/app/types/propertyType';
 
 
 @Component({
@@ -31,7 +33,7 @@ export class SchemaTableComponent implements AfterViewInit {
   table: any
 
   @Input()
-  schema: any
+  schema: AttributeVM[]
 
   @Input()
   schemaId: string
@@ -63,7 +65,7 @@ export class SchemaTableComponent implements AfterViewInit {
             paramsSubscriber.table.offset = page
             // TODO : Remove the setTimeout as soon as this issue is fixed :https://github.com/swimlane/ngx-datatable/issues/1204
             setTimeout(function () {
-              if (selectedRowContent.dataType._typeHint != 'za.co.absa.spline.core.model.dt.Simple') {
+              if (selectedRowContent.dataType._type != PropertyType.Simple) {
                 paramsSubscriber.table.rowDetail.toggleExpandRow(selectedRowContent)
               }
             })
@@ -76,15 +78,15 @@ export class SchemaTableComponent implements AfterViewInit {
   /**
    * Gets selected row from name
    * @param name the name of the property
-   * @returns a tuple containing the row itself and it's index in case the table is pageable
+   * @returns a tuple containing the AttributeVM of the row and its index in case the table is pageable
    */
-  getSelectedRowFromName(name) {
+  getSelectedRowFromName(name: string): [number, AttributeVM] {
     const index = _.findIndex(this.table.rows, { name: name })
     return [index, this.table.rows[index]]
   }
 
 
-  getChildSchemaId(parentSchemaId, rowName) {
+  getChildSchemaId(parentSchemaId: string, rowName: string): string {
     return parentSchemaId + "." + rowName
   }
 
@@ -92,12 +94,12 @@ export class SchemaTableComponent implements AfterViewInit {
     const selectedProperty = selected[0]
     this.routerService.mergeParam({ schemaId: this.schemaId, property: selectedProperty.name })
     this.propertyService.changeCurrentProperty(selectedProperty)
-    if (selectedProperty.dataType._typeHint != 'za.co.absa.spline.core.model.dt.Simple') {
+    if (selectedProperty.dataType._type != PropertyType.Simple) {
       this.table.rowDetail.toggleExpandRow(selectedProperty)
     }
   }
 
-  getPropertyType(propertyType: any): any {
+  getPropertyType(propertyType: AttributeVM): string {
     return this.propertyService.getPropertyType(propertyType)
   }
 

@@ -26,7 +26,7 @@ case class Progress(
 
 case class Execution(
     id: String,
-    dataTypes: Seq[DataType],
+    dataTypes: Array[DataType],
     startTime: Option[Long],
     endTime: Option[Long],
     extra: Map[String, Any],
@@ -38,14 +38,12 @@ case class Execution(
 trait DataType {
   def _key: String
   def nullable: Boolean
-  def _type: String
 }
 
 case class SimpleDataType(
      override val _key: String,
      override val nullable: Boolean,
-     name: String,
-     override val _type: String = "Simple"
+     name: String
  ) extends DataType {
 
   def this() = this("", true, "")
@@ -63,8 +61,7 @@ case class StructDataTypeField(
 case class StructDataType(
      override val _key: String,
      override val nullable: Boolean,
-     fields: Seq[StructDataTypeField],
-    override val _type: String = "Struct"
+     fields: Seq[StructDataTypeField]
   ) extends DataType {
 
   def this() = this("", true, null)
@@ -74,8 +71,7 @@ case class StructDataType(
 case class ArrayDataType(
      override val _key: String,
      override val nullable: Boolean,
-     elementDataTypeKey: String,
-     override val _type: String = "Array"
+     elementDataTypeKey: String
   ) extends DataType {
 
   def this() = this("", true, "")
@@ -156,7 +152,7 @@ case class DataSource(
 
 case class Attribute(
     name: String,
-    dataTypeId: String
+    dataTypeKey: String
   ) {
 
   def this() = this("", "")
