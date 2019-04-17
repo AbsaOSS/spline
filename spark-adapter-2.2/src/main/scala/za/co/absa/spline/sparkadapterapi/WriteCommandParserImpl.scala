@@ -25,6 +25,8 @@ class WriteCommandParserFactoryImpl extends WriteCommandParserFactory {
   override def writeParser(): WriteCommandParser[LogicalPlan] = new WriteCommandParserImpl()
 
   override def saveAsTableParser(clusterUrl: Option[String]): WriteCommandParser[LogicalPlan] = new SaveAsTableCommandParserImpl(clusterUrl)
+
+  override def jdbcParser(): WriteCommandParser[LogicalPlan] = new SaveJdbcCommandParserImpl()
 }
 
 class SaveAsTableCommandParserImpl(clusterUrl: Option[String]) extends WriteCommandParser[LogicalPlan] {
@@ -35,15 +37,31 @@ class SaveAsTableCommandParserImpl(clusterUrl: Option[String]) extends WriteComm
 
     val identifier = op.table.storage.locationUri match {
       case Some(location) => location.toURL.toString
-      case _ => {
+      case _ =>
         val codec = new URLCodec()
-        SaveAsTableCommand.protocolPrefix +
-          codec.encode(clusterUrl.getOrElse("default")) + ":" +
-          codec.encode(op.table.identifier.database.getOrElse("default")) +":" +
+        URIPrefixes.managedTablePrefix +
+          codec.encode(clusterUrl.getOrElse(throw new IllegalArgumentException("Unknown cluster name."))) + ":" +
+          codec.encode(op.table.identifier.database.getOrElse("default")) + ":" +
           codec.encode(op.table.identifier.table)
-      }
     }
     SaveAsTableCommand(identifier, op.mode, "table", op.query)
+  }
+}
+
+class SaveJdbcCommandParserImpl extends WriteCommandParser[LogicalPlan] {
+  override def matches(operation: LogicalPlan): Boolean = {
+    operation.isInstanceOf[SaveIntoDataSourceCommand] &&
+    operation.asInstanceOf[SaveIntoDataSourceCommand].provider == "jdbc"
+  }
+
+  override def asWriteCommand(operation: LogicalPlan): AbstractWriteCommand = {
+    operation match {
+      case op:SaveIntoDataSourceCommand =>
+        val url = op.options.getOrElse("url", throw new NoSuchElementException("Cannot get name of JDBC connection string."))
+        val table = op.options.getOrElse("dbtable", throw new NoSuchElementException("Cannot get name of JDBC table."))
+        val identifier = s"${URIPrefixes.jdbcTablePrefix}$url:$table"
+        SaveJDBCCommand(identifier, op.mode, "jdbc", op.query)
+    }
   }
 }
 

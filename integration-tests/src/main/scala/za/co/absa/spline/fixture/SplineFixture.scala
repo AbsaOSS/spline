@@ -16,12 +16,13 @@
 
 package za.co.absa.spline.fixture
 
+import java.util.Properties
 import java.{util => ju}
 
 import com.mongodb.casbah.MongoDB
 import com.mongodb.{DBCollection, DBObject}
 import org.apache.commons.configuration.Configuration
-import org.apache.spark.sql.{DataFrame, SaveMode}
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.bson.BSON
 import org.mockito.Mockito._
 import org.mockito.invocation.InvocationOnMock
@@ -51,6 +52,10 @@ trait AbstractSplineFixture
 
   AbstractSplineFixture.touch()
 
+//  def withNewSession[T >: AnyRef](testBody: SparkSession => T): T = {
+//    testBody(spark.newSession)
+//  }
+
   abstract override protected def beforeAll(): Unit = {
     import za.co.absa.spline.harvester.SparkLineageInitializer._
     spark.enableLineageTracking()
@@ -79,13 +84,19 @@ trait AsyncSplineFixture extends AbstractSplineFixture with AsyncTestSuiteMixin 
   abstract override def withFixture(test: NoArgAsyncTest): FutureOutcome = exec {
     super.withFixture(test)
   }
+
+  def withSplineEnabled[T](session:SparkSession)(testBody: => T) = {
+    import za.co.absa.spline.harvester.SparkLineageInitializer._
+    session.enableLineageTracking()
+    testBody
+  }
 }
 
 object AbstractSplineFixture {
 
   import scala.concurrent.{ExecutionContext, Future}
 
-//  System.getProperties.setProperty(PERSISTENCE_FACTORY, classOf[TestPersistenceFactory].getName)
+  //System.getProperties.setProperty(PERSISTENCE_FACTORY, classOf[TestPersistenceFactory].getName)
 
   private var justCapturedLineage: DataLineage = _
 
@@ -119,6 +130,15 @@ object AbstractSplineFixture {
       /** Writes dataframe to table and returns captured lineage*/
       def saveAsTableLineage(tableName: String = "tableName", mode: SaveMode = SaveMode.ErrorIfExists): DataLineage = {
         df.write.mode(mode).saveAsTable(tableName)
+        AbstractSplineFixture.justCapturedLineage
+      }
+
+      /** Writes dataframe to table and returns captured lineage*/
+      def jdbcLineage(connectionString:String,
+                      tableName:String,
+                      properties:Properties = new Properties(),
+                      mode: SaveMode = SaveMode.ErrorIfExists): DataLineage = {
+        df.write.mode(mode).jdbc(connectionString, tableName, properties)
         AbstractSplineFixture.justCapturedLineage
       }
     }

@@ -24,13 +24,11 @@ import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.{DataSource, HadoopFsRelation, LogicalRelation}
 import org.apache.spark.sql.sources.BaseRelation
 import org.apache.spark.sql.{JDBCRelation, SaveMode}
-import za.co.absa.spline.sparkadapterapi.WriteCommand
+import za.co.absa.spline.sparkadapterapi.{DataSourceInfo, SaveAsTableCommand, SaveJDBCCommand, WriteCommand}
 import za.co.absa.spline.model.endpoint._
 import za.co.absa.spline.model.{op, _}
-import za.co.absa.spline.sparkadapterapi.{DataSourceInfo, SaveAsTableCommand}
 import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation}
 import za.co.absa.spline.sparkadapterapi.StreamingRelationAdapter.instance.extractDataSourceInfo
-import za.co.absa.spline.sparkadapterapi.{DataSourceInfo, WriteCommand}
 
 sealed trait OperationNodeBuilder {
 
@@ -167,6 +165,27 @@ class StreamReadNodeBuilder
 
 class SaveAsTableNodeBuilder
 (val operation: SaveAsTableCommand, val writeMetrics: Map[String, Long], val readMetrics: Map[String, Long])
+(implicit val componentCreatorFactory: ComponentCreatorFactory)
+  extends OperationNodeBuilder with RootNode {
+
+  override val output: AttrGroup = new AttrGroup(operation.query.output)
+
+  override def build() = op.BatchWrite(
+    operationProps,
+    operation.format,
+    operation.tableName,
+    append = operation.mode == SaveMode.Append,
+    writeMetrics = writeMetrics,
+    readMetrics = readMetrics
+  )
+
+  override def ignoreLineageWrite:Boolean = {
+    false
+  }
+}
+
+class SaveJDBCCommandNodeBuilder
+(val operation: SaveJDBCCommand, val writeMetrics: Map[String, Long], val readMetrics: Map[String, Long])
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
   extends OperationNodeBuilder with RootNode {
 
