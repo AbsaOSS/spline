@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 ABSA Group Limited
+ * Copyright 2019 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,59 +19,36 @@ package za.co.absa.spline.harvester.listener
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.execution.QueryExecution
 import org.apache.spark.sql.util.QueryExecutionListener
-import org.slf4s.Logging
-import za.co.absa.spline.harvester.{DataLineageBuilderFactory, LineageDispatcher}
-import za.co.absa.spline.model.{DataLineage, _}
+import za.co.absa.spline.harvester.QueryExecutionEventHandler
+import za.co.absa.spline.harvester.SparkLineageInitializer.createEventHandler
+import za.co.absa.spline.harvester.listener.SplineQueryExecutionListener._
 
-import scala.language.postfixOps
+class SplineQueryExecutionListener(maybeEventHandlerConstructor: => Option[QueryExecutionEventHandler]) extends QueryExecutionListener {
 
-class SplineQueryExecutionListener(
-  harvesterFactory: DataLineageBuilderFactory,
-  lineageDispatcher: LineageDispatcher,
-  sparkSession: SparkSession) extends QueryExecutionListener with Logging {
+  private lazy val maybeEventHandler: Option[QueryExecutionEventHandler] = maybeEventHandlerConstructor
 
   /**
-    * The method is executed when an action execution is successful.
-    *
-    * @param funcName   A name of the executed action.
-    * @param qe         A Spark object holding lineage information (logical, optimized, physical plan)
-    * @param durationNs Duration of the action execution [nanoseconds]
+    * Listener delegate is lazily evaluated as Spline initialization requires completely initialized SparkSession
+    * to be able to use sessionState for duplicate tracking prevention.
     */
-  def onSuccess(funcName: String, qe: QueryExecution, durationNs: Long): Unit = {
-    log debug s"Action '$funcName' execution succeeded"
+  def this() = this(constructEventHandler())
 
-    if (funcName == "save" || funcName == "saveAsTable" ) {
-      log debug s"Start tracking lineage for action '$funcName'"
+  override def onSuccess(funcName: String, qe: QueryExecution, durationNs: Long): Unit =
+      maybeEventHandler.foreach(_.onSuccess(funcName, qe, durationNs))
 
-      val maybeLineage =
-        harvesterFactory.
-          createBuilder(qe.analyzed, Some(qe.executedPlan), qe.sparkSession.sparkContext).
-          buildLineage()
+  override def onFailure(funcName: String, qe: QueryExecution, exception: Exception): Unit =
+      maybeEventHandler.foreach(_.onFailure(funcName, qe, exception))
 
-      maybeLineage match {
-        case None => log debug s"The write result was ignored. Skipping lineage."
-        case Some(lineage) =>  send(lineage)
-      }
+}
 
-      log debug s"Lineage tracking for action '$funcName' is done."
-    } else {
-      log debug s"Skipping lineage tracking for action '$funcName'"
-    }
+object SplineQueryExecutionListener {
+
+  private def constructEventHandler(): Option[QueryExecutionEventHandler] = {
+    val sparkSession = SparkSession.getActiveSession
+      .orElse(SparkSession.getDefaultSession)
+      .getOrElse(throw new IllegalStateException("Session is unexpectedly missing. Spline cannot be initialized."))
+    createEventHandler(sparkSession)
   }
 
-  private def send(dataLineage: DataLineage): Unit = {
-    lineageDispatcher.send(dataLineage)
-  }
-
-  /**
-    * The method is executed when an error occurs during an action execution.
-    *
-    * @param funcName  A name of the executed action.
-    * @param qe        A Spark object holding lineage information (logical, optimized, physical plan)
-    * @param exception An exception describing the reason of the error
-    */
-  def onFailure(funcName: String, qe: QueryExecution, exception: Exception): Unit = {
-    log.error(s"Action '$funcName' execution failed", exception)
-  }
 }
 

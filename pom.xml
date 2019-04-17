@@ -59,6 +59,9 @@
         <module>spark-adapter-2.2</module>
         <module>spark-adapter-2.3</module>
         <module>spark-adapter-2.4</module>
+        <module>bundle-2.2</module>
+        <module>bundle-2.3</module>
+        <module>bundle-2.4</module>
         <module>web</module>
         <module>spline-shadow</module>
         <module>sample</module>

@@ -18,7 +18,6 @@ package za.co.absa.spline.persistence.mongo.dao
 
 import java.util.Arrays._
 import java.util.UUID
-import java.util.regex.Pattern.quote
 
 import com.mongodb.casbah.AggregationOptions.{default => aggOpts}
 import com.mongodb.casbah.Imports._
@@ -32,10 +31,12 @@ import za.co.absa.spline.persistence.api.DataLineageReader.{IntervalPageRequest,
 import za.co.absa.spline.persistence.mongo.MongoImplicits._
 import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component
 import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component.SubComponent
+import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.NON_WORD_CHAR
 import za.co.absa.spline.persistence.mongo.{DBCursorToCloseableIterableAdapter, MongoConnection}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future, blocking}
+import scala.util.matching.Regex.quoteReplacement
 
 abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
 
@@ -237,11 +238,23 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
     )
     val optionalTextSearchCriterion = maybeText map {
       text =>
-        val regexMatchOnFieldsCriteria = Seq("appId", "appName", "rootOperation.path") map (_ $regex quote(text) $options "i")
+        val regexMatchOnFieldsCriteria = Seq("appId", "appName", "rootOperation.path") map (_ $regex quoteSafely(text) $options "i")
         val optDatasetIdMatchCriterion = UUIDExtractor unapply text.toLowerCase map (uuid => DBObject("rootDataset._id" → uuid))
         $or(regexMatchOnFieldsCriteria ++ optDatasetIdMatchCriterion)
     }
     $and(paginationDeduplicationCriteria ++ optionalTextSearchCriterion)
+  }
+
+  /**
+    * Escape special characters in a regular expression.
+    * Does not use Pattern.quote() for Cosmos DB compatibility.
+    * @see <a href="https://github.com/AbsaOSS/spline/issues/166">issue #166</a>
+    *
+    * @param text A string
+    * @return A regular expression searching for the exact literal text string
+    */
+  private def quoteSafely(text: String): String = {
+    NON_WORD_CHAR.replaceAllIn(text, m => s"\\\\${quoteReplacement(m.matched)}")
   }
 
   /**
@@ -288,6 +301,8 @@ abstract class BaselineLineageDAO extends VersionedLineageDAO with Logging {
 }
 
 object BaselineLineageDAO {
+
+  final val NON_WORD_CHAR = "\\W".r
 
   abstract class Component(val name: String)
 

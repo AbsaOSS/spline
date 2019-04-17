@@ -17,11 +17,13 @@
 package za.co.absa.spline.harvester
 
 import org.apache.commons.configuration._
+import org.apache.spark
 import org.apache.spark.sql.SparkSession
 import org.slf4s.Logging
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.harvester.conf.{DefaultSplineConfigurer, HadoopConfiguration, SparkConfiguration, SplineConfigurer}
+import za.co.absa.spline.harvester.listener.SplineQueryExecutionListener
 import za.co.absa.spline.sparkadapterapi.SparkVersionRequirement
 
 import scala.collection.JavaConverters._
@@ -34,13 +36,14 @@ import scala.util.control.NonFatal
   */
 object SparkLineageInitializer extends Logging {
 
-  def enableLineageTracking(sparkSession: SparkSession): SparkSession = {
+  def enableLineageTracking(sparkSession: SparkSession): SparkSession =
     SparkSessionWrapper(sparkSession).enableLineageTracking()
-  }
 
-  def enableLineageTracking(sparkSession: SparkSession, configurer: SplineConfigurer): SparkSession = {
+  def enableLineageTracking(sparkSession: SparkSession, configurer: SplineConfigurer): SparkSession =
     SparkSessionWrapper(sparkSession).enableLineageTracking(configurer)
-  }
+
+  def createEventHandler(sparkSession: SparkSession): Option[QueryExecutionEventHandler] =
+    SparkSessionWrapper(sparkSession).createEventHandler()
 
   /**
     * The class is a wrapper around Spark session and performs all necessary registrations and procedures for initialization of the library.
@@ -59,29 +62,62 @@ object SparkLineageInitializer extends Logging {
       * @return An original Spark session
       */
     def enableLineageTracking(configurer: SplineConfigurer = defaultSplineConfigurer): SparkSession = {
-      if (configurer.splineMode != DISABLED) sparkSession.synchronized {
-        preventDoubleInitialization()
-        log info s"Spline v${SplineBuildInfo.version} is initializing..."
-        try {
-          attemptInitialization(configurer)
-          log info s"Successfully initialized. Spark Lineage tracking is ENABLED."
-        } catch {
-          case NonFatal(e) if configurer.splineMode == BEST_EFFORT =>
-            log.error(s"Initialization failed! Spark Lineage tracking is DISABLED.", e)
+      val splineConfiguredForCodelessInit = sparkSession.sparkContext.getConf
+        .getOption(sparkQueryExecutionListenersKey).toSeq
+        .flatMap(s => s.split(",").toSeq)
+        .contains(classOf[QueryExecutionEventHandler].getCanonicalName)
+      if (!splineConfiguredForCodelessInit || spark.SPARK_VERSION.startsWith("2.2")) {
+        if (splineConfiguredForCodelessInit) {
+          log.warn("""
+            |Spline lineage tracking is also configured for codeless initialization, but codeless init is
+            |supported on Spark 2.3+ and not current version 2.2. Spline will be initialized only via code call to
+            |enableLineageTracking i.e. the same way as is now."""
+              .stripMargin.replaceAll("\n", " "))
         }
+        val maybeEventHandler = createEventHandler(configurer)
+        if (maybeEventHandler.isDefined) {
+          sparkSession.listenerManager.register(new SplineQueryExecutionListener(maybeEventHandler))
+          sparkSession.streams.addListener(configurer.streamingQueryListener)
+        }
+      } else {
+        log.warn("""
+          |Spline lineage tracking is also configured for codeless initialization.
+          |It wont be initialized by this code call to enableLineageTracking now."""
+            .stripMargin.replaceAll("\n", " "))
       }
       sparkSession
     }
 
-    /**
-      * The method tries to initialize the library with external settings.
-      *
-      * @param configurer External settings
-      */
-    def attemptInitialization(configurer: SplineConfigurer): Unit = {
-      SparkVersionRequirement.instance.requireSupportedVersion()
-      sparkSession.listenerManager register configurer.queryExecutionListener
-      sparkSession.streams addListener configurer.streamingQueryListener
+    def createEventHandler(): Option[QueryExecutionEventHandler] = {
+      val configurer = new DefaultSplineConfigurer(defaultSplineConfiguration, sparkSession)
+      if (configurer.splineMode != DISABLED) {
+        createEventHandler(configurer)
+      } else {
+        None
+      }
+    }
+
+    private def createEventHandler(configurer: SplineConfigurer): Option[QueryExecutionEventHandler] = {
+      if (configurer.splineMode != DISABLED) {
+        if (!getOrSetIsInitialized()) {
+          log.info(s"Spline v${SplineBuildInfo.version} is initializing...")
+          try {
+            SparkVersionRequirement.instance.requireSupportedVersion()
+            val eventHandler = configurer.queryExecutionEventHandler
+            log.info(s"Spline successfully initialized. Spark Lineage tracking is ENABLED.")
+            Some(eventHandler)
+          } catch {
+            case NonFatal(e) if configurer.splineMode == BEST_EFFORT =>
+              log.error(s"Spline initialization failed! Spark Lineage tracking is DISABLED.", e)
+              None
+          }
+        } else {
+          log.warn("Spline lineage tracking is already initialized!")
+          None
+        }
+      } else {
+        None
+      }
     }
 
     private[harvester] val defaultSplineConfiguration = {
@@ -101,14 +137,19 @@ object SparkLineageInitializer extends Logging {
 
     }
 
-    private def preventDoubleInitialization(): Unit = {
+    private def getOrSetIsInitialized(): Boolean = sparkSession.synchronized {
       val sessionConf = sparkSession.conf
       sessionConf getOption initFlagKey match {
-        case Some(_) => throw new IllegalStateException("Lineage tracking is already initialized")
-        case None => sessionConf.set(initFlagKey, true.toString)
+        case Some(_) =>
+          true
+        case None =>
+          sessionConf.set(initFlagKey, true.toString)
+          false
       }
     }
+
   }
 
   val initFlagKey = "spline.initialized_flag"
+  val sparkQueryExecutionListenersKey = "spark.sql.queryExecutionListeners"
 }

@@ -97,3 +97,6 @@ project/boot/
 .extract
 
 spark-warehouse/
+
+#MacOS
+.DS_Store

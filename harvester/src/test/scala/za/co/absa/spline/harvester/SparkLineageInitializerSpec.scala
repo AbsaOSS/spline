@@ -26,10 +26,9 @@ import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
 import za.co.absa.spline.fixture.SparkFixture
 import za.co.absa.spline.harvester.SparkLineageInitializer._
 import za.co.absa.spline.harvester.SparkLineageInitializerSpec._
+import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer
 import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer.ConfProperty._
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
-import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer
-import za.co.absa.spline.harvester.listener.SplineQueryExecutionListener
 import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory, ProgressEventWriter}
 
 object SparkLineageInitializerSpec {
@@ -63,9 +62,9 @@ object SparkLineageInitializerSpec {
       } yield listener.getClass
   }
 
-  private def assertSplineIsEnabled() = getSparkQueryExecutionListenerClasses() should contain(classOf[SplineQueryExecutionListener])
+  private def assertSplineIsEnabled() = getSparkQueryExecutionListenerClasses() should contain(classOf[QueryExecutionEventHandler])
 
-  private def assertSplineIsDisabled() = getSparkQueryExecutionListenerClasses() should not contain classOf[SplineQueryExecutionListener]
+  private def assertSplineIsDisabled() = getSparkQueryExecutionListenerClasses() should not contain classOf[QueryExecutionEventHandler]
 }
 
 class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with Matchers with SparkFixture {
@@ -135,14 +134,12 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
   }
 
   describe("enableLineageTracking()") {
-    it("should not allow double initialization") {
-      intercept[IllegalStateException] {
-        withNewSession(session =>
-          session
-            .enableLineageTracking(createConfigurer(session)) // 1st is fine
-            .enableLineageTracking(createConfigurer(session)) // 2nd should fail
-        )
-      }
+    it("should warn on double initialization") {
+      withNewSession(session =>
+        session
+          .enableLineageTracking(createConfigurer(session)) // 1st is fine
+          .enableLineageTracking(createConfigurer(session)) // 2nd should warn
+      )
     }
 
     it("should return the spark session back to the caller") {
