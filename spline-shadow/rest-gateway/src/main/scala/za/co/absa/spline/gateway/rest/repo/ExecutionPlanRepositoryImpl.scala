@@ -36,7 +36,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
               FOR v, e IN 1..99999
               OUTBOUND exec executes, follows
               OPTIONS {uniqueEdges: "none"}
-                  LET operation = MERGE(KEEP(v, "operationType", "name"), {"id": v._key})
+                  LET operation = MERGE(KEEP(v, "_type", "name"), {"_id": v._key})
                   LET inboundEdge = {
                       "source": PARSE_IDENTIFIER(e._to).key,
                       "target": PARSE_IDENTIFIER(e._from).key

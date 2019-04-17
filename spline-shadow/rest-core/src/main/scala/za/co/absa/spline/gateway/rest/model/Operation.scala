@@ -1,6 +1,5 @@
 /*
  * Copyright 2019 ABSA Group Limited
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,10 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Operation } from 'src/app/generated/models/operation';
 
-export interface CytoscapeOperationVM extends Operation {
-    id: string
-    color: string
-    icon: number
+package za.co.absa.spline.gateway.rest.model
+
+import java.util.UUID
+
+import za.co.absa.spline.gateway.rest.model.ExecutedLogicalPlan.OperationID
+
+case class Operation(
+                      _id: OperationID,
+                      _type: String,
+                      name: String,
+                      readsFrom: String,
+                      writesTo: String
+                    ) extends Graph.Node {
+  override type Id = OperationID
+
+  def this() = this(null, null, null, null, null)
+}
+
+object Operation {
+  type Id = UUID
 }
