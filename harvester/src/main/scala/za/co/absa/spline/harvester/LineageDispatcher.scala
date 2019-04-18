@@ -28,8 +28,8 @@ import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext._
 
 object LineageDispatcher {
 
-  val publishTimeoutSecondsProperty = "harvester.publishTimeoutSeconds"
-  val publishUrlProperty = "harvester.publishUrl"
+  val publishTimeoutSecondsProperty = "spline.harvester.publishTimeoutSeconds"
+  val publishUrlProperty = "spline.harvester.publishUrl"
   val defaultPublishTimeout = 60L
   val nextAttemptDelayMs = 5000L
 

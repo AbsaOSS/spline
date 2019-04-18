@@ -28,7 +28,7 @@
     </parent>
 
     <properties>
-        <harvester.publishUrl>http://localhost:8080/spline</harvester.publishUrl>
+        <spline.harvester.publishUrl>http://localhost:8080/spline</spline.harvester.publishUrl>
     </properties>
 
     <dependencies>
@@ -209,7 +209,7 @@
                             <executable>java</executable>
                             <workingDirectory>${project.basedir}/..</workingDirectory>
                             <arguments>
-                                <argument>-Dharvester.publishUrl=${harvester.publishUrl}</argument>
+                                <argument>-Dspline.harvester.publishUrl=${spline.harvester.publishUrl}</argument>
                                 <argument>-classpath</argument>
                                 <classpath />
                                 <argument>${sampleClass}</argument>

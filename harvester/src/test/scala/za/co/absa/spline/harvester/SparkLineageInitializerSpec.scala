@@ -16,60 +16,67 @@
 
 package za.co.absa.spline.harvester
 
-import org.apache.commons.configuration.{BaseConfiguration, Configuration}
+import java.{util => ju}
+
+import org.apache.commons.configuration.BaseConfiguration
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.util.{ExecutionListenerManager, QueryExecutionListener}
+import org.apache.spark.sql.execution.streaming.StreamingQueryListenerBus
+import org.apache.spark.sql.streaming.StreamingQueryListener
+import org.apache.spark.sql.util.QueryExecutionListener
 import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest.Matchers._
-import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
+import za.co.absa.spline.common.ReflectionUtils.getFieldValue
 import za.co.absa.spline.fixture.SparkFixture
+import za.co.absa.spline.harvester.LineageDispatcher.publishUrlProperty
 import za.co.absa.spline.harvester.SparkLineageInitializer._
 import za.co.absa.spline.harvester.SparkLineageInitializerSpec._
 import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer
 import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer.ConfProperty._
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
-import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory, ProgressEventWriter}
+import za.co.absa.spline.harvester.listener.{SplineQueryExecutionListener, StructuredStreamingListener}
+
+import scala.collection.JavaConverters._
 
 object SparkLineageInitializerSpec {
 
-  class MockReadWritePersistenceFactory(conf: Configuration) extends PersistenceFactory(conf) with MockitoSugar {
-    override val createDataLineageWriter: DataLineageWriter = mock[DataLineageWriter]
-    override val createDataLineageReader: Option[DataLineageReader] = Some(mock[DataLineageReader])
-    override val createProgressEventWriter: ProgressEventWriter = mock[ProgressEventWriter]
+  private[this] def getSparkQueryExecutionListenerClasses(session: SparkSession): Seq[Class[_ <: QueryExecutionListener]] = {
+    getFieldValue[Seq[QueryExecutionListener]](
+      session.listenerManager.clone(),
+      "org$apache$spark$sql$util$ExecutionListenerManager$$listeners")
+      .map(_.getClass)
   }
 
-  class MockWriteOnlyPersistenceFactory(conf: Configuration) extends PersistenceFactory(conf) with MockitoSugar {
-    override val createDataLineageWriter: DataLineageWriter = mock[DataLineageWriter]
-    override val createDataLineageReader: Option[DataLineageReader] = None
-    override val createProgressEventWriter: ProgressEventWriter = mock[ProgressEventWriter]
+  private[this] def getStreamingListenerClasses(session: SparkSession): Seq[Class[_ <: StreamingQueryListener]] = {
+    val listenerBus: StreamingQueryListenerBus = getFieldValue(session.streams, "listenerBus")
+    getFieldValue[ju.List[(StreamingQueryListener, Option[Any])]](
+      listenerBus,
+      "org$apache$spark$util$ListenerBus$$listenersPlusTimers")
+      .asScala
+      .map(_._1.getClass)
+      .filter(c => classOf[StreamingQueryListener].isAssignableFrom(c))
   }
 
-  class MockFailingPersistenceFactory(conf: Configuration) extends PersistenceFactory(conf) with MockitoSugar {
-    override val createDataLineageWriter: DataLineageWriter = sys.error("boom!")
-    override val createDataLineageReader: Option[DataLineageReader] = sys.error("bam!")
-    override val createProgressEventWriter: ProgressEventWriter = sys.error("bim!")
-  }
+  private def assertSplineIsDisabled(session: SparkSession = SparkSession.builder().getOrCreate()) =
+    getSparkQueryExecutionListenerClasses(session) should not contain classOf[SplineQueryExecutionListener]
 
-  private[this] val getSparkQueryExecutionListenerClasses: () => Seq[Class[_ <: QueryExecutionListener]] = {
-    val listenersField = classOf[ExecutionListenerManager] getDeclaredField "org$apache$spark$sql$util$ExecutionListenerManager$$listeners"
-    listenersField setAccessible true
-    () =>
-      for {
-        session <- SparkSession.getActiveSession.toSeq
-        listenerManager = session.listenerManager.clone // to avoid potential race on mutable field
-        listener <- (listenersField get listenerManager).asInstanceOf[Seq[QueryExecutionListener]]
-      } yield listener.getClass
-  }
+  def numberOfRegisteredBatchListeners(session: SparkSession): Int =
+    getSparkQueryExecutionListenerClasses(session).count(_ == classOf[SplineQueryExecutionListener])
 
-  private def assertSplineIsEnabled() = getSparkQueryExecutionListenerClasses() should contain(classOf[QueryExecutionEventHandler])
+  def numberOfRegisteredStreamListeners(session: SparkSession): Int =
+    getStreamingListenerClasses(session).count(_ == classOf[StructuredStreamingListener])
 
-  private def assertSplineIsDisabled() = getSparkQueryExecutionListenerClasses() should not contain classOf[QueryExecutionEventHandler]
+  def createMockDispatcher: LineageDispatcher = new LineageDispatcher(
+    1000, "invalidTestVal", new HttpSender {
+          override def attemptSend(url: String, bson: Array[Byte]): Boolean = true
+        })
 }
 
 class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with Matchers with SparkFixture {
   private val configuration = new BaseConfiguration
   configuration.setProperty("spark.master", "local")
+  // needed for codeless init tests
+  System.setProperty(publishUrlProperty, "invalidTestVal")
 
   describe("defaultConfiguration") {
 
@@ -133,13 +140,47 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
     }
   }
 
+  describe("codeless initialization") {
+    it("should not allow duplicate tracking when combining the methods") {
+      withNewSession(session => {
+        numberOfRegisteredBatchListeners(session) shouldBe 0
+        numberOfRegisteredStreamListeners(session) shouldBe 0
+        // creatEventHandler relies on Spark for registration during session creation,
+        // but it never the less inits Spline and registers Streaming Listener
+        SparkLineageInitializer.createEventHandler(session)
+        numberOfRegisteredStreamListeners(session) shouldBe 1
+        numberOfRegisteredBatchListeners(session) shouldBe 0
+        session.enableLineageTracking()
+        numberOfRegisteredBatchListeners(session) shouldBe 0
+        numberOfRegisteredStreamListeners(session) shouldBe 1
+      })
+    }
+
+    it("should not allow duplicate codeless tracking") {
+      withNewSession(session => {
+        numberOfRegisteredStreamListeners(session) shouldBe 0
+        SparkLineageInitializer
+          .createEventHandler(session).getClass shouldBe classOf[Some[QueryExecutionEventHandler]]
+        numberOfRegisteredStreamListeners(session) shouldBe 1
+        SparkLineageInitializer
+          .createEventHandler(session) shouldBe None
+        numberOfRegisteredStreamListeners(session) shouldBe 1
+      })
+    }
+  }
+
   describe("enableLineageTracking()") {
     it("should warn on double initialization") {
-      withNewSession(session =>
+      withNewSession(session => {
         session
           .enableLineageTracking(createConfigurer(session)) // 1st is fine
+        numberOfRegisteredStreamListeners(session) shouldBe 1
+        numberOfRegisteredBatchListeners(session) shouldBe 1
+        session
           .enableLineageTracking(createConfigurer(session)) // 2nd should warn
-      )
+        numberOfRegisteredStreamListeners(session) shouldBe 1
+        numberOfRegisteredBatchListeners(session) shouldBe 1
+      })
     }
 
     it("should return the spark session back to the caller") {
@@ -195,7 +236,9 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
   }
 
   def createConfigurer(sparkSession: SparkSession): DefaultSplineConfigurer = {
-    new DefaultSplineConfigurer(configuration, sparkSession)
+    new DefaultSplineConfigurer(configuration, sparkSession) {
+      override lazy val lineageDispatcher: LineageDispatcher = createMockDispatcher
+    }
   }
 
 }
