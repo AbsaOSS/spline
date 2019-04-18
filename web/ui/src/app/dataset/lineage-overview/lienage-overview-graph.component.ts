@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import {Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output} from "@angular/core";
-import {IDataLineage} from "../../../generated-ts/lineage-model";
+import { Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output } from "@angular/core";
+import { IDataLineage } from "../../../generated-ts/lineage-model";
 import "vis/dist/vis.min.css";
 import * as vis from "vis";
 import * as _ from "lodash";
-import {combineLatest, concat, Observable, Subscription} from "rxjs";
-import {IComposite, ITypedMetaDataSource} from "../../../generated-ts/operation-model";
-import {visOptions} from "./vis-options";
+import { combineLatest, concat, Observable, Subscription } from "rxjs";
+import { IComposite, ITypedMetaDataSource } from "../../../generated-ts/operation-model";
+import { visOptions } from "./vis-options";
 import {
     GraphNode,
     GraphNodeTypesByIdPrefixes,
@@ -32,10 +32,10 @@ import {
     VisNodeType,
     VisProcessNode
 } from "./lineage-overview.model";
-import {ClusterManager} from "../../visjs/cluster-manager";
-import {VisClusterNode, VisIcon, VisModel} from "../../visjs/vis-model";
-import {getDatasetIcon, getOperationIcon} from "../../lineage/details/operation/operation-icon.utils";
-import {distinctUntilChanged, filter, first, pairwise} from "rxjs/operators";
+import { ClusterManager } from "../../visjs/cluster-manager";
+import { VisClusterNode, VisIcon, VisModel } from "../../visjs/vis-model";
+import { getDatasetIcon, getOperationIcon } from "../../lineage/details/operation/operation-icon.utils";
+import { distinctUntilChanged, filter, first, pairwise } from "rxjs/operators";
 
 @Component({
     selector: 'lineage-overview-graph',
@@ -61,19 +61,19 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         let lineageContainsDataset = (lin: IDataLineage, dsId: string) => {
-                return _.some(lin.datasets, {id: dsId})
-            }
+            return _.some(lin.datasets, { id: dsId })
+        }
         let reactOnChange = (prevLineage: IDataLineage, nextLineage: IDataLineage, selectedNode: GraphNode) => {
-                    if (!this.network || nextLineage.timestamp !== prevLineage.timestamp)
-                        this.rebuildGraph(nextLineage)
-                    this.selectedNode = selectedNode
-                    try {
-                        this.refreshSelectedNode(selectedNode)
-                    } catch (e) {
-                        // FIXME resolve bug of failing to find dataset.
-                        console.log("WARN Ignoring failed selection: \n" + e)
-                    }
-                }
+            if (!this.network || nextLineage.timestamp !== prevLineage.timestamp)
+                this.rebuildGraph(nextLineage)
+            this.selectedNode = selectedNode
+            try {
+                this.refreshSelectedNode(selectedNode)
+            } catch (e) {
+                // FIXME resolve bug of failing to find dataset.
+                console.log("WARN Ignoring failed selection: \n" + e)
+            }
+        }
 
         let lineagePairs$ =
             concat(this.lineage$.pipe(first()), this.lineage$).pipe(pairwise())
@@ -116,7 +116,7 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
         let graph = LineageOverviewGraphComponent.buildVisModel(lineage)
         this.network = new vis.Network(this.container.nativeElement, graph, visOptions)
 
-        this.clusterManager = new ClusterManager<VisNode, vis.Edge>(graph, this.network, (nodes,) =>
+        this.clusterManager = new ClusterManager<VisNode, vis.Edge>(graph, this.network, (nodes, ) =>
             _(nodes)
                 .filter((node: VisNode) => node.nodeType === VisNodeType.Dataset)
                 .filter((dsNode: VisDatasetNode) => dsNode.dataSource.datasetsIds.length > 1) // means there were appends to the source
@@ -178,10 +178,10 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
                 _.flatMap(op.sources, (src, i) => {
                     let maybeFirstDataset = lineage.datasets.find(d => d.id == src.datasetsIds[0])
                     if (_.isEmpty(src.datasetsIds)) {
-                        return _.assign({}, src, {datasetsIds: [ID_PREFIXES.extra + i + "_" + op.mainProps.id]})
+                        return _.assign({}, src, { datasetsIds: [ID_PREFIXES.extra + i + "_" + op.mainProps.id] })
                     } else if (src.datasetsIds.length == 1 && maybeFirstDataset.schema.attrs.length == 0) {
                         // FIXME avoid this hack. It prevent duplicate paths displayed in interval view for generated readonly metaDatasets with empty schema.
-                        return _.assign({}, src, {datasetsIds: [ID_PREFIXES.extra + "_" + maybeFirstDataset.id]})
+                        return _.assign({}, src, { datasetsIds: [ID_PREFIXES.extra + "_" + maybeFirstDataset.id] })
                     } else {
                         return src
                     }
@@ -189,7 +189,7 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
 
         const recombineByDatasetIdAndLongestAppendSequence =
             (typedMetadataSources: ITypedMetaDataSource[]): [string, ITypedMetaDataSource][] =>
-                <any[]> _(typedMetadataSources)
+                <any[]>_(typedMetadataSources)
                     .flatMap((src: ITypedMetaDataSource) => src.datasetsIds.map(dsId => [dsId, src]))
                     .groupBy(_.head).values()
                     .map((pairs: [string, ITypedMetaDataSource][]) => _.sortBy(pairs, ([, src]) => -src.datasetsIds.length)[0])
@@ -197,52 +197,52 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
 
 
         let dataSources =
-                _.flatMap(lineage.operations, (op: IComposite) =>
-                    getIdentifiableDataSourcesOf(op).concat(op.destination))
+            _.flatMap(lineage.operations, (op: IComposite) =>
+                getIdentifiableDataSourcesOf(op).concat(op.destination))
 
         let datasetNodes: VisNode[] =
-                recombineByDatasetIdAndLongestAppendSequence(dataSources)
-                    .map(([datasetId, src]) => {
-                        let lastPathItemName = src.path.substring(src.path.replace(/\/$/, '').lastIndexOf("/") + 1)
-                        let label = LineageOverviewGraphComponent.wrapText(src.type + "\n" + lastPathItemName)
-                        return new VisDatasetNode(
-                            src,
-                            ID_PREFIXES.datasource + datasetId,
-                            src.type + ":" + src.path,
-                            label,
-                            this.getTypedSourceIcon(src));
-                        });
+            recombineByDatasetIdAndLongestAppendSequence(dataSources)
+                .map(([datasetId, src]) => {
+                    let lastPathItemName = src.path.substring(src.path.replace(/\/$/, '').lastIndexOf("/") + 1)
+                    let label = LineageOverviewGraphComponent.wrapText(src.type + "\n" + lastPathItemName)
+                    return new VisDatasetNode(
+                        src,
+                        ID_PREFIXES.datasource + datasetId,
+                        src.type + ":" + src.path,
+                        label,
+                        this.getTypedSourceIcon(src));
+                });
 
 
-         let processNodes: VisNode[] = lineage.operations.map((op: IComposite) =>
-                new VisProcessNode(
-                    op,
-                    ID_PREFIXES.operation + op.mainProps.id,
-                    LineageOverviewGraphComponent.wrapText(op.appName),
-                    getOperationIcon(op).toVisIcon()));
+        let processNodes: VisNode[] = lineage.operations.map((op: IComposite) =>
+            new VisProcessNode(
+                op,
+                ID_PREFIXES.operation + op.mainProps.id,
+                LineageOverviewGraphComponent.wrapText(op.appName),
+                getOperationIcon(op).toVisIcon()));
 
-         let nodes = processNodes.concat(datasetNodes)
+        let nodes = processNodes.concat(datasetNodes)
 
-         let edges: vis.Edge[] = _.flatMap(lineage.operations, (op: IComposite) => {
-                let opNodeId = ID_PREFIXES.operation + op.mainProps.id
-                let inputEdges: vis.Edge[] =
-                        recombineByDatasetIdAndLongestAppendSequence(getIdentifiableDataSourcesOf(op))
-                            .map(([datasetId]) => {
-                                let dsNodeId = ID_PREFIXES.datasource + datasetId
-                                return {
-                                    id: dsNodeId + "_" + opNodeId,
-                                    from: dsNodeId,
-                                    to: opNodeId
-                                }
-                            }),
-                    outputDsNodeId = ID_PREFIXES.datasource + op.mainProps.output,
-                    outputEdge: vis.Edge = {
-                        id: opNodeId + "_" + outputDsNodeId,
-                        from: opNodeId,
-                        to: outputDsNodeId
-                    }
-                return inputEdges.concat(outputEdge)
-            })
+        let edges: vis.Edge[] = _.flatMap(lineage.operations, (op: IComposite) => {
+            let opNodeId = ID_PREFIXES.operation + op.mainProps.id
+            let inputEdges: vis.Edge[] =
+                recombineByDatasetIdAndLongestAppendSequence(getIdentifiableDataSourcesOf(op))
+                    .map(([datasetId]) => {
+                        let dsNodeId = ID_PREFIXES.datasource + datasetId
+                        return {
+                            id: dsNodeId + "_" + opNodeId,
+                            from: dsNodeId,
+                            to: opNodeId
+                        }
+                    }),
+                outputDsNodeId = ID_PREFIXES.datasource + op.mainProps.output,
+                outputEdge: vis.Edge = {
+                    id: opNodeId + "_" + outputDsNodeId,
+                    from: opNodeId,
+                    to: outputDsNodeId
+                }
+            return inputEdges.concat(outputEdge)
+        })
 
         return new VisModel(
             new vis.DataSet<VisNode>(nodes),
