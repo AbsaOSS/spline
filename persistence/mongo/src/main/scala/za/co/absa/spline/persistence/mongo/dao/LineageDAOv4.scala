@@ -21,9 +21,11 @@ import java.util.UUID
 import java.util.function.{Consumer, Predicate}
 import java.{util => ju}
 
+import com.mongodb
 import com.mongodb.casbah.query.Implicits.mongoQueryStatements
 import com.mongodb.{BasicDBList, BasicDBObject, DBObject}
 import org.apache.commons.lang.StringUtils
+import org.bson.types.BasicBSONList
 import salat.{BinaryTypeHintStrategy, TypeHintFrequency}
 import za.co.absa.spline.common.EnumerationMacros.sealedInstancesOf
 import za.co.absa.spline.common.transformations.{AbstractConverter, CachingConverter}
@@ -69,15 +71,39 @@ class LineageDAOv4(override val connection: MongoConnection) extends BaselineLin
     }
   }
 
+  //When DAOv4 reads data written using DAOv3 it returned null but should return empty Map
+  def fixReadWriteMetrics(lineage: mongodb.casbah.Imports.DBObject) = {
+    if (isWriteOperation(lineage)) {
+
+      val writeMetrics = lineage.get(Field.writeMetrics)
+      if (writeMetrics == null) {
+        val empty: DBObject = new BasicDBObject(new ju.HashMap())
+        lineage.put(Field.writeMetrics, empty)
+      }
+
+      val readMetrics = lineage.get(Field.readMetrics)
+      if (readMetrics == null) {
+        val empty: DBObject = new BasicDBObject(new ju.HashMap())
+        lineage.put(Field.readMetrics, empty)
+      }
+    }
+  }
+
   override protected def addComponents(rootComponentDBO: DBObject, overviewOnly: Boolean)(implicit ec: ExecutionContext): Future[DBObject] = {
     val eventualLineageDBO = super.addComponents(rootComponentDBO, overviewOnly)
     if (overviewOnly)
       eventualLineageDBO
-    else
+    else {
       eventualLineageDBO.map(lineage => {
         val transformations = lineage.get(SubComponentV4.Transformation.name).asInstanceOf[ju.List[DBObject]]
-        insertTransformationsIntoLineage(transformations.asScala, lineage)
+        val res = insertTransformationsIntoLineage(transformations.asScala, lineage)
+
+        res.get("operations") match {
+          case list : BasicBSONList if !list.isEmpty => fixReadWriteMetrics(list.get(0).asInstanceOf[DBObject])
+        }
+        res
       })
+    }
   }
 
   override protected val overviewComponentFilter: PartialFunction[Component.SubComponent, DBObject] = {
@@ -108,6 +134,15 @@ class LineageDAOv4(override val connection: MongoConnection) extends BaselineLin
     val hintStrategy = BSONSalatContext.ctx.typeHintStrategy
     val opClassName = hintStrategy.decode(op.get(hintStrategy.typeHint))
     opClassName.endsWith("op.Projection")
+  }
+
+  private def isWriteOperation(op: DBObject): Boolean = {
+    val hintStrategy = BSONSalatContext.ctx.typeHintStrategy
+
+    val value = op.get(hintStrategy.typeHint)
+    val opClassName = hintStrategy.decode(value)
+
+    opClassName.endsWith("op.Write")
   }
 
   private def getOperationId(op: DBObject) =
@@ -146,6 +181,9 @@ object LineageDAOv4 {
     val value = "value"
     val name = "name"
     val exprType = "exprType"
+
+    val writeMetrics = "writeMetrics"
+    val readMetrics = "readMetrics"
   }
 
   object SubComponentV4 {

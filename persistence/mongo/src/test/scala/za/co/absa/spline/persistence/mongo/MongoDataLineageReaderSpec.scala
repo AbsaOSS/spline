@@ -287,4 +287,17 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase wit
       dataTypes
     )
   }
+
+  it("should return empty Map when there are no metrics") {
+    val lineage = createDataLineage("appID0", "App Zero", path = "file://some/path/0.csv", timestamp = 100)
+
+    for {
+      _ <- mongoWriter.store(lineage)
+      storedLineage: Option[DataLineage] <- mongoReader.loadByDatasetId(lineage.rootDataset.id, overviewOnly = false)
+    } yield {
+      storedLineage.isDefined shouldBe true
+      val write: op.Write = storedLineage.map(_.operations.head.asInstanceOf[op.Write]).get
+      write.readMetrics should have size 0
+    }
+  }
 }
