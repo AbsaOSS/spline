@@ -19,6 +19,7 @@ package za.co.absa.spline.harvester
 import org.apache.commons.configuration._
 import org.apache.spark
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.streaming.StreamingQueryListener
 import org.slf4s.Logging
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
@@ -74,10 +75,9 @@ object SparkLineageInitializer extends Logging {
             |enableLineageTracking i.e. the same way as is now."""
               .stripMargin.replaceAll("\n", " "))
         }
-        val maybeEventHandler = createEventHandler(configurer)
-        if (maybeEventHandler.isDefined) {
-          sparkSession.listenerManager.register(new SplineQueryExecutionListener(maybeEventHandler))
-          sparkSession.streams.addListener(configurer.streamingQueryListener)
+        createEventHandlerAndStreamingListener(configurer).foreach { case (eventHandler, streamingQueryListener) =>
+          sparkSession.streams.addListener(streamingQueryListener)
+          sparkSession.listenerManager.register(new SplineQueryExecutionListener(Some(eventHandler)))
         }
       } else {
         log.warn("""
@@ -91,21 +91,30 @@ object SparkLineageInitializer extends Logging {
     def createEventHandler(): Option[QueryExecutionEventHandler] = {
       val configurer = new DefaultSplineConfigurer(defaultSplineConfiguration, sparkSession)
       if (configurer.splineMode != DISABLED) {
-        createEventHandler(configurer)
+        createEventHandlerAndStreamingListener(configurer).map { case (eventHandler, streamingQueryListener) =>
+          sparkSession.streams.addListener(streamingQueryListener)
+          eventHandler
+        }
       } else {
         None
       }
     }
 
-    private def createEventHandler(configurer: SplineConfigurer): Option[QueryExecutionEventHandler] = {
+    private def createEventHandlerAndStreamingListener(configurer: SplineConfigurer): Option[(QueryExecutionEventHandler, StreamingQueryListener)] = {
       if (configurer.splineMode != DISABLED) {
         if (!getOrSetIsInitialized()) {
           log.info(s"Spline v${SplineBuildInfo.version} is initializing...")
           try {
             SparkVersionRequirement.instance.requireSupportedVersion()
             val eventHandler = configurer.queryExecutionEventHandler
+            /* Streaming listener needs to be initialized within same error handling block.
+               But will be registered manually in both cases, because:
+              - only 2.4 currently supports config based streaming listener registration
+              - it makes sense to always capture both batch and streaming lineages
+            */
+            val streamingQueryListener = configurer.streamingQueryListener
             log.info(s"Spline successfully initialized. Spark Lineage tracking is ENABLED.")
-            Some(eventHandler)
+            Some((eventHandler, streamingQueryListener))
           } catch {
             case NonFatal(e) if configurer.splineMode == BEST_EFFORT =>
               log.error(s"Spline initialization failed! Spark Lineage tracking is DISABLED.", e)
