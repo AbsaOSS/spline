@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { Injectable } from "@angular/core";
-import { IAttribute, IDataLineage, IDataType, IMetaDataset, IOperation } from "../../generated-ts/lineage-model";
-import { Observable, ReplaySubject, Subject } from "rxjs";
+import {Injectable} from "@angular/core";
+import {IAttribute, IDataLineage, IDataType, IMetaDataset, IOperation} from "../../generated-ts/lineage-model";
+import {Observable, ReplaySubject, Subject} from "rxjs";
 import * as _ from "lodash";
-import { typeOfOperation } from "./types";
+import {typeOfOperation} from "./types";
 
 @Injectable()
 export class LineageStore {
@@ -45,6 +45,7 @@ export class LineageAccessors {
     private readonly operationById: { [id: string]: IOperation }
     private readonly datasetById: { [id: string]: IMetaDataset }
     private readonly attributeById: { [id: string]: IAttribute }
+    private readonly attributesByDatasetId: { [id: string]: IAttribute[] }
     private readonly operationIdsByAttributeId: { [id: string]: string }
     private readonly dataTypesById: { [id: string]: IDataType }
 
@@ -52,6 +53,7 @@ export class LineageAccessors {
         this.operationById = _.mapValues(_.groupBy(lineage.operations, "mainProps.id"), _.first)
         this.datasetById = _.mapValues(_.groupBy(lineage.datasets, "id"), _.first)
         this.attributeById = _.mapValues(_.groupBy(lineage.attributes, "id"), _.first)
+        this.attributesByDatasetId = _.mapValues(this.datasetById, ds => ds.schema.attrs.map(id => this.attributeById[id]))
         this.dataTypesById = _.mapValues(_.groupBy(lineage.dataTypes, "id"), _.first)
 
         this.operationIdsByAttributeId = (<any>_(lineage.operations))
@@ -67,19 +69,23 @@ export class LineageAccessors {
             .value()
     }
 
-    public getOperation(opId: string) {
+    public getOperation(opId: string): IOperation {
         return this.operationById[opId]
     }
 
-    public getDataset(dsId: string) {
+    public getDataset(dsId: string): IMetaDataset {
         return this.datasetById[dsId]
     }
 
-    public getAttribute(attrId: string) {
+    public getDatasetAttributes(dsId: string): IAttribute[] {
+        return this.attributesByDatasetId[dsId]
+    }
+
+    public getAttribute(attrId: string): IAttribute {
         return this.attributeById[attrId]
     }
 
-    public getDataType(typeId: string) {
+    public getDataType(typeId: string): IDataType {
         return this.dataTypesById[typeId]
     }
 
