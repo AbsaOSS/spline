@@ -15,7 +15,23 @@
  */
 
 import {OperationType} from "../../types";
-import {Icon} from "../../../visjs/vis-model";
+import {VisNodeIcon} from "../../../visjs/vis-model";
+
+export class Icon {
+    constructor(public name: string,
+                public code: string,
+                public font: string) {
+    }
+
+    public toVisNodeIcon(color: string): VisNodeIcon {
+        return {
+            face: this.font,
+            size: 80,
+            code: this.code,
+            color: color
+        }
+    }
+}
 
 export function getIconForNodeType(nodeType: OperationType): Icon {
     let font = "FontAwesome";

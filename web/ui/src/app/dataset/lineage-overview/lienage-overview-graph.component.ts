@@ -34,8 +34,8 @@ import {
     VisProcessNode
 } from "./lineage-overview.model";
 import {ClusterManager} from "../../visjs/cluster-manager";
-import {Icon, VisClusterNode, VisModel} from "../../visjs/vis-model";
-import {getIconForNodeType} from "../../lineage/details/operation/operation-icon.utils";
+import {VisClusterNode, VisModel} from "../../visjs/vis-model";
+import {getIconForNodeType, Icon} from "../../lineage/details/operation/operation-icon.utils";
 import {distinctUntilChanged, filter, first, pairwise} from "rxjs/operators";
 
 @Component({
@@ -199,9 +199,8 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
                             ID_PREFIXES.datasource + datasetId,
                             src.type + ":" + src.path,
                             label,
-                            LineageOverviewGraphComponent.getIcon(
-                                new Icon("fa-file", "\uf15b", "FontAwesome"),
-                                datasetId.startsWith(ID_PREFIXES.extra) ? "#c0cdd6" : undefined)
+                            new Icon("fa-file", "\uf15b", "FontAwesome")
+                                .toVisNodeIcon(datasetId.startsWith(ID_PREFIXES.extra) ? "#c0cdd6" : "#337ab7")
                         )
                     }),
 
@@ -210,7 +209,7 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
                     op,
                     ID_PREFIXES.operation + op.mainProps.id,
                     LineageOverviewGraphComponent.wrapText(op.appName),
-                    LineageOverviewGraphComponent.getIcon(getIconForNodeType(typeOfOperation(op)))
+                    getIconForNodeType(typeOfOperation(op)).toVisNodeIcon("#337ab7")
                 )),
 
             nodes = processNodes.concat(datasetNodes),
@@ -252,15 +251,6 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
                 return line.substring(0, textSize - 2) + "\n" + this.wrapText(line.substring(textSize - 2))
             }
         ).join("\n")
-    }
-
-    static getIcon(icon: Icon, color: string = "#337ab7") {
-        return {
-            face: icon.font,
-            size: 80,
-            code: icon.code,
-            color: color
-        }
     }
 }
 
