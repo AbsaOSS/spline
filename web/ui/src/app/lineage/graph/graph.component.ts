@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Component, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChange, SimpleChanges} from "@angular/core";
+import {Component, ElementRef, EventEmitter, Input, NgZone, OnDestroy, Output} from "@angular/core";
 import {IDataLineage} from "../../../generated-ts/lineage-model";
 import "vis/dist/vis.min.css";
 import {visOptions} from "./vis-options";
@@ -26,71 +26,87 @@ import {VisEdge, VisNode} from "./graph.model";
 import {LineageStore} from "../lineage.store";
 import {OperationType} from "../types";
 import {VisClusterNode, VisModel} from "../../visjs/vis-model";
-import {Subscription} from "rxjs";
+import {BehaviorSubject, combineLatest, Subject, Subscription} from "rxjs";
 import {ExpressionRenderService} from "../details/expression/expression-render.service";
-
-const isDistinct = (change: SimpleChange): boolean => change && !_.isEqual(change.previousValue, change.currentValue)
+import {distinctUntilChanged} from "rxjs/operators";
+import {VisNetworkService} from "../../visjs/vis-network.service";
 
 @Component({
     selector: 'graph',
-    template: ''
+    template: '',
+    providers: [
+        VisNetworkService
+    ]
 })
-export class GraphComponent implements OnChanges, OnDestroy {
-    @Input() public selectedOperationId: string | undefined
-    @Input() public highlightedNodeIDs: string[]
-    @Input() public hiddenOperationTypes: OperationType[]
+export class GraphComponent implements OnDestroy {
+    private hiddenOperationTypes$ = new Subject<OperationType[]>()
+    private highlightedNodeIDs$ = new Subject<string[]>()
+    private selectedOperationId$ = new BehaviorSubject<string | undefined>(undefined)
+
+    @Input() public set hiddenOperationTypes(types: OperationType[]) {
+        this.hiddenOperationTypes$.next(types)
+    }
+
+    @Input() public set highlightedNodeIDs(ids: string[]) {
+        this.highlightedNodeIDs$.next(ids)
+    }
+
+    @Input() public set selectedOperationId(opId: string | undefined) {
+        this.selectedOperationId$.next(opId)
+    }
 
     @Output() public operationSelected = new EventEmitter<string>()
 
-    private network: vis.Network
     private graph: VisModel<VisNode, VisEdge>
-
     private clusterManager: ClusterManager<VisNode, VisEdge>
-    private lineage$Subscription: Subscription
+
+    private readonly subscriptions: Subscription[]
 
     constructor(private container: ElementRef,
                 private expressionRenderService: ExpressionRenderService,
                 private lineageStore: LineageStore,
+                private visNetworkService: VisNetworkService,
                 private zone: NgZone) {
-        this.lineage$Subscription = this.lineageStore.lineage$.subscribe(lineage => {
-            this.rebuildGraph(lineage, expressionRenderService)
-        })
-    }
 
-    ngOnChanges(changes: SimpleChanges): void {
-        if (changes["selectedOperationId"]) this.refreshSelectedNode()
+        const changedHiddenOperationTypes$ = this.hiddenOperationTypes$.pipe(distinctUntilChanged(_.isEqual))
+        const changedHighlightedNodeIds$ = this.highlightedNodeIDs$.pipe(distinctUntilChanged(_.isEqual))
+        const graphRebuildEvidence$ = new Subject<void>()
 
-        if (isDistinct(changes["highlightedNodeIDs"])) {
-            this.refreshHighlightedNodes()
-        }
+        this.subscriptions = [
+            combineLatest([this.lineageStore.lineage$, changedHiddenOperationTypes$])
+                .subscribe(([lineage, hiddenOpTypes]) => {
+                    this.rebuildGraph(lineage, hiddenOpTypes)
+                    graphRebuildEvidence$.next()
+                }),
 
-        if (isDistinct(changes["hiddenOperationTypes"])) {
-            this.rebuildGraph(this.lineageStore.lineageAccessors.lineage, this.expressionRenderService)
-            this.refreshSelectedNode()
-            this.refreshHighlightedNodes()
-        }
+            combineLatest([changedHighlightedNodeIds$, graphRebuildEvidence$])
+                .subscribe(([highlightedIds]) => {
+                    this.refreshHighlightedNodes(highlightedIds)
+                }),
+
+            combineLatest([this.selectedOperationId$, graphRebuildEvidence$])
+                .subscribe(([selectedOpId]) => {
+                    this.refreshSelectedNode(selectedOpId)
+                })
+        ]
     }
 
     ngOnDestroy(): void {
-        this.lineage$Subscription.unsubscribe()
-        this.network.destroy()
-        delete this.network
-        delete this.clusterManager
+        this.subscriptions.forEach(sbc => sbc.unsubscribe())
     }
 
-    private rebuildGraph(lineage: IDataLineage, expressionRenderService: ExpressionRenderService) {
+    private rebuildGraph(lineage: IDataLineage, hiddenOperationTypes: OperationType[]) {
         this.zone.runOutsideAngular(() => {
             this.graph = lineageToGraph(
                 lineage,
-                expressionRenderService,
-                this.selectedOperationId,
-                this.highlightedNodeIDs,
-                this.hiddenOperationTypes)
+                this.expressionRenderService,
+                this.selectedOperationId$.value, hiddenOperationTypes)
 
-            this.network = new vis.Network(this.container.nativeElement, this.graph, visOptions)
+            const network = this.visNetworkService.createNetwork(() =>
+                new vis.Network(this.container.nativeElement, this.graph, visOptions))
 
             this.clusterManager =
-                new ClusterManager(this.graph, this.network, (nodes, edges) => {
+                new ClusterManager(this.graph, network, (nodes, edges) => {
                     const nodesGroups: VisNode[][] = []
                     nodes.forEach(node => {
                         const siblingsTo = edges.filter(e => e.from == node.id).map(e => e.to)
@@ -111,22 +127,22 @@ export class GraphComponent implements OnChanges, OnDestroy {
 
             this.clusterManager.rebuildClusters()
 
-            this.network.on("click", event => {
+            network.on("click", event => {
                 const nodeId = event.nodes[0]
-                if (this.network.isCluster(nodeId)) {
-                    this.network.openCluster(nodeId)
-                    this.refreshSelectedNode()
+                if (network.isCluster(nodeId)) {
+                    network.openCluster(nodeId)
+                    this.refreshSelectedNode(this.selectedOperationId$.value)
                 } else {
                     this.zone.run(() => this.operationSelected.emit(nodeId))
                 }
             })
 
             const canvasElement = this.container.nativeElement.getElementsByTagName("canvas")[0]
-            this.network.on('hoverNode', () => canvasElement.style.cursor = 'pointer')
-            this.network.on('blurNode', () => canvasElement.style.cursor = 'default')
-            this.network.on("beforeDrawing", ctx => {
-                this.network.getSelectedNodes().forEach(nodeId => {
-                    const nodePosition = this.network.getPositions(nodeId)
+            network.on('hoverNode', () => canvasElement.style.cursor = 'pointer')
+            network.on('blurNode', () => canvasElement.style.cursor = 'default')
+            network.on("beforeDrawing", ctx => {
+                network.getSelectedNodes().forEach(nodeId => {
+                    const nodePosition = network.getPositions(nodeId)
                     ctx.fillStyle = "#e0e0e0"
                     ctx.circle(nodePosition[nodeId].x, nodePosition[nodeId].y, 65)
                     ctx.fill()
@@ -138,34 +154,43 @@ export class GraphComponent implements OnChanges, OnDestroy {
     }
 
     public fit() {
-        this.network.fit()
+        this.zone.runOutsideAngular(() => {
+            this.visNetworkService.network.fit()
+        })
     }
 
     public collapseNodes() {
-        this.clusterManager.collapseClustersExceptForNode(this.selectedOperationId)
-    }
-
-    private refreshSelectedNode() {
-        this.network.unselectAll()
-        if (this.selectedOperationId) {
-            this.network.selectNodes([this.selectedOperationId])
-            this.clusterManager.expandClusterForNode(this.selectedOperationId)
-        }
-    }
-
-    private refreshHighlightedNodes() {
-        const nodeDataSet = <vis.DataSet<VisNode>>this.graph.nodes
-        const currentNodes = nodeDataSet.get()
-        const updatedNodes = currentNodes.map(node => {
-            const isHighlighted = _.includes(this.highlightedNodeIDs, node.id)
-            return (node.isHighlighted != isHighlighted)
-                ? new VisNode(node.operation, node.label, isHighlighted)
-                : node
+        this.zone.runOutsideAngular(() => {
+            this.clusterManager.collapseClustersExceptForNode(this.selectedOperationId$.value)
         })
+    }
 
-        nodeDataSet.update(updatedNodes)
+    private refreshSelectedNode(selectedOpId: string | undefined) {
+        this.zone.runOutsideAngular(() => {
+            const network = this.visNetworkService.network
+            network.unselectAll()
+            if (selectedOpId) {
+                network.selectNodes([selectedOpId])
+                this.clusterManager.expandClusterForNode(selectedOpId)
+            }
+        })
+    }
 
-        this.clusterManager.refreshHighlightedClustersForNodes()
+    private refreshHighlightedNodes(highlightedNodeIDs: string[]) {
+        this.zone.runOutsideAngular(() => {
+            const nodeDataSet = <vis.DataSet<VisNode>>this.graph.nodes
+            const currentNodes = nodeDataSet.get()
+            const updatedNodes = currentNodes.map(node => {
+                const isHighlighted = _.includes(highlightedNodeIDs, node.id)
+                return (node.isHighlighted != isHighlighted)
+                    ? new VisNode(node.operation, node.label, isHighlighted)
+                    : node
+            })
+
+            nodeDataSet.update(updatedNodes)
+
+            this.clusterManager.refreshHighlightedClustersForNodes()
+        })
     }
 
 }

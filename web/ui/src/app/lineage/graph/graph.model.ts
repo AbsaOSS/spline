@@ -26,7 +26,7 @@ export class VisNode implements vis.Node {
 
     constructor(public readonly operation: IOperation,
                 public readonly label: string,
-                public readonly isHighlighted: boolean) {
+                public readonly isHighlighted: boolean = false) {
         this.id = operation.mainProps.id
         this.icon = getIconForNodeType(typeOfOperation(operation))
             .toVisNodeIcon(isHighlighted ? "#ff9600" : "#337ab7")
