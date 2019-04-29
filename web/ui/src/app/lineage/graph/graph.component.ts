@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 
-import {
-    Component,
-    ElementRef,
-    EventEmitter,
-    Input, NgZone,
-    OnChanges,
-    OnDestroy,
-    Output,
-    SimpleChange,
-    SimpleChanges
-} from "@angular/core";
+import {Component, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChange, SimpleChanges} from "@angular/core";
 import {IDataLineage} from "../../../generated-ts/lineage-model";
 import "vis/dist/vis.min.css";
 import {visOptions} from "./vis-options";
@@ -32,16 +22,10 @@ import {lineageToGraph} from "./graph-builder";
 import * as vis from "vis";
 import * as _ from "lodash";
 import {ClusterManager} from "../../visjs/cluster-manager";
-import {
-    HighlightedVisClusterNode,
-    RegularVisClusterNode,
-    VisEdge,
-    VisNode,
-    VisNodeType
-} from "./graph.model";
+import {VisEdge, VisNode} from "./graph.model";
 import {LineageStore} from "../lineage.store";
 import {OperationType} from "../types";
-import {VisModel} from "../../visjs/vis-model";
+import {VisClusterNode, VisModel} from "../../visjs/vis-model";
 import {Subscription} from "rxjs";
 import {ExpressionRenderService} from "../details/expression/expression-render.service";
 
@@ -52,11 +36,11 @@ const isDistinct = (change: SimpleChange): boolean => change && !_.isEqual(chang
     template: ''
 })
 export class GraphComponent implements OnChanges, OnDestroy {
-    @Input() selectedOperationId?: string
-    @Input() highlightedNodeIDs: string[]
-    @Input() hiddenOperationTypes: OperationType[]
+    @Input() public selectedOperationId: string | undefined
+    @Input() public highlightedNodeIDs: string[]
+    @Input() public hiddenOperationTypes: OperationType[]
 
-    @Output() operationSelected = new EventEmitter<string>()
+    @Output() public operationSelected = new EventEmitter<string>()
 
     private network: vis.Network
     private graph: VisModel<VisNode, VisEdge>
@@ -96,35 +80,39 @@ export class GraphComponent implements OnChanges, OnDestroy {
 
     private rebuildGraph(lineage: IDataLineage, expressionRenderService: ExpressionRenderService) {
         this.zone.runOutsideAngular(() => {
-            this.graph = lineageToGraph(lineage, expressionRenderService, this.selectedOperationId, this.hiddenOperationTypes)
+            this.graph = lineageToGraph(
+                lineage,
+                expressionRenderService,
+                this.selectedOperationId,
+                this.highlightedNodeIDs,
+                this.hiddenOperationTypes)
+
             this.network = new vis.Network(this.container.nativeElement, this.graph, visOptions)
 
             this.clusterManager =
                 new ClusterManager(this.graph, this.network, (nodes, edges) => {
-                    let nodesGroups: VisNode[][] = []
+                    const nodesGroups: VisNode[][] = []
                     nodes.forEach(node => {
-                        let siblingsTo = edges.filter(e => e.from == node.id).map(e => e.to)
-                        let siblingsFrom = edges.filter(e => e.to == node.id).map(e => e.from)
+                        const siblingsTo = edges.filter(e => e.from == node.id).map(e => e.to)
+                        const siblingsFrom = edges.filter(e => e.to == node.id).map(e => e.from)
                         if (siblingsFrom.length == 1 && siblingsTo.length == 1) {
-                            let group = nodesGroups.find(grp => _.some(grp, n => n.id == siblingsTo[0]))
+                            const group = nodesGroups.find(grp => _.some(grp, n => n.id == siblingsTo[0]))
                             if (group) group.push(node)
                             else nodesGroups.push([node])
                         }
                     })
                     return nodesGroups.map((nodes, i) => {
-                        let id = `cluster:${i}`
-                        let label = "(" + nodes.length + ")"
-                        let isHighlighted = _.some(nodes, n => n.type == VisNodeType.Highlighted)
-                        return isHighlighted
-                            ? new HighlightedVisClusterNode(id, label, nodes)
-                            : new RegularVisClusterNode(id, label, nodes)
+                        const id = `cluster:${i}`
+                        const label = "(" + nodes.length + ")"
+                        const isHighlighted = _.some(nodes, n => n.isHighlighted)
+                        return new VisClusterNode(id, label, nodes, isHighlighted)
                     })
                 })
 
             this.clusterManager.rebuildClusters()
 
             this.network.on("click", event => {
-                let nodeId = event.nodes[0]
+                const nodeId = event.nodes[0]
                 if (this.network.isCluster(nodeId)) {
                     this.network.openCluster(nodeId)
                     this.refreshSelectedNode()
@@ -133,12 +121,12 @@ export class GraphComponent implements OnChanges, OnDestroy {
                 }
             })
 
-            let canvasElement = this.container.nativeElement.getElementsByTagName("canvas")[0]
+            const canvasElement = this.container.nativeElement.getElementsByTagName("canvas")[0]
             this.network.on('hoverNode', () => canvasElement.style.cursor = 'pointer')
             this.network.on('blurNode', () => canvasElement.style.cursor = 'default')
             this.network.on("beforeDrawing", ctx => {
                 this.network.getSelectedNodes().forEach(nodeId => {
-                    let nodePosition = this.network.getPositions(nodeId)
+                    const nodePosition = this.network.getPositions(nodeId)
                     ctx.fillStyle = "#e0e0e0"
                     ctx.circle(nodePosition[nodeId].x, nodePosition[nodeId].y, 65)
                     ctx.fill()
@@ -166,12 +154,12 @@ export class GraphComponent implements OnChanges, OnDestroy {
     }
 
     private refreshHighlightedNodes() {
-        let nodeDataSet = <vis.DataSet<VisNode>>this.graph.nodes
-        let currentNodes = nodeDataSet.get()
-        let updatedNodes = currentNodes.map(node => {
-            let desiredType = _.includes(this.highlightedNodeIDs, node.id) ? VisNodeType.Highlighted : VisNodeType.Regular
-            return (node.type != desiredType)
-                ? _.clone(node)
+        const nodeDataSet = <vis.DataSet<VisNode>>this.graph.nodes
+        const currentNodes = nodeDataSet.get()
+        const updatedNodes = currentNodes.map(node => {
+            const isHighlighted = _.includes(this.highlightedNodeIDs, node.id)
+            return (node.isHighlighted != isHighlighted)
+                ? new VisNode(node.operation, node.label, isHighlighted)
                 : node
         })
 

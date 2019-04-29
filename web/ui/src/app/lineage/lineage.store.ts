@@ -53,12 +53,16 @@ export class LineageAccessors {
         this.operationById = _.mapValues(_.groupBy(lineage.operations, "mainProps.id"), _.first)
         this.datasetById = _.mapValues(_.groupBy(lineage.datasets, "id"), _.first)
         this.attributeById = _.mapValues(_.groupBy(lineage.attributes, "id"), _.first)
-        this.attributesByDatasetId = _.mapValues(this.datasetById, ds => ds.schema.attrs.map(id => this.attributeById[id]))
         this.dataTypesById = _.mapValues(_.groupBy(lineage.dataTypes, "id"), _.first)
+        this.attributesByDatasetId =
+            _.mapValues(this.datasetById, ds => ds.schema.attrs.map(id => this.attributeById[id]))
 
         this.operationIdsByAttributeId = (<any>_(lineage.operations))
             .flatMap((op: IOperation) => {
-                let opInputIds = typeOfOperation(op) != "Read" ? op.mainProps.inputs : [], // Read operation reads from external datasets that are not part of the current lineage and can be ignored.
+                let opInputIds =
+                        typeOfOperation(op) != "Read"
+                            ? op.mainProps.inputs
+                            : [], // Read operation reads from external datasets that are not part of the current lineage and can be ignored.
                     opOutputId = op.mainProps.output,
                     opDatasetIds = opInputIds.concat(opOutputId),
                     opAttrIds = _.uniq(_.flatMap(opDatasetIds, dsId => this.datasetById[dsId].schema.attrs))
