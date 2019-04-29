@@ -38,7 +38,7 @@
     "@angular/platform-browser-dynamic": "7.2.14",
     "@angular/router": "7.2.14",
     "ajv": "6.10.0",
-    "angular-tree-component": "7.2.1",
+    "angular-tree-component": "8.3.0",
     "bootstrap": "3.4.1",
     "core-js": "3.0.1",
     "es6-shim": "0.35.5",

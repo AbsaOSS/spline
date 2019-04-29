@@ -36,7 +36,7 @@ import {DataTypeViewComponent} from "./attribute-list/data-type-view/data-type-v
         CommonModule,
         AccordionModule,
         SharedModule,
-        TreeModule
+        TreeModule.forRoot()
     ],
     declarations: [
         OperationDetailsComponent,
