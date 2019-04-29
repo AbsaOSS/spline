@@ -27,7 +27,6 @@ export function lineageToGraph(
     lineage: IDataLineage,
     expressionRenderService: ExpressionRenderService,
     selectedOperationId: string | undefined,
-    highlightedNodeIds: string[],
     hiddenOperationTypes: OperationType[] = []): VisModel<VisNode, VisEdge> {
 
     const operationVisibilityPredicate = (op: IOperation) => {
@@ -41,8 +40,7 @@ export function lineageToGraph(
         hiddenOperations: IOperation[] = operationsByVisibility.false,
         hiddenOpIds: string[] = _.map(hiddenOperations, "mainProps.id"),
         visibleNodes = visibleOperations.map(op => {
-            const isHighlighted = _.includes(this.highlightedNodeIDs, op.mainProps.id)
-            return new VisNode(op, getLabel(op, expressionRenderService), isHighlighted)
+            return new VisNode(op, getLabel(op, expressionRenderService))
         }),
         visibleEdges = createVisibleEdges(lineage, hiddenOpIds)
 

@@ -37,10 +37,14 @@ import {ClusterManager} from "../../visjs/cluster-manager";
 import {VisClusterNode, VisModel} from "../../visjs/vis-model";
 import {getIconForNodeType, Icon} from "../../lineage/details/operation/operation-icon.utils";
 import {distinctUntilChanged, filter, first, pairwise} from "rxjs/operators";
+import {VisNetworkService} from "../../visjs/vis-network.service";
 
 @Component({
     selector: 'lineage-overview-graph',
-    template: ''
+    template: '',
+    providers: [
+        VisNetworkService
+    ]
 })
 export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
 
@@ -51,50 +55,52 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
     @Output() nodeActioned = new EventEmitter<GraphNode>()
 
     private selectedNode: GraphNode
-    private network: vis.Network
     private clusterManager: ClusterManager<VisNode, vis.Edge>
 
     private subscriptions: Subscription[] = []
 
-    constructor(private container: ElementRef, private zone: NgZone) {
+    constructor(private container: ElementRef,
+                private visNetworkService: VisNetworkService,
+                private zone: NgZone) {
     }
 
     ngOnInit(): void {
-        let lineageContainsDataset = (lin: IDataLineage, dsId: string) => _.some(lin.datasets, {id: dsId}),
+        const lineageContainsDataset = (lin: IDataLineage, dsId: string) => _.some(lin.datasets, {id: dsId}),
             reactOnChange = (prevLineage: IDataLineage, nextLineage: IDataLineage, selectedNode: GraphNode) => {
-                if (!this.network || nextLineage !== prevLineage)
+                if (!this.visNetworkService.network || nextLineage !== prevLineage)
                     this.rebuildGraph(nextLineage)
                 this.selectedNode = selectedNode
                 this.refreshSelectedNode(selectedNode)
             }
 
-        let lineagePairs$ =
+        const lineagePairs$ =
             concat(this.lineage$.pipe(first()), this.lineage$).pipe(pairwise())
 
-        this.subscriptions.unshift(combineLatest(lineagePairs$, this.selectedNode$)
+        this.subscriptions.unshift(combineLatest([lineagePairs$, this.selectedNode$])
             .pipe(
-                filter(([[__, lineage], selectedNode]) => lineageContainsDataset(lineage, selectedNode.id)),
-                distinctUntilChanged(([[__, lin0], node0], [[___, lin1], node1]) => lin0.id == lin1.id && _.isEqual(node0, node1)))
+                filter(([[, lineage], selectedNode]) => lineageContainsDataset(lineage, selectedNode.id)),
+                distinctUntilChanged(([[, lin0], node0], [[, lin1], node1]) => lin0.id == lin1.id && _.isEqual(node0, node1)))
             .subscribe(([[prevLineage, nextLineage], selectedNode]) => reactOnChange(prevLineage, nextLineage, selectedNode)))
     }
 
     ngOnDestroy(): void {
         this.subscriptions.forEach(s => s.unsubscribe())
-        this.network.destroy()
-        delete this.network
-        delete this.clusterManager
     }
 
     public fit() {
-        this.network.fit()
+        this.zone.runOutsideAngular(() => {
+            this.visNetworkService.network.fit()
+        })
     }
 
     public collapseNodes() {
-        this.clusterManager.collapseAllClusters()
+        this.zone.runOutsideAngular(() => {
+            this.clusterManager.collapseAllClusters()
+        })
     }
 
     private static eventToClickableNode(event: any): GraphNode {
-        let nodeIdWithPrefix = event.nodes.length && event.nodes[0]
+        const nodeIdWithPrefix = event.nodes.length && event.nodes[0]
         return LineageOverviewGraphComponent.isClickableNodeId(nodeIdWithPrefix)
             && {
                 id: nodeIdWithPrefix.substring(ID_PREFIX_LENGTH),
@@ -109,10 +115,11 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
 
     private rebuildGraph(lineage: IDataLineage) {
         this.zone.runOutsideAngular(() => {
-            let graph = LineageOverviewGraphComponent.buildVisModel(lineage)
-            this.network = new vis.Network(this.container.nativeElement, graph, visOptions)
+            const graph = LineageOverviewGraphComponent.buildVisModel(lineage)
+            const network = this.visNetworkService.createNetwork(() =>
+                new vis.Network(this.container.nativeElement, graph, visOptions))
 
-            this.clusterManager = new ClusterManager<VisNode, vis.Edge>(graph, this.network, (nodes,) =>
+            this.clusterManager = new ClusterManager<VisNode, vis.Edge>(graph, network, (nodes,) =>
                 _(nodes)
                     .filter((node: VisNode) => node.nodeType === VisNodeType.Dataset)
                     .filter((dsNode: VisDatasetNode) => dsNode.dataSource.datasetsIds.length > 1) // means there were appends to the source
@@ -124,37 +131,36 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
             this.clusterManager.rebuildClusters()
             this.clusterManager.collapseAllClusters()
 
-            this.network.on("click", event => {
-                let node = LineageOverviewGraphComponent.eventToClickableNode(event)
+            network.on("click", event => {
+                const node = LineageOverviewGraphComponent.eventToClickableNode(event)
                 if (node)
                     this.zone.run(() => this.nodeSelected.emit(node))
                 else {
                     this.refreshSelectedNode(this.selectedNode)
-                    let clickedNode = event.nodes[0]
-                    if (this.network.isCluster(clickedNode)) {
-                        this.network.openCluster(clickedNode)
+                    const clickedNode = event.nodes[0]
+                    if (network.isCluster(clickedNode)) {
+                        network.openCluster(clickedNode)
                     }
                 }
             })
 
-            this.network.on("doubleClick", event => {
+            network.on("doubleClick", event => {
                 if (event.nodes.length == 1) {
-                    console.log("DOUBLE CLICK", event.nodes[0])
-                    let node = LineageOverviewGraphComponent.eventToClickableNode(event)
+                    const node = LineageOverviewGraphComponent.eventToClickableNode(event)
                     if (node)
                         this.zone.run(() => this.nodeActioned.emit(node))
                 }
             })
 
-            let canvasElement = this.container.nativeElement.getElementsByTagName("canvas")[0]
-            this.network.on('blurNode', () => canvasElement.style.cursor = 'default')
-            this.network.on('hoverNode', (event) => {
+            const canvasElement = this.container.nativeElement.getElementsByTagName("canvas")[0]
+            network.on('blurNode', () => canvasElement.style.cursor = 'default')
+            network.on('hoverNode', (event) => {
                 if (LineageOverviewGraphComponent.isClickableNodeId(event.node))
                     canvasElement.style.cursor = 'pointer'
             })
-            this.network.on("beforeDrawing", ctx => {
-                this.network.getSelectedNodes().forEach(nodeId => {
-                    let nodePosition = this.network.getPositions(nodeId)
+            network.on("beforeDrawing", ctx => {
+                network.getSelectedNodes().forEach(nodeId => {
+                    const nodePosition = network.getPositions(nodeId)
                     ctx.fillStyle = "#f7a263"
                     ctx.circle(nodePosition[nodeId].x, nodePosition[nodeId].y, 65)
                     ctx.fill()
@@ -164,8 +170,11 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
     }
 
     private refreshSelectedNode(selectedNode: GraphNode) {
-        this.network.unselectAll()
-        this.network.selectNodes([ID_PREFIXES[selectedNode.type] + selectedNode.id])
+        this.zone.runOutsideAngular(() => {
+            const network = this.visNetworkService.network
+            network.unselectAll()
+            network.selectNodes([ID_PREFIXES[selectedNode.type] + selectedNode.id])
+        })
     }
 
     private static buildVisModel(lineage: IDataLineage): VisModel<VisNode, vis.Edge> {
@@ -185,15 +194,15 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
                     .value()
 
 
-        let dataSources =
+        const dataSources =
                 _.flatMap(lineage.operations, (op: IComposite) =>
                     getIdentifiableDataSourcesOf(op).concat(op.destination)),
 
             datasetNodes: VisNode[] =
                 recombineByDatasetIdAndLongestAppendSequence(dataSources)
                     .map(([datasetId, src]) => {
-                        let lastPathItemName = src.path.substring(src.path.replace(/\/$/, '').lastIndexOf("/") + 1)
-                        let label = LineageOverviewGraphComponent.wrapText(src.type + "\n" + lastPathItemName)
+                        const lastPathItemName = src.path.substring(src.path.replace(/\/$/, '').lastIndexOf("/") + 1)
+                        const label = LineageOverviewGraphComponent.wrapText(src.type + "\n" + lastPathItemName)
                         return new VisDatasetNode(
                             src,
                             ID_PREFIXES.datasource + datasetId,
@@ -215,11 +224,11 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
             nodes = processNodes.concat(datasetNodes),
 
             edges: vis.Edge[] = _.flatMap(lineage.operations, (op: IComposite) => {
-                let opNodeId = ID_PREFIXES.operation + op.mainProps.id
-                let inputEdges: vis.Edge[] =
+                const opNodeId = ID_PREFIXES.operation + op.mainProps.id
+                const inputEdges: vis.Edge[] =
                         recombineByDatasetIdAndLongestAppendSequence(getIdentifiableDataSourcesOf(op))
                             .map(([datasetId]) => {
-                                let dsNodeId = ID_PREFIXES.datasource + datasetId
+                                const dsNodeId = ID_PREFIXES.datasource + datasetId
                                 return {
                                     id: dsNodeId + "_" + opNodeId,
                                     from: dsNodeId,
@@ -242,7 +251,7 @@ export class LineageOverviewGraphComponent implements OnInit, OnDestroy {
     }
 
     static wrapText(text: string): string {
-        let textSize = 13
+        const textSize = 13
         return text.split('\n').map(
             line => {
                 if (line.length < textSize) {
