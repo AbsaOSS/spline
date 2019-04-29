@@ -35,7 +35,7 @@ class QueryExecutionEventHandler(harvesterFactory: DataLineageBuilderFactory, li
   def onSuccess(funcName: String, qe: QueryExecution, durationNs: Long): Unit = {
     log debug s"Action '$funcName' execution succeeded"
 
-    if (funcName == "save" || funcName == "saveAsTable" ) {
+    if (funcName == "save" || funcName == "saveAsTable" || funcName == "insertInto" ) {
       log debug s"Start tracking lineage for action '$funcName'"
 
       val maybeLineage =
