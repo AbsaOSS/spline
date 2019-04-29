@@ -20,7 +20,7 @@
 
     <groupId>za.co.absa.spline</groupId>
     <artifactId>spline</artifactId>
-    <version>0.3.6</version>
+    <version>0.3.7</version>
 
     <packaging>pom</packaging>
 
@@ -34,7 +34,7 @@
         <url>${scm.url}</url>
         <connection>${scm.connection}</connection>
         <developerConnection>${scm.developerConnection}</developerConnection>
-        <tag>release/0.3.6</tag>
+        <tag>release/0.3.7</tag>
     </scm>
 
     <distributionManagement>
@@ -58,6 +58,9 @@
         <module>core-spark-adapter-2.2</module>
         <module>core-spark-adapter-2.3</module>
         <module>core-spark-adapter-2.4</module>
+        <module>bundle-2.2</module>
+        <module>bundle-2.3</module>
+        <module>bundle-2.4</module>
         <module>web</module>
         <module>sample</module>
         <module>persistence</module>

@@ -1,6 +1,6 @@
 Run sample command:
 ```
-mvn test -Psamples -Dspline.mongodb.url=... -Dspline.mongodb.name=... -DsampleClass=za.co.absa.spline.sample.SampleJob1
+mvn test -Psamples -Dspline.mongodb.url=... -DsampleClass=za.co.absa.spline.sample.SampleJob1
 ``` 
 
 ---

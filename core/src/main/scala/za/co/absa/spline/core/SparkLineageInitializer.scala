@@ -17,10 +17,14 @@
 package za.co.absa.spline.core
 
 import org.apache.commons.configuration._
+import org.apache.spark
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.internal.StaticSQLConf.QUERY_EXECUTION_LISTENERS
 import org.slf4s.Logging
 import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.core.conf._
+import za.co.absa.spline.core.harvester.QueryExecutionEventHandler
+import za.co.absa.spline.core.listener.SplineQueryExecutionListener
 import za.co.absa.spline.coresparkadapterapi.SparkVersionRequirement
 
 import scala.collection.JavaConverters._
@@ -33,6 +37,15 @@ import scala.util.control.NonFatal
   */
 object SparkLineageInitializer extends Logging {
 
+  def enableLineageTracking(sparkSession: SparkSession): SparkSession =
+    SparkSessionWrapper(sparkSession).enableLineageTracking()
+
+  def enableLineageTracking(sparkSession: SparkSession, configurer: SplineConfigurer): SparkSession =
+    SparkSessionWrapper(sparkSession).enableLineageTracking(configurer)
+
+  def createEventHandler(sparkSession: SparkSession): Option[QueryExecutionEventHandler] =
+    SparkSessionWrapper(sparkSession).createEventHandler()
+
   /**
     * The class is a wrapper around Spark session and performs all necessary registrations and procedures for initialization of the library.
     *
@@ -41,6 +54,7 @@ object SparkLineageInitializer extends Logging {
   implicit class SparkSessionWrapper(sparkSession: SparkSession) {
 
     private implicit val executionContext: ExecutionContext = ExecutionContext.global
+    private def defaultSplineConfigurer = new DefaultSplineConfigurer(defaultSplineConfiguration, sparkSession)
 
     /**
       * The method performs all necessary registrations and procedures for initialization of the library.
@@ -48,32 +62,60 @@ object SparkLineageInitializer extends Logging {
       * @param configurer A collection of settings for the library initialization
       * @return An original Spark session
       */
-    def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfigurer(defaultSplineConfiguration, sparkSession)): SparkSession = {
-      if (configurer.splineMode != DISABLED) sparkSession.synchronized {
-        preventDoubleInitialization()
-        log info s"Spline v${SplineBuildInfo.version} is initializing..."
-        try {
-          attemptInitialization(configurer)
-          log info s"Successfully initialized. Spark Lineage tracking is ENABLED."
-        } catch {
-          case NonFatal(e) if configurer.splineMode == BEST_EFFORT =>
-            log.error(s"Initialization failed! Spark Lineage tracking is DISABLED.", e)
+    def enableLineageTracking(configurer: SplineConfigurer = defaultSplineConfigurer): SparkSession = {
+      val splineConfiguredForCodelessInit = sparkSession.sparkContext.getConf
+        .getOption(QUERY_EXECUTION_LISTENERS.key).toSeq
+        .flatMap(s => s.split(",").toSeq)
+        .contains(classOf[SplineQueryExecutionListener].getCanonicalName)
+      if (!splineConfiguredForCodelessInit || spark.SPARK_VERSION.startsWith("2.2")) {
+        if (splineConfiguredForCodelessInit) {
+          log.warn("""
+            |Spline lineage tracking is also configured for codeless initialization, but codeless init is
+            |supported on Spark 2.3+ and not current version 2.2. Spline will be initialized only via code call to
+            |enableLineageTracking i.e. the same way as is now."""
+              .stripMargin.replaceAll("\n", " "))
         }
+        createEventHandler(configurer)
+          .foreach(h => sparkSession.listenerManager.register(new SplineQueryExecutionListener(Some(h))))
+      } else {
+        log.warn("""
+          |Spline lineage tracking is also configured for codeless initialization.
+          |It wont be initialized by this code call to enableLineageTracking now."""
+            .stripMargin.replaceAll("\n", " "))
       }
       sparkSession
     }
 
-    /**
-      * The method tries to initialize the library with external settings.
-      *
-      * @param configurer External settings
-      */
-    def attemptInitialization(configurer: SplineConfigurer): Unit = {
-      SparkVersionRequirement.instance.requireSupportedVersion()
-      sparkSession.listenerManager register configurer.queryExecutionListener
+    def createEventHandler(): Option[QueryExecutionEventHandler] = {
+      val configurer = new DefaultSplineConfigurer(defaultSplineConfiguration, sparkSession)
+      if (configurer.splineMode != DISABLED) {
+        createEventHandler(configurer)
+      } else {
+        None
+      }
+    }
 
-      // TODO: SL-128
-//       sparkSession.streams addListener configurer.streamingQueryListener
+    private def createEventHandler(configurer: SplineConfigurer): Option[QueryExecutionEventHandler] = {
+      if (configurer.splineMode != DISABLED) {
+        if (!getOrSetIsInitialized()) {
+          log.info(s"Spline v${SplineBuildInfo.version} is initializing...")
+          try {
+            SparkVersionRequirement.instance.requireSupportedVersion()
+            val eventHandler = configurer.queryExecutionEventHandler
+            log.info(s"Spline successfully initialized. Spark Lineage tracking is ENABLED.")
+            Some(eventHandler)
+          } catch {
+            case NonFatal(e) if configurer.splineMode == BEST_EFFORT =>
+              log.error(s"Spline initialization failed! Spark Lineage tracking is DISABLED.", e)
+              None
+          }
+        } else {
+          log.warn("Spline lineage tracking is already initialized!")
+          None
+        }
+      } else {
+        None
+      }
     }
 
     private[core] val defaultSplineConfiguration = {
@@ -92,13 +134,17 @@ object SparkLineageInitializer extends Logging {
       ).flatten.asJava)
     }
 
-    private def preventDoubleInitialization(): Unit = {
+    private def getOrSetIsInitialized(): Boolean = sparkSession.synchronized {
       val sessionConf = sparkSession.conf
       sessionConf getOption initFlagKey match {
-        case Some(_) => throw new IllegalStateException("Lineage tracking is already initialized")
-        case None => sessionConf.set(initFlagKey, true.toString)
+        case Some(_) =>
+          true
+        case None =>
+          sessionConf.set(initFlagKey, true.toString)
+          false
       }
     }
+
   }
 
   val initFlagKey = "spline.initialized_flag"

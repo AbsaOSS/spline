@@ -1,8 +1,5 @@
-package za.co.absa.spline.coresparkadapterapi
-
 /*
- * Copyright 2017 ABSA Group Limited
- *
+ * Copyright 2019 ABSA Group Limited
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,9 +13,13 @@ package za.co.absa.spline.coresparkadapterapi
  * limitations under the License.
  */
 
-import org.apache.spark.sql.execution.streaming.{ConsoleSink, ForeachSink}
+import {NgModule} from "@angular/core";
+import {VisNetworkService} from "./vis-network.service";
 
-class StructuredStreamingListenerAdapterImpl extends StructuredStreamingListenerAdapter {
-  override def consoleSinkClass(): Class[_] = classOf[ConsoleSink]
-  override def foreachBatchSinkClass(): Class[_] = classOf[ForeachSink[_]]
+@NgModule({
+    providers: [
+        VisNetworkService
+    ]
+})
+export class VisModule {
 }

@@ -22,13 +22,20 @@
         <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../../parent/pom.xml</relativePath>
-        <version>0.3.6</version>
+        <version>0.3.7</version>
     </parent>
 
     <artifactId>spline-persistence-hdfs</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
+        <!--<dependency>-->
+            <!--<groupId>jdk.tools</groupId>-->
+            <!--<artifactId>jdk.tools</artifactId>-->
+            <!--<scope>system</scope>-->
+            <!--<version>1.6</version>-->
+            <!--<systemPath>C:/Program Files/Java/jdk1.8.0_191/lib/tools.jar</systemPath>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>

@@ -25,7 +25,7 @@
         <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>0.3.6</version>
+        <version>0.3.7</version>
     </parent>
 
     <properties>
@@ -44,6 +44,18 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_${scala.compat.version}</artifactId>
+            <version>${spark.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_${scala.compat.version}</artifactId>
+            <version>${spark.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

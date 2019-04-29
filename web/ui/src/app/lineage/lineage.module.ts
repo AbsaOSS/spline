@@ -14,28 +14,27 @@
  * limitations under the License.
  */
 
-import {NgModule} from "@angular/core";
-import {LineageComponent} from "./lineage.component";
-import {LineageService} from "./lineage.service";
-import {CommonModule} from "@angular/common";
-import {HttpClientModule} from "@angular/common/http";
-import {RouterModule} from "@angular/router";
+import { NgModule } from "@angular/core";
+import { LineageComponent } from "./lineage.component";
+import { LineageService } from "./lineage.service";
+import { CommonModule } from "@angular/common";
+import { HttpClientModule } from "@angular/common/http";
+import { RouterModule } from "@angular/router";
 
 
 import "@angular/material/prebuilt-themes/indigo-pink.css";
-import {NoopAnimationsModule} from "@angular/platform-browser/animations";
-import {MaterialModule} from "../material-extension/material.module";
+import { NoopAnimationsModule } from "@angular/platform-browser/animations";
+import { MaterialModule } from "../material-extension/material.module";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/css/bootstrap-theme.min.css";
 import "font-awesome/css/font-awesome.min.css";
 
-import {GraphComponent} from "./graph/graph.component";
-import {LineageByDatasetIdResolver} from "./lineage.resolver";
-import {DetailsModule} from "./details/details.module";
-import {MiscModule} from "../misc/misc.module";
+import { GraphComponent } from "./graph/graph.component";
+import { LineageByDatasetIdResolver } from "./lineage.resolver";
+import { DetailsModule } from "./details/details.module";
+import { MiscModule } from "../misc/misc.module";
 import { ExpressionRenderService } from "./details/expression/expression-render.service";
-import { LineageStore } from "./lineage.store";
 
 @NgModule({
     imports: [
@@ -54,8 +53,7 @@ import { LineageStore } from "./lineage.store";
     providers: [
         LineageService,
         LineageByDatasetIdResolver,
-        ExpressionRenderService,
-        LineageStore
+        ExpressionRenderService
     ],
     exports: [
         LineageComponent,

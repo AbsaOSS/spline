@@ -19,7 +19,6 @@ package za.co.absa.spline.model.op
 import java.util.UUID
 
 import salat.annotations.{Persist, Salat}
-import za.co.absa.spline.model.endpoint.StreamEndpoint
 import za.co.absa.spline.model.expr.Expression
 import za.co.absa.spline.model.{MetaDataSource, TypedMetaDataSource}
 
@@ -68,9 +67,7 @@ object Operation {
       */
     def updated(fn: OperationProps => OperationProps): T = (op.asInstanceOf[Operation] match {
       case op@Read(mp, _, _) => op.copy(mainProps = fn(mp))
-      case op@StreamRead(mp, _) => op.copy(mainProps = fn(mp))
       case op@Write(mp, _, _, _, _, _) => op.copy(mainProps = fn(mp))
-      case op@StreamWrite(mp, _) => op.copy(mainProps = fn(mp))
       case op@Alias(mp, _) => op.copy(mainProps = fn(mp))
       case op@Filter(mp, _) => op.copy(mainProps = fn(mp))
       case op@Sort(mp, _) => op.copy(mainProps = fn(mp))
@@ -231,29 +228,6 @@ case class Read(
       s"Hence the size 'inputs' collection should be the same as the count of known datasets for 'sources' field. " +
       s"But was $inputDatasetsCount and $knownSourceLineagesCount respectively")
 }
-
-/**
-  * The case class represents Spark operations for loading data via structured streaming
-  *
-  * @param mainProps Common node properties
-  * @param source    An endpoint that data flows from
-  */
-case class StreamRead(
-                       mainProps: OperationProps,
-                       source: StreamEndpoint
-                     ) extends Operation
-
-/**
-  * The case class represents Spark operations for persisting data via structured streaming
-  *
-  * @param mainProps   Common node properties
-  * @param destination An endpoint that data flows to
-  *
-  */
-case class StreamWrite(
-                        mainProps: OperationProps,
-                        destination: StreamEndpoint
-                      ) extends Operation
 
 /**
   * The case class represents a partial data lineage at its boundary level.

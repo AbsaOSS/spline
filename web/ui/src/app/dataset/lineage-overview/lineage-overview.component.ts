@@ -30,7 +30,7 @@ import {distinctUntilChanged, filter, map} from "rxjs/operators";
     providers: [LineageStore]
 })
 
-export class DatasetLineageOverviewComponent implements OnInit, OnDestroy{
+export class DatasetLineageOverviewComponent implements OnInit, OnDestroy {
 
     selectedNode$: Observable<GraphNode>
 
@@ -74,18 +74,17 @@ export class DatasetLineageOverviewComponent implements OnInit, OnDestroy{
     }
 
     updateSelectedState(linAccessors: LineageAccessors, node: GraphNode) {
-        let compositeOp = <IComposite> linAccessors.getOperation(node.id)
+        let compositeOp = <IComposite>linAccessors.getOperation(node.id)
         switch (node.type) {
             case "operation":
                 this.selectedDataSourceDescription = undefined
                 this.selectedOperation = compositeOp
                 break
             case "datasource":
-                let selectedDataset = linAccessors.getDataset(node.id),
-                    attrs = selectedDataset.schema.attrs.map(attrId => linAccessors.getAttribute(attrId))
+                const selectedDatasetSchema = {attrs: linAccessors.getDatasetAttributes(node.id)}
                 this.selectedDataSourceDescription = {
                     source: compositeOp.destination,
-                    schema: {attrs: attrs},
+                    schema: selectedDatasetSchema,
                     timestamp: compositeOp.timestamp
                 }
                 this.selectedOperation = undefined

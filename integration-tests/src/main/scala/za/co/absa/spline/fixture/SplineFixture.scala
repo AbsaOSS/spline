@@ -16,12 +16,13 @@
 
 package za.co.absa.spline.fixture
 
+import java.util.Properties
 import java.{util => ju}
 
 import com.mongodb.casbah.MongoDB
 import com.mongodb.{DBCollection, DBObject}
 import org.apache.commons.configuration.Configuration
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, SaveMode}
 import org.bson.BSON
 import org.mockito.Mockito._
 import org.mockito.invocation.InvocationOnMock
@@ -88,6 +89,8 @@ object AbstractSplineFixture {
 
   private var justCapturedLineage: DataLineage = _
 
+  def resetCapturedLineage = justCapturedLineage = null
+
   /** force the object to be loaded by the class loader */
   private def touch(): Unit = {}
 
@@ -95,7 +98,7 @@ object AbstractSplineFixture {
     override val createDataLineageReader: Option[DataLineageReader] = None
     override val createDataLineageWriter: DataLineageWriter = new DataLineageWriter {
       override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = {
-        assume(justCapturedLineage == null)
+        assume(justCapturedLineage == null, "Some lineage was already captured")
         justCapturedLineage = lineage
         Future.successful(())
       }
@@ -105,8 +108,25 @@ object AbstractSplineFixture {
   trait Implicits {
 
     implicit class DataFrameLineageExtractor(df: DataFrame) {
-      def lineage: DataLineage = {
-        df.write.save(TempDirectory("spline", ".parquet", pathOnly = true).deleteOnExit().path.toString)
+      /** Writes dataframe to disk as parquet and returns captured lineage*/
+      def writtenLineage(path: String = null, mode: SaveMode = SaveMode.ErrorIfExists): DataLineage = {
+        val dir = if (path != null) path else TempDirectory("spline", ".parquet", pathOnly = true).deleteOnExit().path.toString
+        df.write.mode(mode).save(dir)
+        AbstractSplineFixture.justCapturedLineage
+      }
+
+      /** Writes dataframe to table and returns captured lineage*/
+      def saveAsTableLineage(tableName: String = "tableName", mode: SaveMode = SaveMode.ErrorIfExists): DataLineage = {
+        df.write.mode(mode).saveAsTable(tableName)
+        AbstractSplineFixture.justCapturedLineage
+      }
+
+      /** Writes dataframe to table and returns captured lineage*/
+      def jdbcLineage(connectionString:String,
+                      tableName:String,
+                      properties:Properties = new Properties(),
+                      mode: SaveMode = SaveMode.ErrorIfExists): DataLineage = {
+        df.write.mode(mode).jdbc(connectionString, tableName, properties)
         AbstractSplineFixture.justCapturedLineage
       }
     }

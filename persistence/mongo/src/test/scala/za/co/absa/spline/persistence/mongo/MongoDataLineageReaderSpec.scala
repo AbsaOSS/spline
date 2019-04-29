@@ -46,8 +46,8 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase wit
       createDataLineage("appID5", "App Five", path = "file://some/path/5.csv", timestamp = 105),
       createDataLineage("appID6", "App Six", path = "file://some/path/6.csv", timestamp = 106),
       createDataLineage("appID7", "App Seven", path = "file://some/path/7.csv", timestamp = 107),
-      createDataLineage("appID8", "App Eight", path = "file://some/path/8.csv", timestamp = 108),
-      createDataLineage("appID9", "App Nine", path = "file://some/path/9.csv", timestamp = 109)
+      createDataLineage("appID8", "App Eight (text) a\\'b$1", path = "file://some/path/8.csv", timestamp = 108),
+      createDataLineage("appID9", "App Nine (text2) a'b", path = "file://some/path/9.csv", timestamp = 109)
     )
 
     it("should load descriptions from a database.") {
@@ -109,6 +109,21 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase wit
         foundSingleMatch should consistOfItemsWithAppIds[PersistedDatasetDescriptor](searchingLineage.appId)
         noResultByPrefix.iterator shouldBe empty
         noResultBySuffix.iterator shouldBe empty
+      }
+    }
+
+    it("should search verbatim text") {
+      for {
+        _ <- Future.sequence(testLineages.map(mongoWriter.store))
+        set1 <- mongoReader.findDatasets("(text)", EntireLatestContent)
+        set2 <- mongoReader.findDatasets("a\\'b", EntireLatestContent)
+        set3 <- mongoReader.findDatasets("a\\\\'b", EntireLatestContent)
+        set4 <- mongoReader.findDatasets("a\\'b$1", EntireLatestContent)
+      } yield {
+        set1 should consistOfItemsWithAppIds[PersistedDatasetDescriptor]("appID8")
+        set2 should consistOfItemsWithAppIds[PersistedDatasetDescriptor]("appID8")
+        set3.iterator shouldBe empty
+        set4 should consistOfItemsWithAppIds[PersistedDatasetDescriptor]("appID8")
       }
     }
   }
@@ -271,5 +286,18 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase wit
       attributes,
       dataTypes
     )
+  }
+
+  it("should return empty Map when there are no metrics") {
+    val lineage = createDataLineage("appID0", "App Zero", path = "file://some/path/0.csv", timestamp = 100)
+
+    for {
+      _ <- mongoWriter.store(lineage)
+      storedLineage: Option[DataLineage] <- mongoReader.loadByDatasetId(lineage.rootDataset.id, overviewOnly = false)
+    } yield {
+      storedLineage.isDefined shouldBe true
+      val write: op.Write = storedLineage.map(_.operations.head.asInstanceOf[op.Write]).get
+      write.readMetrics should have size 0
+    }
   }
 }
