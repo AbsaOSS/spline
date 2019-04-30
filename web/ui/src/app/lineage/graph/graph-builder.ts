@@ -15,7 +15,7 @@
  */
 
 import {IAttribute, IDataLineage, IMetaDataset, IOperation} from "../../../generated-ts/lineage-model";
-import {RegularVisNode, VisEdge, VisNode} from "./graph.model";
+import {VisNode, VisEdge} from "./graph.model";
 import * as vis from "vis";
 import * as _ from "lodash";
 import {OperationType, typeOfOperation} from "../types";
@@ -31,11 +31,13 @@ import {
     IStreamWrite
 } from "../../../generated-ts/operation-model";
 
-export function lineageToGraph(lineage: IDataLineage,
-                               expressionRenderService: ExpressionRenderService,
-                               selectedOperationId?: string,
-                               hiddenOperationTypes: OperationType[] = []): VisModel<VisNode, VisEdge> {
-    let operationVisibilityPredicate = (op: IOperation) => {
+export function lineageToGraph(
+    lineage: IDataLineage,
+    expressionRenderService: ExpressionRenderService,
+    selectedOperationId: string | undefined,
+    hiddenOperationTypes: OperationType[] = []): VisModel<VisNode, VisEdge> {
+
+    const operationVisibilityPredicate = (op: IOperation) => {
             let opType = typeOfOperation(op)
             return op.mainProps.id == selectedOperationId
                 || opType != "Alias"
@@ -45,7 +47,9 @@ export function lineageToGraph(lineage: IDataLineage,
         visibleOperations: IOperation[] = operationsByVisibility.true,
         hiddenOperations: IOperation[] = operationsByVisibility.false,
         hiddenOpIds: string[] = _.map(hiddenOperations, "mainProps.id"),
-        visibleNodes = visibleOperations.map(op => new RegularVisNode(op, getLabel(op, expressionRenderService))),
+        visibleNodes = visibleOperations.map(op => {
+            return new VisNode(op, getLabel(op, expressionRenderService))
+        }),
         visibleEdges = createVisibleEdges(lineage, hiddenOpIds)
 
     return new VisModel(

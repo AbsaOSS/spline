@@ -33,6 +33,7 @@ import {MiscModule} from "./misc/misc.module";
 import {XHRTimeoutRectifierModule} from "./xhr-timeout-rectifier/xhr-timeout-rectifier.module";
 import {DatasetLineageIntervalResolver} from './dataset/lineage-overview/lineage-interval.resolver';
 import { LineageStore } from "./lineage/lineage.store";
+import {VisModule} from "./visjs/vis.module";
 
 
 const lineageRoute = {
@@ -105,6 +106,7 @@ const routes: Routes = [
         DashboardModule,
         LineageModule,
         DatasetModule,
+        VisModule,
         MiscModule
     ],
     providers: [

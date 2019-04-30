@@ -28,6 +28,7 @@ import salat.{BinaryTypeHintStrategy, TypeHintFrequency}
 import za.co.absa.spline.common.EnumerationMacros.sealedInstancesOf
 import za.co.absa.spline.common.transformations.{AbstractConverter, CachingConverter}
 import za.co.absa.spline.persistence.api.CloseableIterable
+import za.co.absa.spline.persistence.mongo.DBObjectImplicits._
 import za.co.absa.spline.persistence.mongo.MongoConnection
 import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component
 import za.co.absa.spline.persistence.mongo.dao.BaselineLineageDAO.Component.SubComponent
@@ -73,11 +74,15 @@ class LineageDAOv4(override val connection: MongoConnection) extends BaselineLin
     val eventualLineageDBO = super.addComponents(rootComponentDBO, overviewOnly)
     if (overviewOnly)
       eventualLineageDBO
-    else
+    else {
       eventualLineageDBO.map(lineage => {
+        val operations = lineage.get(Component.Operation.name).asInstanceOf[ju.List[DBObject]]
+        enforceDefaultMetricsOnWriteOperation(operations.get(0))
+
         val transformations = lineage.get(SubComponentV4.Transformation.name).asInstanceOf[ju.List[DBObject]]
         insertTransformationsIntoLineage(transformations.asScala, lineage)
       })
+    }
   }
 
   override protected val overviewComponentFilter: PartialFunction[Component.SubComponent, DBObject] = {
@@ -86,6 +91,11 @@ class LineageDAOv4(override val connection: MongoConnection) extends BaselineLin
         "za.co.absa.spline.model.op.Read",
         "za.co.absa.spline.model.op.Write")
         .map(binaryTypeHintStrategy.encode)
+  }
+
+  private def enforceDefaultMetricsOnWriteOperation(writeOp: DBObject): Unit = {
+    writeOp.putIfAbsent(Field.readMetrics, new BasicDBObject(new ju.HashMap()))
+    writeOp.putIfAbsent(Field.writeMetrics, new BasicDBObject(new ju.HashMap()))
   }
 
   private def insertTransformationsIntoLineage(transformations: Seq[DBObject], lineage: DBObject) = {
@@ -146,6 +156,9 @@ object LineageDAOv4 {
     val value = "value"
     val name = "name"
     val exprType = "exprType"
+
+    val writeMetrics = "writeMetrics"
+    val readMetrics = "readMetrics"
   }
 
   object SubComponentV4 {

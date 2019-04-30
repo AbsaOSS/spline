@@ -37,7 +37,7 @@ import {ProcessingTypeIconComponent} from './operation/processing-type-icon.comp
         CommonModule,
         AccordionModule,
         SharedModule,
-        TreeModule
+        TreeModule.forRoot()
     ],
     declarations: [
         OperationDetailsComponent,

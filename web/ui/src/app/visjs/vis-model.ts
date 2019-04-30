@@ -16,26 +16,6 @@
 
 import * as vis from "vis";
 
-export class Icon {
-    constructor(public name: string,
-                public code: string,
-                public font: string = "FontAwesome") {
-    }
-
-    public toVisIcon(): VisIcon {
-        return new VisIcon(this.code, 80, this.font)
-    }
-}
-
-export class VisIcon {
-    constructor(
-        public code: string,
-        public size: number = 80,
-        public face: string = "FontAwesome",
-        public color: string ="#337ab7"
-    ) {}
-}
-
 export class VisModel<TVisNode extends vis.Node, TVisEdge extends vis.Edge> implements vis.Data {
     constructor(public nodes: vis.DataSet<TVisNode>,
                 public edges: vis.DataSet<TVisEdge>) {
@@ -43,16 +23,24 @@ export class VisModel<TVisNode extends vis.Node, TVisEdge extends vis.Edge> impl
 }
 
 export class VisClusterNode<TVisNode> implements vis.Node {
-    public icon = {
-        face: "FontAwesome",
-        size: 80,
-        code: "\uf00a",
-        color: "#a4c4df"
-    }
+    public readonly icon: VisNodeIcon
 
-    constructor(public id: string,
-                public label: string,
-                public nodes: TVisNode[]) {
+    constructor(public readonly id: string,
+                public readonly label: string,
+                public readonly nodes: TVisNode[],
+                public readonly isHighlighted: boolean = false) {
+        this.icon = {
+            face: "FontAwesome",
+            size: 80,
+            code: "\uf00a",
+            color: isHighlighted ? "#ffa807" : "#a4c4df"
+        }
     }
 }
 
+export type VisNodeIcon = {
+    face?: string,
+    code?: string,
+    size?: number,
+    color?: string
+}

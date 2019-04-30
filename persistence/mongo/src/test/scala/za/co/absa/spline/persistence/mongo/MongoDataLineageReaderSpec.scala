@@ -332,6 +332,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase wit
     }
 
   }
+
   protected def createDataLineageWithSources(appId: String, appName: String, sources: Seq[MetaDataSource]): DataLineage = {
     val timestamp: Long = 123L
     val outputPath: String = "hdfs://foo/bar/path"
@@ -366,5 +367,18 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase wit
       attributes,
       dataTypes
     )
+  }
+
+  it("should return empty Map when there are no metrics") {
+    val lineage = createDataLineage("appID0", "App Zero", path = "file://some/path/0.csv", timestamp = 100)
+
+    for {
+      _ <- lineageWriter.store(lineage)
+      storedLineage: Option[DataLineage] <- mongoReader.loadByDatasetId(lineage.rootDataset.id, overviewOnly = false)
+    } yield {
+      storedLineage.isDefined shouldBe true
+      val write: op.BatchWrite = storedLineage.map(_.operations.head.asInstanceOf[op.BatchWrite]).get
+      write.readMetrics should have size 0
+    }
   }
 }

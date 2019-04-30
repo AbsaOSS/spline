@@ -62,8 +62,7 @@ export class OperationDetailsComponent implements OnChanges {
     }
 
     getDatasetAttributes(dsId: string): IAttribute[] {
-        let dataset = this.lineageStore.lineageAccessors.getDataset(dsId)
-        return dataset.schema.attrs.map(attrId => this.lineageStore.lineageAccessors.getAttribute(attrId))
+        return this.lineageStore.lineageAccessors.getDatasetAttributes(dsId)
     }
 
     getDroppedAttributesIfAny(): IAttribute[] | undefined {

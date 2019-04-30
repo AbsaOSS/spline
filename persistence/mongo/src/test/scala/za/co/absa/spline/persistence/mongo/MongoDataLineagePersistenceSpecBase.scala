@@ -43,12 +43,15 @@ abstract class MongoDataLineagePersistenceSpecBase
   protected val mongoReader = new MongoDataLineageReader(dao)
 
   protected def createDataLineage(
-      appId: String,
-      appName: String,
-      timestamp: Long = 123L,
-      datasetId: UUID = randomUUID,
-      path: String = "hdfs://foo/bar/path",
-      append: Boolean = false): DataLineage = {
+                                   appId: String,
+                                   appName: String,
+                                   timestamp: Long = 123L,
+                                   datasetId: UUID = randomUUID,
+                                   path: String = "hdfs://foo/bar/path",
+                                   append: Boolean = false,
+                                   writeMetrics: Map[String, Long] = Map("x" -> 42),
+                                   readMetrics: Map[String, Long] = Map.empty): DataLineage = {
+
     val dataTypes = Seq(Simple("StringType", nullable = true))
     val attributes = Seq(
       Attribute(randomUUID(), "_1", dataTypes.head.id),
@@ -69,7 +72,7 @@ abstract class MongoDataLineagePersistenceSpecBase
       timestamp,
       "0.0.42",
       Seq(
-        BatchWrite(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path, append, Map("x" -> 42), Map.empty),
+        BatchWrite(OperationProps(randomUUID, "Write", Seq(md1.id), md1.id), "parquet", path, append, writeMetrics, readMetrics),
         Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1"),
         Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md2.id), "rawString2"),
         Generic(OperationProps(randomUUID, "LogicalRDD", Seq.empty, md4.id), "rawString3"),
@@ -81,8 +84,7 @@ abstract class MongoDataLineagePersistenceSpecBase
     )
   }
 
-  protected def createEvent(lineage: DataLineage, timestamp: Long, readCount: Long, readPaths: Seq[String], writePath: String) =
-  {
+  protected def createEvent(lineage: DataLineage, timestamp: Long, readCount: Long, readPaths: Seq[String], writePath: String) = {
     ProgressEvent(
       randomUUID,
       lineage.id,

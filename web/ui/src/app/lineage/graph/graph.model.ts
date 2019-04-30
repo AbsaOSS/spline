@@ -16,76 +16,19 @@
 
 import * as vis from "vis";
 import {IOperation} from "../../../generated-ts/lineage-model";
-import {Icon, VisClusterNode, VisIcon} from "../../visjs/vis-model";
+import {VisNodeIcon} from "../../visjs/vis-model";
 import {getOperationIcon} from '../details/operation/operation-icon.utils';
 
-export enum VisNodeType {
-    Regular,
-    Highlighted
-}
+export class VisNode implements vis.Node {
+    public readonly id: string
+    public readonly icon: VisNodeIcon
 
-export class RegularVisClusterNode extends VisClusterNode<VisNode> {
-    constructor(id: string, label: string, nodes: VisNode[]) {
-        super(id, label, nodes)
-        this.icon.color = "#a4c4df"
-    }
-}
-
-export class HighlightedVisClusterNode extends VisClusterNode<VisNode> {
-    constructor(id: string, label: string, nodes: VisNode[]) {
-        super(id, label, nodes)
-        this.icon.color = "#ff6000"
-    }
-}
-
-
-export abstract class VisNode implements vis.Node {
-    constructor(public operation: IOperation,
-                public id: string,
-                public label: string,
-                public icon: VisIcon,
-                public type: VisNodeType) {
-    }
-}
-
-export class RegularVisNode extends VisNode {
-    constructor(public operation: IOperation, public label: string) {
-        super(
-            operation,
-            operation.mainProps.id,
-            label,
-            RegularVisNode.getIcon(getOperationIcon(operation)),
-            VisNodeType.Regular
-        );
-    }
-
-    static getIcon(icon: Icon) {
-        return {
-            face: icon.font,
-            size: 80,
-            code: icon.code,
-            color: "#337ab7"
-        }
-    }
-}
-
-export class HighlightedVisNode extends VisNode {
-    constructor(public operation: IOperation, public label: string) {
-        super(
-            operation,
-            operation.mainProps.id,
-            label,
-            HighlightedVisNode.getIcon(getOperationIcon(operation)),
-            VisNodeType.Highlighted)
-    }
-
-    static getIcon(icon: Icon) {
-        return {
-            face: icon.font,
-            size: 80,
-            code: icon.code,
-            color: "#ffa807"
-        }
+    constructor(public readonly operation: IOperation,
+                public readonly label: string,
+                public readonly isHighlighted: boolean = false) {
+        this.id = operation.mainProps.id
+        this.icon = getOperationIcon(operation)
+            .toVisNodeIcon(isHighlighted ? "#ff9600" : "#337ab7")
     }
 }
 
@@ -100,4 +43,3 @@ export class VisEdge implements vis.Edge {
         this.title = title;
     }
 }
-
