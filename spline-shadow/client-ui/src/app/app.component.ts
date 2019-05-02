@@ -15,7 +15,6 @@
  */
 
 import { Component } from '@angular/core';
-import { ConfigService } from './services/config/config.service';
 
 @Component({
   selector: 'app-root',
@@ -25,10 +24,6 @@ import { ConfigService } from './services/config/config.service';
 export class AppComponent {
 
   constructor() {
-  }
-
-  ngOnInit() {
-    console.log(ConfigService.settings)
   }
 
 }

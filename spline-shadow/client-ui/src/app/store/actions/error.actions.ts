@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-import { Component } from '@angular/core';
+import { Action } from '@ngrx/store';
 
-@Component({
-  selector: 'app-lineage',
-  templateUrl: './lineage.component.html',
-  styleUrls: ['./lineage.component.less']
-})
-export class LineageComponent { }
+export enum ErrorActionTypes {
+    ERROR_GET = '[Error] Get',
+}
+
+export class Get implements Action {
+    public readonly type = ErrorActionTypes.ERROR_GET
+    constructor(public payload: string) { }
+}
+export type ErrorActions
+    = Get

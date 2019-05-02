@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-import { Component } from '@angular/core';
+import { Params } from "@angular/router";
 
-@Component({
-  selector: 'app-lineage',
-  templateUrl: './lineage.component.html',
-  styleUrls: ['./lineage.component.less']
-})
-export class LineageComponent { }
+export interface RouterStateUrl {
+    url: string;
+    params: Params;
+    queryParams: Params;
+}

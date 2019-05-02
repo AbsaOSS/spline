@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-import { Component } from '@angular/core';
+import { Action } from '@ngrx/store';
 
-@Component({
-  selector: 'app-lineage',
-  templateUrl: './lineage.component.html',
-  styleUrls: ['./lineage.component.less']
-})
-export class LineageComponent { }
+export enum ContextMenuActionTypes {
+    CONTEXT_MENU_GET = '[Context Menu] Get',
+}
+
+export class Get implements Action {
+    public readonly type = ContextMenuActionTypes.CONTEXT_MENU_GET
+}
+export type ContextMenuActions
+    = Get

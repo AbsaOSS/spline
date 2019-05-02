@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Operation } from 'src/app/generated/models/operation';
 
-import { Component } from '@angular/core';
-
-@Component({
-  selector: 'app-lineage',
-  templateUrl: './lineage.component.html',
-  styleUrls: ['./lineage.component.less']
-})
-export class LineageComponent { }
+export interface CytoscapeOperationVM extends Partial<Operation> {
+    id: string
+    color: string
+    icon: number
+}

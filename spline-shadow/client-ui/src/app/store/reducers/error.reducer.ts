@@ -13,12 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as ErrorAction from '../actions/error.actions';
 
-import { Component } from '@angular/core';
+export type Action = ErrorAction.ErrorActions
 
-@Component({
-  selector: 'app-lineage',
-  templateUrl: './lineage.component.html',
-  styleUrls: ['./lineage.component.less']
-})
-export class LineageComponent { }
+export function errorReducer(state: string, action: Action): string {
+    switch (action.type) {
+        case ErrorAction.ErrorActionTypes.ERROR_GET: return getTextError(action.payload)
+        default: return state
+    }
+}
+
+function getTextError(httpCode: string): string {
+    let codeNumber = Number(httpCode)
+    switch (codeNumber) {
+        case 404: return "404 ! Could not find the requested lineage"
+        default: return "OUPS, Something went wrong !"
+    }
+}

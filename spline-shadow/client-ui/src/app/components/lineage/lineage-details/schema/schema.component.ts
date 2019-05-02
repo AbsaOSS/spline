@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, Input } from '@angular/core';
-import { SchemaType } from 'src/app/types/schemaType';
-import { PropertyService } from 'src/app/services/details/property.service';
-import { Observable } from 'rxjs';
+import { Component, Input } from '@angular/core';
+import { SchemaType } from 'src/app/model/types/schemaType';
 
 @Component({
   selector: 'schema',
@@ -32,9 +30,6 @@ export class SchemaComponent {
 
   @Input()
   schema: any
-
-  constructor() { }
-
 
   getSchemaTypeLabel(): any {
     switch (this.schemaType) {

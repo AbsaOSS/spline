@@ -15,10 +15,10 @@
   -->
 
 <div class="details-container">
-  <div class="container-fluid" [ngClass]="getDetails() ? 'schema-details' : 'execution-details'">
+  <div class="container-fluid" [ngClass]="(getDetailsInfo() | async)? 'schema-details' : 'execution-details'">
     <schema-details></schema-details>
   </div>
-  <div *ngIf="getDetails()" class="container-fluid property-details">
-    <property-details></property-details>
+  <div *ngIf="(getDetailsInfo() | async)" class="container-fluid attribute-details">
+    <attribute-details></attribute-details>
   </div>
 </div>
