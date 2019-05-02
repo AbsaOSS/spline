@@ -16,154 +16,132 @@
 
 package za.co.absa.spline.fixture
 
-import java.util.Properties
-import java.{util => ju}
 
-import com.mongodb.casbah.MongoDB
-import com.mongodb.{DBCollection, DBObject}
-import org.apache.commons.configuration.Configuration
-import org.apache.spark.sql.{DataFrame, SaveMode}
-import org.bson.BSON
-import org.mockito.Mockito._
-import org.mockito.invocation.InvocationOnMock
-import org.mockito.stubbing.Answer
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
-import org.scalatest.Inspectors.forAll
+import java.util.Properties
+
+import org.apache.commons.configuration.{CompositeConfiguration, Configuration, PropertiesConfiguration, SystemConfiguration}
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.scalatest._
-import org.scalatest.mockito.MockitoSugar
-import org.slf4s.Logging
-import za.co.absa.spline.common.ByteUnits._
 import za.co.absa.spline.common.TempDirectory
-import za.co.absa.spline.core.conf.DefaultSplineConfigurer.ConfProperty.PERSISTENCE_FACTORY
+import za.co.absa.spline.core.conf.{DefaultSplineConfigurer, HadoopConfiguration, SparkConfiguration, SplineConfigurer}
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.{DataLineageReader, DataLineageWriter, PersistenceFactory}
-import za.co.absa.spline.persistence.mongo.MongoConnection
-import za.co.absa.spline.persistence.mongo.dao.LineageDAOv4
 
+import scala.util.Try
 import scala.collection.JavaConverters._
-import scala.collection.mutable
+import scala.concurrent.{ExecutionContext, Future}
+import za.co.absa.spline.core.SparkLineageInitializer._
+
 
 trait AbstractSplineFixture
-  extends BeforeAndAfterAll
-    with AbstractSplineFixture.Implicits {
+  extends BeforeAndAfterAll {
 
   this: Suite with AbstractSparkFixture =>
 
-  AbstractSplineFixture.touch()
+  private var justCapturedLineage: DataLineage = _
 
-  abstract override protected def beforeAll(): Unit = {
-    import za.co.absa.spline.core.SparkLineageInitializer._
-    spark.enableLineageTracking()
-    super.beforeAll()
+  def withLineageCapturingOn[T](session: SparkSession)(testBody: LineageCaptor => T): T = {
+    val captor = new LineageCaptor
+
+
+    val defaultSplineConfiguration: CompositeConfiguration = AbstractSplineFixture.makeConfig(session)
+
+    val unitTestConfigurer: SplineConfigurer = new DefaultSplineConfigurer(defaultSplineConfiguration, session,
+      new IsolatedTestPersistenceFactory(defaultSplineConfiguration)
+    )
+    session.enableLineageTracking(unitTestConfigurer)
+
+    val result = testBody(captor)
+    resetCapturedLineage
+    result
   }
 
-  protected def exec[T](body: => T): T = {
-    AbstractSplineFixture.synchronized {
-      try body
-      finally AbstractSplineFixture.justCapturedLineage = null
+  class LineageCaptor {
+
+    def lineage: DataLineage = AbstractSplineFixture.this.capturedLineage
+
+    def resetCapturedLineage: Unit = AbstractSplineFixture.this.resetCapturedLineage
+  }
+
+  class IsolatedTestPersistenceFactory(conf: Configuration) extends PersistenceFactory(conf) {
+    override val createDataLineageReader: Option[DataLineageReader] = None
+    override val createDataLineageWriter: DataLineageWriter = new DataLineageWriter {
+      override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = {
+        if (justCapturedLineage != null) {
+          justCapturedLineage = null
+          throw new RuntimeException("Some lineage was already captured.")
+        } else {
+          justCapturedLineage = lineage
+          Future.successful(())
+        }
+      }
+    }
+  }
+
+  def resetCapturedLineage: Unit = {
+    justCapturedLineage = null
+  }
+
+  def capturedLineage: DataLineage = {
+    if (justCapturedLineage == null) {
+      throw new RuntimeException("Lineage was not captured or was already captured ")
+    } else {
+      justCapturedLineage
     }
   }
 }
 
+
 trait SplineFixture extends AbstractSplineFixture with TestSuiteMixin {
   this: TestSuite with AbstractSparkFixture =>
 
-  abstract override protected def withFixture(test: NoArgTest): Outcome = exec {
-    super.withFixture(test)
-  }
 }
 
 trait AsyncSplineFixture extends AbstractSplineFixture with AsyncTestSuiteMixin {
   this: AsyncTestSuite with AbstractSparkFixture =>
 
-  abstract override def withFixture(test: NoArgAsyncTest): FutureOutcome = exec {
-    super.withFixture(test)
+}
+
+object Implicits {
+
+  implicit class DFWrapper(df: DataFrame) {
+    def writeToDisk(path: String = null, mode: SaveMode = SaveMode.ErrorIfExists): Unit = {
+      val dir = if (path != null) path else TempDirectory("spline_" + System.currentTimeMillis(), ".parquet", pathOnly = true).deleteOnExit().path.toString
+      df.write.mode(mode).save(dir)
+    }
+
+    def writeToTable(tableName: String = "tableName", mode: SaveMode = SaveMode.ErrorIfExists): Unit = {
+      df.write.mode(mode).saveAsTable(tableName)
+    }
+
+    def writeToJDBC(connectionString: String,
+                    tableName: String,
+                    properties: Properties = new Properties(),
+                    mode: SaveMode = SaveMode.ErrorIfExists): Unit = {
+      df.write.mode(mode).jdbc(connectionString, tableName, properties)
+    }
   }
+
 }
 
 object AbstractSplineFixture {
 
-  import scala.concurrent.{ExecutionContext, Future}
+  def makeConfig[T >: AnyRef](spark: SparkSession) = {
+    val defaultSplineConfiguration = {
+      val splinePropertiesFileName = "spline.properties"
 
-  System.getProperties.setProperty(PERSISTENCE_FACTORY, classOf[TestPersistenceFactory].getName)
+      val systemConfOpt = Some(new SystemConfiguration)
+      val propFileConfOpt = Try(new PropertiesConfiguration(splinePropertiesFileName)).toOption
+      val hadoopConfOpt = Some(new HadoopConfiguration(spark.sparkContext.hadoopConfiguration))
+      val sparkConfOpt = Some(new SparkConfiguration(spark.sparkContext.getConf))
 
-  private var justCapturedLineage: DataLineage = _
-
-  def resetCapturedLineage = justCapturedLineage = null
-
-  /** force the object to be loaded by the class loader */
-  private def touch(): Unit = {}
-
-  class TestPersistenceFactory(conf: Configuration) extends PersistenceFactory(conf) {
-    override val createDataLineageReader: Option[DataLineageReader] = None
-    override val createDataLineageWriter: DataLineageWriter = new DataLineageWriter {
-      override def store(lineage: DataLineage)(implicit ec: ExecutionContext): Future[Unit] = {
-        assume(justCapturedLineage == null, "Some lineage was already captured")
-        justCapturedLineage = lineage
-        Future.successful(())
-      }
+      new CompositeConfiguration(Seq(
+        hadoopConfOpt,
+        sparkConfOpt,
+        systemConfOpt,
+        propFileConfOpt
+      ).flatten.asJava)
     }
+    defaultSplineConfiguration
   }
-
-  trait Implicits {
-
-    implicit class DataFrameLineageExtractor(df: DataFrame) {
-      /** Writes dataframe to disk as parquet and returns captured lineage*/
-      def writtenLineage(path: String = null, mode: SaveMode = SaveMode.ErrorIfExists): DataLineage = {
-        val dir = if (path != null) path else TempDirectory("spline", ".parquet", pathOnly = true).deleteOnExit().path.toString
-        df.write.mode(mode).save(dir)
-        AbstractSplineFixture.justCapturedLineage
-      }
-
-      /** Writes dataframe to table and returns captured lineage*/
-      def saveAsTableLineage(tableName: String = "tableName", mode: SaveMode = SaveMode.ErrorIfExists): DataLineage = {
-        df.write.mode(mode).saveAsTable(tableName)
-        AbstractSplineFixture.justCapturedLineage
-      }
-
-      /** Writes dataframe to table and returns captured lineage*/
-      def jdbcLineage(connectionString:String,
-                      tableName:String,
-                      properties:Properties = new Properties(),
-                      mode: SaveMode = SaveMode.ErrorIfExists): DataLineage = {
-        df.write.mode(mode).jdbc(connectionString, tableName, properties)
-        AbstractSplineFixture.justCapturedLineage
-      }
-    }
-
-    implicit class LineageComponentSizeVerifier(lineage: DataLineage)(implicit ec: ExecutionContext)
-      extends MockitoSugar with Matchers with Logging {
-      def shouldHaveEveryComponentSizeInBSONLessThan(sizeLimit: Int): Future[Assertion] = {
-        import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext._
-
-        val mongoConnectionMock = mock[MongoConnection]
-        val mongoDBMock = mock[MongoDB]
-        val mongoDBCollectionMocks = mutable.Map.empty[String, DBCollection]
-
-        when(mongoConnectionMock.db).thenReturn(mongoDBMock)
-        when(mongoDBMock.getCollection(ArgumentMatchers.any())).thenAnswer(new Answer[DBCollection] {
-          override def answer(invocation: InvocationOnMock): DBCollection =
-            mongoDBCollectionMocks.getOrElseUpdate(invocation getArgument 0, mock[DBCollection])
-        })
-
-        for (_ <- new LineageDAOv4(mongoConnectionMock).save(salat.grater[DataLineage].asDBObject(lineage))) yield {
-          forAll(mongoDBCollectionMocks) {
-            case (colName, colMock) =>
-              val argCaptor = ArgumentCaptor.forClass(classOf[ju.List[DBObject]]): ArgumentCaptor[ju.List[DBObject]]
-              verify(colMock, atLeastOnce).insert(argCaptor.capture())
-              val dbos = argCaptor.getAllValues.asScala.flatMap(_.asScala)
-              forAll(dbos.zipWithIndex) {
-                case (dbo, i) =>
-                  val actualSize = BSON.encode(dbo).length
-                  log.info(f"$colName[$i] BSON size: ${actualSize.toDouble / 1.kb}%.2f kb")
-                  actualSize should be < sizeLimit
-              }
-          }
-        }
-      }
-    }
-
-
-  }
-
 }

@@ -25,14 +25,12 @@ import org.mockito.Mockito.when
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FunSuite, Matchers}
 import za.co.absa.spline.coresparkadapterapi.{WriteCommandParser, WriteCommandParserFactory}
-import za.co.absa.spline.fixture.SparkFixture
+import za.co.absa.spline.fixture.{SparkFixture}
 
 
-class DataLineageBuilderTest extends FunSuite with Matchers with SparkFixture {
+class DataLineageBuilderTest extends FunSuite with Matchers with SparkFixture with MockitoSugar{
 
-  import DataLineageBuilderTest._
-
-  test("spline-124") {
+  test("spline-124") { withSession (spark => {
     val someData1 = Seq(Row("foo", "bar"))
     val someData2 = Seq(Row("baz", "qux"))
     val someData3 = Seq(Row("quux", "corge"))
@@ -45,15 +43,12 @@ class DataLineageBuilderTest extends FunSuite with Matchers with SparkFixture {
 
     val tripleUnionDF = df1 union df2 union df3
 
-    val lineageBuilder = lineageBuilderFor(tripleUnionDF)
+    val lineageBuilder = lineageBuilderFor(tripleUnionDF)(spark.sparkContext)
     val lineage = lineageBuilder.buildLineage()
 
     lineage.getOrElse(fail).operations should have size 4 // 3 LogicalRDD + 1 Union
-  }
-}
+  })}
 
-
-object DataLineageBuilderTest extends MockitoSugar {
 
   private def lineageBuilderFor(df: DataFrame)(implicit sparkContext: SparkContext): DataLineageBuilder = {
     val plan = df.queryExecution.analyzed

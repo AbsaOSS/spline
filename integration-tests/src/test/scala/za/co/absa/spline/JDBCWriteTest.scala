@@ -18,40 +18,46 @@
 package za.co.absa.spline
 
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
-import org.apache.spark.sql.{DataFrame, Row, SaveMode}
+import org.apache.spark.sql.{DataFrame, Row, SaveMode, SparkSession}
 import org.scalatest._
-import za.co.absa.spline.fixture.{AsyncSparkFixture, AsyncSplineFixture, DerbyDatabaseFixture}
-import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.fixture._
 import za.co.absa.spline.model.op.Write
+import za.co.absa.spline.fixture.Implicits._
 
 
-@Ignore class JDBCWriteTest extends AsyncFlatSpec
-  with Matchers
-  with AsyncSparkFixture
-  with AsyncSplineFixture
+class JDBCWriteTest extends FlatSpec with Matchers
+  with SparkFixture
+  with SplineFixture
   with DerbyDatabaseFixture {
 
-  val tableName = "testTable"
-
-  val testData: DataFrame = {
+  def testData (spark: SparkSession): DataFrame = {
     val schema = StructType(StructField("ID", IntegerType, false) :: StructField("NAME", StringType, false) :: Nil)
     val rdd = spark.sparkContext.parallelize(Row(1014, "Warsaw") :: Row(1002, "Corte") :: Nil)
     spark.sqlContext.createDataFrame(rdd, schema)
   }
 
 
-  "save_to_fs" should "process all operations" in {
-    val tableName = "someTable" + System.currentTimeMillis()
+  "save_to_fs" should "I want to do it like this." in {
 
-    val lineage: DataLineage = testData.jdbcLineage(connectionString, tableName, mode = SaveMode.Overwrite)
-
-    val producedWrites = lineage.operations.filter(_.isInstanceOf[Write]).map(_.asInstanceOf[Write])
-    producedWrites.size shouldBe 1
-    val write = producedWrites.head
-
-    write.path shouldBe "jdbc://" + connectionString + ":" + tableName
-    write.append shouldBe false
   }
+
+
+  "save_to_fs" should "process all operations" in withSession((spark) =>
+    withLineageCapturingOn(spark) {
+      lineageCaptor => {
+
+      val tableName = "someTable" + System.currentTimeMillis()
+
+      testData(spark).writeToJDBC(connectionString, tableName, mode = SaveMode.Overwrite)
+
+      val producedWrites = lineageCaptor.lineage.operations.filter(_.isInstanceOf[Write]).map(_.asInstanceOf[Write])
+      producedWrites.size shouldBe 1
+      val write = producedWrites.head
+
+      write.path shouldBe "jdbc://" + connectionString + ":" + tableName
+      write.append shouldBe false
+    }}
+  )
 }
 
 

@@ -17,22 +17,23 @@
 package za.co.absa.spline.fixture
 
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.SparkContext
-import org.apache.spark.sql.{SQLContext, SparkSession}
+import org.apache.spark.sql.SparkSession
 import org.scalatest._
 
-trait AbstractSparkFixture extends BeforeAndAfterAll {
+
+trait AbstractSparkFixture {
 
   this: Suite =>
 
-  AbstractSparkFixture.touch()
+  val builder: SparkSession.Builder =
+    customizeBuilder(SparkSession.builder.master("local[4]").config("spark.ui.enabled", "false"))
 
-  protected val spark: SparkSession = SparkSession.builder.getOrCreate
+  def withSession[T](testBody: SparkSession => T): T = {
+    val spark = builder.getOrCreate.newSession
+    testBody(spark)
+  }
 
-  protected implicit lazy val sparkContext: SparkContext = spark.sparkContext
-  protected implicit lazy val sqlContext: SQLContext = spark.sqlContext
-
-  abstract override protected def afterAll(): Unit = try super.afterAll() finally spark.stop()
+  def customizeBuilder(builder: SparkSession.Builder) : SparkSession.Builder = {builder}
 }
 
 trait SparkFixture extends AbstractSparkFixture with TestSuiteMixin {
@@ -42,6 +43,7 @@ trait SparkFixture extends AbstractSparkFixture with TestSuiteMixin {
 trait AsyncSparkFixture extends AbstractSparkFixture with AsyncTestSuiteMixin {
   this: AsyncTestSuite =>
 }
+
 
 object AbstractSparkFixture {
   /** force the object to be loaded by the class loader */

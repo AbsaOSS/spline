@@ -17,44 +17,51 @@
 package za.co.absa.spline
 
 import org.apache.hadoop.fs.Path
+import org.apache.spark.sql.{Row, SaveMode}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{IntegerType, StructField, StructType}
-import org.apache.spark.sql.{Row, SaveMode}
 import org.scalatest._
+import org.slf4s.Logging
 import za.co.absa.spline.common.TempDirectory
-import za.co.absa.spline.fixture.{AbstractSplineFixture, AsyncSparkFixture, AsyncSplineFixture}
+import za.co.absa.spline.fixture._
 import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.model.op.{Write}
+import za.co.absa.spline.model.op.Write
+import za.co.absa.spline.fixture.Implicits._
 
 /** Contains smoke tests for basic operations.*/
-//Ignored because we cannot have two AsyncSplineFixture based tests in
-// one project. This will work in release 4
-@Ignore class BasicIntegrationTests
-  extends AsyncFlatSpec
-    with Matchers
-    with AsyncSparkFixture
-    with AsyncSplineFixture {
+class BasicIntegrationTests extends FlatSpec with Matchers with SparkFixture
+  with SplineFixture
+  with Logging  {
 
-  import spark.implicits._
-
-  "saveAsTable" should "process all operations" in {
+  "saveAsTable" should "process all operations" in withSession((spark) =>
+    withLineageCapturingOn(spark) {
+      lineageCaptor => {
+    import spark.implicits._
 
     val df = Seq((1, 2), (3, 4)).toDF().agg(concat(sum('_1), min('_2)) as "forty_two")
-    val saveAsTable: DataLineage = df.saveAsTableLineage("someTable")
+
+    df.writeToTable("someTable")
+    val lineage = lineageCaptor.lineage
 
     spark.sql("drop table someTable")
-    saveAsTable.operations.length shouldBe 3
-  }
+    lineage.operations.length shouldBe 3
+  }})
 
-  "save_to_fs" should "process all operations" in {
+  "save_to_fs" should "process all operations" in withSession((spark) =>
+    withLineageCapturingOn(spark) {
+      lineageCaptor => {
+    import spark.implicits._
 
     val df = Seq((1, 2), (3, 4)).toDF().agg(concat(sum('_1), min('_2)) as "forty_two")
-    val saveToFS: DataLineage = df.writtenLineage()
+    df.writeToDisk()
+    val lineage = lineageCaptor.lineage
 
-    saveToFS.operations.length shouldBe 3
-  }
+    lineage.operations.length shouldBe 3
+  }})
 
-  "saveAsTable" should "use URIS compatible with filesystem write" in {
+  "saveAsTable" should "use URIS compatible with filesystem write" in withSession((spark) =>
+    withLineageCapturingOn(spark) {
+      lineageCaptor =>  {
 
     //When I write something to table and then read it again, Spline have to use matching URI.
 
@@ -68,23 +75,27 @@ import za.co.absa.spline.model.op.{Write}
     val data = spark.sparkContext.parallelize(Seq(Row(1), Row(3)))
     val inputDf = spark.sqlContext.createDataFrame(data, schema)
 
-    val writeToTable: DataLineage = inputDf.saveAsTableLineage(tableName, SaveMode.Append)
+    inputDf.writeToTable(tableName, SaveMode.Append)
+    val lineage: DataLineage = lineageCaptor.lineage
 
-    val write1: Write = writeToTable.operations.filter(_.isInstanceOf[Write]).head.asInstanceOf[Write]
+    val write1: Write = lineage.operations.filter(_.isInstanceOf[Write]).head.asInstanceOf[Write]
     val saveAsTablePath = write1.path
 
-    AbstractSplineFixture.resetCapturedLineage
+    lineageCaptor.resetCapturedLineage
     spark.sql("drop table " + tableName)
 
-    val readFromTable: DataLineage = inputDf.writtenLineage(path, SaveMode.Overwrite)
+    inputDf.writeToDisk(path, SaveMode.Overwrite)
+    val readFromTable: DataLineage = lineageCaptor.lineage
 
     val writeOperation = readFromTable.operations.filter(_.isInstanceOf[Write]).head.asInstanceOf[Write]
     val write2 = writeOperation.path
 
     saveAsTablePath shouldBe write2
-  }
+  }})
 
-  "saveAsTable" should "use table path as identifier when writing to external table" in {
+  "saveAsTable" should "use table path as identifier when writing to external table" in withSession((spark) =>
+    withLineageCapturingOn(spark) {
+      lineageCaptor =>  {
     val dir = TempDirectory ("sparkunit", "table", true).deleteOnExit()
     val expectedPath = dir.path.toUri.toURL
     val path = dir.path.toString.replace("\\", "/")
@@ -95,12 +106,13 @@ import za.co.absa.spline.model.op.{Write}
     val data = spark.sparkContext.parallelize(Seq(Row(1), Row(3)))
     val df = spark.sqlContext.createDataFrame(data, schema)
 
-    val writeToTable: DataLineage = df.saveAsTableLineage("e_table", SaveMode.Append)
+    df.writeToTable("e_table", SaveMode.Append)
+    val wt: DataLineage = lineageCaptor.lineage
 
-    val writeOperation: Write = writeToTable.operations.filter(_.isInstanceOf[Write]).head.asInstanceOf[Write]
+    val writeOperation: Write = wt.operations.filter(_.isInstanceOf[Write]).head.asInstanceOf[Write]
 
     new Path(writeOperation.path).toUri.toURL shouldBe expectedPath
-  }
+  }})
 
 
 }
