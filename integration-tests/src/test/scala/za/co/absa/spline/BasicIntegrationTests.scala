@@ -17,44 +17,38 @@
 package za.co.absa.spline
 
 import org.apache.hadoop.fs.Path
+import org.apache.spark.sql.{Row, SaveMode}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{IntegerType, StructField, StructType}
-import org.apache.spark.sql.{Row, SaveMode}
 import org.scalatest._
 import za.co.absa.spline.common.TempDirectory
-import za.co.absa.spline.fixture.{AbstractSplineFixture, AsyncSparkFixture, AsyncSplineFixture}
+import za.co.absa.spline.fixture.IsolatedSplineFixture
 import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.model.op.{Write}
+import za.co.absa.spline.model.op.Write
 
 /** Contains smoke tests for basic operations.*/
-//Ignored because we cannot have two AsyncSplineFixture based tests in
-// one project. This will work in release 4
-@Ignore class BasicIntegrationTests
-  extends AsyncFlatSpec
-    with Matchers
-    with AsyncSparkFixture
-    with AsyncSplineFixture {
+class BasicIntegrationTests extends FlatSpec with Matchers with IsolatedSplineFixture {
 
-  import spark.implicits._
-
-  "saveAsTable" should "process all operations" in {
+  "saveAsTable" should "process all operations" in withNewSparkSession (spark => {
+    import spark.implicits._
 
     val df = Seq((1, 2), (3, 4)).toDF().agg(concat(sum('_1), min('_2)) as "forty_two")
-    val saveAsTable: DataLineage = df.saveAsTableLineage("someTable")
+    val saveAsTable = writeToTable(df, "someTable")
 
     spark.sql("drop table someTable")
     saveAsTable.operations.length shouldBe 3
-  }
+  })
 
-  "save_to_fs" should "process all operations" in {
+  "save_to_fs" should "process all operations" in withNewSparkSession (spark => {
+    import spark.implicits._
 
     val df = Seq((1, 2), (3, 4)).toDF().agg(concat(sum('_1), min('_2)) as "forty_two")
-    val saveToFS: DataLineage = df.writtenLineage()
+    val saveToFS: DataLineage = writeDfToDisk(df)
 
     saveToFS.operations.length shouldBe 3
-  }
+  })
 
-  "saveAsTable" should "use URIS compatible with filesystem write" in {
+  "saveAsTable" should "use URIS compatible with filesystem write" in withNewSparkSession (spark =>  {
 
     //When I write something to table and then read it again, Spline have to use matching URI.
 
@@ -68,23 +62,23 @@ import za.co.absa.spline.model.op.{Write}
     val data = spark.sparkContext.parallelize(Seq(Row(1), Row(3)))
     val inputDf = spark.sqlContext.createDataFrame(data, schema)
 
-    val writeToTable: DataLineage = inputDf.saveAsTableLineage(tableName, SaveMode.Append)
+    val wt: DataLineage = writeToTable(inputDf, tableName, SaveMode.Append)
 
-    val write1: Write = writeToTable.operations.filter(_.isInstanceOf[Write]).head.asInstanceOf[Write]
+    val write1: Write = wt.operations.filter(_.isInstanceOf[Write]).head.asInstanceOf[Write]
     val saveAsTablePath = write1.path
 
-    AbstractSplineFixture.resetCapturedLineage
+    resetCapturedLineage
     spark.sql("drop table " + tableName)
 
-    val readFromTable: DataLineage = inputDf.writtenLineage(path, SaveMode.Overwrite)
+    val readFromTable: DataLineage = writeDfToDisk(inputDf,path, SaveMode.Overwrite)
 
     val writeOperation = readFromTable.operations.filter(_.isInstanceOf[Write]).head.asInstanceOf[Write]
     val write2 = writeOperation.path
 
     saveAsTablePath shouldBe write2
-  }
+  })
 
-  "saveAsTable" should "use table path as identifier when writing to external table" in {
+  "saveAsTable" should "use table path as identifier when writing to external table" in withNewSparkSession (spark => {
     val dir = TempDirectory ("sparkunit", "table", true).deleteOnExit()
     val expectedPath = dir.path.toUri.toURL
     val path = dir.path.toString.replace("\\", "/")
@@ -95,12 +89,12 @@ import za.co.absa.spline.model.op.{Write}
     val data = spark.sparkContext.parallelize(Seq(Row(1), Row(3)))
     val df = spark.sqlContext.createDataFrame(data, schema)
 
-    val writeToTable: DataLineage = df.saveAsTableLineage("e_table", SaveMode.Append)
+    val wt: DataLineage = writeToTable(df, "e_table", SaveMode.Append)
 
-    val writeOperation: Write = writeToTable.operations.filter(_.isInstanceOf[Write]).head.asInstanceOf[Write]
+    val writeOperation: Write = wt.operations.filter(_.isInstanceOf[Write]).head.asInstanceOf[Write]
 
     new Path(writeOperation.path).toUri.toURL shouldBe expectedPath
-  }
+  })
 
 
 }

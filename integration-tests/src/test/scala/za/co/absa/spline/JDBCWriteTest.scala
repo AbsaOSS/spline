@@ -18,32 +18,31 @@
 package za.co.absa.spline
 
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
-import org.apache.spark.sql.{DataFrame, Row, SaveMode}
+import org.apache.spark.sql.{DataFrame, Row, SaveMode, SparkSession}
 import org.scalatest._
-import za.co.absa.spline.fixture.{AsyncSparkFixture, AsyncSplineFixture, DerbyDatabaseFixture}
+import za.co.absa.spline.fixture.{DerbyDatabaseFixture, IsolatedSplineFixture}
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.model.op.Write
 
 
-@Ignore class JDBCWriteTest extends AsyncFlatSpec
+class JDBCWriteTest extends FlatSpec
   with Matchers
-  with AsyncSparkFixture
-  with AsyncSplineFixture
+  with IsolatedSplineFixture
   with DerbyDatabaseFixture {
 
   val tableName = "testTable"
 
-  val testData: DataFrame = {
+  def testData (spark: SparkSession): DataFrame = {
     val schema = StructType(StructField("ID", IntegerType, false) :: StructField("NAME", StringType, false) :: Nil)
     val rdd = spark.sparkContext.parallelize(Row(1014, "Warsaw") :: Row(1002, "Corte") :: Nil)
     spark.sqlContext.createDataFrame(rdd, schema)
   }
 
 
-  "save_to_fs" should "process all operations" in {
+  "save_to_fs" should "process all operations" in withNewSparkSession(spark => {
     val tableName = "someTable" + System.currentTimeMillis()
 
-    val lineage: DataLineage = testData.jdbcLineage(connectionString, tableName, mode = SaveMode.Overwrite)
+    val lineage: DataLineage = jdbcLineage(testData(spark), connectionString, tableName, mode = SaveMode.Overwrite)
 
     val producedWrites = lineage.operations.filter(_.isInstanceOf[Write]).map(_.asInstanceOf[Write])
     producedWrites.size shouldBe 1
@@ -51,7 +50,7 @@ import za.co.absa.spline.model.op.Write
 
     write.path shouldBe "jdbc://" + connectionString + ":" + tableName
     write.append shouldBe false
-  }
+  })
 }
 
 

@@ -54,7 +54,7 @@ object DefaultSplineConfigurer {
   *
   * @param configuration A source of settings
   */
-class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkSession) extends SplineConfigurer with Logging {
+class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkSession, defaultFactory: PersistenceFactory = null) extends SplineConfigurer with Logging {
 
   import DefaultSplineConfigurer.ConfProperty._
   import za.co.absa.spline.common.ConfigurationImplicits._
@@ -82,14 +82,17 @@ class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkS
   }
 
   private lazy val persistenceFactory: PersistenceFactory = {
-    val persistenceFactoryClassName = configuration getRequiredString PERSISTENCE_FACTORY
+    if (defaultFactory != null) defaultFactory
+    else {
+      val persistenceFactoryClassName = configuration getRequiredString PERSISTENCE_FACTORY
 
-    log debug s"Instantiating persistence factory: $persistenceFactoryClassName"
+      log debug s"Instantiating persistence factory: $persistenceFactoryClassName"
 
-    Class.forName(persistenceFactoryClassName)
-      .getConstructor(classOf[Configuration])
-      .newInstance(configuration)
-      .asInstanceOf[PersistenceFactory]
+      Class.forName(persistenceFactoryClassName)
+        .getConstructor(classOf[Configuration])
+        .newInstance(configuration)
+        .asInstanceOf[PersistenceFactory]
+    }
   }
 
   private def lineageTransformationPipeline(lineageReader: DataLineageReader) =
