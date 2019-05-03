@@ -57,8 +57,10 @@
                 <configuration>
                     <artifactSet>
                         <excludes>
-                            <exclude>org.scala-lang:*</exclude>
-                            <exclude>org.scalaz:*</exclude>
+                            <exclude>org.scala-lang:scala-compiler</exclude>
+                            <exclude>org.scala-lang:scala-library</exclude>
+                            <exclude>org.scala-lang:scala-reflect</exclude>
+                            <exclude>org.scala-lang.modules:scala-parser-combinators_2.11</exclude>
                             <exclude>org.apache.spark:*</exclude>
                             <exclude>org.apache.hadoop:*</exclude>
                         </excludes>
