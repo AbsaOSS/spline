@@ -19,7 +19,6 @@ package za.co.absa.spline.core
 import org.apache.commons.configuration._
 import org.apache.spark
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.internal.StaticSQLConf.QUERY_EXECUTION_LISTENERS
 import org.slf4s.Logging
 import za.co.absa.spline.core.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.core.conf._
@@ -64,7 +63,7 @@ object SparkLineageInitializer extends Logging {
       */
     def enableLineageTracking(configurer: SplineConfigurer = defaultSplineConfigurer): SparkSession = {
       val splineConfiguredForCodelessInit = sparkSession.sparkContext.getConf
-        .getOption(QUERY_EXECUTION_LISTENERS.key).toSeq
+        .getOption(sparkQueryExecutionListenersKey).toSeq
         .flatMap(s => s.split(",").toSeq)
         .contains(classOf[SplineQueryExecutionListener].getCanonicalName)
       if (!splineConfiguredForCodelessInit || spark.SPARK_VERSION.startsWith("2.2")) {
@@ -148,4 +147,7 @@ object SparkLineageInitializer extends Logging {
   }
 
   val initFlagKey = "spline.initialized_flag"
+
+  // constant take from Spark but is not available in Spark 2.2 so we need to copy value.
+  val sparkQueryExecutionListenersKey = "spark.sql.queryExecutionListeners"
 }
