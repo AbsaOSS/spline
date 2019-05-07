@@ -16,7 +16,6 @@
 
 package za.co.absa.spline.model
 
-import java.net.URI
 import java.util.UUID
 
 /**
@@ -33,6 +32,6 @@ case class PersistedDatasetDescriptor
   datasetId: UUID,
   appId: String,
   appName: String,
-  path: URI,
+  path: String,
   timestamp: Long
 )
