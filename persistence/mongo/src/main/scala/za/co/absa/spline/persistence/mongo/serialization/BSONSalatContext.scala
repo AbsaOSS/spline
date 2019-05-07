@@ -16,10 +16,12 @@
 
 package za.co.absa.spline.persistence.mongo.serialization
 
-import salat.Context
+import salat.{BinaryTypeHintStrategy, Context, TypeHintFrequency, TypeHintStrategy}
 
-class BSONSalatContext extends salat.Context with CommonSalatContext {
+class BSONSalatContext extends salat.Context {
   override val name = "BSON Salat context"
+  override val typeHintStrategy: TypeHintStrategy = BinaryTypeHintStrategy(TypeHintFrequency.WhenNecessary, "_t")
+
   registerGlobalKeyOverride("id", "_id")
 }
 

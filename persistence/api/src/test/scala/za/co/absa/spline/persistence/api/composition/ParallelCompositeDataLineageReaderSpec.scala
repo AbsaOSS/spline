@@ -16,7 +16,6 @@
 
 package za.co.absa.spline.persistence.api.composition
 
-import java.net.URI
 import java.util.UUID
 
 import org.mockito.ArgumentMatchers._
@@ -37,12 +36,12 @@ class ParallelCompositeDataLineageReaderSpec() extends AsyncFunSpec with Mockito
       val reader1 = mock[DataLineageReader]
       when(reader1.getDatasetDescriptor(any[UUID])(any())).thenReturn(Future {
         Thread.sleep(10000)
-        PersistedDatasetDescriptor(UUID.randomUUID(), "1", "x", new URI("file://test"), 1)
+        PersistedDatasetDescriptor(UUID.randomUUID(), "1", "x", "file://test", 1)
       })
 
       val reader2 = mock[DataLineageReader]
       when(reader2.getDatasetDescriptor(any[UUID])(any())).thenReturn(Future {
-        PersistedDatasetDescriptor(UUID.randomUUID(), "2", "x", new URI("file://test"), 1)
+        PersistedDatasetDescriptor(UUID.randomUUID(), "2", "x", "file://test", 1)
       })
 
       val compositeDataLineageReader = new ParallelCompositeDataLineageReader(Seq(reader1, reader2))

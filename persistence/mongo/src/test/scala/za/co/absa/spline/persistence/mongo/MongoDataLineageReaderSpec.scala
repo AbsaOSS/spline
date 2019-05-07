@@ -16,7 +16,6 @@
 
 package za.co.absa.spline.persistence.mongo
 
-import java.net.URI
 import java.util.UUID
 import java.util.UUID.randomUUID
 
@@ -55,7 +54,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase wit
         datasetId = l.rootDataset.id,
         appId = l.appId,
         appName = l.appName,
-        path = new URI(l.rootOperation.asInstanceOf[Write].path),
+        path = l.rootOperation.asInstanceOf[Write].path,
         timestamp = l.timestamp))
 
       val descriptionsFuture =
