@@ -61,6 +61,6 @@
     "dev-http-server": "cross-env SPLINE_VERSION=0.0.0 webpack-dev-server --mode development",
     "dev-rest-server": "json-server mock-rest-api/db.js",
     "dev-build": "webpack --mode development",
-    "prod-build": "cross-env NODE_ENV='production' webpack -p --mode production --no-color"
+    "prod-build": "cross-env NODE_ENV='production' node --max_old_space_size=2000 node_modules/webpack/bin/webpack.js -p --mode production --no-color"
   }
 }
