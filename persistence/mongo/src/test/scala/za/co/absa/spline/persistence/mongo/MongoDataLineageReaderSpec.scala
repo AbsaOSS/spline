@@ -287,7 +287,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase wit
     )
   }
 
-  it("should return empty Map when there are no metrics") {
+  it("should read a lineage containing a Write operation without metrics") {
     val lineage = createDataLineage("appID0", "App Zero", path = "file://some/path/0.csv", timestamp = 100)
 
     for {
