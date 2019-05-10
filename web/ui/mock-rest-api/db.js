@@ -339,18 +339,7 @@ module.exports = function () {
                         "inputs": ["ds-uuid-5", "ds-uuid-29"],
                         "output": "ds-uuid-4"
                     },
-                    "condition": {
-                        "_typeHint": "za.co.absa.spline.model.expr.Binary",
-                        "symbol": "<=>",
-                        // "text": "(ProductMainType#34 <=> MappingMainType#111)",
-                        "dataTypeId": "4",
-                        "children": [{
-                            "_typeHint": "za.co.absa.spline.model.expr.AttrRef",
-                            "refId": "attr-uuid-34"}, {
-                            "_typeHint": "za.co.absa.spline.model.expr.AttrRef",
-                            "refId": "attr-uuid-111"}]
-                    },
-                    "joinType": "LeftOuter"
+                    "joinType": "Cross"
                 }, {
                     "_typeHint": "za.co.absa.spline.model.op.Alias",
                     "mainProps": {
