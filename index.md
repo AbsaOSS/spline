@@ -61,7 +61,7 @@ java -jar spline-web-{{site.spline.version}}-exec-war.jar -Dspline.mongodb.url=.
 
 
 # Motivation
-Spline aims to fill a big gap within [Apache Hadoop](http://hadoop.apache.org/) ecosystem.
+Spline aims to fill a big gap within the [Apache Hadoop](http://hadoop.apache.org/) ecosystem.
 Spark jobs shouldn't be treated only as magic black boxes; people should be able to understand what happens with their data.
 Our main focus is to solve the following particular problems:
 
@@ -72,12 +72,12 @@ Our main focus is to solve the following particular problems:
 * **Documentation of business logic**
 
     Business analysts should get a chance to verify whether Spark jobs were written according to the rules they provided.
-    Moreover, it would be beneficial for them to have up-to-date documentation where they can refresh their knowledge about a project.
+    Moreover, it would be beneficial for them to have up-to-date documentation where they can refresh their knowledge of a project.
 
 * **Identification of performance bottlenecks**
 
-    Our focus is not only business-oriented.
-    We see Spline also as a development tool that should be able to help developers with the performance optimization of their Spark jobs.
+    Our focus is not only business-oriented; we also see Spline as a development tool that should be able to help developers
+    with the performance optimization of their Spark jobs.
 
 # Getting started
 
@@ -192,12 +192,12 @@ Depending on your persistence setup and requirements you can consider increasing
 
 
 # Examples
-[Sample]({{ site.github.repository_url }}/tree/master/sample/) folder contains some sample Spline enabled Spark jobs.
+The [sample]({{ site.github.repository_url }}/tree/master/sample/) folder contains some sample Spline enabled Spark jobs.
 
 Sample jobs read data from the [/sample/data/input/]({{ site.github.repository_url }}/tree/master/sample/data/input/) folder
 and write the result into [/sample/data/results/]({{ site.github.repository_url }}/tree/master/sample/data/results/)
 
-When the lineage data is captured and stored into the database, it can be visualized and explored via Spline UI Web application.
+When the lineage data is captured and stored into the database, it can be visualized and explored via the Spline UI Web application.
 
 ##### Sample job 1
 
@@ -235,7 +235,7 @@ joinedDS.write.mode(SaveMode.Overwrite).parquet("data/results/job1_results")
 
 # Release Migration: MongoDb
 
-Please follow the instructions in the readme file [here]({{ site.github.repository_url }}/tree/master/persistence/mongo/src/main/dbscripts) to migrate your MongoDb from your current version to the desired version.
+Please follow the instructions in the readme file [here]({{ site.github.repository_url }}/tree/master/persistence/mongo/src/main/dbscripts) to migrate your MongoDB release from your current version to the desired version.
 
 # Contribution
 
