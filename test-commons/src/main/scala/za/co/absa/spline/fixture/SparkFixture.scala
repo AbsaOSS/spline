@@ -26,6 +26,9 @@ trait AbstractSparkFixture {
 
   this: Suite =>
 
+  //Isolate each test fixture by running in separate directory
+  def makeWarehouseDir: String = TempDirectory("SparkFixture", "UnitTest", true).path.toString
+
   val builder: SparkSession.Builder =
     customizeBuilder(
       SparkSession.builder.
