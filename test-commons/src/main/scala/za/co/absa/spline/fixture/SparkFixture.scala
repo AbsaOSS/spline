@@ -18,6 +18,7 @@ package za.co.absa.spline.fixture
 
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SparkSession
+import za.co.absa.spline.common.TempDirectory
 import org.scalatest._
 
 
@@ -26,7 +27,12 @@ trait AbstractSparkFixture {
   this: Suite =>
 
   val builder: SparkSession.Builder =
-    customizeBuilder(SparkSession.builder.master("local[4]").config("spark.ui.enabled", "false"))
+    customizeBuilder(
+      SparkSession.builder.
+        master("local[4]").
+        config("spark.ui.enabled", "false").
+        config("spark.sql.warehouse.dir", makeWarehouseDir)
+    )
 
   def withSession[T](testBody: SparkSession => T): T = {
     val spark = builder.getOrCreate.newSession
