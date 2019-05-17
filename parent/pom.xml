@@ -267,6 +267,7 @@
                         <configuration>
                             <excludes>
                                 <exclude>**/*.json</exclude>
+                                <exclude>**/*.log</exclude>
                                 <exclude>dependency-reduced-pom.xml</exclude>
                             </excludes>
                         </configuration>
