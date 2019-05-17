@@ -22,7 +22,7 @@
         <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>0.3.7</version>
+        <version>0.3.8</version>
     </parent>
 
     <artifactId>spline-test-commons</artifactId>
@@ -42,6 +42,11 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_${scala.compat.version}</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>spline-commons</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

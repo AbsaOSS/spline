@@ -24,7 +24,7 @@
         <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>0.3.7</version>
+        <version>0.3.8</version>
     </parent>
 
     <dependencies>
@@ -56,8 +56,10 @@
                 <configuration>
                     <artifactSet>
                         <excludes>
-                            <exclude>org.scala-lang:*</exclude>
-                            <exclude>org.scalaz:*</exclude>
+                            <exclude>org.scala-lang:scala-compiler</exclude>
+                            <exclude>org.scala-lang:scala-library</exclude>
+                            <exclude>org.scala-lang:scala-reflect</exclude>
+                            <exclude>org.scala-lang.modules:scala-parser-combinators_2.11</exclude>
                             <exclude>org.apache.spark:*</exclude>
                             <exclude>org.apache.hadoop:*</exclude>
                         </excludes>
@@ -74,5 +76,47 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>deploy</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>empty-javadoc-jar</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <classifier>javadoc</classifier>
+                                    <classesDirectory>${basedir}/javadoc</classesDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>empty-sources-jar</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                                <configuration>
+                                    <forceCreation>true</forceCreation>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

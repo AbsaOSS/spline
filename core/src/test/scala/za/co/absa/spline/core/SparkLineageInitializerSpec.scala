@@ -18,7 +18,6 @@ package za.co.absa.spline.core
 
 import org.apache.commons.configuration.Configuration
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.internal.StaticSQLConf.QUERY_EXECUTION_LISTENERS
 import org.apache.spark.sql.util.QueryExecutionListener
 import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest.Matchers._
@@ -73,7 +72,7 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
   jvmProps.setProperty("spark.master", "local")
 
   override protected def afterEach(): Unit = {
-    jvmProps.remove(QUERY_EXECUTION_LISTENERS.key)
+    jvmProps.remove(sparkQueryExecutionListenersKey)
     jvmProps.remove(PERSISTENCE_FACTORY)
     jvmProps.remove(MODE)
     SparkSession.builder.getOrCreate.stop
@@ -139,13 +138,20 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
 
   describe("codeless initialization") {
     it("should not allow duplicate tracking when combining the methods") {
-      jvmProps.setProperty(QUERY_EXECUTION_LISTENERS.key, classOf[SplineQueryExecutionListener].getName)
+      jvmProps.setProperty(sparkQueryExecutionListenersKey, classOf[SplineQueryExecutionListener].getName)
       jvmProps.setProperty(PERSISTENCE_FACTORY, classOf[MockWriteOnlyPersistenceFactory].getName)
       val session = SparkSession.builder.getOrCreate
-      numberOfRegisteredSplineListeners(session) shouldBe 1
+      val isSpark22 = session.version.startsWith("2.2")
+
+      if (isSpark22) {
+        numberOfRegisteredSplineListeners(session) shouldBe 0
+      } else {
+        numberOfRegisteredSplineListeners(session) shouldBe 1
+      }
+
       session.enableLineageTracking()
       numberOfRegisteredSplineListeners(session) shouldBe 1
-      val session2 = session.newSession()
+      session.newSession()
       numberOfRegisteredSplineListeners(session) shouldBe 1
     }
 

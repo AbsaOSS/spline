@@ -16,38 +16,29 @@
 
 package za.co.absa.spline.fixture
 
-import org.apache.log4j.{Level, Logger}
-import org.apache.spark.SparkContext
-import org.apache.spark.sql.{SQLContext, SparkSession}
-import org.scalatest._
+import java.nio.file.Path
 
-trait AbstractSparkFixture extends BeforeAndAfterAll {
+import org.apache.spark.sql.SparkSession
+import za.co.absa.spline.common.TempDirectory
 
-  this: Suite =>
 
-  AbstractSparkFixture.touch()
+trait SparkFixture {
 
-  protected val spark: SparkSession = SparkSession.builder.getOrCreate
+  private val tempWarehouseDirPath: Path =
+    TempDirectory("SparkFixture", "UnitTest", pathOnly = true).path
 
-  protected implicit lazy val sparkContext: SparkContext = spark.sparkContext
-  protected implicit lazy val sqlContext: SQLContext = spark.sqlContext
+  private val sessionBuilder: SparkSession.Builder =
+    customizeBuilder(
+      SparkSession.builder.
+        master("local[4]").
+        config("spark.ui.enabled", "false").
+        config("spark.sql.warehouse.dir", tempWarehouseDirPath.toString)
+    )
 
-  abstract override protected def afterAll(): Unit = try super.afterAll() finally spark.stop()
-}
+  def withSparkSession[T](testBody: SparkSession => T): T = {
+    val spark = sessionBuilder.getOrCreate.newSession
+    testBody(spark)
+  }
 
-trait SparkFixture extends AbstractSparkFixture with TestSuiteMixin {
-  this: TestSuite =>
-}
-
-trait AsyncSparkFixture extends AbstractSparkFixture with AsyncTestSuiteMixin {
-  this: AsyncTestSuite =>
-}
-
-object AbstractSparkFixture {
-  /** force the object to be loaded by the class loader */
-  private def touch(): Unit = {}
-
-  System.getProperties.setProperty("spark.master", "local[*]")
-  Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
-  Logger.getLogger("org.apache.hadoop").setLevel(Level.WARN)
+  protected def customizeBuilder(builder: SparkSession.Builder): SparkSession.Builder = builder
 }
