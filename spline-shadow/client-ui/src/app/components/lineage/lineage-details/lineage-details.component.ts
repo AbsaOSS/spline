@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component} from '@angular/core';
-import {LineageGraphService} from 'src/app/services/lineage/lineage-graph.service';
+import { Component } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { AppState } from 'src/app/model/app-state';
+import { Observable } from 'rxjs';
+import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM';
 
 @Component({
   selector: 'lineage-details',
@@ -24,11 +27,10 @@ import {LineageGraphService} from 'src/app/services/lineage/lineage-graph.servic
 export class LineageDetailsComponent {
 
   constructor(
-    private lineageGraphService: LineageGraphService,
+    private store: Store<AppState>
   ) { }
 
-  getDetails(): any {
-    return this.lineageGraphService.detailsInfo
+  public getDetailsInfo = (): Observable<OperationDetailsVM> => {
+    return this.store.select('detailsInfos')
   }
-
 }

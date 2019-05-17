@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as ConfigAction from '../actions/config.actions';
 
-import { Component } from '@angular/core';
+export type Action = ConfigAction.ConfigActions
 
-@Component({
-  selector: 'app-lineage',
-  templateUrl: './lineage.component.html',
-  styleUrls: ['./lineage.component.less']
-})
-export class LineageComponent { }
+export function configReducer(state: any, action: Action): any {
+    switch (action.type) {
+        case ConfigAction.ConfigActionTypes.CONFIG_GET_SUCCESS: return { ...state, ...action.payload }
+        default: return state
+    }
+}

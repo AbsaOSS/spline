@@ -22,6 +22,4 @@ import { ExpressionComponent } from '../expression/expression.component';
   styleUrls: ['./join.component.less']
 })
 
-export class JoinComponent extends ExpressionComponent {
-
-}
+export class JoinComponent extends ExpressionComponent { }

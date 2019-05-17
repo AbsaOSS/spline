@@ -21,6 +21,4 @@ import { ExpressionComponent } from '../expression/expression.component';
   templateUrl: './projection.component.html',
   styleUrls: ['./projection.component.less']
 })
-export class ProjectionComponent extends ExpressionComponent {
-
-}
+export class ProjectionComponent extends ExpressionComponent { }

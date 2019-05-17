@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ViewChild, OnInit, AfterViewInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { Params } from '@angular/router';
+import { Store } from '@ngrx/store';
 import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
-import { LineageGraphService } from 'src/app/services/lineage/lineage-graph.service';
-import { ContextualMenuService } from 'src/app/services/lineage/contextual-menu.service';
-import { LayoutService } from 'src/app/services/lineage/layout.service';
-import { PropertyService } from 'src/app/services/details/property.service';
-import { RouterService } from 'src/app/services/router/router.service';
-import { Params, ActivatedRoute } from '@angular/router';
-import { map, switchMap } from 'rxjs/operators';
-import { empty } from 'rxjs';
+import { filter, map, switchMap } from 'rxjs/operators';
+import { AppState } from 'src/app/model/app-state';
+import * as AttributesAction from 'src/app/store/actions/attributes.actions';
+import * as ContextMenuAction from 'src/app/store/actions/context-menu.actions';
+import * as DetailsInfosAction from 'src/app/store/actions/details-info.actions';
+import * as ExecutionPlanAction from 'src/app/store/actions/execution-plan.actions';
+import * as LayoutAction from 'src/app/store/actions/layout.actions';
+import * as RouterAction from 'src/app/store/actions/router.actions';
+import { Observable } from 'rxjs';
+
 
 @Component({
   selector: 'lineage-graph',
@@ -31,71 +35,102 @@ import { empty } from 'rxjs';
 })
 export class LineageGraphComponent implements OnInit, AfterViewInit {
 
-  ngAfterViewInit(): void {
-    const that = this
-    this.cytograph.cy.ready(function () {
-      that.cytograph.cy.on('click', function (event) {
-        const clikedTarget = event.target
-        let nodeId = (clikedTarget != that.cytograph.cy && clikedTarget.isNode()) ? clikedTarget.id() : null
-        that.lineageGraphService.getDetailsInfo(nodeId).subscribe()
-        that.propertyService.changeCurrentProperty(null)
-        const params: Params = { selectedNode: nodeId, schemaId: null, property: null }
-        that.routerService.mergeParam(params, true)
-
-      })
-      that.activatedRoute.queryParamMap.pipe(
-        switchMap(param => {
-          if (param.has('selectedNode')) {
-            const nodeId = param.get('selectedNode')
-            return that.lineageGraphService.getDetailsInfo(nodeId)
-          } else {
-            return empty()
-          }
-        })
-      ).subscribe(operationDetails => {
-        that.cytograph.cy.nodes().filter("[id='" + operationDetails.operation._id + "']").select()
-      })
-
-    })
-  }
-
   @ViewChild(CytoscapeNgLibComponent)
   private cytograph: CytoscapeNgLibComponent
 
   constructor(
-    private lineageGraphService: LineageGraphService,
-    private contextualMenuService: ContextualMenuService,
-    private propertyService: PropertyService,
-    private layoutService: LayoutService,
-    private routerService: RouterService,
-    private activatedRoute: ActivatedRoute
-  ) { }
+    private store: Store<AppState>
+  ) {
+    this.getExecutedLogicalPlan()
+    this.getLayoutConfiguration()
+    this.getContextMenuConfiguration()
+  }
 
+  public ngOnInit(): void {
+    this.store
+      .select('layout')
+      .pipe(
+        switchMap(layout => {
+          return this.store
+            .select('contextMenu')
+            .pipe(
+              map(contextMenu => {
+                return { layout, contextMenu }
+              })
+            )
+        }),
+        switchMap(res => {
+          return this.store
+            .select('executedLogicalPlan')
+            .pipe(
+              filter(state => state !== null && state !== undefined),
+              map(state => {
+                return { plan: state.plan, layout: res.layout, contextMenu: res.contextMenu }
+              })
+            )
+        })
+      )
+      .subscribe(state => {
+        if (state) {
+          this.cytograph.cy.add(state.plan)
+          this.cytograph.cy.nodeHtmlLabel([{
+            tpl: function (data) {
+              if (data.icon) return '<i class="fa fa-4x" style="color:' + data.color + '">' + String.fromCharCode(data.icon) + '</i>'
+              return null
+            }
+          }])
+          this.cytograph.cy.cxtmenu(state.contextMenu)
+          this.cytograph.cy.panzoom()
+          this.cytograph.cy.layout(state.layout).run()
+        }
+      })
+  }
 
-  ngOnInit(): void {
-    const that = this
-    const uid = that.activatedRoute.snapshot.params.uid
-    this.lineageGraphService.getExecutedLogicalPlan(uid).subscribe(
-      response => {
-        that.cytograph.cy.add(response.plan)
-      },
-      error => {
-        //Simply log the error from now
-        console.log(error)
-        //TODO : Implement a notification tool for letting know what is happening to the user
-      },
-      () => {
-        that.cytograph.cy.nodeHtmlLabel([{
-          tpl: function (data) {
-            if (data.icon) return '<i class="fa fa-4x" style="color:' + data.color + '">' + String.fromCharCode(data.icon) + '</i>'
-            return null
-          }
-        }])
-        that.cytograph.cy.cxtmenu(that.contextualMenuService.getConfiguration())
-        that.cytograph.cy.panzoom()
-        that.cytograph.cy.layout(that.layoutService.getConfiguration()).run()
-      }
-    )
+  public ngAfterViewInit(): void {
+    this.cytograph.cy.ready(() => {
+      this.cytograph.cy.on('click', (event) => {
+        const clikedTarget = event.target
+        const nodeId = (clikedTarget != this.cytograph.cy && clikedTarget.isNode()) ? clikedTarget.id() : null
+        this.getDetailsInfo(nodeId)
+        this.store.dispatch(new AttributesAction.Reset())
+        const params: Params = { selectedNode: nodeId, schemaId: null, attribute: null }
+        this.store.dispatch(new RouterAction.Go(params))
+      })
+    })
+
+    this.cytograph.cy.on('layoutstop', () => {
+      this.store
+        .select('router', 'state', 'queryParams', 'selectedNode')
+        .subscribe((selectedNode: string) => {
+          this.cytograph.cy.nodes().filter("[id='" + selectedNode + "']").select()
+          this.getDetailsInfo(selectedNode)
+        })
+    })
+
+  }
+
+  private getContextMenuConfiguration = (): void => {
+    this.store.dispatch(new ContextMenuAction.Get())
+  }
+
+  private getLayoutConfiguration = (): void => {
+    this.store.dispatch(new LayoutAction.Get())
+  }
+
+  private getExecutedLogicalPlan = (): void => {
+    this.store
+      .select('router', 'state', 'params', 'uid')
+      .subscribe(
+        uid => this.store.dispatch(new ExecutionPlanAction.Get(uid))
+      )
+  }
+
+  private getDetailsInfo = (nodeId: string): void => {
+    if (nodeId) {
+      this.store.dispatch(new DetailsInfosAction.Get(nodeId))
+    } else {
+      this.store.dispatch(new DetailsInfosAction.Reset())
+    }
   }
 
 }

@@ -13,12 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Action } from "@ngrx/store";
+import { Params } from "@angular/router";
 
-import { Component } from '@angular/core';
+export enum RouterActionTypes {
+    GO = "[Router] Go",
+    MERGE_PARAMS = "[Router] Merge Params"
+}
 
-@Component({
-  selector: 'app-lineage',
-  templateUrl: './lineage.component.html',
-  styleUrls: ['./lineage.component.less']
-})
-export class LineageComponent { }
+export class Go implements Action {
+    public readonly type = RouterActionTypes.GO
+    constructor(public payload: Params) { }
+}
+
+export class MergeParams implements Action {
+    public readonly type = RouterActionTypes.MERGE_PARAMS
+    constructor(public payload: Params) { }
+}
+
+export type RouterActions
+    = Go
+    | MergeParams

@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-import { Component } from '@angular/core';
+import { Action } from '@ngrx/store';
 
-@Component({
-  selector: 'app-lineage',
-  templateUrl: './lineage.component.html',
-  styleUrls: ['./lineage.component.less']
-})
-export class LineageComponent { }
+export enum LayoutActionTypes {
+    LAYOUT_GET = '[Layout] Get',
+}
+
+export class Get implements Action {
+    public readonly type = LayoutActionTypes.LAYOUT_GET
+}
+export type LayoutActions
+    = Get

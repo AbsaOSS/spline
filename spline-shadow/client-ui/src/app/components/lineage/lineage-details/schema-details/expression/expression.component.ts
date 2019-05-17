@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { Component, Input } from '@angular/core';
-import { Expression } from 'src/app/viewModels/expression';
-import { LineageGraphService } from 'src/app/services/lineage/lineage-graph.service';
+import { Expression } from 'src/app/model/expression';
+import { OperationType } from 'src/app/model/types/operationType';
+import { operationColorCodes, operationIconCodes } from 'src/app/store/reducers/execution-plan.reducer';
 
 @Component({
   selector: 'app-expression',
@@ -29,15 +30,11 @@ export class ExpressionComponent {
   @Input()
   expressions: Expression[]
 
-  constructor(
-    private lineageGraphService: LineageGraphService
-  ) { }
-
-  getIcon(): string {
-    return String.fromCharCode(this.lineageGraphService.getIconFromOperationType(this.expressionType))
+  public getIcon(): string {
+    return String.fromCharCode(operationIconCodes.get(this.expressionType) || operationIconCodes.get(OperationType.Generic))
   }
 
-  getOperationColor(): string {
-    return this.lineageGraphService.getColorFromOperationType(this.expressionType)
+  public getOperationColor(): string {
+    return operationColorCodes.get(this.expressionType) || operationColorCodes.get(OperationType.Generic)
   }
 }

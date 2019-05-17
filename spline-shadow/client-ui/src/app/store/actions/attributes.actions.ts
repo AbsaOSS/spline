@@ -14,11 +14,24 @@
  * limitations under the License.
  */
 
-import { Component } from '@angular/core';
+import { Action } from '@ngrx/store';
+import { AttributeVM } from '../../model/viewModels/attributeVM';
 
-@Component({
-  selector: 'app-lineage',
-  templateUrl: './lineage.component.html',
-  styleUrls: ['./lineage.component.less']
-})
-export class LineageComponent { }
+export enum AttributesActionTypes {
+    ATTRIBUTES_GET = '[Attribute] Get',
+    ATTRIBUTES_RESET = '[Attribute] Reset'
+}
+
+export class Get implements Action {
+    public readonly type = AttributesActionTypes.ATTRIBUTES_GET
+    constructor(public payload: AttributeVM) { }
+}
+
+export class Reset implements Action {
+    public readonly type = AttributesActionTypes.ATTRIBUTES_RESET
+    constructor() { }
+}
+
+export type AttributeActions
+    = Get
+    | Reset

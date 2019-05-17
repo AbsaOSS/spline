@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, ViewChild, ViewEncapsulation, AfterViewInit } from '@angular/core';
-import { PropertyService } from 'src/app/services/details/property.service';
-import { RouterService } from 'src/app/services/router/router.service';
+import { AfterViewInit, Component, Input, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Store } from '@ngrx/store';
 import * as _ from 'lodash';
-import { AttributeVM } from 'src/app/viewModels/attributeVM';
-import { PropertyType } from 'src/app/types/propertyType';
-
+import { AppState } from 'src/app/model/app-state';
+import { AttributeType } from 'src/app/model/types/attributeType';
+import { AttributeVM } from 'src/app/model/viewModels/attributeVM';
+import * as AttributesAction from 'src/app/store/actions/attributes.actions';
+import * as RouterAction from 'src/app/store/actions/router.actions';
+import * as attributeReducer from 'src/app/store/reducers/attribute.reducer';
 
 @Component({
   selector: 'schema-table',
@@ -41,67 +43,69 @@ export class SchemaTableComponent implements AfterViewInit {
   tablePageSize: number = 5
 
   constructor(
-    private propertyService: PropertyService,
-    private routerService: RouterService
+    private store: Store<AppState>
   ) { }
 
-  ngAfterViewInit(): void {
-    this.routerService.getParams().subscribe(config => {
-      const paramsSubscriber = this
-      const schemaIdParam = config.get("schemaId")
-      const tablesWithSelection = schemaIdParam ? schemaIdParam.split(".") : []
-      if (paramsSubscriber.table.rows && paramsSubscriber.schemaId.includes(tablesWithSelection[0])) {
-        for (let i = 0; i < tablesWithSelection.length + 1; i++) {
-          //The property ID can be nested to several data structures, the last one is the selected property itself
-          let propertyIdParam = (i < tablesWithSelection.length) ? tablesWithSelection[i + 1] : config.get("property")
-          let selectedRow = paramsSubscriber.getSelectedRowFromName(propertyIdParam)
-          const selectedRowIndex = selectedRow[0]
-          const selectedRowContent = selectedRow[1]
+  public ngAfterViewInit(): void {
+    this.store
+      .select('router', 'state', 'queryParams')
+      .subscribe((queryParams: any) => {
+        if (queryParams) {
+          const paramsSubscriber = this
+          const schemaIdParam = queryParams.schemaId
+          const tablesWithSelection = schemaIdParam ? schemaIdParam.split(".") : []
+          if (paramsSubscriber.table.rows && paramsSubscriber.schemaId.includes(tablesWithSelection[0])) {
+            for (let i = 0; i < tablesWithSelection.length + 1; i++) {
+              //The attribute ID can be nested to several data structures, the last one is the selected attribute itself
+              const attributeIdParam = (i < tablesWithSelection.length) ? tablesWithSelection[i + 1] : queryParams.attribute
+              const selectedRow = paramsSubscriber.getSelectedRowFromName(attributeIdParam)
+              const selectedRowIndex = selectedRow[0]
+              const selectedRowContent = selectedRow[1]
 
-          if (selectedRowIndex > -1) {
-            paramsSubscriber.propertyService.changeCurrentProperty(selectedRowContent)
-            paramsSubscriber.table.selected.push(selectedRowContent)
-            let page = Math.floor(selectedRowIndex / paramsSubscriber.tablePageSize)
-            paramsSubscriber.table.offset = page
-            // TODO : Remove the setTimeout as soon as this issue is fixed :https://github.com/swimlane/ngx-datatable/issues/1204
-            setTimeout(function () {
-              if (selectedRowContent.dataType._type != PropertyType.Simple) {
-                paramsSubscriber.table.rowDetail.toggleExpandRow(selectedRowContent)
+              if (selectedRowIndex > -1) {
+                this.store.dispatch(new AttributesAction.Get(selectedRowContent))
+                paramsSubscriber.table.selected.push(selectedRowContent)
+                const page = Math.floor(selectedRowIndex / paramsSubscriber.tablePageSize)
+                paramsSubscriber.table.offset = page
+                // TODO : Remove the setTimeout as soon as this issue is fixed :https://github.com/swimlane/ngx-datatable/issues/1204
+                setTimeout(function () {
+                  if (selectedRowContent.dataType._type != AttributeType.Simple) {
+                    paramsSubscriber.table.rowDetail.toggleExpandRow(selectedRowContent)
+                  }
+                })
               }
-            })
+            }
           }
         }
-      }
-    })
+      })
   }
 
   /**
    * Gets selected row from name
-   * @param name the name of the property
+   * @param name the name of the attribute
    * @returns a tuple containing the AttributeVM of the row and its index in case the table is pageable
    */
-  getSelectedRowFromName(name: string): [number, AttributeVM] {
+  private getSelectedRowFromName = (name: string): [number, AttributeVM] => {
     const index = _.findIndex(this.table.rows, { name: name })
     return [index, this.table.rows[index]]
   }
 
 
-  getChildSchemaId(parentSchemaId: string, rowName: string): string {
+  public getChildSchemaId = (parentSchemaId: string, rowName: string): string => {
     return parentSchemaId + "." + rowName
   }
 
-  onSelect({ selected }) {
-    const selectedProperty = selected[0]
-    this.routerService.mergeParam({ schemaId: this.schemaId, property: selectedProperty.name })
-    this.propertyService.changeCurrentProperty(selectedProperty)
-    if (selectedProperty.dataType._type != PropertyType.Simple) {
-      this.table.rowDetail.toggleExpandRow(selectedProperty)
+  public onSelect = ({ selected }): void => {
+    const selectedAttribute = selected[0]
+    this.store.dispatch(new RouterAction.MergeParams({ schemaId: this.schemaId, attribute: selectedAttribute.name }))
+    this.store.dispatch(new AttributesAction.Get(selectedAttribute))
+    if (selectedAttribute.dataType._type != AttributeType.Simple) {
+      this.table.rowDetail.toggleExpandRow(selectedAttribute)
     }
   }
 
-  getPropertyType(propertyType: AttributeVM): string {
-    return this.propertyService.getPropertyType(propertyType)
+  public getAttributeType = (AttributeType: AttributeVM): string => {
+    return attributeReducer.getAttributeType(AttributeType)
   }
-
 
 }
