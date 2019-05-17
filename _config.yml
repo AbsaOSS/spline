@@ -4,7 +4,7 @@ keywords: apache spark, spark, dataframe, sql, structured streaming, data lineag
 baseurl: /spline
 future: true
 spline:
-  version: 0.3.7
+  version: 0.3.8
 theme: jekyll-theme-slate
 
 gems:
