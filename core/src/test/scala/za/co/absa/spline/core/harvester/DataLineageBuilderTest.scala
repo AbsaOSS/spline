@@ -16,7 +16,6 @@
 package za.co.absa.spline.core.harvester
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.spark.SparkContext
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row}
@@ -33,42 +32,43 @@ class DataLineageBuilderTest extends FunSuite with Matchers with SparkFixture {
   import DataLineageBuilderTest._
 
   test("spline-124") {
-    val someData1 = Seq(Row("foo", "bar"))
-    val someData2 = Seq(Row("baz", "qux"))
-    val someData3 = Seq(Row("quux", "corge"))
+    withSparkSession(spark => {
+      val someData1 = Seq(Row("foo", "bar"))
+      val someData2 = Seq(Row("baz", "qux"))
+      val someData3 = Seq(Row("quux", "corge"))
 
-    val someSchema = List(StructField("name", StringType))
+      val someSchema = List(StructField("name", StringType))
 
-    val df1 = spark.createDataFrame(spark.sparkContext.parallelize(someData1), StructType(someSchema))
-    val df2 = spark.createDataFrame(spark.sparkContext.parallelize(someData2), StructType(someSchema))
-    val df3 = spark.createDataFrame(spark.sparkContext.parallelize(someData3), StructType(someSchema))
+      val df1 = spark.createDataFrame(spark.sparkContext.parallelize(someData1), StructType(someSchema))
+      val df2 = spark.createDataFrame(spark.sparkContext.parallelize(someData2), StructType(someSchema))
+      val df3 = spark.createDataFrame(spark.sparkContext.parallelize(someData3), StructType(someSchema))
 
-    val tripleUnionDF = df1 union df2 union df3
+      val tripleUnionDF = df1 union df2 union df3
 
-    val lineageBuilder = lineageBuilderFor(tripleUnionDF)
-    val lineage = lineageBuilder.buildLineage()
+      val lineageBuilder = lineageBuilderFor(tripleUnionDF)
+      val lineage = lineageBuilder.buildLineage()
 
-    lineage.getOrElse(fail).operations should have size 4 // 3 LogicalRDD + 1 Union
+      lineage.getOrElse(fail).operations should have size 4 // 3 LogicalRDD + 1 Union
+    })
   }
 }
 
-
 object DataLineageBuilderTest extends MockitoSugar {
 
-  private def lineageBuilderFor(df: DataFrame)(implicit sparkContext: SparkContext): DataLineageBuilder = {
+  private def lineageBuilderFor(df: DataFrame): DataLineageBuilder = {
     val plan = df.queryExecution.analyzed
     val mockWriteCommandParser = mock[WriteCommandParser[LogicalPlan]]
     val mockJdbcCommandParser = mock[WriteCommandParser[LogicalPlan]]
 
     val factory = mock[WriteCommandParserFactory]
 
-    when(mockWriteCommandParser asWriteCommandIfPossible any()) thenReturn None
-    when(mockJdbcCommandParser asWriteCommandIfPossible any()) thenReturn None
+    when(mockWriteCommandParser.asWriteCommandIfPossible(any())) thenReturn None
+    when(mockJdbcCommandParser.asWriteCommandIfPossible(any())) thenReturn None
 
-    when(factory writeParser()) thenReturn mockWriteCommandParser
-    when(factory saveAsTableParser(any())) thenReturn mockWriteCommandParser
-    when(factory jdbcParser()) thenReturn mockJdbcCommandParser
+    when(factory.writeParser()) thenReturn mockWriteCommandParser
+    when(factory.saveAsTableParser(any())) thenReturn mockWriteCommandParser
+    when(factory.jdbcParser()) thenReturn mockJdbcCommandParser
 
-    new DataLineageBuilder(plan, None, sparkContext)(mock[Configuration], factory)
+    new DataLineageBuilder(plan, None, df.sparkSession.sparkContext)(mock[Configuration], factory)
   }
 }

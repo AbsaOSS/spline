@@ -76,12 +76,13 @@ class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkS
   private lazy val lineageHarvester = new DataLineageBuilderFactory(sparkSession.sparkContext.hadoopConfiguration)
 
   private lazy val lineageProcessor = {
+    val persistenceFactory = createPersistenceFactory
     val lineageReader = persistenceFactory.createDataLineageReader getOrElse NopDataLineageReader
     val lineageWriter = persistenceFactory.createDataLineageWriter
     new SparkLineageProcessor(lineageReader, lineageWriter, lineageTransformationPipeline(lineageReader))
   }
 
-  private lazy val persistenceFactory: PersistenceFactory = {
+  protected def createPersistenceFactory: PersistenceFactory = {
     val persistenceFactoryClassName = configuration getRequiredString PERSISTENCE_FACTORY
 
     log debug s"Instantiating persistence factory: $persistenceFactoryClassName"
