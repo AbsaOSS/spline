@@ -18,7 +18,6 @@ package za.co.absa.spline.harvester.conversion
 
 import java.nio.file.Files
 
-import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.types.StructType
 import org.scalatest.{FlatSpec, Matchers}
 import za.co.absa.spline.fixture.SparkFixture
@@ -27,12 +26,11 @@ import za.co.absa.spline.model.endpoint._
 import za.co.absa.spline.model.op.StreamRead
 
 class StreamReadNodeSpec extends FlatSpec with Matchers with SparkFixture {
-  implicit val hadoopConfiguration: Configuration = spark.sparkContext.hadoopConfiguration
   implicit val compCreatorFactory: ComponentCreatorFactory = new ComponentCreatorFactory()
 
   behavior of "The build method"
 
-  it should "return StreamRead node with a virtual endpoint when reading data from the rate data source" in {
+  it should "return StreamRead node with a virtual endpoint when reading data from the rate data source" in withNewSparkSession(spark => {
     val df = spark
       .readStream
       .format("rate")
@@ -43,9 +41,10 @@ class StreamReadNodeSpec extends FlatSpec with Matchers with SparkFixture {
 
     node.sourceType shouldBe "Virtual"
     node.sources.size shouldBe 1
-  }
+  })
 
-  it should "return StreamRead node with a socket endpoint when reading data from the socket data source" in {
+  it should "return StreamRead node with a socket endpoint when reading data from the socket data source" in withNewSparkSession(spark => {
+
     val host = "somehost"
     val port = 9999L
 
@@ -60,9 +59,10 @@ class StreamReadNodeSpec extends FlatSpec with Matchers with SparkFixture {
     val node = builder.build()
 
     shouldEq(node, SocketEndpoint(host, port.toString))
-  }
+  })
 
-  it should "return StreamRead node with a kafka endpoint when reading data from a kafka topic." in {
+  it should "return StreamRead node with a kafka endpoint when reading data from a kafka topic." in withNewSparkSession(spark => {
+
     val cluster = Seq("127.0.0.1:1111", "127.0.0.1:2222")
     val topic = "someTopic"
 
@@ -77,9 +77,9 @@ class StreamReadNodeSpec extends FlatSpec with Matchers with SparkFixture {
     val node = builder.build()
 
     shouldEq(node, KafkaEndpoint(cluster, topic :: Nil))
-  }
+  })
 
-  it should "return StreamRead node with a file endpoint when reading data from a csv file" in {
+  it should "return StreamRead node with a file endpoint when reading data from a csv file" in withNewSparkSession(spark => {
     val format = "csv"
 
     val tempDir = Files.createTempDirectory("StreamReadNodeSpec.file").toFile
@@ -96,7 +96,7 @@ class StreamReadNodeSpec extends FlatSpec with Matchers with SparkFixture {
     val node = builder.build()
 
     shouldEq(node, FileEndpoint(format, tempDir.getPath))
-  }
+  })
 
   private def shouldEq(node: StreamRead, endpoint: StreamEndpoint): Unit = {
     node.sourceType shouldEqual endpoint.description

@@ -16,7 +16,6 @@
 
 package za.co.absa.spline.persistence.mongo.serialization
 
-import java.net.URI
 import java.util.UUID
 
 import _root_.salat.grater
@@ -30,20 +29,18 @@ class BSONSalatContextSpec extends FlatSpec with Matchers {
   val aUUID: UUID = UUID fromString "7d46f047-da82-42fa-8e4b-4b085a210985"
 
   it should "serialize" in {
-    val dbo = grater[Foo] asDBObject Foo(aUUID, new URI("http://example.com"), None)
-    dbo get "uri" shouldEqual "http://example.com"
+    val dbo = grater[Foo] asDBObject Foo(aUUID, None)
     dbo get "_id" shouldEqual aUUID
   }
 
   it should "deserialize" in {
     val foo = grater[Foo] asObject DBObject("_id" -> aUUID, "uri" -> "http://example.com")
-    foo shouldEqual Foo(aUUID, new URI("http://example.com"), None)
+    foo shouldEqual Foo(aUUID, None)
   }
 
   it should "support nested map" in {
     val foo = grater[Foo] asObject DBObject(
       "_id" -> aUUID,
-      "uri" -> "http://example.com",
       "map" -> DBObject(
         "a" -> 1,
         "b" -> DBObject(
@@ -52,7 +49,6 @@ class BSONSalatContextSpec extends FlatSpec with Matchers {
 
     foo shouldEqual Foo(
       aUUID,
-      new URI("http://example.com"),
       Some(Map(
         "a" -> 1,
         "b" -> Map(
@@ -61,4 +57,4 @@ class BSONSalatContextSpec extends FlatSpec with Matchers {
   }
 }
 
-case class Foo(id: UUID, uri: URI, map: Option[Map[String, Any]])
+case class Foo(id: UUID, map: Option[Map[String, Any]])

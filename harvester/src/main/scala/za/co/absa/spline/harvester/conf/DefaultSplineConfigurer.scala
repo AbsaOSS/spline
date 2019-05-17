@@ -22,8 +22,9 @@ import org.apache.spark.sql.streaming.StreamingQueryListener
 import org.slf4s.Logging
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
+import za.co.absa.spline.harvester.dispatcher.HttpLineageDispatcher
 import za.co.absa.spline.harvester.listener.StructuredStreamingListener
-import za.co.absa.spline.harvester.{DataLineageBuilderFactory, LineageDispatcher, QueryExecutionEventHandler}
+import za.co.absa.spline.harvester.{DataLineageBuilderFactory, QueryExecutionEventHandler}
 
 import scala.concurrent.ExecutionContext
 
@@ -66,14 +67,13 @@ class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkS
     }
   }
 
-  lazy val lineageDispatcher = LineageDispatcher(configuration)
-
-  lazy val queryExecutionEventHandler: QueryExecutionEventHandler =
-    new QueryExecutionEventHandler(lineageHarvester, lineageDispatcher, sparkSession)
-
-  lazy val streamingQueryListener: StreamingQueryListener =
-    new StructuredStreamingListener(sparkSession.streams, lineageHarvester, lineageDispatcher)
+  protected lazy val lineageDispatcher = HttpLineageDispatcher(configuration)
 
   private lazy val lineageHarvester = new DataLineageBuilderFactory(sparkSession.sparkContext.hadoopConfiguration)
 
+  def queryExecutionEventHandler: QueryExecutionEventHandler =
+    new QueryExecutionEventHandler(lineageHarvester, lineageDispatcher, sparkSession)
+
+  def streamingQueryListener: StreamingQueryListener =
+    new StructuredStreamingListener(sparkSession.streams, lineageHarvester, lineageDispatcher)
 }

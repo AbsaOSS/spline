@@ -1,6 +1,5 @@
 /*
- * Copyright 2017 ABSA Group Limited
- *
+ * Copyright 2019 ABSA Group Limited
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,14 +13,19 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.harvester
+package za.co.absa.spline.fixture.spline
 
+import org.apache.commons.lang3.NotImplementedException
+import za.co.absa.spline.harvester.LineageDispatcher
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.model.streaming.ProgressEvent
 
 
-trait LineageDispatcher {
-  def send(dataLineage: DataLineage): Unit
+class LineageCapturingDispatcher(lineageCaptor: LineageCaptor.Setter) extends LineageDispatcher {
 
-  def send(event: ProgressEvent): Unit
+  override def send(dataLineage: DataLineage): Unit =
+    lineageCaptor.capture(dataLineage)
+
+  override def send(event: ProgressEvent): Unit =
+    throw new NotImplementedException("Capturing progress events is not supported by this factory yet")
 }

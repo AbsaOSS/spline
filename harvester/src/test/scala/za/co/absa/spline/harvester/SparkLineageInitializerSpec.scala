@@ -28,8 +28,9 @@ import org.scalatest.Matchers._
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
 import za.co.absa.spline.common.ReflectionUtils.getFieldValue
 import za.co.absa.spline.fixture.SparkFixture
-import za.co.absa.spline.harvester.LineageDispatcher.publishUrlProperty
-import za.co.absa.spline.harvester.SparkLineageInitializer._
+import za.co.absa.spline.harvester.dispatcher.HttpLineageDispatcher.publishUrlProperty
+import SparkLineageInitializer._
+import org.scalatest.mockito.MockitoSugar
 import za.co.absa.spline.harvester.SparkLineageInitializerSpec._
 import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer
 import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer.ConfProperty._
@@ -66,13 +67,10 @@ object SparkLineageInitializerSpec {
   def numberOfRegisteredStreamListeners(session: SparkSession): Int =
     getStreamingListenerClasses(session).count(_ == classOf[StructuredStreamingListener])
 
-  def createMockDispatcher: LineageDispatcher = new LineageDispatcher(
-    1000, "invalidTestVal", new HttpSender {
-          override def attemptSend(url: String, bson: Array[Byte]): Boolean = true
-        })
+
 }
 
-class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with Matchers with SparkFixture {
+class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with Matchers with MockitoSugar with SparkFixture {
   private val configuration = new BaseConfiguration
   configuration.setProperty("spark.master", "local")
   // needed for codeless init tests
@@ -93,7 +91,7 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
     val valueFromSpline = "value from spline.properties"
 
     it("should look through the multiple sources for the configuration properties") {
-      withNewSession(sparkSession => {
+      withNewSparkSession(sparkSession => {
         val jvmProps = System.getProperties
         //      jvmProps.setProperty("spark.master", "local")
 
@@ -142,7 +140,7 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
 
   describe("codeless initialization") {
     it("should not allow duplicate tracking when combining the methods") {
-      withNewSession(session => {
+      withNewSparkSession(session => {
         numberOfRegisteredBatchListeners(session) shouldBe 0
         numberOfRegisteredStreamListeners(session) shouldBe 0
         // creatEventHandler relies on Spark for registration during session creation,
@@ -157,7 +155,7 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
     }
 
     it("should not allow duplicate codeless tracking") {
-      withNewSession(session => {
+      withNewSparkSession(session => {
         numberOfRegisteredStreamListeners(session) shouldBe 0
         SparkLineageInitializer
           .createEventHandler(session).getClass shouldBe classOf[Some[QueryExecutionEventHandler]]
@@ -171,7 +169,7 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
 
   describe("enableLineageTracking()") {
     it("should warn on double initialization") {
-      withNewSession(session => {
+      withNewSparkSession(session => {
         session
           .enableLineageTracking(createConfigurer(session)) // 1st is fine
         numberOfRegisteredStreamListeners(session) shouldBe 1
@@ -184,7 +182,7 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
     }
 
     it("should return the spark session back to the caller") {
-      withNewSession(session =>
+      withNewSparkSession(session =>
         session.enableLineageTracking(createConfigurer(session)) shouldBe session
       )
     }
@@ -192,7 +190,7 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
     describe("modes") {
 
       it("should disable Spline and proceed, when is in BEST_EFFORT (default) mode") {
-        withNewSession(sparkSession => {
+        withNewSparkSession(sparkSession => {
           configuration.setProperty(MODE, BEST_EFFORT.toString)
           sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
           assertSplineIsDisabled()
@@ -200,7 +198,7 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
       }
 
       it("should disable Spline and proceed, when is in DEFAULT mode") {
-        withNewSession(sparkSession => {
+        withNewSparkSession(sparkSession => {
           configuration.clearProperty(MODE) // default mode is BEST_EFFORT
           sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
           assertSplineIsDisabled()
@@ -209,7 +207,7 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
 
       it("should abort application, when is in REQUIRED mode") {
         intercept[Exception] {
-          withNewSession(session => {
+          withNewSparkSession(session => {
             configuration.setProperty(MODE, REQUIRED.toString)
             session.enableLineageTracking(createFailingConfigurer(session))
           })
@@ -217,7 +215,7 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
       }
 
       it("should have no effect, when is in DISABLED mode") {
-        withNewSession(sparkSession => {
+        withNewSparkSession(sparkSession => {
           configuration.setProperty(MODE, DISABLED.toString)
           sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
           assertSplineIsDisabled()
@@ -237,7 +235,7 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
 
   def createConfigurer(sparkSession: SparkSession): DefaultSplineConfigurer = {
     new DefaultSplineConfigurer(configuration, sparkSession) {
-      override lazy val lineageDispatcher: LineageDispatcher = createMockDispatcher
+      override lazy val lineageDispatcher: LineageDispatcher = mock[LineageDispatcher]
     }
   }
 

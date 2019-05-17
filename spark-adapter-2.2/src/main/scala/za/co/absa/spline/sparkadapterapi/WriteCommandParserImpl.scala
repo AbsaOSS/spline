@@ -19,7 +19,7 @@ package za.co.absa.spline.sparkadapterapi
 import org.apache.commons.codec.net.URLCodec
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.command.CreateDataSourceTableAsSelectCommand
-import org.apache.spark.sql.execution.datasources.SaveIntoDataSourceCommand
+import org.apache.spark.sql.execution.datasources.{InsertIntoHadoopFsRelationCommand, SaveIntoDataSourceCommand}
 
 class WriteCommandParserFactoryImpl extends WriteCommandParserFactory {
   override def writeParser(): WriteCommandParser[LogicalPlan] = new WriteCommandParserImpl()
@@ -51,27 +51,30 @@ class SaveAsTableCommandParserImpl(clusterUrl: Option[String]) extends WriteComm
 class SaveJdbcCommandParserImpl extends WriteCommandParser[LogicalPlan] {
   override def matches(operation: LogicalPlan): Boolean = {
     operation.isInstanceOf[SaveIntoDataSourceCommand] &&
-    operation.asInstanceOf[SaveIntoDataSourceCommand].provider == "jdbc"
+      operation.asInstanceOf[SaveIntoDataSourceCommand].provider == "jdbc"
   }
 
-  override def asWriteCommand(operation: LogicalPlan): AbstractWriteCommand = {
-    operation match {
-      case op:SaveIntoDataSourceCommand =>
-        val url = op.options.getOrElse("url", throw new NoSuchElementException("Cannot get name of JDBC connection string."))
-        val table = op.options.getOrElse("dbtable", throw new NoSuchElementException("Cannot get name of JDBC table."))
-        val identifier = s"${URIPrefixes.jdbcTablePrefix}$url:$table"
-        SaveJDBCCommand(identifier, op.mode, "jdbc", op.query)
-    }
+  override def asWriteCommand(operation: LogicalPlan): AbstractWriteCommand = operation match {
+    case op: SaveIntoDataSourceCommand =>
+      val url = op.options.getOrElse("url", throw new NoSuchElementException("Cannot get name of JDBC connection string."))
+      val table = op.options.getOrElse("dbtable", throw new NoSuchElementException("Cannot get name of JDBC table."))
+      val identifier = s"${URIPrefixes.jdbcTablePrefix}$url:$table"
+      SaveJDBCCommand(identifier, op.mode, "jdbc", op.query)
   }
 }
 
 class WriteCommandParserImpl extends WriteCommandParser[LogicalPlan] {
 
   override def matches(operation: LogicalPlan): Boolean = {
-    operation.isInstanceOf[SaveIntoDataSourceCommand]
+    operation.isInstanceOf[SaveIntoDataSourceCommand] ||
+      operation.isInstanceOf[InsertIntoHadoopFsRelationCommand]
   }
-  override def asWriteCommand(operation: LogicalPlan): WriteCommand = {
-    val op = operation.asInstanceOf[SaveIntoDataSourceCommand]
-    WriteCommand(op.options.getOrElse("path", ""), op.mode, "table", op.query)
+
+  override def asWriteCommand(operation: LogicalPlan): WriteCommand = operation match {
+    case op: InsertIntoHadoopFsRelationCommand =>
+      WriteCommand(op.outputPath.toString, op.mode, "table", op.query)
+    case op: SaveIntoDataSourceCommand =>
+      WriteCommand(op.options.getOrElse("path", ""), op.mode, "table", op.query)
   }
+
 }

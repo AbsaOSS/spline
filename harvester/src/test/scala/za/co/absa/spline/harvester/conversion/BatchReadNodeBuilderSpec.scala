@@ -44,17 +44,19 @@ class BatchReadNodeBuilderSpec extends FunSpec with MockitoSugar with Matchers w
   describe("support for different types of data source") {
 
     it("should support JDBC") {
-      val df = spark.
-        read.format("jdbc").
-        option("url", "jdbc:fake:sql@some_host:4242:some_database").
-        option("dbtable", "some_table").
-        load()
+      withNewSparkSession(spark => {
+        val df = spark.
+          read.format("jdbc").
+          option("url", "jdbc:fake:sql@some_host:4242:some_database").
+          option("dbtable", "some_table").
+          load()
 
-      val bldr = new BatchReadNodeBuilder(df.queryExecution.analyzed.asInstanceOf[LogicalRelation]) with FSUnawareBuilder
-      val readOp = bldr.build()
+        val bldr = new BatchReadNodeBuilder(df.queryExecution.analyzed.asInstanceOf[LogicalRelation]) with FSUnawareBuilder
+        val readOp = bldr.build()
 
-      readOp.sourceType shouldEqual "JDBC"
-      readOp.sources shouldEqual Seq(MetaDataSource("jdbc:fake:sql@some_host:4242:some_database/some_table", Nil))
+        readOp.sourceType shouldEqual "JDBC"
+        readOp.sources shouldEqual Seq(MetaDataSource("jdbc:fake:sql@some_host:4242:some_database/some_table", Nil))
+      })
     }
 
     it("should handle unrecognized source type") {

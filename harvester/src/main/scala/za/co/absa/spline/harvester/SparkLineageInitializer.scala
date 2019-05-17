@@ -160,5 +160,7 @@ object SparkLineageInitializer extends Logging {
   }
 
   val initFlagKey = "spline.initialized_flag"
+
+  // constant take from Spark but is not available in Spark 2.2 so we need to copy value.
   val sparkQueryExecutionListenersKey = "spark.sql.queryExecutionListeners"
 }

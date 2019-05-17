@@ -16,7 +16,6 @@
 
 package za.co.absa.spline.persistence.mongo
 
-import java.net.URI
 import java.util.UUID
 import java.util.UUID.randomUUID
 
@@ -55,7 +54,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase wit
         datasetId = l.rootDataset.id,
         appId = l.appId,
         appName = l.appName,
-        path = new URI(l.rootOperation.asInstanceOf[BatchWrite].path),
+        path = l.rootOperation.asInstanceOf[BatchWrite].path,
         timestamp = l.timestamp))
 
       val descriptionsFuture =
@@ -369,7 +368,7 @@ class MongoDataLineageReaderSpec extends MongoDataLineagePersistenceSpecBase wit
     )
   }
 
-  it("should return empty Map when there are no metrics") {
+  it("should read a lineage containing a Write operation without metrics") {
     val lineage = createDataLineage("appID0", "App Zero", path = "file://some/path/0.csv", timestamp = 100)
 
     for {

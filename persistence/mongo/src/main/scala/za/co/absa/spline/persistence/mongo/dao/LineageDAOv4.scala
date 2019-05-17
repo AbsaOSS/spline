@@ -93,10 +93,6 @@ class LineageDAOv4(override val connection: MongoConnection) extends BaselineLin
         .map(binaryTypeHintStrategy.encode)
   }
 
-  private def enforceDefaultMetricsOnWriteOperation(writeOp: DBObject): Unit = {
-    writeOp.putIfAbsent(Field.readMetrics, new BasicDBObject(new ju.HashMap()))
-    writeOp.putIfAbsent(Field.writeMetrics, new BasicDBObject(new ju.HashMap()))
-  }
 
   private def insertTransformationsIntoLineage(transformations: Seq[DBObject], lineage: DBObject) = {
     val transformationsByOperationId = transformations.groupBy(_.get(Field.opId))
@@ -172,6 +168,10 @@ object LineageDAOv4 {
     val values: Seq[SubComponent] = sealedInstancesOf[SubComponentV4].toSeq
   }
 
+  def enforceDefaultMetricsOnWriteOperation(writeOp: DBObject): Unit = {
+    writeOp.putIfAbsent(Field.readMetrics, new BasicDBObject(new ju.HashMap()))
+    writeOp.putIfAbsent(Field.writeMetrics, new BasicDBObject(new ju.HashMap()))
+  }
 }
 
 trait MutableLineageUpgraderV4 {
@@ -268,6 +268,8 @@ object MutableLineageUpgraderV4 {
         case "Sort" =>
           op.get(Field.orders).asInstanceOf[ju.List[DBObject]].asScala.
             foreach(order => upgradeExpression(order.get(Field.expression).asInstanceOf[DBObject]))
+        case "Write" =>
+          LineageDAOv4.enforceDefaultMetricsOnWriteOperation(op)
         case _ =>
       }
       upgradeTypeHintOf(op)

@@ -20,43 +20,43 @@ package za.co.absa.spline
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SaveMode}
 import org.scalatest._
-import za.co.absa.spline.fixture.{AsyncSparkFixture, AsyncSplineFixture, DerbyDatabaseFixture}
+import za.co.absa.spline.fixture.spline.SplineFixture
+import za.co.absa.spline.fixture.{DerbyDatabaseFixture, SparkFixture}
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.model.op.{BatchWrite, Write}
 
 
-@Ignore class JDBCWriteSpec extends AsyncFlatSpec
+class JDBCWriteSpec extends AsyncFlatSpec
   with Matchers
-  with AsyncSparkFixture
-  with AsyncSplineFixture
+  with SparkFixture
+  with SplineFixture
   with DerbyDatabaseFixture {
+
+  import DataFrameImplicits._
 
   val tableName = "testTable"
 
-  val testData: DataFrame =
-    withNewSession( session => {
-      withSplineEnabled(session) {
-      val schema = StructType(StructField("ID", IntegerType, false) :: StructField("NAME", StringType, false) :: Nil)
-      val rdd = spark.sparkContext.parallelize(Row(1014, "Warsaw") :: Row(1002, "Corte") :: Nil)
-      spark.sqlContext.createDataFrame(rdd, schema)
-    }
-    })
-
-
   "save_to_fs" should "process all operations" in
-    withNewSession( session => {
-      withSplineEnabled(session) {
-      val tableName = "someTable" + System.currentTimeMillis()
+    withNewSparkSession(spark => {
+      withLineageTracking(spark)(lineageCaptor => {
+        val tableName = "someTable" + System.currentTimeMillis()
 
-      val lineage: DataLineage = testData.jdbcLineage(connectionString, tableName, mode = SaveMode.Overwrite)
+        val testData: DataFrame = {
+          val schema = StructType(StructField("ID", IntegerType, false) :: StructField("NAME", StringType, false) :: Nil)
+          val rdd = spark.sparkContext.parallelize(Row(1014, "Warsaw") :: Row(1002, "Corte") :: Nil)
+          spark.sqlContext.createDataFrame(rdd, schema)
+        }
 
-      val producedWrites = lineage.operations.filter(_.isInstanceOf[Write]).map(_.asInstanceOf[BatchWrite])
-      producedWrites.size shouldBe 1
-      val write = producedWrites.head
+        val lineage: DataLineage = lineageCaptor.lineageOf(
+          testData.writeToJDBC(connectionString, tableName, mode = SaveMode.Overwrite))
 
-      write.path shouldBe "jdbc://" + connectionString + ":" + tableName
-      write.append shouldBe false
-    }
+        val producedWrites = lineage.operations.filter(_.isInstanceOf[Write]).map(_.asInstanceOf[BatchWrite])
+        producedWrites.size shouldBe 1
+        val write = producedWrites.head
+
+        write.path shouldBe "jdbc://" + connectionString + ":" + tableName
+        write.append shouldBe false
+      })
     })
 }
 

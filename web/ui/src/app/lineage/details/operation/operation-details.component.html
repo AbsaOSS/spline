@@ -166,11 +166,11 @@
                 <p-accordionTab [selected]="true">
                     <p-header>
                         <details-section-header
-                                caption="{{ operation.joinType }} join on"
+                                caption="{{ operation.joinType }} join {{ operation.condition ? 'on' : '' }}"
                                 faIcon="{{ getOperationIcon() }}"
                                 iconColor="steelblue"></details-section-header>
                     </p-header>
-                    <ul>
+                    <ul *ngIf="operation.condition">
                         <li title="Expression">
                             <expression-inline [expr]="operation.condition"></expression-inline>
                         </li>

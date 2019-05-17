@@ -18,7 +18,7 @@ import {Component, Input} from "@angular/core";
 import {TreeNode} from "angular-tree-component";
 import {typeOfDataType} from "../../../types";
 import {IArray, IDataType} from "../../../../../generated-ts/datatype-model";
-import {LineageStore} from "../../../lineage.store";
+import {LineageAccessors, LineageStore} from "../../../lineage.store";
 
 @Component({
     selector: "data-type-view",
@@ -28,7 +28,10 @@ import {LineageStore} from "../../../lineage.store";
 export class DataTypeViewComponent {
     @Input() node: TreeNode
 
-    constructor(private lineageStore: LineageStore) {
+    private lineageAccessors: LineageAccessors
+
+    constructor(lineageStore: LineageStore) {
+        this.lineageAccessors = lineageStore.lineageAccessors
     }
 
     typeOfDataType(dt: IDataType): string {
@@ -36,7 +39,7 @@ export class DataTypeViewComponent {
     }
 
     getArrayElementType(arrayDT: IArray): IDataType {
-        return this.lineageStore.lineageAccessors.getDataType(arrayDT.elementDataTypeId)
+        return this.lineageAccessors.getDataType(arrayDT.elementDataTypeId)
     }
 
     toggleExpanded(e: Event) {

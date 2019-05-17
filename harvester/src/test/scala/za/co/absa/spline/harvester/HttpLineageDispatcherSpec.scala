@@ -16,18 +16,19 @@
 
 package za.co.absa.spline.harvester
 
+import org.mockito.ArgumentMatchers._
+import org.mockito.Mockito._
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.stubbing.Answer
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FunSuite, Matchers}
 import salat.grater
 import za.co.absa.spline.fixture.LineageFixture
+import za.co.absa.spline.harvester.dispatcher.HttpLineageDispatcher
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.mongo.serialization.BSONSalatContext._
-import org.mockito.Mockito._
-import org.mockito.ArgumentMatchers._
-import org.mockito.invocation.InvocationOnMock
-import org.mockito.stubbing.Answer
 
-class LineageDispatcherSpec extends FunSuite with Matchers with LineageFixture with MockitoSugar {
+class HttpLineageDispatcherSpec extends FunSuite with Matchers with LineageFixture with MockitoSugar {
 
   test("testSend with retries") {
     var captured = Array[Byte]()
@@ -41,7 +42,7 @@ class LineageDispatcherSpec extends FunSuite with Matchers with LineageFixture w
           retriesUntilSuccess == 0
         }
       })
-    val lineageDispatcher = new LineageDispatcher(3, "http://localhost/dummy", httpSender)
+    val lineageDispatcher = new HttpLineageDispatcher(3, "http://localhost/dummy", httpSender)
     val expectedLineage = fiveOpsLineage()
     lineageDispatcher.send(expectedLineage)
     val actualLineage = grater[DataLineage]

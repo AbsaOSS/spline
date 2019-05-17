@@ -74,7 +74,8 @@ export function getLabel(operation: IOperation, expressionRenderService: Express
             break
         case "Join":
             let joinExpression = (<IJoin>operation).condition
-            label += expressionRenderService.getText(joinExpression)
+            if (joinExpression)
+                label += expressionRenderService.getText(joinExpression)
             break
         case "Filter":
             let filterExpression = (<IFilter>operation).condition

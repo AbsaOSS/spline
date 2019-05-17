@@ -18,8 +18,8 @@ package za.co.absa.spline.harvester
 
 import java.util.UUID
 
-import org.apache.spark.sql.{ForeachWriter, Row}
 import org.apache.spark.sql.execution.streaming.StreamingQueryWrapper
+import org.apache.spark.sql.{ForeachWriter, Row, SparkSession}
 import org.scalatest.{FunSpec, Ignore, Matchers}
 import za.co.absa.spline.fixture.SparkFixture
 import za.co.absa.spline.model.endpoint.{FileEndpoint, KafkaEndpoint, StreamEndpoint}
@@ -34,55 +34,63 @@ class StreamWriteBuilderSpec extends FunSpec with Matchers with SparkFixture {
   describe("stream write builder should to parse correctly") {
 
     it("should parse Kafka StreamWrite correctly") {
-      val cluster = Seq("127.0.0.1:1111", "127.0.0.1:2222")
-      val topic = "targetTopic"
-      val wrapper = createRateStream()
-        .writeStream
-        .format("kafka")
-        .option("topic", topic)
-        .option("kafka.bootstrap.servers", cluster.mkString(","))
-        .option("checkpointLocation", "data/checkpoints/streaming/kafka")
-        .start()
-      val logicalPlanLineage: DataLineage = createLineage
-      val se = wrapper.asInstanceOf[StreamingQueryWrapper].streamingQuery
-      val (streamWrite, metaDataset) = StreamWriteBuilder.build(se, logicalPlanLineage)
-      shouldEq(streamWrite, KafkaEndpoint(cluster, Seq(topic)))
+      withNewSparkSession(spark => {
+        val cluster = Seq("127.0.0.1:1111", "127.0.0.1:2222")
+        val topic = "targetTopic"
+        val wrapper = createRateStream(spark)
+          .writeStream
+          .format("kafka")
+          .option("topic", topic)
+          .option("kafka.bootstrap.servers", cluster.mkString(","))
+          .option("checkpointLocation", "data/checkpoints/streaming/kafka")
+          .start()
+        val logicalPlanLineage: DataLineage = createLineage
+        val se = wrapper.asInstanceOf[StreamingQueryWrapper].streamingQuery
+        val (streamWrite, metaDataset) = StreamWriteBuilder.build(se, logicalPlanLineage)
+        shouldEq(streamWrite, KafkaEndpoint(cluster, Seq(topic)))
+      })
     }
 
     it("should parse Foreach StreamWrite correctly") {
-      val wrapper = createRateStream()
-        .writeStream
-        .foreach(new ForeachWriter[Row] {
-          override def open(partitionId: Long, epochId: Long): Boolean = true
-          override def process(value: Row): Unit = {}
-          override def close(errorOrNull: Throwable): Unit = {}
-        })
-        .start()
-      val logicalPlanLineage: DataLineage = createLineage
-      val se = wrapper.asInstanceOf[StreamingQueryWrapper].streamingQuery
-      val (streamWrite, metaDataset) = StreamWriteBuilder.build(se, logicalPlanLineage)
-      streamWrite.destinationType shouldBe "Virtual"
-      streamWrite.path.startsWith("virtual://") shouldBe true
-      streamWrite.path.contains("Foreach") shouldBe true
+      withNewSparkSession(spark => {
+        val wrapper = createRateStream(spark)
+          .writeStream
+          .foreach(new ForeachWriter[Row] {
+            override def open(partitionId: Long, epochId: Long): Boolean = true
+
+            override def process(value: Row): Unit = {}
+
+            override def close(errorOrNull: Throwable): Unit = {}
+          })
+          .start()
+        val logicalPlanLineage: DataLineage = createLineage
+        val se = wrapper.asInstanceOf[StreamingQueryWrapper].streamingQuery
+        val (streamWrite, metaDataset) = StreamWriteBuilder.build(se, logicalPlanLineage)
+        streamWrite.destinationType shouldBe "Virtual"
+        streamWrite.path.startsWith("virtual://") shouldBe true
+        streamWrite.path.contains("Foreach") shouldBe true
+      })
     }
 
     it("should parse File StreamWrite correctly") {
-      val format = "Parquet"
-      val path = "data/results/streaming/streamwritebuilderspec"
-      val wrapper = createRateStream()
-        .writeStream
-        .format(format)
-        .option("checkpointLocation", "data/checkpoints/streaming/file")
-        .option("path", path)
-        .start()
-      val logicalPlanLineage: DataLineage = createLineage
-      val se = wrapper.asInstanceOf[StreamingQueryWrapper].streamingQuery
-      val (streamWrite, metaDataset) = StreamWriteBuilder.build(se, logicalPlanLineage)
-      shouldEq(streamWrite, FileEndpoint(format, path))
+      withNewSparkSession(spark => {
+        val format = "Parquet"
+        val path = "data/results/streaming/streamwritebuilderspec"
+        val wrapper = createRateStream(spark)
+          .writeStream
+          .format(format)
+          .option("checkpointLocation", "data/checkpoints/streaming/file")
+          .option("path", path)
+          .start()
+        val logicalPlanLineage: DataLineage = createLineage
+        val se = wrapper.asInstanceOf[StreamingQueryWrapper].streamingQuery
+        val (streamWrite, metaDataset) = StreamWriteBuilder.build(se, logicalPlanLineage)
+        shouldEq(streamWrite, FileEndpoint(format, path))
+      })
     }
   }
 
-  private def createRateStream() = spark
+  private def createRateStream(spark: SparkSession) = spark
     .readStream
     .format("rate")
     .load()

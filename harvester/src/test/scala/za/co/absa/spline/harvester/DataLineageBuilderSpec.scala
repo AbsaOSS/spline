@@ -18,6 +18,7 @@ package za.co.absa.spline.harvester
 
 import java.util.UUID.randomUUID
 
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 import org.scalatest.{FlatSpec, Matchers}
 import za.co.absa.spline.fixture.SparkFixture
@@ -36,10 +37,11 @@ object DataLineageBuilderSpec {
 
 class DataLineageBuilderSpec extends FlatSpec with Matchers with SparkFixture {
 
-  import spark.implicits._
 
-  private val initialDataFrame = spark.createDataset(Seq(TestRow(1, 2.3, "text")))
-  private val hadoopConfiguration = spark.sparkContext.hadoopConfiguration
+  private def initialDataFrame(spark: SparkSession) = {
+    import spark.implicits._
+    spark.createDataset(Seq(TestRow(1, 2.3, "text")))
+  }
 
   private val integerType = Simple("integer", nullable = false)
   private val doubleType = Simple("double", nullable = false)
@@ -139,7 +141,7 @@ class DataLineageBuilderSpec extends FlatSpec with Matchers with SparkFixture {
     }
   }
 
-  "When harvest method is called with an empty data frame" should "return a data lineage with one node." in {
+  "When harvest method is called with an empty data frame" should "return a data lineage with one node." in withNewSparkSession(spark => {
 
     val expectedDatasets = Seq(
       MetaDataset(randomUUID, Schema(Seq.empty))
@@ -157,17 +159,17 @@ class DataLineageBuilderSpec extends FlatSpec with Matchers with SparkFixture {
       )
     )
 
-    val sut = new DataLineageBuilderFactory(hadoopConfiguration)
+    val sut = new DataLineageBuilderFactory(spark.sparkContext.hadoopConfiguration)
 
     val result = sut.
       createBuilder(spark.emptyDataFrame.queryExecution.analyzed, None, spark.sparkContext).
       buildLineage()
 
     assertDataLineage(expectedOperations, expectedDatasets, Seq.empty, result.getOrElse(fail))
-  }
+  })
 
-  "When harvest method is called with a simple non-empty data frame" should "return a data lineage with one node." in {
-    val df = initialDataFrame
+  "When harvest method is called with a simple non-empty data frame" should "return a data lineage with one node." in withNewSparkSession(spark => {
+    val df = initialDataFrame(spark)
 
     val expectedAttributes = Seq(
       Attribute(randomUUID, "i", integerType.id),
@@ -191,67 +193,73 @@ class DataLineageBuilderSpec extends FlatSpec with Matchers with SparkFixture {
       )
     )
 
-    val sut = new DataLineageBuilderFactory(hadoopConfiguration)
+    val sut = new DataLineageBuilderFactory(spark.sparkContext.hadoopConfiguration)
 
     val result = sut.createBuilder(df.queryExecution.analyzed, None, spark.sparkContext).buildLineage()
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result.getOrElse(fail))
-  }
+  })
 
-  "When harvest method is called with a filtered data frame" should "return a data lineage forming a path with three nodes." in {
-    val df = initialDataFrame
-      .withColumnRenamed("i", "A")
-      .filter($"A".notEqual(5))
+  "When harvest method is called with a filtered data frame" should "return a data lineage forming a path with three nodes." in
+    withNewSparkSession(spark => {
+      import spark.implicits._
 
-    val expectedAttributes = Seq(
-      Attribute(randomUUID, "i", integerType.id),
-      Attribute(randomUUID, "d", doubleType.id),
-      Attribute(randomUUID, "s", stringType.id),
-      Attribute(randomUUID, "A", integerType.id)
-    )
+      val df = initialDataFrame(spark)
+        .withColumnRenamed("i", "A")
+        .filter($"A".notEqual(5))
 
-    val expectedDatasets = Seq(
-      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id))),
-      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id))),
-      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id)))
-    )
-
-    val expectedOperations = Seq(
-      Filter(
-        OperationProps(
-          randomUUID,
-          "Filter",
-          Seq(expectedDatasets(1).id),
-          expectedDatasets(0).id),
-        null),
-      Projection(
-        OperationProps(
-          randomUUID,
-          "Project",
-          Seq(expectedDatasets(2).id),
-          expectedDatasets(1).id),
-        null),
-      Generic(
-        OperationProps(
-          randomUUID,
-          "LocalRelation",
-          Seq.empty,
-          expectedDatasets(2).id
-        ),
-        null
+      val expectedAttributes = Seq(
+        Attribute(randomUUID, "i", integerType.id),
+        Attribute(randomUUID, "d", doubleType.id),
+        Attribute(randomUUID, "s", stringType.id),
+        Attribute(randomUUID, "A", integerType.id)
       )
-    )
 
-    val sut = new DataLineageBuilderFactory(hadoopConfiguration)
+      val expectedDatasets = Seq(
+        MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id))),
+        MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id))),
+        MetaDataset(randomUUID, Schema(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id)))
+      )
 
-    val result = sut.createBuilder(df.queryExecution.analyzed, None, spark.sparkContext).buildLineage()
+      val expectedOperations = Seq(
+        Filter(
+          OperationProps(
+            randomUUID,
+            "Filter",
+            Seq(expectedDatasets(1).id),
+            expectedDatasets(0).id),
+          null),
+        Projection(
+          OperationProps(
+            randomUUID,
+            "Project",
+            Seq(expectedDatasets(2).id),
+            expectedDatasets(1).id),
+          null),
+        Generic(
+          OperationProps(
+            randomUUID,
+            "LocalRelation",
+            Seq.empty,
+            expectedDatasets(2).id
+          ),
+          null
+        )
+      )
 
-    assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result.getOrElse(fail))
-  }
+      val sut = new DataLineageBuilderFactory(spark.sparkContext.hadoopConfiguration)
 
-  "When harvest method is called with an union data frame" should "return a data lineage forming a diamond graph." in {
-    val filteredDF = initialDataFrame.filter($"i".notEqual(5))
-    val filteredDF2 = initialDataFrame.filter($"d".notEqual(5))
+      val result = sut.createBuilder(df.queryExecution.analyzed, None, spark.sparkContext).buildLineage()
+
+      assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result.getOrElse(fail))
+    })
+
+  "When harvest method is called with an union data frame" should "return a data lineage forming a diamond graph." in withNewSparkSession(spark => {
+    import spark.implicits._
+
+    val initialDF = initialDataFrame(spark)
+    val filteredDF = initialDF.filter($"i".notEqual(5))
+    val filteredDF2 = initialDF.filter($"d".notEqual(5))
     val df = filteredDF.union(filteredDF2)
 
     val expectedAttributes =
@@ -308,84 +316,94 @@ class DataLineageBuilderSpec extends FlatSpec with Matchers with SparkFixture {
       )
     )
 
-    val sut = new DataLineageBuilderFactory(hadoopConfiguration)
+    val sut = new DataLineageBuilderFactory(spark.sparkContext.hadoopConfiguration)
 
     val result = sut.createBuilder(df.queryExecution.analyzed, None, spark.sparkContext).buildLineage()
 
     assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result.getOrElse(fail))
-  }
+  })
 
-  "When harvest method is called with a joined data frame" should "return a data lineage forming a diamond graph." in {
-    val filteredDF = initialDataFrame.filter($"i".notEqual(5))
-    val aggregatedDF = initialDataFrame.withColumnRenamed("i", "A").groupBy($"A").agg(min("d").as("MIN"), max("s").as("MAX"))
-    val df = filteredDF.join(aggregatedDF, filteredDF.col("i").eqNullSafe(aggregatedDF.col("A")), "inner")
+  "When harvest method is called with a joined data frame" should "return a data lineage forming a diamond graph." in
+    withNewSparkSession(spark => {
+      import spark.implicits._
+      val initialDF = initialDataFrame(spark)
+      val filteredDF = initialDF
+        .filter($"i" =!= 5)
+      val aggregatedDF = initialDF
+        .withColumnRenamed("i", "A")
+        .groupBy($"A")
+        .agg(
+          min("d").as("MIN"),
+          max("s").as("MAX"))
 
-    val expectedAttributes = Seq(
-      Attribute(randomUUID, "i", integerType.id),
-      Attribute(randomUUID, "d", doubleType.id),
-      Attribute(randomUUID, "s", stringType.id),
-      Attribute(randomUUID, "A", integerType.id),
-      Attribute(randomUUID, "MIN", Simple("double", nullable = true).id),
-      Attribute(randomUUID, "MAX", stringType.id)
-    )
+      val df = filteredDF.join(aggregatedDF, filteredDF.col("i").eqNullSafe(aggregatedDF.col("A")), "inner")
 
-    val expectedDatasets = Seq(
-      MetaDataset(randomUUID, Schema(expectedAttributes.map(_.id))),
-      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id))),
-      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(4).id, expectedAttributes(5).id))),
-      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id))),
-      MetaDataset(randomUUID, Schema(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id))))
-
-    val expectedOperations = Seq(
-      Join(
-        OperationProps(
-          randomUUID,
-          "Join",
-          Seq(expectedDatasets(1).id, expectedDatasets(2).id),
-          expectedDatasets(0).id),
-        None,
-        "Inner"),
-      Filter(
-        OperationProps(
-          randomUUID,
-          "Filter",
-          Seq(expectedDatasets(4).id),
-          expectedDatasets(1).id),
-        null),
-      Generic(
-        OperationProps(
-          randomUUID,
-          "LocalRelation",
-          Seq.empty,
-          expectedDatasets(4).id
-        ),
-        "LocalRelation"
-      ),
-      Aggregate(
-        OperationProps(
-          randomUUID,
-          "Aggregate",
-          Seq(expectedDatasets(3).id),
-          expectedDatasets(2).id
-        ),
-        Nil,
-        Map.empty
-      ),
-      Projection(
-        OperationProps(
-          randomUUID,
-          "Project",
-          Seq(expectedDatasets(4).id),
-          expectedDatasets(3).id
-        ),
-        null
+      val expectedAttributes = Seq(
+        Attribute(randomUUID, "i", integerType.id),
+        Attribute(randomUUID, "d", doubleType.id),
+        Attribute(randomUUID, "s", stringType.id),
+        Attribute(randomUUID, "A", integerType.id),
+        Attribute(randomUUID, "MIN", Simple("double", nullable = true).id),
+        Attribute(randomUUID, "MAX", stringType.id)
       )
-    )
 
-    val sut = new DataLineageBuilderFactory(hadoopConfiguration)
+      val expectedDatasets = Seq(
+        MetaDataset(randomUUID, Schema(expectedAttributes.map(_.id))),
+        MetaDataset(randomUUID, Schema(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id))),
+        MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(4).id, expectedAttributes(5).id))),
+        MetaDataset(randomUUID, Schema(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id))),
+        MetaDataset(randomUUID, Schema(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id))))
 
-    val result = sut.createBuilder(df.queryExecution.analyzed, None, spark.sparkContext).buildLineage()
+      val expectedOperations = Seq(
+        Join(
+          OperationProps(
+            randomUUID,
+            "Join",
+            Seq(expectedDatasets(1).id, expectedDatasets(2).id),
+            expectedDatasets(0).id),
+          None,
+          "Inner"),
+        Filter(
+          OperationProps(
+            randomUUID,
+            "Filter",
+            Seq(expectedDatasets(4).id),
+            expectedDatasets(1).id),
+          null),
+        Generic(
+          OperationProps(
+            randomUUID,
+            "LocalRelation",
+            Seq.empty,
+            expectedDatasets(4).id
+          ),
+          "LocalRelation"
+        ),
+        Aggregate(
+          OperationProps(
+            randomUUID,
+            "Aggregate",
+            Seq(expectedDatasets(3).id),
+            expectedDatasets(2).id
+          ),
+          Nil,
+          Map.empty
+        ),
+        Projection(
+          OperationProps(
+            randomUUID,
+            "Project",
+            Seq(expectedDatasets(4).id),
+            expectedDatasets(3).id
+          ),
+          null
+        )
+      )
 
-    assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result.getOrElse(fail))
-  }
+      val sut = new DataLineageBuilderFactory(spark.sparkContext.hadoopConfiguration)
+
+      val result = sut.createBuilder(df.queryExecution.analyzed, None, spark.sparkContext).buildLineage()
+
+      assertDataLineage(expectedOperations, expectedDatasets, expectedAttributes, result.getOrElse(fail))
+    })
 }

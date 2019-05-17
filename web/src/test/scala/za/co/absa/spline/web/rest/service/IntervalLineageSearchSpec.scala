@@ -1,6 +1,5 @@
 package za.co.absa.spline.web.rest.service
 
-import java.net.URI
 import java.util.UUID
 
 import org.mockito.ArgumentMatchers.{eq => ≡, _}
@@ -88,10 +87,10 @@ class IntervalLineageSearchSpec extends AsyncFlatSpec with Matchers with Mockito
 //    when(readerMock.getByDatasetIdsByPathAndInterval(≡(UUIDS2))(any())) thenReturn Future.successful(Some(lineage2))
 
     when(readerMock.getDatasetDescriptor(≡(UUIDS1x))(any())) thenReturn
-      Future.successful(PersistedDatasetDescriptor(UUIDS1x, lineage1.appId, lineage1.appId, new URI("fileS1.txt"), 11))
+      Future.successful(PersistedDatasetDescriptor(UUIDS1x, lineage1.appId, lineage1.appId, "fileS1.txt", 11))
 
     when(readerMock.getDatasetDescriptor(≡(UUIDS2))(any())) thenReturn
-      Future.successful(PersistedDatasetDescriptor(UUIDS2, lineage2.appId, lineage2.appId, new URI("fileOut.txt"), 11))
+      Future.successful(PersistedDatasetDescriptor(UUIDS2, lineage2.appId, lineage2.appId, "fileOut.txt", 11))
 
     when(readerMock.findByInputId(≡(UUIDS2), anyBoolean())(any())) thenReturn Future.successful(new CloseableIterable[DataLineage](Iterator.empty, {}))
 
@@ -104,7 +103,7 @@ class IntervalLineageSearchSpec extends AsyncFlatSpec with Matchers with Mockito
       lin.operations.head.destination.datasetsIds shouldEqual List(UUIDS2)
       lin.operations.head.sources.exists(ds => ds.datasetsIds == Seq(UUIDS1)) shouldEqual true
       lin.operations.map(c => c.destination).map(_.datasetsIds).contains(List(UUIDS1)) shouldEqual true
-//      1 shouldEqual(1)
+      //      1 shouldEqual(1)
     })
 
     svc(UUIDS1x, 10, 20).map(lin => {
