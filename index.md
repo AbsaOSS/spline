@@ -83,12 +83,43 @@ Our main focus is to solve the following particular problems:
 
 ### Usage
 
+Spline is available for use in a number of configurations;
+within your code or entirely codeless, prebundled by us for ease of use or to be bundled for fine grained dependency management.
+
 ##### Dependencies
 
 * [Scala](https://www.scala-lang.org/) 2.11
 * [Spark](http://spark.apache.org/) 2.2.0
 * [MongoDB](https://www.mongodb.com/) 3.4 (required for Spline Web UI)
 
+### Project Integration Options
+
+#### Code based
+<details><summary>Scala</summary>
+#### Scala implementation details go here
+</details>
+
+<details><summary>Java</summary>
+#### Java implementation details go here
+</details>
+
+<details><summary>Python</summary>
+#### Python implementation details go here
+</details>
+
+<details><summary>Codeless</summary>
+#### Codeless implementation details go here
+</details>
+
+#### Bundle Based Integration
+
+<details><summary>Pre-bundled by Us</summary>
+#### Pre-bundled implementation details go here
+</details>
+
+<details><summary>Just the Dependencies</summary>
+#### Dependencies only implementation details go here
+</details>
 ##### Setup for your Spark job:
 
 1. Include the Spline core jar into your Spark job classpath (it's enough to have it in a driver only, executors don't need it)
