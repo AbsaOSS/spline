@@ -18,21 +18,17 @@ package za.co.absa.spline.model.expr
 
 import java.util.UUID
 
-import salat.annotations.Salat
 
-@Salat
 sealed trait Expression {
   def children: Seq[Expression]
 
   def allRefLikeChildrenFlattened: Seq[Expression] = children.flatMap(_.allRefLikeChildrenFlattened)
 }
 
-@Salat
 sealed trait LeafExpression extends Expression {
   override final def children: Seq[Expression] = Nil
 }
 
-@Salat
 sealed trait RefLikeExpression extends Expression {
   override final def allRefLikeChildrenFlattened: Seq[Expression] = this +: super.allRefLikeChildrenFlattened
 }

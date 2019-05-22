@@ -16,21 +16,24 @@
 
 package za.co.absa.spline.common
 
+import org.apache.commons.lang.StringUtils
 import za.co.absa.spline.common.TypeConstraints.not
 
 import scala.language.implicitConversions
 
-/**
-  * The object contains implicit conversions of types to options.
-  */
+
 object OptionImplicits {
 
-  /**
-    * The method coverts on type to an [[scala.Option Option]]
-    *
-    * @param o An instance that will be converted
-    * @tparam T A source type
-    * @return An option
-    */
+  @deprecated
   implicit def anyToOption[T <: Any : not[Option[_]]#λ : Manifest](o: T): Option[T] = Option(o)
+
+  implicit class StringWrapper(s: String) {
+    def nonBlankOption: Option[String] = Option(StringUtils.trimToNull(s))
+  }
+
+  implicit class AnyWrapper[A](a: A) {
+    def optionally[B](applyFn: (A, B) => A, maybeArg: Option[B]): A =
+      maybeArg.map(applyFn(a, _)).getOrElse(a)
+  }
+
 }

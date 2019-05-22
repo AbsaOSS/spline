@@ -19,9 +19,9 @@ import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.functions._
 import org.scalatest.Inside._
 import org.scalatest._
-import za.co.absa.spline.fixture.SparkFixture
-import za.co.absa.spline.fixture.spline.SplineFixture
+import za.co.absa.spline.test.fixture.spline.SplineFixture
 import za.co.absa.spline.model.op
+import za.co.absa.spline.test.fixture.SparkFixture
 
 
 /** Contains smoke tests for basic operations. */

@@ -22,12 +22,13 @@ import org.apache.spark.sql.types.{IntegerType, StructField, StructType}
 import org.apache.spark.sql.{Row, SaveMode}
 import org.scalatest._
 import org.slf4s.Logging
-import za.co.absa.spline.DataFrameImplicits._
+import za.co.absa.spline.test.DataFrameImplicits._
 import za.co.absa.spline.common.TempDirectory
-import za.co.absa.spline.fixture._
-import za.co.absa.spline.fixture.spline.SplineFixture
+import za.co.absa.spline.test.fixture._
+import za.co.absa.spline.test.fixture.spline.SplineFixture
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.model.op.Write
+import za.co.absa.spline.test.fixture.SparkFixture
 
 /** Contains smoke tests for basic operations. */
 class BasicIntegrationTests extends FlatSpec

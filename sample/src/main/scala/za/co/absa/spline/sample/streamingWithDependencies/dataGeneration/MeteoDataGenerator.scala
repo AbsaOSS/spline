@@ -19,8 +19,8 @@ package za.co.absa.spline.sample.streamingWithDependencies.dataGeneration
 import java.time.LocalDateTime
 
 import scala.collection.immutable.ListMap
-import scala.util.Random
 import scala.math._
+import scala.util.Random
 
 trait MeteoDataGenerator {
 

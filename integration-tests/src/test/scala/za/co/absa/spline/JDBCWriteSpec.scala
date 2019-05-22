@@ -20,10 +20,11 @@ package za.co.absa.spline
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SaveMode}
 import org.scalatest._
-import za.co.absa.spline.fixture.spline.SplineFixture
-import za.co.absa.spline.fixture.{DerbyDatabaseFixture, SparkFixture}
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.model.op.{BatchWrite, Write}
+import za.co.absa.spline.test.DataFrameImplicits._
+import za.co.absa.spline.test.fixture.spline.SplineFixture
+import za.co.absa.spline.test.fixture.{DerbyDatabaseFixture, SparkFixture}
 
 
 class JDBCWriteSpec extends AsyncFlatSpec
@@ -32,7 +33,6 @@ class JDBCWriteSpec extends AsyncFlatSpec
   with SplineFixture
   with DerbyDatabaseFixture {
 
-  import DataFrameImplicits._
 
   val tableName = "testTable"
 

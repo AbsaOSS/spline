@@ -19,12 +19,9 @@ package za.co.absa.spline.model.endpoint
 import java.net.URI
 import java.nio.file.Paths
 
-import salat.annotations.Salat
-
 /**
   * The trait represents an abstraction of an endpoint for structured streaming
   */
-@Salat
 trait StreamEndpoint {
   def paths: Seq[URI]
   def description: String = getClass.getSimpleName.replaceAll("Endpoint$", "")

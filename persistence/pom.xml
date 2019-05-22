@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2017 ABSA Group Limited
+  ~ Copyright 2019 ABSA Group Limited
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,23 +15,81 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>za.co.absa.spline</groupId>
-        <artifactId>spline</artifactId>
+        <artifactId>parent</artifactId>
+        <relativePath>../parent/pom.xml</relativePath>
         <version>0.4.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>spline-persistence</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>persistence</artifactId>
 
-    <modules>
-        <module>api</module>
-        <module>atlas</module>
-        <module>mongo</module>
-        <module>hdfs</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.8.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.4</version>
+        </dependency>
+
+        <!-- Spring -->
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+
+        <!-- ArangoDB -->
+
+        <dependency>
+            <groupId>com.arangodb</groupId>
+            <artifactId>arangodb-java-driver-async</artifactId>
+            <version>5.0.4</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.arangodb</groupId>
+                    <artifactId>velocypack</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.wajda.com.arangodb</groupId>
+            <artifactId>velocypack1.4-module-scala_${scala.compat.version}</artifactId>
+            <version>1.0.3.2</version>
+        </dependency>
+
+        <!-- test scope -->
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
 </project>
