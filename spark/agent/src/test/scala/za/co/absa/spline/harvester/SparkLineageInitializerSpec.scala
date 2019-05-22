@@ -36,6 +36,7 @@ import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.harvester.dispatcher.HttpLineageDispatcher.publishUrlProperty
 import za.co.absa.spline.harvester.listener.{SplineQueryExecutionListener, StructuredStreamingListener}
 import za.co.absa.spline.test.fixture.SparkFixture
+import za.co.absa.spline.scalatest.ConditionalTestIgnore._
 
 import scala.collection.JavaConverters._
 
@@ -139,7 +140,7 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
   }
 
   describe("codeless initialization") {
-    it("should not allow duplicate tracking when combining the methods") {
+    it("should not allow duplicate tracking when combining the methods", ignoreWhen(SPARK_22)) {
       withNewSparkSession(session => {
         numberOfRegisteredBatchListeners(session) shouldBe 0
         numberOfRegisteredStreamListeners(session) shouldBe 0
@@ -154,7 +155,7 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
       })
     }
 
-    it("should not allow duplicate codeless tracking") {
+    it("should not allow duplicate codeless tracking", ignoreWhen(SPARK_22)) {
       withNewSparkSession(session => {
         numberOfRegisteredStreamListeners(session) shouldBe 0
         SparkLineageInitializer
@@ -168,7 +169,7 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
   }
 
   describe("enableLineageTracking()") {
-    it("should warn on double initialization") {
+    it("should warn on double initialization", ignoreWhen(SPARK_22)) {
       withNewSparkSession(session => {
         session
           .enableLineageTracking(createConfigurer(session)) // 1st is fine
