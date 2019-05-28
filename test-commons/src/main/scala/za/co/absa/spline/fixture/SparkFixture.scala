@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.fixture
 
+import java.lang.System
 import java.nio.file.Path
 
 import org.apache.spark.sql.SparkSession
@@ -45,6 +46,8 @@ trait SparkFixture extends BeforeAndAfterAll with Logging {
       SparkSession.getDefaultSession.map(_.stop())
     }
   }
+
+  System.setProperty("derby.system.home", tempWarehouseDirPath.toString)
 
   private val sessionBuilder: SparkSession.Builder =
     customizeBuilder(

@@ -17,9 +17,12 @@
 package za.co.absa.spline.coresparkadapterapi
 
 import org.apache.commons.codec.net.URLCodec
+import org.apache.spark.sql.SaveMode
+import org.apache.spark.sql.catalyst.catalog.CatalogTable
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.command.CreateDataSourceTableAsSelectCommand
 import org.apache.spark.sql.execution.datasources.{InsertIntoHadoopFsRelationCommand, SaveIntoDataSourceCommand}
+import org.apache.spark.sql.hive.execution.InsertIntoHiveTable
 
 class WriteCommandParserFactoryImpl extends WriteCommandParserFactory {
   override def writeParser(): WriteCommandParser[LogicalPlan] = new WriteCommandParserImpl()
@@ -29,22 +32,37 @@ class WriteCommandParserFactoryImpl extends WriteCommandParserFactory {
   override def jdbcParser(): WriteCommandParser[LogicalPlan] = new SaveJdbcCommandParserImpl()
 }
 
+object SaveAsTableCommandParserImpl {
+  val INSERT_INTO_HIVE_CLASS_NAME = "org.apache.spark.sql.hive.execution.InsertIntoHiveTable"
+}
+
 class SaveAsTableCommandParserImpl(clusterUrl: Option[String]) extends WriteCommandParser[LogicalPlan] {
-  override def matches(operation: LogicalPlan): Boolean = operation.isInstanceOf[CreateDataSourceTableAsSelectCommand]
+
+  override def matches(operation: LogicalPlan): Boolean = {
+    operation.getClass.getName == SaveAsTableCommandParserImpl.INSERT_INTO_HIVE_CLASS_NAME || operation.isInstanceOf[CreateDataSourceTableAsSelectCommand]
+  }
 
   override def asWriteCommand(operation: LogicalPlan): AbstractWriteCommand = {
-    val op = operation.asInstanceOf[CreateDataSourceTableAsSelectCommand]
+    operation match {
+      case op:CreateDataSourceTableAsSelectCommand => SaveAsTableCommand(createTableWrite(op.table), op.mode, "table", op.query)
+      case op:InsertIntoHiveTable => {
+        val mode = if (op.overwrite) SaveMode.Overwrite else SaveMode.Append
+        SaveAsTableCommand(createTableWrite(op.table), mode, "table", op.query)
+      }
+    }
+  }
 
-    val identifier = op.table.storage.locationUri match {
+  private def createTableWrite(table: CatalogTable) = {
+    val identifier = table.storage.locationUri match {
       case Some(location) => location.toURL.toString
       case _ =>
         val codec = new URLCodec()
         URIPrefixes.managedTablePrefix +
           codec.encode(clusterUrl.getOrElse(throw new IllegalArgumentException("Unknown cluster name."))) + ":" +
-          codec.encode(op.table.identifier.database.getOrElse("default")) + ":" +
-          codec.encode(op.table.identifier.table)
+          codec.encode(table.identifier.database.getOrElse("default")) + ":" +
+          codec.encode(table.identifier.table)
     }
-    SaveAsTableCommand(identifier, op.mode, "table", op.query)
+    identifier
   }
 }
 
