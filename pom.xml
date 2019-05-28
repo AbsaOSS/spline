@@ -53,20 +53,34 @@
         <module>commons</module>
         <module>test-commons</module>
         <module>model</module>
-        <module>linker</module>
-        <module>harvester</module>
-        <module>spark-adapter-api</module>
-        <module>spark-adapter-2.2</module>
-        <module>spark-adapter-2.3</module>
-        <module>spark-adapter-2.4</module>
-        <module>bundle-2.2</module>
-        <module>bundle-2.3</module>
-        <module>bundle-2.4</module>
-        <module>web</module>
-        <module>spline-shadow</module>
-        <module>sample</module>
+
+        <module>migrator-tool</module>
+        <module>rest-api-doc-generator</module>
+
+        <module>producer-services</module>
+        <module>consumer-services</module>
         <module>persistence</module>
+
+        <module>producer-rest-core</module>
+        <module>consumer-rest-core</module>
+        <module>rest-gateway</module>
+
+        <module>client-ui</module>
+        <module>client-webjar</module>
+        <module>client-web</module>
+
+        <module>spark/agent</module>
+        <module>spark/spark-adapter-api</module>
+        <module>spark/spark-adapter-2.2</module>
+        <module>spark/spark-adapter-2.3</module>
+        <module>spark/spark-adapter-2.4</module>
+        <module>spark/bundle-2.2</module>
+        <module>spark/bundle-2.3</module>
+        <module>spark/bundle-2.4</module>
+
+        <module>sample</module>
         <module>integration-tests</module>
+
     </modules>
 
     <profiles>

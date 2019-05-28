@@ -21,12 +21,12 @@
 
     <parent>
         <groupId>za.co.absa.spline</groupId>
-        <artifactId>spline-parent</artifactId>
+        <artifactId>parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
         <version>0.4.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>spline-commons</artifactId>
+    <artifactId>commons</artifactId>
     <packaging>jar</packaging>
 
     <properties>
@@ -51,24 +51,44 @@
             <groupId>org.slf4s</groupId>
             <artifactId>slf4s-api_${scala.compat.version}</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <scope>test</scope>
-        </dependency>
 
         <!-- only for za.co.absa.spline.webmvc package -->
 
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- only for za.co.absa.spline.common.scalatest package -->
+
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_${scala.compat.version}</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- test scope -->
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

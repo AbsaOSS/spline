@@ -18,12 +18,9 @@ package za.co.absa.spline.model.dt
 
 import java.util.UUID
 
-import salat.annotations.Salat
-
 /**
  * The trait describes a data type of an attribute, expression, etc.
  */
-@Salat
 sealed trait DataType {
   val id: UUID
   val nullable: Boolean

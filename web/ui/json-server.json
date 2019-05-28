@@ -1,4 +1,0 @@
-{
-  "port": 3004,
-  "routes": "mock-rest-api/routes.json"
-}

@@ -18,7 +18,6 @@ package za.co.absa.spline.model.op
 
 import java.util.UUID
 
-import salat.annotations.Salat
 import za.co.absa.spline.model.expr.Expression
 import za.co.absa.spline.model.{MetaDataSource, TypedMetaDataSource}
 
@@ -45,7 +44,6 @@ trait ExpressionAware {
 /**
   * The trait represents one particular node within a lineage graph.
   */
-@Salat
 sealed trait Operation {
   /**
     * Common properties of all node types.
@@ -187,7 +185,6 @@ case class Alias(
                   alias: String
                 ) extends Operation
 
-@Salat
 sealed trait Write extends Operation {
   def path: String
   def destinationType: String
@@ -209,7 +206,6 @@ case class BatchWrite(
                   readMetrics: Map[String, Long] = Map.empty
                 ) extends Write
 
-@Salat
 sealed trait Read extends Operation {
   def sourceType: String
   def sources: Seq[MetaDataSource]

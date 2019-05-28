@@ -20,7 +20,7 @@ import java.io.PrintStream
 import java.net.ServerSocket
 
 import org.json4s.DefaultFormats
-import org.json4s.native.Json
+import org.json4s.jackson.Json
 
 object SocketMeteoStation extends App with MeteoDataGenerator with Timer {
   override def name = "Name" -> "Prague-Libus"

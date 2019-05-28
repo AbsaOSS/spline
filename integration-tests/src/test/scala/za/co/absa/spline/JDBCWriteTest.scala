@@ -20,10 +20,11 @@ package za.co.absa.spline
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SaveMode, SparkSession}
 import org.scalatest._
-import za.co.absa.spline.DataFrameImplicits._
-import za.co.absa.spline.fixture._
-import za.co.absa.spline.fixture.spline.SplineFixture
+import za.co.absa.spline.test.DataFrameImplicits._
+import za.co.absa.spline.test.fixture._
+import za.co.absa.spline.test.fixture.spline.SplineFixture
 import za.co.absa.spline.model.op.BatchWrite
+import za.co.absa.spline.test.fixture.SparkFixture
 
 
 class JDBCWriteTest extends FlatSpec with Matchers

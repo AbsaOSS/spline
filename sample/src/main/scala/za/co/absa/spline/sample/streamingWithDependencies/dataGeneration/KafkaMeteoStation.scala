@@ -16,14 +16,13 @@
 
 package za.co.absa.spline.sample.streamingWithDependencies.dataGeneration
 
-import java.time.LocalDateTime
 import java.util.Properties
 
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.apache.kafka.common.serialization.StringSerializer
-import za.co.absa.spline.sample.KafkaProperties
-import org.json4s.native.Json
 import org.json4s.DefaultFormats
+import org.json4s.jackson.Json
+import za.co.absa.spline.sample.KafkaProperties
 
 object KafkaMeteoStation extends App with MeteoDataGenerator with KafkaProperties with Timer {
 

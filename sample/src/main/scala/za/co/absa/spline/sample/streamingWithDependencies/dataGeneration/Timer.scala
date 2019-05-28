@@ -16,9 +16,9 @@
 
 package za.co.absa.spline.sample.streamingWithDependencies.dataGeneration
 
-import scala.concurrent.duration._
 import akka.actor.ActorSystem
-import za.co.absa.spline.sample.streamingWithDependencies.dataGeneration.KafkaMeteoStation.kafkaProducer
+
+import scala.concurrent.duration._
 
 trait Timer {
   private val actorSystem = ActorSystem("meteo")

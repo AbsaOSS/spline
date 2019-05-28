@@ -25,7 +25,6 @@ object FileStreamingJob extends SparkApp("File Streaming Job"){
   spark.enableLineageTracking()
 
   // A business logic of a spark job ...
-  import spark.implicits._
 
   val schemaImp = spark.read
     .format("csv")
