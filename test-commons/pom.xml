@@ -20,32 +20,32 @@
 
     <parent>
         <groupId>za.co.absa.spline</groupId>
-        <artifactId>parent</artifactId>
+        <artifactId>parent_2.11</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
         <version>0.4.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>test-commons</artifactId>
+    <artifactId>test-commons_2.11</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>commons</artifactId>
+            <artifactId>commons_${scala.binary.version}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_${scala.compat.version}</artifactId>
+            <artifactId>scalatest_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_${scala.compat.version}</artifactId>
+            <artifactId>spark-core_${scala.binary.version}</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_${scala.compat.version}</artifactId>
+            <artifactId>spark-sql_${scala.binary.version}</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>

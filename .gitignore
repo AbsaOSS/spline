@@ -100,3 +100,6 @@ spark-warehouse/
 
 #MacOS
 .DS_Store
+
+pom.xml.bck
+pom.xml.new

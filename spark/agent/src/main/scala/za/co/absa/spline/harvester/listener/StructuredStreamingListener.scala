@@ -104,6 +104,7 @@ class StructuredStreamingListener(
         runIdToLineages.put(se.runId, streamingLineage)
         lineageDispatcher.send(streamingLineage)
       }
+    case None =>
     }
   }
 }

@@ -16,6 +16,8 @@
 
 package za.co.absa.spline.common.future
 
+import com.thoughtworks.enableIf
+
 import scala.collection.concurrent.{Map, TrieMap}
 import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{CanAwait, ExecutionContext, Future}
@@ -37,6 +39,12 @@ class EstimableFuture[+T](underlyingFuture: Future[T], avgDuration: () => Long) 
   override def result(atMost: Duration)(implicit permit: CanAwait): T = underlyingFuture.result(atMost)
 
   lazy val estimatedDuration: Long = avgDuration()
+
+  @enableIf(scala.util.Properties.versionNumberString.startsWith("2.12."))
+  def transform[S](f: Try[T] => Try[S])(implicit executor: ExecutionContext): Future[S] = underlyingFuture.transform(f)
+
+  @enableIf(scala.util.Properties.versionNumberString.startsWith("2.12."))
+  def transformWith[S](f: Try[T] => Future[S])(implicit executor: ExecutionContext): Future[S] = underlyingFuture.transformWith(f)
 }
 
 object EstimableFuture {
@@ -57,7 +65,9 @@ object EstimableFuture {
         new MovingAverageCalculator(10.seconds.toMillis, 0.05)
       })
       val startTime = System.currentTimeMillis
-      future.onSuccess { case _ => durationMeasurer.addMeasurement(System.currentTimeMillis - startTime) }
+      future.foreach(_ => durationMeasurer.addMeasurement(System.currentTimeMillis - startTime))
+
+//      future.onSuccess { case _ => durationMeasurer.addMeasurement(System.currentTimeMillis - startTime) }
       new EstimableFuture(future, durationMeasurer.currentAverage _)
     }
   }

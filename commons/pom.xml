@@ -21,12 +21,12 @@
 
     <parent>
         <groupId>za.co.absa.spline</groupId>
-        <artifactId>parent</artifactId>
+        <artifactId>parent_2.11</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
         <version>0.4.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>commons</artifactId>
+    <artifactId>commons_2.11</artifactId>
     <packaging>jar</packaging>
 
     <properties>
@@ -35,6 +35,10 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.thoughtworks.enableIf</groupId>
+            <artifactId>enableif_${scala.binary.version}</artifactId>
+        </dependency>
         <dependency>
             <groupId>commons-configuration</groupId>
             <artifactId>commons-configuration</artifactId>
@@ -49,17 +53,17 @@
         </dependency>
         <dependency>
             <groupId>org.slf4s</groupId>
-            <artifactId>slf4s-api_${scala.compat.version}</artifactId>
+            <artifactId>slf4s-api_${scala.binary.version}</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.json4s</groupId>
-            <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
+            <artifactId>json4s-jackson_${scala.binary.version}</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
-            <artifactId>json4s-ext_${scala.compat.version}</artifactId>
+            <artifactId>json4s-ext_${scala.binary.version}</artifactId>
             <scope>provided</scope>
         </dependency>
 
@@ -82,7 +86,7 @@
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
+            <artifactId>jackson-module-scala_${scala.binary.version}</artifactId>
             <scope>provided</scope>
         </dependency>
 
@@ -90,7 +94,7 @@
 
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_${scala.compat.version}</artifactId>
+            <artifactId>scalatest_${scala.binary.version}</artifactId>
             <scope>provided</scope>
         </dependency>
 

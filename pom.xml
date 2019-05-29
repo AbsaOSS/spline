@@ -15,7 +15,8 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>za.co.absa.spline</groupId>
@@ -28,6 +29,10 @@
         <scm.url>http://github.com/AbsaOSS/spline/tree/master</scm.url>
         <scm.connection>scm:git:git://github.com/AbsaOSS/spline.git</scm.connection>
         <scm.developerConnection>scm:git:ssh://github.com/AbsaOSS/spline.git</scm.developerConnection>
+
+        <scala.binary.version>2.11</scala.binary.version>
+
+        <scala-maven-plugin.version>3.3.1</scala-maven-plugin.version>
     </properties>
 
     <scm>
@@ -53,38 +58,197 @@
         <module>commons</module>
         <module>test-commons</module>
         <module>model</module>
-
-        <module>migrator-tool</module>
-        <module>rest-api-doc-generator</module>
-
-        <module>producer-services</module>
-        <module>consumer-services</module>
         <module>persistence</module>
 
         <module>producer-rest-model</module>
         <module>producer-rest-core</module>
         <module>consumer-rest-core</module>
-        <module>rest-gateway</module>
 
-        <module>client-ui</module>
-        <module>client-webjar</module>
-        <module>client-web</module>
+        <module>producer-services</module>
+        <module>consumer-services</module>
 
         <module>spark/agent</module>
         <module>spark/spark-adapter-api</module>
-        <module>spark/spark-adapter-2.2</module>
-        <module>spark/spark-adapter-2.3</module>
-        <module>spark/spark-adapter-2.4</module>
-        <module>spark/bundle-2.2</module>
-        <module>spark/bundle-2.3</module>
-        <module>spark/bundle-2.4</module>
-
-        <module>sample</module>
-        <module>integration-tests</module>
-
     </modules>
 
+
+
     <profiles>
+
+        <profile>
+            <id>scala-2.11</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <scala.version>2.11.12</scala.version>
+                <scala.binary.version>2.11</scala.binary.version>
+            </properties>
+            <modules>
+                <module>rest-gateway</module>
+
+                <module>rest-api-doc-generator</module>
+
+                <module>client-ui</module>
+                <module>client-webjar</module>
+                <module>client-web</module>
+
+                <module>spark/spark-adapter-2.2</module>
+                <module>spark/spark-adapter-2.3</module>
+                <module>spark/spark-adapter-2.4</module>
+
+                <module>spark/bundle-2.2</module>
+                <module>spark/bundle-2.3</module>
+                <module>spark/bundle-2.4</module>
+            </modules>
+
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>net.alchim31.maven</groupId>
+                            <artifactId>scala-maven-plugin</artifactId>
+                            <version>${scala-maven-plugin.version}</version>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+                <plugins>
+                    <plugin>
+                        <groupId>net.alchim31.maven</groupId>
+                        <artifactId>scala-maven-plugin</artifactId>
+                        <configuration>
+                            <scalaVersion>${scala.version}</scalaVersion>
+                            <args>
+                                <arg>-target:jvm-${java.version}</arg>
+                                <arg>-Ybackend:GenBCode</arg>
+                                <arg>-feature</arg>
+                                <arg>-deprecation</arg>
+                                <arg>-unchecked</arg>
+                                <arg>-Ywarn-numeric-widen</arg>
+                                <!--<arg>-Ywarn-dead-code</arg>-->
+                                <!--<arg>-Ywarn-value-discard</arg>-->
+                            </args>
+                            <compilerPlugins>
+                                <compilerPlugin>
+                                    <groupId>org.scalamacros</groupId>
+                                    <artifactId>paradise_2.11.12</artifactId>
+                                    <version>2.1.1</version>
+                                </compilerPlugin>
+                            </compilerPlugins>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>scala-compile</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>add-source</goal>
+                                    <goal>compile</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>scala-test-compile</id>
+                                <phase>process-test-resources</phase>
+                                <goals>
+                                    <goal>testCompile</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+
+        </profile>
+
+        <profile>
+            <id>scala-2.12</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <scala.version>2.12.8</scala.version>
+                <scala.binary.version>2.12</scala.binary.version>
+            </properties>
+            <modules>
+                <module>spark/spark-adapter-2.4</module>
+                <module>spark/bundle-2.4</module>
+            </modules>
+
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>net.alchim31.maven</groupId>
+                            <artifactId>scala-maven-plugin</artifactId>
+                            <version>${scala-maven-plugin.version}</version>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+                <plugins>
+                    <plugin>
+                        <groupId>net.alchim31.maven</groupId>
+                        <artifactId>scala-maven-plugin</artifactId>
+                        <configuration>
+                            <scalaVersion>${scala.version}</scalaVersion>
+                            <args>
+                                <arg>-target:jvm-${java.version}</arg>
+                                <arg>-feature</arg>
+                                <arg>-deprecation</arg>
+                                <arg>-unchecked</arg>
+                                <arg>-Ywarn-numeric-widen</arg>
+                                <!--<arg>-Ywarn-dead-code</arg>-->
+                                <!--<arg>-Ywarn-value-discard</arg>-->
+                            </args>
+                            <compilerPlugins>
+                                <compilerPlugin>
+                                    <groupId>org.scalamacros</groupId>
+                                    <artifactId>paradise_2.11.8</artifactId>
+                                    <version>2.1.1</version>
+                                </compilerPlugin>
+                            </compilerPlugins>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>scala-compile</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>add-source</goal>
+                                    <goal>compile</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>scala-test-compile</id>
+                                <phase>process-test-resources</phase>
+                                <goals>
+                                    <goal>testCompile</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>test</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>sample</module>
+                <module>integration-tests</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>tools</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>migrator-tool</module>
+            </modules>
+        </profile>
+
         <profile>
             <id>release</id>
             <properties>

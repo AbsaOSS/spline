@@ -24,7 +24,7 @@ class StreamingRelationAdapterImpl extends StreamingRelationAdapter {
     streamingRelation match {
       case x: StreamingRelationV2 =>
         Some(DataSourceInfo(x.sourceName, x.dataSource.getClass.getName, x.extraOptions, x.schema))
-      case x: StreamingRelation => x
+      case x: StreamingRelation =>
         Some(DataSourceInfo(x.dataSource.sourceInfo.name, x.dataSource.className, x.dataSource.options, x.schema))
       case _ => None
     }

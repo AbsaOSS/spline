@@ -19,13 +19,20 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>za.co.absa.spline</groupId>
+        <artifactId>spline</artifactId>
+        <version>0.4.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <groupId>za.co.absa.spline</groupId>
-    <artifactId>parent</artifactId>
+    <artifactId>parent_2.11</artifactId>
     <version>0.4.0-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
-    <name>Spline</name>
+    <name>Spline parent pom</name>
     <description>Data lineage visualization for Apache Spark</description>
     <inceptionYear>2017</inceptionYear>
 
@@ -75,8 +82,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
-        <scala.version>2.11.12</scala.version>
-        <scala.compat.version>2.11</scala.compat.version>
         <logback.version>1.2.3</logback.version>
         <slf4j.version>1.7.25</slf4j.version>
         <spring.version>5.1.5.RELEASE</spring.version>
@@ -87,40 +92,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>net.alchim31.maven</groupId>
-                <artifactId>scala-maven-plugin</artifactId>
-                <configuration>
-                    <scalaVersion>${scala.version}</scalaVersion>
-                    <args>
-                        <arg>-target:jvm-${java.version}</arg>
-                        <arg>-Ybackend:GenBCode</arg>
-                        <arg>-feature</arg>
-                        <arg>-deprecation</arg>
-                        <arg>-unchecked</arg>
-                        <arg>-Ywarn-numeric-widen</arg>
-                        <!--<arg>-Ywarn-dead-code</arg>-->
-                        <!--<arg>-Ywarn-value-discard</arg>-->
-                    </args>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>scala-compile</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>scala-test-compile</id>
-                        <phase>process-test-resources</phase>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
             <!-- disable surefire -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -151,11 +122,6 @@
 
         <pluginManagement>
             <plugins>
-                <plugin>
-                    <groupId>net.alchim31.maven</groupId>
-                    <artifactId>scala-maven-plugin</artifactId>
-                    <version>3.3.1</version>
-                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
@@ -232,6 +198,9 @@
         </profile>
         <profile>
             <id>spark-2.3</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
             <properties>
                 <spark.compat.version>2.3</spark.compat.version>
                 <spark.version>2.3.2</spark.version>
@@ -240,6 +209,9 @@
         </profile>
         <profile>
             <id>spark-2.4</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
             <properties>
                 <spark.compat.version>2.4</spark.compat.version>
                 <spark.version>2.4.0</spark.version>
@@ -336,13 +308,19 @@
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_${scala.compat.version}</artifactId>
+            <artifactId>scalatest_${scala.binary.version}</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.thoughtworks.enableIf</groupId>
+                <artifactId>enableif_${scala.binary.version}</artifactId>
+                <version>1.1.6</version>
+                <scope>provided</scope>
+            </dependency>
             <dependency>
                 <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>
@@ -375,24 +353,24 @@
             </dependency>
             <dependency>
                 <groupId>org.scalaz</groupId>
-                <artifactId>scalaz-core_${scala.compat.version}</artifactId>
+                <artifactId>scalaz-core_${scala.binary.version}</artifactId>
                 <version>7.2.27</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.spark</groupId>
-                <artifactId>spark-core_${scala.compat.version}</artifactId>
+                <artifactId>spark-core_${scala.binary.version}</artifactId>
                 <version>${spark.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.spark</groupId>
-                <artifactId>spark-sql_${scala.compat.version}</artifactId>
+                <artifactId>spark-sql_${scala.binary.version}</artifactId>
                 <version>${spark.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.spark</groupId>
-                <artifactId>spark-sql-kafka-0-10_${scala.compat.version}</artifactId>
+                <artifactId>spark-sql-kafka-0-10_${scala.binary.version}</artifactId>
                 <version>${spark.version}</version>
                 <exclusions>
                     <exclusion>
@@ -406,32 +384,32 @@
 
             <dependency>
                 <groupId>org.json4s</groupId>
-                <artifactId>json4s-ast_${scala.compat.version}</artifactId>
+                <artifactId>json4s-ast_${scala.binary.version}</artifactId>
                 <version>${json4s.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.json4s</groupId>
-                <artifactId>json4s-core_${scala.compat.version}</artifactId>
+                <artifactId>json4s-core_${scala.binary.version}</artifactId>
                 <version>${json4s.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.json4s</groupId>
-                <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
+                <artifactId>json4s-jackson_${scala.binary.version}</artifactId>
                 <version>${json4s.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.json4s</groupId>
-                <artifactId>json4s-native_${scala.compat.version}</artifactId>
+                <artifactId>json4s-native_${scala.binary.version}</artifactId>
                 <version>${json4s.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.json4s</groupId>
-                <artifactId>json4s-scalap_${scala.compat.version}</artifactId>
+                <artifactId>json4s-scalap_${scala.binary.version}</artifactId>
                 <version>${json4s.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.json4s</groupId>
-                <artifactId>json4s-ext_${scala.compat.version}</artifactId>
+                <artifactId>json4s-ext_${scala.binary.version}</artifactId>
                 <version>${json4s.version}</version>
             </dependency>
 
@@ -469,7 +447,7 @@
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.module</groupId>
-                <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
+                <artifactId>jackson-module-scala_${scala.binary.version}</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
 
@@ -571,7 +549,7 @@
 
             <dependency>
                 <groupId>org.slf4s</groupId>
-                <artifactId>slf4s-api_${scala.compat.version}</artifactId>
+                <artifactId>slf4s-api_${scala.binary.version}</artifactId>
                 <version>${slf4j.version}</version>
             </dependency>
             <dependency>
@@ -634,7 +612,7 @@
 
             <dependency>
                 <groupId>org.scalatest</groupId>
-                <artifactId>scalatest_${scala.compat.version}</artifactId>
+                <artifactId>scalatest_${scala.binary.version}</artifactId>
                 <version>3.0.5</version>
             </dependency>
             <dependency>

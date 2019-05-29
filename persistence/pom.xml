@@ -22,17 +22,17 @@
 
     <parent>
         <groupId>za.co.absa.spline</groupId>
-        <artifactId>parent</artifactId>
+        <artifactId>parent_2.11</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
         <version>0.4.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>persistence</artifactId>
+    <artifactId>persistence_2.11</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>model</artifactId>
+            <artifactId>model_${scala.binary.version}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -72,12 +72,12 @@
         </dependency>
         <dependency>
             <groupId>com.github.wajda.com.arangodb</groupId>
-            <artifactId>velocypack1.4-module-scala_${scala.compat.version}</artifactId>
+            <artifactId>velocypack1.4-module-scala_${scala.binary.version}</artifactId>
             <version>1.0.3.2</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang.modules</groupId>
-            <artifactId>scala-java8-compat_${scala.compat.version}</artifactId>
+            <artifactId>scala-java8-compat_${scala.binary.version}</artifactId>
             <version>0.9.0</version>
         </dependency>
 

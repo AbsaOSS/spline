@@ -22,7 +22,7 @@
 
     <parent>
         <groupId>za.co.absa.spline</groupId>
-        <artifactId>parent</artifactId>
+        <artifactId>parent_2.11</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
         <version>0.4.0-SNAPSHOT</version>
     </parent>
@@ -44,31 +44,31 @@
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>producer-rest-model</artifactId>
+            <artifactId>producer-rest-model_${scala.binary.version}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>commons</artifactId>
+            <artifactId>commons_${scala.binary.version}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.scopt</groupId>
-            <artifactId>scopt_${scala.compat.version}</artifactId>
+            <artifactId>scopt_${scala.binary.version}</artifactId>
             <version>3.7.1</version>
         </dependency>
         <dependency>
             <groupId>org.scalaj</groupId>
-            <artifactId>scalaj-http_${scala.compat.version}</artifactId>
+            <artifactId>scalaj-http_${scala.binary.version}</artifactId>
             <version>2.4.1</version>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
-            <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
+            <artifactId>json4s-jackson_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
-            <artifactId>json4s-ext_${scala.compat.version}</artifactId>
+            <artifactId>json4s-ext_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -77,12 +77,12 @@
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor_${scala.compat.version}</artifactId>
+            <artifactId>akka-actor_${scala.binary.version}</artifactId>
             <version>2.5.19</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-slf4j_${scala.compat.version}</artifactId>
+            <artifactId>akka-slf4j_${scala.binary.version}</artifactId>
             <version>2.5.19</version>
         </dependency>
     </dependencies>

@@ -20,16 +20,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>producer-rest-core</artifactId>
-    <packaging>jar</packaging>
-
     <parent>
         <groupId>za.co.absa.spline</groupId>
-        <artifactId>parent</artifactId>
+        <artifactId>parent_2.11</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
         <version>0.4.0-SNAPSHOT</version>
     </parent>
 
+    <artifactId>producer-rest-core_2.11</artifactId>
+    <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
@@ -39,12 +38,12 @@
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>commons</artifactId>
+            <artifactId>commons_${scala.binary.version}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>producer-services</artifactId>
+            <artifactId>producer-services_${scala.binary.version}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -66,17 +65,17 @@
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>producer-rest-model</artifactId>
+            <artifactId>producer-rest-model_${scala.binary.version}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
-            <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
+            <artifactId>json4s-jackson_${scala.binary.version}</artifactId>
             <version>3.6.6</version>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
-            <artifactId>json4s-ext_${scala.compat.version}</artifactId>
+            <artifactId>json4s-ext_${scala.binary.version}</artifactId>
             <version>3.6.6</version>
         </dependency>
 
@@ -84,7 +83,7 @@
 
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>test-commons</artifactId>
+            <artifactId>test-commons_${scala.binary.version}</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
