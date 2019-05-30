@@ -3,11 +3,11 @@ layout: default
 title: Docs
 ---
 
-**Spline** (from **Sp**ark **line**age) project helps people get insight into data processing performed by [Apache Spark](http://spark.apache.org/).
+The **Spline** (from **Sp**ark **line**age) project helps people get a further insight into the data processing performed by [Apache Spark](http://spark.apache.org/).
 
 The project consists of two parts:
-- A core library that sits on drivers, capturing data lineages from the jobs being executed by analyzing Spark execution plans
-- and a Web UI application that visualizes the stored data lineages.
+- A core library that sits on drivers, capturing the data lineage from Spark jobs being executed by analyzing the execution plans
+- A Web UI application that visualizes the stored data lineages
 
 ***
 
@@ -61,27 +61,30 @@ java -jar spline-web-{{site.spline.version}}-exec-war.jar -Dspline.mongodb.url=.
 
 
 # Motivation
-Spline should fill a big gap within [Apache Hadoop](http://hadoop.apache.org/) ecosystem.
-Spark jobs should't be treated only as magic black boxes and people should have a chance to understand what happens with their data.
+Spline aims to fill a big gap within the [Apache Hadoop](http://hadoop.apache.org/) ecosystem.
+Spark jobs shouldn't be treated only as magic black boxes; people should be able to understand what happens with their data.
 Our main focus is to solve the following particular problems:
 
 * **Regulatory requirement for SA banks (BCBS 239)**
 
-    By 2020, all South African banks will have to be able to prove how numbers are calculated in their reports to regulatory authority.
+    By 2020, all South African banks will have to be able to prove how numbers are calculated in their reports to the regulatory authority.
 
 * **Documentation of business logic**
 
     Business analysts should get a chance to verify whether Spark jobs were written according to the rules they provided.
-    Moreover, it would be beneficial for them to have an up-to-date documentation where they could refresh their knowledge about a project.
+    Moreover, it would be beneficial for them to have up-to-date documentation where they can refresh their knowledge of a project.
 
 * **Identification of performance bottlenecks**
 
-    Our focus is not only business-oriented.
-    We see Spline also as a development tool that should be able to help developers with performance optimization of their Spark jobs.
+    Our focus is not only business-oriented; we also see Spline as a development tool that should be able to help developers
+    with the performance optimization of their Spark jobs.
 
 # Getting started
 
 ### Usage
+
+Spline is available for use in a number of configurations;
+within your code or entirely codeless, prebundled by us for ease of use or to be bundled for fine grained dependency management.
 
 ##### Dependencies
 
@@ -89,9 +92,113 @@ Our main focus is to solve the following particular problems:
 * [Spark](http://spark.apache.org/) 2.2.0
 * [MongoDB](https://www.mongodb.com/) 3.4 (required for Spline Web UI)
 
+## Project Integration Options
+
+### Code based
+
+#### Scala
+
+```scala
+// given a Spark session ...
+val sparkSession: SparkSession = ???
+
+// ... enable data lineage tracking with Spline
+import za.co.absa.spline.core.SparkLineageInitializer._
+sparkSession.enableLineageTracking()
+
+ session.read() ...
+```
+
+#### Java
+
+```java
+import za.co.absa.spline.core.SparkLineageInitializer;
+// given a Spark session ...
+SparkSession session = ???
+
+// configure Spline to track lineage
+SparkLineageInitializer.enableLineageTracking(session);
+session.read() ...
+```
+
+#### Python
+
+```python
+
+# Build project Sample with Shade profile to create Fat-JAR containing all needed dependencies:
+  mvn package -P spark-2.3,shade
+
+# Execute pyspark with Fat-JAR on class path:
+  pyspark --jars 'target/spline-sample-0.3.8-SNAPSHOT.jar'
+
+# Enable Spline tracking, Inside PySpark :
+sc._jvm.za.co.absa.spline.core\
+    .SparkLineageInitializer.enableLineageTracking(spark._jsparkSession)
+
+spark.read\ ...
+
+```
+
+#### Codeless
+
+```scala
+object CodelessSparkJob extends SparkApp(
+  name = "Codeless Job name",
+  // Spark configuration used to register Spline listener for codeless init.
+  conf = Seq(("spark.sql.queryExecutionListeners", "za.co.absa.spline.core.listener.QueryExecutionEventHandler"))
+  ){
+  // A business logic of a spark job ...
+  spark.read ...
+
+  }
+  ```
+
+### Bundle Based Integration
+
+Use these dependencies in your POM file. <br />
+&#9888; Manage your own exclusions
+
+```xml
+<dependency>
+    <groupId>za.co.absa.spline</groupId>
+    <artifactId>spline-core</artifactId>
+    <version>{{site.spline.version}}</version>
+</dependency>
+<dependency>
+    <groupId>za.co.absa.spline</groupId>
+    <artifactId>spline-core-spark-adapter-2.2</artifactId>
+    <!-- For compatibility with Spark 2.3 change above to spline-core-spark-adapter-2.3. -->
+    <version>{{site.spline.version}}</version>
+</dependency>
+<dependency>
+    <groupId>za.co.absa.spline</groupId>
+    <artifactId>spline-persistence-mongo</artifactId>
+    <!-- You can use other types of persistence including your own. -->
+    <!-- See below for details. -->
+    <version>{{site.spline.version}}</version>
+</dependency>
+```
+
+
+### Pre-bundled by Us 
+
+According to the version of spark you are using you can find our different bundles here : [Bundles](https://search.maven.org/search?q=spline-bundle)
+
+```xml
+<dependency>
+  <groupId>za.co.absa.spline</groupId>
+  <artifactId>{spline-bundle-version}</artifactId>
+  <version>0.3.8</version>
+</dependency>
+```
+
+
+#### Use maven dependency
+
+
 ##### Setup for your Spark job:
 
-1. Include Spline core jar into your Spark job classpath (it's enough to have it in a driver only, executors don't need it)
+1. Include the Spline core jar into your Spark job classpath (it's enough to have it in a driver only, executors don't need it)
 
 1. Configure database connection properties (see [Configuration](#configuration) section)
 
@@ -103,7 +210,7 @@ Our main focus is to solve the following particular problems:
 
 ##### Web UI application:
 
-There are two ways how to run Spline Web UI:
+There are two ways to run the Spline Web UI:
 
 ###### Standalone application (executable JAR)
 
@@ -113,18 +220,17 @@ and then point your browser to [http://localhost:8080](http://localhost:8080).
 
 To change the port number from *8080* to say *1234* add ```-httpPort 1234``` to the command line.
 
-(for more details see [Generated executable jar/war](http://tomcat.apache.org/maven-plugin-trunk/executable-war-jar.html#Generated_executable_jarwar)
-section.
+(For more details see the section[Generated executable jar/war](http://tomcat.apache.org/maven-plugin-trunk/executable-war-jar.html#Generated_executable_jarwar).)
 
 ###### Standard Java web application (WAR)
 
-1. In your Java web container (e.g. Tomcat) setup the Spline database connection properties
-(either via system environment variables or JVM system properties) in the following format:
+1. In your Java web container, e.g. Tomcat, set up the Spline database connection properties
+either via system environment variables or JVM system properties in the following format:
     ```properties
     spline.mongodb.url=mongodb://11.22.33.44/my_lineage_database_name
     ```
 
-1. Deploy Spline WAR file to your Java web container (tested on Tomcat 7, but other containers should also work)
+1. Deploy the Spline WAR file to your Java web container (tested on Tomcat 7, but other containers should also work)
 
 
 ### Build Spline from the source code
@@ -143,16 +249,16 @@ Out of the box Spline supports three types of persisters:
 - [MongoPersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/mongo/src/main/scala/za/co/absa/spline/persistence/mongo/MongoPersistenceFactory.scala) (stores lineages to the MongoDB)
 - [HdfsPersistenceFactory]({{ site.github.repository_url }}/blob/master/persistence/hdfs/src/main/scala/za/co/absa/spline/persistence/hdfs/HdfsPersistenceFactory.scala) (stores lineages as a JSON file)
 
-There is also a [ParallelCompositeFactory]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/composition/ParallelCompositeFactory.scala) that works as a proxy and delegate work to other persisters.
-So for example, you can store the lineages to, say, Mongo and HDFS simultaneously.
+There is also a [ParallelCompositeFactory]({{ site.github.repository_url }}/blob/master/persistence/api/src/main/scala/za/co/absa/spline/persistence/api/composition/ParallelCompositeFactory.scala) that works as a proxy and delegates work to other persisters.
+You can store the lineages to multiple sources simultaneously, e.g. Mongo and HDFS.
 
 
 
 # <a name="configuration"></a> Configuration
-When enabling data lineage tracking for a Spark session in your Spark job a ```SparkConfigurer``` instance can be passed
+When enabling data lineage tracking for a Spark session in your Spark job, a ```SparkConfigurer``` instance can be passed
 as a argument to the ```enableLineageTracking()``` method.
 
-The method signature is the following:
+The method signature is as follows:
 ```scala
 def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfigurer(defaultSplineConfiguration)): SparkSession
 ```
@@ -186,19 +292,19 @@ def enableLineageTracking(configurer: SplineConfigurer = new DefaultSplineConfig
 | `spline.persistence.composition.factories` | Comma separated list of factories to delegate to <br> | za.co.absa.spline.persistence.mongo.MongoPersistenceFactory, za.co.absa.spline.persistence.hdfs.HdfsPersistenceFactory
 
 #### Optional: Async Timeout
-Depending on your persistence setup and requirements you can consider increasing HTTP request timeout to avoid premature failures (`AsyncRequestTimeoutException`). You can increase Tomcat's global `asyncTimeout` property in `conf/servers.xml` from default 30 seconds to desired value e.g. to 60 seconds as in example below.
+Depending on your persistence setup and requirements you can consider increasing the HTTP request timeout to avoid premature failures (`AsyncRequestTimeoutException`). You can increase Tomcat's global `asyncTimeout` property in `conf/servers.xml` from default 30 seconds to desired value e.g. to 60 seconds as in example below.
 ```
 <Connector port="8080" protocol="HTTP/1.1" asyncTimeout="60000" ... />
 ```
 
 
 # Examples
-[Sample]({{ site.github.repository_url }}/tree/master/sample/) folder contains some sample Spline enabled Spark jobs.
+The [sample]({{ site.github.repository_url }}/tree/master/sample/) folder contains some sample Spline enabled Spark jobs.
 
 Sample jobs read data from the [/sample/data/input/]({{ site.github.repository_url }}/tree/master/sample/data/input/) folder
 and write the result into [/sample/data/results/]({{ site.github.repository_url }}/tree/master/sample/data/results/)
 
-When the lineage data is captured and stored into the database, it can be visualized and explored via Spline UI Web application.
+When the lineage data is captured and stored into the database, it can be visualized and explored via the Spline UI Web application.
 
 ##### Sample job 1
 
@@ -236,7 +342,7 @@ joinedDS.write.mode(SaveMode.Overwrite).parquet("data/results/job1_results")
 
 # Release Migration: MongoDb
 
-Please follow [instructions in readme file]({{ site.github.repository_url }}/tree/master/persistence/mongo/src/main/dbscripts) to migrate your MongoDb from your current version to desired version.
+Please follow the instructions in the readme file [here]({{ site.github.repository_url }}/tree/master/persistence/mongo/src/main/dbscripts) to migrate your MongoDB release from your current version to the desired version.
 
 # Contribution
 
