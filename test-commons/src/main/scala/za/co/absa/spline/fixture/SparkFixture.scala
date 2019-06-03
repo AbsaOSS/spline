@@ -16,16 +16,38 @@
 
 package za.co.absa.spline.fixture
 
+import java.lang.System
 import java.nio.file.Path
 
 import org.apache.spark.sql.SparkSession
+import org.scalatest.{BeforeAndAfterAll, Suite}
+import org.slf4s.Logging
 import za.co.absa.spline.common.TempDirectory
 
 
-trait SparkFixture {
+trait SparkFixture extends BeforeAndAfterAll with Logging {
+  this : Suite =>
 
   private val tempWarehouseDirPath: Path =
     TempDirectory("SparkFixture", "UnitTest", pathOnly = true).path
+
+
+  override protected def beforeAll(): Unit = {
+    maybeSparkReset
+  }
+
+  override protected def afterAll(): Unit = {
+    maybeSparkReset
+  }
+
+  private def maybeSparkReset = {
+    if (stopSparkBeforeAndAfterAll) {
+      log.info("Stopping Spark Session - instance used in unit test may need restart.")
+      SparkSession.getDefaultSession.map(_.stop())
+    }
+  }
+
+  System.setProperty("derby.system.home", tempWarehouseDirPath.toString)
 
   private val sessionBuilder: SparkSession.Builder =
     customizeBuilder(
@@ -33,11 +55,41 @@ trait SparkFixture {
         master("local[4]").
         config("spark.ui.enabled", "false").
         config("spark.sql.warehouse.dir", tempWarehouseDirPath.toString)
+        config("hive.metastore.warehouse.dir", tempWarehouseDirPath.toString)
     )
+
+  protected val databaseName = "unitTestDatabase_" + this.getClass.getSimpleName
+
+
+  /** When true, create and drops new database for tested method. ß*/
+  protected val createTestDatabase = false
+
+  protected val stopSparkBeforeAndAfterAll = false
 
   def withSparkSession[T](testBody: SparkSession => T): T = {
     val spark = sessionBuilder.getOrCreate.newSession
-    testBody(spark)
+
+    createDatabase(spark)
+
+    try {
+      testBody(spark)
+    } finally {
+      dropDatabase(spark)
+    }
+  }
+
+  private def dropDatabase(spark:SparkSession): Unit = {
+    if (createTestDatabase) {
+      spark.sqlContext.sql("DROP DATABASE IF EXISTS " + databaseName + " CASCADE")
+    }
+  }
+
+  private def createDatabase(spark:SparkSession): Unit = {
+    if (createTestDatabase) {
+      spark.sqlContext.sql("DROP DATABASE IF EXISTS " + databaseName + " CASCADE")
+      spark.sqlContext.sql("CREATE DATABASE " + databaseName)
+      spark.sqlContext.sql("USE " + databaseName)
+    }
   }
 
   protected def customizeBuilder(builder: SparkSession.Builder): SparkSession.Builder = builder

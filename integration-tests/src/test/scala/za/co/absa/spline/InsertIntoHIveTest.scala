@@ -15,26 +15,40 @@
  */
 package za.co.absa.spline
 
-import org.apache.spark.sql.SaveMode
+import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.hive.execution.InsertIntoHiveTable
 import org.scalatest._
-import za.co.absa.spline.fixture.spline.SplineFixture
+import za.co.absa.spline.coresparkadapterapi.SaveAsTableCommandParserImpl
 import za.co.absa.spline.fixture.SparkFixture
+import za.co.absa.spline.fixture.spline.SplineFixture
 import za.co.absa.spline.model.op
 
 
-/** Contains smoke tests for basic operations. */
-class InsertIntoTest extends FlatSpec with Matchers with SparkFixture with SplineFixture {
 
-  "InsertInto" should "not fail when inserting to partitioned table created as Spark tables" in
+/** Contains smoke tests for basic operations. */
+class InsertIntoHiveTest extends FlatSpec with Matchers with SparkFixture with SplineFixture {
+
+  override val createTestDatabase = true
+
+  override val stopSparkBeforeAndAfterAll = true
+
+  override def customizeBuilder(builder: SparkSession.Builder): SparkSession.Builder = {
+    builder.
+      enableHiveSupport().
+      config("hive.exec.dynamic.partition.mode", "nonstrict")
+  }
+
+
+  "InsertInto" should "not fail when inserting to partitioned table created as Hive table" in
     withSparkSession((spark) =>
       withLineageTracking(spark) { lineageCaptor => {
 
-        spark.sql("CREATE TABLE path_archive (x String, ymd int) USING parquet PARTITIONED BY (ymd)")
+        spark.sql("CREATE TABLE path_archive (x String, ymd int) USING hive PARTITIONED BY (ymd)")
         spark.sql("INSERT INTO path_archive VALUES ('Tata', 20190401)")
         spark.sql("INSERT INTO path_archive VALUES ('Tere', 20190403)")
 
-        spark.sql("CREATE TABLE path (x String) USING parquet")
+        spark.sql("CREATE TABLE path (x String) USING hive")
         spark.sql("INSERT INTO path VALUES ('Monika')")
         spark.sql("INSERT INTO path VALUES ('Buba')")
 
@@ -51,8 +65,15 @@ class InsertIntoTest extends FlatSpec with Matchers with SparkFixture with Splin
         val write = head.asInstanceOf[op.Write]
         write.path should include("path_archive")
         write.append should be(false)
+        spark.close()
       }
       }
     )
+
+  "InsertInto" should "use correct constant" in {
+    SaveAsTableCommandParserImpl.INSERT_INTO_HIVE_CLASS_NAME shouldBe classOf[InsertIntoHiveTable].getName()
+  }
+
+
 
 }
