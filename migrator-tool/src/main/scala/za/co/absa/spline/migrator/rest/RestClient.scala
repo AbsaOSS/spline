@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2019 ABSA Group Limited
  *
@@ -15,13 +14,8 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.rest.model
+package za.co.absa.spline.migrator.rest
 
-import java.util.UUID
-
-case class ExecutionEvent(
-  planId: UUID,
-  timestamp: Long,
-  error: Option[Any],
-  extra: Map[String, Any]
-)
+trait RestClient {
+  def createEndpoint(resource: String): RestEndpoint
+}

@@ -17,7 +17,6 @@
 package za.co.absa.spline.migrator
 
 import za.co.absa.spline.common.SplineBuildInfo
-import za.co.absa.spline.persistence.{ArangoDatabaseFacade, ArangoInit}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -28,15 +27,15 @@ object MigratorCLI extends App {
 
     (opt[String]('s', "source")
       valueName "<url>"
-      text "MongoDB connection URL, where the old Spline data is located"
+      text "MongoDB connection URL containing Spline (ver < 0.4) data to be migrated"
       required()
       action ((url, conf) => conf.copy(mongoConnectionUrl = url)))
 
     (opt[String]('t', "target")
       valueName "<url>"
-      text "ArangoDB connection URL, where the new Spline data should be written to"
+      text "Spline Producer REST endpoint URL - a destination for migrated data"
       required()
-      action ((url, conf) => conf.copy(arangoConnectionUrl = url)))
+      action ((url, conf) => conf.copy(producerRESTEndpointUrl = url)))
 
     (opt[Int]('n', "batch-size")
       text s"Number of lineages per batch. (Default is ${MigratorConfig.empty.batchSize})"
@@ -47,34 +46,20 @@ object MigratorCLI extends App {
       text s"Number of batches to process. Negative value means unbounded. (Default is ${MigratorConfig.empty.batchesMax})"
       action ((value, conf) => conf.copy(batchesMax = value)))
 
-    (opt[Unit]('i', "init-arango-db")
-      text s"Initialize Arango DB"
-      action ((_, conf) => conf.copy(initializeArangodb = true)))
-
-    (opt[Unit]('s', "stream-new-lineages")
-      text s"Migrate in parallel all new lineages that will arrive after start of this tool."
-      action ((_, conf) => conf.copy(streamNewLineages = true)))
-
-    (opt[Unit]('f', "force")
-      text s"In combination with option '-i' it removes existing Arango database before creating a new one"
-      action ((value, conf) => conf.copy(removeExistingArangodb = true)))
+    (opt[Unit]('c', "continuous")
+      text s"Watch the source database and migrate the incoming data on the fly"
+      action ((_, conf) => conf.copy(continuousMode = true)))
 
     help("help").text("prints this usage text")
   }
 
   cliParser.parse(args, MigratorConfig.empty) match {
     case Some(config) =>
-      initArangoIfConfigured(config)
-      MigratorTool.migrate(config)
-        .map(stats => println(s"DONE. Processed total: ${stats.processed} (of which failures: ${stats.failures})"))
-    case None => cliParser.terminate(Left(""))
-  }
+      for (stats <- MigratorTool.migrate(config))
+        println(s"DONE. Processed total: ${stats.processed} (of which failures: ${stats.failures})")
 
-  private def initArangoIfConfigured(config: MigratorConfig): Unit = {
-    if (config.initializeArangodb) {
-      val db = ArangoDatabaseFacade.create(config.arangoConnectionUrl)
-      ArangoInit.initialize(db, config.removeExistingArangodb)
-    }
+    case None =>
+      cliParser.terminate(Left(""))
   }
 
 }

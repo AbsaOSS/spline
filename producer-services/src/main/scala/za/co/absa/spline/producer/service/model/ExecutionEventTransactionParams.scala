@@ -41,15 +41,15 @@ object ExecutionEventTransactionParams {
     )
   }
 
-  private def createProgressForBatchJob(executionEvents: Array[ExecutionEvent]): List[Progress] = {
-    executionEvents.map(e => Progress(e.timestamp, 0, Some(randomUUID.toString))).toList
+  private def createProgressForBatchJob(executionEvents: Array[ExecutionEvent]): Seq[Progress] = {
+    executionEvents.map(e => Progress(e.timestamp, 0, Some(randomUUID.toString)))
   }
 
-  private def createProgressOf(executionEvents: Array[ExecutionEvent], progress: List[Progress]): List[ProgressOf] = {
-    (for {
+  private def createProgressOf(executionEvents: Array[ExecutionEvent], progress: Seq[Progress]): Seq[ProgressOf] = {
+    for {
       e <- executionEvents
       p <- progress
-    } yield ProgressOf(s"progress/${p._key.get}", s"execution/${e.planId}")).toList
+    } yield ProgressOf(s"progress/${p._key.get}", s"execution/${e.planId}")
   }
 
 

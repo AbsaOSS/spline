@@ -30,8 +30,7 @@ case class DataOperation(
   override val childIds: Seq[Int],
   override val schema: Option[Any],
   override val params: Map[String, Any]
-) extends OperationLike {
-}
+) extends OperationLike
 
 case class ReadOperation(
   inputSources: Seq[String],
