@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.rest
+package za.co.absa.spline.producer.service
 
-
-package object model {
+package object repo {
 
   trait _package
 

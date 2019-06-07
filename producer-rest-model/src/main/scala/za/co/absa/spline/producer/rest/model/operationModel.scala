@@ -18,31 +18,36 @@
 package za.co.absa.spline.producer.rest.model
 
 sealed trait OperationLike {
-  val id: OperationId
-  val childIds: Array[OperationId]
-  val schema: Option[Schema]
+  val id: Int
+  val childIds: Seq[Int]
+  val schema: Option[Any]
+  val params: Map[String, Any]
 }
 
+
 case class DataOperation(
-  params: Map[String, Any],
-  override val id: OperationId,
-  override val childIds: Array[OperationId],
-  override val schema: Option[Schema]
-) extends OperationLike
+  override val id: Int,
+  override val childIds: Seq[Int],
+  override val schema: Option[Any],
+  override val params: Map[String, Any]
+) extends OperationLike {
+}
 
 case class ReadOperation(
-  inputSources: Array[SourceUrl],
-  override val id: OperationId,
-  override val schema: Option[Schema] = None
+  inputSources: Seq[String],
+  override val id: Int,
+  override val schema: Option[Any] = None,
+  override val params: Map[String, Any]
 ) extends OperationLike {
-  override val childIds: Array[OperationId] = Array.empty
+  override val childIds: Seq[Int] = Seq.empty
 }
 
 case class WriteOperation(
-  outputSource: SourceUrl,
+  outputSource: String,
   append: Boolean,
-  override val id: OperationId,
-  override val childIds: Array[OperationId],
-  override val schema: Option[Schema] = None
+  override val id: Int,
+  override val childIds: Seq[Int],
+  override val schema: Option[Any] = None,
+  override val params: Map[String, Any]
 ) extends OperationLike
 

@@ -17,9 +17,11 @@
 package za.co.absa.spline.producer.rest
 
 import org.springframework.context.annotation.{ComponentScan, Configuration}
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Configuration
 @ComponentScan(basePackageClasses = Array(
   classOf[controller._package]
 ))
-class ProducerRESTConfig
+class ProducerRESTConfig extends WebMvcConfigurer {}
+

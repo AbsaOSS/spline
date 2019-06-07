@@ -25,6 +25,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Repository
 class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends OperationRepository {
+  import za.co.absa.spline.persistence.ArangoImplicits._
 
   override def findById(operationId: Operation.Id)(implicit ec: ExecutionContext): Future[OperationDetails] = {
     db.queryOne[OperationDetails](

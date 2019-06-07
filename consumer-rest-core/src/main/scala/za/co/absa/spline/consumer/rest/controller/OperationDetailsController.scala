@@ -26,6 +26,7 @@ import za.co.absa.spline.persistence.model.{ArrayDataType, DataType, SimpleDataT
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
 
+
 @RestController
 @RequestMapping(Array("/operation"))
 class OperationDetailsController @Autowired()

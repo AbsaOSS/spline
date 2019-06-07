@@ -19,7 +19,6 @@ package za.co.absa.spline.migrator
 import org.scalatest.{AsyncFunSpec, Ignore, Matchers}
 import za.co.absa.spline.persistence.{ArangoDatabaseFacade, ArangoInit}
 
-@Ignore
 class MigratorToolSpec extends AsyncFunSpec with Matchers {
 
   private val mongoUri = "mongodb://localhost/spline_jedi"

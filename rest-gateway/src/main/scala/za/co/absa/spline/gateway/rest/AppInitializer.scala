@@ -24,11 +24,13 @@ import org.springframework.web.WebApplicationInitializer
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext
 import org.springframework.web.filter.DelegatingFilterProxy
 import org.springframework.web.servlet.DispatcherServlet
+import za.co.absa.spline.common.webmvc.jackson.JacksonConfig
 import za.co.absa.spline.common.webmvc.swagger.SwaggerConfig
 import za.co.absa.spline.consumer.rest.ConsumerRESTConfig
 import za.co.absa.spline.consumer.service.ConsumerServicesConfig
 import za.co.absa.spline.persistence.ArangoRepoConfig
 import za.co.absa.spline.producer.rest.ProducerRESTConfig
+import za.co.absa.spline.producer.service.ProducerServicesConfig
 
 object AppInitializer extends WebApplicationInitializer {
   override def onStartup(container: ServletContext): Unit = {
@@ -43,9 +45,11 @@ object AppInitializer extends WebApplicationInitializer {
           register(
             classOf[AppConfig],
             classOf[SwaggerConfig],
+            classOf[JacksonConfig],
             classOf[ConsumerRESTConfig],
             classOf[ProducerRESTConfig],
             classOf[ConsumerServicesConfig],
+            classOf[ProducerServicesConfig],
             classOf[ArangoRepoConfig])
         }))
 

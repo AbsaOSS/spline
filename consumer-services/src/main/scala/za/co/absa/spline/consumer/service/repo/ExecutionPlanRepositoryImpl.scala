@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.model.ExecutedLogicalPlan
 import za.co.absa.spline.consumer.service.model.ExecutionInfo.Id
+import za.co.absa.spline.persistence.ArangoImplicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 
