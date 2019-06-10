@@ -16,27 +16,56 @@
 
 package za.co.absa.spline.common
 
+import org.json4s.Extraction._
 import org.json4s._
 import org.json4s.ext.JavaTypesSerializers
+import org.json4s.jackson.JsonMethods._
 import org.json4s.jackson.Serialization
-import org.json4s.jackson.Serialization.{read, write}
+import org.json4s.jackson.Serialization.read
+import org.json4s.prefs.EmptyValueStrategy
 
 import scala.reflect.Manifest
 
 object JSONSerializationImplicits {
 
   private implicit val formats: Formats =
-    Serialization.formats(NoTypeHints) ++
-      JavaTypesSerializers.all
+    Serialization
+      .formats(NoTypeHints)
+      .++(JavaTypesSerializers.all)
+      .withEmptyValueStrategy(OmitEmptyValuesStrategy)
+
 
   implicit class EntityToJson[A <: AnyRef](entity: A) {
-    def toJson: String =
-      write(entity)
+    def toJson: String = compact(render(decompose(entity)))
   }
 
   implicit class JsonToEntity(json: String) {
-    def fromJson[A: Manifest]: A =
-      read(json)
+    def fromJson[A: Manifest]: A = read(json)
+  }
+
+  object OmitEmptyValuesStrategy extends EmptyValueStrategy {
+
+    private val replaceEmptyWithJNothing: PartialFunction[JValue, JNothing.type] = {
+      case JString("") => JNothing
+      case JArray(items) if items.isEmpty => JNothing
+      case JObject(fields) if fields.isEmpty => JNothing
+    }
+
+    private def recursively(fn: JValue => JValue): PartialFunction[JValue, JValue] = {
+      case JArray(items) => JArray(items map fn)
+      case JObject(fields) => JObject(fields map {
+        case JField(name, v) => JField(name, fn(v))
+      })
+    }
+
+    private val recursivelyReplaceEmpty: JValue => JValue =
+      replaceEmptyWithJNothing
+        .orElse(recursively(replaceEmpty))
+        .orElse(PartialFunction(identity))
+
+    override def replaceEmpty(value: JValue): JValue = recursivelyReplaceEmpty(value)
+
+    override def noneValReplacement: Option[AnyRef] = None
   }
 
 }
