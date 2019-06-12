@@ -16,79 +16,61 @@
 
 package za.co.absa.spline.harvester
 
-import java.util.UUID.randomUUID
-
 import com.databricks.spark.xml.XmlRelation
-import org.apache.spark.sql.catalyst.expressions.{AttributeReference, SortOrder, Attribute => SparkAttribute}
+import org.apache.spark.sql.catalyst.expressions.{AttributeReference, SortOrder}
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation}
 import org.apache.spark.sql.sources.BaseRelation
-import org.apache.spark.sql.{JDBCRelation, SaveMode}
+import org.apache.spark.sql.JDBCRelation
 import za.co.absa.spline.model.endpoint._
-import za.co.absa.spline.model.{op, _}
+import za.co.absa.spline.producer.rest.model.{DataOperation, OperationLike, ReadOperation}
 import za.co.absa.spline.sparkadapterapi.StreamingRelationAdapter.instance.extractDataSourceInfo
-import za.co.absa.spline.sparkadapterapi.{DataSourceInfo, SaveAsTableCommand, SaveJDBCCommand, WriteCommand}
-
-sealed trait OperationNodeBuilder {
-
-  val operation: LogicalPlan
-
-  private var childBuilders: Seq[OperationNodeBuilder] = Nil
-
-  protected val output: AttrGroup = new AttrGroup(operation.output)
-
-  def +=(childBuilder: OperationNodeBuilder): Unit = childBuilders :+= childBuilder
-
-  def build(): op.Operation
-
-  protected def componentCreatorFactory: ComponentCreatorFactory
-
-  protected def attributeCreator: AttributeConverter = componentCreatorFactory.attributeConverter
-
-  protected def expressionCreator: ExpressionConverter = componentCreatorFactory.expressionConverter
-
-  protected def metaDatasetCreator: MetaDatasetConverter = componentCreatorFactory.metaDatasetConverter
-
-  protected def operationProps = op.OperationProps(
-    randomUUID,
-    operation.nodeName,
-    childBuilders.map(b => metaDatasetCreator.convert(b.output).id),
-    metaDatasetCreator.convert(output).id
-  )
-}
-
-class AttrGroup(val attrs: Seq[SparkAttribute])
+import za.co.absa.spline.sparkadapterapi.{Constants, DataSourceInfo, OperationNodeBuilder}
 
 class GenericNodeBuilder
 (val operation: LogicalPlan)
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
-  extends OperationNodeBuilder {
-  override def build() = op.Generic(operationProps, operation.verboseString)
+  extends OperationNodeBuilder(componentCreatorFactory, operation) {
+  override def build() = DataOperation(
+    params = Map(Constants.name -> "GENERIC"),
+    schema = makeSchema(),
+    id = id,
+    childIds = childIds()
+  )
 }
 
 class AliasNodeBuilder
 (val operation: SubqueryAlias)
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
-  extends OperationNodeBuilder {
-  override def build() = op.Alias(operationProps, operation.alias)
+  extends OperationNodeBuilder(componentCreatorFactory, operation) {
+
+  override def build(): DataOperation = {
+    DataOperation(
+      params = Map(Constants.name -> "ALIAS", Constants.alias -> operation.alias),
+      schema = makeSchema(),
+      id = id,
+      childIds = childIds()
+    )
+  }
 }
 
 trait FSAwareBuilder {
   protected def getQualifiedPath(path: String): String
 }
 
-class BatchReadNodeBuilder
+class ReadNodeBuilder
 (val operation: LogicalRelation)
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
-  extends OperationNodeBuilder {
+  extends OperationNodeBuilder(componentCreatorFactory, operation) {
   this: FSAwareBuilder =>
 
-  override def build(): op.Read = {
+  override def build(): ReadOperation = {
     val (sourceType, paths) = getRelationPaths(operation.relation)
-    op.BatchRead(
-      operationProps,
-      sourceType,
-      paths.map(MetaDataSource(_, Nil))
+    ReadOperation(
+      inputSources = paths,
+      id = id,
+      schema = makeSchema(),
+      params = Map(Constants.sourceType -> sourceType)
     )
   }
 
@@ -110,39 +92,19 @@ class BatchReadNodeBuilder
   }
 }
 
-abstract class BatchWriteNodeBuilder
-(val operation: WriteCommand, val writeMetrics: Map[String, Long], val readMetrics: Map[String, Long])
-(implicit val componentCreatorFactory: ComponentCreatorFactory)
-  extends OperationNodeBuilder with RootNode {
-  this: FSAwareBuilder =>
-
-  override val output: AttrGroup = new AttrGroup(operation.query.output)
-
-  override def build() = op.BatchWrite(
-    operationProps,
-    operation.format,
-    getQualifiedPath(operation.path),
-    append = operation.mode == SaveMode.Append,
-    // Transforming to new Map to make sure the it is serializable
-    writeMetrics = writeMetrics.map(identity),
-    readMetrics = readMetrics.map(identity)
-  )
-
-  override def ignoreLineageWrite:Boolean = {
-    writeMetrics.get("numFiles").filter(0.==).isDefined
-  }
-}
-
 class StreamReadNodeBuilder
 (val operation: LogicalPlan)
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
-  extends OperationNodeBuilder {
+  extends OperationNodeBuilder(componentCreatorFactory, operation) {
 
   private val endpoint = createEndpoint(extractDataSourceInfo(operation).get)
-  override def build(): op.StreamRead = op.StreamRead(
-    operationProps,
-    endpoint.description,
-    endpoint.paths.map(path => MetaDataSource(path.toString, Nil))
+  override def build(): ReadOperation =
+  ReadOperation(
+    inputSources =  endpoint.paths.map(path => path.toString),
+    schema = makeSchema(),
+    id = id,
+    params = Map.empty
+    //TODO sourceType - need properties
   )
 
   private def createEndpoint(dataSource: DataSourceInfo): StreamEndpoint = dataSource.name match {
@@ -162,48 +124,6 @@ class StreamReadNodeBuilder
   }
 }
 
-class SaveAsTableNodeBuilder
-(val operation: SaveAsTableCommand, val writeMetrics: Map[String, Long], val readMetrics: Map[String, Long])
-(implicit val componentCreatorFactory: ComponentCreatorFactory)
-  extends OperationNodeBuilder with RootNode {
-
-  override val output: AttrGroup = new AttrGroup(operation.query.output)
-
-  override def build() = op.BatchWrite(
-    operationProps,
-    operation.format,
-    operation.tableName,
-    append = operation.mode == SaveMode.Append,
-    writeMetrics = writeMetrics,
-    readMetrics = readMetrics
-  )
-
-  override def ignoreLineageWrite:Boolean = {
-    false
-  }
-}
-
-class SaveJDBCCommandNodeBuilder
-(val operation: SaveJDBCCommand, val writeMetrics: Map[String, Long], val readMetrics: Map[String, Long])
-(implicit val componentCreatorFactory: ComponentCreatorFactory)
-  extends OperationNodeBuilder with RootNode {
-
-  override val output: AttrGroup = new AttrGroup(operation.query.output)
-
-  override def build() = op.BatchWrite(
-    operationProps,
-    operation.format,
-    operation.tableName,
-    append = operation.mode == SaveMode.Append,
-    writeMetrics = writeMetrics,
-    readMetrics = readMetrics
-  )
-
-  override def ignoreLineageWrite:Boolean = {
-    false
-  }
-}
-
 trait RootNode {
   def ignoreLineageWrite:Boolean
 }
@@ -211,63 +131,97 @@ trait RootNode {
 class ProjectionNodeBuilder
 (val operation: Project)
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
-  extends OperationNodeBuilder {
-  override def build(): op.Projection = {
+  extends OperationNodeBuilder(componentCreatorFactory, operation) {
+  override def build(): DataOperation = {
     val transformations = operation.projectList
       .filterNot(_.isInstanceOf[AttributeReference])
-      .map(expressionCreator.convert)
+      .map(convertExpression)
 
-    op.Projection(
-      operationProps,
-      transformations)
+    DataOperation(
+      params = Map(Constants.name -> "PROJECTION", Constants.projectionTransformation -> transformations),
+      schema = makeSchema(),
+      id = id,
+      childIds = childIds()
+    )
   }
 }
 
 class FilterNodeBuilder
 (val operation: Filter)
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
-  extends OperationNodeBuilder {
-  override def build() = op.Filter(
-    operationProps,
-    expressionCreator.convert(operation.condition))
+  extends OperationNodeBuilder(componentCreatorFactory, operation) {
+  override def build(): DataOperation = {
+    val expression = convertExpression(operation.condition)
+
+    DataOperation(
+      params = Map(Constants.name -> "FILTER", Constants.filterExpression -> expression),
+      schema = makeSchema(),
+      id = id,
+      childIds = childIds()
+    )
+  }
 }
 
 class SortNodeBuilder
 (val operation: Sort)
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
-  extends OperationNodeBuilder {
-  override def build() = op.Sort(
-    operationProps,
-    for (SortOrder(expression, direction, nullOrdering, _) <- operation.order)
-      yield op.SortOrder(expressionCreator.convert(expression), direction.sql, nullOrdering.sql)
-  )
+  extends OperationNodeBuilder(componentCreatorFactory, operation) {
+  override def build() : DataOperation = {
+
+    val sort_order = for (SortOrder(expression, direction, nullOrdering, _) <- operation.order)
+          yield Map("expression " -> convertExpression(expression),
+            "direction" ->  direction.sql,
+            "null_ordering" -> nullOrdering.sql
+          )
+
+    DataOperation(
+      params = Map(Constants.name -> "SORT", Constants.sorOrder -> sort_order),
+      schema = makeSchema(),
+      id = id,
+      childIds = childIds()
+    )
+  }
 }
 
 class AggregateNodeBuilder
 (val operation: Aggregate)
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
-  extends OperationNodeBuilder {
-  override def build() = op.Aggregate(
-    operationProps,
-    operation.groupingExpressions map expressionCreator.convert,
-    operation.aggregateExpressions.map(namedExpr =>
-      namedExpr.name -> expressionCreator.convert(namedExpr)).toMap
+  extends OperationNodeBuilder(componentCreatorFactory, operation) {
+override def build() : OperationLike =
+  DataOperation(
+    params = Map(Constants.name -> "AGGREGATE",
+      Constants.groupingExpression -> operation.groupingExpressions.map(convertExpression),
+      Constants.aggregateExpression -> operation.aggregateExpressions.map(namedExpr =>
+      namedExpr.name -> convertExpression(namedExpr)).toMap),
+    schema = makeSchema(),
+    id = id,
+    childIds = childIds()
   )
 }
 
 class JoinNodeBuilder
 (val operation: Join)
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
-  extends OperationNodeBuilder {
-  override def build() = op.Join(
-    operationProps,
-    operation.condition map expressionCreator.convert,
-    operation.joinType.toString)
+  extends OperationNodeBuilder(componentCreatorFactory, operation) {
+  override def build() : OperationLike  =
+  DataOperation(
+    params = Map(Constants.name -> "JOIN",
+      Constants.joinType -> operation.joinType.toString,
+      Constants.condition -> operation.condition.map(convertExpression)),
+    schema = makeSchema(),
+    id = id,
+    childIds = childIds()
+  )
 }
 
 class UnionNodeBuilder
 (val operation: Union)
 (implicit val componentCreatorFactory: ComponentCreatorFactory)
-  extends OperationNodeBuilder {
-  override def build() = op.Union(operationProps)
+  extends OperationNodeBuilder(componentCreatorFactory, operation) {
+  override def build() : OperationLike = DataOperation(
+    params = Map(Constants.name -> "UNION"),
+    schema = makeSchema(),
+    id = id,
+    childIds = childIds()
+  )
 }

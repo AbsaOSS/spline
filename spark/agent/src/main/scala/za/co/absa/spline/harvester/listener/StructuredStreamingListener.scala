@@ -25,7 +25,7 @@ import org.apache.spark.sql.execution.streaming._
 import org.apache.spark.sql.streaming.{StreamingQuery, StreamingQueryListener, StreamingQueryManager}
 import org.slf4s.Logging
 import za.co.absa.spline.common.ReflectionUtils
-import za.co.absa.spline.harvester.{DataLineageBuilderFactory, LineageDispatcher, StreamWriteBuilder}
+import za.co.absa.spline.harvester.{ExecutionPlanBuilderFactory, LineageDispatcher}
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.model.op.{StreamRead, StreamWrite}
 import za.co.absa.spline.model.streaming.ProgressEvent
@@ -37,7 +37,7 @@ import scala.language.postfixOps
   */
 class StructuredStreamingListener(
                                    queryManager: StreamingQueryManager,
-                                   lineageBuilderFactory: DataLineageBuilderFactory,
+                                   lineageBuilderFactory: ExecutionPlanBuilderFactory,
                                    lineageDispatcher: LineageDispatcher)
   extends StreamingQueryListener with Logging {
 
@@ -53,7 +53,7 @@ class StructuredStreamingListener(
     val progress = event.progress
     val lineage = runIdToLineages.get(progress.runId)
     val progressEvent = lineageToEvent(lineage, progress.numInputRows)
-    lineageDispatcher.send(progressEvent)
+    //lineageDispatcher.send(progressEvent)
   }
 
   private def lineageToEvent(lineage: DataLineage, numberOfRecords: Long): ProgressEvent = {
@@ -93,17 +93,17 @@ class StructuredStreamingListener(
   private def processExecution(se: StreamExecution): Unit = {
     assume(se.logicalPlan.resolved, "we harvest lineage from analyzed logic plans")
     val logicalPlan = ReflectionUtils.getFieldValue[LogicalPlan](se, "analyzedPlan")
-    val logicalPlanLineage = lineageBuilderFactory.createBuilder(logicalPlan, None, se.sparkSession.sparkContext).buildLineage()
+    val executionPlan = lineageBuilderFactory.createBuilder(logicalPlan, None, se.sparkSession.sparkContext).buildExecutionPlan
 
-    logicalPlanLineage match {
-      case Some(lineage) => {
-        val (streamWrite, metaDataset) = StreamWriteBuilder.build(se, lineage)
-        val streamingLineage = lineage.copy(
-          operations = streamWrite +: lineage.operations,
-          datasets = metaDataset +: lineage.datasets)
-        runIdToLineages.put(se.runId, streamingLineage)
-        lineageDispatcher.send(streamingLineage)
-      }
-    }
+//    executionPlan match {
+//      case Some(lineage) => {
+//        val (streamWrite, metaDataset) = StreamWriteBuilder.build(se, lineage)
+//        val streamingLineage = lineage.copy(
+//          operations = streamWrite +: lineage.operations,
+//          datasets = metaDataset +: lineage.datasets)
+//        runIdToLineages.put(se.runId, streamingLineage)
+//        lineageDispatcher.send(streamingLineage)
+//      }
+//    }
   }
 }

@@ -52,6 +52,16 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql-kafka-0-10_${scala.compat.version}</artifactId>
         </dependency>
+        <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>producer-rest-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>spline-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

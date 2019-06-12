@@ -44,6 +44,13 @@
             <artifactId>model</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>producer-rest-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_${scala.compat.version}</artifactId>
@@ -86,6 +93,17 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.8.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-ext_${scala.compat.version}</artifactId>
+            <version>${json4s.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>

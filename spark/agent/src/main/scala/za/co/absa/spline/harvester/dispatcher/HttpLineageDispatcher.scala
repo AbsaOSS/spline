@@ -21,26 +21,27 @@ import scalaj.http.Http
 import za.co.absa.spline.common.ConfigurationImplicits._
 import za.co.absa.spline.common.logging.Logging
 import za.co.absa.spline.harvester.LineageDispatcher
-import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.model.streaming.ProgressEvent
+import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
+import za.co.absa.spline.common.JSONSerializationImplicits._
 
 
 class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)
   extends LineageDispatcher
     with Logging {
 
-  val dataLineagePublishUrl = s"$splineServerRESTEndpointBaseURL/legacyInlet/v5/dataLineage"
-  val progressEventPublishUrl = s"$splineServerRESTEndpointBaseURL/legacyInlet/v5/progressEvent"
+  val dataLineagePublishUrl = s"$splineServerRESTEndpointBaseURL/producer/execution/plan"
+  val progressEventPublishUrl = s"$splineServerRESTEndpointBaseURL/producer/execution/event"
 
-  def send(lineage: DataLineage): Unit = {
-    sendJson(serializeToJSON(lineage), dataLineagePublishUrl)
+  def send(executionPlan: ExecutionPlan): Unit = {
+    sendJson(serializeToJSON(executionPlan), dataLineagePublishUrl)
   }
 
-  def send(event: ProgressEvent): Unit = {
+  def send(event: Seq[ExecutionEvent]): Unit = {
     sendJson(serializeToJSON(event), progressEventPublishUrl)
   }
 
   private def sendJson(json: String, url: String) = {
+    log.info("sendJson $url : $json")
     Http(url)
       .postData(json)
       .compress(true)
@@ -49,8 +50,7 @@ class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)
       .throwError
   }
 
-  private def serializeToJSON(o: AnyRef): String = ??? // to be implemented in https://github.com/AbsaOSS/spline/issues/248
-
+  private def serializeToJSON(o: AnyRef): String =  o.toJson
 }
 
 

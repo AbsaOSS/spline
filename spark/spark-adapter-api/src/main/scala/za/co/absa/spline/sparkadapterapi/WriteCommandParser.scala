@@ -16,42 +16,35 @@
 
 package za.co.absa.spline.sparkadapterapi
 
-import org.apache.spark.sql.SaveMode
-import org.apache.spark.sql.catalyst.plans.logical.{Command, LogicalPlan}
-
 import scala.language.implicitConversions
-import scala.reflect.ClassTag
 
-abstract class WriteCommandParser[T <: LogicalPlan](implicit tag: ClassTag[T]) {
-  def matches(operation: LogicalPlan): Boolean
+import org.apache.spark.SparkContext
+import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 
-  def asWriteCommand(operation: T): AbstractWriteCommand
 
-  def asWriteCommandIfPossible(operation: T): Option[AbstractWriteCommand] =
-    if (matches(operation)) Some(asWriteCommand(operation))
-    else None
-}
-
-abstract class WriteCommandParserFactory {
-  def writeParser(): WriteCommandParser[LogicalPlan]
-  def saveAsTableParser(clusterUrl: Option[String]) : WriteCommandParser[LogicalPlan]
-  def jdbcParser(): WriteCommandParser[LogicalPlan]
+abstract class WriteCommandParserNew[T] {
+  def execute(operation: T)(implicit factory: ComponentCreatorFactoryIface): Option[OperationNodeBuilder]
 }
 
 object WriteCommandParserFactory extends AdapterFactory[WriteCommandParserFactory]
 
-abstract class AbstractWriteCommand extends Command {
-val query: LogicalPlan
+abstract class WriteCommandParserFactory
+{
+  def createParsers(sparkContext : SparkContext): Seq[WriteCommandParserNew[LogicalPlan]]
 }
 
-case class WriteCommand(path:String, mode: SaveMode, format: String, query: LogicalPlan) extends AbstractWriteCommand
+trait AdapterFactory[T] {
 
-case class SaveAsTableCommand(tableName:String, mode: SaveMode, format: String, query: LogicalPlan) extends AbstractWriteCommand
+  lazy val instance: T = {
+    val className = getClass.getCanonicalName.replaceAll("\\$$", "Impl")
+    Class.forName(className).newInstance().asInstanceOf[T]
+  }
+
+}
 
 object URIPrefixes {
   //prefix used in identifiers for saveAsTable writes
   val managedTablePrefix = "table://"
   val jdbcTablePrefix = "jdbc://"
+  val filePrefix = "file:/"
 }
-
-case class SaveJDBCCommand(tableName:String, mode: SaveMode, format: String, query: LogicalPlan) extends AbstractWriteCommand

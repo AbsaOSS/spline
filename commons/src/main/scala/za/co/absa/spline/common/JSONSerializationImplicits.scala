@@ -32,8 +32,6 @@ object JSONSerializationImplicits {
     Serialization
       .formats(NoTypeHints)
       .++(JavaTypesSerializers.all)
-      .withEmptyValueStrategy(OmitEmptyValuesStrategy)
-
 
   implicit class EntityToJson[A <: AnyRef](entity: A) {
     def toJson: String = compact(render(decompose(entity)))

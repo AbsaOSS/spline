@@ -24,10 +24,8 @@ import org.scalatest._
 import org.slf4s.Logging
 import za.co.absa.spline.test.DataFrameImplicits._
 import za.co.absa.spline.common.TempDirectory
-import za.co.absa.spline.test.fixture._
 import za.co.absa.spline.test.fixture.spline.SplineFixture
-import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.model.op.Write
+import za.co.absa.spline.producer.rest.model.ExecutionPlan
 import za.co.absa.spline.test.fixture.SparkFixture
 
 /** Contains smoke tests for basic operations. */
@@ -45,10 +43,11 @@ class BasicIntegrationTests extends FlatSpec
 
           val df = Seq((1, 2), (3, 4)).toDF().agg(concat(sum('_1), min('_2)) as "forty_two")
 
-          val lineage = lineageCaptor.lineageOf(df.writeToTable("someTable"))
+          val plan = lineageCaptor.capture(df.writeToTable("someTable")).plan
 
           spark.sql("drop table someTable")
-          lineage.operations.length shouldBe 3
+          plan.operations.other.length shouldBe 2
+          plan.operations.write should not be (null)
         }
       })
 
@@ -59,9 +58,10 @@ class BasicIntegrationTests extends FlatSpec
           import spark.implicits._
 
           val df = Seq((1, 2), (3, 4)).toDF().agg(concat(sum('_1), min('_2)) as "forty_two")
-          val lineage = lineageCaptor.lineageOf(df.writeToDisk())
+          val plan = lineageCaptor.capture(df.writeToDisk()).plan
 
-          lineage.operations.length shouldBe 3
+          plan.operations.other.length shouldBe 2
+          plan.operations.write should not be (null)
         }
       })
 
@@ -82,20 +82,20 @@ class BasicIntegrationTests extends FlatSpec
           val data = spark.sparkContext.parallelize(Seq(Row(1), Row(3)))
           val inputDf = spark.sqlContext.createDataFrame(data, schema)
 
-          val lineage: DataLineage = lineageCaptor.lineageOf {
+          val executionPlan: ExecutionPlan = lineageCaptor.capture {
             inputDf.writeToTable(tableName, SaveMode.Append)
-          }
+          }.plan
 
-          val write1: Write = lineage.operations.filter(_.isInstanceOf[Write]).head.asInstanceOf[Write]
-          val saveAsTablePath = write1.path
+          val write1 = executionPlan.operations.write
+          val saveAsTablePath = write1.outputSource
 
-          val readFromTable: DataLineage = lineageCaptor.lineageOf {
+          val readFromTable = lineageCaptor.capture {
             spark.sql("drop table " + tableName)
             inputDf.writeToDisk(path, SaveMode.Overwrite)
-          }
+          }.plan
 
-          val writeOperation = readFromTable.operations.filter(_.isInstanceOf[Write]).head.asInstanceOf[Write]
-          val write2 = writeOperation.path
+          val writeOperation = readFromTable.operations.write
+          val write2 = writeOperation.outputSource
 
           saveAsTablePath shouldBe write2
         }
@@ -115,11 +115,11 @@ class BasicIntegrationTests extends FlatSpec
           val data = spark.sparkContext.parallelize(Seq(Row(1), Row(3)))
           val df = spark.sqlContext.createDataFrame(data, schema)
 
-          val wt: DataLineage = lineageCaptor.lineageOf(df.writeToTable("e_table", SaveMode.Append))
+          val wt = lineageCaptor.capture(df.writeToTable("e_table", SaveMode.Append)).plan
 
-          val writeOperation: Write = wt.operations.filter(_.isInstanceOf[Write]).head.asInstanceOf[Write]
+          val writeOperation = wt.operations.write
 
-          new Path(writeOperation.path).toUri.toURL shouldBe expectedPath
+          new Path(writeOperation.outputSource).toUri.toURL shouldBe expectedPath
         }
       })
 

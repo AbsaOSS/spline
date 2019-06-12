@@ -45,16 +45,14 @@ class JDBCWriteTest extends FlatSpec with Matchers
 
           val tableName = "someTable" + System.currentTimeMillis()
 
-          val producedWrites = lineageCaptor
-            .lineageOf {
+          val write = lineageCaptor
+            .capture {
               testData(spark).writeToJDBC(connectionString, tableName, mode = SaveMode.Overwrite)
-            }
-            .operations.collect({ case w: BatchWrite => w })
+            }.plan
+            .operations.write
 
-          producedWrites.size shouldBe 1
-          val write = producedWrites.head
 
-          write.path shouldBe "jdbc://" + connectionString + ":" + tableName
+          write.outputSource shouldBe s"jdbc://$connectionString:$tableName"
           write.append shouldBe false
         }
       }

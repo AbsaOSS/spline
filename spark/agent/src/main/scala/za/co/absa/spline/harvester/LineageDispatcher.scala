@@ -16,12 +16,12 @@
 
 package za.co.absa.spline.harvester
 
-import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.model.streaming.ProgressEvent
+import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
 
 
 trait LineageDispatcher {
-  def send(dataLineage: DataLineage): Unit
+  def send(executionPlan: ExecutionPlan): Unit
 
-  def send(event: ProgressEvent): Unit
+  def send(event: Seq[ExecutionEvent]): Unit
+
 }

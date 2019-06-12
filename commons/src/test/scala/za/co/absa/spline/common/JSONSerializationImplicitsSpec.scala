@@ -45,12 +45,12 @@ class JSONSerializationImplicitsSpec extends FlatSpec with Matchers {
   }
 
   it should "serialize objects" in {
-    Foo().toJson should equal("""{}""")
-    Foo(Some(42)).toJson should equal("""{"any":42}""")
-    Foo(Some(Bar)).toJson should equal("""{}""")
-    Foo(Some(Foo(Some(7)))).toJson should equal("""{"any":{"any":7}}""")
-    Foo(anySeq = Seq(Map("a" -> 1, "b" -> 2), Map("c" -> 3))).toJson should equal("""{"anySeq":[{"a":1,"b":2},{"c":3}]}""")
-    Foo(quxSeq = Seq(Qux(1), Qux(2))).toJson should equal("""{"quxSeq":[{"z":1},{"z":2}]}""")
+    Foo().toJson should equal("""{"anySeq":[],"quxSeq":[]}""")
+    Foo(Some(42)).toJson should equal("""{"any":42,"anySeq":[],"quxSeq":[]}""")
+    Foo(Some(Bar)).toJson should equal("""{"any":{},"anySeq":[],"quxSeq":[]}""")
+    Foo(Some(Foo(Some(7)))).toJson should equal("""{"any":{"any":7,"anySeq":[],"quxSeq":[]},"anySeq":[],"quxSeq":[]}""")
+    Foo(anySeq = Seq(Map("a" -> 1, "b" -> 2), Map("c" -> 3))).toJson should equal("""{"anySeq":[{"a":1,"b":2},{"c":3}],"quxSeq":[]}""")
+    Foo(quxSeq = Seq(Qux(1), Qux(2))).toJson should equal("""{"anySeq":[],"quxSeq":[{"z":1},{"z":2}]}""")
   }
 
   behavior of "deserializer"

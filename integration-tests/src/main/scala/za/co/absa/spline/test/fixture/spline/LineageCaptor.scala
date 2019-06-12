@@ -15,39 +15,56 @@
 
 package za.co.absa.spline.test.fixture.spline
 
-import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
+import za.co.absa.spline.test.fixture.spline.LineageCaptor.Getter
 
 class LineageCaptor extends LineageCaptor.Getter with LineageCaptor.Setter {
-  private var capturedLineage: Option[DataLineage] = None
+  private var capturedExecutionPlan: Option[ExecutionPlan] = None
+  private var capturedEvents: Option[Seq[ExecutionEvent]] = None
 
-  override def capture(lineage: DataLineage): Unit = {
-    require(capturedLineage.isEmpty, "Another lineage has already been captured")
-    capturedLineage = Some(lineage)
+  override def savePlan(lineage: ExecutionPlan): Unit = {
+    require(capturedExecutionPlan.isEmpty, "Another lineage has already been captured")
+    capturedExecutionPlan = Some(lineage)
   }
 
-  override def lineageOf(action: => Unit): DataLineage = {
-    assume(capturedLineage.isEmpty)
+  override def saveEvents(events: Seq[ExecutionEvent]): Unit = {
+    require(capturedEvents.isEmpty, "Another events have already been captured")
+    capturedEvents = Some(events)
+  }
+
+
+  override def capture(action: => Unit): Getter = {
+    assume(capturedExecutionPlan.isEmpty)
+    assume(capturedEvents.isEmpty)
     try {
       action
-      capturedLineage.getOrElse(sys.error("No lineage has been captured"))
+      this
+     // capturedExecutionPlan.getOrElse(sys.error("No lineage has been captured"))
     } finally {
-      capturedLineage = None
+      capturedExecutionPlan = None
     }
   }
 
   def getter: LineageCaptor.Getter = this
 
   def setter: LineageCaptor.Setter = this
+
+  override def plan: ExecutionPlan = capturedExecutionPlan.getOrElse(sys.error("No execution plan has been captured"))
+
+  override def events: Seq[ExecutionEvent] = capturedEvents.getOrElse(sys.error("No events were been captured"))
 }
 
 object LineageCaptor {
 
   trait Setter {
-    def capture(lineage: DataLineage): Unit
+    def savePlan(lineage: ExecutionPlan): Unit
+    def saveEvents(events: Seq[ExecutionEvent]): Unit
   }
 
   trait Getter {
-    def lineageOf(action: => Unit): DataLineage
+    def capture(action: => Unit): Getter
+    def plan : ExecutionPlan
+    def events: Seq[ExecutionEvent]
   }
 
 }

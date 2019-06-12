@@ -29,8 +29,9 @@ import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FunSpec, Matchers}
-import za.co.absa.spline.harvester.{BatchReadNodeBuilder, ComponentCreatorFactory, FSAwareBuilder}
+import za.co.absa.spline.harvester.{ComponentCreatorFactory, FSAwareBuilder, ReadNodeBuilder}
 import za.co.absa.spline.model.MetaDataSource
+import za.co.absa.spline.sparkadapterapi.Constants
 import za.co.absa.spline.test.fixture.SparkFixture
 
 class BatchReadNodeBuilderSpec extends FunSpec with MockitoSugar with Matchers with SparkFixture {
@@ -51,21 +52,21 @@ class BatchReadNodeBuilderSpec extends FunSpec with MockitoSugar with Matchers w
           option("dbtable", "some_table").
           load()
 
-        val bldr = new BatchReadNodeBuilder(df.queryExecution.analyzed.asInstanceOf[LogicalRelation]) with FSUnawareBuilder
+        val bldr = new ReadNodeBuilder(df.queryExecution.analyzed.asInstanceOf[LogicalRelation]) with FSUnawareBuilder
         val readOp = bldr.build()
 
-        readOp.sourceType shouldEqual "JDBC"
-        readOp.sources shouldEqual Seq(MetaDataSource("jdbc:fake:sql@some_host:4242:some_database/some_table", Nil))
+        readOp.params.getOrElse(Constants.sourceType, fail) shouldEqual "JDBC"
+        readOp.inputSources shouldEqual Seq("jdbc:fake:sql@some_host:4242:some_database/some_table")
       })
     }
 
     it("should handle unrecognized source type") {
-      val bldr = new BatchReadNodeBuilder(LogicalRelation(FooBarRelation)) with FSUnawareBuilder
+      val bldr = new ReadNodeBuilder(LogicalRelation(FooBarRelation)) with FSUnawareBuilder
 
       val readOp = bldr.build()
 
-      readOp.sourceType shouldEqual "???: za.co.absa.spline.harvester.conversion.FooBarRelation$"
-      readOp.sources shouldBe empty
+      readOp.params.getOrElse(Constants.sourceType, fail) shouldEqual "???: za.co.absa.spline.harvester.conversion.FooBarRelation$"
+      readOp.inputSources shouldBe empty
     }
   }
 }

@@ -23,13 +23,13 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FunSuite, Matchers}
-import za.co.absa.spline.sparkadapterapi.{WriteCommandParser, WriteCommandParserFactory}
+import za.co.absa.spline.sparkadapterapi.{WriteCommandParserFactory, WriteCommandParserNew}
 import za.co.absa.spline.test.fixture.SparkFixture
 
 
-class DataLineageBuilderTest extends FunSuite with Matchers with SparkFixture {
+class ExecutionPlanBuilderTest extends FunSuite with Matchers with SparkFixture {
 
-  import DataLineageBuilderTest._
+  import ExecutionPlanBuilderTest._
 
   test("spline-124") {
     withNewSparkSession(spark => {
@@ -45,30 +45,28 @@ class DataLineageBuilderTest extends FunSuite with Matchers with SparkFixture {
 
       val tripleUnionDF = df1 union df2 union df3
 
-      val lineageBuilder = lineageBuilderFor(tripleUnionDF)
-      val lineage = lineageBuilder.buildLineage()
+      val executionPlanBuilder = executionPlanFor(tripleUnionDF)
+      val executionPlan = executionPlanBuilder.buildExecutionPlan()
 
-      lineage.getOrElse(fail).operations should have size 4 // 3 LogicalRDD + 1 Union
+      executionPlan.getOrElse(fail).operations.other should have size 4 // 3 LogicalRDD + 1 Union
     })
   }
 }
 
-object DataLineageBuilderTest extends MockitoSugar {
+object ExecutionPlanBuilderTest extends MockitoSugar {
 
-  private def lineageBuilderFor(df: DataFrame): DataLineageBuilder = {
+  private def executionPlanFor(df: DataFrame): ExecutionPlanBuilder = {
     val plan = df.queryExecution.analyzed
-    val mockWriteCommandParser = mock[WriteCommandParser[LogicalPlan]]
-    val mockJdbcCommandParser = mock[WriteCommandParser[LogicalPlan]]
+    val mockWriteCommandParser = mock[WriteCommandParserNew[LogicalPlan]]
+    val mockJdbcCommandParser = mock[WriteCommandParserNew[LogicalPlan]]
 
     val factory = mock[WriteCommandParserFactory]
 
-    when(mockWriteCommandParser.asWriteCommandIfPossible(any())) thenReturn None
-    when(mockJdbcCommandParser.asWriteCommandIfPossible(any())) thenReturn None
+    when(mockWriteCommandParser.execute(any())(any())) thenReturn None
+    when(mockJdbcCommandParser.execute(any())(any())) thenReturn None
 
-    when(factory.writeParser()) thenReturn mockWriteCommandParser
-    when(factory.saveAsTableParser(any())) thenReturn mockWriteCommandParser
-    when(factory.jdbcParser()) thenReturn mockJdbcCommandParser
+    when(factory.createParsers(any())) thenReturn Seq(mockWriteCommandParser, mockJdbcCommandParser)
 
-    new DataLineageBuilder(plan, None, df.sparkSession.sparkContext)(mock[Configuration], factory)
+    new ExecutionPlanBuilder(plan, None, df.sparkSession.sparkContext)(mock[Configuration], factory)
   }
 }

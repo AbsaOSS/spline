@@ -16,25 +16,27 @@
 
 package za.co.absa.spline.harvester
 
-import java.util.UUID.randomUUID
-
 import org.apache.commons.lang3.StringUtils.substringAfter
-import org.apache.spark.sql.catalyst.expressions
-import org.apache.spark.sql.catalyst.expressions.{Literal, Attribute => SparkAttribute, Expression => SparkExpression}
+import org.apache.spark.sql.catalyst.expressions.{Literal, Expression => SparkExpression}
 import org.apache.spark.sql.catalyst.util.ArrayData
 import za.co.absa.spline.common.transformations.{AbstractConverter, CachingConverter}
 import za.co.absa.spline.model.dt._
+import za.co.absa.spline.model.expr.Expression
 import za.co.absa.spline.model.{Attribute, MetaDataset, Schema, expr}
+import za.co.absa.spline.sparkadapterapi.{ComponentCreatorFactoryIface, ExpressionConverterIface, UniqueIdGenerator}
 
 import scala.collection.mutable
 import scala.reflect.runtime
 import scala.reflect.runtime.universe
 
-class ComponentCreatorFactory {
+
+
+
+class ComponentCreatorFactory extends ComponentCreatorFactoryIface{
+  override val uniqueIdGenerator = new UniqueIdGenerator()
   val dataTypeConverter = new DataTypeConverter with CachingConverter
-  val attributeConverter = new AttributeConverter(dataTypeConverter) with CachingConverter
-  val expressionConverter = new ExpressionConverter(dataTypeConverter, attributeConverter)
-  val metaDatasetConverter = new MetaDatasetConverter(attributeConverter) with CachingConverter
+  val attributeConverter = null; //TODO new AttributeConverter(dataTypeConverter) with CachingConverter
+  override val expressionConverter = new ExpressionConverter(dataTypeConverter, attributeConverter)
 }
 
 class DataTypeConverter extends AbstractConverter {
@@ -63,16 +65,17 @@ class DataTypeConverter extends AbstractConverter {
 }
 
 class AttributeConverter(dataTypeConverter: DataTypeConverter)
-  extends AbstractConverter {
-  override type From = SparkAttribute
-  override type To = Attribute
-
-  override def convert(attr: SparkAttribute): Attribute = {
-    Attribute(
-      id = randomUUID,
-      name = attr.name,
-      dataTypeId = dataTypeConverter.convert(attr.dataType, attr.nullable).id)
-  }
+//  extends AbstractConverter
+{
+//  override type From = SparkAttribute
+//  override type To = Attribute
+//
+//  override def convert(attr: SparkAttribute): Attribute = {
+//    Attribute(
+//      id = randomUUID,
+//      name = attr.name,
+//      dataTypeId = dataTypeConverter.convert(attr.dataType, attr.nullable).id)
+//  }
 }
 
 
@@ -146,64 +149,56 @@ object ExpressionConverter {
   }
 }
 
+
+
 class ExpressionConverter(dataTypeConverter: DataTypeConverter, attributeConverter: AttributeConverter)
-  extends AbstractConverter {
+  extends AbstractConverter with ExpressionConverterIface{
 
   import ExpressionConverter._
 
   override type From = SparkExpression
-  override type To = expr.Expression
+  override type To = Expression
 
-  override def convert(sparkExpr: SparkExpression): expr.Expression = sparkExpr match {
+  override def convert(sparkExpr: SparkExpression): Expression = sparkExpr match {
 
-    case a: expressions.Alias =>
-      expr.Alias(a.name, convert(a.child))
-
-    case a: expressions.AttributeReference =>
-      expr.AttrRef(attributeConverter.convert(a).id)
-
-    case lit: expressions.Literal =>
-      expr.Literal(getLiteralValue(lit), getDataType(lit).id)
-
-    case bo: expressions.BinaryOperator =>
-      expr.Binary(
-        bo.symbol,
-        getDataType(bo).id,
-        bo.children map convert)
-
-    case u: expressions.ScalaUDF =>
-      expr.UDF(
-        u.udfName getOrElse u.function.getClass.getName,
-        getDataType(u).id,
-        u.children map convert)
-
-    case e: expressions.LeafExpression =>
-      expr.GenericLeaf(
-        e.prettyName,
-        getDataType(e).id,
-        getExpressionSimpleClassName(e),
-        getExpressionExtraParameters(e))
-
-    case e =>
-      expr.Generic(
-        e.prettyName,
-        getDataType(e).id,
-        e.children map convert,
-        getExpressionSimpleClassName(e),
-        getExpressionExtraParameters(e))
+//    case a: expressions.Alias =>
+//      expr.Alias(a.name, convert(a.child))
+//
+//    case a: expressions.AttributeReference =>
+//      expr.AttrRef(attributeConverter.convert(a).id)
+//
+//    case lit: expressions.Literal =>
+//      expr.Literal(getLiteralValue(lit), getDataType(lit).id)
+//
+//    case bo: expressions.BinaryOperator =>
+//      expr.Binary(
+//        bo.symbol,
+//        getDataType(bo).id,
+//        bo.children map convert)
+//
+//    case u: expressions.ScalaUDF =>
+//      expr.UDF(
+//        u.udfName getOrElse u.function.getClass.getName,
+//        getDataType(u).id,
+//        u.children map convert)
+//
+//    case e: expressions.LeafExpression =>
+//      expr.GenericLeaf(
+//        e.prettyName,
+//        getDataType(e).id,
+//        getExpressionSimpleClassName(e),
+//        getExpressionExtraParameters(e))
+//
+//    case e =>
+//      expr.Generic(
+//        e.prettyName,
+//        getDataType(e).id,
+//        e.children map convert,
+//        getExpressionSimpleClassName(e),
+//        getExpressionExtraParameters(e))
+    case _ => null
   }
 
   private def getDataType(expr: SparkExpression) = dataTypeConverter.convert(expr.dataType, expr.nullable)
 }
 
-
-class MetaDatasetConverter(attributeConverter: AttributeConverter)
-  extends AbstractConverter {
-  override type From = AttrGroup
-  override type To = MetaDataset
-
-  override def convert(attrGroup: AttrGroup): MetaDataset = {
-    val splineAttrIds = attrGroup.attrs.map(attributeConverter.convert(_).id)
-    MetaDataset(randomUUID, Schema(splineAttrIds))
-  }
-}

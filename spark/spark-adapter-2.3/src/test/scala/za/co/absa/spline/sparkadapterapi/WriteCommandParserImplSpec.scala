@@ -17,6 +17,7 @@
 package za.co.absa.spline.sparkadapterapi
 
 import org.apache.hadoop.fs.Path
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.catalyst.TableIdentifier
 import org.apache.spark.sql.catalyst.catalog.{CatalogStorageFormat, CatalogTable}
@@ -27,21 +28,26 @@ import org.apache.spark.sql.execution.datasources.text.TextFileFormat
 import org.mockito.Mockito.when
 import org.scalatest.mockito.MockitoSugar._
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
+import za.co.absa.spline.producer.rest.model.WriteOperation
 
 class WriteCommandParserImplSpec extends FunSpec with BeforeAndAfterEach with Matchers {
+
   describe("WriteCommandParserImpl") {
     it("asWriteCommand") {
       val command = mock[InsertIntoHadoopFsRelationCommand]
+      val componentFactory = mock[ComponentCreatorFactoryIface]
+      when(componentFactory.uniqueIdGenerator).thenReturn(new UniqueIdGenerator())
+
       when(command.outputPath).thenReturn(new Path("path1"))
       when(command.mode).thenReturn(SaveMode.Append)
       when(command.fileFormat).thenReturn(new TextFileFormat())
       val query = mock[LogicalPlan]
       when(command.query).thenReturn(query)
-      val factory = new WriteCommandParserFactoryImpl()
-      val instance = factory.writeParser()
-      instance.matches(command) shouldBe true
-      val writeCommand = instance.asWriteCommand(command)
-      writeCommand shouldBe WriteCommand("path1", SaveMode.Append, "Text", query)
+      val instance = new WriteCommandParserImpl()
+      val builder = instance.execute(command)(componentFactory)
+      val write = builder.get.build().asInstanceOf[WriteOperation]
+      write.outputSource shouldBe "path1"
+      write.append shouldBe true
     }
   }
 
@@ -51,12 +57,19 @@ class WriteCommandParserImplSpec extends FunSpec with BeforeAndAfterEach with Ma
       when(tableIdentifier.table).thenReturn("tableIdentifier")
       when(tableIdentifier.database).thenReturn(Some("databaseIdentifier"))
 
+      val componentFactory = mock[ComponentCreatorFactoryIface]
+      when(componentFactory.uniqueIdGenerator).thenReturn(new UniqueIdGenerator())
+
       val mockTable = mock[CatalogTable]
       when(mockTable.identifier).thenReturn(tableIdentifier)
-      when(tableIdentifier.database).thenReturn(Some("databaseIdentifier"))
 
       val storage = mock[CatalogStorageFormat]
       when(mockTable.storage).thenReturn(storage)
+
+      val sparkContext = mock[SparkContext]
+      val conf = mock[SparkConf]
+      when(sparkContext.getConf).thenReturn(conf)
+      when(conf.getOption("spark.master")).thenReturn(Some("clusterName"))
 
       val command = mock[CreateDataSourceTableAsSelectCommand]
       when(command.table).thenReturn(mockTable)
@@ -64,11 +77,12 @@ class WriteCommandParserImplSpec extends FunSpec with BeforeAndAfterEach with Ma
 
       val query = mock[LogicalPlan]
       when(command.query).thenReturn(query)
-      val factory = new WriteCommandParserFactoryImpl()
-      val instance = factory.saveAsTableParser(Some("clusterName"))
-      instance.matches(command) shouldBe true
-      val writeCommand = instance.asWriteCommand(command)
-      writeCommand shouldBe SaveAsTableCommand("table://clusterName:databaseIdentifier:tableIdentifier", SaveMode.Append, "table", query)
+      val instance = new SaveAsTableCommandParserImpl(sparkContext)
+      instance.execute(command)(componentFactory)
+      val writeCommand =  instance.execute(command)(componentFactory).get.build().asInstanceOf[WriteOperation]
+
+      writeCommand.outputSource shouldBe "table://clusterName:databaseIdentifier:tableIdentifier"
+      writeCommand.append shouldBe true
     }
   }
 }

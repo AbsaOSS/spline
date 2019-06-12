@@ -19,6 +19,7 @@ package za.co.absa.spline.client.web
 
 import java.net.URL
 import java.util.Arrays.asList
+import za.co.absa.spline.common.ConfigurationImplicits._
 
 import org.apache.commons.configuration.{CompositeConfiguration, EnvironmentConfiguration, JNDIConfiguration, SystemConfiguration}
 import za.co.absa.spline.common.config.ConfTyped
@@ -33,7 +34,7 @@ object AppConfig
   override val rootPrefix: String = "spline"
 
   object Server extends Conf("server") {
-    val restEndpoint: URL = new URL(getString(Prop("rest_endpoint")))
+    val restEndpoint: URL = new URL(AppConfig.this.getRequiredString(Prop("rest_endpoint")))
   }
 
 }

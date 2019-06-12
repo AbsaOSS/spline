@@ -24,7 +24,7 @@ import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.harvester.dispatcher.HttpLineageDispatcher
 import za.co.absa.spline.harvester.listener.StructuredStreamingListener
-import za.co.absa.spline.harvester.{DataLineageBuilderFactory, QueryExecutionEventHandler}
+import za.co.absa.spline.harvester.{ExecutionPlanBuilderFactory, QueryExecutionEventHandler}
 
 import scala.concurrent.ExecutionContext
 
@@ -69,7 +69,7 @@ class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkS
 
   protected lazy val lineageDispatcher = HttpLineageDispatcher(configuration)
 
-  private lazy val lineageHarvester = new DataLineageBuilderFactory(sparkSession.sparkContext.hadoopConfiguration)
+  private lazy val lineageHarvester = new ExecutionPlanBuilderFactory(sparkSession.sparkContext.hadoopConfiguration)
 
   def queryExecutionEventHandler: QueryExecutionEventHandler =
     new QueryExecutionEventHandler(lineageHarvester, lineageDispatcher, sparkSession)

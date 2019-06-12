@@ -32,6 +32,7 @@ import za.co.absa.spline.model.op.{ExpressionAware, Operation}
   * @param datasets   A sequence of data sets produced or consumed by operations
   * @param attributes A sequence of attributes contained in schemas of data sets
   */
+@deprecated
 case class DataLineage
 (
   appId: String,
@@ -73,6 +74,7 @@ case class DataLineage
   def rectified: DataLineage = DataLineage.rectify(this)
 }
 
+@Deprecated
 object DataLineage {
   private def rectify(lineage: DataLineage): DataLineage = {
     val operations = lineage.operations

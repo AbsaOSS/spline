@@ -29,6 +29,7 @@ import za.co.absa.spline.model.{MetaDataSource, TypedMetaDataSource}
   * @param inputs Input datasets' IDs
   * @param output Output dataset ID
   */
+@Deprecated
 case class OperationProps
 (
   id: UUID,
@@ -37,6 +38,7 @@ case class OperationProps
   output: UUID
 )
 
+@Deprecated
 trait ExpressionAware {
   def expressions: Seq[Expression]
 }
@@ -44,6 +46,7 @@ trait ExpressionAware {
 /**
   * The trait represents one particular node within a lineage graph.
   */
+@Deprecated
 sealed trait Operation {
   /**
     * Common properties of all node types.
@@ -51,6 +54,7 @@ sealed trait Operation {
   val mainProps: OperationProps
 }
 
+@Deprecated
 object Operation {
 
   implicit class OperationMutator[T <: Operation](op: T) {
@@ -61,19 +65,7 @@ object Operation {
       * @return A copy with new main properties
       */
     def updated(fn: OperationProps => OperationProps): T = (op.asInstanceOf[Operation] match {
-      case op@BatchRead(mp, _, _) => op.copy(mainProps = fn(mp))
-      case op@StreamRead(mp, _, _) => op.copy(mainProps = fn(mp))
-      case op@BatchWrite(mp, _, _, _, _, _) => op.copy(mainProps = fn(mp))
-      case op@StreamWrite(mp, _, _) => op.copy(mainProps = fn(mp))
-      case op@Alias(mp, _) => op.copy(mainProps = fn(mp))
-      case op@Filter(mp, _) => op.copy(mainProps = fn(mp))
-      case op@Sort(mp, _) => op.copy(mainProps = fn(mp))
-      case op@Aggregate(mp, _, _) => op.copy(mainProps = fn(mp))
-      case op@Generic(mp, _) => op.copy(mainProps = fn(mp))
-      case op@Join(mp, _, _) => op.copy(mainProps = fn(mp))
-      case op@Union(mp) => op.copy(mainProps = fn(mp))
-      case op@Projection(mp, _) => op.copy(mainProps = fn(mp))
-      case op@Composite(mp, _, _, _, _, _, _) => op.copy(mainProps = fn(mp))
+      case op@Generic(mp, _) => throw new RuntimeException("To be deleted")
     }).asInstanceOf[T]
   }
 
@@ -85,200 +77,5 @@ object Operation {
   * @param mainProps Common node properties
   * @param rawString String representation of the node
   */
+@Deprecated
 case class Generic(mainProps: OperationProps, rawString: String) extends Operation
-
-/**
-  * The case class represents Spark join operation.
-  *
-  * @param mainProps Common node properties
-  * @param condition An expression deciding how two data sets will be join together
-  * @param joinType  A string description of a join type ("inner", "left_outer", right_outer", "outer")
-  */
-case class Join(
-                 mainProps: OperationProps,
-                 condition: Option[Expression],
-                 joinType: String
-               ) extends Operation with ExpressionAware {
-  override def expressions: Seq[Expression] = condition.toSeq
-}
-
-/**
-  * The case class represents Spark union operation.
-  *
-  * @param mainProps Common node properties
-  */
-case class Union(mainProps: OperationProps) extends Operation
-
-/**
-  * The case class represents Spark filter (where) operation.
-  *
-  * @param mainProps Common node properties
-  * @param condition An expression deciding what records will survive filtering
-  */
-case class Filter(
-                   mainProps: OperationProps,
-                   condition: Expression
-                 ) extends Operation with ExpressionAware {
-  override def expressions: Seq[Expression] = Seq(condition)
-}
-
-/**
-  * The case class represents Spark aggregation operation.
-  *
-  * @param mainProps    Common node properties
-  * @param groupings    Grouping expressions
-  * @param aggregations Aggregation expressions
-  */
-case class Aggregate(
-                      mainProps: OperationProps,
-                      groupings: Seq[Expression],
-                      aggregations: Map[String, Expression]
-                    ) extends Operation with ExpressionAware {
-  override def expressions: Seq[Expression] = groupings ++ aggregations.values
-}
-
-/**
-  * The case class represents Spark sort operation.
-  *
-  * @param mainProps Common node properties
-  * @param orders    Sort orders
-  */
-case class Sort(
-                 mainProps: OperationProps,
-                 orders: Seq[SortOrder]
-               ) extends Operation
-
-/**
-  * Represents a sort order expression and a direction
-  *
-  * @param expression An expression that returns values to sort on
-  * @param direction  Sorting direction
-  * @param nullOrder  Ordering for null values
-  */
-case class SortOrder(expression: Expression, direction: String, nullOrder: String) extends ExpressionAware {
-  override def expressions: Seq[Expression] = Seq(expression)
-}
-
-
-/**
-  * The case class represents Spark projective operations (select, drop, withColumn, etc.)
-  *
-  * @param mainProps       Common node properties
-  * @param transformations Sequence of expressions defining how input set of attributes will be affected by the projection.
-  *                        (Introduction of a new attribute, Removal of an unnecessary attribute)
-  */
-case class Projection(
-                       mainProps: OperationProps,
-                       transformations: Seq[Expression]
-                     ) extends Operation with ExpressionAware {
-  override def expressions: Seq[Expression] = transformations
-}
-
-/**
-  * The case class represents Spark alias (as) operation for assigning a label to data set.
-  *
-  * @param mainProps Common node properties
-  * @param alias     An assigned label
-  */
-case class Alias(
-                  mainProps: OperationProps,
-                  alias: String
-                ) extends Operation
-
-sealed trait Write extends Operation {
-  def path: String
-  def destinationType: String
-}
-/**
-  * The case class represents Spark operations for persisting data sets to HDFS, Hive etc. Operations are usually performed via DataFrameWriters.
-  *
-  * @param mainProps       Common node properties
-  * @param destinationType A string description of a destination type (parquet files, csv file, avro file, Hive table, etc.)
-  * @param path            A path to the place where data set will be stored (file, table, ...)
-  * @param append          `true` for "APPEND" write mode, `false` otherwise.
-  */
-case class BatchWrite(
-                  mainProps: OperationProps,
-                  destinationType: String,
-                  path: String,
-                  append: Boolean,
-                  writeMetrics: Map[String, Long] = Map.empty,
-                  readMetrics: Map[String, Long] = Map.empty
-                ) extends Write
-
-sealed trait Read extends Operation {
-  def sourceType: String
-  def sources: Seq[MetaDataSource]
-
-  def unapply(arg: Read): Option[(String, Seq[MetaDataSource])] = {
-    Some(arg.sourceType, sources)
-  }
-
-}
-
-/**
-  * The case class represents Spark operations for loading data from HDFS, Hive, Kafka, etc.
-  *
-  * @param mainProps  Common node properties
-  * @param sourceType A string description of a source type (parquet files, csv file, avro file, Hive table, etc.)
-  * @param sources    A sequence of meta data sources for the operation. When the data is read from multiple files by one "read" operation,
-  *                   every file will be represented by one meta data source instance
-  */
-case class BatchRead(
-                 mainProps: OperationProps,
-                 sourceType: String,
-                 sources: Seq[MetaDataSource]
-               ) extends Read {
-
-  private val knownSourceLineagesCount = sources.flatMap(_.datasetsIds).distinct.size
-  private val inputDatasetsCount = mainProps.inputs.size
-
-  require(
-    inputDatasetsCount == knownSourceLineagesCount,
-    "Inputs for 'Read' operation are datasets associated with the data sources that we know lineage of. " +
-      s"Hence the size 'inputs' collection should be the same as the count of known datasets for 'sources' field. " +
-      s"But was $inputDatasetsCount and $knownSourceLineagesCount respectively")
-}
-
-case class StreamRead(
-                      mainProps: OperationProps,
-                      sourceType: String,
-                      sources: Seq[MetaDataSource]
-                     ) extends Read
-
-case class StreamWrite(
-                        mainProps: OperationProps,
-                        path: String,
-                        destinationType: String
-                      ) extends Write
-
-/**
-  * The case class represents a partial data lineage at its boundary level.
-  * I.e. only focusing on its inputs, output and related Spark application meta data, omitting all the transformations in between.
-  *
-  * @param mainProps   Common node properties
-  * @param sources     represents the embedded [[BatchRead]] operations
-  * @param destination represents the embedded [[Write]] operation
-  * @param timestamp   output dataset lineage created timestamp
-  * @param appId       related Spark application ID
-  * @param appName     related Spark application name
-  */
-case class Composite(
-                      mainProps: OperationProps,
-                      sources: Seq[TypedMetaDataSource],
-                      destination: TypedMetaDataSource,
-                      timestamp: Long,
-                      appId: String,
-                      appName: String,
-                      isBatchNotStream: Boolean
-                    ) extends Operation {
-  private def knownSourceLineagesCount = sources.flatMap(_.datasetsIds).distinct.size
-
-  private def inputDatasetsCount = mainProps.inputs.size
-
-  require(
-    inputDatasetsCount == knownSourceLineagesCount,
-    "Inputs for 'Composite' operation are datasets associated with the data sources that we know lineage of. " +
-      s"Hence the size 'inputs' collection should be the same as the count of known datasets for 'sources' field. " +
-      s"But was $inputDatasetsCount and $knownSourceLineagesCount respectively")
-}

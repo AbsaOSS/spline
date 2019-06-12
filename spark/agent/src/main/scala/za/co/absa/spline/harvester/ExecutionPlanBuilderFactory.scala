@@ -28,7 +28,7 @@ import scala.language.postfixOps
  *
  * @param hadoopConfiguration A hadoop configuration
  */
-class DataLineageBuilderFactory(hadoopConfiguration: Configuration) {
+class ExecutionPlanBuilderFactory(hadoopConfiguration: Configuration) {
 
   private val writeCommandParserFactory = WriteCommandParserFactory.instance
 
@@ -36,7 +36,7 @@ class DataLineageBuilderFactory(hadoopConfiguration: Configuration) {
    *
    * @return A lineage representation
    */
-  def createBuilder(logicalPlan: LogicalPlan, executedPlan: Option[SparkPlan], sparkContext: SparkContext): DataLineageBuilder = {
-    new DataLineageBuilder(logicalPlan, executedPlan, sparkContext)(hadoopConfiguration, writeCommandParserFactory)
+  def createBuilder(logicalPlan: LogicalPlan, executedPlan: Option[SparkPlan], sparkContext: SparkContext): ExecutionPlanBuilder = {
+    new ExecutionPlanBuilder(logicalPlan, executedPlan, sparkContext)(hadoopConfiguration, writeCommandParserFactory)
   }
 }
