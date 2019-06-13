@@ -47,8 +47,10 @@ class JSONSerializationImplicitsSpec extends FlatSpec with Matchers {
   it should "serialize objects" in {
     Foo().toJson should equal("""{}""")
     Foo(Some(42)).toJson should equal("""{"any":42}""")
-    Foo(Some(Bar)).toJson should equal("""{"any":{}}""")
+    Foo(Some(Bar)).toJson should equal("""{}""")
     Foo(Some(Foo(Some(7)))).toJson should equal("""{"any":{"any":7}}""")
+    Foo(anySeq = Seq(Map("a" -> 1, "b" -> 2), Map("c" -> 3))).toJson should equal("""{"anySeq":[{"a":1,"b":2},{"c":3}]}""")
+    Foo(quxSeq = Seq(Qux(1), Qux(2))).toJson should equal("""{"quxSeq":[{"z":1},{"z":2}]}""")
   }
 
   behavior of "deserializer"
@@ -66,6 +68,7 @@ class JSONSerializationImplicitsSpec extends FlatSpec with Matchers {
   it should "deserialize collections" in {
     """[1,2,3,4,5,6]""".fromJson[Array[Int]] should equal(Array(1, 2, 3, 4, 5, 6))
     """{"a":1,"b":2}""".fromJson[Map[String, _]] should equal(Map("a" -> 1, "b" -> 2))
+    """[{"z":1},{"z":2}]""".fromJson[Array[Qux]] should equal(Array(Qux(1), Qux(2)))
   }
 
   it should "deserialize Foo" in {
@@ -73,6 +76,8 @@ class JSONSerializationImplicitsSpec extends FlatSpec with Matchers {
     """{"any":42}""".fromJson[Foo] should equal(Foo(Some(42)))
     """{"any":{}}""".fromJson[Foo] should equal(Foo(Some(Map())))
     """{"any":{"any":7}}""".fromJson[Foo] should equal(Foo(Some(Map("any" -> 7))))
+    """{"anySeq":[{"a":1, "b":2},{"c":3}]}""".fromJson[Foo] should equal(Foo(anySeq = Seq(Map("a" -> 1, "b" -> 2), Map("c" -> 3))))
+    """{"quxSeq":[{"z":1},{"z":2}]}""".fromJson[Foo] should equal(Foo(quxSeq = Seq(Qux(1), Qux(2))))
   }
 
   it should "deserialize Bar" in {
@@ -84,8 +89,10 @@ class JSONSerializationImplicitsSpec extends FlatSpec with Matchers {
 
 object JSONSerializationImplicitsSpec {
 
-  case class Foo(any: Option[Any] = None)
+  case class Foo(any: Option[Any] = None, anySeq: Seq[Any] = Nil, quxSeq: Seq[Qux] = Nil)
 
   case class Bar(foo: Option[Foo], map: Map[String, Any] = Map.empty)
+
+  case class Qux(z: Int)
 
 }
