@@ -17,8 +17,10 @@
 
 package za.co.absa.spline.producer.rest.model
 
+import java.util.UUID
+
 case class ExecutionEvent(
-  planId: ExecutionPlanId,
+  planId: UUID,
   timestamp: Long,
-  error: Option[ExecutionError]
+  error: Option[Any]
 )

@@ -16,12 +16,14 @@
 
 package za.co.absa.spline.producer.rest.model
 
+import java.util.UUID
+
 case class ExecutionPlan(
-  id: ExecutionPlanId,
+  id: UUID,
   operations: Operations,
   systemInfo: SystemInfo,
   agentInfo: Option[AgentInfo],
-  extraInfo: Map[String, Any]
+  extraInfo: Map[String, String] = Map()
 )
 
 case class Operations(

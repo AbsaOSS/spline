@@ -16,36 +16,11 @@
 
 package za.co.absa.spline.consumer.service
 
-import com.arangodb.model.AqlQueryOptions
-import com.arangodb.{ArangoCursorAsync, ArangoDatabaseAsync}
 
-import scala.collection.JavaConverters._
-import scala.compat.java8.FutureConverters._
-import scala.concurrent.{ExecutionContext, Future}
 
 package object repo {
 
   trait _package
-
-  implicit class ArangoDatabaseAsyncScalaWrapper(db: ArangoDatabaseAsync) {
-    def queryOne[T: Manifest](query: String,
-                              bindVars: Map[String, AnyRef] = null,
-                              options: AqlQueryOptions = null)
-                             (implicit ec: ExecutionContext): Future[T] = {
-      for (
-        res <- this.query[T](query, bindVars, options)
-        if res.hasNext
-      ) yield res.next
-    }
-
-    def query[T: Manifest](query: String,
-                           bindVars: Map[String, AnyRef] = null,
-                           options: AqlQueryOptions = null
-                          ): Future[ArangoCursorAsync[T]] = {
-      val resultType = implicitly[Manifest[T]].runtimeClass.asInstanceOf[Class[T]]
-      db.query(query, bindVars.asJava, options, resultType).toScala
-    }
-  }
 
 
 }

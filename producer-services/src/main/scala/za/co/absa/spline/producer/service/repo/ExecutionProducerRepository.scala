@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.rest
+package za.co.absa.spline.producer.service.repo
 
+import java.util.UUID
 
-package object model {
+import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
 
-  trait _package
+import scala.concurrent.{ExecutionContext, Future}
 
+trait ExecutionProducerRepository {
+  def insertExecutionPlan(executionPlan: ExecutionPlan)(implicit ec: ExecutionContext): Future[UUID]
+
+  def insertExecutionEvents(executionEvents: Array[ExecutionEvent])(implicit ec: ExecutionContext): Future[Array[String]]
 }

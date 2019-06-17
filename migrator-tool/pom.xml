@@ -35,6 +35,12 @@
             <groupId>za.co.absa.spline</groupId>
             <artifactId>spline-persistence-mongo</artifactId>
             <version>0.3.8</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>za.co.absa.spline</groupId>
+                    <artifactId>spline-commons</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>

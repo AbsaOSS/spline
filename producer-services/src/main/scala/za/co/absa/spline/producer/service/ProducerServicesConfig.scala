@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.rest
+package za.co.absa.spline.producer.service
 
+import org.springframework.context.annotation.{ComponentScan, Configuration}
 
-package object model {
-
-  trait _package
-
-}
+@Configuration
+@ComponentScan(basePackageClasses = Array(classOf[repo._package]))
+class ProducerServicesConfig
