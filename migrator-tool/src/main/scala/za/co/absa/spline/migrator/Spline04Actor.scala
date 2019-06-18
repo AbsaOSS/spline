@@ -78,7 +78,7 @@ class Spline04Actor(restClient: RestClient) extends Actor with ActorLogging {
 
   private def save(event: ExecutionEvent): Future[Unit] =
     executionEventEndpoint
-      .post(event.toJson)
+      .post(Seq(event).toJson)
       .map(_ => Unit)
 
 }
