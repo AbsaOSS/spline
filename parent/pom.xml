@@ -82,7 +82,6 @@
         <spring.version>5.1.5.RELEASE</spring.version>
         <springfox-swagger.version>2.9.2</springfox-swagger.version>
         <jackson.version>2.9.9</jackson.version>
-        <test.spline.mongodb.url>mongodb://localhost/test</test.spline.mongodb.url>
         <test.spline.arangodb.url>arangodb://localhost/test</test.spline.arangodb.url>
     </properties>
 

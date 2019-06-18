@@ -89,8 +89,7 @@
             <id>release</id>
             <properties>
                 <project.scm.id>spline-scm-server</project.scm.id>
-                <test.spline.mongodb.url><!-- passed from mvn command line --></test.spline.mongodb.url>
-                <test.spline.mongodb.name><!-- passed from mvn command line --></test.spline.mongodb.name>
+                <test.spline.arangodb.url><!-- passed from mvn command line --></test.spline.arangodb.url>
             </properties>
             <build>
                 <plugins>
@@ -100,8 +99,7 @@
                         <configuration>
                             <tagNameFormat>release/@{project.version}</tagNameFormat>
                             <arguments>
-                                -Dtest.spline.mongodb.url=${test.spline.mongodb.url}
-                                -Dtest.spline.mongodb.name=${test.spline.mongodb.name}
+                                -Dtest.spline.arangodb.url=${test.spline.arangodb.url}
                             </arguments>
                             <providerImplementations>
                                 <git>jgit</git>
