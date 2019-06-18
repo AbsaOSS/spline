@@ -23,13 +23,13 @@ case class ExecutionPlan(
   operations: Operations,
   systemInfo: SystemInfo,
   agentInfo: Option[AgentInfo],
-  extraInfo: Map[String, String] = Map()
+  extraInfo: Map[String, Any] = Map.empty
 )
 
 case class Operations(
-  reads: Array[ReadOperation],
+  reads: Seq[ReadOperation],
   write: WriteOperation,
-  others: Array[DataOperation]
+  other: Seq[DataOperation]
 )
 
 /**

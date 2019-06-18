@@ -84,8 +84,8 @@ object ExecutionPlanTransactionParams {
     )
   }
 
-  private def createReadsFrom(executionPlan: ExecutionPlan, dsUriToKey: Map[String, String]): List[ReadsFrom] = {
-    (for {
+  private def createReadsFrom(executionPlan: ExecutionPlan, dsUriToKey: Map[String, String]): Seq[ReadsFrom] = {
+    for {
       reads <- executionPlan.operations.reads
       readSource <- reads.inputSources
       readsFrom = ReadsFrom(
@@ -93,10 +93,10 @@ object ExecutionPlanTransactionParams {
         _to = s"dataSource/${dsUriToKey(readSource)}",
         _key = Some(randomUUID.toString)
       )
-    } yield readsFrom).toList
+    } yield readsFrom
   }
 
-  private def createWritesTos(executionPlan: ExecutionPlan, dsUriToKey: Map[String, String]): List[WritesTo] = {
+  private def createWritesTos(executionPlan: ExecutionPlan, dsUriToKey: Map[String, String]): Seq[WritesTo] = {
     executionPlan.operations.write.childIds.map(
       _ => {
         val executionPlanId = executionPlan.id
@@ -106,20 +106,20 @@ object ExecutionPlanTransactionParams {
           _from = s"operation/$executionPlanId:$writeOperationId",
           _to = s"dataSource/$dataSourceId")
       }
-    ).toList
+    )
   }
 
-  private def createDataSources(dsUriToNewKey: Map[String, String]): List[DataSource] = {
-    dsUriToNewKey.map { case (uri, key) => {
-      DataSource(uri, Some(key))
+  private def createDataSources(dsUriToNewKey: Map[String, String]): Seq[DataSource] = {
+    dsUriToNewKey.toSeq.map {
+      case (uri, key) =>
+        DataSource(uri, Some(key))
     }
-    }.toList
   }
 
-  private def createOperations(executionPlan: ExecutionPlan): List[Operation] = {
+  private def createOperations(executionPlan: ExecutionPlan): Seq[Operation] = {
     //TODO : Add the outputSchema : https://github.com/AbsaOSS/spline/issues/258
     val allOperations = getAllOperations(executionPlan)
-    val operations: List[Operation] = allOperations.map {
+    val operations = allOperations.map {
       case r: ReadOperation =>
         Read(
           name = r.params.get("name").map(n => n.toString).orNull,
@@ -148,7 +148,7 @@ object ExecutionPlanTransactionParams {
     operations
   }
 
-  private def createFollows(executionPlan: ExecutionPlan): List[Follows] = {
+  private def createFollows(executionPlan: ExecutionPlan): Seq[Follows] = {
     // Operation inputs and outputs ids may be shared across already linked lineages. To avoid saving linked lineages or
     // duplicate indexes we need to not use these.
     for {
@@ -162,9 +162,9 @@ object ExecutionPlanTransactionParams {
     } yield follows
   }
 
-  private def getAllOperations(executionPlan: ExecutionPlan): List[OperationLike] = {
-    val reads = executionPlan.operations.reads.toList
-    val others = executionPlan.operations.others.toList
+  private def getAllOperations(executionPlan: ExecutionPlan): Seq[OperationLike] = {
+    val reads = executionPlan.operations.reads
+    val others = executionPlan.operations.other
     val write = List(executionPlan.operations.write)
     reads ++ others ++ write
   }

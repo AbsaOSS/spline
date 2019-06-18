@@ -18,14 +18,14 @@ package za.co.absa.spline.migrator
 
 import akka.actor.SupervisorStrategy.Escalate
 import akka.actor.{Actor, ActorLogging, ActorRef, OneForOneStrategy, Props, SupervisorStrategy}
-import za.co.absa.spline.migrator.MigratorActor._
-import za.co.absa.spline.migrator.MongoActor.PageSize
+import za.co.absa.spline.migrator.BatchMigratorActor._
+import za.co.absa.spline.migrator.Spline03Actor.{DataLineageLoadFailure, DataLineageLoaded, PageSize}
+import za.co.absa.spline.migrator.Spline04Actor.{Save, SaveFailure, SaveSuccess}
+import za.co.absa.spline.migrator.rest.ScalajRestClientImpl
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 
-import scala.util.{Failure, Success}
-
-object MigratorActor {
+object BatchMigratorActor {
 
   trait RequestMessage
 
@@ -38,12 +38,12 @@ object MigratorActor {
 
 }
 
-class MigratorActor(conf: MigratorConfig)
+class BatchMigratorActor(conf: MigratorConfig)
   extends Actor
     with ActorLogging {
 
-  private val mongoActor = context.actorOf(Props(new MongoActor(conf.mongoConnectionUrl)), "mongo")
-  private val arangoActor = context.actorOf(Props(new ArangoActor(conf.arangoConnectionUrl)), "arango")
+  private val spline03Actor = context.actorOf(Props(new Spline03Actor(conf.mongoConnectionUrl)))
+  private val spline04Actor = context.actorOf(Props(new Spline04Actor(new ScalajRestClientImpl(conf.producerRESTEndpointUrl))))
 
   override def supervisorStrategy: SupervisorStrategy = OneForOneStrategy()({ case _ => Escalate })
 
@@ -56,23 +56,26 @@ class MigratorActor(conf: MigratorConfig)
 
     def processPage(page: PageRequest, prevTotals: Stats): Unit = {
       context become processingPage(Stats.emptyTree.copy(parentStats = prevTotals), None)
-      mongoActor ! MongoActor.GetLineages(page)
+      spline03Actor ! Spline03Actor.GetExistingLineages(page)
 
       def processingPage(pageStats: TreeStats, pageActualSize: Option[Int]): Receive = {
-        case lineage: DataLineage =>
-          arangoActor ! ArangoActor.LineagePersistRequest(lineage)
-
         case PageSize(pageSize) =>
           onCountsUpdate(pageStats, Some(pageSize)) ensuring pageActualSize.isEmpty
 
-        case resp: ArangoActor.LineagePersistResponse =>
-          resp.result match {
-            case Success(_) =>
-              onCountsUpdate(pageStats.incSuccess, pageActualSize)
-            case Failure(e: Throwable) =>
-              onCountsUpdate(pageStats.incFailure, pageActualSize)
-              log.error(e, e.getMessage)
-          }
+        case DataLineageLoaded(lineage: DataLineage) =>
+          val (executionPlan, maybeExecutionEvent) = new DataLineageToExecPlanWithEventConverter(lineage).convert()
+          spline04Actor ! Save(executionPlan, maybeExecutionEvent)
+
+        case SaveSuccess(_) =>
+          onCountsUpdate(pageStats.incSuccess, pageActualSize)
+
+        case DataLineageLoadFailure(_, e) =>
+          onCountsUpdate(pageStats.incFailure, pageActualSize)
+          log.error(e, e.getMessage)
+
+        case SaveFailure(_, e) =>
+          onCountsUpdate(pageStats.incFailure, pageActualSize)
+          log.error(e, e.getMessage)
       }
 
       def onCountsUpdate(pageStats: TreeStats, pageActualSize: Option[Int]): Unit = pageActualSize match {

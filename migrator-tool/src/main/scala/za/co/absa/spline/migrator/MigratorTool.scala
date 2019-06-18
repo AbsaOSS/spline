@@ -22,7 +22,6 @@ import akka.actor.{ActorSystem, Props}
 import akka.pattern.ask
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
-import za.co.absa.spline.migrator.MigratorActor.Start
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -40,20 +39,21 @@ object MigratorTool {
   def migrate(migratorConf: MigratorConfig): Future[Stats] = {
     val actorSystem = ActorSystem("system", akkaConf)
 
-    val migratorActor = actorSystem.actorOf(Props(classOf[MigratorActor], migratorConf), "migrator")
+    val batchMigratorActor = actorSystem.actorOf(Props(classOf[BatchMigratorActor], migratorConf), "batch-migrator")
+    val continuousMigratorActor = actorSystem.actorOf(Props(classOf[ContinuousMigratorActor], migratorConf), "continuous-migrator")
 
     implicit val timeout: Timeout = Timeout(42, TimeUnit.DAYS)
 
-    val eventualBatchResultStats =
-      (migratorActor ? Start).
-        map({ case MigratorActor.Result(stats) => stats })
+    val eventualBatchMigrationResult =
+      (batchMigratorActor ? BatchMigratorActor.Start).
+        map({ case BatchMigratorActor.Result(stats) => stats })
 
-    eventualBatchResultStats.onComplete(_ => actorSystem.terminate())
-    if (migratorConf.streamNewLineages) {
-      eventualBatchResultStats.onComplete(stats => println(s"Batch subproccess finished with stats: $stats"))
-      new MongoStreamMigrator(migratorConf.mongoConnectionUrl, migratorConf.arangoConnectionUrl).start()
-    }
-    eventualBatchResultStats
+    if (migratorConf.continuousMode)
+      continuousMigratorActor ! ContinuousMigratorActor.Start
+    else
+      eventualBatchMigrationResult.onComplete(_ => actorSystem.terminate())
+
+    eventualBatchMigrationResult
   }
 
 }

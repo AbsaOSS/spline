@@ -74,7 +74,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
   }
 
   private def referencedUris(executionPlan: ExecutionPlan) = {
-    val allOperations = executionPlan.operations.reads ++ executionPlan.operations.others ++ List(executionPlan.operations.write)
+    val allOperations = executionPlan.operations.reads ++ executionPlan.operations.other ++ List(executionPlan.operations.write)
     allOperations.flatMap {
       case r: ReadOperation => r.inputSources
       case w: WriteOperation => Some(w.outputSource)

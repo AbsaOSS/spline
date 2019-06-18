@@ -19,12 +19,10 @@ package za.co.absa.spline.migrator
 case class MigratorConfig
 (
   mongoConnectionUrl: String = "",
-  arangoConnectionUrl: String = "",
+  producerRESTEndpointUrl: String = "",
   batchSize: Int = 100,
   batchesMax: Int = -1,
-  initializeArangodb: Boolean = false,
-  removeExistingArangodb: Boolean = false,
-  streamNewLineages: Boolean = false
+  continuousMode: Boolean = false
 )
 
 object MigratorConfig {
