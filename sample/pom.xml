@@ -167,8 +167,6 @@
         <profile>
             <id>samples</id>
             <properties>
-                <spline.mongodb.url><!-- passed from mvn command line --></spline.mongodb.url>
-                <spline.mongodb.name><!-- passed from mvn command line --></spline.mongodb.name>
                 <sampleClass><!-- passed from mvn command line --></sampleClass>
                 <skipTests>true</skipTests>
             </properties>

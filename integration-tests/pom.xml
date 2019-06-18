@@ -89,7 +89,6 @@
                 <artifactId>scalatest-maven-plugin</artifactId>
                 <configuration>
                     <systemProperties>
-                        <test.spline.mongodb.url>${test.spline.mongodb.url}</test.spline.mongodb.url>
                         <test.spline.arangodb.url>${test.spline.arangodb.url}</test.spline.arangodb.url>
                     </systemProperties>
                 </configuration>
