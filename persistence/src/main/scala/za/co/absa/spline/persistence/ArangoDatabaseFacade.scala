@@ -25,7 +25,7 @@ object ArangoDatabaseFacade {
   def create(connectionURL: String): ArangoDatabase =
     create(ArangoConnectionURL(connectionURL))
 
-  @deprecated
+  @deprecated("", "")
   def create(connectionURL: ArangoConnectionURL): ArangoDatabase = {
     val ArangoConnectionURL(maybeUser, maybePassword, host, maybePort, dbName) = connectionURL
     new ArangoDB.Builder()
