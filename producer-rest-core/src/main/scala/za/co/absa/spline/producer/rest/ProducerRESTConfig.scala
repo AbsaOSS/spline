@@ -16,8 +16,7 @@
 
 package za.co.absa.spline.producer.rest
 
-import org.springframework.context.annotation.{ComponentScan, Configuration}
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+import java.util
 
 import org.springframework.context.annotation.{ComponentScan, Configuration, Import}
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
@@ -31,5 +30,11 @@ import za.co.absa.spline.common.webmvc.jackson.JacksonConfig
 @ComponentScan(basePackageClasses = Array(
   classOf[controller._package]
 ))
-class ProducerRESTConfig extends WebMvcConfigurer
+class ProducerRESTConfig extends WebMvcConfigurer {
 
+  import scala.concurrent.ExecutionContext.Implicits.global
+
+  override def addReturnValueHandlers(returnValueHandlers: util.List[HandlerMethodReturnValueHandler]): Unit = {
+    returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler)
+  }
+}

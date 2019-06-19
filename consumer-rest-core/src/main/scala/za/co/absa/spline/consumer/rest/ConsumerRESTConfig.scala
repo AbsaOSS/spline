@@ -24,9 +24,9 @@ import org.springframework.context.annotation.{ComponentScan, Configuration, Imp
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
 import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
 import za.co.absa.spline.common.config.ConfTyped
-import za.co.absa.spline.common.webmvc.{ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
+import za.co.absa.spline.common.webmvc.jackson.JacksonConfig
+import za.co.absa.spline.common.webmvc.{EstimableFutureReturnValueHandlerSupport, ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 @EnableWebMvc
@@ -37,12 +37,14 @@ import scala.concurrent.duration._
 ))
 class ConsumerRESTConfig extends WebMvcConfigurer {
 
+  import scala.concurrent.ExecutionContext.Implicits.global
+
   override def addReturnValueHandlers(returnValueHandlers: util.List[HandlerMethodReturnValueHandler]): Unit = {
     returnValueHandlers.add(new UnitMethodReturnValueHandler)
-    returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler(
-      minEstimatedTimeout = ConsumerRESTConfig.AdaptiveTimeout.min,
-      durationToleranceFactor = ConsumerRESTConfig.AdaptiveTimeout.durationFactor
-    ))
+    returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler with EstimableFutureReturnValueHandlerSupport {
+      override protected val minEstimatedTimeout: Long = ConsumerRESTConfig.AdaptiveTimeout.min
+      override protected val durationToleranceFactor: Double = ConsumerRESTConfig.AdaptiveTimeout.durationFactor
+    })
   }
 }
 

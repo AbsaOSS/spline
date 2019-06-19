@@ -25,7 +25,6 @@ import org.springframework.web.context.ContextLoaderListener
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext
 import org.springframework.web.filter.DelegatingFilterProxy
 import org.springframework.web.servlet.DispatcherServlet
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport
 import za.co.absa.spline.consumer.rest.ConsumerRESTConfig
 import za.co.absa.spline.consumer.service.ConsumerServicesConfig
 import za.co.absa.spline.persistence.ArangoRepoConfig
@@ -60,9 +59,7 @@ object AppInitializer extends WebApplicationInitializer {
     val restConfigClassTag = implicitly[ClassTag[A]]
     val webContext = new AnnotationConfigWebApplicationContext {
       setAllowBeanDefinitionOverriding(false)
-      register(
-        classOf[WebMvcConfigurationSupport],
-        restConfigClassTag.runtimeClass)
+      register(restConfigClassTag.runtimeClass)
     }
     val dispatcher = container.addServlet(s"${name}Dispatcher", new DispatcherServlet(webContext))
     dispatcher.setLoadOnStartup(1)
