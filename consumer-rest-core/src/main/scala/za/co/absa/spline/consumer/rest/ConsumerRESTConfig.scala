@@ -20,16 +20,18 @@ import java.util
 import java.util.Arrays.asList
 
 import org.apache.commons.configuration.{CompositeConfiguration, EnvironmentConfiguration, SystemConfiguration}
-import org.springframework.context.annotation.{ComponentScan, Configuration}
+import org.springframework.context.annotation.{ComponentScan, Configuration, Import}
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
 import za.co.absa.spline.common.config.ConfTyped
 import za.co.absa.spline.common.webmvc.{ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
+@EnableWebMvc
 @Configuration
+@Import(Array(classOf[JacksonConfig]))
 @ComponentScan(basePackageClasses = Array(
   classOf[controller._package]
 ))

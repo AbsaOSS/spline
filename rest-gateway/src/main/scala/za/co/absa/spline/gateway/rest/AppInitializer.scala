@@ -21,40 +21,52 @@ import java.util
 import javax.servlet.DispatcherType._
 import javax.servlet.ServletContext
 import org.springframework.web.WebApplicationInitializer
+import org.springframework.web.context.ContextLoaderListener
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext
 import org.springframework.web.filter.DelegatingFilterProxy
 import org.springframework.web.servlet.DispatcherServlet
-import za.co.absa.spline.common.webmvc.jackson.JacksonConfig
-import za.co.absa.spline.common.webmvc.swagger.SwaggerConfig
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport
 import za.co.absa.spline.consumer.rest.ConsumerRESTConfig
 import za.co.absa.spline.consumer.service.ConsumerServicesConfig
 import za.co.absa.spline.persistence.ArangoRepoConfig
 import za.co.absa.spline.producer.rest.ProducerRESTConfig
 import za.co.absa.spline.producer.service.ProducerServicesConfig
 
+import scala.reflect.ClassTag
+
 object AppInitializer extends WebApplicationInitializer {
   override def onStartup(container: ServletContext): Unit = {
+
+    val rootCtx = new AnnotationConfigWebApplicationContext {
+      setAllowBeanDefinitionOverriding(false)
+      register(
+        classOf[AppConfig],
+        classOf[ConsumerServicesConfig],
+        classOf[ProducerServicesConfig],
+        classOf[ArangoRepoConfig])
+    }
+
+    container.addListener(new ContextLoaderListener(rootCtx))
+
     container
       .addFilter("springFilterProxy", new DelegatingFilterProxy)
       .addMappingForUrlPatterns(util.EnumSet.of(REQUEST, ASYNC), false, "/*")
 
-    val dispatcher = container
-      .addServlet("dispatcher", new DispatcherServlet(
-        new AnnotationConfigWebApplicationContext {
-          setAllowBeanDefinitionOverriding(false)
-          register(
-            classOf[AppConfig],
-            classOf[SwaggerConfig],
-            classOf[JacksonConfig],
-            classOf[ConsumerRESTConfig],
-            classOf[ProducerRESTConfig],
-            classOf[ConsumerServicesConfig],
-            classOf[ProducerServicesConfig],
-            classOf[ArangoRepoConfig])
-        }))
+    registerRESTDispatcher[ConsumerRESTConfig](container, "consumer")
+    registerRESTDispatcher[ProducerRESTConfig](container, "producer")
+  }
 
+  private def registerRESTDispatcher[A: ClassTag](container: ServletContext, name: String): Unit = {
+    val restConfigClassTag = implicitly[ClassTag[A]]
+    val webContext = new AnnotationConfigWebApplicationContext {
+      setAllowBeanDefinitionOverriding(false)
+      register(
+        classOf[WebMvcConfigurationSupport],
+        restConfigClassTag.runtimeClass)
+    }
+    val dispatcher = container.addServlet(s"${name}Dispatcher", new DispatcherServlet(webContext))
     dispatcher.setLoadOnStartup(1)
-    dispatcher.addMapping("/*")
+    dispatcher.addMapping(s"/$name/*")
     dispatcher.setAsyncSupported(true)
   }
 }
