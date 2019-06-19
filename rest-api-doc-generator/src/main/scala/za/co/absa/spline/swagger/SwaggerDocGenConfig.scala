@@ -18,4 +18,6 @@ package za.co.absa.spline.swagger
 
 import java.io.File
 
-case class SwaggerDocGenConfig(out: File = null)
+case class SwaggerDocGenConfig(
+  maybeOutputFile: Option[File] = None,
+  writeToStdOut: Boolean = false)

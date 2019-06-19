@@ -29,17 +29,23 @@ object SwaggerDocGenCLI extends App {
     (opt[String]('o', "output")
       valueName "<file>"
       text "OpenAPI JSON output file name"
-      required()
-      action ((path, conf) => conf.copy(out = new File(path))))
+      action ((path, conf) => conf.copy(maybeOutputFile = Some(new File(path)))))
+
+    (opt[Unit]('s', "stdout")
+      text "write the generated content to standard output"
+      action ((_, conf) => conf.copy(writeToStdOut = true)))
 
     help("help").text("prints this usage text")
   }
 
-  for (SwaggerDocGenConfig(outFile) <- cliParser.parse(args, SwaggerDocGenConfig())) {
+  for (SwaggerDocGenConfig(maybeOutFile, writeToStdOut) <- cliParser.parse(args, SwaggerDocGenConfig())) {
     val apiDocJson = SwaggerDocGen.generate
-    FileUtils.write(outFile, apiDocJson, "UTF-8")
-  }
 
-  println("Done.")
+    if (writeToStdOut)
+      Console.out.println(apiDocJson)
+
+    maybeOutFile.foreach(file =>
+      FileUtils.write(file, apiDocJson, "UTF-8"))
+  }
 }
 
