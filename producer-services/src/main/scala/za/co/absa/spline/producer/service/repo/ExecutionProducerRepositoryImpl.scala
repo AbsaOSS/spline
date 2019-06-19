@@ -24,21 +24,30 @@ import java.util.UUID.randomUUID
 import com.arangodb.{ArangoCursorAsync, ArangoDatabaseAsync}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import za.co.absa.spline.persistence.ArangoImplicits
 import za.co.absa.spline.persistence.model.DataSource
+import za.co.absa.spline.persistence.{ArangoImplicits, Persister}
 import za.co.absa.spline.producer.rest.model._
 import za.co.absa.spline.producer.service.model.{ExecutionEventTransactionParams, ExecutionPlanTransactionParams}
 
 import scala.compat.java8.FutureConverters._
 import scala.compat.java8.StreamConverters._
-import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Repository
 class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExecutionProducerRepository {
 
+  import ArangoImplicits._
+  import scala.concurrent.ExecutionContext.Implicits._
 
   override def insertExecutionPlan(executionPlan: ExecutionPlan)(implicit ec: ExecutionContext): Future[UUID] = {
+    new Persister(db).save(executionPlan, attemptSaveExecutionPlan)
+  }
+
+  override def insertExecutionEvents(executionEvents: Array[ExecutionEvent])(implicit ec: ExecutionContext): Future[Array[String]] = {
+    new Persister(db).save(executionEvents, attemptSaveExecutionEvents)
+  }
+
+  def attemptSaveExecutionPlan(executionPlan: ExecutionPlan)(implicit ec: ExecutionContext): Future[UUID] = {
     val uris = referencedUris(executionPlan)
     for {
       existingUriKey <- queryExistingToKey(uris)
@@ -51,10 +60,10 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
     } yield res
   }
 
-  override def insertExecutionEvents(executionEvents: Array[ExecutionEvent])(implicit ec: ExecutionContext): Future[Array[String]] = {
+  def attemptSaveExecutionEvents(executionEvents: Array[ExecutionEvent])(implicit ec: ExecutionContext): Future[Array[String]] = {
     val executionIdList = executionEvents.map(e => s""""${e.planId.toString}"""").mkString(", ")
     val query = s"for ex in execution filter ex._key in [$executionIdList] return ex._key"
-    val result = ArangoImplicits.ArangoDatabaseAsyncScalaWrapper(db).query[String](query)
+    val result = db.queryAs[String](query)
     val existingExecutionIds = result.map((c: ArangoCursorAsync[String]) => c.streamRemaining().toScala)
 
     val nonExistingExecutions = existingExecutionIds.flatMap(e => Future((executionEvents.map(ev => ev.planId.toString).toSet -- e).toArray))
@@ -87,12 +96,11 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
       .map(uri => s""""$uri"""")
       .mkString(", ")
     val query = s"for ds in dataSource filter ds.uri in [$urisList] return ds"
-    val result = ArangoImplicits.ArangoDatabaseAsyncScalaWrapper(db).query[DataSource](query)
+    val result = db.queryAs[DataSource](query)
     result.map((c: ArangoCursorAsync[DataSource]) => {
       val dataSourceStream = c.streamRemaining().toScala
       dataSourceStream.map(ds => ds.uri -> ds._key.orNull).toMap
     })
 
   }
-
 }

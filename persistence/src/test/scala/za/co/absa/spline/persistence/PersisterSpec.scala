@@ -16,99 +16,62 @@
 
 package za.co.absa.spline.persistence
 
-import java.util.UUID
-import java.util.UUID.randomUUID
+import java.lang.Iterable
+import java.util
 
+import com.arangodb.model.TransactionOptions
+import com.arangodb.velocypack.VPackSlice
+import com.arangodb.{ArangoDBException, ArangoDatabaseAsync}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{AsyncFunSpec, Matchers}
-import za.co.absa.spline.model.dt.Simple
-import za.co.absa.spline.model.op.{BatchRead, BatchWrite, Generic, OperationProps}
-import za.co.absa.spline.model.{DataLineage, MetaDataSource, MetaDataset}
-import za.co.absa.spline.{model => splinemodel}
+import za.co.absa.spline.persistence.model.DataSource
 
+import scala.collection.JavaConverters._
+import scala.compat.java8.FutureConverters._
+import scala.language.implicitConversions
 
 class PersisterSpec extends AsyncFunSpec with Matchers with MockitoSugar {
 
   val arangoUri = "arangodb://root:root@localhost/unit-test"
+  val connectionURL = ArangoConnectionURL(arangoUri)
+  val db: ArangoDatabaseAsync = ArangoDatabaseFacade(connectionURL)
+
 
   describe("Persister") {
 
     it("Persister should be able to insert an example lineage to an empty database") {
-      val db = ArangoDatabaseFacade.create(arangoUri)
-      if (db.exists()) {
-        db.drop()
-      }
-      ArangoInit.initialize(db, dropIfExists = true)
-      val persister = new Persister(db, true)
-      val dataLineage = bigDataLineage()
       for {
-        _ <- persister.save(dataLineage)
-        thrown <- recoverToExceptionIf[IllegalArgumentException] { persister.save(dataLineage) }
-      } yield thrown.getCause.getMessage should include ("unique constraint violated")
+        _ <- ArangoInit.initialize(db, dropIfExists = true)
+        saved <- new Persister(db).save(createDataSources(), attemptSave)
+        thrown : ArangoDBException <- recoverToExceptionIf[ArangoDBException] {
+          new Persister(db).save(createDataSources(), attemptSave)
+        }
+      } yield {
+        saved.get("_id") should be("dataSource/92242e53-eaea-4c5b-bc90-5e174ab3e898")
+        thrown.getErrorMessage should include("unique constraint violated")
+      }
     }
-
   }
 
-  private def bigDataLineage(
-                           appId: String = "appId1",
-                           appName: String = "appName1",
-                           timestamp: Long = 123L,
-                           datasetId: UUID = randomUUID,
-                           path: String = "hdfs://foo/bar/path",
-                           append: Boolean = false)
-    : DataLineage = {
-      val dataType = Simple("StringType", nullable = true)
-      val dataTypes = Seq(dataType)
+  private def attemptSave(params: Any) = {
+    val insertScript: String =
+      s"""
+         |function (params) {
+         |  const db = require('internal').db;
+         |  return db.dataSource.insert(params[0]);
+         |}
+         |""".stripMargin
+    val transactionOptions = new TransactionOptions()
+      .params(params) // Serialized hash map with json string values.
+      .writeCollections("dataSource")
+      .allowImplicit(false)
+    db.transaction(insertScript, classOf[util.HashMap[String, String]], transactionOptions).toScala
+  }
 
-      val attributes = Seq(
-        splinemodel.Attribute(randomUUID(), "_1", dataType.id),
-        splinemodel.Attribute(randomUUID(), "_2", dataType.id),
-        splinemodel.Attribute(randomUUID(), "_3", dataType.id)
-      )
-      val aSchema = splinemodel.Schema(attributes.map(_.id))
-      val bSchema = splinemodel.Schema(attributes.map(_.id).tail)
-
-      val md1 = MetaDataset(datasetId, aSchema)
-      val md2 = MetaDataset(randomUUID, aSchema)
-      val md3 = MetaDataset(randomUUID, bSchema)
-      val md4 = MetaDataset(randomUUID, bSchema)
-      val mdOutput = MetaDataset(randomUUID, bSchema)
-      val mdInput = MetaDataset(randomUUID, bSchema)
-
-      DataLineage(
-        appId,
-        appName,
-        timestamp,
-        "2.3.0",
-        Seq(
-          BatchWrite(OperationProps(randomUUID, "Write", Seq(md3.id), mdOutput.id), "parquet", path, append, Map.empty, Map.empty),
-          Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md2.id), "rawString2"),
-          BatchRead(OperationProps(randomUUID, "BatchRead", Seq(mdInput.id), md4.id), "csv", Seq(MetaDataSource("hdfs://catSizes/brownCats", Seq(randomUUID)))),
-          Generic(OperationProps(randomUUID, "Filter", Seq(md4.id), md1.id), "rawString4"),
-          Generic(OperationProps(randomUUID, "Union", Seq(md1.id, md2.id), md3.id), "rawString1")
-        ),
-        Seq(mdOutput, md1, md2, md3, md4),
-        attributes,
-        dataTypes
-      )
-    }
-
-  def shortLineage(): DataLineage = {
-    val dataTypes = Seq()
-    val aSchema = splinemodel.Schema(Seq())
-    val mdOutput = MetaDataset(randomUUID, aSchema)
-    DataLineage(
-      "app1",
-      "appName1",
-      System.currentTimeMillis(),
-      "2.3.0",
-      Seq(
-        BatchWrite(OperationProps(randomUUID, "Union", Seq(), mdOutput.id), "parquet", "nopath", append = false)
-      ),
-      Seq(mdOutput),
-      Seq(),
-      dataTypes
-    )
+  private def createDataSources(): Iterable[VPackSlice] = {
+    Seq(
+      DataSource("hdfs//blabla", Some("92242e53-eaea-4c5b-bc90-5e174ab3e898"))
+    ).map(Persister.vpack.serialize).asJava
   }
 
 }

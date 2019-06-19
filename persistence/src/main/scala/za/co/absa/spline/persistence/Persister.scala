@@ -16,109 +16,43 @@
 
 package za.co.absa.spline.persistence
 
-import java.util.UUID.randomUUID
-
-import com.arangodb.ArangoDatabase
-import com.arangodb.model.TransactionOptions
+import com.arangodb.velocypack.VPack
 import com.arangodb.velocypack.module.scala.VPackScalaModule
-import com.arangodb.velocypack.{VPack, VPackSlice}
-import org.slf4j.LoggerFactory
-import za.co.absa.spline.model.DataLineage
+import com.arangodb.{ArangoDBException, ArangoDatabaseAsync}
+import za.co.absa.spline.common.logging.Logging
 import za.co.absa.spline.persistence.Persister._
-import za.co.absa.spline.persistence.model.DataSource
-import za.co.absa.spline.{model => splinemodel}
 
-import scala.annotation.tailrec
-import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
 
-class Persister(db: ArangoDatabase, debug: Boolean = false) {
+class Persister(db: ArangoDatabaseAsync) extends Logging {
 
-  private val log = LoggerFactory.getLogger(getClass)
+  import scala.concurrent.ExecutionContext.Implicits._
 
-  def save(dataLineage: DataLineage) = Future {
-    val attempts = saveWithRetry(dataLineage, TotalRetriesOnConflictingKey)
-    if (attempts.isFailure) {
-       throw new IllegalArgumentException("Exhausted retries.", attempts.failed.get)
-    }
+  def save[T, R](entity: T, attemptSave: T => Future[R]): Future[R] = {
+    saveWithRetry(entity, attemptSave, TotalRetriesOnConflictingKey)
   }
 
-  @tailrec
-  private def saveWithRetry(dataLineage: DataLineage, retries: Int): Try[Unit] = {
+  @throws(classOf[IllegalArgumentException])
+  @throws(classOf[ArangoDBException])
+  private def saveWithRetry[T, R](entity: T, attemptSave: T => Future[R], retries: Int): Future[R] = {
     val left = retries - 1
-    Try(attemptSave(dataLineage))
-      match {
-        case s: Success[Unit] => s
-        case Failure(RetryableException(e)) =>
-            if (retries == 0) {
-              Failure(e)
-            } else {
-              log.warn(s"Ignoring ${e.getClass.getSimpleName} and $left left. Exception message: ${e.getMessage}.")
-              saveWithRetry(dataLineage, left)
-            }
-        case Failure(e) =>
-          throw new IllegalArgumentException(s"Unexpected exception aborting remaining $left retries.", e)
+    for {
+      res <- attemptSave(entity).recoverWith {
+        case RetryableException(e) => {
+          if (left == 0) throw e
+          else {
+            log.warn(s"Ignoring ${e.getClass.getSimpleName} and $left left. Exception message: ${e.getMessage}.")
+            saveWithRetry(entity, attemptSave, left)
+          }
+        }
+        case _ =>
+          throw new IllegalArgumentException(s"Unexpected exception aborting remaining $left retries.")
       }
+    } yield res
   }
-
-  private def attemptSave(dataLineage: DataLineage): Unit = {
-    val uris = referencedUris(dataLineage)
-    val uriExistingKey = queryExistingToKey(uris)
-    val uriToNewKey = generateNewKeys(uris, uriExistingKey)
-    val uriToKey = uriExistingKey ++ uriToNewKey
-    val params = DataLineageTransactionParams
-      .create(dataLineage, uriToNewKey, uriToKey)
-    val options = new TransactionOptions()
-      .params(params) // Serialized hash map with json string values.
-      .writeCollections(params.fields: _*)
-      .allowImplicit(false)
-    val action: String = s"""
-        |function (params) {
-        |  var db = require('internal').db;
-        |  ${params.saveCollectionsJs}
-        |}
-        |""".stripMargin
-    db.transaction(action, classOf[Void], options)
-  }
-
-  private def referencedUris(dataLineage: DataLineage) = {
-    dataLineage.operations
-      .flatMap(op => op match {
-        case r: splinemodel.op.Read => r.sources.map(s => s.path)
-        case w: splinemodel.op.Write => Some(w.path)
-        case _ => None })
-      .distinct
-  }
-
-  private def queryExistingToKey(uris: Seq[String]): Map[String, String] = {
-    val urisList = uris
-      .map(uri => "\"" + uri + "\"")
-      .mkString(", ")
-    val query = s"for ds in dataSource filter ds.uri in [$urisList] return ds"
-    val result = db.query(query, classOf[VPackSlice])
-    result
-      .asInstanceOf[java.util.Iterator[VPackSlice]]
-      .asScala
-      .map(vpack.deserialize[DataSource](_, classOf[DataSource]))
-      .map(ds => ds.uri -> ds._key.get)
-      .toMap
-  }
-
-  private def generateNewKeys(uris: Seq[String], uriToExistingKey: Map[String, String]) = {
-    (uris.toSet -- uriToExistingKey.keys)
-        .map(_ -> randomUUID.toString)
-        .toMap
-  }
-
 }
 
-
 object Persister {
-
-  def create(arangoUri: String): Persister =
-    new Persister(ArangoDatabaseFacade.create(arangoUri))
 
   private val TotalRetriesOnConflictingKey = 5
 

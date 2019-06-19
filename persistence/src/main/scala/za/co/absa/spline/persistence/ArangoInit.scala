@@ -16,38 +16,48 @@
 
 package za.co.absa.spline.persistence
 
-import com.arangodb.ArangoDatabase
-import com.arangodb.entity.{CollectionType, EdgeDefinition}
+import com.arangodb.ArangoDatabaseAsync
+import com.arangodb.entity.{CollectionType, EdgeDefinition, GraphEntity}
 import com.arangodb.model.{CollectionCreateOptions, HashIndexOptions}
 
 import scala.collection.JavaConverters._
+import scala.compat.java8.FutureConverters._
+import scala.concurrent.Future
 
 object ArangoInit {
 
-  def initialize(db: ArangoDatabase, dropIfExists: Boolean): Unit = {
-    if (db.exists()) {
-      if (dropIfExists) db.drop()
-      else throw new IllegalArgumentException(s"Arango Database ${db.name()} already exists")
-    }
-    db.create()
-    db.createCollection("progress")
-    db.createCollection("progressOf", new CollectionCreateOptions().`type`(CollectionType.EDGES))
-    db.createCollection("execution")
-    db.createCollection("executes", new CollectionCreateOptions().`type`(CollectionType.EDGES))
-    db.createCollection("operation")
-    db.createCollection("follows", new CollectionCreateOptions().`type`(CollectionType.EDGES))
-    db.createCollection("readsFrom", new CollectionCreateOptions().`type`(CollectionType.EDGES))
-    db.createCollection("writesTo", new CollectionCreateOptions().`type`(CollectionType.EDGES))
-    db.createCollection("dataSource")
-    db.collection("dataSource").ensureHashIndex(Seq("uri").asJava, new HashIndexOptions().unique(true))
-    val edgeDefs = Seq(
-      new EdgeDefinition().collection("progressOf").from("progress").to("execution"),
-      new EdgeDefinition().collection("executes").from("execution").to("operation"),
-      new EdgeDefinition().collection("follows").from("operation").to("operation"),
-      new EdgeDefinition().collection("readsFrom").from("operation").to("dataSource"),
-      new EdgeDefinition().collection("writesTo").from("operation").to("dataSource")
-    ).asJava
-    db.createGraph("lineage", edgeDefs)
+  import scala.concurrent.ExecutionContext.Implicits._
+
+  def initialize(db: ArangoDatabaseAsync, dropIfExists: Boolean): Future[GraphEntity] = {
+    db.exists().toScala.flatMap(exists => {
+      if (exists && !dropIfExists) throw new IllegalArgumentException(s"Arango Database ${db.name()} already exists")
+      else if (exists && dropIfExists) db.drop().toScala.flatMap(_ => createDb(db))
+      else createDb(db)
+    })
+  }
+
+  private def createDb(db: ArangoDatabaseAsync): Future[GraphEntity] = {
+    for{
+      _ <- db.create().toScala
+      _ <- db.createCollection("progress").toScala
+      _ <- db.createCollection("progressOf", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
+      _ <- db.createCollection("execution").toScala
+      _ <-  db.createCollection("executes", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
+      _ <- db.createCollection("operation").toScala
+      _ <- db.createCollection("follows", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
+      _ <- db.createCollection("readsFrom", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
+      _ <- db.createCollection("writesTo", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
+      _ <- db.createCollection("dataSource").toScala
+      _ <- db.collection("dataSource").ensureHashIndex(Seq("uri").asJava, new HashIndexOptions().unique(true)).toScala
+      edgeDefs = Seq(
+        new EdgeDefinition().collection("progressOf").from("progress").to("execution"),
+        new EdgeDefinition().collection("executes").from("execution").to("operation"),
+        new EdgeDefinition().collection("follows").from("operation").to("operation"),
+        new EdgeDefinition().collection("readsFrom").from("operation").to("dataSource"),
+        new EdgeDefinition().collection("writesTo").from("operation").to("dataSource")
+      ).asJava
+      graph <- db.createGraph("lineage", edgeDefs).toScala
+    } yield graph
   }
 
 }

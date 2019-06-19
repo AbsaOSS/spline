@@ -17,25 +17,10 @@
 package za.co.absa.spline.persistence
 
 import com.arangodb.velocypack.module.scala.VPackScalaModule
-import com.arangodb.{ArangoDB, ArangoDBAsync, ArangoDatabase, ArangoDatabaseAsync}
+import com.arangodb.{ArangoDBAsync, ArangoDatabaseAsync}
 import za.co.absa.spline.common.OptionImplicits.AnyWrapper
 
 object ArangoDatabaseFacade {
-
-  def create(connectionURL: String): ArangoDatabase =
-    create(ArangoConnectionURL(connectionURL))
-
-  @deprecated
-  def create(connectionURL: ArangoConnectionURL): ArangoDatabase = {
-    val ArangoConnectionURL(maybeUser, maybePassword, host, maybePort, dbName) = connectionURL
-    new ArangoDB.Builder()
-      .registerModule(new VPackScalaModule)
-      .optionally(_.host(host, _: Int), maybePort)
-      .optionally(_.user(_: String), maybeUser)
-      .optionally(_.password(_: String), maybePassword)
-      .build
-      .db(dbName)
-  }
 
   def apply(connectionURL: ArangoConnectionURL): ArangoDatabaseAsync = {
     val ArangoConnectionURL(maybeUser, maybePassword, host, maybePort, dbName) = connectionURL

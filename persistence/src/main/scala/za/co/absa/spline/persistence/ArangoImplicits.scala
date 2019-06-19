@@ -31,12 +31,12 @@ object ArangoImplicits {
                                 options: AqlQueryOptions = null)
                                (implicit ec: ExecutionContext): Future[T] = {
         for (
-          res <- this.query[T](queryString, bindVars, options)
+          res <- queryAs[T](queryString, bindVars, options)
           if res.hasNext
         ) yield res.next
       }
 
-      def query[T: Manifest](queryString: String,
+      def queryAs[T: Manifest](queryString: String,
                              bindVars: Map[String, AnyRef] = Map.empty,
                              options: AqlQueryOptions = null
                             ): Future[ArangoCursorAsync[T]] = {
