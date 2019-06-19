@@ -25,14 +25,14 @@ class SystemExitFixtureSpec_Methods
     with MockitoSugar
     with SystemExitFixture.Methods {
 
-  behavior of "SystemExitFixture.Method"
+  behavior of "SystemExitFixture.Methods"
 
   it should "intercept System.exit() call and return the status" in {
     captureExitStatus(System.exit(42)) should be(42)
   }
 
   it should "return status 0 when System.exit() was not called" in {
-    captureExitStatus() should be(0)
+    captureExitStatus {} should be(0)
   }
 
   it should "propagate exceptions to the caller" in {

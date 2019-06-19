@@ -17,10 +17,8 @@
 package za.co.absa.spline.common.scalatest
 
 import java.io.{ByteArrayOutputStream, PrintStream, StringReader}
-import java.nio.charset.Charset
 
 import za.co.absa.spline.common.ARM._
-import za.co.absa.spline.common.scalatest.ConsoleStubs._
 
 trait ConsoleStubs {
 
@@ -28,19 +26,15 @@ trait ConsoleStubs {
     Console.withIn(new StringReader(str))(body)
   }
 
-  protected def captureStdOut(body: => Any, charset: String = DefaultCharset): String =
-    withPrintStreamToString(charset)(Console.withOut(_)(body))
+  protected def captureStdOut(body: => Any): String =
+    withPrintStreamToString(Console.withOut(_)(body))
 
-  protected def captureStdErr(body: => Any, charset: String = DefaultCharset): String =
-    withPrintStreamToString(charset)(Console.withErr(_)(body))
+  protected def captureStdErr(body: => Any): String =
+    withPrintStreamToString(Console.withErr(_)(body))
 
-  private def withPrintStreamToString(charset: String)(fn: PrintStream => Unit): String = {
+  private def withPrintStreamToString(fn: PrintStream => Unit): String = {
     val baos = new ByteArrayOutputStream
     using(new PrintStream(baos))(fn)
-    baos.toString(charset)
+    baos.toString()
   }
-}
-
-object ConsoleStubs {
-  private val DefaultCharset: String = Charset.defaultCharset.name
 }

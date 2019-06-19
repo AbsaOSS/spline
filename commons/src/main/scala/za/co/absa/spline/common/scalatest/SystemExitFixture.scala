@@ -39,7 +39,6 @@ object SystemExitFixture {
       finally unstub()
   }
 
-
   trait Methods {
     def captureExitStatus(body: => Unit): Int = withStubbedSystemExitDo {
       Try({

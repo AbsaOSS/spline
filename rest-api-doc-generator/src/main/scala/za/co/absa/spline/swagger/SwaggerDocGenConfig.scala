@@ -20,4 +20,4 @@ import java.io.File
 
 case class SwaggerDocGenConfig(
   maybeOutputFile: Option[File] = None,
-  writeToStdOut: Boolean = false)
+  restContextClass: Option[Class[_]] = None)

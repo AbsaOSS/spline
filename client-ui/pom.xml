@@ -32,6 +32,14 @@
 
   <packaging>pom</packaging>
 
+  <dependencies>
+    <dependency>
+      <groupId>za.co.absa.spline</groupId>
+      <artifactId>consumer-rest-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
   <build>
     <plugins>
       <plugin>
@@ -54,6 +62,7 @@
               <arguments>
                 <argument>-o</argument>
                 <argument>${project.basedir}/src/app/generated/swagger.json</argument>
+                <argument>za.co.absa.spline.consumer.rest.ConsumerRESTConfig</argument>
               </arguments>
             </configuration>
           </execution>
