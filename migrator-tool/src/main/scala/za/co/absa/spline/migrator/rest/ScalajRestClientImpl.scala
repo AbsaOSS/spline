@@ -35,6 +35,7 @@ class ScalajRestClientImpl(baseUrl: String) extends RestClient {
         httpRequest
           .copy(connectFunc = StringBodyConnectFunc(data))
           .asString
+          .throwError
           .body
       }
     }
