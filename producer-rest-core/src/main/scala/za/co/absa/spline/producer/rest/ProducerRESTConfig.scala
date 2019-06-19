@@ -23,5 +23,5 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 @ComponentScan(basePackageClasses = Array(
   classOf[controller._package]
 ))
-class ProducerRESTConfig extends WebMvcConfigurer {}
+class ProducerRESTConfig extends WebMvcConfigurer
 

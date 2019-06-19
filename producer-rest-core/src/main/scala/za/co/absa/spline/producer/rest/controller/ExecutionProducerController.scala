@@ -28,10 +28,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @RestController
 @RequestMapping(Array("/execution"))
-class ExecutionProducerController @Autowired()
-(
-  val repo: ExecutionProducerRepository
-) {
+class ExecutionProducerController @Autowired()(
+  val repo: ExecutionProducerRepository) {
 
   import za.co.absa.spline.common.JSONSerializationImplicits._
   import ExecutionContext.Implicits.global
