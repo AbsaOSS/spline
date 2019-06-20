@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.swagger
+package za.co.absa.spline.producer.rest.controller
 
-import java.io.File
+import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.{ControllerAdvice, ExceptionHandler}
+import za.co.absa.spline.common.logging.ErrorCode
 
-case class SwaggerDocGenConfig(
-  maybeOutputFile: Option[File] = None,
-  writeToStdOut: Boolean = false)
+@ControllerAdvice(basePackageClasses = Array(classOf[_package]))
+class ErrorControllerAdvice {
+
+  @ExceptionHandler
+  def handle_500(e: Throwable) = new ResponseEntity(ErrorCode(e), INTERNAL_SERVER_ERROR)
+}

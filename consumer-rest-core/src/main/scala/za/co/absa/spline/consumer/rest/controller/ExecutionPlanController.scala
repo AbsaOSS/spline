@@ -27,10 +27,8 @@ import scala.concurrent.Future
 
 @RestController
 @RequestMapping(Array("/execution"))
-class ExecutionPlanController @Autowired()
-(
-  val repo: ExecutionPlanRepository
-) {
+class ExecutionPlanController @Autowired()(
+  val repo: ExecutionPlanRepository) {
 
   @GetMapping(Array("/{execId}/lineage"))
   @ApiOperation("Returns a logical plan (aka partial lineage) of a given execution")

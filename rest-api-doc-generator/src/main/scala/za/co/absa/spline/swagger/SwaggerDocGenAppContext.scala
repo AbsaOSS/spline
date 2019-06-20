@@ -19,23 +19,22 @@ package za.co.absa.spline.swagger
 import org.springframework.beans.factory.support.DefaultListableBeanFactory
 import org.springframework.mock.web.MockServletContext
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport
 import za.co.absa.spline.common.webmvc.jackson.JacksonConfig
 import za.co.absa.spline.common.webmvc.swagger.SwaggerConfig
 import za.co.absa.spline.consumer.rest.ConsumerRESTConfig
-import za.co.absa.spline.producer.rest.ProducerRESTConfig
 
 class SwaggerDocGenAppContext extends AnnotationConfigWebApplicationContext {
 
   override def createBeanFactory: DefaultListableBeanFactory = new MockingBeanFactory(getInternalParentBeanFactory)
 
   register(
-    classOf[WebMvcConfigurationSupport],
     classOf[SwaggerConfig],
     classOf[JacksonConfig],
 
-    classOf[ConsumerRESTConfig],
-    classOf[ProducerRESTConfig])
+    // todo: replace the following compile time dependencies with the runtime parameters. See https://github.com/AbsaOSS/spline/issues/255
+    classOf[ConsumerRESTConfig]
+    // classOf[ProducerRESTConfig]
+  )
 
   setServletContext(new MockServletContext())
   setAllowBeanDefinitionOverriding(false)

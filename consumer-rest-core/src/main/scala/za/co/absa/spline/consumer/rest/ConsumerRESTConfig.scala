@@ -20,27 +20,31 @@ import java.util
 import java.util.Arrays.asList
 
 import org.apache.commons.configuration.{CompositeConfiguration, EnvironmentConfiguration, SystemConfiguration}
-import org.springframework.context.annotation.{ComponentScan, Configuration}
+import org.springframework.context.annotation.{ComponentScan, Configuration, Import}
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
 import za.co.absa.spline.common.config.ConfTyped
-import za.co.absa.spline.common.webmvc.{ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
+import za.co.absa.spline.common.webmvc.jackson.JacksonConfig
+import za.co.absa.spline.common.webmvc.{EstimableFutureReturnValueHandlerSupport, ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
+@EnableWebMvc
 @Configuration
+@Import(Array(classOf[JacksonConfig]))
 @ComponentScan(basePackageClasses = Array(
   classOf[controller._package]
 ))
 class ConsumerRESTConfig extends WebMvcConfigurer {
 
+  import scala.concurrent.ExecutionContext.Implicits.global
+
   override def addReturnValueHandlers(returnValueHandlers: util.List[HandlerMethodReturnValueHandler]): Unit = {
     returnValueHandlers.add(new UnitMethodReturnValueHandler)
-    returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler(
-      minEstimatedTimeout = ConsumerRESTConfig.AdaptiveTimeout.min,
-      durationToleranceFactor = ConsumerRESTConfig.AdaptiveTimeout.durationFactor
-    ))
+    returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler with EstimableFutureReturnValueHandlerSupport {
+      override protected val minEstimatedTimeout: Long = ConsumerRESTConfig.AdaptiveTimeout.min
+      override protected val durationToleranceFactor: Double = ConsumerRESTConfig.AdaptiveTimeout.durationFactor
+    })
   }
 }
 

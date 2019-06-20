@@ -19,11 +19,9 @@ package za.co.absa.spline.gateway.rest
 import org.springframework.context.annotation.{Bean, Configuration}
 import org.springframework.web.cors.{CorsConfiguration, UrlBasedCorsConfigurationSource}
 import org.springframework.web.filter.CorsFilter
-import org.springframework.web.servlet.config.annotation.EnableWebMvc
 import za.co.absa.spline.gateway.rest.CorsConfig.CorsFilterConf
 
 @Configuration
-@EnableWebMvc
 class AppConfig {
 
   @Bean def springFilterProxy: CorsFilter = {

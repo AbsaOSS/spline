@@ -29,10 +29,8 @@ import scala.concurrent.Future
 
 @RestController
 @RequestMapping(Array("/operation"))
-class OperationDetailsController @Autowired()
-(
-  val repo: OperationRepository
-) {
+class OperationDetailsController @Autowired()(
+  val repo: OperationRepository) {
 
   @GetMapping(Array("/{operationId}"))
   @ApiOperation("Returns details of an operation node")
