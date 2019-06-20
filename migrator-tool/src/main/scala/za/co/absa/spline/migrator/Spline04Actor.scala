@@ -74,7 +74,7 @@ class Spline04Actor(restClient: RestClient) extends Actor with ActorLogging {
   private def save(plan: ExecutionPlan): Future[UUID] =
     executionPlanEndpoint
       .post(plan.toJson)
-      .map(UUID.fromString)
+      .map(idAsJson => UUID.fromString(idAsJson.fromJson[String]))
 
   private def save(event: ExecutionEvent): Future[Unit] =
     executionEventEndpoint
