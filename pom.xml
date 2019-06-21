@@ -66,6 +66,8 @@
         <module>consumer-rest-core</module>
         <module>rest-gateway</module>
 
+        <module>admin</module>
+
         <module>client-ui</module>
         <module>client-webjar</module>
         <module>client-web</module>

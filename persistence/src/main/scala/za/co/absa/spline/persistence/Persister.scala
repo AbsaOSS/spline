@@ -16,17 +16,22 @@
 
 package za.co.absa.spline.persistence
 
+import com.arangodb.ArangoDBException
 import com.arangodb.velocypack.VPack
 import com.arangodb.velocypack.module.scala.VPackScalaModule
-import com.arangodb.{ArangoDBException, ArangoDatabaseAsync}
 import za.co.absa.spline.common.logging.Logging
-import za.co.absa.spline.persistence.Persister._
 
 import scala.concurrent.Future
 
-class Persister(db: ArangoDatabaseAsync) extends Logging {
+object Persister extends Logging {
 
   import scala.concurrent.ExecutionContext.Implicits._
+
+  private val TotalRetriesOnConflictingKey = 5
+
+  val vpack: VPack = new VPack.Builder()
+    .registerModule(new VPackScalaModule)
+    .build
 
   def save[T, R](entity: T, attemptSave: T => Future[R]): Future[R] = {
     saveWithRetry(entity, attemptSave, TotalRetriesOnConflictingKey)
@@ -38,25 +43,15 @@ class Persister(db: ArangoDatabaseAsync) extends Logging {
     val left = retries - 1
     for {
       res <- attemptSave(entity).recoverWith {
-        case RetryableException(e) => {
+        case RetryableException(e) =>
           if (left == 0) throw e
           else {
             log.warn(s"Ignoring ${e.getClass.getSimpleName} and $left left. Exception message: ${e.getMessage}.")
             saveWithRetry(entity, attemptSave, left)
           }
-        }
         case _ =>
           throw new IllegalArgumentException(s"Unexpected exception aborting remaining $left retries.")
       }
     } yield res
   }
-}
-
-object Persister {
-
-  private val TotalRetriesOnConflictingKey = 5
-
-  val vpack: VPack = new VPack.Builder()
-    .registerModule(new VPackScalaModule)
-    .build
 }

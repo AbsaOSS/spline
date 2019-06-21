@@ -24,25 +24,35 @@ import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.Future
 
-object ArangoInit {
+trait ArangoInit {
+  def initialize(connectionURL: ArangoConnectionURL, dropIfExists: Boolean): Future[GraphEntity]
+}
+
+object ArangoInit extends ArangoInit {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
-  def initialize(db: ArangoDatabaseAsync, dropIfExists: Boolean): Future[GraphEntity] = {
-    db.exists().toScala.flatMap(exists => {
-      if (exists && !dropIfExists) throw new IllegalArgumentException(s"Arango Database ${db.name()} already exists")
-      else if (exists && dropIfExists) db.drop().toScala.flatMap(_ => createDb(db))
-      else createDb(db)
-    })
+  def initialize(connectionURL: ArangoConnectionURL, dropIfExists: Boolean): Future[GraphEntity] = {
+    val arangoFacade = new ArangoDatabaseFacade(connectionURL)
+    import arangoFacade.db
+    db
+      .exists()
+      .toScala
+      .flatMap(exists => {
+        if (exists && !dropIfExists) throw new IllegalArgumentException(s"Arango Database ${db.name()} already exists")
+        else if (exists && dropIfExists) db.drop().toScala.flatMap(_ => createDb(db))
+        else createDb(db)
+      })
+      .andThen({ case _ => arangoFacade.destroy() })
   }
 
   private def createDb(db: ArangoDatabaseAsync): Future[GraphEntity] = {
-    for{
+    for {
       _ <- db.create().toScala
       _ <- db.createCollection("progress").toScala
       _ <- db.createCollection("progressOf", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
       _ <- db.createCollection("execution").toScala
-      _ <-  db.createCollection("executes", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
+      _ <- db.createCollection("executes", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
       _ <- db.createCollection("operation").toScala
       _ <- db.createCollection("follows", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
       _ <- db.createCollection("readsFrom", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala

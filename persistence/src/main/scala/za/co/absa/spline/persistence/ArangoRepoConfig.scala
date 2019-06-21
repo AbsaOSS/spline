@@ -35,8 +35,9 @@ class ArangoRepoConfig extends InitializingBean with Logging {
     arangoDatabase.getInfo.get()
   }
 
-  @Bean def arangoDatabase: ArangoDatabaseAsync =
-    ArangoDatabaseFacade(Database.url)
+  @Bean def arangoDatabaseFacade: ArangoDatabaseFacade = new ArangoDatabaseFacade(Database.url)
+
+  @Bean def arangoDatabase: ArangoDatabaseAsync = arangoDatabaseFacade.db
 }
 
 object ArangoRepoConfig

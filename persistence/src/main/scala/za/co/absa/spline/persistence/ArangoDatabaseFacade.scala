@@ -18,19 +18,22 @@ package za.co.absa.spline.persistence
 
 import com.arangodb.velocypack.module.scala.VPackScalaModule
 import com.arangodb.{ArangoDBAsync, ArangoDatabaseAsync}
+import org.springframework.beans.factory.DisposableBean
 import za.co.absa.spline.common.OptionImplicits.AnyWrapper
 
-object ArangoDatabaseFacade {
+class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL) extends DisposableBean {
 
-  def apply(connectionURL: ArangoConnectionURL): ArangoDatabaseAsync = {
-    val ArangoConnectionURL(maybeUser, maybePassword, host, maybePort, dbName) = connectionURL
-    new ArangoDBAsync.Builder()
-      .registerModule(new VPackScalaModule)
-      .optionally(_.host(host, _: Int), maybePort)
-      .optionally(_.user(_: String), maybeUser)
-      .optionally(_.password(_: String), maybePassword)
-      .build
-      .db(dbName)
-  }
+  private val ArangoConnectionURL(maybeUser, maybePassword, host, maybePort, dbName) = connectionURL
+
+  private val arango: ArangoDBAsync = new ArangoDBAsync.Builder()
+    .registerModule(new VPackScalaModule)
+    .optionally(_.host(host, _: Int), maybePort)
+    .optionally(_.user(_: String), maybeUser)
+    .optionally(_.password(_: String), maybePassword)
+    .build
+
+  val db: ArangoDatabaseAsync = arango.db(dbName)
+
+  override def destroy(): Unit = arango.shutdown()
 }
 
