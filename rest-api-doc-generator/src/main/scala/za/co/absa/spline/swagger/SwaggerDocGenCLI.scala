@@ -16,36 +16,50 @@
 
 package za.co.absa.spline.swagger
 
-import java.io.File
+import java.io.{File, FileWriter, OutputStreamWriter}
 
-import org.apache.commons.io.FileUtils
+import za.co.absa.spline.common.ARM._
 import za.co.absa.spline.common.SplineBuildInfo
 
 object SwaggerDocGenCLI extends App {
-
-  val cliParser = new scopt.OptionParser[SwaggerDocGenConfig]("rest-doc-gen-tool") {
-    head("Spline REST OpenAPI v2 spec generation tool", SplineBuildInfo.version)
-
-    (opt[String]('o', "output")
-      valueName "<file>"
-      text "OpenAPI JSON output file name"
-      action ((path, conf) => conf.copy(maybeOutputFile = Some(new File(path)))))
-
-    (opt[Unit]('s', "stdout")
-      text "write the generated content to standard output"
-      action ((_, conf) => conf.copy(writeToStdOut = true)))
-
-    help("help").text("prints this usage text")
-  }
-
-  for (SwaggerDocGenConfig(maybeOutFile, writeToStdOut) <- cliParser.parse(args, SwaggerDocGenConfig())) {
-    val apiDocJson = SwaggerDocGen.generate
-
-    if (writeToStdOut)
-      Console.out.println(apiDocJson)
-
-    maybeOutFile.foreach(file =>
-      FileUtils.write(file, apiDocJson, "UTF-8"))
-  }
+  new SwaggerDocGenCLI(SwaggerDocGen).exec(args)
 }
 
+class SwaggerDocGenCLI(gen: SwaggerDocGen) {
+  def exec(args: Array[String]): Unit = {
+
+    val cliParser = new scopt.OptionParser[SwaggerDocGenConfig]("rest-doc-gen-tool") {
+      head("Spline REST OpenAPI v2 spec generation tool", SplineBuildInfo.version)
+
+      (opt[String]('o', "output")
+        valueName "<file>"
+        text "OpenAPI JSON output file name"
+        action ((path, conf) => conf.copy(maybeOutputFile = Some(new File(path).getAbsoluteFile))))
+
+      help("help").text("prints this usage text")
+
+      (arg[String]("<class>")
+        text "Fully specified class name of a Spring context to generate a swagger definition for"
+        action ((className, conf) => conf.copy(restContextClass = Some(Class.forName(className)))))
+    }
+
+
+    cliParser.parse(args, SwaggerDocGenConfig()) match {
+
+      case Some(SwaggerDocGenConfig(maybeOutFile, Some(restContextClass))) =>
+        val json = gen.generate(restContextClass)
+        val writer =
+          maybeOutFile
+            .map { file =>
+              file.getParentFile.mkdirs()
+              new FileWriter(file)
+            }
+            .getOrElse(
+              new OutputStreamWriter(Console.out))
+
+        using(writer)(_.write(json))
+
+      case _ => sys.exit(1)
+    }
+  }
+}

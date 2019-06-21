@@ -14,10 +14,27 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.swagger
+package za.co.absa.spline.common.scalatest
 
-import java.io.File
+import org.scalatest.{FlatSpec, Matchers}
 
-case class SwaggerDocGenConfig(
-  maybeOutputFile: Option[File] = None,
-  restContextClass: Option[Class[_]] = None)
+class ConsoleStubsSpec
+  extends FlatSpec
+    with Matchers
+    with ConsoleStubs {
+
+  behavior of "ConsoleStubs"
+
+  it should "capture stdout" in {
+    captureStdOut(Console.out.print("foo")) should be("foo")
+  }
+
+  it should "capture stderr" in {
+    captureStdErr(Console.err.print("bar")) should be("bar")
+  }
+
+  it should "populate stdin" in withStdIn("qux") {
+    Console.in.readLine() should be("qux")
+  }
+
+}

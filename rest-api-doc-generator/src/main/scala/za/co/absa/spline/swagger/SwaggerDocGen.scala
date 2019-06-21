@@ -21,10 +21,14 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders._
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers._
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 
-object SwaggerDocGen {
-  def generate: String =
+trait SwaggerDocGen {
+  def generate(contextClass: Class[_]): String
+}
+
+object SwaggerDocGen extends SwaggerDocGen {
+  override def generate(contextClass: Class[_]): String =
     MockMvcBuilders
-      .webAppContextSetup(new SwaggerDocGenAppContext)
+      .webAppContextSetup(new SwaggerDocGenAppContext(contextClass))
       .build
       .perform(get("/v2/api-docs") accept APPLICATION_JSON)
       .andExpect(status.isOk)

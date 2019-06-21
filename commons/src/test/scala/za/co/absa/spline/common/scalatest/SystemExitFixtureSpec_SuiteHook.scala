@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.swagger
+package za.co.absa.spline.common.scalatest
 
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.{FlatSpec, Matchers}
+import za.co.absa.spline.common.scalatest.SystemExitFixture.ExitException
 
-class SwaggerDocGenTest extends FunSuite with Matchers {
+class SystemExitFixtureSpec_SuiteHook
+  extends FlatSpec
+    with Matchers
+    with SystemExitFixture.SuiteHook {
 
-  test("testGenerate") {
-    val output = SwaggerDocGen.generate
-    output should not be empty
-    output should startWith("""{"swagger":"2.0"""")
-    output should endWith("}")
+  behavior of "SystemExitFixture.SuiteHook"
+
+  it should "intercept System.exit() and throw exception" in {
+    intercept[ExitException](System.exit(42)).status should be(42)
   }
-
 }
