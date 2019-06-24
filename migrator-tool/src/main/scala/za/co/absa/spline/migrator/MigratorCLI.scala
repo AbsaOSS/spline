@@ -16,6 +16,10 @@
 
 package za.co.absa.spline.migrator
 
+import java.io.File
+
+import ch.qos.logback.classic.Level
+import org.backuity.ansi.AnsiFormatter.FormattedHelper
 import za.co.absa.spline.common.SplineBuildInfo
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -37,12 +41,25 @@ object MigratorCLI extends App {
       required()
       action ((url, conf) => conf.copy(producerRESTEndpointUrl = url)))
 
-    (opt[Int]('n', "batch-size")
+    (opt[File]('e', "failrec")
+      valueName "<file>"
+      text
+      """|A file where a list of failed lineage IDs will be written to.
+         |Running migrator with the option '-r' will repeat attempt to migrate lineages from this file."""
+        .stripMargin
+      action ((file, conf) => conf.copy(failRecFileOut = Some(file))))
+
+    (opt[File]('r', "retry-from")
+      valueName "<file>"
+      text "A failrec file (see option '-e') to retry from."
+      action ((file, conf) => conf.copy(failRecFileIn = Some(file))))
+
+    (opt[Int]('b', "batch-size")
       text s"Number of lineages per batch. (Default is ${MigratorConfig.empty.batchSize})"
       validate (x => if (x > 0) success else failure("<batch-size> should be a positive number"))
       action ((value, conf) => conf.copy(batchSize = value)))
 
-    (opt[Int]('x', "batch-max")
+    (opt[Int]('n', "batch-max")
       text s"Number of batches to process. Negative value means unbounded. (Default is ${MigratorConfig.empty.batchesMax})"
       action ((value, conf) => conf.copy(batchesMax = value)))
 
@@ -50,13 +67,19 @@ object MigratorCLI extends App {
       text s"Watch the source database and migrate the incoming data on the fly"
       action ((_, conf) => conf.copy(continuousMode = true)))
 
+    (opt[String]('l', "log-level")
+      text s"Log level (`ALL`, `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`, `OFF`). Default is `ERROR`"
+      action ((str, conf) => conf.copy(logLevel = Level.valueOf(str))))
+
     help("help").text("prints this usage text")
   }
 
   cliParser.parse(args, MigratorConfig.empty) match {
     case Some(config) =>
-      for (stats <- MigratorTool.migrate(config))
-        println(s"DONE. Processed total: ${stats.processed} (of which failures: ${stats.failures})")
+      for (stats <- MigratorTool.migrate(config)) {
+        println()
+        println(ansi"%green{DONE}. Processed total: ${stats.processed} (of which failures: ${stats.failures})")
+      }
 
     case None =>
       cliParser.terminate(Left(""))

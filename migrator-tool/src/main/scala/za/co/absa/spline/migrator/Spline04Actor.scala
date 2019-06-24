@@ -44,8 +44,8 @@ object Spline04Actor {
 
 
   private object RESTResource {
-    val ExecutionPlan = "/execution/plan"
-    val ExecutionEvent = "/execution/event"
+    val ExecutionPlan = "execution/plan"
+    val ExecutionEvent = "execution/event"
   }
 
 }

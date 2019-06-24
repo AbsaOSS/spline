@@ -46,6 +46,8 @@ object Spline03Actor {
 
   trait RequestMessage
 
+  case class GetLineagesWithIDs(dsIds: Seq[UUID]) extends RequestMessage
+
   case class GetExistingLineages(page: PageRequest) extends RequestMessage
 
   case object GetFutureLineages extends RequestMessage
@@ -84,6 +86,10 @@ class Spline03Actor(connectionUrl: String) extends Actor with ActorLogging {
 
 
   override def receive: Receive = {
+    case GetLineagesWithIDs(ids: Seq[UUID]) =>
+      ids.foreach(loadLineage(_) pipeTo sender)
+      sender ! PageSize(ids.size)
+
     case GetExistingLineages(page) =>
       val theSender = sender
       mongoReader
@@ -98,7 +104,7 @@ class Spline03Actor(connectionUrl: String) extends Actor with ActorLogging {
     val count =
       (0 /: cursor.iterator) {
         case (i, descriptor) =>
-          loadLineage(descriptor.datasetId).pipeTo(recipient)
+          loadLineage(descriptor.datasetId) pipeTo recipient
           i + 1
       }
     recipient ! PageSize(count)
@@ -119,7 +125,7 @@ class Spline03Actor(connectionUrl: String) extends Actor with ActorLogging {
            .withDocumentClass(classOf[DBObject])
            .asScala) {
       val dsId = toDatasetId(event.get("lineageId").toString)
-      loadLineage(dsId).pipeTo(recipient)
+      loadLineage(dsId) pipeTo recipient
     }
   }
 

@@ -17,11 +17,11 @@
 package za.co.absa.spline.migrator
 
 import akka.actor.SupervisorStrategy.Escalate
-import akka.actor.{Actor, ActorLogging, ActorRef, OneForOneStrategy, Props, SupervisorStrategy}
+import akka.actor.{Actor, ActorRef, OneForOneStrategy, Props, SupervisorStrategy}
 import za.co.absa.spline.migrator.BatchMigratorActor._
 import za.co.absa.spline.migrator.Spline03Actor.{DataLineageLoadFailure, DataLineageLoaded, PageSize}
 import za.co.absa.spline.migrator.Spline04Actor.{Save, SaveFailure, SaveSuccess}
-import za.co.absa.spline.migrator.rest.ScalajRestClientImpl
+import za.co.absa.spline.migrator.rest.RestClient
 import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 
@@ -34,16 +34,24 @@ object BatchMigratorActor {
 
   trait ResponseMessage
 
-  case class Result(stats: Stats)
+  case class Result(stats: Stats) extends ResponseMessage
 
 }
 
-class BatchMigratorActor(conf: MigratorConfig)
-  extends Actor
-    with ActorLogging {
+class BatchMigratorActor(conf: MigratorConfig, monitor: ActorRef, restClient: RestClient) extends Actor {
 
   private val spline03Actor = context.actorOf(Props(new Spline03Actor(conf.mongoConnectionUrl)))
-  private val spline04Actor = context.actorOf(Props(new Spline04Actor(new ScalajRestClientImpl(conf.producerRESTEndpointUrl))))
+  private val spline04Actor = context.actorOf(Props(new Spline04Actor(restClient)))
+  private val failRecOutActor = context.actorOf(Props(new FailureRecorderActor(conf.failRecFileOut)))
+
+  private val batchLineageRequest: PageRequest => Spline03Actor.RequestMessage = conf
+    .failRecFileIn
+    .filter(_.length > 0)
+    .map(file => {
+      val idsReader = FailureRecorderActor.failRecReader(file)
+      page: PageRequest => Spline03Actor.GetLineagesWithIDs(idsReader(page))
+    })
+    .getOrElse(Spline03Actor.GetExistingLineages)
 
   override def supervisorStrategy: SupervisorStrategy = OneForOneStrategy()({ case _ => Escalate })
 
@@ -51,12 +59,12 @@ class BatchMigratorActor(conf: MigratorConfig)
     case Start => pumpAllLineagesAndReportTo(sender)
   }
 
-  private def pumpAllLineagesAndReportTo(watcher: ActorRef): Unit = {
+  private def pumpAllLineagesAndReportTo(caller: ActorRef): Unit = {
     processPage(PageRequest(System.currentTimeMillis, 0, conf.batchSize), Stats.empty)
 
     def processPage(page: PageRequest, prevTotals: Stats): Unit = {
       context become processingPage(Stats.emptyTree.copy(parentStats = prevTotals), None)
-      spline03Actor ! Spline03Actor.GetExistingLineages(page)
+      spline03Actor ! batchLineageRequest(page)
 
       def processingPage(pageStats: TreeStats, pageActualSize: Option[Int]): Receive = {
         case PageSize(pageSize) =>
@@ -65,29 +73,29 @@ class BatchMigratorActor(conf: MigratorConfig)
         case DataLineageLoaded(lineage: DataLineage) =>
           val (executionPlan, maybeExecutionEvent) = new DataLineageToExecPlanWithEventConverter(lineage).convert()
           spline04Actor ! Save(executionPlan, maybeExecutionEvent)
+          onCountsUpdate(pageStats.incQueue, pageActualSize)
 
         case SaveSuccess(_) =>
           onCountsUpdate(pageStats.incSuccess, pageActualSize)
 
-        case DataLineageLoadFailure(_, e) =>
+        case failure@(_: DataLineageLoadFailure | _: SaveFailure) =>
+          failRecOutActor ! failure
           onCountsUpdate(pageStats.incFailure, pageActualSize)
-          log.error(e, e.getMessage)
-
-        case SaveFailure(_, e) =>
-          onCountsUpdate(pageStats.incFailure, pageActualSize)
-          log.error(e, e.getMessage)
       }
 
-      def onCountsUpdate(pageStats: TreeStats, pageActualSize: Option[Int]): Unit = pageActualSize match {
-        case Some(pageSize) if pageSize == pageStats.processed =>
-          onPageComplete(pageStats)
-        case _ =>
-          context become processingPage(pageStats, pageActualSize)
+      def onCountsUpdate(pageStats: TreeStats, pageActualSize: Option[Int]): Unit = {
+        monitor ! pageStats.parentStats
+        pageActualSize match {
+          case Some(pageSize) if pageSize == pageStats.processed =>
+            onPageComplete(pageStats)
+          case _ =>
+            context become processingPage(pageStats, pageActualSize)
+        }
       }
 
       def onPageComplete(pageStats: TreeStats): Unit =
         if (isLastPage(page, pageStats)) {
-          watcher ! Result(pageStats.parentStats)
+          caller ! Result(pageStats.parentStats)
         } else {
           val nextPage = page.copy(offset = page.offset + pageStats.processed)
           processPage(nextPage, pageStats.parentStats)
