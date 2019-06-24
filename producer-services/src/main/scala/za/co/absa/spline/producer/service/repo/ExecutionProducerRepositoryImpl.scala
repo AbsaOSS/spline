@@ -37,14 +37,15 @@ import scala.concurrent.{ExecutionContext, Future}
 class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExecutionProducerRepository {
 
   import ArangoImplicits._
+
   import scala.concurrent.ExecutionContext.Implicits._
 
   override def insertExecutionPlan(executionPlan: ExecutionPlan)(implicit ec: ExecutionContext): Future[UUID] = {
-    new Persister(db).save(executionPlan, attemptSaveExecutionPlan)
+    Persister.save(executionPlan, attemptSaveExecutionPlan)
   }
 
   override def insertExecutionEvents(executionEvents: Array[ExecutionEvent])(implicit ec: ExecutionContext): Future[Array[String]] = {
-    new Persister(db).save(executionEvents, attemptSaveExecutionEvents)
+    Persister.save(executionEvents, attemptSaveExecutionEvents)
   }
 
   def attemptSaveExecutionPlan(executionPlan: ExecutionPlan)(implicit ec: ExecutionContext): Future[UUID] = {

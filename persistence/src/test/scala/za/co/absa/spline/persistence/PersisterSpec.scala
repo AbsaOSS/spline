@@ -19,32 +19,42 @@ package za.co.absa.spline.persistence
 import java.lang.Iterable
 import java.util
 
+import com.arangodb.ArangoDBException
 import com.arangodb.model.TransactionOptions
 import com.arangodb.velocypack.VPackSlice
-import com.arangodb.{ArangoDBException, ArangoDatabaseAsync}
 import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{AsyncFunSpec, Matchers}
+import org.scalatest.{AsyncFunSpec, BeforeAndAfterAll, Matchers}
 import za.co.absa.spline.persistence.model.DataSource
 
 import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters._
 import scala.language.implicitConversions
 
-class PersisterSpec extends AsyncFunSpec with Matchers with MockitoSugar {
+class PersisterSpec
+  extends AsyncFunSpec
+    with Matchers
+    with MockitoSugar
+    with BeforeAndAfterAll {
 
-  val arangoUri = "arangodb://root:root@localhost/unit-test"
-  val connectionURL = ArangoConnectionURL(arangoUri)
-  val db: ArangoDatabaseAsync = ArangoDatabaseFacade(connectionURL)
 
+  private val arangoUri = "arangodb://root:root@localhost/unit-test"
+  private val connectionURL = ArangoConnectionURL(arangoUri)
+  private val arangoFacade = new ArangoDatabaseFacade(connectionURL)
+
+  import arangoFacade.db
+
+  override protected def afterAll(): Unit =
+    try db.arango.shutdown()
+    finally super.afterAll()
 
   describe("Persister") {
 
     it("Persister should be able to insert an example lineage to an empty database") {
       for {
-        _ <- ArangoInit.initialize(db, dropIfExists = true)
-        saved <- new Persister(db).save(createDataSources(), attemptSave)
-        thrown : ArangoDBException <- recoverToExceptionIf[ArangoDBException] {
-          new Persister(db).save(createDataSources(), attemptSave)
+        _ <- ArangoInit.initialize(connectionURL, dropIfExists = true)
+        saved <- Persister.save(createDataSources(), attemptSave)
+        thrown: ArangoDBException <- recoverToExceptionIf[ArangoDBException] {
+          Persister.save(createDataSources(), attemptSave)
         }
       } yield {
         saved.get("_id") should be("dataSource/92242e53-eaea-4c5b-bc90-5e174ab3e898")
