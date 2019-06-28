@@ -21,7 +21,11 @@ import java.util.concurrent.TimeUnit
 import akka.actor.{ActorSystem, Props}
 import akka.pattern.ask
 import akka.util.Timeout
+import ch.qos.logback.classic.Logger
 import com.typesafe.config.ConfigFactory
+import org.slf4j.Logger.ROOT_LOGGER_NAME
+import org.slf4j.LoggerFactory
+import za.co.absa.spline.migrator.rest.RestClientPlayWsImpl
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -30,17 +34,27 @@ object MigratorTool {
 
   private val conf =
     s"""akka {
-       |  loglevel = "INFO"
        |  actor.guardian-supervisor-strategy = "${classOf[EscalatingSupervisorStrategy].getName}"
        |  event-handlers = ["akka.event.slf4j.Slf4jEventHandler"]
        |}""".stripMargin
+
   private val akkaConf = ConfigFactory.parseString(conf)
 
   def migrate(migratorConf: MigratorConfig): Future[Stats] = {
-    val actorSystem = ActorSystem("system", akkaConf)
+    LoggerFactory
+      .getLogger(ROOT_LOGGER_NAME)
+      .asInstanceOf[Logger]
+      .setLevel(migratorConf.logLevel)
 
-    val batchMigratorActor = actorSystem.actorOf(Props(classOf[BatchMigratorActor], migratorConf), "batch-migrator")
-    val continuousMigratorActor = actorSystem.actorOf(Props(classOf[ContinuousMigratorActor], migratorConf), "continuous-migrator")
+    implicit val actorSystem = ActorSystem("system", akkaConf)
+
+    val restClient = new RestClientPlayWsImpl(migratorConf.producerRESTEndpointUrl) {
+      actorSystem.registerOnTermination(this.close())
+    }
+
+    val monitorActor = actorSystem.actorOf(Props(classOf[MonitorActor], migratorConf), "monitor")
+    val batchMigratorActor = actorSystem.actorOf(Props(classOf[BatchMigratorActor], migratorConf, monitorActor, restClient), "batch-migrator")
+    lazy val continuousMigratorActor = actorSystem.actorOf(Props(classOf[ContinuousMigratorActor], migratorConf, restClient), "continuous-migrator")
 
     implicit val timeout: Timeout = Timeout(42, TimeUnit.DAYS)
 

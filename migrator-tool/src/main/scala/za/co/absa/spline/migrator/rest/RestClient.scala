@@ -19,3 +19,9 @@ package za.co.absa.spline.migrator.rest
 trait RestClient {
   def createEndpoint(resource: String): RestEndpoint
 }
+
+object RestClient {
+
+  case class HttpException(message: String) extends RuntimeException(message)
+
+}

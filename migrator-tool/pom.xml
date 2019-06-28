@@ -30,6 +30,10 @@
     <artifactId>migrator-tool</artifactId>
     <packaging>jar</packaging>
 
+    <properties>
+        <akka.version>2.5.23</akka.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
@@ -58,9 +62,14 @@
             <version>3.7.1</version>
         </dependency>
         <dependency>
-            <groupId>org.scalaj</groupId>
-            <artifactId>scalaj-http_${scala.compat.version}</artifactId>
-            <version>2.4.1</version>
+            <groupId>com.typesafe.play</groupId>
+            <artifactId>play-ahc-ws-standalone_${scala.compat.version}</artifactId>
+            <version>2.0.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.backuity</groupId>
+            <artifactId>ansi-interpolator_${scala.compat.version}</artifactId>
+            <version>1.1</version>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
@@ -78,12 +87,10 @@
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-actor_${scala.compat.version}</artifactId>
-            <version>2.5.19</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-slf4j_${scala.compat.version}</artifactId>
-            <version>2.5.19</version>
         </dependency>
     </dependencies>
 
@@ -94,6 +101,55 @@
                 <artifactId>mongo-java-driver</artifactId>
                 <version>3.10.1</version>
             </dependency>
+            <dependency>
+                <groupId>com.typesafe.akka</groupId>
+                <artifactId>akka-actor_${scala.compat.version}</artifactId>
+                <version>${akka.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.typesafe.akka</groupId>
+                <artifactId>akka-protobuf_${scala.compat.version}</artifactId>
+                <version>${akka.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.typesafe.akka</groupId>
+                <artifactId>akka-slf4j_${scala.compat.version}</artifactId>
+                <version>${akka.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.typesafe.akka</groupId>
+                <artifactId>akka-stream_${scala.compat.version}</artifactId>
+                <version>${akka.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.typesafe</groupId>
+                <artifactId>ssl-config-core_${scala.compat.version}</artifactId>
+                <version>0.4.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>joda-time</groupId>
+                <artifactId>joda-time</artifactId>
+                <version>2.10.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.joda</groupId>
+                <artifactId>joda-convert</artifactId>
+                <version>1.9.2</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.scala-lang.modules</groupId>
+                <artifactId>scala-xml_${scala.compat.version}</artifactId>
+                <version>1.2.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.typesafe</groupId>
+                <artifactId>config</artifactId>
+                <version>1.3.4</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -101,27 +157,26 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.0.0</version>
-                <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <appendAssemblyId>false</appendAssemblyId>
-                    <archive>
-                        <manifest>
-                            <mainClass>za.co.absa.spline.migrator.MigratorCLI</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
                         <goals>
-                            <goal>single</goal>
+                            <goal>shade</goal>
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>reference.conf</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <mainClass>za.co.absa.spline.migrator.MigratorCLI</mainClass>
+                        </transformer>
+                    </transformers>
+                </configuration>
             </plugin>
         </plugins>
     </build>
