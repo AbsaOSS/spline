@@ -18,17 +18,14 @@ package za.co.absa.spline.persistence.model
 
 case class Progress(
     timestamp: Long,
-    readCount: Long,
+    error: Option[Any],
+    extra: Map[String, Any],
     override val _key: Option[String] = None,
     override val _id: Option[String] = None,
     override val _rev: Option[String] = None
   ) extends ArangoDocument
 
 case class Execution(
-    id: String,
-    dataTypes: Array[DataType],
-    startTime: Option[Long],
-    endTime: Option[Long],
     extra: Map[String, Any],
     override val _key: Option[String] = None,
     override val _id: Option[String] = None,
@@ -36,12 +33,12 @@ case class Execution(
   ) extends ArangoDocument
 
 trait DataType {
-  def _key: String
+  def id: String
   def nullable: Boolean
 }
 
 case class SimpleDataType(
-     override val _key: String,
+     override val id: String,
      override val nullable: Boolean,
      name: String
  ) extends DataType {
@@ -50,18 +47,10 @@ case class SimpleDataType(
 
 }
 
-case class StructDataTypeField(
-    name: String,
-    dataTypeKey: String
-  ) {
-
-  def this() = this("", "")
-}
-
 case class StructDataType(
-     override val _key: String,
+     override val id: String,
      override val nullable: Boolean,
-     fields: Seq[StructDataTypeField]
+     fields: Array[Attribute]
   ) extends DataType {
 
   def this() = this("", true, null)
@@ -69,9 +58,9 @@ case class StructDataType(
 }
 
 case class ArrayDataType(
-     override val _key: String,
+     override val id: String,
      override val nullable: Boolean,
-     elementDataTypeKey: String
+     elementDataTypeId: String
   ) extends DataType {
 
   def this() = this("", true, "")
@@ -79,7 +68,7 @@ case class ArrayDataType(
 }
 
 case class Schema(
-  attributes: Seq[Attribute])
+  attributes: Array[Attribute])
 
 trait ArangoDocument {
   def _id: Option[String]
@@ -94,43 +83,41 @@ trait ArangoEdge extends ArangoDocument {
 
 trait Operation extends ArangoDocument {
   def name: String
-  def properties: Map[String, AnyRef]
-  def outputSchema: Schema
+  def properties: Map[String, Any]
+  def outputSchema: Option[Any]
   def _type: String
 }
 
 case class Read(
     override val name: String,
-    override val properties: Map[String, AnyRef],
-    format: String,
-    override val outputSchema: Schema,
+    override val properties: Map[String, Any],
+    override val outputSchema: Option[Any],
     override val _key: Option[String] = None,
     override val _id: Option[String] = None,
     override val _rev: Option[String] = None,
     override val _type: String = "Read"
   ) extends Operation {
 
-  def this() = this("", null, "", null)
+  def this() = this("", null, None, null)
 }
 
 case class Write(
     override val name: String,
-    override val properties: Map[String, AnyRef],
-    format: String,
-    override val outputSchema: Schema,
+    override val properties: Map[String, Any],
+    override val outputSchema: Option[Any],
     override val _key: Option[String] = None,
     override val _id: Option[String] = None,
     override val _rev: Option[String] = None,
     override val _type: String = "Write"
   ) extends Operation {
 
-  def this() = this("", null, "", null)
+  def this() = this("", null, None, null)
 }
 
 case class Transformation(
     override val name: String,
-    override val properties: Map[String, AnyRef],
-    override val outputSchema: Schema,
+    override val properties: Map[String, Any],
+    override val outputSchema: Option[Any],
     override val _key: Option[String] = None,
     override val _id: Option[String] = None,
     override val _rev: Option[String] = None,
@@ -152,7 +139,7 @@ case class DataSource(
 
 case class Attribute(
     name: String,
-    dataTypeKey: String
+    dataTypeId: String
   ) {
 
   def this() = this("", "")

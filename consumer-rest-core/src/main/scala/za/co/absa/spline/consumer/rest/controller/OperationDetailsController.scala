@@ -19,9 +19,9 @@ package za.co.absa.spline.consumer.rest.controller
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
-import za.co.absa.spline.consumer.service.model.{AttributeRef, Operation, OperationDetails}
+import za.co.absa.spline.consumer.service.model._
 import za.co.absa.spline.consumer.service.repo.OperationRepository
-import za.co.absa.spline.persistence.model.{ArrayDataType, DataType, SimpleDataType, StructDataType}
+import za.co.absa.spline.persistence.{model => persistence}
 
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
@@ -44,17 +44,15 @@ class OperationDetailsController @Autowired()(
 
   }
 
-  private def reducedDataTypes(dataTypes: Array[DataType], schemas: Array[Array[AttributeRef]]): Array[DataType] = {
-    val dataTypesIdToKeep = schemas.flatten.map(attributeRef => attributeRef.dataTypeKey.toString).toSet
+  private def reducedDataTypes(dataTypes: Array[persistence.DataType], schemas: Array[Array[persistence.Attribute]]): Array[persistence.DataType] = {
+    val dataTypesIdToKeep = schemas.flatten.map(attributeRef => attributeRef.dataTypeId).toSet
     val dataTypesSet = dataTypes.toSet
     dataTypesFilter(dataTypesSet, dataTypesIdToKeep).toArray
   }
 
 
-  private def dataTypesFilter(dataTypes: Set[DataType], dataTypesIdToKeep: Set[String]): Set[DataType] = {
-    val dt = dataTypes.filter(dataType => {
-      dataTypesIdToKeep.contains(dataType._key)
-    })
+  private def dataTypesFilter(dataTypes: Set[persistence.DataType], dataTypesIdToKeep: Set[String]): Set[persistence.DataType] = {
+    val dt = dataTypes.filter(dataType => dataTypesIdToKeep.contains(dataType.id))
     if (getAllIds(dt).size != dataTypesIdToKeep.size) {
       dataTypesFilter(dataTypes, getAllIds(dt))
     } else {
@@ -62,11 +60,11 @@ class OperationDetailsController @Autowired()(
     }
   }
 
-  private def getAllIds(dataTypes: Set[DataType]): Set[String] = {
+  private def getAllIds(dataTypes: Set[persistence.DataType]): Set[String] = {
     dataTypes.flatMap {
-      case dt@(_: SimpleDataType) => Set(dt._key)
-      case dt@(adt: ArrayDataType) => Set(dt._key, adt.elementDataTypeKey)
-      case dt@(sdt: StructDataType) => sdt.fields.map(attributeRef => attributeRef.dataTypeKey).toSet ++ Set(dt._key)
+      case dt@(_: persistence.SimpleDataType) => Set(dt.id)
+      case dt@(adt: persistence.ArrayDataType) => Set(dt.id, adt.elementDataTypeId)
+      case dt@(sdt: persistence.StructDataType) => sdt.fields.map(attributeRef => attributeRef.dataTypeId).toSet ++ Set(dt.id)
     }
   }
 }

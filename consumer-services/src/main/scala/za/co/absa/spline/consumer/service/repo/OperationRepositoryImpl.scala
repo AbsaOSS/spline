@@ -25,6 +25,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Repository
 class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends OperationRepository {
+
   import za.co.absa.spline.persistence.ArangoImplicits._
 
   override def findById(operationId: Operation.Id)(implicit ec: ExecutionContext): Future[OperationDetails] = {
@@ -55,20 +56,26 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
           )
         )
 
-        LET output = [ope.outputSchema.attributes]
+        LET output = ope.outputSchema.attributes == null ? [] : [ope.outputSchema.attributes]
 
         LET dataTypes = (
           FOR v IN 1..9999
           INBOUND ope follows, readsFrom, writesTo, executes
           FILTER CONTAINS(v._id, "execution")
-          RETURN v.dataTypes
+          RETURN v.extra.dataTypes
+        )
+
+        LET dataTypesFormatted = (
+          FOR d IN dataTypes[0]
+          RETURN  MERGE(KEEP(d,  "id", "name", "fields", "nullable", "elementDataTypeId"),
+          {"_class": d.jsonClass == "Simple" ? "za.co.absa.spline.persistence.model.SimpleDataType" : d.jsonClass == "Array" ? "za.co.absa.spline.persistence.model.ArrayDataType" :  "za.co.absa.spline.persistence.model.StructDataType"})
         )
 
         LET schemas = APPEND(inputs, output)
 
         RETURN {
           "operation" : MERGE(KEEP(ope, "_type", "name"), {"_id": ope._key }, {"readsFrom" : readsFrom}, {"writesTo" : writesTo}),
-          "dataTypes": FIRST(dataTypes),
+          "dataTypes": dataTypesFormatted,
           "schemas" : schemas,
           "inputs": LENGTH(inputs) > 0 ? RANGE(0, LENGTH(inputs)-1) : [],
           "output": LENGTH(schemas)-1

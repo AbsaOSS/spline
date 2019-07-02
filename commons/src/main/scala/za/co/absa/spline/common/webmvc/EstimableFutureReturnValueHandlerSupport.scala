@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.common.webmvc
 
+import org.springframework.core.MethodParameter
 import org.springframework.web.context.request.WebRequest
 import za.co.absa.spline.common.future.EstimableFuture
 
@@ -24,6 +25,10 @@ trait EstimableFutureReturnValueHandlerSupport extends ScalaFutureMethodReturnVa
   protected val durationToleranceFactor: Double
 
   override type F = EstimableFuture[_]
+
+
+  override def supportsReturnType(returnType: MethodParameter): Boolean =
+    classOf[F].isAssignableFrom(returnType.getParameterType)
 
   override protected def getFutureTimeout(future: F, req: WebRequest): Option[Long] = super
     .getFutureTimeout(future, req)

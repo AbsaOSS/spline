@@ -16,9 +16,7 @@
 
 package za.co.absa.spline.consumer.service.model
 
-import java.util.UUID
-
-import ExecutedLogicalPlan.OperationID
+import za.co.absa.spline.consumer.service.model.ExecutedLogicalPlan.OperationID
 
 case class Operation(
                       _id: OperationID,
@@ -33,5 +31,5 @@ case class Operation(
 }
 
 object Operation {
-  type Id = UUID
+  type Id = String
 }

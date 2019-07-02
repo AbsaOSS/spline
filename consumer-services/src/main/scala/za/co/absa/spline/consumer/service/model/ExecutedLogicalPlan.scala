@@ -28,5 +28,5 @@ case class ExecutedLogicalPlan
 }
 
 object ExecutedLogicalPlan {
-  type OperationID = UUID
+  type OperationID = String
 }

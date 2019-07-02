@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {HttpErrorResponse} from '@angular/common/http';
-import {Injectable} from '@angular/core';
-import {Actions, Effect, ofType} from '@ngrx/effects';
-import {Action, Store} from '@ngrx/store';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Actions, Effect, ofType } from '@ngrx/effects';
+import { Action, Store } from '@ngrx/store';
 import * as _ from 'lodash';
-import {Observable, throwError} from 'rxjs';
-import {catchError, flatMap, map} from 'rxjs/operators';
-import {AttributeRef, DataType, OperationDetails} from '../generated/models';
-import {OperationDetailsControllerService} from '../generated/services';
-import {StrictHttpResponse} from '../generated/strict-http-response';
-import {AppState} from '../model/app-state';
-import {AttributeType} from '../model/types/attributeType';
-import {AttributeVM} from '../model/viewModels/attributeVM';
-import {DataTypeVM} from '../model/viewModels/dataTypeVM';
-import {GenericDataTypeVM} from '../model/viewModels/GenericDataTypeVM';
-import {OperationDetailsVM} from '../model/viewModels/operationDetailsVM';
+import { Observable, throwError } from 'rxjs';
+import { catchError, flatMap, map } from 'rxjs/operators';
+import { Attribute, DataType, OperationDetails } from '../generated/models';
+import { OperationDetailsControllerService } from '../generated/services';
+import { StrictHttpResponse } from '../generated/strict-http-response';
+import { AppState } from '../model/app-state';
+import { AttributeType } from '../model/types/attributeType';
+import { AttributeVM } from '../model/viewModels/attributeVM';
+import { DataTypeVM } from '../model/viewModels/dataTypeVM';
+import { GenericDataTypeVM } from '../model/viewModels/GenericDataTypeVM';
+import { OperationDetailsVM } from '../model/viewModels/operationDetailsVM';
 import * as DetailsInfoAction from '../store/actions/details-info.actions';
 
 
@@ -67,15 +67,15 @@ export class DetailsInfoEffects {
         operationDetailsVm.operation = operationDetailsVMHttpResponse.body.operation
 
         const schemas: Array<Array<AttributeVM>> = []
-        _.each(operationDetailsVMHttpResponse.body.schemas, (attributeRefArray: Array<AttributeRef>) => {
-            const attributes = _.map(attributeRefArray, attRef => this.getAttribute(attRef.dataTypeKey, operationDetailsVMHttpResponse.body.dataTypes, attributeRefArray, attRef.name))
+        _.each(operationDetailsVMHttpResponse.body.schemas, (attributeRefArray: Array<Attribute>) => {
+            const attributes = _.map(attributeRefArray, attRef => this.getAttribute(attRef.dataTypeId, operationDetailsVMHttpResponse.body.dataTypes, attributeRefArray, attRef.name))
             schemas.push(attributes)
         })
         operationDetailsVm.schemas = schemas
         return operationDetailsVm
     }
 
-    private getAttribute = (attributeId: string, dataTypes: Array<DataType>, attributeRefArray: Array<AttributeRef>, attributeName: string = null): AttributeVM => {
+    private getAttribute = (attributeId: string, dataTypes: Array<DataType>, attributeRefArray: Array<Attribute>, attributeName: string = null): AttributeVM => {
         const dataType = this.getDataType(dataTypes, attributeId)
         const attribute = {} as AttributeVM
         const dataTypeVM = {} as DataTypeVM
@@ -89,15 +89,15 @@ export class DetailsInfoEffects {
                 return attribute
             case AttributeType.Array:
                 attribute.name = attributeName
-                dataTypeVM.elementDataType = this.getAttribute(dataType.elementDataTypeKey, dataTypes, attributeRefArray, attributeName)
+                dataTypeVM.elementDataType = this.getAttribute(dataType.elementDataTypeId, dataTypes, attributeRefArray, attributeName)
                 dataTypeVM.name = AttributeType.Array
                 attribute.dataType = dataTypeVM
                 return attribute
             case AttributeType.Struct:
                 attribute.name = attributeName
                 dataTypeVM.children = [] as Array<AttributeVM>
-                _.each(dataType.fields[1], (attributeRef: AttributeRef) => {
-                    dataTypeVM.children.push(this.getAttribute(attributeRef.dataTypeKey, dataTypes, attributeRefArray, attributeRef.name))
+                _.each(dataType.fields, (attributeRef: Attribute) => {
+                    dataTypeVM.children.push(this.getAttribute(attributeRef.dataTypeId, dataTypes, attributeRefArray, attributeRef.name))
                 })
                 dataTypeVM.name = AttributeType.Struct
                 attribute.dataType = dataTypeVM
@@ -106,7 +106,7 @@ export class DetailsInfoEffects {
     }
 
     private getDataType = (dataTypes: Array<DataType>, dataTypeId: string): GenericDataTypeVM => {
-        return _.find(dataTypes, (dt: GenericDataTypeVM) => dt._key == dataTypeId)
+        return _.find(dataTypes, (dt: GenericDataTypeVM) => dt.id == dataTypeId)
     }
 
     private handleError = (err: HttpErrorResponse): Observable<never> => {
