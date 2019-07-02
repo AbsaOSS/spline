@@ -1,0 +1,48 @@
+<!--
+  ~ Copyright 2019 ABSA Group Limited
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<div class="lineage-overview-container">
+  <div *ngIf="(getLineageOverviewInfo() | async)" class="container-fluid lineage-overview-details">
+    <br />
+    <p>
+      <span class="lineage-overview-details-title">Application ID:</span>
+      {{ (getLineageOverviewInfo() | async )?.applicationId }}
+    </p>
+    <p>
+      <span class="lineage-overview-details-title">Timestamp : </span>
+      {{ (getLineageOverviewInfo() | async )?.timestamp | date: 'yyyy-MM-dd hh:mm' }}
+    </p>
+    <hr>
+
+    <div *ngIf="(getExecutionPlanDatasourceInfo() | async); let executionPlanDataSourceInfo">
+      <p>
+        <span class="lineage-overview-details-title">Sources : </span>
+      </p>
+      <p>
+        <b>{{ executionPlanDataSourceInfo[0].sourceType }} :</b></p>
+      <span *ngFor='let datasourceInfo of executionPlanDataSourceInfo |  keyvalue '>
+        {{datasourceInfo.value.source}} <br />
+      </span>
+    </div>
+
+    <div *ngIf="(getDataSourceInfo() | async)">
+      <div>
+        <schema [schemaId]="'output_schema'" [schemaType]=2 [schema]="getOutputSchema((getDataSourceInfo() | async))">
+        </schema>
+      </div>
+    </div>
+
+  </div>
+</div>

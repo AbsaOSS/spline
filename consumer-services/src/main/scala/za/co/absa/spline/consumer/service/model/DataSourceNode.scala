@@ -13,20 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package za.co.absa.spline.consumer.service.model
 
-package za.co.absa.spline.consumer.service.repo
+case class DataSourceNode
+(
+  override val _id: String,
+  override val name: String
+) extends LineageOverviewNode {
+  override type Id = String
 
-import za.co.absa.spline.consumer.service.model.{ExecutedLogicalPlan, DataSourceInfo}
-import za.co.absa.spline.consumer.service.model.ExecutionInfo.Id
-
-import scala.concurrent.{ExecutionContext, Future}
-
-
-trait ExecutionPlanRepository {
-
-  def findById(execId: Id)
-              (implicit ec: ExecutionContext): Future[ExecutedLogicalPlan]
-
-  def findInputDataSourceInfoById(execId: Id)
-                       (implicit ec: ExecutionContext): Future[Array[DataSourceInfo]]
+  def this() = this("", "")
 }

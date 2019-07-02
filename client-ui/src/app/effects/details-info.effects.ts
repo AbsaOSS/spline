@@ -30,6 +30,7 @@ import { DataTypeVM } from '../model/viewModels/dataTypeVM';
 import { GenericDataTypeVM } from '../model/viewModels/GenericDataTypeVM';
 import { OperationDetailsVM } from '../model/viewModels/operationDetailsVM';
 import * as DetailsInfoAction from '../store/actions/details-info.actions';
+import * as DatasourceAction from '../store/actions/datasource.info.actions';
 
 
 @Injectable()
@@ -55,7 +56,21 @@ export class DetailsInfoEffects {
 
     private getDetailsInfo = (nodeId: string): Observable<OperationDetailsVM> => {
         return this.operationDetailsControllerService.operationUsingGETResponse(nodeId).pipe(
-            map(response => this.toOperationDetailsView(response)),
+            map(this.toOperationDetailsView),
+            catchError(this.handleError)
+        )
+    }
+
+    @Effect()
+    public getDatasourceInfo$: Observable<Action> = this.actions$.pipe(
+        ofType(DatasourceAction.DataSourceActionTypes.DATASOURCE_INFOS_GET),
+        flatMap((action: any) => this.getDatasourceInfo(action.payload.source, action.payload.applicationId)),
+        map(res => new DatasourceAction.GetSuccess(res))
+    )
+
+    private getDatasourceInfo = (source: string, applicationId: string): Observable<OperationDetailsVM> => {
+        return this.operationDetailsControllerService.operationFromSourceAndApplicationIdUsingGETResponse({ "source": source, "applicationId": applicationId }).pipe(
+            map(this.toOperationDetailsView),
             catchError(this.handleError)
         )
     }
@@ -110,13 +125,10 @@ export class DetailsInfoEffects {
     }
 
     private handleError = (err: HttpErrorResponse): Observable<never> => {
-        let errorMessage = ''
-        if (err.error instanceof ErrorEvent) {
-            errorMessage = `An error occurred: ${err.error.message}`
-        } else {
-            errorMessage = `Server returned code: ${err.status}, error message is: ${err.message}`
-        }
-        return throwError(errorMessage)
+        return throwError(
+            (err.error instanceof ErrorEvent)
+                ? `An error occurred: ${err.error.message}`
+                : `Server returned code: ${err.status}, error message is: ${err.message}`)
     }
 
 }

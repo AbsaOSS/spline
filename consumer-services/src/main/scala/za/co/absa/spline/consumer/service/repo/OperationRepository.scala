@@ -26,4 +26,8 @@ trait OperationRepository {
 
   def findById(operationId: Id)
               (implicit ec: ExecutionContext): Future[OperationDetails]
+
+  def findBySourceAndApplicationId(source: String, applicationId : String)
+              (implicit ec: ExecutionContext): Future[OperationDetails]
+
 }

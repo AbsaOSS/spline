@@ -20,7 +20,7 @@ import java.util.UUID
 
 import za.co.absa.spline.common.OptionImplicits._
 import za.co.absa.spline.migrator.DataLineageToExecPlanWithEventConverter.{AppMetaInfo, ExecutionEventExtra, ExecutionPlanExtra, OperationParams}
-import za.co.absa.spline.model.{DataLineage, op}
+import za.co.absa.spline.model._
 import za.co.absa.spline.producer.rest.model._
 
 class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {

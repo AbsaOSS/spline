@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.consumer.service.repo
-
-import za.co.absa.spline.consumer.service.model.{ExecutedLogicalPlan, DataSourceInfo}
-import za.co.absa.spline.consumer.service.model.ExecutionInfo.Id
-
-import scala.concurrent.{ExecutionContext, Future}
+package za.co.absa.spline.consumer.service.model
 
 
-trait ExecutionPlanRepository {
-
-  def findById(execId: Id)
-              (implicit ec: ExecutionContext): Future[ExecutedLogicalPlan]
-
-  def findInputDataSourceInfoById(execId: Id)
-                       (implicit ec: ExecutionContext): Future[Array[DataSourceInfo]]
+trait LineageOverviewNode extends Graph.Node {
+  val name: String
+  type Id = String
 }
+
+
+
+

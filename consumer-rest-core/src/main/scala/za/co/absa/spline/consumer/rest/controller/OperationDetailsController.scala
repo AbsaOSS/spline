@@ -23,7 +23,6 @@ import za.co.absa.spline.consumer.service.model._
 import za.co.absa.spline.consumer.service.repo.OperationRepository
 import za.co.absa.spline.persistence.{model => persistence}
 
-import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
 
 
@@ -31,6 +30,8 @@ import scala.concurrent.Future
 @RequestMapping(Array("/operation"))
 class OperationDetailsController @Autowired()(
   val repo: OperationRepository) {
+
+  import scala.concurrent.ExecutionContext.Implicits._
 
   @GetMapping(Array("/{operationId}"))
   @ApiOperation("Returns details of an operation node")
@@ -42,6 +43,17 @@ class OperationDetailsController @Autowired()(
       res.copy(dataTypes = reducedDt)
     })
 
+  }
+
+  @GetMapping(Array("/info"))
+  @ApiOperation("Returns details of an operation node from a sourceId")
+  def operationFromSourceAndApplicationId(@RequestParam("source") source: String, @RequestParam("applicationId") applicationId: String): Future[OperationDetails] = {
+    val result: Future[OperationDetails] = repo.findBySourceAndApplicationId(source, applicationId)
+
+    result.map(res => {
+      val reducedDt = reducedDataTypes(res.dataTypes, res.schemas)
+      res.copy(dataTypes = reducedDt)
+    })
   }
 
   private def reducedDataTypes(dataTypes: Array[persistence.DataType], schemas: Array[Array[persistence.Attribute]]): Array[persistence.DataType] = {
