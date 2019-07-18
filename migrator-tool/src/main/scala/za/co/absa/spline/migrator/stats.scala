@@ -17,35 +17,39 @@
 package za.co.absa.spline.migrator
 
 object Stats {
-  def empty = SimpleStats(0, 0)
+  def empty = SimpleStats(0, 0, 0)
 
-  def emptyTree = TreeStats(0, 0, empty)
+  def emptyTree = TreeStats(0, 0, 0, empty)
 }
 
-trait Stats {
+sealed trait Stats {
   type T <: Stats
+
   val success: Int
   val failures: Int
+  val queued: Int
 
   def processed: Int = success + failures
 
-  def inc(successInc: Int, failureInc: Int): T
+  def inc(successInc: Int, failureInc: Int, queued: Int): T
 
-  def incSuccess: T = inc(1, 0)
+  def incSuccess: T = inc(1, 0, -1)
 
-  def incFailure: T = inc(0, 1)
+  def incFailure: T = inc(0, 1, -1)
+
+  def incQueue: T = inc(0, 0, 1)
 }
 
-case class SimpleStats private(success: Int, failures: Int) extends Stats {
+case class SimpleStats private(success: Int, failures: Int, queued: Int) extends Stats {
   override type T = SimpleStats
 
-  override def inc(successInc: Int, failureInc: Int) =
-    SimpleStats(success + successInc, failures + failureInc)
+  override def inc(successInc: Int, failureInc: Int, queueInc: Int) =
+    SimpleStats(success + successInc, failures + failureInc, queued + queueInc)
 }
 
-case class TreeStats private(success: Int, failures: Int, parentStats: Stats) extends Stats {
+case class TreeStats private(success: Int, failures: Int, queued: Int, parentStats: Stats) extends Stats {
   override type T = TreeStats
 
-  override def inc(successInc: Int, failureInc: Int) =
-    TreeStats(success + successInc, failures + failureInc, parentStats.inc(successInc, failureInc))
+  override def inc(successInc: Int, failureInc: Int, queueInc: Int) =
+    TreeStats(success + successInc, failures + failureInc, queued + queueInc, parentStats.inc(successInc, failureInc, queueInc))
 }

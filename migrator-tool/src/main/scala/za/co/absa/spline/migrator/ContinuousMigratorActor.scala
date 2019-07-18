@@ -21,7 +21,7 @@ import akka.actor.{Actor, ActorLogging, OneForOneStrategy, Props, SupervisorStra
 import za.co.absa.spline.migrator.ContinuousMigratorActor.Start
 import za.co.absa.spline.migrator.Spline03Actor.{DataLineageLoadFailure, DataLineageLoaded, GetFutureLineages}
 import za.co.absa.spline.migrator.Spline04Actor.Save
-import za.co.absa.spline.migrator.rest.ScalajRestClientImpl
+import za.co.absa.spline.migrator.rest.RestClient
 import za.co.absa.spline.model.DataLineage
 
 object ContinuousMigratorActor {
@@ -32,12 +32,12 @@ object ContinuousMigratorActor {
 
 }
 
-class ContinuousMigratorActor(conf: MigratorConfig)
+class ContinuousMigratorActor(conf: MigratorConfig, restClient: RestClient)
   extends Actor
     with ActorLogging {
 
   private val spline03Actor = context.actorOf(Props(new Spline03Actor(conf.mongoConnectionUrl)))
-  private val spline04Actor = context.actorOf(Props(new Spline04Actor(new ScalajRestClientImpl(conf.producerRESTEndpointUrl))))
+  private val spline04Actor = context.actorOf(Props(new Spline04Actor(restClient)))
 
   override def supervisorStrategy: SupervisorStrategy = OneForOneStrategy()({ case _ => Escalate })
 
