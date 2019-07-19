@@ -25,11 +25,21 @@ import za.co.absa.spline.producer.rest.model._
 
 class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
 
-  private val operationIdByDatasetUUID: Map[UUID, Int] =
+  private type OperationId = Int
+  private type AttributeId = UUID
+  private type Schema = Seq[AttributeId]
+
+  private val operationIdByDatasetUUID: Map[UUID, OperationId] =
     lineage
       .datasets
       .map(_.id)
       .zipWithIndex
+      .toMap
+
+  private val schemaByDatasetUUID: Map[UUID, Schema] =
+    lineage
+      .datasets
+      .map(ds => ds.id -> ds.schema.attrs)
       .toMap
 
   def convert(): (ExecutionPlan, Option[ExecutionEvent]) = {
@@ -50,8 +60,7 @@ class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
       extraInfo = Map(
         ExecutionPlanExtra.AppName -> lineage.appName,
         ExecutionPlanExtra.DataTypes -> lineage.dataTypes,
-        ExecutionPlanExtra.Attributes -> lineage.attributes,
-        ExecutionPlanExtra.Datasets -> lineage.datasets
+        ExecutionPlanExtra.Attributes -> lineage.attributes
       ))
 
     val maybeExecutionEvent =
@@ -95,7 +104,7 @@ class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
       append = opWrite.append,
       id = operationIdByDatasetUUID(opWrite.mainProps.output),
       childIds = opWrite.mainProps.inputs.map(operationIdByDatasetUUID),
-      schema = None, // todo: to be implemented in https://github.com/AbsaOSS/spline/issues/258
+      schema = schemaByDatasetUUID.get(opWrite.mainProps.output),
       params = Map(
         OperationParams.Name -> opWrite.mainProps.name,
         OperationParams.DestinationType -> opWrite.destinationType
@@ -105,7 +114,7 @@ class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
     ReadOperation(
       inputSources = opRead.sources.map(_.path),
       id = operationIdByDatasetUUID(opRead.mainProps.output),
-      schema = None, // todo: to be implemented in https://github.com/AbsaOSS/spline/issues/258
+      schema = schemaByDatasetUUID.get(opRead.mainProps.output),
       params = Map(
         OperationParams.Name -> opRead.mainProps.name,
         OperationParams.SourceType -> opRead.sourceType
@@ -139,10 +148,20 @@ class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
 
       case _ => Map.empty
     }
+
+    val maybeSchema: Option[Schema] = opOther.mainProps.inputs match {
+      case Seq(singleInput) =>
+        val inputSchema = schemaByDatasetUUID(singleInput)
+        val outputSchema = schemaByDatasetUUID(opOther.mainProps.output)
+        if (inputSchema != outputSchema) Some(outputSchema)
+        else None
+      case _ => schemaByDatasetUUID.get(opOther.mainProps.output)
+    }
+
     DataOperation(
       id = operationIdByDatasetUUID(opOther.mainProps.output),
       childIds = opOther.mainProps.inputs.map(operationIdByDatasetUUID),
-      schema = None, // todo: to be implemented in https://github.com/AbsaOSS/spline/issues/258
+      schema = maybeSchema,
       params = params + (OperationParams.Name -> opOther.mainProps.name))
   }
 }
@@ -159,7 +178,6 @@ object DataLineageToExecPlanWithEventConverter {
     val AppName = "appName"
     val DataTypes = "dataTypes"
     val Attributes = "attributes"
-    val Datasets = "datasets"
   }
 
   private object ExecutionEventExtra {

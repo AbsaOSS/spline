@@ -149,7 +149,7 @@ object DataLineageToExecPlanWithEventConverterSpec {
           output = UUID.fromString("00000000-0000-0000-0000-000000000007")),
         groupings = Seq(
           expr.AttrRef(UUID.fromString("00000002-9999-9999-9999-999999999999")),
-          expr.AttrRef(UUID.fromString("00000003-9999-9999-9999-999999999999"))),
+          expr.AttrRef(UUID.fromString("00000005-9999-9999-9999-999999999999"))),
         aggregations = Map(
           "avg" -> expr.AttrRef(UUID.fromString("00000004-9999-9999-9999-999999999999")),
           "sum" -> expr.AttrRef(UUID.fromString("00000005-9999-9999-9999-999999999999")))),
@@ -183,39 +183,28 @@ object DataLineageToExecPlanWithEventConverterSpec {
         sources = Seq(MetaDataSource(path = "some://test/read/source-3", datasetsIds = Nil)))),
 
     datasets = Seq(
-      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000000"), Schema(attrs = Seq.empty)),
-      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000001"), Schema(attrs = Seq.empty)),
-      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000002"), Schema(attrs = Seq.empty)),
-      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000003"), Schema(attrs = Seq.empty)),
-      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000004"), Schema(attrs = Seq.empty)),
-      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000005"), Schema(attrs = Seq.empty)),
-      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000006"), Schema(attrs = Seq.empty)),
-      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000007"), Schema(attrs = Seq.empty)),
-      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000008"), Schema(attrs = Seq.empty)),
-      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000009"), Schema(attrs = Seq.empty)),
-      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000010"), Schema(attrs = Seq.empty))),
+      // Attribute ID corresponds to the ID of a dataset where it appeared first.
+      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000000"), Schema(attrs = Seq(UUID.fromString("00000001-9999-9999-9999-999999999999")))),
+      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000001"), Schema(attrs = Seq(UUID.fromString("00000001-9999-9999-9999-999999999999")))),
+      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000002"), Schema(attrs = Seq(UUID.fromString("00000002-9999-9999-9999-999999999999")))),
+      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000003"), Schema(attrs = Seq(UUID.fromString("00000005-9999-9999-9999-999999999999")))),
+      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000004"), Schema(attrs = Seq(UUID.fromString("00000004-9999-9999-9999-999999999999")))),
+      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000005"), Schema(attrs = Seq(UUID.fromString("00000005-9999-9999-9999-999999999999")))),
+      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000006"), Schema(attrs = Seq(UUID.fromString("00000007-9999-9999-9999-999999999999")))),
+      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000007"), Schema(attrs = Seq(UUID.fromString("00000007-9999-9999-9999-999999999999")))),
+      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000008"), Schema(attrs = Seq(UUID.fromString("00000008-9999-9999-9999-999999999999")))),
+      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000009"), Schema(attrs = Seq(UUID.fromString("00000009-9999-9999-9999-999999999999")))),
+      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000010"), Schema(attrs = Seq(UUID.fromString("00000010-9999-9999-9999-999999999999"))))),
 
     attributes = Seq(
-      Attribute(
-        id = UUID.fromString("00000001-9999-9999-9999-999999999999"),
-        name = "aaa",
-        dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
-      Attribute(
-        id = UUID.fromString("00000002-9999-9999-9999-999999999999"),
-        name = "bbb",
-        dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
-      Attribute(
-        id = UUID.fromString("00000003-9999-9999-9999-999999999999"),
-        name = "ccc",
-        dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
-      Attribute(
-        id = UUID.fromString("00000004-9999-9999-9999-999999999999"),
-        name = "ddd",
-        dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
-      Attribute(
-        id = UUID.fromString("00000005-9999-9999-9999-999999999999"),
-        name = "eee",
-        dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999"))),
+      Attribute(id = UUID.fromString("00000001-9999-9999-9999-999999999999"), name = "aaa", dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
+      Attribute(id = UUID.fromString("00000002-9999-9999-9999-999999999999"), name = "bbb", dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
+      Attribute(id = UUID.fromString("00000004-9999-9999-9999-999999999999"), name = "ccc", dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
+      Attribute(id = UUID.fromString("00000005-9999-9999-9999-999999999999"), name = "ddd", dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
+      Attribute(id = UUID.fromString("00000007-9999-9999-9999-999999999999"), name = "eee", dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
+      Attribute(id = UUID.fromString("00000008-9999-9999-9999-999999999999"), name = "fff", dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
+      Attribute(id = UUID.fromString("00000009-9999-9999-9999-999999999999"), name = "ggg", dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
+      Attribute(id = UUID.fromString("00000010-9999-9999-9999-999999999999"), name = "hhh", dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999"))),
 
     dataTypes = Seq(
       dt.Simple(UUID.fromString("00000000-0000-0000-0001-999999999999"), "type1", nullable = false),
@@ -234,7 +223,7 @@ object DataLineageToExecPlanWithEventConverterSpec {
           inputSources = Seq(
             "some://test/read/source-1",
             "some://test/read/source-2"),
-          schema = None,
+          schema = Some(Seq(UUID.fromString("00000005-9999-9999-9999-999999999999"))),
           params = Map(
             "name" -> "read-A",
             "sourceType" -> "bar"
@@ -242,7 +231,7 @@ object DataLineageToExecPlanWithEventConverterSpec {
         ReadOperation(
           id = 10,
           inputSources = Seq("some://test/read/source-3"),
-          schema = None,
+          schema = Some(Seq(UUID.fromString("00000010-9999-9999-9999-999999999999"))),
           params = Map(
             "name" -> "read-B",
             "sourceType" -> "bar"
@@ -253,7 +242,7 @@ object DataLineageToExecPlanWithEventConverterSpec {
         childIds = Seq(1),
         outputSource = "some://test/write/data/source/url?with=parameters&more=parameters",
         append = true,
-        schema = None,
+        schema = Some(Seq(UUID.fromString("00000001-9999-9999-9999-999999999999"))),
         params = Map(
           "name" -> "write",
           "destinationType" -> "foo")),
@@ -262,7 +251,7 @@ object DataLineageToExecPlanWithEventConverterSpec {
         DataOperation(
           id = 1,
           childIds = Seq(2, 6),
-          schema = None,
+          schema = Some(Seq(UUID.fromString("00000001-9999-9999-9999-999999999999"))),
           params = Map(
             "name" -> "join",
             "joinType" -> "INNER",
@@ -276,7 +265,7 @@ object DataLineageToExecPlanWithEventConverterSpec {
         DataOperation(
           id = 2,
           childIds = Seq(3, 4),
-          schema = None,
+          schema = Some(Seq(UUID.fromString("00000002-9999-9999-9999-999999999999"))),
           params = Map(
             "name" -> "union")),
 
@@ -296,7 +285,7 @@ object DataLineageToExecPlanWithEventConverterSpec {
         DataOperation(
           id = 4,
           childIds = Seq(5),
-          schema = None,
+          schema = Some(Seq(UUID.fromString("00000004-9999-9999-9999-999999999999"))),
           params = Map(
             "name" -> "sort",
             "orders" -> Seq(SortOrder(
@@ -316,12 +305,12 @@ object DataLineageToExecPlanWithEventConverterSpec {
         DataOperation(
           id = 7,
           childIds = Seq(8),
-          schema = None,
+          schema = Some(Seq(UUID.fromString("00000007-9999-9999-9999-999999999999"))),
           params = Map(
             "name" -> "aggregate",
             "groupings" -> Seq(
               expr.AttrRef(UUID.fromString("00000002-9999-9999-9999-999999999999")),
-              expr.AttrRef(UUID.fromString("00000003-9999-9999-9999-999999999999"))),
+              expr.AttrRef(UUID.fromString("00000005-9999-9999-9999-999999999999"))),
             "aggregations" -> Map(
               "avg" -> expr.AttrRef(UUID.fromString("00000004-9999-9999-9999-999999999999")),
               "sum" -> expr.AttrRef(UUID.fromString("00000005-9999-9999-9999-999999999999"))))),
@@ -329,7 +318,7 @@ object DataLineageToExecPlanWithEventConverterSpec {
         DataOperation(
           id = 8,
           childIds = Seq(9),
-          schema = None,
+          schema = Some(Seq(UUID.fromString("00000008-9999-9999-9999-999999999999"))),
           params = Map(
             "name" -> "project",
             "transformations" -> Seq(
@@ -340,7 +329,7 @@ object DataLineageToExecPlanWithEventConverterSpec {
         DataOperation(
           id = 9,
           childIds = Seq(10),
-          schema = None,
+          schema = Some(Seq(UUID.fromString("00000009-9999-9999-9999-999999999999"))),
           params = Map(
             "name" -> "custom",
             "rawString" -> "CUSTOM_OPERATION_RAW_STRING")))),
@@ -349,39 +338,15 @@ object DataLineageToExecPlanWithEventConverterSpec {
     agentInfo = Some(AgentInfo("spline", "0.3.x")),
     extraInfo = Map(
       "appName" -> "Lineage Converter Unit Test",
-      "datasets" -> Seq(
-        MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000000"), Schema(attrs = Seq.empty)),
-        MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000001"), Schema(attrs = Seq.empty)),
-        MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000002"), Schema(attrs = Seq.empty)),
-        MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000003"), Schema(attrs = Seq.empty)),
-        MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000004"), Schema(attrs = Seq.empty)),
-        MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000005"), Schema(attrs = Seq.empty)),
-        MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000006"), Schema(attrs = Seq.empty)),
-        MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000007"), Schema(attrs = Seq.empty)),
-        MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000008"), Schema(attrs = Seq.empty)),
-        MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000009"), Schema(attrs = Seq.empty)),
-        MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000010"), Schema(attrs = Seq.empty))),
       "attributes" -> Seq(
-        Attribute(
-          id = UUID.fromString("00000001-9999-9999-9999-999999999999"),
-          name = "aaa",
-          dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
-        Attribute(
-          id = UUID.fromString("00000002-9999-9999-9999-999999999999"),
-          name = "bbb",
-          dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
-        Attribute(
-          id = UUID.fromString("00000003-9999-9999-9999-999999999999"),
-          name = "ccc",
-          dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
-        Attribute(
-          id = UUID.fromString("00000004-9999-9999-9999-999999999999"),
-          name = "ddd",
-          dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
-        Attribute(
-          id = UUID.fromString("00000005-9999-9999-9999-999999999999"),
-          name = "eee",
-          dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999"))),
+        Attribute(id = UUID.fromString("00000001-9999-9999-9999-999999999999"), name = "aaa", dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
+        Attribute(id = UUID.fromString("00000002-9999-9999-9999-999999999999"), name = "bbb", dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
+        Attribute(id = UUID.fromString("00000004-9999-9999-9999-999999999999"), name = "ccc", dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
+        Attribute(id = UUID.fromString("00000005-9999-9999-9999-999999999999"), name = "ddd", dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
+        Attribute(id = UUID.fromString("00000007-9999-9999-9999-999999999999"), name = "eee", dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
+        Attribute(id = UUID.fromString("00000008-9999-9999-9999-999999999999"), name = "fff", dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
+        Attribute(id = UUID.fromString("00000009-9999-9999-9999-999999999999"), name = "ggg", dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")),
+        Attribute(id = UUID.fromString("00000010-9999-9999-9999-999999999999"), name = "hhh", dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999"))),
       "dataTypes" -> Seq(
         dt.Simple(UUID.fromString("00000000-0000-0000-0001-999999999999"), "type1", nullable = false),
         dt.Simple(UUID.fromString("00000000-0000-0000-0002-999999999999"), "type2", nullable = false),
