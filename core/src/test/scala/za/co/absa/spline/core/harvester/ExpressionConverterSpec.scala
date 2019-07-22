@@ -20,7 +20,7 @@ import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.codegen.{CodegenContext, ExprCode}
 import org.apache.spark.sql.catalyst.expressions.{CaseWhen, Expression, Literal}
 import org.apache.spark.sql.types.DataTypes.NullType
-import org.apache.spark.sql.types.{DataType, StringType}
+import org.apache.spark.sql.types._
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FlatSpec, Inside, Matchers, OneInstancePerTest}
@@ -116,7 +116,7 @@ class ExpressionConverterSpec extends FlatSpec with OneInstancePerTest with Mock
 
     inside(converter convert expression) {
       case expr.Generic(_, _, _, _, Some(params)) =>
-        params should contain("option" -> Map("1" -> 10, "2" -> Seq(20), "3" -> Map("42" -> 42)))
+        params should contain("option" -> Map("1" -> 10, "2" -> Seq(null, 20), "3" -> Map("42" -> 42)))
     }
   }
 
@@ -135,6 +135,60 @@ class ExpressionConverterSpec extends FlatSpec with OneInstancePerTest with Mock
     inside(converter convert expression) {
       case expr.Generic(_, _, _, _, Some(params)) =>
         params should contain("any" -> "CASE WHEN 42 THEN Moo ELSE Meh END")
+    }
+  }
+
+  it should "support array of struct literals" in {
+    val testLiteral = Literal.create(Array(
+      Tuple2("a1", "b1"),
+      Tuple2("a2", "b2")
+    ))
+
+    val dummyType = dt.Simple("dummy", nullable = false)
+    when(dtConverterMock convert testLiteral.dataType -> false) thenReturn dummyType
+
+    val expression = converter.convert(testLiteral)
+
+    expression should be {
+      expr.Literal(
+        Seq(
+          Seq("a1", "b1"),
+          Seq("a2", "b2")
+        ),
+        dummyType.id)
+    }
+  }
+
+  it should "support array of struct of array of struct literals" in {
+    val testLiteral = Literal.create(Array(
+      Tuple2("row1", Array(
+        Tuple3("a1", Some(true), Map("b1" -> 100)),
+        Tuple3("c1", None, Map("d1" -> 200, "e1" -> 300))
+      )),
+      Tuple2("row2", Array(
+        Tuple3("a2", Some(false), Map("b2" -> 400)),
+        Tuple3("c2", None, Map("d2" -> 500, "e2" -> 600, "f2" -> 700))
+      ))
+    ))
+
+    val dummyType = dt.Simple("dummy", nullable = false)
+    when(dtConverterMock convert testLiteral.dataType -> false) thenReturn dummyType
+
+    val expression = converter.convert(testLiteral)
+
+    expression should be {
+      expr.Literal(
+        Seq(
+          Seq("row1", Seq(
+            Seq("a1", true, Map("b1" -> 100)),
+            Seq("c1", null, Map("d1" -> 200, "e1" -> 300))
+          )),
+          Seq("row2", Seq(
+            Seq("a2", false, Map("b2" -> 400)),
+            Seq("c2", null, Map("d2" -> 500, "e2" -> 600, "f2" -> 700))
+          ))
+        ),
+        dummyType.id)
     }
   }
 
@@ -197,6 +251,8 @@ object ExpressionConverterSpec {
 
   val nullDataType = dt.Simple("Null", nullable = true)
   val stringDataType = dt.Simple("String", nullable = false)
+  val tuple1DataType = dt.Struct(Seq(dt.StructField("_1", stringDataType.id)), nullable = false)
+  val tuple2DataType = dt.Struct(Seq(dt.StructField("_1", stringDataType.id), dt.StructField("_2", stringDataType.id)), nullable = false)
 
   case class Foo
   (
