@@ -42,7 +42,7 @@ object ExecutionEventTransactionParams {
   }
 
   private def createProgressForBatchJob(executionEvents: Array[ExecutionEvent]): Seq[Progress] = {
-    executionEvents.map(e => Progress(e.timestamp, 0, Some(randomUUID.toString)))
+    executionEvents.map(e => Progress(e.timestamp, e.error, e.extra, Some(randomUUID.toString)))
   }
 
   private def createProgressOf(executionEvents: Array[ExecutionEvent], progress: Seq[Progress]): Seq[ProgressOf] = {

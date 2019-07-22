@@ -39,48 +39,40 @@ case class ExecutionPlanTransactionParams
 
 object ExecutionPlanTransactionParams {
 
+  import za.co.absa.spline.common.OptionImplicits._
+
   def apply(executionPlan: ExecutionPlan, uriToNewKey: Map[String, String], uriToKey: Map[String, String]): ExecutionPlanTransactionParams = {
 
     ExecutionPlanTransactionParams(
       ser(createOperations(executionPlan)),
       ser(createFollows(executionPlan)),
       ser(createDataSources(uriToNewKey)),
-      ser(createWritesTos(executionPlan, uriToKey)),
+      ser(createWriteTo(executionPlan, uriToKey)),
       ser(createReadsFrom(executionPlan, uriToKey)),
       ser(createExecutes(executionPlan)),
       ser(createExecution(executionPlan))
     )
   }
 
-  private def createExecutes(executionPlan: ExecutionPlan): Seq[Executes] = {
-    Seq(
-      Executes(
-        _from = s"execution/${executionPlan.id}",
-        _to = s"operation/${executionPlan.id}:${executionPlan.operations.write.id}",
-        _key = Some(executionPlan.id.toString)
-      )
+  private def createExecutes(executionPlan: ExecutionPlan): Executes = {
+    Executes(
+      _from = s"execution/${executionPlan.id}",
+      _to = s"operation/${executionPlan.id}:${executionPlan.operations.write.id}",
+      _key = Some(executionPlan.id.toString)
     )
   }
 
-  private def createExecution(executionPlan: ExecutionPlan): Seq[Execution] = {
-    // TODO : Create dataTypes https://github.com/AbsaOSS/spline/issues/258
-    val extraInfos =
-      if (executionPlan.extraInfo == null || executionPlan.extraInfo.isEmpty)
-        Map.empty
-      else
-        executionPlan.extraInfo
-    val extras = extraInfos ++ Map("systemInfo" -> executionPlan.systemInfo, "agentInfo" -> executionPlan.agentInfo)
+  private def createExecution(executionPlan: ExecutionPlan): Execution = {
+    val extras = executionPlan
+      .extraInfo
+      .updated("systemInfo", executionPlan.systemInfo)
+      .optionally[AgentInfo](_.updated("agentInfo", _), executionPlan.agentInfo)
+
     val id = executionPlan.id.toString
-    Seq(
-      Execution(
-        id = s"execution/$id",
-        dataTypes = Array.empty,
-        startTime = None,
-        endTime = None,
-        extra = extras,
-        _key = Some(id),
-        _id = Some(s"execution/$id")
-      )
+    Execution(
+      extra = extras,
+      _key = Some(id),
+      _id = Some(s"execution/$id")
     )
   }
 
@@ -96,17 +88,13 @@ object ExecutionPlanTransactionParams {
     } yield readsFrom
   }
 
-  private def createWritesTos(executionPlan: ExecutionPlan, dsUriToKey: Map[String, String]): Seq[WritesTo] = {
-    executionPlan.operations.write.childIds.map(
-      _ => {
-        val executionPlanId = executionPlan.id
-        val writeOperationId = executionPlan.operations.write.id
-        val dataSourceId = dsUriToKey(executionPlan.operations.write.outputSource)
-        WritesTo(
-          _from = s"operation/$executionPlanId:$writeOperationId",
-          _to = s"dataSource/$dataSourceId")
-      }
-    )
+  private def createWriteTo(executionPlan: ExecutionPlan, dsUriToKey: Map[String, String]): WritesTo = {
+    val executionPlanId = executionPlan.id
+    val writeOperationId = executionPlan.operations.write.id
+    val dataSourceId = dsUriToKey(executionPlan.operations.write.outputSource)
+    WritesTo(
+      _from = s"operation/$executionPlanId:$writeOperationId",
+      _to = s"dataSource/$dataSourceId")
   }
 
   private def createDataSources(dsUriToNewKey: Map[String, String]): Seq[DataSource] = {
@@ -116,43 +104,35 @@ object ExecutionPlanTransactionParams {
     }
   }
 
-  private def createOperations(executionPlan: ExecutionPlan): Seq[Operation] = {
-    //TODO : Add the outputSchema : https://github.com/AbsaOSS/spline/issues/258
-    val allOperations = getAllOperations(executionPlan)
-    val operations = allOperations.map {
-      case r: ReadOperation =>
-        Read(
-          name = r.params.get("name").map(n => n.toString).orNull,
-          properties = Map.empty,
-          format = r.params.get("format").map(f => f.toString).orNull,
-          outputSchema = null,
-          _key = Some(s"${executionPlan.id}:${r.id.toString}")
-        )
-      case w: WriteOperation =>
-        Write(
-          name = w.params.get("name").map(n => n.toString).orNull,
-          properties = Map.empty,
-          format = w.params.get("format").map(f => f.toString).orNull,
-          outputSchema = null,
-          _key = Some(s"${executionPlan.id}:${w.id.toString}")
-        )
-      case o: DataOperation =>
-        Read(
-          name = o.params.get("name").map(n => n.toString).orNull,
-          properties = Map.empty,
-          format = o.params.get("format").map(f => f.toString).orNull,
-          outputSchema = null,
-          _key = Some(s"${executionPlan.id}:${o.id.toString}")
-        )
-    }
-    operations
+  private def createOperations(executionPlan: ExecutionPlan): Seq[Operation] = executionPlan.operations.all.map {
+    case r: ReadOperation =>
+      Read(
+        name = r.params.get("name").map(n => n.toString).orNull,
+        properties = r.params + ("inputSources" -> r.inputSources),
+        outputSchema = r.schema,
+        _key = Some(s"${executionPlan.id}:${r.id.toString}")
+      )
+    case w: WriteOperation =>
+      Write(
+        name = w.params.get("name").map(n => n.toString).orNull,
+        properties = w.params + ("outputSource" -> w.outputSource) + ("childIds" -> w.childIds) + ("append" -> w.append),
+        outputSchema = w.schema,
+        _key = Some(s"${executionPlan.id}:${w.id.toString}")
+      )
+    case t: DataOperation =>
+      Transformation(
+        name = t.params.get("name").map(n => n.toString).orNull,
+        properties = t.params + ("childIds" -> t.childIds),
+        outputSchema = t.schema,
+        _key = Some(s"${executionPlan.id}:${t.id.toString}")
+      )
   }
 
   private def createFollows(executionPlan: ExecutionPlan): Seq[Follows] = {
     // Operation inputs and outputs ids may be shared across already linked lineages. To avoid saving linked lineages or
     // duplicate indexes we need to not use these.
     for {
-      operation <- getAllOperations(executionPlan)
+      operation <- executionPlan.operations.all
       child <- operation.childIds
       follows = Follows(
         _from = s"operation/${executionPlan.id}:${operation.id}",
@@ -160,13 +140,6 @@ object ExecutionPlanTransactionParams {
         _key = Some(randomUUID.toString)
       )
     } yield follows
-  }
-
-  private def getAllOperations(executionPlan: ExecutionPlan): Seq[OperationLike] = {
-    val reads = executionPlan.operations.reads
-    val others = executionPlan.operations.other
-    val write = List(executionPlan.operations.write)
-    reads ++ others ++ write
   }
 }
 

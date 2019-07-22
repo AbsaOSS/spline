@@ -29,8 +29,10 @@ case class ExecutionPlan(
 case class Operations(
   reads: Seq[ReadOperation],
   write: WriteOperation,
-  other: Seq[DataOperation]
-)
+  other: Seq[DataOperation]) {
+
+  def all: Seq[OperationLike] = reads ++ other :+ write
+}
 
 /**
   * Information about a data framework in use (e.g. Spark, StreamSets etc)

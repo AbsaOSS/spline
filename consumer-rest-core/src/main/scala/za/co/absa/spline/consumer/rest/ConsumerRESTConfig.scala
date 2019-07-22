@@ -45,6 +45,7 @@ class ConsumerRESTConfig extends WebMvcConfigurer {
       override protected val minEstimatedTimeout: Long = ConsumerRESTConfig.AdaptiveTimeout.min
       override protected val durationToleranceFactor: Double = ConsumerRESTConfig.AdaptiveTimeout.durationFactor
     })
+    returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler)
   }
 }
 

@@ -1,10 +1,10 @@
-import {AttributeRef, DataType} from "../../generated/models";
+import { Attribute, DataType } from "../../generated/models";
 
 export interface GenericDataTypeVM extends DataType {
-    _key: string;
+    id: string;
     _type: string;
-    elementDataTypeKey: string;
-    fields: Array<AttributeRef>;
+    elementDataTypeId: string;
+    fields: Array<Attribute>;
     name: string;
     nullable: boolean;
 }

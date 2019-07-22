@@ -58,5 +58,8 @@ abstract class ArangoParams {
 }
 
 object ArangoParams {
+
   def ser(it: scala.collection.Iterable[AnyRef]): Iterable[VPackSlice] = it.map(Persister.vpack.serialize).asJava
+
+  def ser(a: Any): Iterable[VPackSlice] = Seq(a).map(Persister.vpack.serialize).asJava
 }

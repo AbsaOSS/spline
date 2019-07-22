@@ -16,13 +16,14 @@
 
 package za.co.absa.spline.consumer.service.model
 
-import za.co.absa.spline.persistence.model.DataType
+
+import za.co.absa.spline.persistence.{model => persistence}
 
 case class OperationDetails
 (
   operation: Operation,
-  dataTypes: Array[DataType],
-  schemas: Array[Array[AttributeRef]],
+  dataTypes: Array[persistence.DataType],
+  schemas: Array[Array[persistence.Attribute]],
   inputs: Array[Integer],
   output: Integer
 
