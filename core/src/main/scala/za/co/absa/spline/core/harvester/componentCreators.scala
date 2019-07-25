@@ -19,9 +19,10 @@ package za.co.absa.spline.core.harvester
 import java.util.UUID.randomUUID
 
 import org.apache.commons.lang3.StringUtils.substringAfter
-import org.apache.spark.sql.catalyst.expressions
 import org.apache.spark.sql.catalyst.expressions.{Literal, Attribute => SparkAttribute, Expression => SparkExpression}
-import org.apache.spark.sql.catalyst.util.ArrayData
+import org.apache.spark.sql.catalyst.util.{ArrayData, MapData}
+import org.apache.spark.sql.catalyst.{InternalRow, expressions}
+import org.apache.spark.sql.{types => st}
 import za.co.absa.spline.common.transformations.{AbstractConverter, CachingConverter}
 import za.co.absa.spline.model.dt._
 import za.co.absa.spline.model.{Attribute, MetaDataset, Schema, expr}
@@ -38,9 +39,6 @@ class ComponentCreatorFactory {
 }
 
 class DataTypeConverter extends AbstractConverter {
-
-  import org.apache.spark.sql.{types => st}
-
   override type From = (st.DataType, Boolean)
   override type To = DataType
 
@@ -75,76 +73,6 @@ class AttributeConverter(dataTypeConverter: DataTypeConverter)
   }
 }
 
-
-object ExpressionConverter {
-  private[this] val mirror = runtime.universe.runtimeMirror(ClassLoader.getSystemClassLoader)
-  private[this] val gettersCache = mutable.Map.empty[universe.ClassSymbol, Iterable[universe.Symbol]]
-
-  private[this] def getters(classSymbol: universe.ClassSymbol) =
-    gettersCache.synchronized {
-      gettersCache.getOrElseUpdate(classSymbol, {
-        val primaryConstr = classSymbol.primaryConstructor
-        val paramNames = primaryConstr.typeSignature.paramLists.
-          head.map(_.name.toString).toSet -- Set("children", "dataType", "nullable")
-        classSymbol.info.decls.filter(d =>
-          d.isMethod
-            && d.asMethod.isGetter
-            && paramNames(d.name.toString))
-      })
-    }
-
-  private[this] def asOption[T <: Traversable[_]](t: T): Option[T] = if (t.isEmpty) None else Some(t)
-
-  private[this] def introspect(expr: SparkExpression): Iterable[(String, Any)] = {
-    val exprChildren = expr.children
-
-    def render(o: Any): Option[Any] = o match {
-      case _: SparkExpression if exprChildren contains o => None // skip children
-      case _ => renderValue(render)(o)
-    }
-
-    val oMirror = mirror.reflect(expr)
-    getters(oMirror.symbol).flatMap(getter => {
-      val value = oMirror.reflectMethod(getter.asMethod).apply()
-      render(value).map(getter.name.toString -> _)
-    })
-  }
-
-  private[this] def renderValue(recursion: Any => Option[Any])(o: Any): Option[Any] = {
-    lazy val symbol = mirror.classSymbol(o.getClass)
-    o match {
-      case null => None
-      case _: Number => Some(o)
-      case _: Boolean => Some(o)
-      case _: String => Some(o)
-      case opt: Option[_] => opt.flatMap(recursion)
-      case map: Map[_, _] => asOption[Map[String, _]](for ((k, v) <- map; r <- recursion(v)) yield k.toString -> r)
-      case seq: Traversable[_] => asOption(seq.flatMap(item => recursion(item)).toList)
-      case _ if symbol.isModuleClass => Option(symbol.name.toString)
-      case _ => Option(o.toString)
-    }
-  }
-
-  private def getExpressionSimpleClassName(expr: SparkExpression) = {
-    val fullName = expr.getClass.getName
-    val simpleName = substringAfter(fullName, "org.apache.spark.sql.catalyst.expressions.")
-    if (simpleName.nonEmpty) simpleName else fullName
-  }
-
-  private def getExpressionExtraParameters(e: SparkExpression): Option[Map[String, Any]] = {
-    val params = introspect(e).toMap
-    if (params.isEmpty) None else Some(params)
-  }
-
-  private def getLiteralValue(lit: Literal): Any = {
-    def render(o: Any): Option[Any] = renderValue(render)(o)
-
-    lit.value match {
-      case ad: ArrayData => ad.toArray(lit.dataType)
-      case v => render(v).orNull
-    }
-  }
-}
 
 class ExpressionConverter(dataTypeConverter: DataTypeConverter, attributeConverter: AttributeConverter)
   extends AbstractConverter {
@@ -194,6 +122,104 @@ class ExpressionConverter(dataTypeConverter: DataTypeConverter, attributeConvert
   }
 
   private def getDataType(expr: SparkExpression) = dataTypeConverter.convert(expr.dataType, expr.nullable)
+}
+
+object ExpressionConverter {
+  private val mirror = runtime.universe.runtimeMirror(ClassLoader.getSystemClassLoader)
+  private val gettersCache = mutable.Map.empty[universe.ClassSymbol, Iterable[universe.Symbol]]
+
+  private def getters(classSymbol: universe.ClassSymbol) =
+    gettersCache.synchronized {
+      gettersCache.getOrElseUpdate(classSymbol, {
+        val primaryConstr = classSymbol.primaryConstructor
+        val paramNames = primaryConstr.typeSignature.paramLists.
+          head.map(_.name.toString).toSet -- Set("children", "dataType", "nullable")
+        classSymbol.info.decls.filter(d =>
+          d.isMethod
+            && d.asMethod.isGetter
+            && paramNames(d.name.toString))
+      })
+    }
+
+  private def asOption[T <: Traversable[_]](t: T): Option[T] = if (t.isEmpty) None else Some(t)
+
+  private def introspect(expr: SparkExpression): Iterable[(String, Any)] = {
+    val exprChildren = expr.children
+
+    def render(o: Any): Option[Any] = o match {
+      case _: SparkExpression if exprChildren contains o => None // skip children
+      case _ => renderValue((v, _) => render(v))(o, None)
+    }
+
+    val oMirror = mirror.reflect(expr)
+    getters(oMirror.symbol).flatMap(getter => {
+      val value = oMirror.reflectMethod(getter.asMethod).apply()
+      render(value).map(getter.name.toString -> _)
+    })
+  }
+
+  private def renderValue(recursion: (Any, Option[st.DataType]) => Option[Any])(o: Any, maybeType: Option[st.DataType]): Option[Any] = {
+    lazy val symbol = mirror.classSymbol(o.getClass)
+    (o, maybeType) match {
+      case (null, _) => None
+      case (_: Number, _) => Some(o)
+      case (_: Boolean, _) => Some(o)
+      case (_: String, _) => Some(o)
+      case (opt: Option[_], _) => opt.flatMap(recursion(_, None))
+      case (map: Map[_, _], _) => asOption[Map[String, _]](for ((k, v) <- map; r <- recursion(v, None)) yield k.toString -> r)
+      case (seq: Traversable[_], _) => asOption(seq.map(item => recursion(item, None).orNull).toVector)
+
+      case (row: InternalRow, Some(rowType: st.StructType)) =>
+        val rowItems = row.toSeq(rowType)
+        assert(rowItems.length == rowType.length)
+        val renderedItems = rowItems
+          .zip(rowType)
+          .map({ case (item, field) => recursion(item, Some(field.dataType)).orNull })
+        asOption[Seq[_]](renderedItems)
+
+      case (md: MapData, Some(st.MapType(keyType, valueType, _))) =>
+        val keys = md
+          .keyArray
+          .toArray[Any](keyType)
+          .map(_.toString)
+        val values = md
+          .valueArray
+          .toArray[Any](valueType)
+          .map(recursion(_, Some(valueType)).orNull)
+        asOption[Map[String, Any]](
+          keys
+            .zip(values)
+            .toMap)
+
+      case (ad: ArrayData, Some(st.ArrayType(elemType, _))) => asOption[Seq[_]](
+        ad
+          .toArray[Any](elemType)
+          .map(elem => {
+            val maybeValue = recursion(elem, Some(elemType))
+            maybeValue.orNull
+          }))
+
+      case _ if symbol.isModuleClass => Option(symbol.name.toString)
+      case _ => Option(o.toString)
+    }
+  }
+
+  private def getLiteralValue(lit: Literal): Any = {
+    def render(o: Any, maybeType: Option[st.DataType]): Option[Any] = renderValue(render)(o, maybeType)
+
+    render(lit.value, Some(lit.dataType)).orNull
+  }
+
+  private def getExpressionSimpleClassName(expr: SparkExpression) = {
+    val fullName = expr.getClass.getName
+    val simpleName = substringAfter(fullName, "org.apache.spark.sql.catalyst.expressions.")
+    if (simpleName.nonEmpty) simpleName else fullName
+  }
+
+  private def getExpressionExtraParameters(e: SparkExpression): Option[Map[String, Any]] = {
+    val params = introspect(e).toMap
+    if (params.isEmpty) None else Some(params)
+  }
 }
 
 
