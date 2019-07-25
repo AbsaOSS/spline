@@ -22,7 +22,7 @@
         <groupId>za.co.absa.spline</groupId>
         <artifactId>spline-parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>0.3.9-SNAPSHOT</version>
+        <version>0.3.9</version>
     </parent>
 
     <artifactId>spline-commons</artifactId>
