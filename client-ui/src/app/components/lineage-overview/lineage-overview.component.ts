@@ -13,20 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component, OnInit } from '@angular/core';
 
-package za.co.absa.spline.consumer.service.repo
-
-import za.co.absa.spline.consumer.service.model.{ExecutedLogicalPlan, DataSourceInfo}
-import za.co.absa.spline.consumer.service.model.ExecutionInfo.Id
-
-import scala.concurrent.{ExecutionContext, Future}
-
-
-trait ExecutionPlanRepository {
-
-  def findById(execId: Id)
-              (implicit ec: ExecutionContext): Future[ExecutedLogicalPlan]
-
-  def findInputDataSourceInfoById(execId: Id)
-                       (implicit ec: ExecutionContext): Future[Array[DataSourceInfo]]
-}
+@Component({
+  selector: 'lineage-overview',
+  templateUrl: './lineage-overview.component.html'
+})
+export class LineageOverviewComponent { }

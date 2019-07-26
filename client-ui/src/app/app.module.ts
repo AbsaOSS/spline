@@ -14,44 +14,52 @@
  * limitations under the License.
  */
 
-import {HttpClientModule} from '@angular/common/http';
-import {APP_INITIALIZER, NgModule} from '@angular/core';
-import {BrowserModule} from '@angular/platform-browser';
-import {RouterModule} from '@angular/router';
-import {EffectsModule} from '@ngrx/effects';
-import {routerReducer, RouterStateSerializer, StoreRouterConnectingModule} from '@ngrx/router-store';
-import {Store, StoreModule} from '@ngrx/store';
-import {StoreDevtoolsModule} from '@ngrx/store-devtools';
-import {NgxDatatableModule} from '@swimlane/ngx-datatable';
-import {CytoscapeNgLibModule} from 'cytoscape-ng-lib';
-import {environment} from '../environments/environment';
-import {AppComponent} from './app.component';
-import {ErrorComponent} from './components/error/error.component';
-import {LineageDetailsComponent} from './components/lineage/lineage-details/lineage-details.component';
-import {AttributeDetailsComponent} from './components/lineage/lineage-details/attribute-details/attribute-details.component';
-import {ExpressionComponent} from './components/lineage/lineage-details/schema-details/expression/expression.component';
-import {JoinComponent} from './components/lineage/lineage-details/schema-details/join/join.component';
-import {ProjectionComponent} from './components/lineage/lineage-details/schema-details/projection/projection.component';
-import {SchemaDetailsComponent} from './components/lineage/lineage-details/schema-details/schema-details.component';
-import {SchemaTableComponent} from './components/lineage/lineage-details/schema-table/schema-table.component';
-import {SchemaComponent} from './components/lineage/lineage-details/schema/schema.component';
-import {LineageGraphComponent} from './components/lineage/lineage-graph/lineage-graph.component';
-import {LineageComponent} from './components/lineage/lineage.component';
-import {AppState} from './model/app-state';
-import {RouterSerializer} from './serializers/routerSerializer';
+import { HttpClientModule } from '@angular/common/http';
+import { APP_INITIALIZER, NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { RouterModule } from '@angular/router';
+import { EffectsModule } from '@ngrx/effects';
+import { routerReducer, RouterStateSerializer, StoreRouterConnectingModule } from '@ngrx/router-store';
+import { Store, StoreModule } from '@ngrx/store';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { NgxDatatableModule } from '@swimlane/ngx-datatable';
+import { CytoscapeNgLibModule } from 'cytoscape-ng-lib';
+import { environment } from '../environments/environment';
+import { AppComponent } from './app.component';
+import { ErrorComponent } from './components/error/error.component';
+import { LineageDetailsComponent } from './components/lineage/lineage-details/lineage-details.component';
+import { AttributeDetailsComponent } from './components/lineage/lineage-details/attribute-details/attribute-details.component';
+import { ExpressionComponent } from './components/lineage/lineage-details/schema-details/expression/expression.component';
+import { JoinComponent } from './components/lineage/lineage-details/schema-details/join/join.component';
+import { ProjectionComponent } from './components/lineage/lineage-details/schema-details/projection/projection.component';
+import { SchemaDetailsComponent } from './components/lineage/lineage-details/schema-details/schema-details.component';
+import { SchemaTableComponent } from './components/lineage/lineage-details/schema-table/schema-table.component';
+import { SchemaComponent } from './components/lineage/lineage-details/schema/schema.component';
+import { LineageGraphComponent } from './components/lineage/lineage-graph/lineage-graph.component';
+import { LineageComponent } from './components/lineage/lineage.component';
+import { AppState } from './model/app-state';
+import { RouterSerializer } from './serializers/routerSerializer';
 import * as ConfigActions from './store/actions/config.actions';
-import {ConfigEffects} from './effects/config.effects';
-import {DetailsInfoEffects} from './effects/details-info.effects';
-import {ExecutionPlanEffects} from './effects/execution-plan.effects';
-import {RouterEffects} from './effects/router.effects';
-import {attributeReducer} from './store/reducers/attribute.reducer';
-import {configReducer} from './store/reducers/config.reducer';
-import {contextMenuReducer} from './store/reducers/context-menu.reducer';
-import {detailsInfoReducer} from './store/reducers/details-info.reducer';
-import {errorReducer} from './store/reducers/error.reducer';
-import {executionPlanReducer} from './store/reducers/execution-plan.reducer';
-import {layoutReducer} from './store/reducers/layout.reducer';
-import {filter} from 'rxjs/operators';
+import { ConfigEffects } from './effects/config.effects';
+import { DetailsInfoEffects } from './effects/details-info.effects';
+import { ExecutionPlanEffects } from './effects/execution-plan.effects';
+import { RouterEffects } from './effects/router.effects';
+import { attributeReducer } from './store/reducers/attribute.reducer';
+import { configReducer } from './store/reducers/config.reducer';
+import { contextMenuReducer } from './store/reducers/context-menu.reducer';
+import { detailsInfoReducer } from './store/reducers/details-info.reducer';
+import { errorReducer } from './store/reducers/error.reducer';
+import { executionPlanReducer } from './store/reducers/execution-plan.reducer';
+import { executionPlanDatasourceInfoReducer } from './store/reducers/execution-plan-datasource-info.reducer';
+import { layoutReducer } from './store/reducers/layout.reducer';
+import { filter } from 'rxjs/operators';
+import { LineageOverviewComponent } from './components/lineage-overview/lineage-overview.component';
+import { LineageOverviewDetailsComponent } from './components/lineage-overview/lineage-overview-details/lineage-overview-details.component';
+import { LineageOverviewGraphComponent } from './components/lineage-overview/lineage-overview-graph/lineage-overview-graph.component';
+import { lineageOverviewReducer } from './store/reducers/lineage-overview.reducer';
+import { datasourceInfoReducer } from './store/reducers/datasource-info.reducer';
+import { LineageOverviewEffects } from './effects/lineage-overview.effects';
+import { ExecutionPlanDatasourceInfoEffects } from './effects/execution-plan-datasource-info.effects';
 
 
 export function initializeApp(store: Store<AppState>): () => Promise<any> {
@@ -82,7 +90,10 @@ const ROOT_ROUTING = "app/"
     SchemaTableComponent,
     JoinComponent,
     ExpressionComponent,
-    ProjectionComponent
+    ProjectionComponent,
+    LineageOverviewComponent,
+    LineageOverviewDetailsComponent,
+    LineageOverviewGraphComponent
   ],
   entryComponents: [
     SchemaTableComponent,
@@ -98,7 +109,10 @@ const ROOT_ROUTING = "app/"
     StoreModule.forRoot({
       config: configReducer,
       executedLogicalPlan: executionPlanReducer,
+      lineageOverview: lineageOverviewReducer,
       detailsInfos: detailsInfoReducer,
+      dataSourceInfo: datasourceInfoReducer,
+      executionPlanDatasourceInfo: executionPlanDatasourceInfoReducer,
       attributes: attributeReducer,
       router: routerReducer,
       error: errorReducer,
@@ -108,11 +122,14 @@ const ROOT_ROUTING = "app/"
     EffectsModule.forRoot([
       ConfigEffects,
       ExecutionPlanEffects,
+      ExecutionPlanDatasourceInfoEffects,
+      LineageOverviewEffects,
       DetailsInfoEffects,
       RouterEffects
     ]),
     StoreRouterConnectingModule.forRoot(),
     RouterModule.forRoot([
+      { path: ROOT_ROUTING + 'lineage-overview', component: LineageOverviewComponent },
       { path: ROOT_ROUTING + 'partial-lineage/:uid', component: LineageComponent },
       { path: ROOT_ROUTING + 'error/:httpCode', component: ErrorComponent },
       { path: ROOT_ROUTING, redirectTo: ROOT_ROUTING + 'error/404', pathMatch: 'full' },

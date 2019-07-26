@@ -14,19 +14,31 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.consumer.service.repo
 
-import za.co.absa.spline.consumer.service.model.{ExecutedLogicalPlan, DataSourceInfo}
-import za.co.absa.spline.consumer.service.model.ExecutionInfo.Id
-
-import scala.concurrent.{ExecutionContext, Future}
-
-
-trait ExecutionPlanRepository {
-
-  def findById(execId: Id)
-              (implicit ec: ExecutionContext): Future[ExecutedLogicalPlan]
-
-  def findInputDataSourceInfoById(execId: Id)
-                       (implicit ec: ExecutionContext): Future[Array[DataSourceInfo]]
+.lineage-overview-container{
+    position: fixed;
+    display:block;
+    padding: 10px;
+    width: 49%;
+    height: 99%;
 }
+
+.details{
+    display:block;
+    width: 100%;
+    background-color: #F5F5F5;
+    overflow-y: scroll;
+    border: 3px solid #e39255;
+    border-radius: 25px;
+    margin-bottom: 10px;
+}
+
+.lineage-overview-details{
+    height: 100%; 
+    .details;
+}
+
+.lineage-overview-details-title{
+    color: #e39255;
+}
+

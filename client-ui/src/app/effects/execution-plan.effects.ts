@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-import {HttpErrorResponse} from '@angular/common/http';
-import {Injectable} from '@angular/core';
-import {Actions, Effect, ofType} from '@ngrx/effects';
-import {Action, Store} from '@ngrx/store';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Actions, Effect, ofType } from '@ngrx/effects';
+import { Action, Store } from '@ngrx/store';
 import * as _ from 'lodash';
-import {Observable, throwError} from 'rxjs';
-import {catchError, map, switchMap} from 'rxjs/operators';
-import {OperationType} from 'src/app/model/types/operationType';
-import {ExecutedLogicalPlan, Operation, Transition} from '../generated/models';
-import {ExecutionPlanControllerService} from '../generated/services';
-import {StrictHttpResponse} from '../generated/strict-http-response';
-import {AppState} from '../model/app-state';
-import {CytoscapeGraphVM} from '../model/viewModels/cytoscape/cytoscapeGraphVM';
-import {CytoscapeOperationVM} from '../model/viewModels/cytoscape/cytoscapeOperationVM';
-import {ExecutedLogicalPlanVM} from '../model/viewModels/executedLogicalPlanVM';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
+import { OperationType } from 'src/app/model/types/operationType';
+import { ExecutedLogicalPlan, Operation, Transition } from '../generated/models';
+import { ExecutionPlanControllerService } from '../generated/services';
+import { StrictHttpResponse } from '../generated/strict-http-response';
+import { AppState } from '../model/app-state';
+import { CytoscapeGraphVM } from '../model/viewModels/cytoscape/cytoscapeGraphVM';
+import { CytoscapeOperationVM } from '../model/viewModels/cytoscape/cytoscapeOperationVM';
+import { ExecutedLogicalPlanVM } from '../model/viewModels/executedLogicalPlanVM';
 import * as ExecutionPlanAction from '../store/actions/execution-plan.actions';
-import {operationColorCodes, operationIconCodes} from '../store/reducers/execution-plan.reducer';
+import { operationColorCodes, operationIconCodes } from '../store/reducers/execution-plan.reducer';
 
 
 export type Action = ExecutionPlanAction.ExecutionPlanActions

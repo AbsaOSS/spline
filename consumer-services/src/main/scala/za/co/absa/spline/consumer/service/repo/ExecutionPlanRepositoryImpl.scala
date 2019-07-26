@@ -19,14 +19,15 @@ package za.co.absa.spline.consumer.service.repo
 import com.arangodb.ArangoDatabaseAsync
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import za.co.absa.spline.consumer.service.model.ExecutedLogicalPlan
+import za.co.absa.spline.consumer.service.model.{DataSourceInfo, ExecutedLogicalPlan}
 import za.co.absa.spline.consumer.service.model.ExecutionInfo.Id
-import za.co.absa.spline.persistence.ArangoImplicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Repository
 class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExecutionPlanRepository {
+
+  import za.co.absa.spline.persistence.ArangoImplicits._
 
   override def findById(execId: Id)
                        (implicit ec: ExecutionContext): Future[ExecutedLogicalPlan] = {
@@ -52,6 +53,35 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
               "plan": {nodes, edges},
               "execution": MERGE(UNSET(exec, "_rev", "_key"), {"_id": exec._key})
           }
+      """,
+      Map("execId" -> execId)
+    )
+  }
+
+  override def findInputDataSourceInfoById(execId: Id)
+                                (implicit ec: ExecutionContext): Future[Array[DataSourceInfo]] = {
+
+    db.queryOne[Array[DataSourceInfo]](
+      """
+        FOR exec IN execution
+            FILTER exec._key == @execId
+        
+            LET sources = FIRST(
+              FOR v, e IN 1..99999
+                OUTBOUND exec executes, follows, readsFrom
+                FILTER v._type == "Read"
+                RETURN v.properties
+            )
+        
+            LET inputDataSourceInfo = (
+                FOR inputSource IN sources.inputSources
+                RETURN {
+                  "sourceType" : sources.sourceType,
+                  "source" : inputSource
+                }
+            )
+            
+            RETURN inputDataSourceInfo
       """,
       Map("execId" -> execId)
     )

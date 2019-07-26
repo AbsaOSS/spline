@@ -13,23 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as DatasourceInfoAction from '../actions/datasource.info.actions';
+import { OperationDetailsVM } from '../../model/viewModels/operationDetailsVM';
 
-package za.co.absa.spline.consumer.service.model
+export type Action = DatasourceInfoAction.DataSourceInfoActions
 
-import za.co.absa.spline.consumer.service.model.ExecutedLogicalPlan.OperationID
+export function datasourceInfoReducer(state: OperationDetailsVM, action: Action): OperationDetailsVM {
+    switch (action.type) {
+        case DatasourceInfoAction.DataSourceActionTypes.DATASOURCE_INFOS_GET_SUCCESS: return { ...state, ...action.payload }
+        case DatasourceInfoAction.DataSourceActionTypes.DATASOURCE_INFOS_RESET: return null
+        default: return state
 
-case class Operation(
-                      _id: OperationID,
-                      _type: String,
-                      name: String,
-                      readsFrom: Seq[DataSourceInfo],
-                      writesTo: DataSourceInfo
-                    ) extends Graph.Node {
-  override type Id = OperationID
-
-  def this() = this(null, null, null, null, null)
-}
-
-object Operation {
-  type Id = String
+    }
 }

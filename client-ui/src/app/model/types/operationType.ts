@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import {JoinComponent} from "../../components/lineage/lineage-details/schema-details/join/join.component";
-import {Type} from "@angular/core";
-import {ProjectionComponent} from "../../components/lineage/lineage-details/schema-details/projection/projection.component";
-import {ExpressionComponent} from "../../components/lineage/lineage-details/schema-details/expression/expression.component";
+import { JoinComponent } from "../../components/lineage/lineage-details/schema-details/join/join.component";
+import { Type } from "@angular/core";
+import { ProjectionComponent } from "../../components/lineage/lineage-details/schema-details/projection/projection.component";
+import { ExpressionComponent } from "../../components/lineage/lineage-details/schema-details/expression/expression.component";
 
 
 export const enum OperationType {

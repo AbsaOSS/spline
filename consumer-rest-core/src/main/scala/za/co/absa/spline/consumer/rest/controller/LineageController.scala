@@ -19,27 +19,20 @@ package za.co.absa.spline.consumer.rest.controller
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
-import za.co.absa.spline.consumer.service.model.{DataSourceInfo, ExecutedLogicalPlan, ExecutionInfo}
-import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepository
+import za.co.absa.spline.consumer.service.model.LineageOverview
+import za.co.absa.spline.consumer.service.repo.LineageRepository
 
 import scala.concurrent.Future
 
 @RestController
-@RequestMapping(Array("/execution"))
-class ExecutionPlanController @Autowired()(
-  val repo: ExecutionPlanRepository) {
+class LineageController @Autowired()(val repo: LineageRepository) {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
-  @GetMapping(Array("/{execId}/lineage"))
-  @ApiOperation("Returns a logical plan (aka partial lineage) of a given execution")
-  def lineage(@PathVariable("execId") execId: ExecutionInfo.Id): Future[ExecutedLogicalPlan] = {
-    repo.findById(execId)
+  @GetMapping(Array("/lineage"))
+  @ApiOperation("Returns a lineage overview of a given dataSource Id and an application Id and")
+  def lineage(@RequestParam("path") path: String, @RequestParam("applicationId") applicationId: String): Future[LineageOverview] = {
+    repo.findByApplicationIdAndPath(path, applicationId)
   }
 
-  @GetMapping(Array("/{execId}/info"))
-  @ApiOperation("Return information related the an Execution Plan")
-  def info(@PathVariable("execId") execId: ExecutionInfo.Id): Future[Array[DataSourceInfo]] = {
-    repo.findInputDataSourceInfoById(execId)
-  }
 }

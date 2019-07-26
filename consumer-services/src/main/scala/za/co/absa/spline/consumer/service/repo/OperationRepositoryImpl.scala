@@ -31,57 +31,71 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
   override def findById(operationId: Operation.Id)(implicit ec: ExecutionContext): Future[OperationDetails] = {
     db.queryOne[OperationDetails](
       """
-      FOR ope IN operation
-        FILTER ope._key == @operationId
-
-        LET inputs = (
-          FOR v IN 1..1
-          OUTBOUND ope follows
-          RETURN v.outputSchema.attributes
-        )
-
-        LET readsFrom = FIRST(
-          (
-            FOR v IN 1..1
-            OUTBOUND ope readsFrom
-            RETURN v.uri
-          )
-        )
-
-        LET writesTo = FIRST(
-          (
-            FOR v IN 1..1
-            OUTBOUND ope writesTo
-            RETURN v.uri
-          )
-        )
-
-        LET output = ope.outputSchema.attributes == null ? [] : [ope.outputSchema.attributes]
-
-        LET dataTypes = (
-          FOR v IN 1..9999
-          INBOUND ope follows, readsFrom, writesTo, executes
-          FILTER CONTAINS(v._id, "execution")
-          RETURN v.extra.dataTypes
-        )
-
-        LET dataTypesFormatted = (
-          FOR d IN dataTypes[0]
-          RETURN  MERGE(KEEP(d,  "id", "name", "fields", "nullable", "elementDataTypeId"),
-          {"_class": d.jsonClass == "Simple" ? "za.co.absa.spline.persistence.model.SimpleDataType" : d.jsonClass == "Array" ? "za.co.absa.spline.persistence.model.ArrayDataType" :  "za.co.absa.spline.persistence.model.StructDataType"})
-        )
-
-        LET schemas = APPEND(inputs, output)
-
-        RETURN {
-          "operation" : MERGE(KEEP(ope, "_type", "name"), {"_id": ope._key }, {"readsFrom" : readsFrom}, {"writesTo" : writesTo}),
-          "dataTypes": dataTypesFormatted,
-          "schemas" : schemas,
-          "inputs": LENGTH(inputs) > 0 ? RANGE(0, LENGTH(inputs)-1) : [],
-          "output": LENGTH(schemas)-1
-        }
+        RETURN SPLINE::FIND_OPERATION_BY_ID(@operationId)
       """,
       Map("operationId" -> operationId)
+    )
+  }
+
+  override def findBySourceAndApplicationId(source: String, applicationId : String)(implicit ec: ExecutionContext): Future[OperationDetails] = {
+    db.queryOne[OperationDetails](
+      """
+         LET writeOp = FIRST(
+             FOR ope IN operation
+                 FILTER ope.properties.outputSource == @source
+                 LET executionEventFiltered = FIRST(
+                     FOR v, e IN 1..9999
+                         INBOUND ope executes, progressOf
+                         OPTIONS {uniqueEdges: "none"}
+                         FILTER v.extra.appId == @applicationId
+                         RETURN v
+                 )
+                 RETURN executionEventFiltered && ope
+             )
+         
+         LET pairExecutionKeyTimestamp = FIRST(
+             FOR p IN progress
+                 FILTER p.extra.appId == @applicationId
+                 LET timestamp = p.timestamp
+                 LET executionKey = FIRST(
+                     FOR v, e IN 1..9999
+                     OUTBOUND p progressOf
+                     OPTIONS {uniqueEdges: "none"}
+                     RETURN v._key
+                 )
+                 RETURN { "executionKey" : executionKey, "timestamp" : timestamp }
+         )
+         LET previousExecutions = SPLINE::FIND_PREVIOUS_EXECUTIONS(pairExecutionKeyTimestamp.executionKey, pairExecutionKeyTimestamp.timestamp, 5)
+         
+         LET previousApplicationIds = UNIQUE(
+             FOR exec in execution
+             FILTER CONTAINS(previousExecutions, exec._key)
+             LET appId = FIRST(
+                 FOR v, e IN 1..9999
+                 INBOUND exec progressOf
+                 OPTIONS {uniqueEdges: "none"}
+                 RETURN v.extra.appId
+             )
+             RETURN appId
+         )
+         
+         LET readOp = FIRST(
+             FOR ope IN operation
+                 FILTER CONTAINS(ope.properties.inputSources, @source)
+                 LET executionEventFiltered = FIRST(
+                     FOR v, e IN 1..9999
+                         INBOUND ope follows, executes, progressOf
+                         FILTER CONTAINS(APPEND(previousApplicationIds, @applicationId), v.extra.appId)
+                         RETURN v
+                 )
+         
+                RETURN executionEventFiltered && ope
+         )
+         
+         LET op = writeOp != null ? writeOp : readOp
+         RETURN SPLINE::FIND_OPERATION_BY_ID(op._key)
+      """,
+      Map("source" -> source, "applicationId" -> applicationId)
     )
   }
 }

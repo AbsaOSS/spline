@@ -18,11 +18,15 @@ package za.co.absa.spline.persistence
 
 import com.arangodb.ArangoDatabaseAsync
 import com.arangodb.entity.{CollectionType, EdgeDefinition, GraphEntity}
-import com.arangodb.model.{CollectionCreateOptions, HashIndexOptions}
+import com.arangodb.model.{AqlFunctionCreateOptions, CollectionCreateOptions, HashIndexOptions}
+import org.apache.commons.io.FilenameUtils
+import org.springframework.core.io.Resource
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 
 import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.Future
+import scala.io.Source
 
 trait ArangoInit {
   def initialize(connectionURL: ArangoConnectionURL, dropIfExists: Boolean): Future[GraphEntity]
@@ -46,28 +50,39 @@ object ArangoInit extends ArangoInit {
       .andThen({ case _ => arangoFacade.destroy() })
   }
 
-  private def createDb(db: ArangoDatabaseAsync): Future[GraphEntity] = {
-    for {
-      _ <- db.create().toScala
-      _ <- db.createCollection("progress").toScala
-      _ <- db.createCollection("progressOf", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
-      _ <- db.createCollection("execution").toScala
-      _ <- db.createCollection("executes", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
-      _ <- db.createCollection("operation").toScala
-      _ <- db.createCollection("follows", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
-      _ <- db.createCollection("readsFrom", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
-      _ <- db.createCollection("writesTo", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
-      _ <- db.createCollection("dataSource").toScala
-      _ <- db.collection("dataSource").ensureHashIndex(Seq("uri").asJava, new HashIndexOptions().unique(true)).toScala
-      edgeDefs = Seq(
-        new EdgeDefinition().collection("progressOf").from("progress").to("execution"),
-        new EdgeDefinition().collection("executes").from("execution").to("operation"),
-        new EdgeDefinition().collection("follows").from("operation").to("operation"),
-        new EdgeDefinition().collection("readsFrom").from("operation").to("dataSource"),
-        new EdgeDefinition().collection("writesTo").from("operation").to("dataSource")
-      ).asJava
-      graph <- db.createGraph("lineage", edgeDefs).toScala
-    } yield graph
+  private def createDb(db: ArangoDatabaseAsync): Future[GraphEntity] = for {
+    _ <- db.create().toScala
+    _ <- createAQLUserFunctions(db)
+    _ <- db.createCollection("progress").toScala
+    _ <- db.createCollection("progressOf", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
+    _ <- db.createCollection("execution").toScala
+    _ <- db.createCollection("executes", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
+    _ <- db.createCollection("operation").toScala
+    _ <- db.createCollection("follows", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
+    _ <- db.createCollection("readsFrom", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
+    _ <- db.createCollection("writesTo", new CollectionCreateOptions().`type`(CollectionType.EDGES)).toScala
+    _ <- db.createCollection("dataSource").toScala
+    _ <- db.collection("dataSource").ensureHashIndex(Seq("uri").asJava, new HashIndexOptions().unique(true)).toScala
+    edgeDefs = Seq(
+      new EdgeDefinition().collection("progressOf").from("progress").to("execution"),
+      new EdgeDefinition().collection("executes").from("execution").to("operation"),
+      new EdgeDefinition().collection("follows").from("operation").to("operation"),
+      new EdgeDefinition().collection("readsFrom").from("operation").to("dataSource"),
+      new EdgeDefinition().collection("writesTo").from("operation").to("dataSource")
+    ).asJava
+    graph <- db.createGraph("lineage", edgeDefs).toScala
+  } yield graph
+
+  private def createAQLUserFunctions(db: ArangoDatabaseAsync) = {
+    val resolver = new PathMatchingResourcePatternResolver(getClass.getClassLoader)
+    val files: Array[Resource] = resolver.getResources("classpath:AQLFunctions/*.js")
+    files.foreach(file => {
+      val functionName = s"SPLINE::${FilenameUtils.removeExtension(file.getFile.getName).toUpperCase}"
+      val functionBody = Source.fromFile(file.getURI).getLines.mkString
+      db.createAqlFunction(functionName, functionBody, new AqlFunctionCreateOptions()).toScala
+    })
+    Future.successful()
   }
+
 
 }
