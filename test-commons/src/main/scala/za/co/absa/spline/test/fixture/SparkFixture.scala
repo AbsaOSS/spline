@@ -16,27 +16,28 @@
 
 package za.co.absa.spline.test.fixture
 
-import java.nio.file.Path
-
 import org.apache.spark.sql.SparkSession
-import za.co.absa.spline.common.TempDirectory
 
 trait SparkFixture {
 
-  private val tempWarehouseDirPath: Path =
-    TempDirectory("SparkFixture", "UnitTest", pathOnly = true).path
-
   private val sessionBuilder: SparkSession.Builder =
-    customizeBuilder(
-      SparkSession.builder.
-        master("local[4]").
-        config("spark.ui.enabled", "false").
-        config("spark.sql.warehouse.dir", tempWarehouseDirPath.toString)
-    )
+    SparkSession.builder.
+      master("local[*]").
+      config("spark.ui.enabled", "false")
 
   def withNewSparkSession[T](testBody: SparkSession => T): T = {
-    testBody(sessionBuilder.getOrCreate.newSession)
+    withCustomSparkSession(identity)(testBody)
   }
 
-  protected def customizeBuilder(builder: SparkSession.Builder): SparkSession.Builder = builder
+  def withCustomSparkSession[T](builderCustomizer: SparkSession.Builder => SparkSession.Builder)(testBody: SparkSession => T): T = {
+    testBody(builderCustomizer(sessionBuilder).getOrCreate.newSession)
+  }
+
+  def withRestartingSparkContext[T](testBody: => T): T = {
+    SparkSession.getDefaultSession.foreach(_.close())
+    try
+      testBody
+    finally
+      SparkSession.getDefaultSession.foreach(_.close())
+  }
 }

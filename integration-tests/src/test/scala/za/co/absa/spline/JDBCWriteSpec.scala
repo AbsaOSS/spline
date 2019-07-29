@@ -27,34 +27,33 @@ import za.co.absa.spline.test.fixture.spline.SplineFixture
 import za.co.absa.spline.test.fixture.{DerbyDatabaseFixture, SparkFixture}
 
 
-class JDBCWriteSpec extends AsyncFlatSpec
+class JDBCWriteSpec extends FlatSpec
   with Matchers
   with SparkFixture
   with SplineFixture
   with DerbyDatabaseFixture {
 
-
   val tableName = "testTable"
 
-  "save_to_fs" should "process all operations" in
+  "save_to_jdbc" should "process all operations" in
     withNewSparkSession(spark => {
       withLineageTracking(spark)(lineageCaptor => {
-        val tableName = "someTable" + System.currentTimeMillis()
+        val tableName = s"someTable${System.currentTimeMillis()}"
 
         val testData: DataFrame = {
-          val schema = StructType(StructField("ID", IntegerType, false) :: StructField("NAME", StringType, false) :: Nil)
+          val schema = StructType(StructField("ID", IntegerType, nullable = false) :: StructField("NAME", StringType, nullable = false) :: Nil)
           val rdd = spark.sparkContext.parallelize(Row(1014, "Warsaw") :: Row(1002, "Corte") :: Nil)
           spark.sqlContext.createDataFrame(rdd, schema)
         }
 
         val lineage: DataLineage = lineageCaptor.lineageOf(
-          testData.writeToJDBC(connectionString, tableName, mode = SaveMode.Overwrite))
+          testData.writeToJDBC(jdbcConnectionString, tableName, mode = SaveMode.Overwrite))
 
         val producedWrites = lineage.operations.filter(_.isInstanceOf[Write]).map(_.asInstanceOf[BatchWrite])
         producedWrites.size shouldBe 1
         val write = producedWrites.head
 
-        write.path shouldBe "jdbc://" + connectionString + ":" + tableName
+        write.path shouldBe s"jdbc://$jdbcConnectionString:$tableName"
         write.append shouldBe false
       })
     })
