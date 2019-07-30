@@ -48,6 +48,11 @@
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
+            <artifactId>spark-agent</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa.spline</groupId>
             <artifactId>producer-rest-model</artifactId>
             <version>${project.version}</version>
         </dependency>

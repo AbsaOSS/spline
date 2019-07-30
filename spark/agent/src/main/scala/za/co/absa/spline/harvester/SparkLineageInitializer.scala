@@ -24,7 +24,7 @@ import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.harvester.conf.{DefaultSplineConfigurer, HadoopConfiguration, SparkConfiguration, SplineConfigurer}
 import za.co.absa.spline.harvester.listener.SplineQueryExecutionListener
-import za.co.absa.spline.sparkadapterapi.SparkVersionRequirement
+import za.co.absa.spline.spark.adapter.SparkVersionRequirement
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext

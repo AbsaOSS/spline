@@ -20,8 +20,6 @@ package za.co.absa.spline
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SaveMode}
 import org.scalatest._
-import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.model.op.{BatchWrite, Write}
 import za.co.absa.spline.test.DataFrameImplicits._
 import za.co.absa.spline.test.fixture.spline.SplineFixture
 import za.co.absa.spline.test.fixture.{DerbyDatabaseFixture, SparkFixture}
@@ -46,15 +44,12 @@ class JDBCWriteSpec extends FlatSpec
           spark.sqlContext.createDataFrame(rdd, schema)
         }
 
-        val lineage: DataLineage = lineageCaptor.lineageOf(
-          testData.writeToJDBC(jdbcConnectionString, tableName, mode = SaveMode.Overwrite))
+        val (plan, _) = lineageCaptor.lineageOf {
+          testData.writeToJDBC(jdbcConnectionString, tableName, mode = SaveMode.Overwrite)
+        }
 
-        val producedWrites = lineage.operations.filter(_.isInstanceOf[Write]).map(_.asInstanceOf[BatchWrite])
-        producedWrites.size shouldBe 1
-        val write = producedWrites.head
-
-        write.path shouldBe s"jdbc://$jdbcConnectionString:$tableName"
-        write.append shouldBe false
+        plan.operations.write.outputSource shouldBe s"jdbc://$jdbcConnectionString:$tableName"
+        plan.operations.write.append shouldBe false
       })
     })
 }

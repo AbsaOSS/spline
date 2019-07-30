@@ -19,21 +19,23 @@ package za.co.absa.spline.common
 import org.apache.commons.lang.StringUtils
 import za.co.absa.spline.common.TypeConstraints.not
 
-import scala.language.implicitConversions
+import scala.language.{implicitConversions, reflectiveCalls}
 
 
 object OptionImplicits {
 
-  @deprecated
-  implicit def anyToOption[T <: Any : not[Option[_]]#λ : Manifest](o: T): Option[T] = Option(o)
-
-  implicit class StringWrapper(s: String) {
+  implicit class StringWrapper(val s: String) extends AnyVal {
     def nonBlankOption: Option[String] = Option(StringUtils.trimToNull(s))
   }
 
-  implicit class AnyWrapper[A](a: A) {
-    def optionally[B](applyFn: (A, B) => A, maybeArg: Option[B]): A =
-      maybeArg.map(applyFn(a, _)).getOrElse(a)
+  implicit class TraversableWrapper[A <: Traversable[_]](val xs: A) extends AnyVal {
+    def asOption: Option[A] = if (xs.isEmpty) None else Some(xs)
+  }
+
+  implicit class AnyWrapper[A <: Any : not[Option[_]]#λ : Manifest](a: A) {
+    def asOption: Option[A] = Option(a)
+
+    def optionally[B](applyFn: (A, B) => A, maybeArg: Option[B]): A = maybeArg.map(applyFn(a, _)).getOrElse(a)
   }
 
 }

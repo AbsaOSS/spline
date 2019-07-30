@@ -15,15 +15,17 @@
 
 package za.co.absa.spline.harvester
 
+import java.util.UUID
+
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.execution.QueryExecution
 import org.slf4s.Logging
-import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.common.json.JSONSerializationImplicits._
 
 import scala.language.postfixOps
 
 class QueryExecutionEventHandler(
-  harvesterFactory: DataLineageBuilderFactory,
+  harvesterFactory: LineageHarvesterFactory,
   lineageDispatcher: LineageDispatcher,
   sparkSession: SparkSession) extends Logging {
 
@@ -37,17 +39,18 @@ class QueryExecutionEventHandler(
   def onSuccess(funcName: String, qe: QueryExecution, durationNs: Long): Unit = {
     log debug s"Action '$funcName' execution succeeded"
 
-    if (funcName == "save" || funcName == "saveAsTable" || funcName == "insertInto" ) {
+    if (funcName == "save" || funcName == "saveAsTable" || funcName == "insertInto") {
       log debug s"Start tracking lineage for action '$funcName'"
 
-      val maybeLineage =
-        harvesterFactory.
-          createBuilder(qe.analyzed, Some(qe.executedPlan), qe.sparkSession.sparkContext).
-          buildLineage()
+      harvesterFactory.
+        harvester(qe.analyzed, Some(qe.executedPlan), qe.sparkSession.sparkContext).
+        harvest() match {
+        case (plan, Some(event)) =>
+          val idAsJson = lineageDispatcher.send(plan)
+          val savedPlanId = UUID.fromString(idAsJson.fromJson[String])
+          lineageDispatcher.send(event.copy(planId = savedPlanId))
 
-      maybeLineage match {
-        case None => log debug s"The write result was ignored. Skipping lineage."
-        case Some(lineage) => send(lineage)
+        case (_, None) => log debug s"The write result was ignored. Skipping lineage."
       }
 
       log debug s"Lineage tracking for action '$funcName' is done."
@@ -55,10 +58,6 @@ class QueryExecutionEventHandler(
     else {
       log debug s"Skipping lineage tracking for action '$funcName'"
     }
-  }
-
-  private def send(dataLineage: DataLineage): Unit = {
-    lineageDispatcher.send(dataLineage)
   }
 
   /**
@@ -70,5 +69,6 @@ class QueryExecutionEventHandler(
     */
   def onFailure(funcName: String, qe: QueryExecution, exception: Exception): Unit = {
     log.error(s"Action '$funcName' execution failed", exception)
+    //TODO: send exec plan and an event with the error. See: https://github.com/AbsaOSS/spline/issues/310
   }
 }

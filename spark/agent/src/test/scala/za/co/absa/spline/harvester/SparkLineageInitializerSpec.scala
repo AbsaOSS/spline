@@ -23,7 +23,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest.Matchers._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
-import za.co.absa.spline.common.ReflectionUtils.getFieldValue
+import za.co.absa.spline.common.ReflectionUtils.extractFieldValue
 import za.co.absa.spline.harvester.SparkLineageInitializer._
 import za.co.absa.spline.harvester.SparkLineageInitializerSpec._
 import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer
@@ -37,7 +37,7 @@ import za.co.absa.spline.test.fixture.SparkFixture
 object SparkLineageInitializerSpec {
 
   private[this] def getSparkQueryExecutionListenerClasses(session: SparkSession): Seq[Class[_ <: QueryExecutionListener]] = {
-    getFieldValue[Seq[QueryExecutionListener]](
+    extractFieldValue[Seq[QueryExecutionListener]](
       session.listenerManager.clone(),
       "org$apache$spark$sql$util$ExecutionListenerManager$$listeners")
       .map(_.getClass)

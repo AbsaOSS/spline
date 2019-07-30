@@ -29,14 +29,14 @@ case class DataOperation(
   override val id: Int,
   override val childIds: Seq[Int],
   override val schema: Option[Any],
-  override val params: Map[String, Any]
+  override val params: Map[String, Any] = Map.empty
 ) extends OperationLike
 
 case class ReadOperation(
   inputSources: Seq[String],
   override val id: Int,
   override val schema: Option[Any] = None,
-  override val params: Map[String, Any]
+  override val params: Map[String, Any] = Map.empty
 ) extends OperationLike {
   override val childIds: Seq[Int] = Seq.empty
 }
@@ -47,6 +47,6 @@ case class WriteOperation(
   override val id: Int,
   override val childIds: Seq[Int],
   override val schema: Option[Any] = None,
-  override val params: Map[String, Any]
+  override val params: Map[String, Any] = Map.empty
 ) extends OperationLike
 

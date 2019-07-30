@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.common
 
+import scala.collection.concurrent.TrieMap
 import scala.reflect.runtime.{universe => ru}
 
 /**
@@ -24,6 +25,15 @@ import scala.reflect.runtime.{universe => ru}
 object ReflectionUtils {
 
   private val mirror: ru.Mirror = ru.runtimeMirror(getClass.getClassLoader)
+  private val gettersCache = TrieMap.empty[ru.ClassSymbol, Iterable[ru.Symbol]]
+
+  object ModuleClassSymbolExtractor {
+    def unapply(o: Any): Option[ru.ClassSymbol] = {
+      val symbol = mirror.classSymbol(o.getClass)
+      if (symbol.isModuleClass) Some(symbol)
+      else None
+    }
+  }
 
   /**
     * Lists all direct sub-classes of the given trait T
@@ -37,22 +47,39 @@ object ReflectionUtils {
     clazz.knownDirectSubclasses.toList map ((s: ru.Symbol) => mirror runtimeClass s.asClass)
   }
 
-  /**
-    * The method returns value for any field utilized by the class business logic
- *
-    * @param instance An instance the will be inspected
-    * @param fieldName A name of the field
-    * @tparam TValue A type of the returned value
-    * @return A value for any field utilized by the class business logic
-    */
-  def getFieldValue[TValue](instance : AnyRef, fieldName : String): TValue =
-  {
-    val cls = instance.getClass
-    val field = cls.getDeclaredField(fieldName)
-    val defaultAccessibility = field.isAccessible
+  def extractFieldValue[T](o: AnyRef, fieldName: String): T = {
+    val field = o.getClass.getDeclaredField(fieldName)
     field.setAccessible(true)
-    val value = field.get(instance).asInstanceOf[TValue]
-    field.setAccessible(defaultAccessibility)
-    value
+    field.get(o).asInstanceOf[T]
   }
+
+  def extractProductElementsWithNames(product: Product): Map[String, _] = {
+    val pMirror = mirror.reflect(product)
+    constructorArgSymbols(pMirror.symbol)
+      .map(argSymbol => {
+        val name = argSymbol.name.toString
+        val value = pMirror.reflectMethod(argSymbol.asMethod).apply()
+        name -> value
+      })
+      .toMap
+  }
+
+  private def constructorArgSymbols(classSymbol: ru.ClassSymbol) =
+    gettersCache.getOrElseUpdate(classSymbol, {
+      val primaryConstr = classSymbol.primaryConstructor
+
+      val paramNames = (
+        for {
+          pList <- primaryConstr.typeSignature.paramLists
+          pSymbol <- pList
+        } yield
+          pSymbol.name.toString
+        )
+        .toSet
+
+      classSymbol.info.decls.filter(d =>
+        d.isMethod
+          && d.asMethod.isGetter
+          && paramNames(d.name.toString))
+    })
 }

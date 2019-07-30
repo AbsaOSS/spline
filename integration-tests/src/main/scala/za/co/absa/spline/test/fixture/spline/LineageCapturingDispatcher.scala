@@ -15,11 +15,19 @@
 
 package za.co.absa.spline.test.fixture.spline
 
+import za.co.absa.spline.common.json.JSONSerializationImplicits._
 import za.co.absa.spline.harvester.LineageDispatcher
-import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
+
 
 class LineageCapturingDispatcher(lineageCaptor: LineageCaptor.Setter) extends LineageDispatcher {
 
-  override def send(dataLineage: DataLineage): Unit =
-    lineageCaptor.capture(dataLineage)
+  override def send(plan: ExecutionPlan): String = {
+    lineageCaptor.capture(plan)
+    plan.id.toJson
+  }
+
+  override def send(event: ExecutionEvent): Unit = {
+    lineageCaptor.capture(event)
+  }
 }

@@ -16,21 +16,16 @@
 
 package za.co.absa.spline
 
-import org.apache.hadoop.fs.Path
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{IntegerType, StructField, StructType}
 import org.apache.spark.sql.{Row, SaveMode}
 import org.scalatest._
 import org.slf4s.Logging
-import za.co.absa.spline.test.DataFrameImplicits._
 import za.co.absa.spline.common.TempDirectory
-import za.co.absa.spline.test.fixture._
-import za.co.absa.spline.test.fixture.spline.SplineFixture
-import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.model.op.Write
+import za.co.absa.spline.test.DataFrameImplicits._
 import za.co.absa.spline.test.fixture.SparkFixture
+import za.co.absa.spline.test.fixture.spline.SplineFixture
 
-/** Contains smoke tests for basic operations. */
 class BasicIntegrationTests extends FlatSpec
   with Matchers
   with SparkFixture
@@ -45,10 +40,12 @@ class BasicIntegrationTests extends FlatSpec
 
           val df = Seq((1, 2), (3, 4)).toDF().agg(concat(sum('_1), min('_2)) as "forty_two")
 
-          val lineage = lineageCaptor.lineageOf(df.writeToTable("someTable"))
+          val (plan, _) = lineageCaptor.lineageOf(df.writeToTable("someTable"))
 
           spark.sql("drop table someTable")
-          lineage.operations.length shouldBe 3
+          plan.operations.reads should be(empty)
+          plan.operations.other should have length 2
+          plan.operations.write should not be null
         }
       })
 
@@ -59,45 +56,38 @@ class BasicIntegrationTests extends FlatSpec
           import spark.implicits._
 
           val df = Seq((1, 2), (3, 4)).toDF().agg(concat(sum('_1), min('_2)) as "forty_two")
-          val lineage = lineageCaptor.lineageOf(df.writeToDisk())
+          val (plan, _) = lineageCaptor.lineageOf(df.writeToDisk())
 
-          lineage.operations.length shouldBe 3
+          plan.operations.reads should be(empty)
+          plan.operations.other should have length 2
+          plan.operations.write should not be null
         }
       })
 
-  "saveAsTable" should "use URIS compatible with filesystem write" in
+  "saveAsTable" should "use URIs compatible with filesystem write" in
     withNewSparkSession(spark =>
       withLineageTracking(spark) {
         lineageCaptor => {
 
-          //When I write something to table and then read it again, Spline have to use matching URI.
-
           val tableName = "externalTable"
-          val dir = TempDirectory("sparkunit", "table").deleteOnExit()
-          val path = dir.path.toString.replace("\\", "/")
-          val sql = "create table " + tableName + " (num int) using parquet location '" + path + "' "
-          spark.sql(sql)
+          val path = TempDirectory("sparkunit", "table").deleteOnExit().path
+
+          spark.sql(s"create table $tableName (num int) using parquet location '$path' ")
 
           val schema: StructType = StructType(List(StructField("num", IntegerType, nullable = true)))
           val data = spark.sparkContext.parallelize(Seq(Row(1), Row(3)))
           val inputDf = spark.sqlContext.createDataFrame(data, schema)
 
-          val lineage: DataLineage = lineageCaptor.lineageOf {
+          val (plan1, _) = lineageCaptor.lineageOf {
             inputDf.writeToTable(tableName, SaveMode.Append)
           }
 
-          val write1: Write = lineage.operations.filter(_.isInstanceOf[Write]).head.asInstanceOf[Write]
-          val saveAsTablePath = write1.path
-
-          val readFromTable: DataLineage = lineageCaptor.lineageOf {
-            spark.sql("drop table " + tableName)
-            inputDf.writeToDisk(path, SaveMode.Overwrite)
+          val (plan2, _) = lineageCaptor.lineageOf {
+            spark.sql(s"drop table $tableName")
+            inputDf.writeToDisk(path.toString, SaveMode.Overwrite)
           }
 
-          val writeOperation = readFromTable.operations.filter(_.isInstanceOf[Write]).head.asInstanceOf[Write]
-          val write2 = writeOperation.path
-
-          saveAsTablePath shouldBe write2
+          plan1.operations.write.outputSource should be(plan2.operations.write.outputSource)
         }
       })
 
@@ -105,23 +95,17 @@ class BasicIntegrationTests extends FlatSpec
     withNewSparkSession(spark =>
       withLineageTracking(spark) {
         lineageCaptor => {
-          val dir = TempDirectory("sparkunit", "table", pathOnly = true).deleteOnExit()
-          val expectedPath = dir.path.toUri.toURL
-          val path = dir.path.toString.replace("\\", "/")
-          val sql = "create table e_table(num int) using parquet location '" + path + "' "
-          spark.sql(sql)
+          val path = TempDirectory("sparkunit", "table", pathOnly = true).deleteOnExit().path
+
+          spark.sql(s"create table e_table(num int) using parquet location '$path'")
 
           val schema: StructType = StructType(List(StructField("num", IntegerType, nullable = true)))
           val data = spark.sparkContext.parallelize(Seq(Row(1), Row(3)))
           val df = spark.sqlContext.createDataFrame(data, schema)
 
-          val wt: DataLineage = lineageCaptor.lineageOf(df.writeToTable("e_table", SaveMode.Append))
+          val (plan, _) = lineageCaptor.lineageOf(df.writeToTable("e_table", SaveMode.Append))
 
-          val writeOperation: Write = wt.operations.filter(_.isInstanceOf[Write]).head.asInstanceOf[Write]
-
-          new Path(writeOperation.path).toUri.toURL shouldBe expectedPath
+          plan.operations.write.outputSource should be(path.toFile.toURI.toString.init)
         }
       })
-
-
 }
