@@ -1,5 +1,2 @@
 # Created by .ignore support plugin (hsz.mobi)
-data/input/streamingWithDependencies
-data/results
-data/checkpoints
-data/kafkaCheckpoint
+data/*

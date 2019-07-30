@@ -19,7 +19,6 @@ package za.co.absa.spline.harvester
 import org.apache.commons.configuration._
 import org.apache.spark
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.streaming.StreamingQueryListener
 import org.slf4s.Logging
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
@@ -54,6 +53,7 @@ object SparkLineageInitializer extends Logging {
   implicit class SparkSessionWrapper(sparkSession: SparkSession) {
 
     private implicit val executionContext: ExecutionContext = ExecutionContext.global
+
     private def defaultSplineConfigurer = new DefaultSplineConfigurer(defaultSplineConfiguration, sparkSession)
 
     /**
@@ -69,20 +69,20 @@ object SparkLineageInitializer extends Logging {
         .contains(classOf[QueryExecutionEventHandler].getCanonicalName)
       if (!splineConfiguredForCodelessInit || spark.SPARK_VERSION.startsWith("2.2")) {
         if (splineConfiguredForCodelessInit) {
-          log.warn("""
-            |Spline lineage tracking is also configured for codeless initialization, but codeless init is
-            |supported on Spark 2.3+ and not current version 2.2. Spline will be initialized only via code call to
-            |enableLineageTracking i.e. the same way as is now."""
+          log.warn(
+            """
+              |Spline lineage tracking is also configured for codeless initialization, but codeless init is
+              |supported on Spark 2.3+ and not current version 2.2. Spline will be initialized only via code call to
+              |enableLineageTracking i.e. the same way as is now."""
               .stripMargin.replaceAll("\n", " "))
         }
-        createEventHandlerAndStreamingListener(configurer).foreach { case (eventHandler, streamingQueryListener) =>
-          sparkSession.streams.addListener(streamingQueryListener)
-          sparkSession.listenerManager.register(new SplineQueryExecutionListener(Some(eventHandler)))
-        }
+        createEventHandler(configurer).foreach(eventHandler =>
+          sparkSession.listenerManager.register(new SplineQueryExecutionListener(Some(eventHandler))))
       } else {
-        log.warn("""
-          |Spline lineage tracking is also configured for codeless initialization.
-          |It wont be initialized by this code call to enableLineageTracking now."""
+        log.warn(
+          """
+            |Spline lineage tracking is also configured for codeless initialization.
+            |It wont be initialized by this code call to enableLineageTracking now."""
             .stripMargin.replaceAll("\n", " "))
       }
       sparkSession
@@ -91,30 +91,21 @@ object SparkLineageInitializer extends Logging {
     def createEventHandler(): Option[QueryExecutionEventHandler] = {
       val configurer = new DefaultSplineConfigurer(defaultSplineConfiguration, sparkSession)
       if (configurer.splineMode != DISABLED) {
-        createEventHandlerAndStreamingListener(configurer).map { case (eventHandler, streamingQueryListener) =>
-          sparkSession.streams.addListener(streamingQueryListener)
-          eventHandler
-        }
+        createEventHandler(configurer)
       } else {
         None
       }
     }
 
-    private def createEventHandlerAndStreamingListener(configurer: SplineConfigurer): Option[(QueryExecutionEventHandler, StreamingQueryListener)] = {
+    private def createEventHandler(configurer: SplineConfigurer): Option[QueryExecutionEventHandler] = {
       if (configurer.splineMode != DISABLED) {
         if (!getOrSetIsInitialized()) {
           log.info(s"Spline v${SplineBuildInfo.version} is initializing...")
           try {
             SparkVersionRequirement.instance.requireSupportedVersion()
             val eventHandler = configurer.queryExecutionEventHandler
-            /* Streaming listener needs to be initialized within same error handling block.
-               But will be registered manually in both cases, because:
-              - only 2.4 currently supports config based streaming listener registration
-              - it makes sense to always capture both batch and streaming lineages
-            */
-            val streamingQueryListener = configurer.streamingQueryListener
             log.info(s"Spline successfully initialized. Spark Lineage tracking is ENABLED.")
-            Some((eventHandler, streamingQueryListener))
+            Some(eventHandler)
           } catch {
             case NonFatal(e) if configurer.splineMode == BEST_EFFORT =>
               log.error(s"Spline initialization failed! Spark Lineage tracking is DISABLED.", e)

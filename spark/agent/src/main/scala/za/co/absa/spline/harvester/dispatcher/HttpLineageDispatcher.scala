@@ -22,8 +22,6 @@ import za.co.absa.spline.common.ConfigurationImplicits._
 import za.co.absa.spline.common.logging.Logging
 import za.co.absa.spline.harvester.LineageDispatcher
 import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.model.streaming.ProgressEvent
-
 
 class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)
   extends LineageDispatcher
@@ -32,12 +30,8 @@ class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)
   val dataLineagePublishUrl = s"$splineServerRESTEndpointBaseURL/legacyInlet/v5/dataLineage"
   val progressEventPublishUrl = s"$splineServerRESTEndpointBaseURL/legacyInlet/v5/progressEvent"
 
-  def send(lineage: DataLineage): Unit = {
+  override def send(lineage: DataLineage): Unit = {
     sendJson(serializeToJSON(lineage), dataLineagePublishUrl)
-  }
-
-  def send(event: ProgressEvent): Unit = {
-    sendJson(serializeToJSON(event), progressEventPublishUrl)
   }
 
   private def sendJson(json: String, url: String) = {

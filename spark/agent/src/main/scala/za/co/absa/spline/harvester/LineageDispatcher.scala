@@ -17,11 +17,7 @@
 package za.co.absa.spline.harvester
 
 import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.model.streaming.ProgressEvent
-
 
 trait LineageDispatcher {
   def send(dataLineage: DataLineage): Unit
-
-  def send(event: ProgressEvent): Unit
 }

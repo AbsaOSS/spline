@@ -15,17 +15,11 @@
 
 package za.co.absa.spline.test.fixture.spline
 
-import org.apache.commons.lang3.NotImplementedException
 import za.co.absa.spline.harvester.LineageDispatcher
 import za.co.absa.spline.model.DataLineage
-import za.co.absa.spline.model.streaming.ProgressEvent
-
 
 class LineageCapturingDispatcher(lineageCaptor: LineageCaptor.Setter) extends LineageDispatcher {
 
   override def send(dataLineage: DataLineage): Unit =
     lineageCaptor.capture(dataLineage)
-
-  override def send(event: ProgressEvent): Unit =
-    throw new NotImplementedException("Capturing progress events is not supported by this factory yet")
 }

@@ -16,7 +16,6 @@
 
 package za.co.absa.spline.harvester.conf
 
-import org.apache.spark.sql.streaming.StreamingQueryListener
 import za.co.absa.spline.harvester.QueryExecutionEventHandler
 
 /**
@@ -31,12 +30,6 @@ trait SplineConfigurer {
     * @return [[za.co.absa.spline.harvester.QueryExecutionEventHandler]]
     */
   def queryExecutionEventHandler: QueryExecutionEventHandler
-
-  /**
-    * A listener handling events from structured-streaming processing
-    * @return [[org.apache.spark.sql.streaming.StreamingQueryListener]]
-    */
-  def streamingQueryListener : StreamingQueryListener
 
   /**
     * Spline mode designates how Spline should behave in a context of a Spark application.

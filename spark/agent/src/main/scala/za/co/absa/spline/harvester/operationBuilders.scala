@@ -24,10 +24,8 @@ import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation}
 import org.apache.spark.sql.sources.BaseRelation
 import org.apache.spark.sql.{JDBCRelation, SaveMode}
-import za.co.absa.spline.model.endpoint._
 import za.co.absa.spline.model.{op, _}
-import za.co.absa.spline.sparkadapterapi.StreamingRelationAdapter.instance.extractDataSourceInfo
-import za.co.absa.spline.sparkadapterapi.{DataSourceInfo, SaveAsTableCommand, SaveJDBCCommand, WriteCommand}
+import za.co.absa.spline.sparkadapterapi.{SaveAsTableCommand, SaveJDBCCommand, WriteCommand}
 
 sealed trait OperationNodeBuilder {
 
@@ -130,35 +128,6 @@ abstract class BatchWriteNodeBuilder
 
   override def ignoreLineageWrite:Boolean = {
     writeMetrics.get("numFiles").filter(0.==).isDefined
-  }
-}
-
-class StreamReadNodeBuilder
-(val operation: LogicalPlan)
-(implicit val componentCreatorFactory: ComponentCreatorFactory)
-  extends OperationNodeBuilder {
-
-  private val endpoint = createEndpoint(extractDataSourceInfo(operation).get)
-  override def build(): op.StreamRead = op.StreamRead(
-    operationProps,
-    endpoint.description,
-    endpoint.paths.map(path => MetaDataSource(path.toString, Nil))
-  )
-
-  private def createEndpoint(dataSource: DataSourceInfo): StreamEndpoint = dataSource.name match {
-    case x if x startsWith "FileSource" => FileEndpoint(
-      dataSource.className,
-      dataSource.options.getOrElse("path", "")
-    )
-    case "kafka" => KafkaEndpoint(
-      dataSource.options.getOrElse("kafka.bootstrap.servers", "").split(","),
-      dataSource.options.getOrElse("subscribe", "").split(",")
-    )
-    case "textSocket" | "socket" => SocketEndpoint(
-      dataSource.options.getOrElse("host", ""),
-      dataSource.options.getOrElse("port", "")
-    )
-    case _ => VirtualEndpoint(operation.getClass)
   }
 }
 

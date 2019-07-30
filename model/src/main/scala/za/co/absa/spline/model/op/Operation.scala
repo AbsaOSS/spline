@@ -62,9 +62,7 @@ object Operation {
       */
     def updated(fn: OperationProps => OperationProps): T = (op.asInstanceOf[Operation] match {
       case op@BatchRead(mp, _, _) => op.copy(mainProps = fn(mp))
-      case op@StreamRead(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@BatchWrite(mp, _, _, _, _, _) => op.copy(mainProps = fn(mp))
-      case op@StreamWrite(mp, _, _) => op.copy(mainProps = fn(mp))
       case op@Alias(mp, _) => op.copy(mainProps = fn(mp))
       case op@Filter(mp, _) => op.copy(mainProps = fn(mp))
       case op@Sort(mp, _) => op.copy(mainProps = fn(mp))
@@ -95,10 +93,10 @@ case class Generic(mainProps: OperationProps, rawString: String) extends Operati
   * @param joinType  A string description of a join type ("inner", "left_outer", right_outer", "outer")
   */
 case class Join(
-                 mainProps: OperationProps,
-                 condition: Option[Expression],
-                 joinType: String
-               ) extends Operation with ExpressionAware {
+  mainProps: OperationProps,
+  condition: Option[Expression],
+  joinType: String
+) extends Operation with ExpressionAware {
   override def expressions: Seq[Expression] = condition.toSeq
 }
 
@@ -116,9 +114,9 @@ case class Union(mainProps: OperationProps) extends Operation
   * @param condition An expression deciding what records will survive filtering
   */
 case class Filter(
-                   mainProps: OperationProps,
-                   condition: Expression
-                 ) extends Operation with ExpressionAware {
+  mainProps: OperationProps,
+  condition: Expression
+) extends Operation with ExpressionAware {
   override def expressions: Seq[Expression] = Seq(condition)
 }
 
@@ -130,10 +128,10 @@ case class Filter(
   * @param aggregations Aggregation expressions
   */
 case class Aggregate(
-                      mainProps: OperationProps,
-                      groupings: Seq[Expression],
-                      aggregations: Map[String, Expression]
-                    ) extends Operation with ExpressionAware {
+  mainProps: OperationProps,
+  groupings: Seq[Expression],
+  aggregations: Map[String, Expression]
+) extends Operation with ExpressionAware {
   override def expressions: Seq[Expression] = groupings ++ aggregations.values
 }
 
@@ -144,9 +142,9 @@ case class Aggregate(
   * @param orders    Sort orders
   */
 case class Sort(
-                 mainProps: OperationProps,
-                 orders: Seq[SortOrder]
-               ) extends Operation
+  mainProps: OperationProps,
+  orders: Seq[SortOrder]
+) extends Operation
 
 /**
   * Represents a sort order expression and a direction
@@ -168,9 +166,9 @@ case class SortOrder(expression: Expression, direction: String, nullOrder: Strin
   *                        (Introduction of a new attribute, Removal of an unnecessary attribute)
   */
 case class Projection(
-                       mainProps: OperationProps,
-                       transformations: Seq[Expression]
-                     ) extends Operation with ExpressionAware {
+  mainProps: OperationProps,
+  transformations: Seq[Expression]
+) extends Operation with ExpressionAware {
   override def expressions: Seq[Expression] = transformations
 }
 
@@ -181,14 +179,16 @@ case class Projection(
   * @param alias     An assigned label
   */
 case class Alias(
-                  mainProps: OperationProps,
-                  alias: String
-                ) extends Operation
+  mainProps: OperationProps,
+  alias: String
+) extends Operation
 
 sealed trait Write extends Operation {
   def path: String
+
   def destinationType: String
 }
+
 /**
   * The case class represents Spark operations for persisting data sets to HDFS, Hive etc. Operations are usually performed via DataFrameWriters.
   *
@@ -198,16 +198,17 @@ sealed trait Write extends Operation {
   * @param append          `true` for "APPEND" write mode, `false` otherwise.
   */
 case class BatchWrite(
-                  mainProps: OperationProps,
-                  destinationType: String,
-                  path: String,
-                  append: Boolean,
-                  writeMetrics: Map[String, Long] = Map.empty,
-                  readMetrics: Map[String, Long] = Map.empty
-                ) extends Write
+  mainProps: OperationProps,
+  destinationType: String,
+  path: String,
+  append: Boolean,
+  writeMetrics: Map[String, Long] = Map.empty,
+  readMetrics: Map[String, Long] = Map.empty
+) extends Write
 
 sealed trait Read extends Operation {
   def sourceType: String
+
   def sources: Seq[MetaDataSource]
 
   def unapply(arg: Read): Option[(String, Seq[MetaDataSource])] = {
@@ -225,10 +226,10 @@ sealed trait Read extends Operation {
   *                   every file will be represented by one meta data source instance
   */
 case class BatchRead(
-                 mainProps: OperationProps,
-                 sourceType: String,
-                 sources: Seq[MetaDataSource]
-               ) extends Read {
+  mainProps: OperationProps,
+  sourceType: String,
+  sources: Seq[MetaDataSource]
+) extends Read {
 
   private val knownSourceLineagesCount = sources.flatMap(_.datasetsIds).distinct.size
   private val inputDatasetsCount = mainProps.inputs.size
@@ -239,18 +240,6 @@ case class BatchRead(
       s"Hence the size 'inputs' collection should be the same as the count of known datasets for 'sources' field. " +
       s"But was $inputDatasetsCount and $knownSourceLineagesCount respectively")
 }
-
-case class StreamRead(
-                      mainProps: OperationProps,
-                      sourceType: String,
-                      sources: Seq[MetaDataSource]
-                     ) extends Read
-
-case class StreamWrite(
-                        mainProps: OperationProps,
-                        path: String,
-                        destinationType: String
-                      ) extends Write
 
 /**
   * The case class represents a partial data lineage at its boundary level.
@@ -264,14 +253,14 @@ case class StreamWrite(
   * @param appName     related Spark application name
   */
 case class Composite(
-                      mainProps: OperationProps,
-                      sources: Seq[TypedMetaDataSource],
-                      destination: TypedMetaDataSource,
-                      timestamp: Long,
-                      appId: String,
-                      appName: String,
-                      isBatchNotStream: Boolean
-                    ) extends Operation {
+  mainProps: OperationProps,
+  sources: Seq[TypedMetaDataSource],
+  destination: TypedMetaDataSource,
+  timestamp: Long,
+  appId: String,
+  appName: String,
+  isBatchNotStream: Boolean
+) extends Operation {
   private def knownSourceLineagesCount = sources.flatMap(_.datasetsIds).distinct.size
 
   private def inputDatasetsCount = mainProps.inputs.size

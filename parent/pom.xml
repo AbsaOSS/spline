@@ -400,17 +400,6 @@
                 <version>${spark.version}</version>
                 <scope>provided</scope>
             </dependency>
-            <dependency>
-                <groupId>org.apache.spark</groupId>
-                <artifactId>spark-sql-kafka-0-10_${scala.compat.version}</artifactId>
-                <version>${spark.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>net.jpountz.lz4</groupId>
-                        <artifactId>lz4</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
 
             <!-- Json4s -->
 

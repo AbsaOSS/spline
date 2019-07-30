@@ -18,12 +18,10 @@ package za.co.absa.spline.harvester.conf
 
 import org.apache.commons.configuration.Configuration
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.streaming.StreamingQueryListener
 import org.slf4s.Logging
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.harvester.dispatcher.HttpLineageDispatcher
-import za.co.absa.spline.harvester.listener.StructuredStreamingListener
 import za.co.absa.spline.harvester.{DataLineageBuilderFactory, QueryExecutionEventHandler}
 
 import scala.concurrent.ExecutionContext
@@ -73,7 +71,4 @@ class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkS
 
   def queryExecutionEventHandler: QueryExecutionEventHandler =
     new QueryExecutionEventHandler(lineageHarvester, lineageDispatcher, sparkSession)
-
-  def streamingQueryListener: StreamingQueryListener =
-    new StructuredStreamingListener(sparkSession.streams, lineageHarvester, lineageDispatcher)
 }

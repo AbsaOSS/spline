@@ -122,7 +122,6 @@ class DataLineageBuilder(logicalPlan: LogicalPlan, executedPlanOpt: Option[Spark
       case s: Aggregate => new AggregateNodeBuilder(s)
       case a: SubqueryAlias => new AliasNodeBuilder(a)
       case lr: LogicalRelation => new BatchReadNodeBuilder(lr) with HDFSAwareBuilder
-      case StreamingRelationVersionAgnostic(dataSourceInfo) => new StreamReadNodeBuilder(op)
       case wc if jdbcCommandParser.matches(op) =>
         val (readMetrics: Metrics, writeMetrics: Metrics) = getMetrics()
         val tableCmd = jdbcCommandParser.asWriteCommand(wc).asInstanceOf[SaveJDBCCommand]
