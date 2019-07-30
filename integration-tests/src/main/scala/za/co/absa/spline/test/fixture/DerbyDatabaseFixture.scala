@@ -17,54 +17,36 @@
 
 package za.co.absa.spline.test.fixture
 
-import java.sql.{Connection, DriverManager, ResultSet}
+import java.sql.DriverManager
 
-import org.scalactic.source.Position
-import org.scalatest.{BeforeAndAfter, Suite}
+import org.apache.derby.jdbc.EmbeddedDriver
+import org.scalatest.{BeforeAndAfterEach, Suite}
 import za.co.absa.spline.common.TempDirectory
+
+import scala.util.Try
 
 /**
   * Runs and wraps embedded Apache Derby DB.
   **/
-trait DerbyDatabaseFixture extends BeforeAndAfter{
-
+trait DerbyDatabaseFixture extends BeforeAndAfterEach {
   this: Suite =>
+  Class.forName(classOf[EmbeddedDriver].getName)
 
-  private val dbName = "splineTestDb"
-  val connectionString = s"jdbc:derby:memory:$dbName ;create=true"
+  val jdbcConnectionString = s"jdbc:derby:memory:splineTestDb"
 
-  var connection : Connection = null
-
-  private def execute(sql: String): ResultSet = {
-    val statement = connection.createStatement
-    statement.execute(sql)
-    statement.getResultSet
-  }
-
-  private def closeDatabase() : Unit = {
-    def closeCommand(cmd: String) = util.Try({DriverManager.getConnection(cmd)})
-
-    val connectionString = "jdbc:derby:memory:" + dbName
-    closeCommand(connectionString + ";drop=true")
-    closeCommand(connectionString + ";shutdown=true")
-  }
-
-  private def createTable(table: String): ResultSet = {
-    execute("Create table " + table + " (id int, name varchar(30))")
-  }
-
-  private def dropTable(table: String): ResultSet = {
-    execute("drop table " + table)
-  }
-
-  override protected def after(fun: => Any)(implicit pos: Position): Unit = try super.after(fun) finally closeDatabase()
-
-  override protected def before(fun: => Any)(implicit pos: Position): Unit = {
+  override protected def beforeEach: Unit = {
     val tempPath = TempDirectory("derbyUnitTest", "database").deleteOnExit().path
     System.setProperty("derby.system.home", tempPath.toString)
-    DriverManager.registerDriver(new org.apache.derby.jdbc.EmbeddedDriver)
-    Class.forName("org.apache.derby.jdbc.EmbeddedDriver")
-    connection = DriverManager.getConnection(connectionString)
+    execCommand("create")
+  }
+
+  override protected def afterEach(): Unit = {
+    execCommand("drop")
+    execCommand("shutdown")
+  }
+
+  private def execCommand(cmd: String) = Try {
+    DriverManager.getConnection(s"$jdbcConnectionString;$cmd=true")
   }
 }
 
