@@ -13,25 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {AfterViewInit, Component, Input, ViewChild, ViewEncapsulation} from '@angular/core';
-import {Store} from '@ngrx/store';
+import { AfterViewInit, Component, Input, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Store } from '@ngrx/store';
 import * as _ from 'lodash';
-import {AppState} from 'src/app/model/app-state';
-import {AttributeType} from 'src/app/model/types/attributeType';
-import {AttributeVM} from 'src/app/model/viewModels/attributeVM';
+import { AppState } from 'src/app/model/app-state';
+import { AttributeType } from 'src/app/model/types/attributeType';
+import { AttributeVM } from 'src/app/model/viewModels/attributeVM';
 import * as AttributesAction from 'src/app/store/actions/attributes.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
 import * as attributeReducer from 'src/app/store/reducers/attribute.reducer';
 
 @Component({
   selector: 'schema-table',
-  templateUrl: './schema-table.component.html',
-  styleUrls: ['./schema-table.component.less'],
-  encapsulation: ViewEncapsulation.None
+  templateUrl: './schema-table.component.html'
 })
 export class SchemaTableComponent implements AfterViewInit {
 
-  @ViewChild('table')
+  @ViewChild('table', { static: true })
   table: any
 
   @Input()

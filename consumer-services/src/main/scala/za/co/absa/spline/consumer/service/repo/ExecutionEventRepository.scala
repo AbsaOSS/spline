@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package za.co.absa.spline.consumer.service.repo
 
-package za.co.absa.spline.consumer.service.model
+import za.co.absa.spline.consumer.service.model.{ExecutionEvent, PageRequest, Pageable, SortRequest}
 
-case class ExecutedLogicalPlan
-(
-  execution: ExecutionInfo,
-  plan: LogicalPlan
-) {
-  def this() = this(null, null)
-}
+import scala.concurrent.{ExecutionContext, Future}
 
-object ExecutedLogicalPlan {
-  type OperationID = String
+trait ExecutionEventRepository {
+
+  def findByTimestampRange
+  (
+    timestampStart: Long,
+    timestampEnd: Long,
+    pageRequest: PageRequest,
+    sortRequest: SortRequest,
+    searchTerm: String
+  )
+  (implicit ec: ExecutionContext): Future[Pageable[ExecutionEvent]]
 }

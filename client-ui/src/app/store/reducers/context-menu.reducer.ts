@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import * as ContextMenuAction from '../actions/context-menu.actions';
-import * as RouterAction from 'src/app/store/actions/router.actions';
 import { LineageOverviewNodeType } from 'src/app/model/types/lineageOverviewNodeType';
 
 export type Action = ContextMenuAction.ContextMenuActions

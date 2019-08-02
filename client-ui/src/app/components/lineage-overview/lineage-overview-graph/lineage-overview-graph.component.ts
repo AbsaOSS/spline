@@ -38,7 +38,7 @@ import { LineageOverviewNodeType } from 'src/app/model/types/lineageOverviewNode
 })
 export class LineageOverviewGraphComponent implements OnInit, AfterViewInit {
 
-  @ViewChild(CytoscapeNgLibComponent)
+  @ViewChild(CytoscapeNgLibComponent, { static: true })
   private cytograph: CytoscapeNgLibComponent
 
 

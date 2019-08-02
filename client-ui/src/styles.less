@@ -17,13 +17,19 @@
 @import "../node_modules/font-awesome/less/font-awesome.less";
 @import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 @import "../node_modules/cytoscape-panzoom/cytoscape.js-panzoom.css";
+@import '~@swimlane/ngx-datatable/release/index.css';
+@import '~@swimlane/ngx-datatable/release/themes/material.css';
+@import '~@swimlane/ngx-datatable/release/assets/icons.css';
 
 html, body {
     width:100%;
+    max-width: 100%;
     height: 100%;
     font-size: 0.5vw;
     font-family: "Roboto", "Trebuchet MS", Arial, Helvetica, sans-serif;
     color:#555;
+    margin-left: 0 !important;
+    margin-right: 0 !important; 
 }
 
 .cxtmenu-disabled{
@@ -91,7 +97,7 @@ table.noheader thead{
     display:none;
 }
 
- .collapsible{
+.collapsible{
     position: relative;
     font-weight: bold;
     color:#e39255;
@@ -121,4 +127,38 @@ table.noheader thead{
   -ms-transform:     rotate(90deg);
   -o-transform:      rotate(90deg);
   transform:         rotate(90deg);
+}
+
+// Common style for ngx-datatable
+.datatable-body-cell-label{
+    font-size: 0.5vw;
+}
+
+.datatable-body-cell-label span{
+    font-size: 0.5vw;
+}
+
+.ngx-datatable.material .datatable-footer .page-count {
+    line-height: unset;
+    height: unset; 
+    padding: 0 1.2rem;
+}
+
+.ngx-datatable.material.single-selection .datatable-body-row.active,
+.ngx-datatable.material.single-selection .datatable-body-row.active .datatable-row-group,
+.ngx-datatable.material.multi-selection .datatable-body-row.active,
+.ngx-datatable.material.multi-selection .datatable-body-row.active .datatable-row-group, .ngx-datatable.material.multi-click-selection .datatable-body-row.active,
+.ngx-datatable.material.multi-click-selection .datatable-body-row.active .datatable-row-group {
+    background-color:#f2f2f2 !important;
+    color: #fff;
+}
+
+.ngx-datatable.material:not(.cell-selection) .datatable-body-row:hover .datatable-row-group
+{ 
+   background: #e39255 !important;
+    cursor: pointer;
+}
+
+.ngx-datatable.material .datatable-body .datatable-row-detail {
+    background: #f2f2f2;
 }

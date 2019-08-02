@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package za.co.absa.spline.consumer.service.model
 
-case class ExecutedLogicalPlan
+case class ExecutionEvent
 (
-  execution: ExecutionInfo,
-  plan: LogicalPlan
-) {
-  def this() = this(null, null)
-}
-
-object ExecutedLogicalPlan {
-  type OperationID = String
+  frameworkName : String,
+  applicationName: String,
+  applicationId : String,
+  timestamp : Long,
+  datasource : String,
+  datasourceType : String,
+  append : Boolean
+){
+  def this() = this("", "", "", 0, "", "", false)
 }

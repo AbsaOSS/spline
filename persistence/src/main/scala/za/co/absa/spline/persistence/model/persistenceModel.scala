@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package za.co.absa.spline.persistence.model
 
 case class Progress(
+    _creationTimestamp: Long,
     timestamp: Long,
     error: Option[Any],
     extra: Map[String, Any],

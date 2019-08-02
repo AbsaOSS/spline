@@ -13,17 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package za.co.absa.spline.consumer.service.model
 
-case class ExecutedLogicalPlan
-(
-  execution: ExecutionInfo,
-  plan: LogicalPlan
-) {
-  def this() = this(null, null)
-}
-
-object ExecutedLogicalPlan {
-  type OperationID = String
+case class SortRequest(sortName: String, sortDirection: String)
+{
+  def this() =  this(null, null)
 }

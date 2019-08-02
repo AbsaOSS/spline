@@ -33,7 +33,7 @@ import * as RouterAction from 'src/app/store/actions/router.actions';
 })
 export class LineageGraphComponent implements OnInit, AfterViewInit {
 
-  @ViewChild(CytoscapeNgLibComponent)
+  @ViewChild(CytoscapeNgLibComponent, { static: true })
   private cytograph: CytoscapeNgLibComponent
 
   constructor(
