@@ -19,6 +19,7 @@ import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { NgxBootstrapSwitchModule } from 'ngx-bootstrap-switch';
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
 import { routerReducer, RouterStateSerializer, StoreRouterConnectingModule } from '@ngrx/router-store';
@@ -118,15 +119,16 @@ const ROOT_ROUTING = "app/"
     CytoscapeNgLibModule,
     HttpClientModule,
     NgxDatatableModule,
-    BrowserAnimationsModule,
+    NgxBootstrapSwitchModule.forRoot(),
     NgrxFormsModule,
     BsDatepickerModule.forRoot(),
     TimepickerModule.forRoot(),
     FormsModule,
     ReactiveFormsModule,
+    BrowserAnimationsModule,
     StoreModule.forRoot({
       config: configReducer,
-      dashboardFilters: dashboardFiltersReducer,
+      dashboardForm: dashboardFiltersReducer,
       executedLogicalPlan: executionPlanReducer,
       lineageOverview: lineageOverviewReducer,
       detailsInfos: detailsInfoReducer,

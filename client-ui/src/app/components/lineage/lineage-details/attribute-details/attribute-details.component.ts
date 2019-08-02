@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {CytoscapeNgLibComponent} from 'cytoscape-ng-lib';
-import {map, switchMap} from 'rxjs/operators';
-import {AppState} from 'src/app/model/app-state';
+import { Component, ViewChild, AfterViewInit } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
+import { map, switchMap } from 'rxjs/operators';
+import { AppState } from 'src/app/model/app-state';
 
 @Component({
   selector: 'attribute-details',
   templateUrl: './attribute-details.component.html',
   styleUrls: ['./attribute-details.component.less']
 })
-export class AttributeDetailsComponent implements OnInit {
+export class AttributeDetailsComponent implements AfterViewInit {
 
   @ViewChild(CytoscapeNgLibComponent, { static: true })
   private cytograph: CytoscapeNgLibComponent
@@ -33,7 +33,7 @@ export class AttributeDetailsComponent implements OnInit {
     private store: Store<AppState>
   ) { }
 
-  public ngOnInit(): void {
+  public ngAfterViewInit(): void {
     this.store
       .select('layout')
       .pipe(

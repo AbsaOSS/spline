@@ -16,14 +16,15 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { DatatableComponent } from '@swimlane/ngx-datatable';
+import * as _ from 'lodash';
 import * as moment from 'moment';
 import { Moment } from 'moment';
 import { CustomStepDefinition, LabelType, Options } from 'ng5-slider';
 import { FormGroupState, NgrxValueConverter } from 'ngrx-forms';
 import { fromEvent, Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
-import { ExecutionEventControllerService } from 'src/app/generated/services';
 import { AppState } from 'src/app/model/app-state';
+import { RouterStateUrl } from 'src/app/model/routerStateUrl';
 import * as DashboardFormActions from 'src/app/store/actions/dashboard-form.actions';
 import * as ExecutionEventsActions from 'src/app/store/actions/execution-events.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
@@ -38,7 +39,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   constructor(
     private store: Store<AppState>
   ) {
-    this.formState$ = store.select('dashboardFilters')
+    this.formState$ = store.select('dashboardForm')
   }
 
   @ViewChild('searchInput', { static: false }) searchInput: ElementRef
@@ -63,7 +64,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     translate: (value: number, label: LabelType): string => {
       return moment(value).format('DD/MM/YYYY, h:mm:ss A')
     },
-    showTicks: true
+    showTicks: true,
+    precisionLimit: 100
   }
 
   rangeConverter = {
@@ -87,37 +89,38 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.store
       .select('router', 'state', 'queryParams')
-      .pipe(
-        filter(queryParams => queryParams !== null && queryParams !== undefined && queryParams.timestampStart !== undefined)
-      )
       .subscribe((queryParams: any) => {
-        this.timestampStart = queryParams.timestampStart
-        this.timestampEnd = queryParams.timestampEnd
-        this.asAtTime = this.asAtTime = Number(queryParams.asAtTime) || this.asAtTime
-        this.offset = Number(queryParams.offset)
-        this.sortName = queryParams.sortName
-        this.sortDirection = queryParams.sortDirection
-        this.searchTerm = queryParams.searchTerm
-        this.updateDateRange(moment(Number(queryParams.timestampStart)).toDate(), moment(Number(queryParams.timestampEnd)).toDate())
-        this.store.dispatch(new ExecutionEventsActions.Get(queryParams))
-        this.store.dispatch(new DashboardFormActions.InitializeForm({ minDate: this.timestampStart, maxDate: this.timestampEnd }))
+        if (!_.isEmpty(queryParams)) {
+          this.timestampStart = queryParams.timestampStart
+          this.timestampEnd = queryParams.timestampEnd
+          this.asAtTime = this.asAtTime = Number(queryParams.asAtTime) || this.asAtTime
+          this.offset = Number(queryParams.offset)
+          this.sortName = queryParams.sortName
+          this.sortDirection = queryParams.sortDirection
+          this.searchTerm = queryParams.searchTerm
+          this.updateDateRange(moment(Number(queryParams.timestampStart)).toDate(), moment(Number(queryParams.timestampEnd)).toDate())
+          this.store.dispatch(new ExecutionEventsActions.Get(queryParams))
+          this.store.dispatch(new DashboardFormActions.InitializeForm({ minDate: this.timestampStart, maxDate: this.timestampEnd }))
+        } else {
+          this.store.dispatch(new ExecutionEventsActions.GetDefault({}))
+        }
       })
 
     this.store
-      .select('dashboardFilters', 'dashboardFilters', 'value', 'dateRange')
+      .select('dashboardForm', 'dashboardFilters', 'value', 'dateRange')
       .pipe(
-        filter(state => state !== null && state !== undefined)
+        filter(state => state != null)
       )
       .subscribe(dateRange => {
         this.updateDateRange(moment(dateRange[0]).toDate(), moment(dateRange[1]).toDate())
       })
 
     this.store
-      .select('dashboardFilters', 'dashboardFilters', 'value', 'minDate')
+      .select('dashboardForm', 'dashboardFilters', 'value', 'minDate')
       .pipe(
         switchMap(minDate => {
           return this.store
-            .select('dashboardFilters', 'dashboardFilters', 'value', 'sliderRange')
+            .select('dashboardForm', 'dashboardFilters', 'value', 'sliderRange')
             .pipe(
               map(sliderRange => {
                 return { sliderRange: sliderRange, minDate: minDate }
@@ -126,7 +129,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         }),
         switchMap(state => {
           return this.store
-            .select('dashboardFilters', 'dashboardFilters', 'value', 'maxDate')
+            .select('dashboardForm', 'dashboardFilters', 'value', 'maxDate')
             .pipe(
               map(maxDate => {
                 return { sliderRange: state.sliderRange, minDate: state.minDate, maxDate: maxDate }
@@ -135,24 +138,23 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         })
       )
       .subscribe(state => {
-        this.updateTimestamp(state.sliderRange[0], state.minDate)
+        this.updateTimestamp(state.sliderRange[0], state.minDate) 
         this.updateTimestamp(state.sliderRange[1], state.maxDate)
         this.timestampStart = state.sliderRange[0]
         this.timestampEnd = state.sliderRange[1]
-        this.offset = 0
-        const params = this.createParams()
-        this.store.dispatch(new ExecutionEventsActions.Get(params))
-        this.store.dispatch(new RouterAction.MergeParams(params))
-
+        const params: RouterStateUrl = this.createParams()
+        this.store.dispatch(new ExecutionEventsActions.Get(params.queryParams))
+        this.store.dispatch(new RouterAction.ReplaceUrlState(params.queryParams))
       })
 
-    this.store.select('executionEvents').subscribe(executionEvents => {
-      if (executionEvents) {
+    this.store.select('executionEvents')
+      .pipe(
+        filter(state => state != null)
+      ).subscribe(executionEvents => {
         this.rows = executionEvents.elements[1]
         this.offset = executionEvents.offset
         this.totalCount = executionEvents.totalCount
-      }
-    })
+      })
   }
 
   ngAfterViewInit(): void {
@@ -190,6 +192,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         distinctUntilChanged()
       ).subscribe(
         searchTerm => {
+          this.offset = 0
           this.searchTerm = searchTerm
           let params = this.createParams()
           this.store.dispatch(new RouterAction.Go(params))
@@ -202,7 +205,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   public onSelect(event): void {
     const appId = event.selected[0].applicationId
     const datasource = event.selected[0].datasource
-    document.location.href = `/app/lineage-overview/?path=${datasource}&applicationId=${appId}`
+    const params = {} as RouterStateUrl
+    params.url = `/app/partial-lineage/${appId}`
+    params.queryParams = { "path": datasource, "applicationId": appId }
+    params.url = "/app/lineage-overview/"
+    this.store.dispatch(new RouterAction.Go(params))
   }
 
 
@@ -214,8 +221,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
   }
 
-  private createParams(): ExecutionEventControllerService.ExecutionEventUsingGETParams {
-    return {
+  private createParams(): RouterStateUrl {
+    const routerStateParams = {} as RouterStateUrl
+    routerStateParams.queryParams = {
       timestampStart: this.timestampStart,
       timestampEnd: this.timestampEnd,
       asAtTime: this.asAtTime,
@@ -224,6 +232,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       sortDirection: this.sortDirection,
       searchTerm: this.searchTerm
     }
+    return routerStateParams
   }
 
 
@@ -237,7 +246,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
     const stepArray = timestampSteps.map((timestamp: number) => {
       if (moment(timestamp).format('DD') == "01") {
-        return { value: timestamp, legend: `${moment(timestamp).format('DD')} \n ${moment(timestamp).format('MMMM')}` }
+        return { value: timestamp, legend: `${moment(timestamp).format('DD')} \n ${moment(timestamp).format('MMMM')} ` }
       }
       if (timestampSteps.length < 120) {
         return { value: timestamp, legend: moment(timestamp).format('DD') }

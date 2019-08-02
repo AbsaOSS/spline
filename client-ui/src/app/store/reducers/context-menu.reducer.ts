@@ -15,6 +15,7 @@
  */
 import * as ContextMenuAction from '../actions/context-menu.actions';
 import { LineageOverviewNodeType } from 'src/app/model/types/lineageOverviewNodeType';
+import * as RouterAction from 'src/app/store/actions/router.actions';
 
 export type Action = ContextMenuAction.ContextMenuActions
 
@@ -44,17 +45,17 @@ function getConfiguration(): any {
         atMouse: false, // draw menu at mouse position
         commands: [
             {
-                content: '<span class="fa fa-crop fa-2x"></span><b>Expand</b>',
+                content: '<span class="fa fa-info-circle fa-2x"></span><b>Focus</b>',
                 select: function (ele) {
                     console.log(ele)
                 },
                 enabled: false
             },
             {
-                content: '<span class="fa fa-info-circle fa-2x"></span><b>Focus</b>',
+                content: '<span class="fa fa-crop fa-2x"></span><b></span><b>Expand</b>',
                 select: function (ele, event) {
                     if (ele.data()._type == LineageOverviewNodeType.Execution) {
-                        document.location.href = "/app/partial-lineage/" + ele.data().id
+                        event.target.trigger('doubleTap', ele.data().id)
                     }
                 }
             }

@@ -95,7 +95,7 @@ export class SchemaTableComponent implements AfterViewInit {
 
   public onSelect = ({ selected }): void => {
     const selectedAttribute = selected[0]
-    this.store.dispatch(new RouterAction.MergeParams({ schemaId: this.schemaId, attribute: selectedAttribute.name }))
+    this.store.dispatch(new RouterAction.ReplaceUrlState({ schemaId: this.schemaId, attribute: selectedAttribute.name }))
     this.store.dispatch(new AttributesAction.Get(selectedAttribute))
     if (selectedAttribute.dataType._type != AttributeType.Simple) {
       this.table.rowDetail.toggleExpandRow(selectedAttribute)

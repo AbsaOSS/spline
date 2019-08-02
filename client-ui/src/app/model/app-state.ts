@@ -15,19 +15,20 @@
  */
 
 import { FormGroupState } from 'ngrx-forms';
-import { DataSourceInfo, LineageOverview, PageableExecutionEvent } from "../generated/models";
+import { DataSourceInfo, PageableExecutionEvent } from "../generated/models";
 import { RouterStateUrl } from "./routerStateUrl";
 import { CytoscapeGraphVM } from "./viewModels/cytoscape/cytoscapeGraphVM";
 import { ExecutedLogicalPlanVM } from "./viewModels/executedLogicalPlanVM";
 import { OperationDetailsVM } from "./viewModels/operationDetailsVM";
+import { LineageOverviewVM } from './viewModels/lineageOverview';
 
 export interface AppState {
     config: {
         apiUrl: string
     },
     executionEvents: PageableExecutionEvent,
-    dashboardFilters: FormGroupState<any>,
-    lineageOverview: LineageOverview,
+    dashboardForm: FormGroupState<any>,
+    lineageOverview: LineageOverviewVM,
     executedLogicalPlan: ExecutedLogicalPlanVM,
     detailsInfos: OperationDetailsVM,
     dataSourceInfo: OperationDetailsVM,

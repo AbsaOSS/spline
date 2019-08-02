@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { AppState } from 'src/app/model/app-state';
-import * as LineageOverviewAction from 'src/app/store/actions/lineage-overview.actions';
-import * as LayoutAction from 'src/app/store/actions/layout.actions';
-import * as ContextMenuAction from 'src/app/store/actions/context-menu.actions';
-import * as _ from 'lodash';
-
-import { LineageControllerService } from 'src/app/generated/services';
 import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
-import { switchMap, filter, map } from 'rxjs/operators';
-import { Params } from '@angular/router';
-import * as RouterAction from 'src/app/store/actions/router.actions';
-import * as ExecutionPlanDatasourceInfoAction from 'src/app/store/actions/execution-plan-datasource-info.actions';
-import * as DataSourceInfoActions from 'src/app/store/actions/datasource.info.actions';
+import * as _ from 'lodash';
+import { filter, map, switchMap } from 'rxjs/operators';
+import { LineageControllerService } from 'src/app/generated/services';
+import { AppState } from 'src/app/model/app-state';
+import { RouterStateUrl } from 'src/app/model/routerStateUrl';
 import { LineageOverviewNodeType } from 'src/app/model/types/lineageOverviewNodeType';
+import { LineageOverviewVM } from 'src/app/model/viewModels/lineageOverview';
+import * as ContextMenuAction from 'src/app/store/actions/context-menu.actions';
+import * as DataSourceInfoActions from 'src/app/store/actions/datasource.info.actions';
+import * as ExecutionPlanDatasourceInfoAction from 'src/app/store/actions/execution-plan-datasource-info.actions';
+import * as LayoutAction from 'src/app/store/actions/layout.actions';
+import * as LineageOverviewAction from 'src/app/store/actions/lineage-overview.actions';
+import * as RouterAction from 'src/app/store/actions/router.actions';
 
 
 @Component({
@@ -75,7 +75,7 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit {
         })
       )
       .subscribe(state => {
-        if (state) {
+        if (state && this.cytograph.cy) {
           this.cytograph.cy.add(state.graph.lineage)
           this.cytograph.cy.nodeHtmlLabel([{
             tpl: function (data) {
@@ -92,11 +92,36 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit {
 
   public ngAfterViewInit(): void {
     this.cytograph.cy.ready(() => {
-      this.cytograph.cy.on('click', (event) => {
+      this.cytograph.cy.style().selector('edge').css({
+        'width': '7'
+      })
+      const doubleClickDelayMs = 350
+      let previousTimeStamp
+
+      this.cytograph.cy.on('tap', (event) => {
+        const currentTimeStamp = event.timeStamp
+        const msFromLastTap = currentTimeStamp - previousTimeStamp
+
+        if (msFromLastTap < doubleClickDelayMs) {
+          event.target.trigger('doubleTap', event)
+        } else {
+          previousTimeStamp = currentTimeStamp
+          const clikedTarget = event.target
+          const nodeId = (clikedTarget != this.cytograph.cy && clikedTarget.isNode()) ? clikedTarget.id() : null
+          const params = {} as RouterStateUrl
+          params.queryParams = { selectedNodeId: nodeId }
+          this.store.dispatch(new RouterAction.Go(params))
+        }
+      })
+      this.cytograph.cy.on('doubleTap', (event) => {
         const clikedTarget = event.target
         const nodeId = (clikedTarget != this.cytograph.cy && clikedTarget.isNode()) ? clikedTarget.id() : null
-        const params: Params = { selectedNodeId: nodeId }
-        this.store.dispatch(new RouterAction.Go(params))
+        if (nodeId && clikedTarget.data()._type == LineageOverviewNodeType.Execution) {
+          const params: RouterStateUrl = {
+            url: `/app/partial-lineage/${nodeId}`
+          }
+          this.store.dispatch(new RouterAction.Go(params))
+        }
       })
     })
 
@@ -115,10 +140,12 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit {
     this.store
       .select('router', 'state', 'queryParams', 'path')
       .pipe(
+        filter(state => state != null),
         switchMap(path => {
           return this.store
             .select('router', 'state', 'queryParams', 'applicationId')
             .pipe(
+              filter(state => state != null),
               map(applicationId => {
                 return { path, applicationId }
               })
@@ -131,6 +158,7 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit {
             applicationId: queryParams.applicationId
           }
           this.store.dispatch(new LineageOverviewAction.Get(serviceParams))
+          this.store.dispatch(new LineageOverviewAction.Save(serviceParams as LineageOverviewVM))
         }
       )
   }

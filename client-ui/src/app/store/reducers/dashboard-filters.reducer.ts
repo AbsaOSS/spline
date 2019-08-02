@@ -53,7 +53,7 @@ export function dashboardFiltersReducer(state = initialState, action: Action): a
                 return state
             }
         }
-        case SetValueAction.TYPE:
+        case SetValueAction.TYPE: {
             //unboxing value for the slider Range control
             if (action['controlId'] == "dashboardFilter.sliderRange") {
                 action['value'] = unbox(action['value'])
@@ -92,8 +92,8 @@ export function dashboardFiltersReducer(state = initialState, action: Action): a
                 state.dashboardFilters.value.range = action['value']
                 state.dashboardFilters.controls.range.value = action['value']
             }
-
             return state
+        }
         default: return state
     }
 

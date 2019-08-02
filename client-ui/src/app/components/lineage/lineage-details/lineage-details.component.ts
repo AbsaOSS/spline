@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {AppState} from 'src/app/model/app-state';
-import {Observable} from 'rxjs';
-import {OperationDetailsVM} from 'src/app/model/viewModels/operationDetailsVM';
+import { Component } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { AppState } from 'src/app/model/app-state';
+import { Observable } from 'rxjs';
+import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM';
 
 @Component({
   selector: 'lineage-details',
@@ -30,7 +30,12 @@ export class LineageDetailsComponent {
     private store: Store<AppState>
   ) { }
 
+  public showAttributeGraph = false
+
   public getDetailsInfo = (): Observable<OperationDetailsVM> => {
     return this.store.select('detailsInfos')
+  }
+  public onShowAttributesGraph(value: boolean): void {
+    this.showAttributeGraph = value
   }
 }

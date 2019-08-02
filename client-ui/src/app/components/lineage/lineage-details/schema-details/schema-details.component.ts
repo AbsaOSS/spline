@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {AfterViewInit, ChangeDetectorRef, Component, ComponentFactoryResolver, QueryList, ViewChildren, ViewContainerRef} from '@angular/core';
-import {Store} from '@ngrx/store';
+import { AfterViewInit, ChangeDetectorRef, Component, ComponentFactoryResolver, QueryList, ViewChildren, ViewContainerRef } from '@angular/core';
+import { Store } from '@ngrx/store';
 import * as _ from 'lodash';
-import {Observable} from 'rxjs';
-import {switchMap, tap} from 'rxjs/operators';
-import {AppState} from 'src/app/model/app-state';
-import {Expression} from 'src/app/model/expression';
-import {IAlias, IAttrRef, IBinary, IExpression, IGeneric, IGenericLeaf, ILiteral, IUDF} from 'src/app/model/expression-model';
-import {ExpressionType} from 'src/app/model/types/expressionType';
-import {ExpressionComponents, OperationType} from 'src/app/model/types/operationType';
-import {AttributeVM} from 'src/app/model/viewModels/attributeVM';
-import {ExecutedLogicalPlanVM} from 'src/app/model/viewModels/executedLogicalPlanVM';
-import {OperationDetailsVM} from 'src/app/model/viewModels/operationDetailsVM';
-import {operationColorCodes, operationIconCodes} from 'src/app/store/reducers/execution-plan.reducer';
+import { Observable } from 'rxjs';
+import { switchMap, tap } from 'rxjs/operators';
+import { AppState } from 'src/app/model/app-state';
+import { Expression } from 'src/app/model/expression';
+import { IAlias, IAttrRef, IBinary, IExpression, IGeneric, IGenericLeaf, ILiteral, IUDF } from 'src/app/model/expression-model';
+import { ExpressionType } from 'src/app/model/types/expressionType';
+import { ExpressionComponents, OperationType } from 'src/app/model/types/operationType';
+import { AttributeVM } from 'src/app/model/viewModels/attributeVM';
+import { ExecutedLogicalPlanVM } from 'src/app/model/viewModels/executedLogicalPlanVM';
+import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM';
+import { operationColorCodes, operationIconCodes } from 'src/app/store/reducers/execution-plan.reducer';
 
 
 @Component({

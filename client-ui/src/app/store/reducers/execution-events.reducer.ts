@@ -20,6 +20,7 @@ export type Action = ExecutionEventsAction.ExecutionEventsActions
 export function executionEventReducer(state: string, action: Action): any {
     switch (action.type) {
         case ExecutionEventsAction.ExecutionEventsActionTypes.EXECUTION_EVENTS_GET_SUCCESS: return { ...action.payload }
+        case ExecutionEventsAction.ExecutionEventsActionTypes.EXECUTION_EVENTS_GET_SUCESS_DEFAULT: return { ...action.payload }
         default: return state
     }
 }
