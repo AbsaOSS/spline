@@ -46,11 +46,9 @@ object Persister extends Logging {
         case RetryableException(e) =>
           if (left == 0) throw e
           else {
-            log.warn(s"Ignoring ${e.getClass.getSimpleName} and $left left. Exception message: ${e.getMessage}.")
+            log.warn(s"Got an error, retrying... ($left attempts left)", e)
             saveWithRetry(entity, attemptSave, left)
           }
-        case _ =>
-          throw new IllegalArgumentException(s"Unexpected exception aborting remaining $left retries.")
       }
     } yield res
   }

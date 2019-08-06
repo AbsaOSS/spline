@@ -66,7 +66,7 @@ class AdminCLI(arangoInit: ArangoInit) {
 
     command match {
       case InitDB(force, url, timeout) =>
-        Await.ready(arangoInit.initialize(ArangoConnectionURL(url), dropIfExists = force), timeout)
+        Await.result(arangoInit.initialize(ArangoConnectionURL(url), dropIfExists = force), timeout)
     }
   }
 }
