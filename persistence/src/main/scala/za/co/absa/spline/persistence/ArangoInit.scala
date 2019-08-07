@@ -20,8 +20,8 @@ import com.arangodb.ArangoDatabaseAsync
 import com.arangodb.entity.{CollectionType, EdgeDefinition, GraphEntity}
 import com.arangodb.model.{AqlFunctionCreateOptions, CollectionCreateOptions, HashIndexOptions}
 import org.apache.commons.io.FilenameUtils
-import org.springframework.core.io.Resource
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
+import za.co.absa.spline.common.ARM
 
 import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters._
@@ -74,14 +74,16 @@ object ArangoInit extends ArangoInit {
   } yield graph
 
   private def createAQLUserFunctions(db: ArangoDatabaseAsync) = {
-    val resolver = new PathMatchingResourcePatternResolver(getClass.getClassLoader)
-    val files: Array[Resource] = resolver.getResources("classpath:AQLFunctions/*.js")
-    files.foreach(file => {
-      val functionName = s"SPLINE::${FilenameUtils.removeExtension(file.getFile.getName).toUpperCase}"
-      val functionBody = Source.fromFile(file.getURI).getLines.mkString
-      db.createAqlFunction(functionName, functionBody, new AqlFunctionCreateOptions()).toScala
-    })
-    Future.successful()
+    val futures = new PathMatchingResourcePatternResolver(getClass.getClassLoader)
+      .getResources("classpath:AQLFunctions/*.js")
+      .map(res => {
+        val functionName = s"SPLINE::${FilenameUtils.removeExtension(res.getFilename).toUpperCase}"
+        val functionBody = ARM.using(Source.fromURL(res.getURL))(_.getLines.mkString)
+        db.createAqlFunction(functionName, functionBody, new AqlFunctionCreateOptions())
+          .toScala
+          .map(_ => Unit)
+      })
+    Future.reduce(futures)((_, _) => Unit)
   }
 
 
