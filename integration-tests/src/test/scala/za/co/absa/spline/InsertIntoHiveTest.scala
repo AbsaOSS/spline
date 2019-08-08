@@ -37,8 +37,7 @@ class InsertIntoHiveTest
       withCustomSparkSession(_
         .enableHiveSupport()
         .config("hive.exec.dynamic.partition.mode", "nonstrict")
-        .config("hive.metastore.warehouse.dir", tempWarehouseDirPath)
-        .config("spark.sql.warehouse.dir", tempWarehouseDirPath)) { spark =>
+        .config("hive.metastore.warehouse.dir", tempWarehouseDirPath)) { spark =>
 
         withHiveDatabase(spark)(
           databaseName = s"unitTestDatabase_${this.getClass.getSimpleName}",

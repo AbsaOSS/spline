@@ -17,13 +17,15 @@
 package za.co.absa.spline.test.fixture
 
 import org.apache.spark.sql.SparkSession
+import za.co.absa.spline.common.TempDirectory
 
 trait SparkFixture {
 
   private val sessionBuilder: SparkSession.Builder =
-    SparkSession.builder.
-      master("local[*]").
-      config("spark.ui.enabled", "false")
+    SparkSession.builder
+      .master("local[*]")
+      .config("spark.ui.enabled", "false")
+      .config("spark.sql.warehouse.dir", TempDirectory("SparkFixture", "UnitTest", pathOnly = true).deleteOnExit().path.toString)
 
   def withNewSparkSession[T](testBody: SparkSession => T): T = {
     withCustomSparkSession(identity)(testBody)
