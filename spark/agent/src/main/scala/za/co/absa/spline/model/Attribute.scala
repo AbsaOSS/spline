@@ -17,7 +17,6 @@
 package za.co.absa.spline.model
 
 import java.util.UUID
-import java.util.UUID.randomUUID
 
 /**
   * The case class represents an attribute of a Spark data set.
@@ -27,9 +26,5 @@ import java.util.UUID.randomUUID
   * @param dataTypeId A data type of the attribute
   */
 case class Attribute(id: UUID, name: String, dataTypeId: UUID)
-
-object Attribute {
-  def apply(name: String, dataTypeId: UUID) = new Attribute(randomUUID, name, dataTypeId)
-}
 
 

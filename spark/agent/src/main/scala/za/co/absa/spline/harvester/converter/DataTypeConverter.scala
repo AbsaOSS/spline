@@ -34,7 +34,7 @@ class DataTypeConverter extends AbstractConverter {
       case arrayType: st.ArrayType =>
         Array(convert(arrayType.elementType -> arrayType.containsNull).id, nullable)
 
-      case otherType =>
+      case otherType: st.DataType =>
         Simple(otherType.typeName, nullable)
     }
   }

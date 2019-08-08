@@ -65,7 +65,7 @@ class ExpressionConverter(
         getExpressionSimpleClassName(e),
         getExpressionExtraParameters(e))
 
-    case e =>
+    case e: expressions.Expression =>
       expr.Generic(
         e.prettyName,
         getDataType(e).id,

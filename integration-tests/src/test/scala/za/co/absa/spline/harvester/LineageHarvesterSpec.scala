@@ -230,10 +230,10 @@ object LineageHarvesterSpec extends Matchers {
     class ReferenceMatcher[A <: {def id : ID}](val refs: Refs, val attributes: Seq[A]) {
       private lazy val targets = attributes.map(_.id)
 
-      private def getReferencePositions = refs.map(targets.indexOf)
+      private def referencePositions = refs.map(targets.indexOf)
 
       def as(anotherComparator: ReferenceMatcher[A]): Assertion = {
-        getReferencePositions shouldEqual anotherComparator.getReferencePositions
+        referencePositions shouldEqual anotherComparator.referencePositions
       }
     }
 
