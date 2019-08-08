@@ -16,7 +16,7 @@
 package za.co.absa.spline.test.fixture.spline
 
 import za.co.absa.spline.common.json.JSONSerializationImplicits._
-import za.co.absa.spline.harvester.LineageDispatcher
+import za.co.absa.spline.harvester.dispatcher.LineageDispatcher
 import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
 
 

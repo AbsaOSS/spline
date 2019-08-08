@@ -81,10 +81,6 @@
             <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-ext_${scala.compat.version}</artifactId>
-        </dependency>
-        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>${logback.version}</version>

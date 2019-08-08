@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.migrator
+package za.co.absa.spline.harvester
 
-import org.json4s.Extraction._
-import org.json4s._
+import org.json4s.Extraction.decompose
 import org.json4s.ext.JavaTypesSerializers
-import org.json4s.jackson.JsonMethods._
-import org.json4s.jackson.Serialization
+import org.json4s.jackson.JsonMethods.{compact, render}
 import org.json4s.jackson.Serialization.read
+import org.json4s.{DateFormat, DefaultFormats, Formats, ShortTypeHints, TypeHints}
 import za.co.absa.spline.common.json.OmitEmptyValuesStrategy
-import za.co.absa.spline.model.dt.DataType
+import za.co.absa.spline.model
 
 import scala.reflect.Manifest
 
@@ -31,12 +30,18 @@ object JSONSerializationImplicits {
 
   import za.co.absa.spline.common.ReflectionUtils._
 
-  private implicit val formats: Formats =
-    Serialization
-      .formats(ShortTypeHints(subClassesOf[DataType]))
-      .++(JavaTypesSerializers.all)
+  private implicit val formats: Formats = {
+    val formats: Formats = new Formats {
+      override val dateFormat: DateFormat = DefaultFormats.lossless.dateFormat
+      override val typeHintFieldName: String = "_typeHint"
+      override val typeHints: TypeHints = ShortTypeHints(
+        subClassesOf[model.dt.DataType] ++
+          subClassesOf[model.expr.Expression])
+    }
+    formats
       .withEmptyValueStrategy(OmitEmptyValuesStrategy)
-
+      .++(JavaTypesSerializers.all)
+  }
 
   implicit class EntityToJson[A <: AnyRef](entity: A) {
     def toJson: String = compact(render(decompose(entity)))

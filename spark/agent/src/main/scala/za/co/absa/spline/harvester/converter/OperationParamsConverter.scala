@@ -34,13 +34,13 @@ class OperationParamsConverter(
 
   private val renderer = ValueDecomposer.addHandler(_ => {
     case (row: InternalRow, rowType: DataType) => Some(dataConverter.convert((row, rowType)))
-    case (exp: NamedExpression, _) => Some(Seq(exp.name, expressionConverter.convert(exp)))
-    case (exp: Expression, _) => Some(expressionConverter.convert(exp))
     case (jt: JoinType, _) => Some(jt.sql)
     case (so: SortOrder, _) => Some(Map(
       "expression" -> expressionConverter.convert(so.child),
       "direction" -> so.direction.sql,
       "nullOrdering" -> so.nullOrdering.sql))
+    case (exp: NamedExpression, _) => Some(Seq(exp.name, expressionConverter.convert(exp)))
+    case (exp: Expression, _) => Some(expressionConverter.convert(exp))
   })
 
   override def convert(operation: LogicalPlan): Map[String, _] = {

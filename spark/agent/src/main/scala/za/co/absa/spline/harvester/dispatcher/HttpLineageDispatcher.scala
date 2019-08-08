@@ -19,9 +19,8 @@ package za.co.absa.spline.harvester.dispatcher
 import org.apache.commons.configuration.Configuration
 import scalaj.http.Http
 import za.co.absa.spline.common.ConfigurationImplicits._
-import za.co.absa.spline.common.json.JSONSerializationImplicits._
 import za.co.absa.spline.common.logging.Logging
-import za.co.absa.spline.harvester.LineageDispatcher
+import za.co.absa.spline.harvester.JSONSerializationImplicits._
 import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
 
 class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)

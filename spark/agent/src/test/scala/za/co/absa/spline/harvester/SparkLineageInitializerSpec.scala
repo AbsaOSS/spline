@@ -30,6 +30,7 @@ import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer
 import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer.ConfProperty._
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.harvester.dispatcher.HttpLineageDispatcher.producerUrlProperty
+import za.co.absa.spline.harvester.dispatcher.LineageDispatcher
 import za.co.absa.spline.harvester.listener.SplineQueryExecutionListener
 import za.co.absa.spline.scalatest.ConditionalTestIgnore._
 import za.co.absa.spline.test.fixture.SparkFixture
