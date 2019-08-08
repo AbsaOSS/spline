@@ -53,10 +53,9 @@ class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)
 
 
 object HttpLineageDispatcher {
-  val publishUrlProperty = "spline.harvester.publishUrl"
+  val producerUrlProperty = "spline.producer.url"
 
   def apply(configuration: Configuration): LineageDispatcher = {
-    val publishUrl = configuration.getRequiredString(publishUrlProperty)
-    new HttpLineageDispatcher(publishUrl)
+    new HttpLineageDispatcher(configuration.getRequiredString(producerUrlProperty))
   }
 }
