@@ -18,17 +18,17 @@
 """
 This is simplest example of how to track a lineage with Spline.
 
-Go to sample directory:
-  cd sample
+Go to examples directory:
+  cd examples
 
 Make sure "spline.properties" file is properly configured for e.g. Mongo:
   vi src/main/resources/spline.properties
 
-Build project Sample with Shade profile to create Fat-JAR containing all needed dependencies:
+Build project Example with Shade profile to create Fat-JAR containing all needed dependencies:
   mvn package -P spark-2.3,shade
 
 Execute pyspark with Fat-JAR on class path:
-  pyspark --jars 'target/spline-sample-0.4.0-SNAPSHOT.jar'
+  pyspark --jars 'target/spline-examples-0.4.0-SNAPSHOT.jar'
 
 Execute rest of this file inside PySpark.
 """

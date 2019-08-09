@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.sample.batch
+package za.co.absa.spline.example.batch
 
 import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.functions._
 import za.co.absa.spline.harvester.SparkLineageInitializer._
-import za.co.absa.spline.sample.SparkApp
+import za.co.absa.spline.example.SparkApp
 
-object SampleJob3 extends SparkApp("Sample Job 3") {
+object Example3Job extends SparkApp("Example 3") {
 
   spark.enableLineageTracking()
 
@@ -29,7 +29,7 @@ object SampleJob3 extends SparkApp("Sample Job 3") {
     .format("com.databricks.spark.xml")
     .option("rowTag", "dataset")
     .option("rootTag", "datasets")
-    .load("sample/data/input/batch/nasa.xml")
+    .load("data/input/batch/nasa.xml")
 
   val astronomySubjectsDS = ds.filter($"_subject" === lit("astronomy")).cache
   val journalReferencesDS = astronomySubjectsDS
@@ -45,5 +45,5 @@ object SampleJob3 extends SparkApp("Sample Job 3") {
   (journalReferencesDS union otherReferencesDS).limit(100)
     .write
     .mode(SaveMode.Overwrite)
-    .parquet("sample/data/results/batch/job3_results")
+    .parquet("data/results/batch/job3_results")
 }

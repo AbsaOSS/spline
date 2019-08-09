@@ -80,7 +80,7 @@
         <module>spark/bundle-2.3</module>
         <module>spark/bundle-2.4</module>
 
-        <module>sample</module>
+        <module>examples</module>
         <module>integration-tests</module>
 
     </modules>

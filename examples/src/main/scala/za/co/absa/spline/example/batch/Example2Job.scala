@@ -14,32 +14,32 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.sample.batch
+package za.co.absa.spline.example.batch
 
 import org.apache.spark.sql.SaveMode
 import za.co.absa.spline.harvester.SparkLineageInitializer._
-import za.co.absa.spline.sample.SparkApp
+import za.co.absa.spline.example.SparkApp
 
-object SampleJob2 extends SparkApp("Sample Job 2") {
+object Example2Job extends SparkApp("Example 2") {
 
   spark.enableLineageTracking()
 
   val ds = spark.read
     .option("header", "true")
     .option("inferSchema", "true")
-    .csv("sample/data/input/batch/wikidata.csv")
+    .csv("data/input/batch/wikidata.csv")
 
   // Stage 1
   val startingDS = ds.filter($"total_response_size" > 10000).cache()
   val firstDS = startingDS.filter($"domain_code".eqNullSafe("aa"))
   val secondDS = startingDS.filter($"count_views" > 10)
   val stage1DS = firstDS.union(secondDS)
-  stage1DS.write.mode(SaveMode.Overwrite).parquet("sample/data/results/batch/job2_stage1_results")
+  stage1DS.write.mode(SaveMode.Overwrite).parquet("data/results/batch/job2_stage1_results")
 
   // Stage 2
-  val stage2DS = spark.read.parquet("sample/data/results/batch/job2_stage1_results")
+  val stage2DS = spark.read.parquet("data/results/batch/job2_stage1_results")
   stage2DS
     .filter($"domain_code".eqNullSafe("aa"))
     .select($"page_title".as("name"), $"count_views".as("count"))
-    .write.mode(SaveMode.Overwrite).parquet("sample/data/results/batch/job2_stage2_results")
+    .write.mode(SaveMode.Overwrite).parquet("data/results/batch/job2_stage2_results")
 }

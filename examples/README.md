@@ -1,7 +1,21 @@
-Run sample command:
-```
-mvn test -Psamples -Dspline.producer.url=http://localhost:8080/spline -DsampleClass=za.co.absa.spline.sample.batch.SampleJob1
+First, start Spline REST gateway
+
+Then, `cd $SPLINE_PROJECT/examples`
+
+To run all available examples:
+```bash
+mvn test -P examples
 ``` 
+
+To run a selected example job (e.g. `Example1Job`):
+```bash
+mvn test -P examples -D exampleClass=za.co.absa.spline.example.batch.Example1Job
+``` 
+
+To change the Spline Producer URL (default is http://localhost:8080/producer):
+```bash
+mvn test -P examples -D spline.producer.url=http://foo:9999/bar
+```
 
 ---
 

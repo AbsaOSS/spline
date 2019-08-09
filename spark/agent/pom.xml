@@ -52,7 +52,6 @@
         <dependency>
             <groupId>com.databricks</groupId>
             <artifactId>spark-xml_${scala.compat.version}</artifactId>
-            <version>0.4.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

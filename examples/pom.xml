@@ -15,9 +15,10 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>sample</artifactId>
+    <artifactId>examples</artifactId>
     <packaging>jar</packaging>
 
     <parent>
@@ -26,10 +27,6 @@
         <relativePath>../parent/pom.xml</relativePath>
         <version>0.4.0-SNAPSHOT</version>
     </parent>
-
-    <properties>
-        <spline.producer.url>http://localhost:8080/spline</spline.producer.url>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -58,6 +55,11 @@
             <groupId>za.co.absa.spline</groupId>
             <artifactId>spark-adapter-${spark.compat.version}</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.databricks</groupId>
+            <artifactId>spark-xml_${scala.compat.version}</artifactId>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
     <profiles>
@@ -149,34 +151,45 @@
         </profile>
 
         <profile>
-            <id>samples</id>
+            <id>examples</id>
             <properties>
-                <sampleClass><!-- passed from mvn command line --></sampleClass>
                 <skipTests>true</skipTests>
             </properties>
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.8</version>
                         <executions>
                             <execution>
                                 <phase>test</phase>
                                 <goals>
-                                    <goal>exec</goal>
+                                    <goal>run</goal>
                                 </goals>
+                                <configuration>
+                                    <target>
+                                        <property name="compile_classpath" refid="maven.compile.classpath"/>
+                                        <ant antfile="${basedir}/run-example.xml">
+                                            <target name="main"/>
+                                        </ant>
+                                    </target>
+                                </configuration>
                             </execution>
                         </executions>
-                        <configuration>
-                            <executable>java</executable>
-                            <workingDirectory>${project.basedir}/..</workingDirectory>
-                            <arguments>
-                                <argument>-Dspline.producer.url=${spline.producer.url}</argument>
-                                <argument>-classpath</argument>
-                                <classpath />
-                                <argument>${sampleClass}</argument>
-                            </arguments>
-                        </configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>ant-contrib</groupId>
+                                <artifactId>ant-contrib</artifactId>
+                                <version>1.0b3</version>
+                                <exclusions>
+                                    <exclusion>
+                                        <artifactId>ant</artifactId>
+                                        <groupId>ant</groupId>
+                                    </exclusion>
+                                </exclusions>
+                            </dependency>
+                        </dependencies>
                     </plugin>
                 </plugins>
             </build>
