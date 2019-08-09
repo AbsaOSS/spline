@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.sample.batch;
+package za.co.absa.spline.example.batch;
 
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import za.co.absa.spline.harvester.SparkLineageInitializer;
 
-public class JavaSampleJob {
+public class JavaExampleJob {
 
     public static void main(String[] args) {
         SparkSession.Builder builder = SparkSession.builder();
-        SparkSession session = builder.appName("java sample app").master("local[*]").getOrCreate();
+        SparkSession session = builder.appName("java example app").master("local[*]").getOrCreate();
         // configure Spline to track lineage
         SparkLineageInitializer.enableLineageTracking(session);
         session.read()
             .option("header", "true")
             .option("inferSchema", "true")
-            .csv("sample/data/input/batch/wikidata.csv")
+            .csv("data/input/batch/wikidata.csv")
             .as("source")
             .write()
             .mode(SaveMode.Overwrite)
-            .csv("sample/data/output/batch/java-sample.csv");
+            .csv("data/output/batch/java-sample.csv");
     }
 }

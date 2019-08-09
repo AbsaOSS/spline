@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.sample.batch
+package za.co.absa.spline.example.batch
 
 import org.apache.spark.sql.SaveMode
 import za.co.absa.spline.harvester.SparkLineageInitializer._
-import za.co.absa.spline.sample.SparkApp
+import za.co.absa.spline.example.SparkApp
 
-object SampleJob1 extends SparkApp("Sample Job 1") {
+object Example1Job extends SparkApp("Example 1") {
 
   // Initializing library to hook up to Apache Spark
   spark.enableLineageTracking()
@@ -30,7 +30,7 @@ object SampleJob1 extends SparkApp("Sample Job 1") {
   val sourceDS = spark.read
     .option("header", "true")
     .option("inferSchema", "true")
-    .csv("sample/data/input/batch/wikidata.csv")
+    .csv("data/input/batch/wikidata.csv")
     .as("source")
     .filter($"total_response_size" > 1000)
     .filter($"count_views" > 10)
@@ -38,12 +38,12 @@ object SampleJob1 extends SparkApp("Sample Job 1") {
   val domainMappingDS = spark.read
     .option("header", "true")
     .option("inferSchema", "true")
-    .csv("sample/data/input/batch/domain.csv")
+    .csv("data/input/batch/domain.csv")
     .as("mapping")
 
   val joinedDS = sourceDS
     .join(domainMappingDS, $"domain_code" === $"d_code", "left_outer")
     .select($"page_title".as("page"), $"d_name".as("domain"), $"count_views")
 
-  joinedDS.write.mode(SaveMode.Overwrite).parquet("sample/data/results/batch/job1_results")
+  joinedDS.write.mode(SaveMode.Overwrite).parquet("data/results/batch/job1_results")
 }

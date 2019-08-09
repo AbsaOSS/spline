@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.sample
+package za.co.absa.spline.example
 
 import org.apache.spark.sql.{SQLContext, SQLImplicits, SparkSession}
 
 /**
-  * The class represents skeleton of a sample application and looks after initialization of SparkSession, etc
+  * The class represents skeleton of a example application and looks after initialization of SparkSession, etc
   * @param name A spark application name
   * @param master A spark master
   * @param conf Custom properties

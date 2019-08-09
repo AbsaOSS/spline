@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.sample.batchWithDependencies
+package za.co.absa.spline.example.batchWithDependencies
 
 import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.functions.col
-import za.co.absa.spline.sample.SparkApp
+import za.co.absa.spline.example.SparkApp
 
 object JansBeerJob extends SparkApp("Jan's Beer Job", conf = Seq("spark.sql.shuffle.partitions" -> "4")) {
 
@@ -27,9 +27,9 @@ object JansBeerJob extends SparkApp("Jan's Beer Job", conf = Seq("spark.sql.shuf
 
   spark.enableLineageTracking()
 
-  val beerConsumption = spark.read.option("header", "true").csv("sample/data/input/batchWithDependencies/beerConsum.csv")
+  val beerConsumption = spark.read.option("header", "true").csv("data/input/batchWithDependencies/beerConsum.csv")
 
-  val population = spark.read.option("header", "true").csv("sample/data/input/batchWithDependencies/population.csv")
+  val population = spark.read.option("header", "true").csv("data/input/batchWithDependencies/population.csv")
 
   def calculateConsumptionPerCapita(year: String) =
     (col(year) * 100) / col("y" + year) as "Year" + year
@@ -51,6 +51,6 @@ object JansBeerJob extends SparkApp("Jan's Beer Job", conf = Seq("spark.sql.shuf
       calculateConsumptionPerCapita("2011")
     )
 
-  result.write.mode(SaveMode.Append).parquet("sample/data/results/batchWithDependencies/beerConsCtl")
+  result.write.mode(SaveMode.Append).parquet("data/results/batchWithDependencies/beerConsCtl")
 
 }

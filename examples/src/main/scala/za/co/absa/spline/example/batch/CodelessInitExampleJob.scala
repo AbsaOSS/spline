@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.sample.batch
+package za.co.absa.spline.example.batch
 
 import org.apache.spark.sql.SaveMode
-import za.co.absa.spline.sample.SparkApp
+import za.co.absa.spline.example.SparkApp
 
 /**
-  * A sample job where no explicit Spline code was used to initialize Spline. Only Spark configuration was used.
+  * An example job where no explicit Spline code was used to initialize Spline. Only Spark configuration was used.
   */
-object CodelessInitSampleJob extends SparkApp(
-  name ="Codeless Init Sample Job",
+object CodelessInitExampleJob extends SparkApp(
+  name ="Codeless Init Example Job",
   // Spark configuration used to register Spline listener for codeless init.
   conf = Seq(("spark.sql.queryExecutionListeners", "za.co.absa.spline.core.listener.QueryExecutionEventHandler"))) {
 
