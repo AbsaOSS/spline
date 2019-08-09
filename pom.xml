@@ -52,7 +52,6 @@
         <module>parent</module>
         <module>commons</module>
         <module>test-commons</module>
-        <module>model</module>
 
         <module>migrator-tool</module>
         <module>rest-api-doc-generator</module>

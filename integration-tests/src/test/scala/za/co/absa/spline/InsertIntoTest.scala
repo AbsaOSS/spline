@@ -17,11 +17,9 @@ package za.co.absa.spline
 
 import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.functions._
-import org.scalatest.Inside._
 import org.scalatest._
-import za.co.absa.spline.model.op
-import za.co.absa.spline.test.fixture.{SparkDatabaseFixture, SparkFixture}
 import za.co.absa.spline.test.fixture.spline.SplineFixture
+import za.co.absa.spline.test.fixture.{SparkDatabaseFixture, SparkFixture}
 
 class InsertIntoTest extends FlatSpec with Matchers with SparkFixture with SparkDatabaseFixture with SplineFixture {
 
@@ -41,16 +39,12 @@ class InsertIntoTest extends FlatSpec with Matchers with SparkFixture with Spark
           .table("path")
           .withColumn("ymd", lit(20190401))
 
-        val headOperation = lineageCaptor
-          .lineageOf(df.write.mode(SaveMode.Overwrite).insertInto("path_archive"))
-          .operations
-          .head
-
-        inside(headOperation) {
-          case write: op.BatchWrite =>
-            write.path should include("path_archive")
-            write.append should be(false)
+        val (plan, _) = lineageCaptor.lineageOf {
+          df.write.mode(SaveMode.Overwrite).insertInto("path_archive")
         }
+
+        plan.operations.write.outputSource should include("path_archive")
+        plan.operations.write.append should be(false)
       })
     )
 }

@@ -31,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class ExecutionProducerController @Autowired()(
   val repo: ExecutionProducerRepository) {
 
-  import za.co.absa.spline.common.JSONSerializationImplicits._
+  import za.co.absa.spline.common.json.JSONSerializationImplicits._
   import ExecutionContext.Implicits.global
 
   @PostMapping(value = Array("/plan"), consumes = Array("application/json"), produces = Array("application/json"))

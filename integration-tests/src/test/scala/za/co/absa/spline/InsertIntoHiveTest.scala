@@ -17,12 +17,10 @@ package za.co.absa.spline
 
 import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.functions._
-import org.scalatest.Inside._
 import org.scalatest._
 import za.co.absa.spline.common.TempDirectory
-import za.co.absa.spline.model.{DataLineage, op}
-import za.co.absa.spline.test.fixture.{SparkDatabaseFixture, SparkFixture}
 import za.co.absa.spline.test.fixture.spline.SplineFixture
+import za.co.absa.spline.test.fixture.{SparkDatabaseFixture, SparkFixture}
 
 class InsertIntoHiveTest
   extends FlatSpec
@@ -39,8 +37,7 @@ class InsertIntoHiveTest
       withCustomSparkSession(_
         .enableHiveSupport()
         .config("hive.exec.dynamic.partition.mode", "nonstrict")
-        .config("hive.metastore.warehouse.dir", tempWarehouseDirPath)
-        .config("spark.sql.warehouse.dir", tempWarehouseDirPath)) { spark =>
+        .config("hive.metastore.warehouse.dir", tempWarehouseDirPath)) { spark =>
 
         withHiveDatabase(spark)(
           databaseName = s"unitTestDatabase_${this.getClass.getSimpleName}",
@@ -52,15 +49,12 @@ class InsertIntoHiveTest
               .table("path")
               .withColumn("ymd", lit(20190401))
 
-            val lineage = lineageCaptor.lineageOf {
+            val (plan, _) = lineageCaptor.lineageOf {
               df.write.mode(SaveMode.Overwrite).insertInto("path_archive")
             }
 
-            inside(lineage) {
-              case DataLineage(_, _, _, _, Seq(writeOp: op.BatchWrite, _*), _, _, _) =>
-                writeOp.path should include("path_archive")
-                writeOp.append should be(false)
-            }
+            plan.operations.write.outputSource should include("path_archive")
+            plan.operations.write.append should be(false)
           }
           }
         }

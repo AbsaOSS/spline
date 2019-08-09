@@ -1,6 +1,6 @@
 Run sample command:
 ```
-mvn test -Psamples -Dspline.harvester.publishUrl=http://localhost:8080/spline -DsampleClass=za.co.absa.spline.sample.batch.SampleJob1
+mvn test -Psamples -Dspline.producer.url=http://localhost:8080/spline -DsampleClass=za.co.absa.spline.sample.batch.SampleJob1
 ``` 
 
 ---

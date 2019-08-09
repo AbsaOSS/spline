@@ -28,7 +28,7 @@
     </parent>
 
     <properties>
-        <spline.harvester.publishUrl>http://localhost:8080/spline</spline.harvester.publishUrl>
+        <spline.producer.url>http://localhost:8080/spline</spline.producer.url>
     </properties>
 
     <dependencies>
@@ -45,9 +45,8 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql-kafka-0-10_${scala.compat.version}</artifactId>
-            <version>${spark.version}</version>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-ext_${scala.compat.version}</artifactId>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -59,16 +58,6 @@
             <groupId>za.co.absa.spline</groupId>
             <artifactId>spark-adapter-${spark.compat.version}</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.databricks</groupId>
-            <artifactId>spark-xml_${scala.compat.version}</artifactId>
-            <version>0.4.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor_${scala.compat.version}</artifactId>
-            <version>2.5.15</version>
         </dependency>
     </dependencies>
     <profiles>
@@ -83,11 +72,6 @@
                 <dependency>
                     <groupId>org.apache.spark</groupId>
                     <artifactId>spark-sql_${scala.compat.version}</artifactId>
-                    <scope>provided</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-sql-kafka-0-10_${scala.compat.version}</artifactId>
                     <scope>provided</scope>
                 </dependency>
                 <dependency>
@@ -187,7 +171,7 @@
                             <executable>java</executable>
                             <workingDirectory>${project.basedir}/..</workingDirectory>
                             <arguments>
-                                <argument>-Dspline.harvester.publishUrl=${spline.harvester.publishUrl}</argument>
+                                <argument>-Dspline.producer.url=${spline.producer.url}</argument>
                                 <argument>-classpath</argument>
                                 <classpath />
                                 <argument>${sampleClass}</argument>

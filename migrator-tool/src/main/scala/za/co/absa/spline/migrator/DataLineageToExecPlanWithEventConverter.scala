@@ -19,7 +19,7 @@ package za.co.absa.spline.migrator
 import java.util.UUID
 
 import za.co.absa.spline.common.OptionImplicits._
-import za.co.absa.spline.migrator.DataLineageToExecPlanWithEventConverter.{AppMetaInfo, ExecutionEventExtra, ExecutionPlanExtra, OperationParams}
+import za.co.absa.spline.harvester.ModelConstants._
 import za.co.absa.spline.model._
 import za.co.absa.spline.producer.rest.model._
 
@@ -56,7 +56,7 @@ class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
       id = executionId,
       operations = operations,
       systemInfo = SystemInfo(AppMetaInfo.Spark, lineage.sparkVer),
-      agentInfo = Some(AgentInfo(AppMetaInfo.Spline, AppMetaInfo.SplineVersion)),
+      agentInfo = Some(AgentInfo(AppMetaInfo.Spline, "0.3.x")),
       extraInfo = Map(
         ExecutionPlanExtra.AppName -> lineage.appName,
         ExecutionPlanExtra.DataTypes -> lineage.dataTypes,
@@ -164,56 +164,4 @@ class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
       schema = maybeSchema,
       params = params + (OperationParams.Name -> opOther.mainProps.name))
   }
-}
-
-object DataLineageToExecPlanWithEventConverter {
-
-  private object AppMetaInfo {
-    val Spark = "spark"
-    val Spline = "spline"
-    val SplineVersion = "0.3.x"
-  }
-
-  private object ExecutionPlanExtra {
-    val AppName = "appName"
-    val DataTypes = "dataTypes"
-    val Attributes = "attributes"
-  }
-
-  private object ExecutionEventExtra {
-    val AppId = "appId"
-    val WriteMetrics = "writeMetrics"
-    val ReadMetrics = "readMetrics"
-  }
-
-  private object OperationParams {
-    val Name = "name"
-
-    // op.Read
-    val SourceType = "sourceType"
-
-    // op.Write
-    val DestinationType = "destinationType"
-
-    // op.Join
-    val JoinType = "joinType"
-    val Condition = "condition"
-
-    // op.Sort
-    val SortOrders = "orders"
-
-    // op.Aggregation
-    val Groupings = "groupings"
-    val Aggregations = "aggregations"
-
-    // op.Projection
-    val Transformations = "transformations"
-
-    // op.Alias
-    val Alias = "alias"
-
-    // op.Generic
-    val RawString = "rawString"
-  }
-
 }

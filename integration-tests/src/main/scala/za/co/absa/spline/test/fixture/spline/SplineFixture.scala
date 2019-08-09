@@ -18,9 +18,9 @@ package za.co.absa.spline.test.fixture.spline
 import org.apache.commons.configuration.BaseConfiguration
 import org.apache.spark.sql.SparkSession
 import za.co.absa.spline.test.fixture.spline.SplineFixture.EMPTY_CONF
-import za.co.absa.spline.harvester.LineageDispatcher
 import za.co.absa.spline.harvester.SparkLineageInitializer._
 import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer
+import za.co.absa.spline.harvester.dispatcher.LineageDispatcher
 
 object SplineFixture {
   def EMPTY_CONF = new BaseConfiguration

@@ -16,47 +16,32 @@
 
 package za.co.absa.spline.harvester
 
-import java.{util => ju}
-
 import org.apache.commons.configuration.BaseConfiguration
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.execution.streaming.StreamingQueryListenerBus
-import org.apache.spark.sql.streaming.StreamingQueryListener
 import org.apache.spark.sql.util.QueryExecutionListener
 import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest.Matchers._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
-import za.co.absa.spline.common.ReflectionUtils.getFieldValue
+import za.co.absa.spline.common.ReflectionUtils.extractFieldValue
 import za.co.absa.spline.harvester.SparkLineageInitializer._
 import za.co.absa.spline.harvester.SparkLineageInitializerSpec._
 import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer
 import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer.ConfProperty._
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
-import za.co.absa.spline.harvester.dispatcher.HttpLineageDispatcher.publishUrlProperty
-import za.co.absa.spline.harvester.listener.{SplineQueryExecutionListener, StructuredStreamingListener}
-import za.co.absa.spline.test.fixture.SparkFixture
+import za.co.absa.spline.harvester.dispatcher.HttpLineageDispatcher.producerUrlProperty
+import za.co.absa.spline.harvester.dispatcher.LineageDispatcher
+import za.co.absa.spline.harvester.listener.SplineQueryExecutionListener
 import za.co.absa.spline.scalatest.ConditionalTestIgnore._
-
-import scala.collection.JavaConverters._
+import za.co.absa.spline.test.fixture.SparkFixture
 
 object SparkLineageInitializerSpec {
 
   private[this] def getSparkQueryExecutionListenerClasses(session: SparkSession): Seq[Class[_ <: QueryExecutionListener]] = {
-    getFieldValue[Seq[QueryExecutionListener]](
+    extractFieldValue[Seq[QueryExecutionListener]](
       session.listenerManager.clone(),
       "org$apache$spark$sql$util$ExecutionListenerManager$$listeners")
       .map(_.getClass)
-  }
-
-  private[this] def getStreamingListenerClasses(session: SparkSession): Seq[Class[_ <: StreamingQueryListener]] = {
-    val listenerBus: StreamingQueryListenerBus = getFieldValue(session.streams, "listenerBus")
-    getFieldValue[ju.List[(StreamingQueryListener, Option[Any])]](
-      listenerBus,
-      "org$apache$spark$util$ListenerBus$$listenersPlusTimers")
-      .asScala
-      .map(_._1.getClass)
-      .filter(c => classOf[StreamingQueryListener].isAssignableFrom(c))
   }
 
   private def assertSplineIsDisabled(session: SparkSession = SparkSession.builder().getOrCreate()) =
@@ -64,18 +49,13 @@ object SparkLineageInitializerSpec {
 
   def numberOfRegisteredBatchListeners(session: SparkSession): Int =
     getSparkQueryExecutionListenerClasses(session).count(_ == classOf[SplineQueryExecutionListener])
-
-  def numberOfRegisteredStreamListeners(session: SparkSession): Int =
-    getStreamingListenerClasses(session).count(_ == classOf[StructuredStreamingListener])
-
-
 }
 
 class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with Matchers with MockitoSugar with SparkFixture {
   private val configuration = new BaseConfiguration
   configuration.setProperty("spark.master", "local")
   // needed for codeless init tests
-  System.setProperty(publishUrlProperty, "invalidTestVal")
+  System.setProperty(producerUrlProperty, "invalidTestVal")
 
   describe("defaultConfiguration") {
 
@@ -143,27 +123,17 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
     it("should not allow duplicate tracking when combining the methods", ignoreWhen(SPARK_22)) {
       withNewSparkSession(session => {
         numberOfRegisteredBatchListeners(session) shouldBe 0
-        numberOfRegisteredStreamListeners(session) shouldBe 0
-        // creatEventHandler relies on Spark for registration during session creation,
-        // but it never the less inits Spline and registers Streaming Listener
         SparkLineageInitializer.createEventHandler(session)
-        numberOfRegisteredStreamListeners(session) shouldBe 1
         numberOfRegisteredBatchListeners(session) shouldBe 0
         session.enableLineageTracking()
         numberOfRegisteredBatchListeners(session) shouldBe 0
-        numberOfRegisteredStreamListeners(session) shouldBe 1
       })
     }
 
     it("should not allow duplicate codeless tracking", ignoreWhen(SPARK_22)) {
       withNewSparkSession(session => {
-        numberOfRegisteredStreamListeners(session) shouldBe 0
-        SparkLineageInitializer
-          .createEventHandler(session).getClass shouldBe classOf[Some[QueryExecutionEventHandler]]
-        numberOfRegisteredStreamListeners(session) shouldBe 1
-        SparkLineageInitializer
-          .createEventHandler(session) shouldBe None
-        numberOfRegisteredStreamListeners(session) shouldBe 1
+        SparkLineageInitializer.createEventHandler(session).getClass shouldBe classOf[Some[QueryExecutionEventHandler]]
+        SparkLineageInitializer.createEventHandler(session) shouldBe None
       })
     }
   }
@@ -173,11 +143,9 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
       withNewSparkSession(session => {
         session
           .enableLineageTracking(createConfigurer(session)) // 1st is fine
-        numberOfRegisteredStreamListeners(session) shouldBe 1
         numberOfRegisteredBatchListeners(session) shouldBe 1
         session
           .enableLineageTracking(createConfigurer(session)) // 2nd should warn
-        numberOfRegisteredStreamListeners(session) shouldBe 1
         numberOfRegisteredBatchListeners(session) shouldBe 1
       })
     }

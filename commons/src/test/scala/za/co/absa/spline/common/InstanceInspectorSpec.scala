@@ -30,8 +30,8 @@ class InstanceInspectorSpec extends FlatSpec with Matchers {
     val expectedB = 123
     val dc = new DummyClass(expectedA, expectedB)
 
-    val a = ReflectionUtils.getFieldValue[String](dc, "a")
-    val b = ReflectionUtils.getFieldValue[Int](dc, "b")
+    val a = ReflectionUtils.extractFieldValue[String](dc, "a")
+    val b = ReflectionUtils.extractFieldValue[Int](dc, "b")
 
     a shouldEqual expectedA
     b shouldEqual expectedB

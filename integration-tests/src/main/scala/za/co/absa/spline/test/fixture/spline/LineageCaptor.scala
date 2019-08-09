@@ -15,23 +15,30 @@
 
 package za.co.absa.spline.test.fixture.spline
 
-import za.co.absa.spline.model.DataLineage
+import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
+import za.co.absa.spline.test.fixture.spline.LineageCaptor.CapturedLineage
 
 class LineageCaptor extends LineageCaptor.Getter with LineageCaptor.Setter {
-  private var capturedLineage: Option[DataLineage] = None
+  private var capturedPlan: Option[ExecutionPlan] = None
+  private var capturedEvents: Seq[ExecutionEvent] = Nil
 
-  override def capture(lineage: DataLineage): Unit = {
-    require(capturedLineage.isEmpty, "Another lineage has already been captured")
-    capturedLineage = Some(lineage)
+  override def capture(plan: ExecutionPlan): Unit = {
+    require(capturedPlan.isEmpty, "Another execution plan has already been captured")
+    capturedPlan = Some(plan)
   }
 
-  override def lineageOf(action: => Unit): DataLineage = {
-    assume(capturedLineage.isEmpty)
+  override def capture(event: ExecutionEvent): Unit = {
+    capturedEvents :+= event
+  }
+
+  override def lineageOf(action: => Unit): CapturedLineage = {
+    assume(capturedPlan.isEmpty && capturedEvents.isEmpty)
     try {
       action
-      capturedLineage.getOrElse(sys.error("No lineage has been captured"))
+      capturedPlan.getOrElse(sys.error("No lineage has been captured")) -> capturedEvents
     } finally {
-      capturedLineage = None
+      capturedPlan = None
+      capturedEvents = Nil
     }
   }
 
@@ -42,12 +49,16 @@ class LineageCaptor extends LineageCaptor.Getter with LineageCaptor.Setter {
 
 object LineageCaptor {
 
+  type CapturedLineage = (ExecutionPlan, Seq[ExecutionEvent])
+
   trait Setter {
-    def capture(lineage: DataLineage): Unit
+    def capture(plan: ExecutionPlan): Unit
+
+    def capture(event: ExecutionEvent): Unit
   }
 
   trait Getter {
-    def lineageOf(action: => Unit): DataLineage
+    def lineageOf(action: => Unit): CapturedLineage
   }
 
 }

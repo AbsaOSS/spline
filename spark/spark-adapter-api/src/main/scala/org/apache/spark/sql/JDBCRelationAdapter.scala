@@ -17,7 +17,7 @@
 package org.apache.spark.sql
 
 import org.apache.spark.sql.sources.BaseRelation
-import za.co.absa.spline.sparkadapterapi.AdapterFactory
+import za.co.absa.spline.spark.adapter.AdapterFactory
 trait JDBCRelationAdapter {
   def extractJDBCOptions(jdbcRelation: BaseRelation): Option[SplineJDBCOptions]
 }

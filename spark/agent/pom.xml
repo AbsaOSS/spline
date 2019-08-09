@@ -41,7 +41,7 @@
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>model</artifactId>
+            <artifactId>producer-rest-model</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -50,15 +50,14 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql-kafka-0-10_${scala.compat.version}</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>com.databricks</groupId>
             <artifactId>spark-xml_${scala.compat.version}</artifactId>
             <version>0.4.1</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-ext_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.scalaz</groupId>
