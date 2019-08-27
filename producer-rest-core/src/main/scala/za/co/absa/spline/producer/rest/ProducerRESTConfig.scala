@@ -18,15 +18,15 @@ package za.co.absa.spline.producer.rest
 
 import java.util
 
-import org.springframework.context.annotation.{ComponentScan, Configuration, Import}
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import org.springframework.context.annotation.{Bean, ComponentScan, Configuration}
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
 import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
 import za.co.absa.spline.common.webmvc.ScalaFutureMethodReturnValueHandler
-import za.co.absa.spline.common.webmvc.jackson.JacksonConfig
+import za.co.absa.spline.common.webmvc.jackson.ObjectMapperBeanPostProcessor
 
 @EnableWebMvc
 @Configuration
-@Import(Array(classOf[JacksonConfig]))
 @ComponentScan(basePackageClasses = Array(
   classOf[controller._package]
 ))
@@ -37,4 +37,6 @@ class ProducerRESTConfig extends WebMvcConfigurer {
   override def addReturnValueHandlers(returnValueHandlers: util.List[HandlerMethodReturnValueHandler]): Unit = {
     returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler)
   }
+
+  @Bean def jacksonConfigurer = new ObjectMapperBeanPostProcessor(_.registerModule(DefaultScalaModule))
 }

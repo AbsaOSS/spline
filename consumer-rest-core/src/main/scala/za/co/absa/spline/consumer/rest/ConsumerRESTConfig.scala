@@ -19,19 +19,22 @@ package za.co.absa.spline.consumer.rest
 import java.util
 import java.util.Arrays.asList
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo.{As, Id}
+import com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder
+import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping.OBJECT_AND_NON_CONCRETE
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.commons.configuration.{CompositeConfiguration, EnvironmentConfiguration, SystemConfiguration}
-import org.springframework.context.annotation.{ComponentScan, Configuration, Import}
+import org.springframework.context.annotation.{Bean, ComponentScan, Configuration}
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
 import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
 import za.co.absa.spline.common.config.ConfTyped
-import za.co.absa.spline.common.webmvc.jackson.JacksonConfig
+import za.co.absa.spline.common.webmvc.jackson.ObjectMapperBeanPostProcessor
 import za.co.absa.spline.common.webmvc.{EstimableFutureReturnValueHandlerSupport, ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
 
 import scala.concurrent.duration._
 
 @EnableWebMvc
 @Configuration
-@Import(Array(classOf[JacksonConfig]))
 @ComponentScan(basePackageClasses = Array(
   classOf[controller._package]
 ))
@@ -47,6 +50,15 @@ class ConsumerRESTConfig extends WebMvcConfigurer {
     })
     returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler)
   }
+
+  @Bean def jacksonConfigurer = new ObjectMapperBeanPostProcessor(_
+    .registerModule(DefaultScalaModule)
+    .setDefaultTyping(new DefaultTypeResolverBuilder(OBJECT_AND_NON_CONCRETE)
+      .init(Id.NAME, null)
+      .inclusion(As.PROPERTY)
+      .typeProperty("_type")
+    )
+  )
 }
 
 object ConsumerRESTConfig extends CompositeConfiguration(asList(

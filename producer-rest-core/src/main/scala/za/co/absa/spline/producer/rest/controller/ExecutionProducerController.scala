@@ -27,24 +27,25 @@ import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 import scala.concurrent.{ExecutionContext, Future}
 
 @RestController
-@RequestMapping(Array("/execution"))
+@RequestMapping(
+  value = Array("/execution"),
+  consumes = Array("application/json"),
+  produces = Array("application/json")
+)
 class ExecutionProducerController @Autowired()(
   val repo: ExecutionProducerRepository) {
 
-  import za.co.absa.spline.common.json.JSONSerializationImplicits._
   import ExecutionContext.Implicits.global
 
-  @PostMapping(value = Array("/plan"), consumes = Array("application/json"), produces = Array("application/json"))
+  @PostMapping(Array("/plan"))
   @ApiOperation("Record execution plan")
-  def executionPlan(@RequestBody executionPlan: String): Future[UUID] = {
-    val execPlan: ExecutionPlan = executionPlan.fromJson[ExecutionPlan]
+  def executionPlan(@RequestBody execPlan: ExecutionPlan): Future[UUID] = {
     repo.insertExecutionPlan(execPlan)
   }
 
-  @PostMapping(value = Array("/event"), consumes = Array("application/json"), produces = Array("application/json"))
+  @PostMapping(Array("/event"))
   @ApiOperation("Record execution events")
-  def executionEvent(@RequestBody executionEventList: String): Future[Array[String]] = {
-    val execEvents: Array[ExecutionEvent] = executionEventList.fromJson[Array[ExecutionEvent]]
+  def executionEvent(@RequestBody execEvents: Array[ExecutionEvent]): Future[Array[String]] = {
     repo.insertExecutionEvents(execEvents)
   }
 
