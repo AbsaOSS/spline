@@ -31,6 +31,7 @@
     <packaging>war</packaging>
 
     <properties>
+        <swagger.output.path>${project.build.directory}/api/docs</swagger.output.path>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssX</maven.build.timestamp.format>
     </properties>
@@ -70,6 +71,99 @@
         <finalName>spline-rest-server-${project.version}</finalName>
         <plugins>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>gen-swagger-consumer-json</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <executableDependency>
+                                <groupId>za.co.absa.spline</groupId>
+                                <artifactId>rest-api-doc-generator</artifactId>
+                            </executableDependency>
+                            <mainClass>za.co.absa.spline.swagger.SwaggerDocGenCLI</mainClass>
+                            <arguments>
+                                <argument>-o</argument>
+                                <argument>${swagger.output.path}/consumerSwagger.json</argument>
+                                <argument>za.co.absa.spline.consumer.rest.ConsumerRESTConfig</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>gen-swagger-producer-json</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <executableDependency>
+                                <groupId>za.co.absa.spline</groupId>
+                                <artifactId>rest-api-doc-generator</artifactId>
+                            </executableDependency>
+                            <mainClass>za.co.absa.spline.swagger.SwaggerDocGenCLI</mainClass>
+                            <arguments>
+                                <argument>-o</argument>
+                                <argument>${swagger.output.path}/producerSwagger.json</argument>
+                                <argument>za.co.absa.spline.producer.rest.ProducerRESTConfig</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>za.co.absa.spline</groupId>
+                        <artifactId>rest-api-doc-generator</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <echo message="installing npx and redoc-cli"/>
+                                <exec executable="cmd" osfamily="windows" failonerror="true">
+                                    <arg line="/c npm install -g npx redoc-cli --no-color"/>
+                                </exec>
+                                <exec executable="npm" osfamily="unix" failonerror="true">
+                                    <arg line="install -g npx redoc-cli --no-color"/>
+                                </exec>
+
+                                <echo message="generate consumer documentation"/>
+                                <exec executable="cmd" osfamily="windows" failonerror="true">
+                                    <arg line="/c npx -p redoc-cli redoc-cli bundle -o ${swagger.output.path}/consumer.html ${swagger.output.path}/consumerSwagger.json"/>
+                                </exec>
+                                <exec executable="/opt/nvm/versions/node/v8.12.0/bin/npx" osfamily="unix" failonerror="true">
+                                    <arg line="-p redoc-cli redoc-cli bundle -o ${swagger.output.path}/consumer.html ${swagger.output.path}/consumerSwagger.json"/>
+                                </exec>
+
+                                <echo message="generate producer documentation"/>
+                                <exec executable="cmd" osfamily="windows" failonerror="true">
+                                    <arg line="/c npx -p redoc-cli redoc-cli bundle -o ${swagger.output.path}/producer.html ${swagger.output.path}/producerSwagger.json"/>
+                                </exec>
+                                <exec executable="/opt/nvm/versions/node/v8.12.0/bin/npx" osfamily="unix" failonerror="true">
+                                    <arg line="-p  redoc-cli redoc-cli bundle -o ${swagger.output.path}/producer.html ${swagger.output.path}/producerSwagger.json"/>
+                                </exec>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.2</version>
@@ -80,6 +174,11 @@
                             <Build-Time>${maven.build.timestamp}</Build-Time>
                         </manifestEntries>
                     </archive>
+                    <webResources>
+                        <resource>
+                            <directory>${project.build.directory}/api/</directory>
+                        </resource>
+                    </webResources>
                 </configuration>
             </plugin>
 
