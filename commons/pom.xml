@@ -80,11 +80,6 @@
             <artifactId>springfox-swagger2</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
-            <scope>provided</scope>
-        </dependency>
 
         <!-- only for za.co.absa.spline.common.scalatest package -->
 

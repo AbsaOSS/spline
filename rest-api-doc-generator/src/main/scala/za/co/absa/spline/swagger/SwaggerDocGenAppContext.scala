@@ -19,7 +19,6 @@ package za.co.absa.spline.swagger
 import org.springframework.beans.factory.support.DefaultListableBeanFactory
 import org.springframework.mock.web.MockServletContext
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext
-import za.co.absa.spline.common.webmvc.jackson.JacksonConfig
 import za.co.absa.spline.common.webmvc.swagger.SwaggerConfig
 
 class SwaggerDocGenAppContext(contextClass: Class[_]) extends AnnotationConfigWebApplicationContext {
@@ -28,7 +27,6 @@ class SwaggerDocGenAppContext(contextClass: Class[_]) extends AnnotationConfigWe
 
   register(
     classOf[SwaggerConfig],
-    classOf[JacksonConfig],
     contextClass
   )
 

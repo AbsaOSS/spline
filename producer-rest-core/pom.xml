@@ -70,14 +70,8 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
-            <version>3.6.6</version>
-        </dependency>
-        <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-ext_${scala.compat.version}</artifactId>
-            <version>3.6.6</version>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
         </dependency>
 
         <!-- test scope -->
