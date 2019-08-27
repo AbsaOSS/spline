@@ -64,13 +64,14 @@ class BasicIntegrationTests extends FlatSpec
         }
       })
 
+
   "saveAsTable" should "use URIs compatible with filesystem write" in
     withNewSparkSession(spark =>
       withLineageTracking(spark) {
         lineageCaptor => {
 
           val tableName = "externalTable"
-          val path = TempDirectory("sparkunit", "table").deleteOnExit().path
+          val path = TempDirectory("sparkunit", "table").deleteOnExit().path.toUri
 
           spark.sql(s"create table $tableName (num int) using parquet location '$path' ")
 
@@ -91,13 +92,15 @@ class BasicIntegrationTests extends FlatSpec
         }
       })
 
+
+
   "saveAsTable" should "use table path as identifier when writing to external table" in
     withNewSparkSession(spark =>
       withLineageTracking(spark) {
         lineageCaptor => {
           val path = TempDirectory("sparkunit", "table", pathOnly = true).deleteOnExit().path
 
-          spark.sql(s"create table e_table(num int) using parquet location '$path'")
+          spark.sql(s"create table e_table(num int) using parquet location '${path.toUri}'")
 
           val schema: StructType = StructType(List(StructField("num", IntegerType, nullable = true)))
           val data = spark.sparkContext.parallelize(Seq(Row(1), Row(3)))
@@ -108,4 +111,5 @@ class BasicIntegrationTests extends FlatSpec
           plan.operations.write.outputSource should be(path.toFile.toURI.toString.init)
         }
       })
+
 }
