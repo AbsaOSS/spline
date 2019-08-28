@@ -131,28 +131,28 @@
                         </goals>
                         <configuration>
                             <target>
-                                <echo message="installing npx and redoc-cli"/>
+                                <echo message="installing redoc-cli"/>
                                 <exec executable="cmd" osfamily="windows" failonerror="true">
-                                    <arg line="/c npm install -g npx redoc-cli --no-color"/>
+                                    <arg line="/c npm install redoc-cli --no-color"/>
                                 </exec>
                                 <exec executable="npm" osfamily="unix" failonerror="true">
-                                    <arg line="install -g npx redoc-cli --no-color"/>
+                                    <arg line="install redoc-cli --no-color"/>
                                 </exec>
 
                                 <echo message="generate consumer documentation"/>
                                 <exec executable="cmd" osfamily="windows" failonerror="true">
-                                    <arg line="/c npx -p redoc-cli redoc-cli bundle -o ${swagger.output.path}/consumer.html ${swagger.output.path}/consumerSwagger.json"/>
+                                    <arg line="/c node_modules/.bin/redoc-cli.cmd bundle -o ${swagger.output.path}/consumer.html ${swagger.output.path}/consumerSwagger.json"/>
                                 </exec>
-                                <exec executable="/opt/nvm/versions/node/v8.12.0/bin/npx" osfamily="unix" failonerror="true">
-                                    <arg line="-p redoc-cli redoc-cli bundle -o ${swagger.output.path}/consumer.html ${swagger.output.path}/consumerSwagger.json"/>
+                                <exec executable="node_modules/.bin/redoc-cli" osfamily="unix" failonerror="true">
+                                    <arg line="bundle -o ${swagger.output.path}/consumer.html ${swagger.output.path}/consumerSwagger.json"/>
                                 </exec>
 
                                 <echo message="generate producer documentation"/>
                                 <exec executable="cmd" osfamily="windows" failonerror="true">
-                                    <arg line="/c npx -p redoc-cli redoc-cli bundle -o ${swagger.output.path}/producer.html ${swagger.output.path}/producerSwagger.json"/>
+                                    <arg line="/c node_modules/.bin/redoc-cli.cmd bundle -o ${swagger.output.path}/producer.html ${swagger.output.path}/producerSwagger.json"/>
                                 </exec>
-                                <exec executable="/opt/nvm/versions/node/v8.12.0/bin/npx" osfamily="unix" failonerror="true">
-                                    <arg line="-p  redoc-cli redoc-cli bundle -o ${swagger.output.path}/producer.html ${swagger.output.path}/producerSwagger.json"/>
+                                <exec executable="node_modules/.bin/redoc-cli" osfamily="unix" failonerror="true">
+                                    <arg line="bundle -o ${swagger.output.path}/producer.html ${swagger.output.path}/producerSwagger.json"/>
                                 </exec>
                             </target>
                         </configuration>
