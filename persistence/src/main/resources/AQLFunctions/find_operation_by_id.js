@@ -62,8 +62,14 @@
         
             LET dataTypesFormatted = (
                 FOR d IN pairAttributesDataTypes.dataTypes
-                    RETURN  MERGE(KEEP(d,  "id", "name", "fields", "nullable", "elementDataTypeId"),
-                    {"_class": d.jsonClass == "Simple" ? "za.co.absa.spline.persistence.model.SimpleDataType" : d.jsonClass == "Array" ? "za.co.absa.spline.persistence.model.ArrayDataType" :  "za.co.absa.spline.persistence.model.StructDataType"})
+                    RETURN MERGE(
+                        KEEP(d,  "id", "name", "fields", "nullable", "elementDataTypeId"),
+                        {
+                            "_class": d._typeHint == "Simple" ? "za.co.absa.spline.persistence.model.SimpleDataType" 
+                                    : d._typeHint == "Array" ? "za.co.absa.spline.persistence.model.ArrayDataType" 
+                                    : "za.co.absa.spline.persistence.model.StructDataType"
+                        }
+                    )
             )
         
         
