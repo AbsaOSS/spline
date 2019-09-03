@@ -16,14 +16,13 @@
 
 package za.co.absa.spline.consumer.service.model
 
-case class ExecutedLogicalPlan
+class Pageable[T]
 (
-  execution: ExecutionInfo,
-  plan: LogicalPlan
-) {
-  def this() = this(null, null)
-}
-
-object ExecutedLogicalPlan {
-  type OperationID = String
+  val elements: Array[T],
+  val totalCount: Long,
+  val offset: Int,
+  val size : Int
+)
+{
+  def this() =  this(null, 0, 0, 0)
 }

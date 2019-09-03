@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as ExecutionEventsAction from '../actions/execution-events.actions';
 
-package za.co.absa.spline.consumer.service.model
+export type Action = ExecutionEventsAction.ExecutionEventsActions
 
-case class ExecutedLogicalPlan
-(
-  execution: ExecutionInfo,
-  plan: LogicalPlan
-) {
-  def this() = this(null, null)
-}
-
-object ExecutedLogicalPlan {
-  type OperationID = String
+export function executionEventReducer(state: string, action: Action): any {
+    switch (action.type) {
+        case ExecutionEventsAction.ExecutionEventsActionTypes.EXECUTION_EVENTS_GET_SUCCESS: return { ...action.payload }
+        default: return state
+    }
 }
