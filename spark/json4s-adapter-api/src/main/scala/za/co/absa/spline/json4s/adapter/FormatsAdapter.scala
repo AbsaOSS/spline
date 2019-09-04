@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 ABSA Group Limited
+ * Copyright 2019 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.apache.spark.sql
+package za.co.absa.spline.json4s.adapter
 
-import org.apache.spark.sql.sources.BaseRelation
+import java.text.SimpleDateFormat
+
+import org.json4s.{Formats, TypeHints}
 import za.co.absa.spline.common.adapter.AdapterFactory
-trait JDBCRelationAdapter {
-  def extractJDBCOptions(jdbcRelation: BaseRelation): Option[SplineJDBCOptions]
+
+object FormatsAdapter extends AdapterFactory[FormatsAdapter]
+
+abstract class FormatsAdapter {
+  def defaultFormatsWith(typeHintFieldName: String, typeHints: TypeHints, dateFormatter: => SimpleDateFormat): Formats
 }
-
-object JDBCRelationAdapter extends AdapterFactory[JDBCRelationAdapter]
-
-object JDBCRelation {
-  def unapply(arg: BaseRelation): Option[SplineJDBCOptions] = JDBCRelationAdapter.instance.extractJDBCOptions(arg)
-}
-
-case class SplineJDBCOptions(url: String, table: String)

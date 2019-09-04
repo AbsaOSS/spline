@@ -20,8 +20,9 @@ import org.json4s.Extraction.decompose
 import org.json4s.ext.JavaTypesSerializers
 import org.json4s.jackson.JsonMethods.{compact, render}
 import org.json4s.jackson.Serialization.read
-import org.json4s.{DateFormat, DefaultFormats, Formats, ShortTypeHints, TypeHints}
+import org.json4s.{DefaultFormats, Formats, ShortTypeHints}
 import za.co.absa.spline.common.json.OmitEmptyValuesStrategy
+import za.co.absa.spline.json4s.adapter.FormatsAdapter
 import za.co.absa.spline.model
 
 import scala.reflect.Manifest
@@ -31,14 +32,13 @@ object JSONSerializationImplicits {
   import za.co.absa.spline.common.ReflectionUtils._
 
   private implicit val formats: Formats = {
-    val formats: Formats = new Formats {
-      override val dateFormat: DateFormat = DefaultFormats.lossless.dateFormat
-      override val typeHintFieldName: String = "_typeHint"
-      override val typeHints: TypeHints = ShortTypeHints(
+    FormatsAdapter.instance.defaultFormatsWith(
+      typeHintFieldName = "_typeHint",
+      typeHints = ShortTypeHints(
         subClassesOf[model.dt.DataType] ++
-          subClassesOf[model.expr.Expression])
-    }
-    formats
+          subClassesOf[model.expr.Expression]
+      ),
+      dateFormatter = DefaultFormats.losslessDate.get)
       .withEmptyValueStrategy(OmitEmptyValuesStrategy)
       .++(JavaTypesSerializers.all)
   }

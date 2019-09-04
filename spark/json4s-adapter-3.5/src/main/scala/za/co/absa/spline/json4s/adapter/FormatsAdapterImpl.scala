@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.spark.adapter
+package za.co.absa.spline.json4s.adapter
 
-import org.apache.spark
-import za.co.absa.spline.common.adapter.AdapterFactory
+import java.text.SimpleDateFormat
 
-trait SparkVersionRequirement {
+import org.json4s.{DefaultFormats, Formats, TypeHints}
 
-  protected val versionPrefix: String
+class FormatsAdapterImpl extends FormatsAdapter {
+  override def defaultFormatsWith(
+    _typeHintFieldName: String,
+    _typeHints: TypeHints,
+    _dateFormatter: => SimpleDateFormat): Formats = new DefaultFormats {
 
-  def requireSupportedVersion(): Unit = {
-    require(spark.SPARK_VERSION.startsWith(versionPrefix), s"Unsupported Spark version: ${spark.SPARK_VERSION}. Required version $versionPrefix.*.")
+    override val typeHints: TypeHints = _typeHints
+    override val typeHintFieldName: String = _typeHintFieldName
+
+    override def dateFormatter: SimpleDateFormat = _dateFormatter
   }
-
 }
-
-object SparkVersionRequirement extends AdapterFactory[SparkVersionRequirement]

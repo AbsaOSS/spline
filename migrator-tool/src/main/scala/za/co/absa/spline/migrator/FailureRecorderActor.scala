@@ -23,6 +23,8 @@ import akka.actor.{Actor, ActorLogging}
 import org.apache.commons.io.FileUtils.forceMkdirParent
 import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 
+import scala.io.Source
+
 class FailureRecorderActor(maybeRecFile: Option[File]) extends Actor with ActorLogging {
 
   var maybeOut: Option[PrintWriter] = _
@@ -57,7 +59,7 @@ object FailureRecorderActor {
 
   def failRecReader(file: File): PageRequest => Seq[UUID] = {
     var readCnt = 0
-    val source = io.Source.fromFile(file)
+    val source = Source.fromFile(file)
     val idsIter = source
       .getLines
       .map(_.trim)

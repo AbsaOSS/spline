@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.spark.adapter
+package za.co.absa.spline.common.adapter
 
 trait AdapterFactory[T] {
 
