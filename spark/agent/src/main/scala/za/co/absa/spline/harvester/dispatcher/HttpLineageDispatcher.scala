@@ -23,6 +23,8 @@ import za.co.absa.spline.common.logging.Logging
 import za.co.absa.spline.harvester.JSONSerializationImplicits._
 import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
 
+import scala.util.control.NonFatal
+
 class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)
   extends LineageDispatcher
     with Logging {
@@ -40,13 +42,16 @@ class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)
 
   private def sendJson(json: String, url: String) = {
     log.debug(s"sendJson $url : $json")
-    Http(url)
+    try Http(url)
       .postData(json)
       .compress(true)
       .header("content-type", "application/json")
       .asString
       .throwError
       .body
+    catch {
+      case NonFatal(e) => throw new RuntimeException(s"Cannot send lineage data to $url", e)
+    }
   }
 }
 

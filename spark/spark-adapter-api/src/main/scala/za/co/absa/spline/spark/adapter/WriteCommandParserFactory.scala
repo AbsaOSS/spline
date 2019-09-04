@@ -17,6 +17,7 @@
 package za.co.absa.spline.spark.adapter
 
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
+import za.co.absa.spline.common.adapter.AdapterFactory
 
 abstract class WriteCommandParserFactory {
   def writeParser(): WriteCommandParser[LogicalPlan]

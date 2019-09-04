@@ -83,6 +83,8 @@
         <springfox-swagger.version>2.9.2</springfox-swagger.version>
         <jackson.version>2.9.9</jackson.version>
         <test.spline.arangodb.url>arangodb://localhost/test</test.spline.arangodb.url>
+        <json4s-32.version>3.2.11</json4s-32.version>
+        <json4s-35.version>3.5.3</json4s-35.version>
     </properties>
 
     <build>
@@ -191,7 +193,10 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
-                    <version>3.1.0</version>
+                    <version>3.2.1</version>
+                    <configuration>
+                        <createDependencyReducedPom>false</createDependencyReducedPom>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -227,7 +232,8 @@
             <properties>
                 <spark.compat.version>2.2</spark.compat.version>
                 <spark.version>2.2.2</spark.version>
-                <json4s.version>3.2.11</json4s.version>
+                <json4s.compat.version>3.2</json4s.compat.version>
+                <json4s.version>${json4s-32.version}</json4s.version>
             </properties>
         </profile>
         <profile>
@@ -235,7 +241,8 @@
             <properties>
                 <spark.compat.version>2.3</spark.compat.version>
                 <spark.version>2.3.2</spark.version>
-                <json4s.version>3.2.11</json4s.version>
+                <json4s.compat.version>3.2</json4s.compat.version>
+                <json4s.version>${json4s-32.version}</json4s.version>
             </properties>
         </profile>
         <profile>
@@ -243,7 +250,8 @@
             <properties>
                 <spark.compat.version>2.4</spark.compat.version>
                 <spark.version>2.4.0</spark.version>
-                <json4s.version>3.5.3</json4s.version>
+                <json4s.compat.version>3.5</json4s.compat.version>
+                <json4s.version>${json4s-35.version}</json4s.version>
             </properties>
         </profile>
         <profile>
@@ -332,7 +340,6 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
@@ -392,19 +399,16 @@
                 <groupId>org.apache.spark</groupId>
                 <artifactId>spark-core_${scala.compat.version}</artifactId>
                 <version>${spark.version}</version>
-                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.spark</groupId>
                 <artifactId>spark-sql_${scala.compat.version}</artifactId>
                 <version>${spark.version}</version>
-                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>com.databricks</groupId>
                 <artifactId>spark-xml_${scala.compat.version}</artifactId>
                 <version>0.4.1</version>
-                <scope>provided</scope>
             </dependency>
 
 

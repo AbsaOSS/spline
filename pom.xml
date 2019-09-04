@@ -79,6 +79,9 @@
         <module>spark/bundle-2.2</module>
         <module>spark/bundle-2.3</module>
         <module>spark/bundle-2.4</module>
+        <module>spark/json4s-adapter-api</module>
+        <module>spark/json4s-adapter-3.2</module>
+        <module>spark/json4s-adapter-3.5</module>
 
         <module>examples</module>
         <module>integration-tests</module>
