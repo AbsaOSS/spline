@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.consumer.service.model
+import { Action } from '@ngrx/store';
 
-case class ExecutedLogicalPlan
-(
-  execution: ExecutionInfo,
-  plan: LogicalPlan
-) {
-  def this() = this(null, null)
+export enum DashboardFormActionTypes {
+    DASHBOARD_FORM_INITIALIZE = '[Dashboard Form] Initialize form',
 }
 
-object ExecutedLogicalPlan {
-  type OperationID = String
+export class InitializeForm implements Action {
+    public readonly type = DashboardFormActionTypes.DASHBOARD_FORM_INITIALIZE
+    constructor(public payload: any) { }
 }
+
+export type DashboardFormActions = InitializeForm

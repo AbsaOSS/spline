@@ -16,6 +16,7 @@
 package za.co.absa.spline.producer.service.model
 
 import java.lang.Iterable
+import java.util.Date
 import java.util.UUID.randomUUID
 
 import com.arangodb.velocypack.VPackSlice
@@ -42,7 +43,7 @@ object ExecutionEventTransactionParams {
   }
 
   private def createProgressForBatchJob(executionEvents: Array[ExecutionEvent]): Seq[Progress] = {
-    executionEvents.map(e => Progress(e.timestamp, e.error, e.extra, Some(randomUUID.toString)))
+    executionEvents.map(e => Progress(new Date().getTime, e.timestamp, e.error, e.extra, Some(randomUUID.toString)))
   }
 
   private def createProgressOf(executionEvents: Array[ExecutionEvent], progress: Seq[Progress]): Seq[ProgressOf] = {

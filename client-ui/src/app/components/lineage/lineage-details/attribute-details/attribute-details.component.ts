@@ -26,7 +26,7 @@ import {AppState} from 'src/app/model/app-state';
 })
 export class AttributeDetailsComponent implements OnInit {
 
-  @ViewChild(CytoscapeNgLibComponent)
+  @ViewChild(CytoscapeNgLibComponent, { static: true })
   private cytograph: CytoscapeNgLibComponent
 
   constructor(

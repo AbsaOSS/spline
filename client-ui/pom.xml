@@ -109,9 +109,10 @@
                   <env key="SPLINE_VERSION" value="${project.version}"/>
                   <arg line="/c npm run build-prod --no-color"/>
                 </exec>
-                <exec executable="npm" osfamily="unix" failonerror="true">
+
+                <exec dir="." executable="bash" osfamily="unix" failonerror="true">
                   <env key="SPLINE_VERSION" value="${project.version}"/>
-                  <arg line="run build-prod --no-color"/>
+                  <arg line="buildAppWithUpdatedNodeJS.sh"/>
                 </exec>
               </target>
             </configuration>
