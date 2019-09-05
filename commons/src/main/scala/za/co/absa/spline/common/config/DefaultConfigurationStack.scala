@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.client.web
+package za.co.absa.spline.common.config
 
-import java.net.URL
+import java.util
 
-import za.co.absa.spline.common.ConfigurationImplicits._
-import za.co.absa.spline.common.config.{ConfTyped, DefaultConfigurationStack}
+import org.apache.commons.configuration._
 
-object AppConfig extends DefaultConfigurationStack with ConfTyped {
-
-  override val rootPrefix: String = "spline"
-
-  object Server extends Conf("server") {
-    val restEndpoint: URL = new URL(AppConfig.this.getRequiredString(Prop("rest_endpoint")))
-  }
-
-}
+abstract class DefaultConfigurationStack extends CompositeConfiguration(util.Arrays.asList(
+  new JNDIConfiguration("java:comp/env"),
+  new SystemConfiguration,
+  new EnvironmentConfiguration))

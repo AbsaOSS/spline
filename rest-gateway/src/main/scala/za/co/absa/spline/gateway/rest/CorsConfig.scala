@@ -15,16 +15,9 @@
  */
 package za.co.absa.spline.gateway.rest
 
-import java.util.Arrays.asList
+import za.co.absa.spline.common.config.{ConfTyped, DefaultConfigurationStack}
 
-import org.apache.commons.configuration.{CompositeConfiguration, EnvironmentConfiguration, SystemConfiguration}
-import za.co.absa.spline.common.config.ConfTyped
-
-object CorsConfig
-  extends CompositeConfiguration(asList(
-    new SystemConfiguration,
-    new EnvironmentConfiguration))
-    with ConfTyped {
+object CorsConfig extends DefaultConfigurationStack with ConfTyped {
   override val rootPrefix: String = "spline"
 
   object CorsFilterConf extends Conf("corsFilter") {
