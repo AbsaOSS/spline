@@ -1,5 +1,6 @@
 /*
  * Copyright 2019 ABSA Group Limited
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,22 +14,11 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.test.fixture.spline
+package za.co.absa.spline.common.json.format
 
-import za.co.absa.spline.common.json.SimpleJsonSerDe
-import za.co.absa.spline.harvester.dispatcher.LineageDispatcher
-import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
+import org.json4s.Formats
+import org.json4s.ext.JavaTypesSerializers
 
-class LineageCapturingDispatcher(lineageCaptor: LineageCaptor.Setter) extends LineageDispatcher {
-
-  import SimpleJsonSerDe._
-
-  override def send(plan: ExecutionPlan): String = {
-    lineageCaptor.capture(plan)
-    plan.id.toJson
-  }
-
-  override def send(event: ExecutionEvent): Unit = {
-    lineageCaptor.capture(event)
-  }
+trait JavaTypesSupport extends FormatsBuilder {
+  abstract override protected def formats: Formats = super.formats ++ JavaTypesSerializers.all
 }
