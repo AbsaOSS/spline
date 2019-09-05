@@ -263,7 +263,7 @@
                         <artifactId>apache-rat-plugin</artifactId>
                         <executions>
                             <execution>
-                                <phase>verify</phase>
+                                <phase>validate</phase>
                                 <goals>
                                     <goal>check</goal>
                                 </goals>
