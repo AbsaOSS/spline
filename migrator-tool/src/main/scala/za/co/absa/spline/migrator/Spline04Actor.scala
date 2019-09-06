@@ -20,7 +20,7 @@ import java.util.UUID
 
 import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
-import za.co.absa.spline.harvester.JSONSerializationImplicits._
+import za.co.absa.spline.harvester.json.HarvesterJsonSerDe._
 import za.co.absa.spline.migrator.Spline04Actor._
 import za.co.absa.spline.migrator.rest.RestClient
 import za.co.absa.spline.producer.rest.model._

@@ -17,17 +17,15 @@
 package za.co.absa.spline.consumer.rest
 
 import java.util
-import java.util.Arrays.asList
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo.{As, Id}
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping.OBJECT_AND_NON_CONCRETE
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import org.apache.commons.configuration.{CompositeConfiguration, EnvironmentConfiguration, SystemConfiguration}
 import org.springframework.context.annotation.{Bean, ComponentScan, Configuration}
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
 import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
-import za.co.absa.spline.common.config.ConfTyped
+import za.co.absa.spline.common.config.{ConfTyped, DefaultConfigurationStack}
 import za.co.absa.spline.common.webmvc.jackson.ObjectMapperBeanPostProcessor
 import za.co.absa.spline.common.webmvc.{EstimableFutureReturnValueHandlerSupport, ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
 
@@ -61,10 +59,7 @@ class ConsumerRESTConfig extends WebMvcConfigurer {
   )
 }
 
-object ConsumerRESTConfig extends CompositeConfiguration(asList(
-  new SystemConfiguration,
-  new EnvironmentConfiguration))
-  with ConfTyped {
+object ConsumerRESTConfig extends DefaultConfigurationStack with ConfTyped {
 
   override val rootPrefix: String = "spline"
 

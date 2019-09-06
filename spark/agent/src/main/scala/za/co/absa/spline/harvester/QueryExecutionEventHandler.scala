@@ -20,8 +20,8 @@ import java.util.UUID
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.execution.QueryExecution
 import org.slf4s.Logging
-import za.co.absa.spline.harvester.JSONSerializationImplicits._
 import za.co.absa.spline.harvester.dispatcher.LineageDispatcher
+import za.co.absa.spline.harvester.json.HarvesterJsonSerDe._
 
 import scala.language.postfixOps
 

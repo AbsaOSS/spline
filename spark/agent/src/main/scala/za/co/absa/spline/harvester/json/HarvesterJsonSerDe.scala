@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.client.web
+package za.co.absa.spline.harvester.json
 
-import java.net.URL
+import za.co.absa.spline.common.json.AbstractJsonSerDe
+import za.co.absa.spline.common.json.format.{JavaTypesSupport, NoEmptyValuesSupport}
 
-import za.co.absa.spline.common.ConfigurationImplicits._
-import za.co.absa.spline.common.config.{ConfTyped, DefaultConfigurationStack}
+object HarvesterJsonSerDe extends HarvesterJsonSerDe
 
-object AppConfig extends DefaultConfigurationStack with ConfTyped {
-
-  override val rootPrefix: String = "spline"
-
-  object Server extends Conf("server") {
-    val restEndpoint: URL = new URL(AppConfig.this.getRequiredString(Prop("rest_endpoint")))
-  }
-
-}
+trait HarvesterJsonSerDe
+  extends AbstractJsonSerDe
+    with ShortTypeHintForOldSplineModelSupport
+    with NoEmptyValuesSupport
+    with JavaTypesSupport

@@ -20,7 +20,7 @@ import org.apache.commons.configuration.Configuration
 import scalaj.http.Http
 import za.co.absa.spline.common.ConfigurationImplicits._
 import za.co.absa.spline.common.logging.Logging
-import za.co.absa.spline.harvester.JSONSerializationImplicits._
+import za.co.absa.spline.harvester.json.HarvesterJsonSerDe._
 import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
 
 import scala.util.control.NonFatal

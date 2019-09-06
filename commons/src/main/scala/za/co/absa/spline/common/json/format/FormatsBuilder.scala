@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.client.web
+package za.co.absa.spline.common.json.format
 
-import java.net.URL
+import org.json4s.Formats
 
-import za.co.absa.spline.common.ConfigurationImplicits._
-import za.co.absa.spline.common.config.{ConfTyped, DefaultConfigurationStack}
-
-object AppConfig extends DefaultConfigurationStack with ConfTyped {
-
-  override val rootPrefix: String = "spline"
-
-  object Server extends Conf("server") {
-    val restEndpoint: URL = new URL(AppConfig.this.getRequiredString(Prop("rest_endpoint")))
-  }
-
+trait FormatsBuilder {
+  protected def formats: Formats
 }

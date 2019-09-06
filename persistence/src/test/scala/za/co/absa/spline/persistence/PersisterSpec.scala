@@ -36,9 +36,7 @@ class PersisterSpec
     with MockitoSugar
     with BeforeAndAfterAll {
 
-
-  private val arangoUri = "arangodb://root:root@localhost/unit-test"
-  private val connectionURL = ArangoConnectionURL(arangoUri)
+  private val connectionURL = ArangoConnectionURL(System.getProperty("test.spline.arangodb.url"))
   private val arangoFacade = new ArangoDatabaseFacade(connectionURL)
 
   import arangoFacade.db

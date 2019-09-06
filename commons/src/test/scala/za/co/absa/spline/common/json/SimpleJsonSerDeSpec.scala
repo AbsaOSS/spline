@@ -20,10 +20,9 @@ import java.util
 import java.util.UUID
 
 import org.scalatest.{FlatSpec, Matchers}
-import za.co.absa.spline.common.json.JSONSerializationImplicits._
-import za.co.absa.spline.common.json.JSONSerializationImplicitsSpec._
+import za.co.absa.spline.common.json.SimpleJsonSerDeSpec._
 
-class JSONSerializationImplicitsSpec extends FlatSpec with Matchers {
+class SimpleJsonSerDeSpec extends FlatSpec with Matchers with SimpleJsonSerDe {
 
   behavior of "serializer"
 
@@ -97,7 +96,7 @@ class JSONSerializationImplicitsSpec extends FlatSpec with Matchers {
   }
 }
 
-object JSONSerializationImplicitsSpec {
+object SimpleJsonSerDeSpec {
 
   case class Foo(any: Option[Any] = None, anySeq: Seq[Any] = Nil, quxSeq: Seq[Qux] = Nil)
 

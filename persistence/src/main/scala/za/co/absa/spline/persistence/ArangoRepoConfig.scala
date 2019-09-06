@@ -16,14 +16,11 @@
 
 package za.co.absa.spline.persistence
 
-import java.util.Arrays.asList
-
 import com.arangodb.ArangoDatabaseAsync
-import org.apache.commons.configuration._
 import org.slf4s.Logging
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.context.annotation.{Bean, Configuration}
-import za.co.absa.spline.common.config.ConfTyped
+import za.co.absa.spline.common.config.{ConfTyped, DefaultConfigurationStack}
 
 @Configuration
 class ArangoRepoConfig extends InitializingBean with Logging {
@@ -40,12 +37,7 @@ class ArangoRepoConfig extends InitializingBean with Logging {
   @Bean def arangoDatabase: ArangoDatabaseAsync = arangoDatabaseFacade.db
 }
 
-object ArangoRepoConfig
-  extends CompositeConfiguration(asList(
-    new JNDIConfiguration("java:comp/env"),
-    new SystemConfiguration,
-    new EnvironmentConfiguration))
-    with ConfTyped {
+object ArangoRepoConfig extends DefaultConfigurationStack with ConfTyped {
 
   setThrowExceptionOnMissing(true)
 

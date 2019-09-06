@@ -17,22 +17,17 @@
 package za.co.absa.spline.common.json
 
 import org.json4s.Extraction.decompose
-import org.json4s.ext.JavaTypesSerializers
+import org.json4s.Formats
 import org.json4s.jackson.JsonMethods.{compact, render}
-import org.json4s.jackson.Serialization
 import org.json4s.jackson.Serialization.read
-import org.json4s.{Formats, NoTypeHints}
+import za.co.absa.spline.common.json.format.FormatsBuilder
 
 import scala.reflect.Manifest
 
-object JSONSerializationImplicits {
+trait AbstractJsonSerDe {
+  this: FormatsBuilder =>
 
-  private implicit val formats: Formats =
-    Serialization
-      .formats(NoTypeHints)
-      .++(JavaTypesSerializers.all)
-      .withEmptyValueStrategy(OmitEmptyValuesStrategy)
-
+  private[this] implicit val _formats: Formats = formats
 
   implicit class EntityToJson[A <: AnyRef](entity: A) {
     def toJson: String = compact(render(decompose(entity)))
@@ -41,4 +36,5 @@ object JSONSerializationImplicits {
   implicit class JsonToEntity(json: String) {
     def fromJson[A: Manifest]: A = read(json)
   }
+
 }
