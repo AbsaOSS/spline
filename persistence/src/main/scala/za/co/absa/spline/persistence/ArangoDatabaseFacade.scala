@@ -23,11 +23,11 @@ import za.co.absa.spline.common.OptionImplicits.AnyWrapper
 
 class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL) extends DisposableBean {
 
-  private val ArangoConnectionURL(maybeUser, maybePassword, host, maybePort, dbName) = connectionURL
+  private val ArangoConnectionURL(maybeUser, maybePassword, host, port, dbName) = connectionURL
 
   private val arango: ArangoDBAsync = new ArangoDBAsync.Builder()
     .registerModule(new VPackScalaModule)
-    .optionally(_.host(host, _: Int), maybePort)
+    .host(host, port)
     .optionally(_.user(_: String), maybeUser)
     .optionally(_.password(_: String), maybePassword)
     .build
