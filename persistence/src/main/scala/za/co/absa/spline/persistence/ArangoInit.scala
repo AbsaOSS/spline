@@ -27,6 +27,7 @@ import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.Future
 import scala.io.Source
+import scala.util.{Failure, Success, Try}
 
 trait ArangoInit {
   def initialize(connectionURL: ArangoConnectionURL, dropIfExists: Boolean): Future[GraphEntity]
@@ -39,18 +40,28 @@ object ArangoInit extends ArangoInit {
   def initialize(connectionURL: ArangoConnectionURL, dropIfExists: Boolean): Future[GraphEntity] = {
     val arangoFacade = new ArangoDatabaseFacade(connectionURL)
     import arangoFacade.db
-    db
-      .exists()
-      .toScala
-      .flatMap(exists => {
-        if (exists && !dropIfExists) throw new IllegalArgumentException(s"Arango Database ${db.name()} already exists")
-        else if (exists && dropIfExists) db.drop().toScala.flatMap(_ => createDb(db))
-        else createDb(db)
-      })
-      .andThen({ case _ => arangoFacade.destroy() })
+
+    val createGraphDbAttempt = Try(
+      for {
+        exists <- db.exists.toScala
+        _ <-
+          if (exists && !dropIfExists) throw new IllegalArgumentException(s"Arango Database ${db.name()} already exists")
+          else if (exists && dropIfExists) db.drop().toScala
+          else Future.successful()
+        graphDb <- createGraphDb(db)
+      } yield graphDb)
+
+    val eventualGraphDb = createGraphDbAttempt match {
+      case Failure(e) => Future.failed(e)
+      case Success(graphDbFuture) => graphDbFuture
+    }
+
+    eventualGraphDb.andThen({
+      case _ => arangoFacade.destroy()
+    })
   }
 
-  private def createDb(db: ArangoDatabaseAsync): Future[GraphEntity] = for {
+  private def createGraphDb(db: ArangoDatabaseAsync): Future[GraphEntity] = for {
     _ <- db.create().toScala
     _ <- createAQLUserFunctions(db)
     _ <- db.createCollection("progress").toScala
