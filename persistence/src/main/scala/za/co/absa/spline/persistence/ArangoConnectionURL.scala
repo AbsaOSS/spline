@@ -22,11 +22,13 @@ import za.co.absa.spline.common.OptionImplicits.StringWrapper
 
 import scala.util.matching.Regex
 
-case class ArangoConnectionURL(user: Option[String], password: Option[String], host: String, port: Option[Int], dbName: String) {
+case class ArangoConnectionURL(user: Option[String], password: Option[String], host: String, port: Int, dbName: String) {
   require(user.isDefined || password.isEmpty, "user cannot be blank if password is specified")
 }
 
 object ArangoConnectionURL {
+
+  private val DefaultPort = 8529
 
   private val arangoConnectionUrlRegex = {
     val user = "([^@:]+)"
@@ -43,7 +45,7 @@ object ArangoConnectionURL {
       user = user.nonBlankOption,
       password = password.nonBlankOption,
       host = host,
-      port = port.nonBlankOption.map(_.toInt),
+      port = port.nonBlankOption.map(_.toInt) getOrElse DefaultPort,
       dbName = dbName
     )
   } catch {

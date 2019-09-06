@@ -25,13 +25,14 @@ class ArangoConnectionURLSpec extends FlatSpec with Matchers {
   it should "parse ArangoDB connection URL without port number" in {
     val url = ArangoConnectionURL("arangodb://my.host.com/foo-bar_db")
     url.host shouldEqual "my.host.com"
+    url.port shouldEqual 8529
     url.dbName shouldEqual "foo-bar_db"
   }
 
   it should "parse ArangoDB connection URL with port number" in {
     val url = ArangoConnectionURL("arangodb://my.host.com:1234/foo-bar_db")
     url.host shouldEqual "my.host.com"
-    url.port shouldEqual Some(1234)
+    url.port shouldEqual 1234
     url.dbName shouldEqual "foo-bar_db"
   }
 
