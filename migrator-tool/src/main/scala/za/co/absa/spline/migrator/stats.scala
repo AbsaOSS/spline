@@ -20,6 +20,11 @@ object Stats {
   def empty = SimpleStats(0, 0, 0)
 
   def emptyTree = TreeStats(0, 0, 0, empty)
+
+  def unapply(arg: Stats): Option[(Int, Int)] = arg match {
+    case SimpleStats(a, b, _) => Some((a, b))
+    case TreeStats(a, b, _, _) => Some((a, b))
+  }
 }
 
 sealed trait Stats {

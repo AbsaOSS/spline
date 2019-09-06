@@ -27,10 +27,14 @@ import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
 import za.co.absa.spline.migrator.rest.RestClientPlayWsImpl
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
-object MigratorTool {
+trait MigratorTool {
+  def migrate(migratorConf: MigratorConfig): Stats
+}
+
+object MigratorTool extends MigratorTool {
 
   private val conf =
     s"""akka {
@@ -40,13 +44,14 @@ object MigratorTool {
 
   private val akkaConf = ConfigFactory.parseString(conf)
 
-  def migrate(migratorConf: MigratorConfig): Future[Stats] = {
+  override def migrate(migratorConf: MigratorConfig): Stats = {
     LoggerFactory
       .getLogger(ROOT_LOGGER_NAME)
       .asInstanceOf[Logger]
       .setLevel(migratorConf.logLevel)
 
-    implicit val actorSystem = ActorSystem("system", akkaConf)
+    import scala.concurrent.ExecutionContext.Implicits.global
+    implicit val actorSystem: ActorSystem = ActorSystem("system", akkaConf)
 
     val restClient = new RestClientPlayWsImpl(migratorConf.producerRESTEndpointUrl) {
       actorSystem.registerOnTermination(this.close())
@@ -67,7 +72,7 @@ object MigratorTool {
     else
       eventualBatchMigrationResult.onComplete(_ => actorSystem.terminate())
 
-    eventualBatchMigrationResult
+    Await.result(eventualBatchMigrationResult, Duration.Inf)
   }
 
 }

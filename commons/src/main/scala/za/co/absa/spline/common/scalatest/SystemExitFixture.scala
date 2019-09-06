@@ -18,7 +18,9 @@ package za.co.absa.spline.common.scalatest
 
 import java.security.Permission
 
-import org.scalatest.Suite
+import org.scalatest.Matchers._
+import org.scalatest.matchers.Matcher
+import org.scalatest.{Assertion, Suite}
 
 import scala.util.Try
 
@@ -48,6 +50,9 @@ object SystemExitFixture {
         case ExitException(status) => status
       }).get
     }
+
+    def assertingExitStatus(matchCriteria: Matcher[Int])(body: => Unit): Assertion =
+      captureExitStatus(body) should matchCriteria
   }
 
   case class ExitException private(status: Int)
