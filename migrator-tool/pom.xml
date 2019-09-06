@@ -50,6 +50,17 @@
             <groupId>za.co.absa.spline</groupId>
             <artifactId>spark-agent</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>za.co.absa.spline</groupId>
+                    <artifactId>spark-adapter-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>json4s-adapter-${json4s.compat.version}</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
@@ -92,6 +103,14 @@
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-slf4j_${scala.compat.version}</artifactId>
+        </dependency>
+
+        <!-- test scope -->
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

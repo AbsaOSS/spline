@@ -18,6 +18,8 @@ package za.co.absa.spline.common.scalatest
 
 import java.io.{ByteArrayOutputStream, PrintStream, StringReader}
 
+import org.scalatest.Matchers._
+import org.scalatest.matchers.Matcher
 import za.co.absa.spline.common.ARM._
 
 trait ConsoleStubs {
@@ -26,15 +28,29 @@ trait ConsoleStubs {
     Console.withIn(new StringReader(str))(body)
   }
 
+  protected def assertingStdOut[T](matchCriteria: Matcher[String])(body: => T): T = {
+    assertingPrintStream(matchCriteria)(Console.withOut(_)(body))
+  }
+
+  protected def assertingStdErr[T](matchCriteria: Matcher[String])(body: => T): T = {
+    assertingPrintStream(matchCriteria)(Console.withErr(_)(body))
+  }
+
   protected def captureStdOut(body: => Any): String =
-    withPrintStreamToString(Console.withOut(_)(body))
+    withPrintStreamToString(Console.withOut(_)(body))._2
 
   protected def captureStdErr(body: => Any): String =
-    withPrintStreamToString(Console.withErr(_)(body))
+    withPrintStreamToString(Console.withErr(_)(body))._2
 
-  private def withPrintStreamToString(fn: PrintStream => Unit): String = {
+  private def assertingPrintStream[T](matchCriteria: Matcher[String])(fn: PrintStream => T): T = {
+    val (retVal, str) = withPrintStreamToString(fn)
+    str should matchCriteria
+    retVal
+  }
+
+  private def withPrintStreamToString[T](fn: PrintStream => T): (T, String) = {
     val baos = new ByteArrayOutputStream
-    using(new PrintStream(baos))(fn)
-    baos.toString()
+    val retVal = using(new PrintStream(baos))(fn)
+    (retVal, baos.toString)
   }
 }
