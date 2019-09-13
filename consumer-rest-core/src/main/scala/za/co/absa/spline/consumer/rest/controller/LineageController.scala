@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.consumer.rest.controller
 
-import io.swagger.annotations.ApiOperation
+import io.swagger.annotations.{ApiOperation, ApiParam}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.service.model.LineageOverview
@@ -30,8 +30,17 @@ class LineageController @Autowired()(val repo: LineageRepository) {
   import scala.concurrent.ExecutionContext.Implicits._
 
   @GetMapping(Array("/lineage"))
-  @ApiOperation("Returns a lineage overview of a given dataSource Id and an application Id and")
-  def lineage(@RequestParam("path") path: String, @RequestParam("applicationId") applicationId: String): Future[LineageOverview] = {
+  @ApiOperation(
+    value = "GET /lineage",
+    notes = "Returns a lineage overview of a given dataSource uri and an application Id and"
+  )
+  def lineage
+  (
+    @ApiParam(value="Output DataSource uri")
+    @RequestParam("path") path: String,
+    @ApiParam(value="Id of the application")
+    @RequestParam("applicationId") applicationId: String
+  ): Future[LineageOverview] = {
     repo.findByApplicationIdAndPath(path, applicationId)
   }
 

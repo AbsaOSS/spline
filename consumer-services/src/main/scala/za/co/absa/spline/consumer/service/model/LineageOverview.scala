@@ -15,9 +15,15 @@
  */
 package za.co.absa.spline.consumer.service.model
 
-case class LineageOverview(
-  lineageInfo : Map[String, Any],
-  lineage : Lineage
-  ) {
+import io.swagger.annotations.{ApiModel, ApiModelProperty}
+
+@ApiModel(description = "Lineage Overview")
+case class LineageOverview
+(
+  @ApiModelProperty(value = "Lineage information Map containing for instance the application Id and the Timestamp")
+  lineageInfo: Map[String, Any],
+  @ApiModelProperty(value = "Related Lineage")
+  lineage: Lineage
+) {
   def this() = this(null, null)
 }

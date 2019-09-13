@@ -15,15 +15,35 @@
  */
 package za.co.absa.spline.consumer.service.model
 
+import io.swagger.annotations.ApiModelProperty
+
 case class ExecutionEvent
 (
-  frameworkName : String,
+  @ApiModelProperty(value = "Name of the framework that triggered this execution event")
+  frameworkName: String,
+  @ApiModelProperty(value = "Name of the application/job")
   applicationName: String,
-  applicationId : String,
-  timestamp : Long,
-  datasource : String,
-  datasourceType : String,
-  append : Boolean
-){
-  def this() = this("", "", "", 0, "", "", false)
+  @ApiModelProperty(value = "Id of the application/job")
+  applicationId: String,
+  @ApiModelProperty(value = "When the execution was triggered")
+  timestamp: Long,
+  @ApiModelProperty(value = "Output file uri")
+  datasource: String,
+  @ApiModelProperty(value = "Type of the output file")
+  datasourceType: String,
+  @ApiModelProperty(value = "Write mode - (true=Append; false=Override)")
+  append: Boolean
+) {
+  def this() = this(null, null, null, 0, null, null, false)
+}
+
+case class PageableExecutionEvent() extends Pageable[ExecutionEvent] {
+  @ApiModelProperty(value = "Array of Execution events")
+  override val elements: Array[ExecutionEvent] = Array.empty
+  @ApiModelProperty(value = "Total number of executionEvents retrieved")
+  override val totalCount: Long = 0
+  @ApiModelProperty(value = "Page index")
+  override val offset: Int = 0
+  @ApiModelProperty(value = "Page size")
+  override val size: Int = 0
 }

@@ -17,14 +17,20 @@
 package za.co.absa.spline.consumer.service.model
 
 
+import io.swagger.annotations.{ApiModel, ApiModelProperty}
 import za.co.absa.spline.persistence.{model => persistence}
 
+@ApiModel(description = "Information Details of an Operation containing the input and output schemas with the description of the dataTypes")
 case class OperationDetails
 (
   operation: Operation,
+  @ApiModelProperty(value = "Array of the used DataTypes in the schemas")
   dataTypes: Array[persistence.DataType],
+  @ApiModelProperty(value = "Array of all the schemas")
   schemas: Array[Array[persistence.Attribute]],
+  @ApiModelProperty(value = "Array of indexes of the schemas Array. The schemas at these indexes represent the input schemas")
   inputs: Array[Integer],
+  @ApiModelProperty(value = "Index of the schemas Array. The schema at this index represents the output schemas")
   output: Integer
 
 ) {

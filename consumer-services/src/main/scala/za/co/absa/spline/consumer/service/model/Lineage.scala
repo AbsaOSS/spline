@@ -16,8 +16,14 @@
 
 package za.co.absa.spline.consumer.service.model
 
-case class Lineage(
+import io.swagger.annotations.{ApiModel, ApiModelProperty}
+
+@ApiModel(description = "Lineage")
+case class Lineage
+(
+  @ApiModelProperty(value = "Array of Lineage Overview nodes representing an Execution or a DataSource")
   nodes: Array[LineageOverviewNode],
+  @ApiModelProperty(value = "Link between the Executions and the DataSources")
   edges: Array[Transition]
 ) extends Graph {
   def this() = this(null, null)

@@ -31,6 +31,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-annotations</artifactId>
+        </dependency>
+        <dependency>
             <groupId>za.co.absa.spline</groupId>
             <artifactId>persistence</artifactId>
             <version>${project.version}</version>

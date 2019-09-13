@@ -16,15 +16,22 @@
 
 package za.co.absa.spline.consumer.service.model
 
+import io.swagger.annotations.{ApiModel, ApiModelProperty}
 import za.co.absa.spline.consumer.service.model.ExecutedLogicalPlan.OperationID
 
-case class Operation(
-                      _id: OperationID,
-                      _type: String,
-                      name: String,
-                      readsFrom: Seq[DataSourceInfo],
-                      writesTo: DataSourceInfo
-                    ) extends Graph.Node {
+@ApiModel(description = "Operation")
+case class Operation
+(
+  @ApiModelProperty(value = "Operation Id")
+  _id: OperationID,
+  @ApiModelProperty(value = "Type of the operation", example = "Read / Transformation / Write")
+  _type: String,
+  @ApiModelProperty(value = "Name of the operation")
+  name: String,
+  @ApiModelProperty(value = "List of the operation input dataSources")
+  readsFrom: Seq[DataSourceInfo],
+  writesTo: DataSourceInfo
+) extends Graph.Node {
   override type Id = OperationID
 
   def this() = this(null, null, null, null, null)

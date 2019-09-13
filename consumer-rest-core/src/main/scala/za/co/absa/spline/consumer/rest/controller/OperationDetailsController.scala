@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.consumer.rest.controller
 
-import io.swagger.annotations.ApiOperation
+import io.swagger.annotations.{ApiOperation, ApiParam}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.service.model._
@@ -28,14 +28,22 @@ import scala.concurrent.Future
 
 @RestController
 @RequestMapping(Array("/operation"))
-class OperationDetailsController @Autowired()(
+class OperationDetailsController @Autowired()
+(
   val repo: OperationRepository) {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
   @GetMapping(Array("/{operationId}"))
-  @ApiOperation("Returns details of an operation node")
-  def operation(@PathVariable("operationId") operationId: Operation.Id): Future[OperationDetails] = {
+  @ApiOperation(
+    value = "GET /operation/{operationId}",
+    notes = "Returns details of an operation node"
+  )
+  def operation
+  (
+    @ApiParam(value = "Id of the operation node to retrieve")
+    @PathVariable("operationId") operationId: Operation.Id
+  ): Future[OperationDetails] = {
     val result: Future[OperationDetails] = repo.findById(operationId)
 
     result.map(res => {
@@ -46,8 +54,17 @@ class OperationDetailsController @Autowired()(
   }
 
   @GetMapping(Array("/info"))
-  @ApiOperation("Returns details of an operation node from a sourceId")
-  def operationFromSourceAndApplicationId(@RequestParam("source") source: String, @RequestParam("applicationId") applicationId: String): Future[OperationDetails] = {
+  @ApiOperation(
+    value = "GET /operation/info",
+    notes = "Returns details of an operation node from a DataSource uri and an applicationId"
+  )
+  def operationFromSourceAndApplicationId
+  (
+    @ApiParam(value = "DataSource uri related to the operation (Output DataSource uri for a Write Operation or one of the Input DataSources uri if it is a Read Operation)")
+    @RequestParam("source") source: String,
+    @ApiParam(value = "Id of the application that triggered the operation")
+    @RequestParam("applicationId") applicationId: String
+  ): Future[OperationDetails] = {
     val result: Future[OperationDetails] = repo.findBySourceAndApplicationId(source, applicationId)
 
     result.map(res => {
