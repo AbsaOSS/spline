@@ -17,10 +17,9 @@
 package za.co.absa.spline.harvester
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.spark.SparkContext
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.SparkPlan
-import za.co.absa.spline.spark.adapter.WriteCommandParserFactory
 
 import scala.language.postfixOps
 
@@ -30,13 +29,10 @@ import scala.language.postfixOps
  */
 class LineageHarvesterFactory(hadoopConfiguration: Configuration) {
 
-  private val writeCommandParserFactory = WriteCommandParserFactory.instance
-
   /** A main method of the object that performs transformation of Spark internal structures to library lineage representation.
    *
    * @return A lineage representation
    */
-  def harvester(logicalPlan: LogicalPlan, executedPlan: Option[SparkPlan], sparkContext: SparkContext): LineageHarvester = {
-    new LineageHarvester(logicalPlan, executedPlan, sparkContext)(hadoopConfiguration, writeCommandParserFactory)
-  }
+  def harvester(logicalPlan: LogicalPlan, executedPlan: Option[SparkPlan], session: SparkSession): LineageHarvester =
+    new LineageHarvester(logicalPlan, executedPlan, session)(hadoopConfiguration)
 }

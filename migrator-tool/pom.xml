@@ -52,15 +52,22 @@
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>
-                    <groupId>za.co.absa.spline</groupId>
-                    <artifactId>spark-adapter-api</artifactId>
+                    <groupId>org.apache.spark</groupId>
+                    <artifactId>spark-core_${scala.compat.version}</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.spark</groupId>
+                    <artifactId>spark-sql_${scala.compat.version}</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.spark</groupId>
+                    <artifactId>spark-hive_${scala.compat.version}</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.databricks</groupId>
+                    <artifactId>spark-xml_${scala.compat.version}</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>json4s-adapter-${json4s.compat.version}</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>

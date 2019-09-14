@@ -18,7 +18,7 @@
 package za.co.absa.spline
 
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
-import org.apache.spark.sql.{DataFrame, Row, SaveMode}
+import org.apache.spark.sql.{DataFrame, Row}
 import org.scalatest._
 import za.co.absa.spline.test.DataFrameImplicits._
 import za.co.absa.spline.test.fixture.spline.SplineFixture
@@ -45,10 +45,10 @@ class JDBCWriteSpec extends FlatSpec
         }
 
         val (plan, _) = lineageCaptor.lineageOf {
-          testData.writeToJDBC(jdbcConnectionString, tableName, mode = SaveMode.Overwrite)
+          testData.write.jdbc(jdbcConnectionString, tableName)
         }
 
-        plan.operations.write.outputSource shouldBe s"jdbc://$jdbcConnectionString:$tableName"
+        plan.operations.write.outputSource shouldBe s"$jdbcConnectionString:$tableName"
         plan.operations.write.append shouldBe false
       })
     })

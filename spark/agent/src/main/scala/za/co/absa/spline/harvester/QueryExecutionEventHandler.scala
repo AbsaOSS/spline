@@ -44,7 +44,7 @@ class QueryExecutionEventHandler(
       log debug s"Start tracking lineage for action '$funcName'"
 
       harvesterFactory.
-        harvester(qe.analyzed, Some(qe.executedPlan), qe.sparkSession.sparkContext).
+        harvester(qe.analyzed, Some(qe.executedPlan), qe.sparkSession).
         harvest() match {
         case (plan, Some(event)) =>
           val idAsJson = lineageDispatcher.send(plan)

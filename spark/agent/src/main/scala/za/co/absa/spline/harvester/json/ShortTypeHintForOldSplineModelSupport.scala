@@ -17,18 +17,32 @@
 package za.co.absa.spline.harvester.json
 
 import org.json4s.{DefaultFormats, Formats, ShortTypeHints}
-import za.co.absa.spline.common.ReflectionUtils.subClassesOf
+import za.co.absa.spline.common.ReflectionUtils._
 import za.co.absa.spline.common.json.format.FormatsBuilder
-import za.co.absa.spline.json4s.adapter.FormatsAdapter
+import za.co.absa.spline.harvester.json.ShortTypeHintForOldSplineModelSupport._
 import za.co.absa.spline.model
 
+import scala.reflect.runtime.universe._
+
 trait ShortTypeHintForOldSplineModelSupport extends FormatsBuilder {
-  override protected def formats: Formats =
-    FormatsAdapter.instance.defaultFormatsWith(
-      typeHintFieldName = "_typeHint",
-      typeHints = ShortTypeHints(
-        subClassesOf[model.dt.DataType] ++
-          subClassesOf[model.expr.Expression]
-      ),
-      dateFormatter = DefaultFormats.losslessDate.get)
+  override protected def formats: Formats = createFormats(Map(
+    "typeHintFieldName" -> "_typeHint",
+    "typeHints" -> ShortTypeHints(
+      subClassesOf[model.dt.DataType] ++
+        subClassesOf[model.expr.Expression]
+    ),
+    "dateFormatter" -> DefaultFormats.losslessDate.get))
+}
+
+object ShortTypeHintForOldSplineModelSupport {
+  private val createFormats: Map[String, Any] => Formats = compile[Formats](
+    q"""
+      import java.text.SimpleDateFormat
+      import org.json4s.{DefaultFormats, TypeHints}
+      new DefaultFormats {
+        override val typeHints = args("typeHints").asInstanceOf[TypeHints]
+        override val typeHintFieldName = args("typeHintFieldName").asInstanceOf[String]
+        override def dateFormatter = args("dateFormatter").asInstanceOf[SimpleDateFormat]
+      }
+    """)
 }

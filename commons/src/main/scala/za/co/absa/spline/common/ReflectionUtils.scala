@@ -17,7 +17,9 @@
 package za.co.absa.spline.common
 
 import scala.collection.concurrent.TrieMap
+import scala.reflect.runtime.universe._
 import scala.reflect.runtime.{universe => ru}
+import scala.tools.reflect.ToolBox
 
 /**
   * Reflection utils
@@ -33,6 +35,17 @@ object ReflectionUtils {
       if (symbol.isModuleClass) Some(symbol)
       else None
     }
+  }
+
+  def compile[A](code: ru.Tree): Map[String, Any] => A = {
+    val tb = mirror.mkToolBox()
+    val execFn = tb.compile(
+      q"""
+         (args: Map[String, Any]) => {
+           $code
+         }
+      """)()
+    execFn.asInstanceOf[Map[String, Any] => A]
   }
 
   /**

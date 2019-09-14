@@ -18,26 +18,13 @@ package za.co.absa.spline.test
 
 import java.util.Properties
 
-import org.apache.spark.sql.{DataFrame, SaveMode}
-import za.co.absa.spline.common.TempDirectory
+import org.apache.spark.sql.DataFrameWriter
 
 object DataFrameImplicits {
 
-  implicit class DFWrapper(df: DataFrame) {
-    def writeToDisk(path: String = null, mode: SaveMode = SaveMode.ErrorIfExists): Unit = {
-      val dir = if (path != null) path else TempDirectory("spline_" + System.currentTimeMillis(), ".parquet", pathOnly = true).deleteOnExit().path.toString
-      df.write.mode(mode).save(dir)
-    }
-
-    def writeToTable(tableName: String = "tableName", mode: SaveMode = SaveMode.ErrorIfExists): Unit = {
-      df.write.mode(mode).saveAsTable(tableName)
-    }
-
-    def writeToJDBC(connectionString: String,
-                    tableName: String,
-                    properties: Properties = new Properties(),
-                    mode: SaveMode = SaveMode.ErrorIfExists): Unit = {
-      df.write.mode(mode).jdbc(connectionString, tableName, properties)
+  implicit class DataFrameWriterWrapper[T](dfw: DataFrameWriter[T]) {
+    def jdbc(url: String, table: String): Unit = {
+      dfw.jdbc(url, table, new Properties())
     }
   }
 

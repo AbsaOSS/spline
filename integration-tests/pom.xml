@@ -51,16 +51,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>json4s-adapter-${json4s.compat.version}</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>spark-adapter-${spark.compat.version}</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_${scala.compat.version}</artifactId>
         </dependency>

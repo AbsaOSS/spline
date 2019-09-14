@@ -34,16 +34,6 @@
             <artifactId>spark-agent</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>spark-adapter-2.2</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>json4s-adapter-3.2</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
     <dependencyManagement>

@@ -232,7 +232,6 @@
             <properties>
                 <spark.compat.version>2.2</spark.compat.version>
                 <spark.version>2.2.2</spark.version>
-                <json4s.compat.version>3.2</json4s.compat.version>
                 <json4s.version>${json4s-32.version}</json4s.version>
             </properties>
         </profile>
@@ -241,7 +240,6 @@
             <properties>
                 <spark.compat.version>2.3</spark.compat.version>
                 <spark.version>2.3.2</spark.version>
-                <json4s.compat.version>3.2</json4s.compat.version>
                 <json4s.version>${json4s-32.version}</json4s.version>
             </properties>
         </profile>
@@ -250,7 +248,6 @@
             <properties>
                 <spark.compat.version>2.4</spark.compat.version>
                 <spark.version>2.4.0</spark.version>
-                <json4s.compat.version>3.5</json4s.compat.version>
                 <json4s.version>${json4s-35.version}</json4s.version>
             </properties>
         </profile>
@@ -406,6 +403,11 @@
                 <version>${spark.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-hive_${scala.compat.version}</artifactId>
+                <version>${spark.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.databricks</groupId>
                 <artifactId>spark-xml_${scala.compat.version}</artifactId>
                 <version>0.4.1</version>
@@ -494,6 +496,11 @@
                 <groupId>commons-lang</groupId>
                 <artifactId>commons-lang</artifactId>
                 <version>2.6</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.9</version>
             </dependency>
             <dependency>
                 <groupId>commons-configuration</groupId>

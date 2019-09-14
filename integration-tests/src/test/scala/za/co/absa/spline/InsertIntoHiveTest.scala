@@ -15,10 +15,10 @@
  */
 package za.co.absa.spline
 
-import org.apache.spark.sql.SaveMode
+import org.apache.spark.sql.SaveMode._
 import org.apache.spark.sql.functions._
 import org.scalatest._
-import za.co.absa.spline.common.TempDirectory
+import za.co.absa.spline.common.TempFile
 import za.co.absa.spline.test.fixture.spline.SplineFixture
 import za.co.absa.spline.test.fixture.{SparkDatabaseFixture, SparkFixture}
 
@@ -30,17 +30,14 @@ class InsertIntoHiveTest
     with SparkDatabaseFixture
     with SplineFixture {
 
-  private val tempWarehouseDirPath: String = TempDirectory("SparkFixture", "UnitTest", pathOnly = true).deleteOnExit().path.toString
-
-  "InsertInto" should "not fail when inserting to partitioned table created as Hive table" in
+  "InsertInto" should "produce lineage when inserting to partitioned table created as Hive table" in
     withRestartingSparkContext {
       withCustomSparkSession(_
         .enableHiveSupport()
-        .config("hive.exec.dynamic.partition.mode", "nonstrict")
-        .config("hive.metastore.warehouse.dir", tempWarehouseDirPath)) { spark =>
+        .config("hive.exec.dynamic.partition.mode", "nonstrict")) { spark =>
 
-        withHiveDatabase(spark)(
-          databaseName = s"unitTestDatabase_${this.getClass.getSimpleName}",
+        val databaseName = s"unitTestDatabase_${this.getClass.getSimpleName}"
+        withHiveDatabase(spark)(databaseName,
           ("path_archive", "(x String, ymd int) USING hive PARTITIONED BY (ymd)", Seq(("Tata", 20190401), ("Tere", 20190403))),
           ("path", "(x String) USING hive", Seq("Monika", "Buba"))) {
 
@@ -49,12 +46,19 @@ class InsertIntoHiveTest
               .table("path")
               .withColumn("ymd", lit(20190401))
 
-            val (plan, _) = lineageCaptor.lineageOf {
-              df.write.mode(SaveMode.Overwrite).insertInto("path_archive")
+            val (plan1, _) = lineageCaptor.lineageOf {
+              df.write.mode(Append).insertInto("path_archive")
             }
 
-            plan.operations.write.outputSource should include("path_archive")
-            plan.operations.write.append should be(false)
+            val (plan2, _) = lineageCaptor.lineageOf {
+              spark
+                .read.table("path_archive")
+                .write.csv(TempFile(pathOnly = true).deleteOnExit().file.getAbsolutePath)
+            }
+
+            plan1.operations.write.append should be(true)
+            plan1.operations.write.outputSource should be(s"file:$warehouseDir/${databaseName.toLowerCase}.db/path_archive")
+            plan2.operations.reads.head.inputSources.head shouldEqual plan1.operations.write.outputSource
           }
           }
         }

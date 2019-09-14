@@ -67,8 +67,8 @@ class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkS
 
   protected lazy val lineageDispatcher = HttpLineageDispatcher(configuration)
 
-  private lazy val lineageHarvester = new LineageHarvesterFactory(sparkSession.sparkContext.hadoopConfiguration)
+  private lazy val harvesterFactory = new LineageHarvesterFactory(sparkSession.sparkContext.hadoopConfiguration)
 
   def queryExecutionEventHandler: QueryExecutionEventHandler =
-    new QueryExecutionEventHandler(lineageHarvester, lineageDispatcher, sparkSession)
+    new QueryExecutionEventHandler(harvesterFactory, lineageDispatcher, sparkSession)
 }
