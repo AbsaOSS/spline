@@ -13,24 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Action} from "@ngrx/store";
-import {Params} from "@angular/router";
+import { Params } from "@angular/router";
+import { Action } from "@ngrx/store";
+import { RouterStateUrl } from 'src/app/model/routerStateUrl';
 
 export enum RouterActionTypes {
     GO = "[Router] Go",
-    MERGE_PARAMS = "[Router] Merge Params"
+    NAVIGATES = "[Router] Navigates",
+    REPLACE_URL_STATE = "[Router] Replace url state"
 }
 
 export class Go implements Action {
     public readonly type = RouterActionTypes.GO
-    constructor(public payload: Params) { }
+    constructor(public payload: RouterStateUrl) { }
 }
 
-export class MergeParams implements Action {
-    public readonly type = RouterActionTypes.MERGE_PARAMS
+export class ReplaceUrlState implements Action {
+    public readonly type = RouterActionTypes.REPLACE_URL_STATE
     constructor(public payload: Params) { }
 }
 
 export type RouterActions
     = Go
-    | MergeParams
+    | ReplaceUrlState

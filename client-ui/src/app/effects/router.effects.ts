@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-import {Location} from "@angular/common";
-import {Injectable} from "@angular/core";
-import {ActivatedRoute, Router} from "@angular/router";
-import {Actions, Effect, ofType} from "@ngrx/effects";
-import {tap} from "rxjs/operators";
+import { Location } from "@angular/common";
+import { Injectable } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
+import { Actions, Effect, ofType } from "@ngrx/effects";
+import { Observable } from "rxjs";
+import { tap } from "rxjs/operators";
 import * as RouterAction from 'src/app/store/actions/router.actions';
-import {Observable} from "rxjs";
+import { RouterStateUrl } from '../model/routerStateUrl';
 
 @Injectable()
 export class RouterEffects {
@@ -33,22 +34,25 @@ export class RouterEffects {
     ) { }
 
     @Effect({ dispatch: false })
-    public navigate$: Observable<RouterAction.Go> = this.actions$.pipe(
+    public go$: Observable<RouterAction.Go> = this.actions$.pipe(
         ofType(RouterAction.RouterActionTypes.GO),
         tap((action: RouterAction.Go) => {
-            const url = this.router.createUrlTree([], {
+            const params: RouterStateUrl = action.payload
+            const command = params.url != null ? [params.url] : []
+            const queryParamsHandling = params.url != null ? "" : "merge"
+            const url = this.router.createUrlTree(command, {
                 relativeTo: this.activatedRoute,
-                queryParams: action.payload,
-                queryParamsHandling: "merge"
+                queryParams: params.queryParams,
+                queryParamsHandling: queryParamsHandling
             }).toString()
             this.router.navigateByUrl(url)
         })
     )
 
     @Effect({ dispatch: false })
-    public mergeParams$: Observable<RouterAction.Go> = this.actions$.pipe(
-        ofType(RouterAction.RouterActionTypes.MERGE_PARAMS),
-        tap((action: RouterAction.Go) => {
+    public replaceUrlState$: Observable<RouterAction.ReplaceUrlState> = this.actions$.pipe(
+        ofType(RouterAction.RouterActionTypes.REPLACE_URL_STATE),
+        tap((action: RouterAction.ReplaceUrlState) => {
             const url = this.router.createUrlTree([], {
                 relativeTo: this.activatedRoute,
                 queryParams: action.payload,

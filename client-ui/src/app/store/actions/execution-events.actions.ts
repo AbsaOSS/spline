@@ -16,16 +16,28 @@
 
 import { Action } from '@ngrx/store';
 import { PageableExecutionEvent } from 'src/app/generated/models';
-import { ExecutionEventControllerService } from 'src/app/generated/services';
+import { Params } from '@angular/router';
 
 export enum ExecutionEventsActionTypes {
     EXECUTION_EVENTS_GET = '[Execution Events] Get',
     EXECUTION_EVENTS_GET_SUCCESS = '[Execution Events] Get Success',
+    EXECUTION_EVENTS_GET_DEFAULT = '[Execution Events] Get Default ',
+    EXECUTION_EVENTS_GET_SUCESS_DEFAULT = '[Execution Events] Get Success Default',
 }
 
 export class Get implements Action {
     public readonly type = ExecutionEventsActionTypes.EXECUTION_EVENTS_GET
-    constructor(public payload: ExecutionEventControllerService.ExecutionEventUsingGETParams) { }
+    constructor(public payload: Params) { }
+}
+
+export class GetDefault implements Action {
+    public readonly type = ExecutionEventsActionTypes.EXECUTION_EVENTS_GET_DEFAULT
+    constructor(public payload: Params) { }
+}
+
+export class GetSuccessDefault implements Action {
+    public readonly type = ExecutionEventsActionTypes.EXECUTION_EVENTS_GET_SUCESS_DEFAULT
+    constructor(public payload: Params) { }
 }
 
 export class GetSuccess implements Action {
@@ -35,4 +47,6 @@ export class GetSuccess implements Action {
 
 export type ExecutionEventsActions
     = Get
+    | GetDefault
     | GetSuccess
+    | GetSuccessDefault

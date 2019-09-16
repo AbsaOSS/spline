@@ -18,4 +18,6 @@ import { CytoscapeGraphVM } from './cytoscape/cytoscapeGraphVM';
 export interface LineageOverviewVM {
     lineageInfo: { [key: string]: {} }
     lineage: CytoscapeGraphVM
+    path: string
+    applicationId: string
 }

@@ -70,7 +70,8 @@ export class LineageOverviewEffects {
             cytoscapeOperation.id = node._id
             cytoscapeOperation._id = node.name
             const nodeName = node._type == LineageOverviewNodeType.DataSource ? node.name.substring(node.name.lastIndexOf("/") + 1) : node.name
-            cytoscapeOperation.name = nodeName
+            const splitedNames = node.name.split('/')
+            cytoscapeOperation.name = nodeName == "*" ? `${splitedNames[splitedNames.length - 2]}/${nodeName}` : nodeName
             cytoscapeOperation.color = lineageOverviewColorCodes.get(node._type)
             cytoscapeOperation.icon = lineageOverviewIconCodes.get(node._type)
             cytoscapeGraphVM.nodes.push({ data: cytoscapeOperation })
@@ -89,6 +90,6 @@ export class LineageOverviewEffects {
         return throwError(
             (err.error instanceof ErrorEvent)
                 ? `An error occurred: ${err.error.message}`
-                : `Server returned code: ${err.status}, error message is: ${err.message}`)
+                : `Server returned code: ${err.status}, error message is: ${err.message} `)
     }
 }

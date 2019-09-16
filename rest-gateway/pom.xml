@@ -141,7 +141,7 @@
 
                                 <echo message="generate consumer documentation"/>
                                 <exec executable="cmd" osfamily="windows" failonerror="true">
-                                    <arg line="/c node_modules/.bin/redoc-cli.cmd bundle -o ${swagger.output.path}/consumer.html ${swagger.output.path}/consumerSwagger.json"/>
+                                    <arg line="/c node_modules\.bin\redoc-cli.cmd bundle -o ${swagger.output.path}/consumer.html ${swagger.output.path}/consumerSwagger.json"/>
                                 </exec>
                                 <exec executable="node_modules/.bin/redoc-cli" osfamily="unix" failonerror="true">
                                     <arg line="bundle -o ${swagger.output.path}/consumer.html ${swagger.output.path}/consumerSwagger.json"/>
@@ -149,7 +149,7 @@
 
                                 <echo message="generate producer documentation"/>
                                 <exec executable="cmd" osfamily="windows" failonerror="true">
-                                    <arg line="/c node_modules/.bin/redoc-cli.cmd bundle -o ${swagger.output.path}/producer.html ${swagger.output.path}/producerSwagger.json"/>
+                                    <arg line="/c node_modules\.bin\redoc-cli.cmd bundle -o ${swagger.output.path}/producer.html ${swagger.output.path}/producerSwagger.json"/>
                                 </exec>
                                 <exec executable="node_modules/.bin/redoc-cli" osfamily="unix" failonerror="true">
                                     <arg line="bundle -o ${swagger.output.path}/producer.html ${swagger.output.path}/producerSwagger.json"/>

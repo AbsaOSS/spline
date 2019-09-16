@@ -19,7 +19,8 @@ import { LineageOverviewVM } from 'src/app/model/viewModels/lineageOverview';
 
 export enum LineageOverviewActionTypes {
     OVERVIEW_LINEAGE_GET = '[Overview Lineage] Get',
-    OVERVIEW_LINEAGE_GET_GET_SUCCESS = '[Overview Lineage] Get Success'
+    OVERVIEW_LINEAGE_GET_GET_SUCCESS = '[Overview Lineage] Get Success',
+    OVERVIEW_LINEAGE_SAVE_CURRENT = '[Overview Lineage] Get Success'
 }
 
 export class Get implements Action {
@@ -32,6 +33,13 @@ export class GetSuccess implements Action {
     constructor(public payload: LineageOverviewVM) { }
 }
 
+export class Save implements Action {
+    public readonly type = LineageOverviewActionTypes.OVERVIEW_LINEAGE_SAVE_CURRENT
+    constructor(public payload: LineageOverviewVM) { }
+}
+
+
 export type LineageOverviewActions
     = Get
     | GetSuccess
+    | Save

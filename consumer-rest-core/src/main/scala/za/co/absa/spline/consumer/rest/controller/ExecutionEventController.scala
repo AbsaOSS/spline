@@ -34,8 +34,8 @@ class ExecutionEventController @Autowired()(val repo: ExecutionEventRepository) 
   @ApiOperation("Returns a list of execution event info containing the time of the execution, the application Id/Name and the appendMode")
   def executionEvent
   (
-    @RequestParam("timestampStart") timestampStart: Long,
-    @RequestParam("timestampEnd") timestampEnd: Long,
+    @RequestParam(value = "timestampStart" , required = false, defaultValue = "0") timestampStart: Long,
+    @RequestParam(value = "timestampEnd", required = false, defaultValue = "0") timestampEnd: Long,
     @RequestParam(value = "asAtTime", required = false, defaultValue = "0") asAtTime: Long,
     @RequestParam(value = "offset", required = false, defaultValue = "0") offset: Int,
     @RequestParam(value = "size", required = false, defaultValue = "10") size: Int,

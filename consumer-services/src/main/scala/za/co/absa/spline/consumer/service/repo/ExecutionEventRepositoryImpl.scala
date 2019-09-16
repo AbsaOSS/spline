@@ -38,53 +38,62 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
 
     val arangoCursorAsync = db.queryAs[Array[ExecutionEvent]](
       """
-        LET executionEvents = (
-                    FOR p IN progress
-                        FILTER p._creationTimestamp < TO_NUMBER(@asAtTime) && p.timestamp > TO_NUMBER(@timestampStart) && p.timestamp < TO_NUMBER(@timestampEnd)
-                        RETURN p
-                )
+        LET executionEventsFiltered = (
+          FOR p IN progress
+            FILTER p._creationTimestamp < TO_NUMBER(@asAtTime) && p.timestamp >= TO_NUMBER(@timestampStart) && p.timestamp <= TO_NUMBER(@timestampEnd)
+            RETURN p
+        )
 
-                RETURN (
-                    FOR ee IN executionEvents
-                        LET executionEventDetails = FIRST(
-                            FOR po IN progressOf
-                                FILTER po._from == ee._id
-                                LET exec = FIRST(
-                                    FOR exec IN execution
-                                        FILTER exec._id == po._to
-                                        RETURN exec
-                                )
-                                LET ope = FIRST(
-                                    FOR ex IN executes
-                                        FILTER ex._from == exec._id
-                                        LET o = FIRST(
-                                            FOR op IN operation
-                                                FILTER op._id == ex._to
-                                                RETURN op
-                                        )
-                                        RETURN o
-                                )
-                                RETURN {
-                                    "frameworkName" : CONCAT([exec.extra.systemInfo.name, " ", exec.extra.systemInfo.version]),
-                                    "applicationName" : exec.extra.appName,
-                                    "applicationId" : ee.extra.appId,
-                                    "timestamp" : ee.timestamp,
-                                    "datasource" : ope.properties.outputSource,
-                                    "datasourceType" : ope.properties.destinationType,
-                                    "append" : ope.properties.append
-                                }
-                        )
-                        FILTER  LENGTH(@searchTerm) == 0 ? : CONTAINS(LOWER(executionEventDetails.frameworkName), LOWER(@searchTerm))
-                              || CONTAINS(LOWER(executionEventDetails.applicationName), LOWER(@searchTerm))
-                              || SUBSTITUTE(executionEventDetails.applicationId, "-", ",") == SUBSTITUTE(@searchTerm, "-", ",")
-                              || CONTAINS(LOWER(executionEventDetails.timestamp), LOWER(@searchTerm))
-                              || CONTAINS(LOWER(executionEventDetails.datasource), LOWER(@searchTerm))
-                              || CONTAINS(LOWER(executionEventDetails.datasourceType), LOWER(@searchTerm))
-                              || CONTAINS(LOWER(executionEventDetails.append), LOWER(@searchTerm))
-                        SORT executionEventDetails.@sortName @sortDirection
-                        LIMIT @offset, @size
-                        RETURN executionEventDetails
-                )
+        LET executionEventsDefault = (
+          FOR p IN progress
+            FILTER p._creationTimestamp < TO_NUMBER(@asAtTime)
+            SORT p.timestamp desc
+            LIMIT 100
+            RETURN p
+        )
+
+        LET executionEvents = @timestampStart == 0 ? executionEventsDefault : executionEventsFiltered
+          RETURN (
+            FOR ee IN executionEvents
+              LET executionEventDetails = FIRST(
+                FOR po IN progressOf
+                  FILTER po._from == ee._id
+                  LET exec = FIRST(
+                      FOR exec IN execution
+                          FILTER exec._id == po._to
+                          RETURN exec
+                  )
+                  LET ope = FIRST(
+                      FOR ex IN executes
+                          FILTER ex._from == exec._id
+                          LET o = FIRST(
+                              FOR op IN operation
+                                  FILTER op._id == ex._to
+                                  RETURN op
+                          )
+                          RETURN o
+                  )
+                RETURN {
+                    "frameworkName" : CONCAT([exec.extra.systemInfo.name, " ", exec.extra.systemInfo.version]),
+                    "applicationName" : exec.extra.appName,
+                    "applicationId" : ee.extra.appId,
+                    "timestamp" : ee.timestamp,
+                    "datasource" : ope.properties.outputSource,
+                    "datasourceType" : ope.properties.destinationType,
+                    "append" : ope.properties.append
+                }
+              )
+              FILTER  LENGTH(@searchTerm) == 0 ? : CONTAINS(LOWER(executionEventDetails.frameworkName), LOWER(@searchTerm))
+                    || CONTAINS(LOWER(executionEventDetails.applicationName), LOWER(@searchTerm))
+                    || SUBSTITUTE(executionEventDetails.applicationId, "-", ",") == SUBSTITUTE(@searchTerm, "-", ",")
+                    || CONTAINS(LOWER(executionEventDetails.timestamp), LOWER(@searchTerm))
+                    || CONTAINS(LOWER(executionEventDetails.datasource), LOWER(@searchTerm))
+                    || CONTAINS(LOWER(executionEventDetails.datasourceType), LOWER(@searchTerm))
+                    || CONTAINS(LOWER(executionEventDetails.append), LOWER(@searchTerm))
+              SORT executionEventDetails.@sortName @sortDirection
+              LIMIT @offset, @size
+              RETURN executionEventDetails
+          )
 
       """,
       Map(

@@ -23,12 +23,9 @@ import ExecutionInfo.Id
 case class ExecutionInfo
 (
   _id: Id,
-  _type: String,
-  startTime: Option[Long],
-  endTime: Option[Long],
   extra: Map[String, Any]
 ) {
-  def this() = this(null, null, null, null, null)
+  def this() = this(null, null)
 }
 
 object ExecutionInfo {

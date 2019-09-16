@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
-import { Params } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
-import { filter, map, switchMap } from 'rxjs/operators';
+import { filter, map, switchMap, first } from 'rxjs/operators';
 import { AppState } from 'src/app/model/app-state';
+import { RouterStateUrl } from 'src/app/model/routerStateUrl';
 import * as AttributesAction from 'src/app/store/actions/attributes.actions';
 import * as DetailsInfosAction from 'src/app/store/actions/details-info.actions';
 import * as ExecutionPlanAction from 'src/app/store/actions/execution-plan.actions';
@@ -51,7 +51,7 @@ export class LineageGraphComponent implements OnInit, AfterViewInit {
           return this.store
             .select('executedLogicalPlan')
             .pipe(
-              filter(state => state !== null && state !== undefined),
+              filter(state => state != null),
               map(state => {
                 return { plan: state.plan, layout: layout }
               })
@@ -59,7 +59,7 @@ export class LineageGraphComponent implements OnInit, AfterViewInit {
         })
       )
       .subscribe(state => {
-        if (state) {
+        if (state && this.cytograph.cy) {
           this.cytograph.cy.add(state.plan)
           this.cytograph.cy.nodeHtmlLabel([{
             tpl: function (data) {
@@ -75,19 +75,25 @@ export class LineageGraphComponent implements OnInit, AfterViewInit {
 
   public ngAfterViewInit(): void {
     this.cytograph.cy.ready(() => {
+      this.cytograph.cy.style().selector('edge').css({
+        'width': '7'
+      })
       this.cytograph.cy.on('click', (event) => {
         const clikedTarget = event.target
         const nodeId = (clikedTarget != this.cytograph.cy && clikedTarget.isNode()) ? clikedTarget.id() : null
         this.getDetailsInfo(nodeId)
         this.store.dispatch(new AttributesAction.Reset())
-        const params: Params = { selectedNode: nodeId, schemaId: null, attribute: null }
+        const params = {} as RouterStateUrl
+        params.queryParams = { selectedNode: nodeId, schemaId: null, attribute: null }
         this.store.dispatch(new RouterAction.Go(params))
       })
     })
 
     this.cytograph.cy.on('layoutstop', () => {
       this.store
-        .select('router', 'state', 'queryParams', 'selectedNode')
+        .select('router', 'state', 'queryParams', 'selectedNode').pipe(
+          filter(state => state != null)
+        )
         .subscribe((selectedNode: string) => {
           this.cytograph.cy.nodes().filter("[id='" + selectedNode + "']").select()
           this.getDetailsInfo(selectedNode)
@@ -102,9 +108,13 @@ export class LineageGraphComponent implements OnInit, AfterViewInit {
 
   private getExecutedLogicalPlan = (): void => {
     this.store
-      .select('router', 'state', 'params', 'uid')
+      .select('router', 'state', 'params', 'uid').pipe(
+        filter(state => state != null)
+      )
       .subscribe(
-        uid => this.store.dispatch(new ExecutionPlanAction.Get(uid))
+        uid => {
+          this.store.dispatch(new ExecutionPlanAction.Get(uid))
+        }
       )
   }
 
@@ -114,6 +124,22 @@ export class LineageGraphComponent implements OnInit, AfterViewInit {
     } else {
       this.store.dispatch(new DetailsInfosAction.Reset())
     }
+  }
+
+  public onBackClick = (): void => {
+
+    this.store
+      .select('lineageOverview')
+      .pipe(
+        first()
+      )
+      .subscribe(lineage => {
+        const params: RouterStateUrl = {
+          url: "/app/lineage-overview",
+          queryParams: { path: lineage.path, applicationId: lineage.applicationId }
+        }
+        this.store.dispatch(new RouterAction.Go(params))
+      })
   }
 
 }
