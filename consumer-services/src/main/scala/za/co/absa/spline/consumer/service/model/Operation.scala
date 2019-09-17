@@ -28,13 +28,12 @@ case class Operation
   _type: String,
   @ApiModelProperty(value = "Name of the operation")
   name: String,
-  @ApiModelProperty(value = "List of the operation input dataSources")
-  readsFrom: Seq[DataSourceInfo],
-  writesTo: DataSourceInfo
+  @ApiModelProperty(value = "Properties of the operation")
+  properties: Any
 ) extends Graph.Node {
   override type Id = OperationID
 
-  def this() = this(null, null, null, null, null)
+  def this() = this(null, null, null, null)
 }
 
 object Operation {
