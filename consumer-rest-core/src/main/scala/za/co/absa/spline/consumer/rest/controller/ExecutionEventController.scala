@@ -17,30 +17,42 @@ package za.co.absa.spline.consumer.rest.controller
 
 import java.util.Date
 
-import io.swagger.annotations.ApiOperation
+import io.swagger.annotations.{ApiOperation, ApiParam}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
-import za.co.absa.spline.consumer.service.model.{ExecutionEvent, PageRequest, Pageable, SortRequest}
+import za.co.absa.spline.consumer.service.model._
 import za.co.absa.spline.consumer.service.repo.ExecutionEventRepository
 
 import scala.concurrent.Future
 
-@RestController
+@RestController("execution-event")
 class ExecutionEventController @Autowired()(val repo: ExecutionEventRepository) {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
   @GetMapping(Array("/executionEvent"))
-  @ApiOperation("Returns a list of execution event info containing the time of the execution, the application Id/Name and the appendMode")
+  @ApiOperation(
+    value = "GET /executionEvent",
+    notes ="Returns a Pageable list of execution events within the time range given in parameters",
+    response = classOf[PageableExecutionEvent]
+  )
   def executionEvent
   (
-    @RequestParam(value = "timestampStart" , required = false, defaultValue = "0") timestampStart: Long,
+    @ApiParam(value = "Beginning of the timestamp range used for querying. If timestampStart equals 0, the service will return the first 100 execution events in database")
+    @RequestParam(value = "timestampStart", required = false, defaultValue = "0") timestampStart: Long,
+    @ApiParam(value = "End of the timestamp range used for querying")
     @RequestParam(value = "timestampEnd", required = false, defaultValue = "0") timestampEnd: Long,
+    @ApiParam(value = "Timestamp of the request, if asAtTime equals 0, the current timestamp will be applied")
     @RequestParam(value = "asAtTime", required = false, defaultValue = "0") asAtTime: Long,
+    @ApiParam(value = "Number of the page")
     @RequestParam(value = "offset", required = false, defaultValue = "0") offset: Int,
+    @ApiParam(value = "Size of the page")
     @RequestParam(value = "size", required = false, defaultValue = "10") size: Int,
+    @ApiParam(value = "Name of the attribute to sort on")
     @RequestParam(value = "sortName", required = false, defaultValue = "timestamp") sortName: String,
+    @ApiParam(value = "Sort Direction", example = "DESC")
     @RequestParam(value = "sortDirection", required = false, defaultValue = "ASC") sortDirection: String,
+    @ApiParam(value = "Text to filter the results")
     @RequestParam(value = "searchTerm", required = false) searchTerm: String
   ): Future[Pageable[ExecutionEvent]] = {
 

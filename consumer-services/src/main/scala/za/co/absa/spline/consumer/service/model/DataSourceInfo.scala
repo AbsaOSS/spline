@@ -15,8 +15,14 @@
  */
 package za.co.absa.spline.consumer.service.model
 
-case class DataSourceInfo(
+import io.swagger.annotations.{ApiModel, ApiModelProperty}
+
+@ApiModel(description = "Information about the DataSource")
+case class DataSourceInfo
+(
+  @ApiModelProperty(value = "Type of the dataSource", example = "csv / parquet")
   sourceType: String,
+  @ApiModelProperty(value = "Uri of the dataSource")
   source: String
 ) {
   def this() = this("", "")

@@ -16,7 +16,16 @@
 
 package za.co.absa.spline.consumer.service.model
 
-case class LogicalPlan(nodes: Array[Operation], edges: Array[Transition]) extends Graph {
+import io.swagger.annotations.{ApiModel, ApiModelProperty}
+
+@ApiModel(description = "Lineage Graph")
+case class LogicalPlan
+(
+  @ApiModelProperty(value = "List of graph nodes representing the different operations of the lineage")
+  nodes: Array[Operation],
+  @ApiModelProperty(value = "List of graph edges showing the triggered operations order")
+  edges: Array[Transition]
+) extends Graph {
   def this() = this(null, null)
 
   override type Node = Operation
