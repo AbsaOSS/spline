@@ -39,7 +39,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
               FOR v, e IN 1..99999
               OUTBOUND exec executes, follows
               OPTIONS {uniqueEdges: "none"}
-                  LET operation = MERGE(KEEP(v, "_type", "name"), {"_id": v._key})
+                  LET operation = MERGE(KEEP(v, "_type", "name", "properties"), {"_id": v._key})
                   LET inboundEdge = {
                       "source": PARSE_IDENTIFIER(e._to).key,
                       "target": PARSE_IDENTIFIER(e._from).key
@@ -49,9 +49,30 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
           LET nodes = (FOR pair IN opWithEdgePairs RETURN pair[0])
           LET edges = (FOR pair IN SLICE(opWithEdgePairs, 1) RETURN pair[1])
 
+          LET inputSources = FLATTEN(
+            FOR node IN nodes
+                FILTER node._type == "Read"
+                LET sources = (
+                     FOR s IN node.properties.inputSources
+                         RETURN { "sourceType" : node.properties.sourceType , "source" : s}
+                )
+                RETURN sources
+          )
+
+          LET outputSource = (
+            FOR node IN nodes
+              FILTER node._type == "Write"
+                RETURN { "sourceType": node.properties.destinationType, "source": node.properties.outputSource }
+          )
+
+          LET simpleNodes = (
+            FOR n IN nodes
+              RETURN KEEP(n, "_id", "_type", "name")
+          )
+
           RETURN {
-              "plan": {nodes, edges},
-              "execution": MERGE(UNSET(exec, "_rev", "_key"), {"_id": exec._key})
+            "plan": {"nodes" : simpleNodes, "edges" : edges},
+            "execution": {"_id": exec._key, "extra" : MERGE(exec.extra, {"inputSources" : inputSources, "outputSource": FIRST(outputSource)}) }
           }
       """,
       Map("execId" -> execId)

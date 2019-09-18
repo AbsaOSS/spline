@@ -31,8 +31,7 @@ class OperationDetailsControllerTest extends AsyncFunSuite with MockitoSugar wit
       _id = "2141834d-abd6-4be4-80b9-01661b842ab9",
       _type = "Transformation",
       name = "Project",
-      readsFrom = null,
-      writesTo = null
+      properties = null
     )
     val dataTypes = Array[persistence.DataType](
       persistence.SimpleDataType("602147fa-7148-46a7-9978-ba9f63f6b616", true, "string"),
