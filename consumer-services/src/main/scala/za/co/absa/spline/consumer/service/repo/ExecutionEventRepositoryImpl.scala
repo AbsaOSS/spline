@@ -16,10 +16,9 @@
 package za.co.absa.spline.consumer.service.repo
 
 import com.arangodb.ArangoDatabaseAsync
-import com.arangodb.model.AqlQueryOptions
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import za.co.absa.spline.consumer.service.model.{ExecutionEvent, PageRequest, Pageable, SortRequest}
+import za.co.absa.spline.consumer.service.model._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -36,7 +35,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
   )(implicit ec: ExecutionContext): Future[Pageable[ExecutionEvent]] = {
     import za.co.absa.spline.persistence.ArangoImplicits._
 
-    val arangoCursorAsync = db.queryAs[Array[ExecutionEvent]](
+    val arangoCursorAsync = db.queryAs[ExecutionEventQueryResult](
       """
         LET executionEventsFiltered = (
           FOR p IN progress
@@ -53,7 +52,9 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         )
 
         LET executionEvents = @timestampStart == 0 ? executionEventsDefault : executionEventsFiltered
-          RETURN (
+        LET totalCount = COUNT(executionEvents)
+
+        LET elements = (
             FOR ee IN executionEvents
               LET executionEventDetails = FIRST(
                 FOR po IN progressOf
@@ -85,7 +86,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
               )
               FILTER  LENGTH(@searchTerm) == 0 ? : CONTAINS(LOWER(executionEventDetails.frameworkName), LOWER(@searchTerm))
                     || CONTAINS(LOWER(executionEventDetails.applicationName), LOWER(@searchTerm))
-                    || SUBSTITUTE(executionEventDetails.applicationId, "-", ",") == SUBSTITUTE(@searchTerm, "-", ",")
+                    || CONTAINS(executionEventDetails.applicationId, LOWER(@searchTerm))
                     || CONTAINS(LOWER(executionEventDetails.timestamp), LOWER(@searchTerm))
                     || CONTAINS(LOWER(executionEventDetails.datasource), LOWER(@searchTerm))
                     || CONTAINS(LOWER(executionEventDetails.datasourceType), LOWER(@searchTerm))
@@ -94,6 +95,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
               LIMIT @offset, @size
               RETURN executionEventDetails
           )
+          RETURN { "elements" : elements, "totalCount": totalCount }
 
       """,
       Map(
@@ -105,13 +107,13 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         "sortName" -> sortRequest.sortName,
         "sortDirection" -> sortRequest.sortDirection,
         "searchTerm" -> searchTerm
-      ),
-      new AqlQueryOptions().fullCount(true))
+      )
+    )
 
     for {
       query <- arangoCursorAsync
-      fullCount = query.getStats.getFullCount
       if query.hasNext
-    } yield new Pageable[ExecutionEvent](query.next, fullCount, pageRequest.offset, pageRequest.size)
+      next = query.next
+    } yield new Pageable[ExecutionEvent](next.elements, next.totalCount, pageRequest.offset, pageRequest.size)
   }
 }
