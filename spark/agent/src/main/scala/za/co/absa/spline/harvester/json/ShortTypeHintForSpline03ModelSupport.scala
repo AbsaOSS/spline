@@ -19,12 +19,12 @@ package za.co.absa.spline.harvester.json
 import org.json4s.{DefaultFormats, Formats, ShortTypeHints}
 import za.co.absa.spline.common.ReflectionUtils._
 import za.co.absa.spline.common.json.format.FormatsBuilder
-import za.co.absa.spline.harvester.json.ShortTypeHintForOldSplineModelSupport._
+import za.co.absa.spline.harvester.json.ShortTypeHintForSpline03ModelSupport._
 import za.co.absa.spline.model
 
 import scala.reflect.runtime.universe._
 
-trait ShortTypeHintForOldSplineModelSupport extends FormatsBuilder {
+trait ShortTypeHintForSpline03ModelSupport extends FormatsBuilder {
   override protected def formats: Formats = createFormats(Map(
     "typeHintFieldName" -> "_typeHint",
     "typeHints" -> ShortTypeHints(
@@ -34,7 +34,7 @@ trait ShortTypeHintForOldSplineModelSupport extends FormatsBuilder {
     "dateFormatter" -> DefaultFormats.losslessDate.get))
 }
 
-object ShortTypeHintForOldSplineModelSupport {
+object ShortTypeHintForSpline03ModelSupport {
   private val createFormats: Map[String, Any] => Formats = compile[Formats](
     q"""
       import java.text.SimpleDateFormat
