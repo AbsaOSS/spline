@@ -27,7 +27,7 @@ class GenericNodeBuilder
   extends OperationNodeBuilder {
   override protected type R = DataOperation
 
-  override def build() = DataOperation(
+  override def build(): DataOperation = DataOperation(
     id = id,
     childIds = childIds,
     schema = Some(outputSchema),
