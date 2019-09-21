@@ -18,6 +18,8 @@ package za.co.absa.spline.common.extractors
 
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.language.existentials
+
 class AccessorMethodValueExtractorSpec extends FlatSpec with Matchers {
 
   import za.co.absa.spline.common.extractors.AccessorMethodValueExtractorSpec._
