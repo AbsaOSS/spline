@@ -69,7 +69,7 @@ class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession)
   }
 
   private def asTableWriteCommand(table: CatalogTable, mode: SaveMode, query: LogicalPlan) = {
-    val sourceIdentifier = CatalogTableUtils.getSourceIdentifier(table)(pathQualifier, session)
+    val sourceIdentifier = CatalogTableUtils.toSourceIdentifier(table)(pathQualifier, session)
     WriteCommand(sourceIdentifier, mode, query, Map("table" -> table))
   }
 }

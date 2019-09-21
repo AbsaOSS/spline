@@ -22,7 +22,7 @@ import org.apache.spark.sql.catalyst.catalog.CatalogTable
 import za.co.absa.spline.harvester.qualifier.PathQualifier
 
 object CatalogTableUtils {
-  def getSourceIdentifier(table: CatalogTable)
+  def toSourceIdentifier(table: CatalogTable)
     (pathQualifier: PathQualifier, session: SparkSession): SourceIdentifier = {
     val uri = table.storage.locationUri
       .map(_.toString)

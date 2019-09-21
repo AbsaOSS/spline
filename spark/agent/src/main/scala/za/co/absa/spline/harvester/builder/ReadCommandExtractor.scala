@@ -20,7 +20,6 @@ import com.databricks.spark.xml.XmlRelation
 import org.apache.spark.sql.catalyst.catalog.HiveTableRelation
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation}
-import org.apache.spark.sql.sources.BaseRelation
 import org.apache.spark.sql.{JDBCOptionsExtractor, SparkSession}
 import za.co.absa.spline.harvester.qualifier.PathQualifier
 
@@ -31,29 +30,32 @@ class ReadCommandExtractor(pathQualifier: PathQualifier, session: SparkSession) 
   def asReadCommand(operation: LogicalPlan): Option[ReadCommand] =
     condOpt(operation) {
       case lr: LogicalRelation =>
-        val (sourceType, paths) = getRelationPaths(lr.relation)
-        ReadCommand(SourceIdentifier(Some(sourceType), paths), operation)
+        ReadCommand(toSourceIdentifier(lr), operation)
 
       case htr: HiveTableRelation =>
         val catalogTable = htr.tableMeta
-        ReadCommand(CatalogTableUtils.getSourceIdentifier(catalogTable)(pathQualifier, session), operation)
+        ReadCommand(CatalogTableUtils.toSourceIdentifier(catalogTable)(pathQualifier, session), operation)
     }
 
-  private def getRelationPaths(relation: BaseRelation): (String, Seq[String]) = relation match {
-    case HadoopFsRelation(loc, _, _, _, fileFormat, _) => (
-      fileFormat.toString,
-      loc.rootPaths.map(path => pathQualifier.qualify(path.toString))
-    )
-    case XmlRelation(_, loc, _, _) => (
-      "XML",
-      loc.toSeq map pathQualifier.qualify
-    )
-    case JDBCOptionsExtractor(jdbcOpts) => (
-      "JDBC",
-      Seq(s"${jdbcOpts.url}:${jdbcOpts.table}")
-    )
-    case _ => // unrecognized relation type
-      (s"???: ${relation.getClass.getName}", Nil)
+  private def toSourceIdentifier(lr: LogicalRelation) = {
+    val (sourceType, paths) = lr.relation match {
+      case HadoopFsRelation(loc, _, _, _, fileFormat, _) => (
+        fileFormat.toString,
+        loc.rootPaths.map(path => pathQualifier.qualify(path.toString))
+      )
+      case XmlRelation(_, loc, _, _) => (
+        "XML",
+        loc.toSeq map pathQualifier.qualify
+      )
+      case JDBCOptionsExtractor(jdbcOpts) => (
+        "JDBC",
+        Seq(s"${jdbcOpts.url}:${jdbcOpts.table}")
+      )
+      case _ => // unrecognized relation type
+        (s"???: ${lr.relation.getClass.getName}", Nil)
+    }
+    SourceIdentifier(Some(sourceType), paths)
   }
+
 }
 
