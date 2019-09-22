@@ -247,7 +247,7 @@
             <id>spark-2.4</id>
             <properties>
                 <spark.compat.version>2.4</spark.compat.version>
-                <spark.version>2.4.0</spark.version>
+                <spark.version>2.4.2</spark.version>
                 <json4s.version>${json4s-35.version}</json4s.version>
             </properties>
         </profile>
@@ -418,7 +418,11 @@
                 <artifactId>spark-xml_${scala.compat.version}</artifactId>
                 <version>0.4.1</version>
             </dependency>
-
+            <dependency>
+                <groupId>io.delta</groupId>
+                <artifactId>delta-core_${scala.compat.version}</artifactId>
+                <version>0.3.0</version>
+            </dependency>
 
             <!-- Json4s -->
 
