@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 ABSA Group Limited
+ * Copyright 2019 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,19 +160,23 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
     describe("modes") {
 
       it("should disable Spline and proceed, when is in BEST_EFFORT (default) mode") {
-        withNewSparkSession(sparkSession => {
-          configuration.setProperty(MODE, BEST_EFFORT.toString)
-          sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
-          assertSplineIsDisabled()
-        })
+        withRestartingSparkContext {
+          withNewSparkSession(sparkSession => {
+            configuration.setProperty(MODE, BEST_EFFORT.toString)
+            sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
+            assertSplineIsDisabled()
+          })
+        }
       }
 
       it("should disable Spline and proceed, when is in DEFAULT mode") {
-        withNewSparkSession(sparkSession => {
-          configuration.clearProperty(MODE) // default mode is BEST_EFFORT
-          sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
-          assertSplineIsDisabled()
-        })
+        withRestartingSparkContext {
+          withNewSparkSession(sparkSession => {
+            configuration.clearProperty(MODE) // default mode is BEST_EFFORT
+            sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
+            assertSplineIsDisabled()
+          })
+        }
       }
 
       it("should abort application, when is in REQUIRED mode") {
@@ -185,11 +189,13 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
       }
 
       it("should have no effect, when is in DISABLED mode") {
-        withNewSparkSession(sparkSession => {
-          configuration.setProperty(MODE, DISABLED.toString)
-          sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
-          assertSplineIsDisabled()
-        })
+        withRestartingSparkContext {
+          withNewSparkSession(sparkSession => {
+            configuration.setProperty(MODE, DISABLED.toString)
+            sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
+            assertSplineIsDisabled()
+          })
+        }
       }
 
       def createFailingConfigurer(sparkSession: SparkSession) = {
