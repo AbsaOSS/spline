@@ -31,7 +31,7 @@ trait ShortTypeHintForSpline03ModelSupport extends FormatsBuilder {
       subClassesOf[model.dt.DataType] ++
         subClassesOf[model.expr.Expression]
     ),
-    "dateFormatter" -> DefaultFormats.losslessDate.get))
+    "dateFormatterFn" -> DefaultFormats.losslessDate.get _))
 }
 
 object ShortTypeHintForSpline03ModelSupport {
@@ -42,7 +42,7 @@ object ShortTypeHintForSpline03ModelSupport {
       new DefaultFormats {
         override val typeHints = args("typeHints").asInstanceOf[TypeHints]
         override val typeHintFieldName = args("typeHintFieldName").asInstanceOf[String]
-        override def dateFormatter = args("dateFormatter").asInstanceOf[SimpleDateFormat]
+        override def dateFormatter = args("dateFormatterFn").asInstanceOf[() => SimpleDateFormat]()
       }
     """)
 }
