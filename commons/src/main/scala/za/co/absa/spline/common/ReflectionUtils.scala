@@ -18,7 +18,6 @@ package za.co.absa.spline.common
 
 import scala.collection.concurrent.TrieMap
 import scala.reflect.runtime.universe._
-import scala.reflect.runtime.{universe => ru}
 import scala.tools.reflect.ToolBox
 
 /**
@@ -26,18 +25,18 @@ import scala.tools.reflect.ToolBox
   */
 object ReflectionUtils {
 
-  private val mirror: ru.Mirror = ru.runtimeMirror(getClass.getClassLoader)
-  private val gettersCache = TrieMap.empty[ru.ClassSymbol, Iterable[ru.Symbol]]
+  private val mirror: Mirror = runtimeMirror(getClass.getClassLoader)
+  private val gettersCache = TrieMap.empty[ClassSymbol, Iterable[Symbol]]
 
   object ModuleClassSymbolExtractor {
-    def unapply(o: Any): Option[ru.ClassSymbol] = {
+    def unapply(o: Any): Option[ClassSymbol] = {
       val symbol = mirror.classSymbol(o.getClass)
       if (symbol.isModuleClass) Some(symbol)
       else None
     }
   }
 
-  def compile[A](code: ru.Tree): Map[String, Any] => A = {
+  def compile[A](code: Tree): Map[String, Any] => A = {
     val tb = mirror.mkToolBox()
     val execFn = tb.compile(
       q"""
@@ -54,10 +53,10 @@ object ReflectionUtils {
     * @tparam T sealed trait type
     * @return List of Class[_] instances
     */
-  def subClassesOf[T: ru.TypeTag]: List[Class[_]] = {
-    val clazz: ru.ClassSymbol = ru.typeOf[T].typeSymbol.asClass
+  def subClassesOf[T: TypeTag]: List[Class[_]] = {
+    val clazz: ClassSymbol = typeOf[T].typeSymbol.asClass
     require(clazz.isTrait && clazz.isSealed)
-    clazz.knownDirectSubclasses.toList map ((s: ru.Symbol) => mirror runtimeClass s.asClass)
+    clazz.knownDirectSubclasses.toList map ((s: Symbol) => mirror runtimeClass s.asClass)
   }
 
   def extractFieldValue[T](o: AnyRef, fieldName: String): T = {
@@ -77,7 +76,7 @@ object ReflectionUtils {
       .toMap
   }
 
-  private def constructorArgSymbols(classSymbol: ru.ClassSymbol) =
+  private def constructorArgSymbols(classSymbol: ClassSymbol) =
     gettersCache.getOrElseUpdate(classSymbol, {
       val primaryConstr = classSymbol.primaryConstructor
 
