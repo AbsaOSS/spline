@@ -22,6 +22,7 @@ import org.apache.spark.sql.execution.command.CreateDataSourceTableAsSelectComma
 import org.apache.spark.sql.execution.datasources.jdbc.JdbcRelationProvider
 import org.apache.spark.sql.execution.datasources.{InsertIntoHadoopFsRelationCommand, SaveIntoDataSourceCommand}
 import org.apache.spark.sql.hive.execution.InsertIntoHiveTable
+import org.apache.spark.sql.sources.DataSourceRegister
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import za.co.absa.spline.common.extractors.{AccessorMethodValueExtractor, SafeTypeMatchingExtractor}
 import za.co.absa.spline.harvester.builder.write.WriteCommandExtractor._
@@ -55,8 +56,11 @@ class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession)
 
     case cmd: SaveIntoDataSourceCommand =>
       val path = cmd.options("path")
-      val formatExtractor = AccessorMethodValueExtractor.firstOf("provider", "dataSource")
-      val maybeFormat = formatExtractor(cmd).map(_.toString)
+      val formatExtractor = AccessorMethodValueExtractor.firstOf[AnyRef]("provider", "dataSource")
+      val maybeFormat = formatExtractor(cmd).map {
+        case dsr: DataSourceRegister => dsr.shortName
+        case o => o.toString
+      }
       asFSWriteCommand(path, maybeFormat, cmd.mode, cmd.query)
   }
 

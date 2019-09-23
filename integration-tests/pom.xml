@@ -32,11 +32,6 @@
     <dependencies>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>test-commons</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
             <artifactId>spark-agent</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -58,11 +53,16 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.derby/derbyclient -->
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-hive_${scala.compat.version}</artifactId>
+            <scope>runtime</scope>
+        </dependency>
         <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derby</artifactId>
             <version>10.14.2.0</version>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
 
@@ -89,5 +89,18 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>spark-2.4</id>
+            <dependencies>
+                <dependency>
+                    <groupId>io.delta</groupId>
+                    <artifactId>delta-core_${scala.compat.version}</artifactId>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
 </project>

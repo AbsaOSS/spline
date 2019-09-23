@@ -77,11 +77,5 @@
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>test-commons</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 </project>

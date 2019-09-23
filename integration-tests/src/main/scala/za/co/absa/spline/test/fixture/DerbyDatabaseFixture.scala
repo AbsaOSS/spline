@@ -19,7 +19,6 @@ package za.co.absa.spline.test.fixture
 
 import java.sql.DriverManager
 
-import org.apache.derby.jdbc.EmbeddedDriver
 import org.scalatest.{BeforeAndAfterEach, Suite}
 import za.co.absa.spline.common.TempDirectory
 
@@ -30,7 +29,7 @@ import scala.util.Try
   **/
 trait DerbyDatabaseFixture extends BeforeAndAfterEach {
   this: Suite =>
-  Class.forName(classOf[EmbeddedDriver].getName)
+  Class.forName("org.apache.derby.jdbc.EmbeddedDriver")
 
   val jdbcConnectionString = s"jdbc:derby:memory:splineTestDb"
 

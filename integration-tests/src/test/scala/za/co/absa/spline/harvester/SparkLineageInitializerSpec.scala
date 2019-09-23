@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 ABSA Group Limited
+ * Copyright 2019 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,14 @@ package za.co.absa.spline.harvester
 import org.apache.commons.configuration.BaseConfiguration
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.util.QueryExecutionListener
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.{SPARK_VERSION, SparkConf, SparkContext}
 import org.scalatest.Matchers._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
+import za.co.absa.spline.common.ConditionalTestTags._
 import za.co.absa.spline.common.ReflectionUtils.extractFieldValue
+import za.co.absa.spline.common.Version.VersionOrdering._
+import za.co.absa.spline.common.Version._
 import za.co.absa.spline.harvester.SparkLineageInitializer._
 import za.co.absa.spline.harvester.SparkLineageInitializerSpec._
 import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer
@@ -32,7 +35,6 @@ import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.harvester.dispatcher.HttpLineageDispatcher.producerUrlProperty
 import za.co.absa.spline.harvester.dispatcher.LineageDispatcher
 import za.co.absa.spline.harvester.listener.SplineQueryExecutionListener
-import za.co.absa.spline.scalatest.ConditionalTestIgnore._
 import za.co.absa.spline.test.fixture.SparkFixture
 
 object SparkLineageInitializerSpec {
@@ -117,8 +119,9 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
     }
   }
 
+
   describe("codeless initialization") {
-    it("should not allow duplicate tracking when combining the methods", ignoreWhen(SPARK_22)) {
+    it("should not allow duplicate tracking when combining the methods", ignoreIf(ver"$SPARK_VERSION" < ver"2.3")) {
       withNewSparkSession(session => {
         numberOfRegisteredBatchListeners(session) shouldBe 0
         SparkLineageInitializer.createEventHandler(session)
@@ -128,7 +131,7 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
       })
     }
 
-    it("should not allow duplicate codeless tracking", ignoreWhen(SPARK_22)) {
+    it("should not allow duplicate codeless tracking", ignoreIf(ver"$SPARK_VERSION" < ver"2.3")) {
       withNewSparkSession(session => {
         SparkLineageInitializer.createEventHandler(session).getClass shouldBe classOf[Some[QueryExecutionEventHandler]]
         SparkLineageInitializer.createEventHandler(session) shouldBe None
@@ -137,7 +140,7 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
   }
 
   describe("enableLineageTracking()") {
-    it("should warn on double initialization", ignoreWhen(SPARK_22)) {
+    it("should warn on double initialization", ignoreIf(ver"$SPARK_VERSION" < ver"2.3")) {
       withNewSparkSession(session => {
         session
           .enableLineageTracking(createConfigurer(session)) // 1st is fine
@@ -157,19 +160,23 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
     describe("modes") {
 
       it("should disable Spline and proceed, when is in BEST_EFFORT (default) mode") {
-        withNewSparkSession(sparkSession => {
-          configuration.setProperty(MODE, BEST_EFFORT.toString)
-          sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
-          assertSplineIsDisabled()
-        })
+        withRestartingSparkContext {
+          withNewSparkSession(sparkSession => {
+            configuration.setProperty(MODE, BEST_EFFORT.toString)
+            sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
+            assertSplineIsDisabled()
+          })
+        }
       }
 
       it("should disable Spline and proceed, when is in DEFAULT mode") {
-        withNewSparkSession(sparkSession => {
-          configuration.clearProperty(MODE) // default mode is BEST_EFFORT
-          sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
-          assertSplineIsDisabled()
-        })
+        withRestartingSparkContext {
+          withNewSparkSession(sparkSession => {
+            configuration.clearProperty(MODE) // default mode is BEST_EFFORT
+            sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
+            assertSplineIsDisabled()
+          })
+        }
       }
 
       it("should abort application, when is in REQUIRED mode") {
@@ -182,11 +189,13 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
       }
 
       it("should have no effect, when is in DISABLED mode") {
-        withNewSparkSession(sparkSession => {
-          configuration.setProperty(MODE, DISABLED.toString)
-          sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
-          assertSplineIsDisabled()
-        })
+        withRestartingSparkContext {
+          withNewSparkSession(sparkSession => {
+            configuration.setProperty(MODE, DISABLED.toString)
+            sparkSession.enableLineageTracking(createFailingConfigurer(sparkSession))
+            assertSplineIsDisabled()
+          })
+        }
       }
 
       def createFailingConfigurer(sparkSession: SparkSession) = {

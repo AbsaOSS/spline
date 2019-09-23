@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 ABSA Group Limited
+ * Copyright 2019 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.scalatest
+package za.co.absa.spline.common
 
 import org.scalatest.{Ignore, Tag}
-import org.apache.spark.SPARK_VERSION
 
-object ConditionalTestIgnore {
+object ConditionalTestTags {
 
-  def ignoreWhen(condition: => Boolean): Tag = Tag(if (condition) classOf[Ignore].getName else "")
+  def ignoreIf(condition: => Boolean): Tag = Tag(if (condition) classOf[Ignore].getName else "")
 
-  def SPARK_22: Boolean = SPARK_VERSION.startsWith("2.2")
 }
