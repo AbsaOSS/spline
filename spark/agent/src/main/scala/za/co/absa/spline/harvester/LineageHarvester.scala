@@ -27,6 +27,8 @@ import scalaz.Scalaz._
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.harvester.LineageHarvester._
 import za.co.absa.spline.harvester.ModelConstants.{AppMetaInfo, ExecutionEventExtra, ExecutionPlanExtra}
+import za.co.absa.spline.harvester.builder.read.{ReadCommandExtractor, ReadNodeBuilder}
+import za.co.absa.spline.harvester.builder.write.{WriteCommandExtractor, WriteNodeBuilder}
 import za.co.absa.spline.harvester.builder.{GenericNodeBuilder, _}
 import za.co.absa.spline.harvester.qualifier.HDFSPathQualifier
 import za.co.absa.spline.producer.rest.model._
@@ -37,15 +39,15 @@ class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPl
   implicit private val componentCreatorFactory: ComponentCreatorFactory = new ComponentCreatorFactory
 
   private val pathQualifier = new HDFSPathQualifier(hadoopConfiguration)
-  private val writeCommandAdapter = new WriteCommandExtractor(pathQualifier, session)
-  private val readCommandAdapter = new ReadCommandExtractor(pathQualifier, session)
+  private val writeCommandExtractor = new WriteCommandExtractor(pathQualifier, session)
+  private val readCommandExtractor = new ReadCommandExtractor(pathQualifier, session)
 
   def harvest(): HarvestResult = {
     val (readMetrics: Metrics, writeMetrics: Metrics) = executedPlanOpt.
       map(getExecutedReadWriteMetrics).
       getOrElse((Map.empty, Map.empty))
 
-    val writeCommand = writeCommandAdapter.asWriteCommand(logicalPlan) getOrElse sys.error(s"Unrecognized write command: $logicalPlan")
+    val writeCommand = writeCommandExtractor.asWriteCommand(logicalPlan) getOrElse sys.error(s"Unrecognized write command: $logicalPlan")
     val writeOpBuilder = new WriteNodeBuilder(writeCommand)
     val restOpBuilders = createOperationBuildersRecursively(writeCommand.query)
 
@@ -121,7 +123,7 @@ class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPl
   }
 
   private def createOperationBuilder(op: LogicalPlan): OperationNodeBuilder =
-    readCommandAdapter.asReadCommand(op)
+    readCommandExtractor.asReadCommand(op)
       .map(new ReadNodeBuilder(_))
       .getOrElse(new GenericNodeBuilder(op))
 }

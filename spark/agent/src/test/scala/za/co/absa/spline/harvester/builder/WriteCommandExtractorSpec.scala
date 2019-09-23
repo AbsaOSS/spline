@@ -30,6 +30,7 @@ import org.mockito.Mockito.when
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
 import za.co.absa.spline.harvester.builder.WriteCommandExtractorSpec._
+import za.co.absa.spline.harvester.builder.write.{WriteCommand, WriteCommandExtractor}
 import za.co.absa.spline.harvester.qualifier.PathQualifier
 
 class WriteCommandExtractorSpec extends FlatSpec with Matchers with MockitoSugar {
@@ -68,7 +69,7 @@ class WriteCommandExtractorSpec extends FlatSpec with Matchers with MockitoSugar
     val query = mock[LogicalPlan]
     when(command.query).thenReturn(query)
     val writeCommand = new WriteCommandExtractor(PathQualifierStub, null).asWriteCommand(command)
-    writeCommand shouldBe Some(WriteCommand(
+    writeCommand shouldBe Some(write.WriteCommand(
       SourceIdentifier(Some("xyz"), Seq("qualified{/baz}")),
       SaveMode.Append,
       query,

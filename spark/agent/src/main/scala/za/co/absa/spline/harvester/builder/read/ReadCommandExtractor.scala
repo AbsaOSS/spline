@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.harvester.builder
+package za.co.absa.spline.harvester.builder.read
 
 import com.databricks.spark.xml.XmlRelation
 import org.apache.spark.sql.catalyst.catalog.HiveTableRelation
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation}
 import org.apache.spark.sql.{JDBCOptionsExtractor, SparkSession}
+import za.co.absa.spline.harvester.builder.{CatalogTableUtils, SourceIdentifier, read}
 import za.co.absa.spline.harvester.qualifier.PathQualifier
 
 import scala.PartialFunction.condOpt
@@ -30,11 +31,11 @@ class ReadCommandExtractor(pathQualifier: PathQualifier, session: SparkSession) 
   def asReadCommand(operation: LogicalPlan): Option[ReadCommand] =
     condOpt(operation) {
       case lr: LogicalRelation =>
-        ReadCommand(toSourceIdentifier(lr), operation)
+        read.ReadCommand(toSourceIdentifier(lr), operation)
 
       case htr: HiveTableRelation =>
         val catalogTable = htr.tableMeta
-        ReadCommand(CatalogTableUtils.toSourceIdentifier(catalogTable)(pathQualifier, session), operation)
+        read.ReadCommand(CatalogTableUtils.toSourceIdentifier(catalogTable)(pathQualifier, session), operation)
     }
 
   private def toSourceIdentifier(lr: LogicalRelation) = {

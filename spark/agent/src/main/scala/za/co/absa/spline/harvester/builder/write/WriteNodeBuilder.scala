@@ -14,27 +14,33 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.harvester.builder
+package za.co.absa.spline.harvester.builder.write
 
+import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import za.co.absa.spline.harvester.ComponentCreatorFactory
 import za.co.absa.spline.harvester.ModelConstants.OperationParams
-import za.co.absa.spline.producer.rest.model.ReadOperation
+import za.co.absa.spline.harvester.builder.OperationNodeBuilder
+import za.co.absa.spline.producer.rest.model.WriteOperation
 
-class ReadNodeBuilder
-(val command: ReadCommand)
+class WriteNodeBuilder(command: WriteCommand)
   (implicit val componentCreatorFactory: ComponentCreatorFactory)
   extends OperationNodeBuilder {
 
-  override protected type R = ReadOperation
-  override val operation: LogicalPlan = command.operation
+  override protected type R = WriteOperation
+  override val operation: LogicalPlan = command.query
 
-  override def build(): ReadOperation = ReadOperation(
-    inputSources = command.sourceIdentifier.uris,
-    id = id,
-    schema = Some(outputSchema),
-    params = Map(
-      OperationParams.Name -> operation.nodeName,
-      OperationParams.SourceType -> command.sourceIdentifier.format
-    ))
+  override def build(): WriteOperation = {
+    val Seq(uri) = command.sourceIdentifier.uris
+    WriteOperation(
+      outputSource = uri,
+      append = command.mode == SaveMode.Append,
+      id = id,
+      childIds = childIds,
+      schema = Some(outputSchema),
+      params = command.params ++ Map(
+        OperationParams.Name -> command.nodeName,
+        OperationParams.DestinationType -> command.sourceIdentifier.format)
+    )
+  }
 }

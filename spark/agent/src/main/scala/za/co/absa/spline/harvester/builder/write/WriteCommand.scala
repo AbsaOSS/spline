@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.harvester.builder
+package za.co.absa.spline.harvester.builder.write
 
-import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
+import org.apache.spark.sql.SaveMode
+import org.apache.spark.sql.catalyst.plans.logical.{Command, LogicalPlan}
+import za.co.absa.spline.harvester.builder.SourceIdentifier
 
-case class ReadCommand(sourceIdentifier: SourceIdentifier, operation: LogicalPlan)
+case class WriteCommand(
+  sourceIdentifier: SourceIdentifier,
+  mode: SaveMode,
+  query: LogicalPlan,
+  params: Map[String, Any] = Map.empty) extends Command

@@ -30,6 +30,7 @@ import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FunSpec, Inside, Matchers}
 import za.co.absa.spline.harvester.ComponentCreatorFactory
+import za.co.absa.spline.harvester.builder.read.{ReadCommand, ReadCommandExtractor}
 import za.co.absa.spline.harvester.qualifier.PathQualifier
 import za.co.absa.spline.test.fixture.SparkFixture
 

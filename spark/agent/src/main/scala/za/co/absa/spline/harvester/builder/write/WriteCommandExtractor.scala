@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.harvester.builder
+package za.co.absa.spline.harvester.builder.write
 
 import org.apache.spark.sql.catalyst.catalog.CatalogTable
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
@@ -24,7 +24,8 @@ import org.apache.spark.sql.execution.datasources.{InsertIntoHadoopFsRelationCom
 import org.apache.spark.sql.hive.execution.InsertIntoHiveTable
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import za.co.absa.spline.common.extractors.{AccessorMethodValueExtractor, SafeTypeMatchingExtractor}
-import za.co.absa.spline.harvester.builder.WriteCommandExtractor._
+import za.co.absa.spline.harvester.builder.write.WriteCommandExtractor._
+import za.co.absa.spline.harvester.builder.{CatalogTableUtils, SourceIdentifier, write}
 import za.co.absa.spline.harvester.qualifier.PathQualifier
 
 import scala.PartialFunction.condOpt
@@ -61,16 +62,16 @@ class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession)
 
   private def asFSWriteCommand(path: String, maybeFormat: Option[String], mode: SaveMode, query: LogicalPlan) = {
     val qPath = pathQualifier.qualify(path)
-    WriteCommand(SourceIdentifier(maybeFormat, Seq(qPath)), mode, query)
+    write.WriteCommand(SourceIdentifier(maybeFormat, Seq(qPath)), mode, query)
   }
 
   private def asJDBCWriteCommand(jdbcConnStr: String, tableName: String, mode: SaveMode, query: LogicalPlan) = {
-    WriteCommand(SourceIdentifier(Some("jdbc"), Seq(s"$jdbcConnStr:$tableName")), mode, query)
+    write.WriteCommand(SourceIdentifier(Some("jdbc"), Seq(s"$jdbcConnStr:$tableName")), mode, query)
   }
 
   private def asTableWriteCommand(table: CatalogTable, mode: SaveMode, query: LogicalPlan) = {
     val sourceIdentifier = CatalogTableUtils.toSourceIdentifier(table)(pathQualifier, session)
-    WriteCommand(sourceIdentifier, mode, query, Map("table" -> table))
+    write.WriteCommand(sourceIdentifier, mode, query, Map("table" -> table))
   }
 }
 
