@@ -1,5 +1,6 @@
 /*
  * Copyright 2019 ABSA Group Limited
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,22 +14,22 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.test.fixture.spline
+package za.co.absa.spline.common
 
-import za.co.absa.spline.harvester.dispatcher.LineageDispatcher
-import za.co.absa.spline.harvester.json.HarvesterJsonSerDe
-import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
+import java.io.File
+import java.nio.file.Files
 
-class LineageCapturingDispatcher(lineageCaptor: LineageCaptor.Setter) extends LineageDispatcher {
+class TempFile private(prefix: String, suffix: String, pathOnly: Boolean) {
+  val file: File = Files.createTempFile(prefix, suffix).toFile
+  if (pathOnly) file.delete()
 
-  import HarvesterJsonSerDe._
-
-  override def send(plan: ExecutionPlan): String = {
-    lineageCaptor.capture(plan)
-    plan.id.toJson
+  def deleteOnExit(): this.type = {
+    file.deleteOnExit()
+    this
   }
+}
 
-  override def send(event: ExecutionEvent): Unit = {
-    lineageCaptor.capture(event)
-  }
+object TempFile {
+  def apply(prefix: String = "", suffix: String = "", pathOnly: Boolean = false): TempFile =
+    new TempFile(prefix, suffix, pathOnly)
 }

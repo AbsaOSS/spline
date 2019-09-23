@@ -74,8 +74,6 @@ class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with M
     it("should look through the multiple sources for the configuration properties") {
       withNewSparkSession(sparkSession => {
         val jvmProps = System.getProperties
-        //      jvmProps.setProperty("spark.master", "local")
-
         val sparkConf = (classOf[SparkContext] getMethod "conf" invoke sparkSession.sparkContext).asInstanceOf[SparkConf]
         val hadoopConf = sparkSession.sparkContext.hadoopConfiguration
 

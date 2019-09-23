@@ -21,11 +21,13 @@ import za.co.absa.spline.common.TempDirectory
 
 trait SparkFixture {
 
+  val warehouseDir: String = TempDirectory("SparkFixture", "UnitTest", pathOnly = true).deleteOnExit().path.toString.stripSuffix("/")
+
   private val sessionBuilder: SparkSession.Builder =
     SparkSession.builder
       .master("local[*]")
       .config("spark.ui.enabled", "false")
-      .config("spark.sql.warehouse.dir", TempDirectory("SparkFixture", "UnitTest", pathOnly = true).deleteOnExit().path.toString)
+      .config("spark.sql.warehouse.dir", warehouseDir)
 
   def withNewSparkSession[T](testBody: SparkSession => T): T = {
     withCustomSparkSession(identity)(testBody)

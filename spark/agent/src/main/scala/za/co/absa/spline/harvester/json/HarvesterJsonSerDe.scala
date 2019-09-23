@@ -23,6 +23,6 @@ object HarvesterJsonSerDe extends HarvesterJsonSerDe
 
 trait HarvesterJsonSerDe
   extends AbstractJsonSerDe
-    with ShortTypeHintForOldSplineModelSupport
+    with ShortTypeHintForSpline03ModelSupport
     with NoEmptyValuesSupport
     with JavaTypesSupport

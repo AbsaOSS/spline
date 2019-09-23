@@ -1,5 +1,6 @@
 /*
  * Copyright 2019 ABSA Group Limited
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,22 +14,9 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.test.fixture.spline
+package za.co.absa.spline.harvester.builder.read
 
-import za.co.absa.spline.harvester.dispatcher.LineageDispatcher
-import za.co.absa.spline.harvester.json.HarvesterJsonSerDe
-import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
+import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
+import za.co.absa.spline.harvester.builder.SourceIdentifier
 
-class LineageCapturingDispatcher(lineageCaptor: LineageCaptor.Setter) extends LineageDispatcher {
-
-  import HarvesterJsonSerDe._
-
-  override def send(plan: ExecutionPlan): String = {
-    lineageCaptor.capture(plan)
-    plan.id.toJson
-  }
-
-  override def send(event: ExecutionEvent): Unit = {
-    lineageCaptor.capture(event)
-  }
-}
+case class ReadCommand(sourceIdentifier: SourceIdentifier, operation: LogicalPlan)

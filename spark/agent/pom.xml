@@ -15,7 +15,8 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>spark-agent</artifactId>
@@ -35,19 +36,31 @@
 
     <dependencies>
         <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>spark-adapter-api</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-compiler</artifactId>
+            <version>${scala.version}</version>
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>json4s-adapter-api</artifactId>
+            <artifactId>commons</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
             <artifactId>producer-rest-model</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_${scala.compat.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_${scala.compat.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-hive_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>com.databricks</groupId>
@@ -62,9 +75,9 @@
             <artifactId>scalaz-core_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
-             <groupId>org.scalaj</groupId>
-             <artifactId>scalaj-http_${scala.compat.version}</artifactId>
-             <version>2.4.1</version>
+            <groupId>org.scalaj</groupId>
+            <artifactId>scalaj-http_${scala.compat.version}</artifactId>
+            <version>2.4.1</version>
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
@@ -75,12 +88,6 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>spark-adapter-${spark.compat.version}</artifactId>
-            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -24,7 +24,6 @@ import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.harvester.conf.{DefaultSplineConfigurer, HadoopConfiguration, SparkConfiguration, SplineConfigurer}
 import za.co.absa.spline.harvester.listener.SplineQueryExecutionListener
-import za.co.absa.spline.spark.adapter.SparkVersionRequirement
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
@@ -102,7 +101,6 @@ object SparkLineageInitializer extends Logging {
         if (!getOrSetIsInitialized()) {
           log.info(s"Spline v${SplineBuildInfo.version} is initializing...")
           try {
-            SparkVersionRequirement.instance.requireSupportedVersion()
             val eventHandler = configurer.queryExecutionEventHandler
             log.info(s"Spline successfully initialized. Spark Lineage tracking is ENABLED.")
             Some(eventHandler)

@@ -19,35 +19,36 @@ package za.co.absa.spline.harvester
 import java.util.UUID
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark
-import org.apache.spark.SparkContext
 import org.apache.spark.sql.catalyst.plans.logical._
-import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.execution.{LeafExecNode, SparkPlan}
+import org.apache.spark.sql.{SaveMode, SparkSession}
 import scalaz.Scalaz._
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.harvester.LineageHarvester._
 import za.co.absa.spline.harvester.ModelConstants.{AppMetaInfo, ExecutionEventExtra, ExecutionPlanExtra}
+import za.co.absa.spline.harvester.builder.read.{ReadCommandExtractor, ReadNodeBuilder}
+import za.co.absa.spline.harvester.builder.write.{WriteCommandExtractor, WriteNodeBuilder}
+import za.co.absa.spline.harvester.builder.{GenericNodeBuilder, _}
+import za.co.absa.spline.harvester.qualifier.HDFSPathQualifier
 import za.co.absa.spline.producer.rest.model._
-import za.co.absa.spline.spark.adapter.{AbstractWriteCommand, SaveAsTableCommand, WriteCommandParserFactory, WriteToPathCommand}
 
-class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPlan], sparkContext: SparkContext)
-  (hadoopConfiguration: Configuration, writeCommandParserFactory: WriteCommandParserFactory) {
+class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPlan], session: SparkSession)
+  (hadoopConfiguration: Configuration) {
 
   implicit private val componentCreatorFactory: ComponentCreatorFactory = new ComponentCreatorFactory
 
-  private val writeCommandParsers = Array(
-    writeCommandParserFactory.jdbcParser(),
-    writeCommandParserFactory.saveAsTableParser(sparkContext.getConf.getOption("spark.master")),
-    writeCommandParserFactory.writeParser())
+  private val pathQualifier = new HDFSPathQualifier(hadoopConfiguration)
+  private val writeCommandExtractor = new WriteCommandExtractor(pathQualifier, session)
+  private val readCommandExtractor = new ReadCommandExtractor(pathQualifier, session)
 
   def harvest(): HarvestResult = {
-    val writeCommand: AbstractWriteCommand = writeCommandParsers
-      .collectFirst { case p if p matches logicalPlan => p.asWriteCommand(logicalPlan) }
-      .getOrElse(sys.error(s"Unsupported write command: ${logicalPlan.getClass}"))
+    val (readMetrics: Metrics, writeMetrics: Metrics) = executedPlanOpt.
+      map(getExecutedReadWriteMetrics).
+      getOrElse((Map.empty, Map.empty))
 
-    val writeOpBuilder = createOperationBuilder(writeCommand)
+    val writeCommand = writeCommandExtractor.asWriteCommand(logicalPlan) getOrElse sys.error(s"Unrecognized write command: $logicalPlan")
+    val writeOpBuilder = new WriteNodeBuilder(writeCommand)
     val restOpBuilders = createOperationBuildersRecursively(writeCommand.query)
 
     restOpBuilders.headOption.foreach(writeOpBuilder.+=)
@@ -67,7 +68,7 @@ class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPl
       systemInfo = SystemInfo(AppMetaInfo.Spark, spark.SPARK_VERSION),
       agentInfo = Some(AgentInfo(AppMetaInfo.Spline, SplineBuildInfo.version)),
       extraInfo = Map(
-        ExecutionPlanExtra.AppName -> sparkContext.appName,
+        ExecutionPlanExtra.AppName -> session.sparkContext.appName,
         ExecutionPlanExtra.DataTypes -> componentCreatorFactory.dataTypeConverter.values,
         ExecutionPlanExtra.Attributes -> componentCreatorFactory.attributeConverter.values
       )
@@ -75,15 +76,15 @@ class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPl
 
     (
       lineage,
-      if (writeOpBuilder.wasIgnored) None
+      if (writeCommand.mode == SaveMode.Ignore) None
       else Some(ExecutionEvent(
         planId = lineage.id,
         timestamp = System.currentTimeMillis(),
         error = None,
         extra = Map(
-          ExecutionEventExtra.AppId -> sparkContext.applicationId,
-          ExecutionEventExtra.ReadMetrics -> writeOpBuilder.readMetrics,
-          ExecutionEventExtra.WriteMetrics -> writeOpBuilder.writeMetrics
+          ExecutionEventExtra.AppId -> session.sparkContext.applicationId,
+          ExecutionEventExtra.ReadMetrics -> readMetrics,
+          ExecutionEventExtra.WriteMetrics -> writeMetrics
         )))
     )
   }
@@ -121,31 +122,10 @@ class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPl
     traverseAndCollect(Nil, Map.empty, Seq((rootOp, null)))
   }
 
-  private def createOperationBuilder(writeCommand: AbstractWriteCommand): OperationNodeBuilder with WriteNodeBuilder = {
-    val (readMetrics: Metrics, writeMetrics: Metrics) = executedPlanOpt.
-      map(getExecutedReadWriteMetrics).
-      getOrElse((Map.empty, Map.empty))
-
-    writeCommand match {
-      case cmd: SaveAsTableCommand => new SaveAsTableNodeBuilder(cmd, writeMetrics, readMetrics)
-      case cmd: WriteToPathCommand => new FSWriteNodeBuilder(cmd, writeMetrics, readMetrics) with HDFSAwareBuilder
-    }
-  }
-
-  private def createOperationBuilder(op: LogicalPlan): OperationNodeBuilder = op match {
-    case lr: LogicalRelation => new FSReadNodeBuilder(lr) with HDFSAwareBuilder
-    case _ => new GenericNodeBuilder(op)
-  }
-
-  trait HDFSAwareBuilder extends FSAwareBuilder {
-    override protected def getQualifiedPath(path: String): String = {
-      val fsPath = new Path(path)
-      val fs = FileSystem.get(hadoopConfiguration)
-      val absolutePath = fsPath.makeQualified(fs.getUri, fs.getWorkingDirectory)
-      absolutePath.toString
-    }
-  }
-
+  private def createOperationBuilder(op: LogicalPlan): OperationNodeBuilder =
+    readCommandExtractor.asReadCommand(op)
+      .map(new ReadNodeBuilder(_))
+      .getOrElse(new GenericNodeBuilder(op))
 }
 
 object LineageHarvester {

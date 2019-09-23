@@ -47,7 +47,7 @@ object ArangoInit extends ArangoInit {
         _ <-
           if (exists && !dropIfExists) throw new IllegalArgumentException(s"Arango Database ${db.name()} already exists")
           else if (exists && dropIfExists) db.drop().toScala
-          else Future.successful()
+          else Future.successful(Unit)
         graphDb <- createGraphDb(db)
       } yield graphDb)
 

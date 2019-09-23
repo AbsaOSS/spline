@@ -17,6 +17,7 @@
 package za.co.absa.spline.common.webmvc
 
 import org.springframework.core.MethodParameter
+import org.springframework.lang.Nullable
 import org.springframework.web.context.request.async.{DeferredResult, WebAsyncUtils}
 import org.springframework.web.context.request.{NativeWebRequest, WebRequest}
 import org.springframework.web.method.support.{AsyncHandlerMethodReturnValueHandler, ModelAndViewContainer}
@@ -35,10 +36,10 @@ class ScalaFutureMethodReturnValueHandler()(implicit ec: ExecutionContext)
   protected type F <: Future[_]
 
   override def supportsReturnType(returnType: MethodParameter): Boolean =
-    isFutureClass(returnType.getParameterType) || super.supportsReturnType(returnType)
+    classOf[Future[_]].isAssignableFrom(returnType.getParameterType) || super.supportsReturnType(returnType)
 
-  override def isAsyncReturnValue(returnValue: Any, returnType: MethodParameter): Boolean =
-    isFutureClass(returnType.getParameterType)
+  override def isAsyncReturnValue(@Nullable returnValue: Any, returnType: MethodParameter): Boolean =
+    returnValue.isInstanceOf[Future[_]]
 
   override def handleReturnValue(retVal: Any, retType: MethodParameter, mav: ModelAndViewContainer, req: NativeWebRequest): Unit = retVal match {
     case future: F =>
@@ -65,7 +66,4 @@ class ScalaFutureMethodReturnValueHandler()(implicit ec: ExecutionContext)
 
 object ScalaFutureMethodReturnValueHandler {
   private val TIMEOUT_HEADER = "X-SPLINE-TIMEOUT"
-
-  private def isFutureClass(clazz: Class[_]) =
-    classOf[Future[_]].isAssignableFrom(clazz)
 }
