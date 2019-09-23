@@ -111,7 +111,7 @@ class BasicIntegrationTests extends FlatSpec
 
           val (plan2, _) = lineageCaptor.lineageOf(spark
             .read.table(tableName)
-            .write.saveAsTable("somewhere"))
+            .write.mode(Overwrite).saveAsTable("somewhere"))
 
           val writeUri = plan1.operations.write.outputSource
           val readUri = plan2.operations.reads.head.inputSources.head

@@ -17,10 +17,12 @@
 
 package za.co.absa.spline
 
+import java.util.Properties
+
+import org.apache.spark.sql.SaveMode.Overwrite
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row}
 import org.scalatest._
-import za.co.absa.spline.test.DataFrameImplicits._
 import za.co.absa.spline.test.fixture.spline.SplineFixture
 import za.co.absa.spline.test.fixture.{DerbyDatabaseFixture, SparkFixture}
 
@@ -33,7 +35,7 @@ class JDBCWriteSpec extends FlatSpec
 
   val tableName = "testTable"
 
-  "save_to_jdbc" should "process all operations" in
+  it should "support JDBC as a source" in
     withNewSparkSession(spark => {
       withLineageTracking(spark)(lineageCaptor => {
         val tableName = s"someTable${System.currentTimeMillis()}"
@@ -44,12 +46,20 @@ class JDBCWriteSpec extends FlatSpec
           spark.sqlContext.createDataFrame(rdd, schema)
         }
 
-        val (plan, _) = lineageCaptor.lineageOf {
-          testData.write.jdbc(jdbcConnectionString, tableName)
-        }
+        val (plan1, _) = lineageCaptor.lineageOf(testData
+          .write.jdbc(jdbcConnectionString, tableName, new Properties))
 
-        plan.operations.write.outputSource shouldBe s"$jdbcConnectionString:$tableName"
-        plan.operations.write.append shouldBe false
+        val (plan2, _) = lineageCaptor.lineageOf(spark
+          .read.jdbc(jdbcConnectionString, tableName, new Properties)
+          .write.mode(Overwrite).saveAsTable("somewhere")
+        )
+
+        plan1.operations.write.append shouldBe false
+        plan1.operations.write.params("destinationType") shouldBe Some("jdbc")
+        plan1.operations.write.outputSource shouldBe s"$jdbcConnectionString:$tableName"
+
+        plan2.operations.reads.head.inputSources.head shouldBe plan1.operations.write.outputSource
+        plan2.operations.reads.head.params("sourceType") shouldBe Some("JDBC")
       })
     })
 }
