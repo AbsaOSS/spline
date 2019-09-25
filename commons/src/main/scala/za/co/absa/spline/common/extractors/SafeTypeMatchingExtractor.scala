@@ -17,6 +17,8 @@
 package za.co.absa.spline.common.extractors
 
 class SafeTypeMatchingExtractor[T](lazyClass: => Class[T]) {
+  def this(className: String) = this(Class.forName(className).asInstanceOf[Class[T]])
+
   private val classIfAvailable: Option[Class[_]] =
     try Some(lazyClass)
     catch {

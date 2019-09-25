@@ -19,4 +19,4 @@ package za.co.absa.spline.harvester.builder.read
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import za.co.absa.spline.harvester.builder.SourceIdentifier
 
-case class ReadCommand(sourceIdentifier: SourceIdentifier, operation: LogicalPlan)
+case class ReadCommand(sourceIdentifier: SourceIdentifier, operation: LogicalPlan, params: Map[String, Any] = Map.empty)

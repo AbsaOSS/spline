@@ -26,7 +26,7 @@ import org.apache.spark.sql.sources.DataSourceRegister
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import za.co.absa.spline.common.extractors.{AccessorMethodValueExtractor, SafeTypeMatchingExtractor}
 import za.co.absa.spline.harvester.builder.write.WriteCommandExtractor._
-import za.co.absa.spline.harvester.builder.{CatalogTableUtils, SourceIdentifier, write}
+import za.co.absa.spline.harvester.builder.{CatalogTableUtils, SourceIdentifier}
 import za.co.absa.spline.harvester.qualifier.PathQualifier
 
 import scala.PartialFunction.condOpt
@@ -52,36 +52,37 @@ class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession)
     case cmd: InsertIntoHadoopFsRelationCommand =>
       val path = cmd.outputPath.toString
       val format = cmd.fileFormat.toString
-      asFSWriteCommand(path, Some(format), cmd.mode, cmd.query)
+      val qPath = pathQualifier.qualify(path)
+      WriteCommand(SourceIdentifier(Some(format), Seq(qPath)), cmd.mode, cmd.query, cmd.options)
 
     case cmd: SaveIntoDataSourceCommand =>
-      val path = cmd.options("path")
-      val formatExtractor = AccessorMethodValueExtractor.firstOf[AnyRef]("provider", "dataSource")
-      val maybeFormat = formatExtractor(cmd).map {
+      val maybeSourceType = DataSourceTypeExtractor.unapply(cmd)
+      val maybeFormat = maybeSourceType.map {
         case dsr: DataSourceRegister => dsr.shortName
         case o => o.toString
       }
-      asFSWriteCommand(path, maybeFormat, cmd.mode, cmd.query)
-  }
-
-  private def asFSWriteCommand(path: String, maybeFormat: Option[String], mode: SaveMode, query: LogicalPlan) = {
-    val qPath = pathQualifier.qualify(path)
-    write.WriteCommand(SourceIdentifier(maybeFormat, Seq(qPath)), mode, query)
+      val opts = cmd.options
+      val uri = opts.get("path").map(pathQualifier.qualify)
+        .orElse(opts.get("topic").filter(_ => opts.contains("kafka.bootstrap.servers")).map(topic => s"kafka:$topic"))
+        .getOrElse(sys.error(s"Cannot extract source URI from the options: ${opts.keySet mkString ","}"))
+      WriteCommand(SourceIdentifier(maybeFormat, Seq(uri)), cmd.mode, cmd.query, opts)
   }
 
   private def asJDBCWriteCommand(jdbcConnStr: String, tableName: String, mode: SaveMode, query: LogicalPlan) = {
-    write.WriteCommand(SourceIdentifier(Some("jdbc"), Seq(s"$jdbcConnStr:$tableName")), mode, query)
+    WriteCommand(SourceIdentifier(Some("jdbc"), Seq(s"$jdbcConnStr:$tableName")), mode, query)
   }
 
   private def asTableWriteCommand(table: CatalogTable, mode: SaveMode, query: LogicalPlan) = {
     val sourceIdentifier = CatalogTableUtils.toSourceIdentifier(table)(pathQualifier, session)
-    write.WriteCommand(sourceIdentifier, mode, query, Map("table" -> table))
+    WriteCommand(sourceIdentifier, mode, query, Map("table" -> table))
   }
 }
 
 object WriteCommandExtractor {
 
   private object `_: InsertIntoHiveTable` extends SafeTypeMatchingExtractor(classOf[InsertIntoHiveTable])
+
+  private object DataSourceTypeExtractor extends AccessorMethodValueExtractor[AnyRef]("provider", "dataSource")
 
   private def hasPropertySatisfyingPredicate[A: Manifest](o: AnyRef)(key: String, predicate: A => Boolean): Boolean =
     AccessorMethodValueExtractor[A](key).apply(o).exists(predicate)
