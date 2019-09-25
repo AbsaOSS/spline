@@ -16,47 +16,86 @@
 
 package za.co.absa.spline.harvester.builder.read
 
+import java.util.Properties
+
 import com.databricks.spark.xml.XmlRelation
+import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.catalyst.catalog.HiveTableRelation
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
+import org.apache.spark.sql.execution.datasources.jdbc.JDBCOptions
 import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation}
-import org.apache.spark.sql.{JDBCOptionsExtractor, SparkSession}
-import za.co.absa.spline.harvester.builder.{CatalogTableUtils, SourceIdentifier, read}
+import org.apache.spark.sql.kafka010.{AssignStrategy, ConsumerStrategy, SubscribePatternStrategy, SubscribeStrategy}
+import org.apache.spark.sql.sources.BaseRelation
+import za.co.absa.spline.common.ReflectionUtils.extractFieldValue
+import za.co.absa.spline.common.extractors.{AccessorMethodValueExtractor, SafeTypeMatchingExtractor}
+import za.co.absa.spline.harvester.builder.read.ReadCommandExtractor._
+import za.co.absa.spline.harvester.builder.{CatalogTableUtils, SourceIdentifier}
 import za.co.absa.spline.harvester.qualifier.PathQualifier
 
 import scala.PartialFunction.condOpt
-import scala.language.implicitConversions
+import scala.collection.JavaConverters._
+
 
 class ReadCommandExtractor(pathQualifier: PathQualifier, session: SparkSession) {
   def asReadCommand(operation: LogicalPlan): Option[ReadCommand] =
     condOpt(operation) {
-      case lr: LogicalRelation =>
-        read.ReadCommand(toSourceIdentifier(lr), operation)
+      case lr: LogicalRelation => lr.relation match {
+        case hr: HadoopFsRelation =>
+          val uris = hr.location.rootPaths.map(path => pathQualifier.qualify(path.toString))
+          val format = hr.fileFormat.toString
+          ReadCommand(SourceIdentifier(Some(format), uris), operation, hr.options)
+
+        case xr: XmlRelation =>
+          val uris = xr.location.toSeq.map(pathQualifier.qualify)
+          ReadCommand(SourceIdentifier(Some("XML"), uris), operation, xr.parameters)
+
+        case `_: JDBCRelation`(jr) =>
+          val jdbcOptions = extractFieldValue[JDBCOptions](jr, "jdbcOptions")
+          val url = extractFieldValue[String](jdbcOptions, "url")
+          val params = extractFieldValue[Map[String, String]](jdbcOptions, "parameters")
+          val TableOrQueryFromJDBCOptionsExtractor(toq) = jdbcOptions
+          ReadCommand(SourceIdentifier(Some("jdbc"), Seq(s"$url:$toq")), operation, params)
+
+        case `_: KafkaRelation`(kr) =>
+          val options = extractFieldValue[Map[String, String]](kr, "sourceOptions")
+          val topics: Seq[String] = extractFieldValue[ConsumerStrategy](kr, "strategy") match {
+            case AssignStrategy(partitions) => partitions.map(_.topic)
+            case SubscribeStrategy(topics) => topics
+            case SubscribePatternStrategy(pattern) => kafkaTopics(options("kafka.bootstrap.servers")).filter(_.matches(pattern))
+          }
+          ReadCommand(SourceIdentifier(Some("kafka"), topics.map(topic => s"kafka:$topic")), operation, options ++ Map(
+            "startingOffsets" -> extractFieldValue[AnyRef](kr, "startingOffsets"),
+            "endingOffsets" -> extractFieldValue[AnyRef](kr, "endingOffsets")
+          ))
+
+        case br: BaseRelation =>
+          sys.error(s"Relation is not supported: $br")
+      }
 
       case htr: HiveTableRelation =>
         val catalogTable = htr.tableMeta
-        read.ReadCommand(CatalogTableUtils.toSourceIdentifier(catalogTable)(pathQualifier, session), operation)
+        ReadCommand(CatalogTableUtils.toSourceIdentifier(catalogTable)(pathQualifier, session), operation)
     }
 
-  private def toSourceIdentifier(lr: LogicalRelation) = {
-    val (sourceType, paths) = lr.relation match {
-      case HadoopFsRelation(loc, _, _, _, fileFormat, _) => (
-        fileFormat.toString,
-        loc.rootPaths.map(path => pathQualifier.qualify(path.toString))
-      )
-      case XmlRelation(_, loc, _, _) => (
-        "XML",
-        loc.toSeq map pathQualifier.qualify
-      )
-      case JDBCOptionsExtractor(jdbcOpts) => (
-        "JDBC",
-        Seq(s"${jdbcOpts.url}:${jdbcOpts.table}")
-      )
-      case _ => // unrecognized relation type
-        (s"???: ${lr.relation.getClass.getName}", Nil)
-    }
-    SourceIdentifier(Some(sourceType), paths)
+}
+
+object ReadCommandExtractor {
+
+  object `_: JDBCRelation` extends SafeTypeMatchingExtractor[AnyRef]("org.apache.spark.sql.execution.datasources.jdbc.JDBCRelation")
+
+  object `_: KafkaRelation` extends SafeTypeMatchingExtractor[AnyRef]("org.apache.spark.sql.kafka010.KafkaRelation")
+
+  object TableOrQueryFromJDBCOptionsExtractor extends AccessorMethodValueExtractor[String]("table", "tableOrQuery")
+
+  private def kafkaTopics(bootstrapServers: String): Seq[String] = {
+    val kc = new KafkaConsumer(new Properties {
+      put("bootstrap.servers", bootstrapServers)
+      put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+      put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+    })
+    try kc.listTopics.keySet.asScala.toSeq
+    finally kc.close()
   }
-
 }
 

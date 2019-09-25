@@ -59,7 +59,7 @@ class JDBCWriteSpec extends FlatSpec
         plan1.operations.write.outputSource shouldBe s"$jdbcConnectionString:$tableName"
 
         plan2.operations.reads.head.inputSources.head shouldBe plan1.operations.write.outputSource
-        plan2.operations.reads.head.params("sourceType") shouldBe Some("JDBC")
+        plan2.operations.reads.head.params("sourceType") shouldBe Some("jdbc")
       })
     })
 }

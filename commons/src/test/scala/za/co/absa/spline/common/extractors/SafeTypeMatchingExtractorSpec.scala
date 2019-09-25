@@ -35,8 +35,8 @@ class SafeTypeMatchingExtractorSpec extends FlatSpec with Matchers {
   }
 
   it should "unapply for missing types" in {
-    object A extends SafeTypeMatchingExtractor(throw new ClassNotFoundException("simulate missing type"))
-    object B extends SafeTypeMatchingExtractor(throw new NoClassDefFoundError("simulate missing type"))
+    object A extends SafeTypeMatchingExtractor("definitely.missing.type")
+    object B extends SafeTypeMatchingExtractor((throw new NoClassDefFoundError("simulate missing type")): Class[String])
     A.unapply(new Object) should be(None)
     B.unapply(new Object) should be(None)
   }

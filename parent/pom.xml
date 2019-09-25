@@ -414,6 +414,11 @@
                 <version>${spark.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-sql-kafka-0-10_${scala.compat.version}</artifactId>
+                <version>${spark.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.databricks</groupId>
                 <artifactId>spark-xml_${scala.compat.version}</artifactId>
                 <version>0.4.1</version>

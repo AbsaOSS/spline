@@ -34,7 +34,7 @@ class ReadNodeBuilder
     inputSources = command.sourceIdentifier.uris,
     id = id,
     schema = Some(outputSchema),
-    params = Map(
+    params = command.params ++ Map(
       OperationParams.Name -> operation.nodeName,
       OperationParams.SourceType -> command.sourceIdentifier.format
     ))
