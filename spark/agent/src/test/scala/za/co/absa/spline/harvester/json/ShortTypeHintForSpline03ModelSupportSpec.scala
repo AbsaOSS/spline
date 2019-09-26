@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.harvester.builder.write
+package za.co.absa.spline.harvester.json
 
-import org.apache.spark.sql.SaveMode
-import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
-import za.co.absa.spline.harvester.builder.SourceIdentifier
+import org.scalatest.{FlatSpec, Matchers}
 
-case class WriteCommand(
-  name: String,
-  sourceIdentifier: SourceIdentifier,
-  mode: SaveMode,
-  query: LogicalPlan,
-  params: Map[String, Any] = Map.empty)
+class ShortTypeHintForSpline03ModelSupportSpec extends FlatSpec with Matchers {
+
+  behavior of "ShortTypeHintForSpline03ModelSupport"
+
+  it should "create formats" in new ShortTypeHintForSpline03ModelSupport {
+    formats should not be null
+  }
+
+}

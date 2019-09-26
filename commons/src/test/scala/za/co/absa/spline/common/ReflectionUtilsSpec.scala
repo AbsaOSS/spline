@@ -28,8 +28,8 @@ class ReflectionUtilsSpec extends FlatSpec with Matchers {
   it should "compile" in {
     val plus = ReflectionUtils.compile[Int](
       q"""
-          val x = args("x").asInstanceOf[Int]
-          val y = args("y").asInstanceOf[Int]
+          val x: Int = args("x")
+          val y: Int = args("y")
           x + y
         """)
     plus(Map("x" -> 2, "y" -> 40)) should be(42)

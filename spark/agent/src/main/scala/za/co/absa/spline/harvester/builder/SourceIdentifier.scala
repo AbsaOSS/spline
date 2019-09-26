@@ -16,4 +16,24 @@
 
 package za.co.absa.spline.harvester.builder
 
-case class SourceIdentifier(format: Option[String], uris: Seq[String])
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.catalyst.catalog.CatalogTable
+import za.co.absa.spline.harvester.qualifier.PathQualifier
+
+case class SourceIdentifier(format: Option[String], uris: String*)
+
+object SourceIdentifier {
+  def forKafka(topics: String*): SourceIdentifier =
+    SourceIdentifier(Some("kafka"), topics.map(SourceUri.forKafka): _*)
+
+  def forJDBC(connectionUrl: String, table: String): SourceIdentifier =
+    SourceIdentifier(Some("jdbc"), SourceUri.forJDBC(connectionUrl, table))
+
+  def forTable(table: CatalogTable)
+    (pathQualifier: PathQualifier, session: SparkSession): SourceIdentifier = {
+    val uri = table.storage.locationUri
+      .map(_.toString)
+      .getOrElse(SourceUri.forTable(table.identifier)(session))
+    SourceIdentifier(table.provider, pathQualifier.qualify(uri))
+  }
+}

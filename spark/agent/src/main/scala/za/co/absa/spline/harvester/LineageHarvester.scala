@@ -47,38 +47,38 @@ class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPl
       map(getExecutedReadWriteMetrics).
       getOrElse((Map.empty, Map.empty))
 
-    val writeCommand = writeCommandExtractor.asWriteCommand(logicalPlan) getOrElse sys.error(s"Unrecognized write command: $logicalPlan")
-    val writeOpBuilder = new WriteNodeBuilder(writeCommand)
-    val restOpBuilders = createOperationBuildersRecursively(writeCommand.query)
+    val maybeCommand = writeCommandExtractor.asWriteCommand(logicalPlan)
 
-    restOpBuilders.lastOption.foreach(writeOpBuilder.+=)
+    maybeCommand.flatMap(writeCommand => {
+      val writeOpBuilder = new WriteNodeBuilder(writeCommand)
+      val restOpBuilders = createOperationBuildersRecursively(writeCommand.query)
 
-    val writeOp = writeOpBuilder.build()
-    val restOps = restOpBuilders.map(_.build())
+      restOpBuilders.lastOption.foreach(writeOpBuilder.+=)
 
-    val (opReads, opOthers) =
-      ((Vector.empty[ReadOperation], Vector.empty[DataOperation]) /: restOps) {
-        case ((accRead, accOther), opRead: ReadOperation) => (accRead :+ opRead, accOther)
-        case ((accRead, accOther), opOther: DataOperation) => (accRead, accOther :+ opOther)
-      }
+      val writeOp = writeOpBuilder.build()
+      val restOps = restOpBuilders.map(_.build())
 
-    val lineage = ExecutionPlan(
-      id = UUID.randomUUID,
-      operations = Operations(opReads, writeOp, opOthers),
-      systemInfo = SystemInfo(AppMetaInfo.Spark, spark.SPARK_VERSION),
-      agentInfo = Some(AgentInfo(AppMetaInfo.Spline, SplineBuildInfo.version)),
-      extraInfo = Map(
-        ExecutionPlanExtra.AppName -> session.sparkContext.appName,
-        ExecutionPlanExtra.DataTypes -> componentCreatorFactory.dataTypeConverter.values,
-        ExecutionPlanExtra.Attributes -> componentCreatorFactory.attributeConverter.values
+      val (opReads, opOthers) =
+        ((Vector.empty[ReadOperation], Vector.empty[DataOperation]) /: restOps) {
+          case ((accRead, accOther), opRead: ReadOperation) => (accRead :+ opRead, accOther)
+          case ((accRead, accOther), opOther: DataOperation) => (accRead, accOther :+ opOther)
+        }
+
+      val plan = ExecutionPlan(
+        id = UUID.randomUUID,
+        operations = Operations(opReads, writeOp, opOthers),
+        systemInfo = SystemInfo(AppMetaInfo.Spark, spark.SPARK_VERSION),
+        agentInfo = Some(AgentInfo(AppMetaInfo.Spline, SplineBuildInfo.version)),
+        extraInfo = Map(
+          ExecutionPlanExtra.AppName -> session.sparkContext.appName,
+          ExecutionPlanExtra.DataTypes -> componentCreatorFactory.dataTypeConverter.values,
+          ExecutionPlanExtra.Attributes -> componentCreatorFactory.attributeConverter.values
+        )
       )
-    )
 
-    (
-      lineage,
       if (writeCommand.mode == SaveMode.Ignore) None
-      else Some(ExecutionEvent(
-        planId = lineage.id,
+      else Some(plan -> ExecutionEvent(
+        planId = plan.id,
         timestamp = System.currentTimeMillis(),
         error = None,
         extra = Map(
@@ -86,7 +86,7 @@ class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPl
           ExecutionEventExtra.ReadMetrics -> readMetrics,
           ExecutionEventExtra.WriteMetrics -> writeMetrics
         )))
-    )
+    })
   }
 
   private def createOperationBuildersRecursively(rootOp: LogicalPlan): Seq[OperationNodeBuilder] = {
@@ -130,7 +130,7 @@ class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPl
 
 object LineageHarvester {
   private type Metrics = Map[String, Long]
-  private type HarvestResult = (ExecutionPlan, Option[ExecutionEvent])
+  private type HarvestResult = Option[(ExecutionPlan, ExecutionEvent)]
 
   private def getExecutedReadWriteMetrics(executedPlan: SparkPlan): (Metrics, Metrics) = {
     def getNodeMetrics(node: SparkPlan): Metrics = node.metrics.mapValues(_.value)

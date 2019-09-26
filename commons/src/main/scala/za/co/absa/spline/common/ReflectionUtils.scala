@@ -40,9 +40,10 @@ object ReflectionUtils {
     val tb = mirror.mkToolBox()
     val execFn = tb.compile(
       q"""
-         (args: Map[String, Any]) => {
-           $code
-         }
+        (__args: Map[String, Any]) => {
+          def args[T](k: String): T = __args(k).asInstanceOf[T]
+          $code
+        }
       """)()
     execFn.asInstanceOf[Map[String, Any] => A]
   }
