@@ -17,37 +17,11 @@
 
 package za.co.absa.spline.test.fixture
 
-import java.sql.DriverManager
-
 import org.scalatest.{BeforeAndAfterEach, Suite}
-import za.co.absa.spline.common.TempDirectory
+import za.co.absa.spline.common.TempFile
 
-import scala.util.Try
-
-/**
-  * Runs and wraps embedded Apache Derby DB.
-  **/
-trait DerbyDatabaseFixture extends BeforeAndAfterEach {
+trait JDBCFixture extends BeforeAndAfterEach {
   this: Suite =>
-  Class.forName("org.apache.derby.jdbc.EmbeddedDriver")
 
-  val jdbcConnectionString = s"jdbc:derby:memory:splineTestDb"
-
-  override protected def beforeEach: Unit = {
-    val tempPath = TempDirectory("derbyUnitTest", "database").deleteOnExit().path
-    System.setProperty("derby.system.home", tempPath.toString)
-    execCommand("create")
-  }
-
-  override protected def afterEach(): Unit = {
-    execCommand("drop")
-    execCommand("shutdown")
-  }
-
-  private def execCommand(cmd: String) = Try {
-    DriverManager.getConnection(s"$jdbcConnectionString;$cmd=true")
-  }
+  protected val jdbcConnectionString = s"jdbc:sqlite:${TempFile().deleteOnExit().file}"
 }
-
-
-
