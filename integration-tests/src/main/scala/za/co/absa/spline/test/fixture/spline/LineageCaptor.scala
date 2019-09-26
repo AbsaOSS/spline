@@ -16,29 +16,24 @@
 package za.co.absa.spline.test.fixture.spline
 
 import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
-import za.co.absa.spline.test.fixture.spline.LineageCaptor.CapturedLineage
+import za.co.absa.spline.test.fixture.spline.LineageCaptor._
 
 class LineageCaptor extends LineageCaptor.Getter with LineageCaptor.Setter {
-  private var capturedPlan: Option[ExecutionPlan] = None
-  private var capturedEvents: Seq[ExecutionEvent] = Nil
+  private var state: CaptorState = NonCapturingState
 
-  override def capture(plan: ExecutionPlan): Unit = {
-    require(capturedPlan.isEmpty, "Another execution plan has already been captured")
-    capturedPlan = Some(plan)
-  }
+  override def capture(plan: ExecutionPlan): Unit = state.capture(plan)
 
-  override def capture(event: ExecutionEvent): Unit = {
-    capturedEvents :+= event
-  }
+  override def capture(event: ExecutionEvent): Unit = state.capture(event)
 
   override def lineageOf(action: => Unit): CapturedLineage = {
-    assume(capturedPlan.isEmpty && capturedEvents.isEmpty)
+    assume(state == NonCapturingState)
+    val capturingState = new CapturingState
+    this.state = capturingState
     try {
       action
-      capturedPlan.getOrElse(sys.error("No lineage has been captured")) -> capturedEvents
+      capturingState.capturedLineage
     } finally {
-      capturedPlan = None
-      capturedEvents = Nil
+      state = NonCapturingState
     }
   }
 
@@ -59,6 +54,31 @@ object LineageCaptor {
 
   trait Getter {
     def lineageOf(action: => Unit): CapturedLineage
+  }
+
+  private sealed trait CaptorState extends Setter
+
+  private final class CapturingState extends CaptorState {
+    private var capturedPlan: Option[ExecutionPlan] = None
+    private var capturedEvents: Seq[ExecutionEvent] = Nil
+
+    def capturedLineage: CapturedLineage =
+      capturedPlan.getOrElse(sys.error("No lineage has been captured")) -> capturedEvents
+
+    override def capture(plan: ExecutionPlan): Unit = {
+      require(capturedPlan.isEmpty, "Another execution plan has already been captured")
+      capturedPlan = Some(plan)
+    }
+
+    override def capture(event: ExecutionEvent): Unit = {
+      capturedEvents :+= event
+    }
+  }
+
+  private object NonCapturingState extends CaptorState {
+    override def capture(plan: ExecutionPlan): Unit = Unit
+
+    override def capture(event: ExecutionEvent): Unit = Unit
   }
 
 }
