@@ -51,7 +51,7 @@ class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPl
     val writeOpBuilder = new WriteNodeBuilder(writeCommand)
     val restOpBuilders = createOperationBuildersRecursively(writeCommand.query)
 
-    restOpBuilders.headOption.foreach(writeOpBuilder.+=)
+    restOpBuilders.lastOption.foreach(writeOpBuilder.+=)
 
     val writeOp = writeOpBuilder.build()
     val restOps = restOpBuilders.map(_.build())
