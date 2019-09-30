@@ -38,9 +38,7 @@ class LineageHarvesterSpec extends FlatSpec with Matchers with SparkFixture with
         import lineageCaptor._
         import spark.implicits._
 
-        val df = spark.createDataset(Seq(TestRow(1, 2.3, "text")))
-
-        inside(lineageOf(df.write.save(tmpDest))) {
+        inside(lineageOf(spark.emptyDataset[TestRow].write.save(tmpDest))) {
           case (ExecutionPlan(_, Operations(Nil, _, Seq(op)), _, _, _), _) =>
             op.id should be(1)
             op.childIds should be(empty)
@@ -64,6 +62,13 @@ class LineageHarvesterSpec extends FlatSpec with Matchers with SparkFixture with
           Attribute(randomUUID, "s", stringType.id))
 
         val expectedOperations = Seq(
+          WriteOperation(
+            id = 0,
+            childIds = Seq(1),
+            outputSource = s"file:$tmpDest",
+            append = false,
+            schema = Some(expectedAttributes.map(_.id))
+          ),
           DataOperation(
             id = 1,
             childIds = Nil,
@@ -93,6 +98,13 @@ class LineageHarvesterSpec extends FlatSpec with Matchers with SparkFixture with
           Attribute(randomUUID, "i", integerType.id))
 
         val expectedOperations = Seq(
+          WriteOperation(
+            id = 0,
+            childIds = Seq(1),
+            outputSource = s"file:$tmpDest",
+            append = false,
+            schema = Some(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id))
+          ),
           DataOperation(
             1, Seq(2), Some(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id)),
             Map("name" -> "Filter")),
@@ -130,6 +142,13 @@ class LineageHarvesterSpec extends FlatSpec with Matchers with SparkFixture with
         val schema = expectedAttributes.map(_.id)
 
         val expectedOperations = Seq(
+          WriteOperation(
+            id = 0,
+            childIds = Seq(1),
+            outputSource = s"file:$tmpDest",
+            append = false,
+            schema = Some(schema)
+          ),
           DataOperation(1, Seq(2, 4), Some(schema), Map("name" -> "Union")),
           DataOperation(2, Seq(3), Some(schema), Map("name" -> "Filter")),
           DataOperation(4, Seq(3), Some(schema), Map("name" -> "Filter")),
@@ -169,6 +188,13 @@ class LineageHarvesterSpec extends FlatSpec with Matchers with SparkFixture with
         )
 
         val expectedOperations = Seq(
+          WriteOperation(
+            id = 0,
+            childIds = Seq(1),
+            outputSource = s"file:$tmpDest",
+            append = false,
+            schema = Some(expectedAttributes.map(_.id))
+          ),
           DataOperation(
             1, Seq(2, 4), Some(expectedAttributes.map(_.id)),
             Map(
@@ -240,7 +266,7 @@ object LineageHarvesterSpec extends Matchers {
   }
 
   def assertDataLineage(
-    expectedOperations: Seq[DataOperation],
+    expectedOperations: Seq[OperationLike],
     expectedAttributes: Seq[Attribute],
     actualPlan: ExecutionPlan): Unit = {
 
@@ -249,16 +275,18 @@ object LineageHarvesterSpec extends Matchers {
     val actualAttributes = actualPlan.extraInfo("attributes").asInstanceOf[Seq[Attribute]]
     val actualDataTypes = actualPlan.extraInfo("dataTypes").asInstanceOf[Seq[dt.DataType]].map(t => t.id -> t).toMap
 
-    val actualOperationsSorted = actualPlan.operations.other.sortBy(_.id)
+    val actualOperationsSorted = actualPlan.operations.all.sortBy(_.id)
     val expectedOperationsSorted = expectedOperations.sortBy(_.id)
 
     for ((opActual, opExpected) <- actualOperationsSorted.zip(expectedOperationsSorted)) {
-      def schemaOf(o: DataOperation) = o.schema.get.asInstanceOf[Seq[UUID]]
-
       opActual.id should be(opExpected.id)
       opActual.childIds should contain theSameElementsInOrderAs opExpected.childIds
       opActual.params should contain allElementsOf opExpected.params
-      schemaOf(opActual) shouldReference actualAttributes as (schemaOf(opExpected) references expectedAttributes)
+
+      opActual.schema shouldBe defined
+      val Some(actualSchema: Seq[UUID]) = opActual.schema
+      val Some(expectedSchema: Seq[UUID]) = opExpected.schema
+      actualSchema shouldReference actualAttributes as (expectedSchema references expectedAttributes)
     }
 
     for ((attrActual: Attribute, attrExpected: Attribute) <- actualAttributes.zip(expectedAttributes)) {
