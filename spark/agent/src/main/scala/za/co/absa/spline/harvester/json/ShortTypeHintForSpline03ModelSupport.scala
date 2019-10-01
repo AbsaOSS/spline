@@ -40,9 +40,9 @@ object ShortTypeHintForSpline03ModelSupport {
       import java.text.SimpleDateFormat
       import org.json4s.{DefaultFormats, TypeHints}
       new DefaultFormats {
-        override val typeHints = args("typeHints").asInstanceOf[TypeHints]
-        override val typeHintFieldName = args("typeHintFieldName").asInstanceOf[String]
-        override def dateFormatter = args("dateFormatterFn").asInstanceOf[() => SimpleDateFormat]()
+        override val typeHints: TypeHints = args("typeHints")
+        override val typeHintFieldName: String = args("typeHintFieldName")
+        override def dateFormatter = args[() => SimpleDateFormat]("dateFormatterFn")()
       }
     """)
 }

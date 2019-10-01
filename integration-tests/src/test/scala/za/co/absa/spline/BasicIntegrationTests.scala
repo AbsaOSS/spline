@@ -40,9 +40,9 @@ class BasicIntegrationTests extends FlatSpec
 
           val df = Seq((1, 2), (3, 4)).toDF().agg(concat(sum('_1), min('_2)) as "forty_two")
 
+          spark.sql("drop table if exists someTable")
           val (plan, _) = lineageCaptor.lineageOf(df.write.saveAsTable("someTable"))
 
-          spark.sql("drop table someTable")
           plan.operations.reads should be(empty)
           plan.operations.other should have length 2
           plan.operations.write should not be null
@@ -71,7 +71,7 @@ class BasicIntegrationTests extends FlatSpec
         lineageCaptor => {
 
           val tableName = "externalTable"
-          val path = TempDirectory("sparkunit", "table").deleteOnExit().path.toUri
+          val path = TempDirectory("spline", ".table").deleteOnExit().path.toUri
 
           spark.sql(s"create table $tableName (num int) using parquet location '$path' ")
 
@@ -84,7 +84,6 @@ class BasicIntegrationTests extends FlatSpec
           }
 
           val (plan2, _) = lineageCaptor.lineageOf {
-            spark.sql(s"drop table $tableName")
             inputDf.write.mode(Overwrite).save(path.toString)
           }
 
@@ -98,8 +97,9 @@ class BasicIntegrationTests extends FlatSpec
         lineageCaptor => {
 
           val tableName = "externalTable"
-          val path = TempDirectory("sparkunit", "table").deleteOnExit().path.toUri
+          val path = TempDirectory("spline", ".table").deleteOnExit().path.toUri
 
+          spark.sql(s"drop table $tableName")
           spark.sql(s"create table $tableName (num int) using parquet location '$path' ")
 
           val schema: StructType = StructType(List(StructField("num", IntegerType, nullable = true)))
@@ -124,7 +124,7 @@ class BasicIntegrationTests extends FlatSpec
     withNewSparkSession(spark =>
       withLineageTracking(spark) {
         lineageCaptor => {
-          val path = TempDirectory("sparkunit", "table", pathOnly = true).deleteOnExit().path
+          val path = TempDirectory("spline", ".table", pathOnly = true).deleteOnExit().path
 
           spark.sql(s"create table e_table(num int) using parquet location '${path.toUri}'")
 

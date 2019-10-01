@@ -39,7 +39,7 @@ class WriteNodeBuilder(command: WriteCommand)
       childIds = childIds,
       schema = Some(outputSchema),
       params = command.params ++ Map(
-        OperationParams.Name -> command.nodeName,
+        OperationParams.Name -> command.name,
         OperationParams.DestinationType -> command.sourceIdentifier.format)
     )
   }

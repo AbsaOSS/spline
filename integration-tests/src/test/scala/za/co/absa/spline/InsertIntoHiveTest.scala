@@ -18,7 +18,7 @@ package za.co.absa.spline
 import org.apache.spark.sql.SaveMode._
 import org.apache.spark.sql.functions._
 import org.scalatest._
-import za.co.absa.spline.common.TempFile
+import za.co.absa.spline.common.TempDirectory
 import za.co.absa.spline.test.fixture.spline.SplineFixture
 import za.co.absa.spline.test.fixture.{SparkDatabaseFixture, SparkFixture}
 
@@ -53,7 +53,7 @@ class InsertIntoHiveTest
             val (plan2, _) = lineageCaptor.lineageOf {
               spark
                 .read.table("path_archive")
-                .write.csv(TempFile(pathOnly = true).deleteOnExit().file.getAbsolutePath)
+                .write.csv(TempDirectory(pathOnly = true).deleteOnExit().path.toString)
             }
 
             plan1.operations.write.append should be(true)

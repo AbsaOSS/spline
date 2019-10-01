@@ -16,8 +16,14 @@
 
 package za.co.absa.spline.test.fixture
 
+import java.io.File
+import java.sql.DriverManager
+
+import org.apache.commons.io.FileUtils
 import org.apache.spark.sql.SparkSession
 import za.co.absa.spline.common.TempDirectory
+
+import scala.util.Try
 
 trait SparkFixture {
 
@@ -25,7 +31,7 @@ trait SparkFixture {
 
   private val sessionBuilder: SparkSession.Builder =
     SparkSession.builder
-      .master("local[*]")
+      .master("local")
       .config("spark.ui.enabled", "false")
       .config("spark.sql.warehouse.dir", warehouseDir)
 
@@ -38,10 +44,16 @@ trait SparkFixture {
   }
 
   def withRestartingSparkContext[T](testBody: => T): T = {
+    haltSparkAndCleanup()
+    try testBody
+    finally haltSparkAndCleanup()
+  }
+
+  private def haltSparkAndCleanup(): Unit = {
     SparkSession.getDefaultSession.foreach(_.close())
-    try
-      testBody
-    finally
-      SparkSession.getDefaultSession.foreach(_.close())
+    // clean up Derby resources to allow for re-creation of a Hive context later in the same JVM instance
+    Try(DriverManager.getConnection("jdbc:derby:;shutdown=true"))
+    FileUtils.deleteQuietly(new File("metastore_db"))
+    FileUtils.deleteQuietly(new File(warehouseDir))
   }
 }

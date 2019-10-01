@@ -24,14 +24,14 @@ import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructT
 import org.apache.spark.sql.{DataFrame, Row}
 import org.scalatest._
 import za.co.absa.spline.test.fixture.spline.SplineFixture
-import za.co.absa.spline.test.fixture.{DerbyDatabaseFixture, SparkFixture}
+import za.co.absa.spline.test.fixture.{JDBCFixture, SparkFixture}
 
 
 class JDBCWriteSpec extends FlatSpec
   with Matchers
   with SparkFixture
   with SplineFixture
-  with DerbyDatabaseFixture {
+  with JDBCFixture {
 
   val tableName = "testTable"
 

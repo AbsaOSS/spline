@@ -29,8 +29,8 @@ import org.apache.spark.sql.kafka010.{AssignStrategy, ConsumerStrategy, Subscrib
 import org.apache.spark.sql.sources.BaseRelation
 import za.co.absa.spline.common.ReflectionUtils.extractFieldValue
 import za.co.absa.spline.common.extractors.{AccessorMethodValueExtractor, SafeTypeMatchingExtractor}
+import za.co.absa.spline.harvester.builder.SourceIdentifier
 import za.co.absa.spline.harvester.builder.read.ReadCommandExtractor._
-import za.co.absa.spline.harvester.builder.{CatalogTableUtils, SourceIdentifier}
 import za.co.absa.spline.harvester.qualifier.PathQualifier
 
 import scala.PartialFunction.condOpt
@@ -44,18 +44,18 @@ class ReadCommandExtractor(pathQualifier: PathQualifier, session: SparkSession) 
         case hr: HadoopFsRelation =>
           val uris = hr.location.rootPaths.map(path => pathQualifier.qualify(path.toString))
           val format = hr.fileFormat.toString
-          ReadCommand(SourceIdentifier(Some(format), uris), operation, hr.options)
+          ReadCommand(SourceIdentifier(Some(format), uris: _*), operation, hr.options)
 
         case xr: XmlRelation =>
           val uris = xr.location.toSeq.map(pathQualifier.qualify)
-          ReadCommand(SourceIdentifier(Some("XML"), uris), operation, xr.parameters)
+          ReadCommand(SourceIdentifier(Some("XML"), uris: _*), operation, xr.parameters)
 
         case `_: JDBCRelation`(jr) =>
           val jdbcOptions = extractFieldValue[JDBCOptions](jr, "jdbcOptions")
           val url = extractFieldValue[String](jdbcOptions, "url")
           val params = extractFieldValue[Map[String, String]](jdbcOptions, "parameters")
           val TableOrQueryFromJDBCOptionsExtractor(toq) = jdbcOptions
-          ReadCommand(SourceIdentifier(Some("jdbc"), Seq(s"$url:$toq")), operation, params)
+          ReadCommand(SourceIdentifier.forJDBC(url, toq), operation, params)
 
         case `_: KafkaRelation`(kr) =>
           val options = extractFieldValue[Map[String, String]](kr, "sourceOptions")
@@ -64,7 +64,7 @@ class ReadCommandExtractor(pathQualifier: PathQualifier, session: SparkSession) 
             case SubscribeStrategy(topics) => topics
             case SubscribePatternStrategy(pattern) => kafkaTopics(options("kafka.bootstrap.servers")).filter(_.matches(pattern))
           }
-          ReadCommand(SourceIdentifier(Some("kafka"), topics.map(topic => s"kafka:$topic")), operation, options ++ Map(
+          ReadCommand(SourceIdentifier.forKafka(topics: _*), operation, options ++ Map(
             "startingOffsets" -> extractFieldValue[AnyRef](kr, "startingOffsets"),
             "endingOffsets" -> extractFieldValue[AnyRef](kr, "endingOffsets")
           ))
@@ -75,7 +75,7 @@ class ReadCommandExtractor(pathQualifier: PathQualifier, session: SparkSession) 
 
       case htr: HiveTableRelation =>
         val catalogTable = htr.tableMeta
-        ReadCommand(CatalogTableUtils.toSourceIdentifier(catalogTable)(pathQualifier, session), operation)
+        ReadCommand(SourceIdentifier.forTable(catalogTable)(pathQualifier, session), operation)
     }
 
 }
