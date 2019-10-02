@@ -16,6 +16,7 @@
 package za.co.absa.spline.consumer.service.repo
 
 import com.arangodb.ArangoDatabaseAsync
+import com.arangodb.model.AqlQueryOptions
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.model._
@@ -92,7 +93,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
                     || CONTAINS(LOWER(executionEventDetails.datasourceType), LOWER(@searchTerm))
                     || CONTAINS(LOWER(executionEventDetails.append), LOWER(@searchTerm))
               SORT executionEventDetails.@sortName @sortDirection
-              LIMIT @offset, @size
+              LIMIT @offset*@size, @size
               RETURN executionEventDetails
           )
           RETURN { "elements" : elements, "totalCount": totalCount }
@@ -107,13 +108,16 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         "sortName" -> sortRequest.sortName,
         "sortDirection" -> sortRequest.sortDirection,
         "searchTerm" -> searchTerm
+      ),
+        new AqlQueryOptions().fullCount(true)
       )
-    )
+
 
     for {
       query <- arangoCursorAsync
+      filteredCount = query.getStats.getFiltered
       if query.hasNext
       next = query.next
-    } yield new Pageable[ExecutionEvent](next.elements, next.totalCount, pageRequest.offset, pageRequest.size)
+    } yield new Pageable[ExecutionEvent](next.elements, next.totalCount - filteredCount , pageRequest.offset, pageRequest.size)
   }
 }

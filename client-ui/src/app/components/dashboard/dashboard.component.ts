@@ -50,12 +50,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   public rows: any[] = []
   public loading: boolean = false
   public offset: number = 0
+  public curPage: number = 0
   public totalCount: number = 0
   public timestampStart: number = 0
   public timestampEnd: number = 0
   public sortName: string = "timestamp"
-  public sortDirection: string = "asc"
+  public sortDirection: string = "desc"
   public searchTerm: string = ""
+  public limit: number = 10
   public asAtTime = moment().valueOf()
   public formState$: Observable<FormGroupState<any>>
   public maxRange: Moment = moment().add(1, 'M')
@@ -90,18 +92,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.store
       .select('router', 'state', 'queryParams')
       .subscribe((queryParams: any) => {
-        if (!_.isEmpty(queryParams)) {
-          this.timestampStart = queryParams.timestampStart
-          this.timestampEnd = queryParams.timestampEnd
-          this.asAtTime = this.asAtTime = Number(queryParams.asAtTime) || this.asAtTime
-          this.offset = Number(queryParams.offset)
-          this.sortName = queryParams.sortName
-          this.sortDirection = queryParams.sortDirection
-          this.searchTerm = queryParams.searchTerm
-          this.updateDateRange(moment(Number(queryParams.timestampStart)).toDate(), moment(Number(queryParams.timestampEnd)).toDate())
-          this.store.dispatch(new ExecutionEventsActions.Get(queryParams))
-          this.store.dispatch(new DashboardFormActions.InitializeForm({ minDate: this.timestampStart, maxDate: this.timestampEnd }))
-        } else {
+          if (!_.isEmpty(queryParams)) {
+            this.timestampStart = queryParams.timestampStart
+            this.timestampEnd = queryParams.timestampEnd
+            this.asAtTime = this.asAtTime = Number(queryParams.asAtTime) || this.asAtTime
+            this.offset = Number(queryParams.offset) 
+            this.sortName = queryParams.sortName
+            this.sortDirection = queryParams.sortDirection
+            this.searchTerm = queryParams.searchTerm
+            this.updateDateRange(moment(Number(queryParams.timestampStart)).toDate(), moment(Number(queryParams.timestampEnd)).toDate())
+            this.store.dispatch(new ExecutionEventsActions.Get(queryParams))
+            this.store.dispatch(new DashboardFormActions.InitializeForm({ minDate: this.timestampStart, maxDate: this.timestampEnd }))
+          } else {
           this.store.dispatch(new ExecutionEventsActions.GetDefault({}))
         }
       })

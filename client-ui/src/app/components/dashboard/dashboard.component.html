@@ -19,10 +19,10 @@
   <div class="container-fluid">
     <div class="row padding4">
       <div class="col-md-12">
-        <input type="text" class="search float-right" #searchInput placeholder="Search..." />
+        <input type="text" class="search float-right" #searchInput placeholder="Search..." value="{{searchTerm}}" />
         <ngx-datatable #table class='table material expandable' [columnMode]="'force'" [headerHeight]="'auto'"
           [footerHeight]="'auto'" [rowHeight]="'auto'" [scrollbarV]="false" [rows]="rows" [selectionType]="'single'"
-          [externalPaging]="true" [count]="totalCount" [offset]="offset" [loadingIndicator]="loading"
+          [externalPaging]="true" [count]="totalCount" [offset]="offset" [loadingIndicator]="loading"  [limit]="limit"
           (select)="onSelect($event)" [externalSorting]="true">
           <ngx-datatable-column name="Framework" [width]="10">
             <ng-template let-expanded="frameworkName" let-row="row" ngx-datatable-cell-template>
