@@ -18,7 +18,7 @@ package za.co.absa.spline.persistence
 
 import com.arangodb.ArangoDatabaseAsync
 import com.arangodb.entity.{CollectionType, EdgeDefinition, GraphEntity}
-import com.arangodb.model.{AqlFunctionCreateOptions, CollectionCreateOptions, HashIndexOptions}
+import com.arangodb.model._
 import org.apache.commons.io.FilenameUtils
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import za.co.absa.spline.common.ARM
@@ -30,35 +30,44 @@ import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
 trait ArangoInit {
-  def initialize(connectionURL: ArangoConnectionURL, dropIfExists: Boolean): Future[GraphEntity]
+  def initialize(connectionURL: ArangoConnectionURL, dropIfExists: Boolean): Future[Unit]
+
+  def upgrade(connectionURL: ArangoConnectionURL): Future[Unit]
 }
 
 object ArangoInit extends ArangoInit {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
-  def initialize(connectionURL: ArangoConnectionURL, dropIfExists: Boolean): Future[GraphEntity] = {
+  def initialize(connectionURL: ArangoConnectionURL, dropIfExists: Boolean): Future[Unit] = execute(connectionURL) { db =>
+    for {
+      exists <- db.exists.toScala
+      _ <-
+        if (exists && !dropIfExists) throw new IllegalArgumentException(s"Arango Database ${db.name()} already exists")
+        else if (exists && dropIfExists) db.drop().toScala
+        else Future.successful(Unit)
+      _ <- createGraphDb(db)
+    } yield Unit
+  }
+
+  override def upgrade(connectionURL: ArangoConnectionURL): Future[Unit] = execute(connectionURL) { db =>
+    for {
+      fns <- db.getAqlFunctions(new AqlFunctionGetOptions).toScala.map(_.asScala)
+      _ <- Future.traverse(fns)(fn => db.deleteAqlFunction(fn.getName, new AqlFunctionDeleteOptions).toScala)
+      _ <- createAQLUserFunctions(db)
+    } yield Unit
+  }
+
+  private def execute[A](connectionURL: ArangoConnectionURL)(fn: ArangoDatabaseAsync => Future[A]): Future[A] = {
     val arangoFacade = new ArangoDatabaseFacade(connectionURL)
     import arangoFacade.db
 
-    val createGraphDbAttempt = Try(
-      for {
-        exists <- db.exists.toScala
-        _ <-
-          if (exists && !dropIfExists) throw new IllegalArgumentException(s"Arango Database ${db.name()} already exists")
-          else if (exists && dropIfExists) db.drop().toScala
-          else Future.successful(Unit)
-        graphDb <- createGraphDb(db)
-      } yield graphDb)
-
-    val eventualGraphDb = createGraphDbAttempt match {
+    (Try(fn(db)) match {
       case Failure(e) => Future.failed(e)
-      case Success(graphDbFuture) => graphDbFuture
-    }
-
-    eventualGraphDb.andThen({
+      case Success(v) => v
+    }) andThen {
       case _ => arangoFacade.destroy()
-    })
+    }
   }
 
   private def createGraphDb(db: ArangoDatabaseAsync): Future[GraphEntity] = for {
