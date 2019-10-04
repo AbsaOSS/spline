@@ -20,10 +20,15 @@
     <div class="row padding4">
       <div class="col-md-12">
         <input type="text" class="search float-right" #searchInput placeholder="Search..." value="{{searchTerm}}" />
+        <div class="dataMode float-left">
+          <ngx-switch [status]="liveData" [onText]="'Live Data'" [offText]="'Range Selection'" [onColor]="'blue'"
+            [offColor]="'blue'" (statusChange)="onDataModeChange($event)">
+          </ngx-switch>
+        </div>
         <ngx-datatable #table class='table material expandable' [columnMode]="'force'" [headerHeight]="'auto'"
           [footerHeight]="'auto'" [rowHeight]="'auto'" [scrollbarV]="false" [rows]="rows" [selectionType]="'single'"
-          [externalPaging]="true" [count]="totalCount" [offset]="offset" [loadingIndicator]="loading"  [limit]="limit"
-          (select)="onSelect($event)" [externalSorting]="true">
+          [externalPaging]="true" [count]="totalCount" [offset]="queryParams.offset" [loadingIndicator]="loading"
+          [limit]="limit" (select)="onSelect($event)" [externalSorting]="true">
           <ngx-datatable-column name="Framework" [width]="10">
             <ng-template let-expanded="frameworkName" let-row="row" ngx-datatable-cell-template>
               <td class="{{getFrameworkImg(row.frameworkName)}}"></td>
@@ -62,7 +67,8 @@
           <!--Footer -->
           <ngx-datatable-footer>
             <ng-template ngx-datatable-footer-template let-rowCount="rowCount" let-pageSize="pageSize"
-              let-selectedCount="selectedCount" let-curPage="curPage" let-offset="offset" let-isVisible="isVisible">
+              let-selectedCount="selectedCount" let-curPage="curPage" let-offset="queryParams.offset"
+              let-isVisible="isVisible">
               <div style="padding: 5px 10px">
                 <div><strong>Jobs triggered</strong>: {{ rowCount }}</div>
                 <hr style="width:100%" />
@@ -80,7 +86,7 @@
     </div>
   </div>
 
-  <footer class="footer container-fluid">
+  <footer class="footer container-fluid" [ngClass]="liveData ? 'display-none' : 'display-inline' ">
     <hr>
     <form [ngrxFormState]="(formState$ | async)">
       <div class="row align-items-center justify-content-end">
@@ -101,11 +107,6 @@
             [ngrxValueConverter]="dateConverter" class="float-right">
           </timepicker>
         </div>
-      </div>
-      <div class="custom-slider">
-        <ng5-slider [ngrxFormControlState]="(formState$ | async).dashboardFilters.controls.sliderRange"
-          [options]="options">
-        </ng5-slider>
       </div>
     </form>
   </footer>

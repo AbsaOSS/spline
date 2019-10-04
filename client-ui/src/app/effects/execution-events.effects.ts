@@ -61,7 +61,6 @@ export class ExecutionEventsEffects {
             const minDate = _.min(timestamps)
             const maxDate = _.max(timestamps)
             this.store.dispatch(new DashboardFormActions.InitializeForm({ minDate: minDate, maxDate: maxDate }))
-            this.store.dispatch(new SetValueAction('dashboardFilter.range', [minDate, maxDate]))
             return new ExecutionEventsAction.GetSuccessDefault(res)
         })
     )

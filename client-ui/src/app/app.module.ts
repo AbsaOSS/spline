@@ -27,7 +27,6 @@ import { Store, StoreModule } from '@ngrx/store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import { CytoscapeNgLibModule } from 'cytoscape-ng-lib';
-import { Ng5SliderModule } from 'ng5-slider';
 import { NgrxFormsModule } from 'ngrx-forms';
 import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
 import { TimepickerModule } from 'ngx-bootstrap/timepicker';
@@ -115,7 +114,6 @@ const ROOT_ROUTING = "app/"
   ],
   imports: [
     BrowserModule,
-    Ng5SliderModule,
     CytoscapeNgLibModule,
     HttpClientModule,
     NgxDatatableModule,
