@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.service.repo
+package za.co.absa.spline.persistence.model
 
-import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
-
-import scala.concurrent.{ExecutionContext, Future}
-
-trait ExecutionProducerRepository {
-  def insertExecutionPlan(executionPlan: ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit]
-
-  def insertExecutionEvents(executionEvents: Array[ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit]
+object Edges {
+  val Follows = "follows"
+  val WritesTo = "writesTo"
+  val ReadsFrom = "readsFrom"
+  val Executes = "executes"
+  val Depends = "depends"
+  val Affects = "affects"
+  val ProgressOf = "progressOf"
 }

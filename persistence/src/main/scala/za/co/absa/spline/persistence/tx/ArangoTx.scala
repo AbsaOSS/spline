@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.service.repo
+package za.co.absa.spline.persistence.tx
 
-import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
+import com.arangodb.ArangoDatabaseAsync
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
-trait ExecutionProducerRepository {
-  def insertExecutionPlan(executionPlan: ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit]
+trait ArangoTx {
+  def execute(db: ArangoDatabaseAsync): Future[Unit]
 
-  def insertExecutionEvents(executionEvents: Array[ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit]
+  def executeAndReturn(db: ArangoDatabaseAsync): Future[Array[_]]
 }
