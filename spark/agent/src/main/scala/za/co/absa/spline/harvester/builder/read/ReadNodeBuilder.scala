@@ -24,7 +24,7 @@ import za.co.absa.spline.producer.rest.model.ReadOperation
 
 class ReadNodeBuilder
 (val command: ReadCommand)
-  (implicit val componentCreatorFactory: ComponentCreatorFactory)
+(implicit val componentCreatorFactory: ComponentCreatorFactory)
   extends OperationNodeBuilder {
 
   override protected type R = ReadOperation
@@ -34,8 +34,8 @@ class ReadNodeBuilder
     inputSources = command.sourceIdentifier.uris,
     id = id,
     schema = Some(outputSchema),
-    params = command.params ++ Map(
+    params = Map(
       OperationParams.Name -> operation.nodeName,
       OperationParams.SourceType -> command.sourceIdentifier.format
-    ))
+    ) ++ command.params)
 }
