@@ -25,13 +25,13 @@ sealed trait DBCommand extends Command {
 
   def timeout: Duration
 
-  def timeout_=(t: Duration): Self = _copy(dbUrl, t)
+  def timeout_=(t: Duration): Self = selfCopy(dbUrl, t)
 
-  def dbUrl_=(url: String): Self = _copy(url, timeout)
+  def dbUrl_=(url: String): Self = selfCopy(url, timeout)
 
   protected type Self <: DBCommand
 
-  protected def _copy: (String, Duration) => Self
+  protected def selfCopy: (String, Duration) => Self
 }
 
 object DBCommand {
@@ -44,7 +44,7 @@ case class DBInit(
   force: Boolean = false
 ) extends DBCommand {
   protected override type Self = DBInit
-  protected override val _copy: (String, Duration) => DBInit = copy(_, _)
+  protected override val selfCopy: (String, Duration) => DBInit = copy(_, _)
 }
 
 case class DBUpgrade(
@@ -52,5 +52,5 @@ case class DBUpgrade(
   override val timeout: Duration = DBCommand.defaultTimeout
 ) extends DBCommand {
   protected override type Self = DBUpgrade
-  protected override val _copy: (String, Duration) => DBUpgrade = copy
+  protected override val selfCopy: (String, Duration) => DBUpgrade = copy
 }

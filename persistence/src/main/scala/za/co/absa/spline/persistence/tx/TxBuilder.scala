@@ -21,7 +21,6 @@ import com.arangodb.model.TransactionOptions
 import za.co.absa.spline.persistence.model.ArangoDocument
 import za.co.absa.spline.persistence.tx.TxBuilder.ArangoTxImpl
 
-import scala.collection.mutable
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.Future
 
@@ -33,10 +32,10 @@ case class NativeQuery(aql: String) extends Query
 
 class TxBuilder {
 
-  private val queries: mutable.Buffer[Query] = mutable.ArrayBuffer.empty
+  private var queries: Seq[Query] = Vector.empty
 
   def addQuery(q: Query): this.type = {
-    queries += q
+    queries :+= q
     this
   }
 
