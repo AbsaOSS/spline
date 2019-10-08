@@ -27,21 +27,21 @@ class BuilderSpec extends FlatSpec with Matchers with MockitoSugar {
 
   implicit private val componentCreatorFactory: ComponentCreatorFactory = new ComponentCreatorFactory
 
-  private val logicalPlanMock = mock[LogicalPlan]
+  private val logicalPlanStub = mock[LogicalPlan]
 
-  when(logicalPlanMock.output) thenReturn Seq.empty
-  when(logicalPlanMock.nodeName) thenReturn "NODE"
+  when(logicalPlanStub.output) thenReturn Seq.empty
+  when(logicalPlanStub.nodeName) thenReturn "NODE"
 
-  private val command = ReadCommand(
-    SourceIdentifier(Some("CSV"), "whaateverpath"),
-    logicalPlanMock,
-    Map("caseSensitiveKey" -> "blabla")
-  )
+  it should "not force lowercase on keys of the params Map when" in {
 
-  private val readNode = new ReadNodeBuilder(command).build()
+    val command = ReadCommand(
+      SourceIdentifier(Some("CSV"), "whaateverpath"),
+      logicalPlanStub,
+      Map("caseSensitiveKey" -> "blabla")
+    )
 
+    val readNode = new ReadNodeBuilder(command).build()
 
-  it should "not force lowercase on keys of the params Map" in {
     readNode.params.keySet should contain("caseSensitiveKey")
     readNode.params.keySet should contain("sourceType")
     readNode.params.keySet shouldNot contain("casesensitivekey")
