@@ -127,7 +127,6 @@ export class LineageGraphComponent implements OnInit, AfterViewInit {
   }
 
   public onBackClick = (): void => {
-
     this.store
       .select('lineageOverview')
       .pipe(
@@ -140,6 +139,12 @@ export class LineageGraphComponent implements OnInit, AfterViewInit {
         }
         this.store.dispatch(new RouterAction.Go(params))
       })
+  }
+
+  public onHomeClick = (): void => {
+    this.store.dispatch(
+      new RouterAction.Go({ url: "/app/dashboard" })
+    )
   }
 
 }

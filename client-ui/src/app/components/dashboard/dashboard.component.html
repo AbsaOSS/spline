@@ -19,7 +19,8 @@
   <div class="container-fluid">
     <div class="row padding4">
       <div class="col-md-12">
-        <input type="text" class="search float-right" #searchInput placeholder="Search..." value="{{searchTerm}}" />
+        <input type="text" class="search float-right" #searchInput placeholder="Search..."
+          value="{{queryParams.searchTerm}}" />
         <div class="dataMode float-left">
           <ngx-switch [status]="liveData" [onText]="'Live Data'" [offText]="'Range Selection'" [onColor]="'blue'"
             [offColor]="'blue'" (statusChange)="onDataModeChange($event)">
