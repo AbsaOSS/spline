@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Operation} from 'src/app/generated/models/operation';
+import { Operation } from 'src/app/generated/models/operation';
 
 export interface CytoscapeOperationVM extends Partial<Operation> {
     id: string
     color: string
     icon: number
+    shape?: string
 }
