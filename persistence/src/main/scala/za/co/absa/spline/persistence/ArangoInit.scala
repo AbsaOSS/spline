@@ -31,7 +31,6 @@ import scala.util.{Failure, Success, Try}
 
 trait ArangoInit {
   def initialize(connectionURL: ArangoConnectionURL, dropIfExists: Boolean): Future[Unit]
-
   def upgrade(connectionURL: ArangoConnectionURL): Future[Unit]
 }
 

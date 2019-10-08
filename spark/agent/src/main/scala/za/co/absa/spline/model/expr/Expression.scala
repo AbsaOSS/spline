@@ -21,7 +21,6 @@ import java.util.UUID
 
 sealed trait Expression {
   def children: Seq[Expression]
-
   def allRefLikeChildrenFlattened: Seq[Expression] = children.flatMap(_.allRefLikeChildrenFlattened)
 }
 
@@ -39,9 +38,7 @@ trait TypedExpression {
 
 trait GenericExpressionLike {
   def name: String
-
   def exprType: String
-
   def params: Option[Map[String, Any]]
 }
 

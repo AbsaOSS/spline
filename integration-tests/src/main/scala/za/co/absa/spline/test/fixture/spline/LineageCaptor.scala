@@ -48,7 +48,6 @@ object LineageCaptor {
 
   trait Setter {
     def capture(plan: ExecutionPlan): Unit
-
     def capture(event: ExecutionEvent): Unit
   }
 

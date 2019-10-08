@@ -30,7 +30,6 @@ case class Execution(
 
 trait DataType {
   def id: String
-
   def nullable: Boolean
 }
 
@@ -77,11 +76,8 @@ case class Edge(
 
 trait Operation extends Vertex {
   def name: String
-
   def properties: Map[String, Any]
-
   def outputSchema: Option[Any]
-
   def _type: String
 }
 
