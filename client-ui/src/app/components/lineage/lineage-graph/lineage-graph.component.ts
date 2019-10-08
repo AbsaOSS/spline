@@ -95,6 +95,7 @@ export class LineageGraphComponent implements OnInit, AfterViewInit {
           filter(state => state != null)
         )
         .subscribe((selectedNode: string) => {
+          this.cytograph.cy.nodes().unselect()
           this.cytograph.cy.nodes().filter("[id='" + selectedNode + "']").select()
           this.getDetailsInfo(selectedNode)
         })
