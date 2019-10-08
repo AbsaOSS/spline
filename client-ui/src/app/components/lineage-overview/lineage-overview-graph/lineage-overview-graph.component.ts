@@ -136,6 +136,7 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit {
       this.store
         .select('router', 'state', 'queryParams', 'selectedNodeId')
         .subscribe((selectedNodeId) => {
+          this.cytograph.cy.nodes().unselect()
           const selectedNode = this.cytograph.cy.nodes().filter(`[id='${selectedNodeId}']`)
           selectedNode.select()
           this.getNodeInfo(selectedNode.data())
