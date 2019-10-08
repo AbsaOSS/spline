@@ -18,8 +18,19 @@
   <div class="row">
     <div class="col-sm-6 no-padding">
       <button type="button" class="btn btn-warning" title="Go back to the dashboard" (click)="onHomeClick()">
-        <i class=" fa fa-home fa-2x"></i>
+        <i class=" fa fa-home fa-2x"></i> <span class="button-title"> Dashboard</span>
       </button>
+      <div class="lineage-overview-title">
+        <p class="splineColor">
+          <strong>LINEAGE OF DATA WRITTEN TO</strong>
+        </p>
+        <p>
+          <strong> {{getTargetName() | async}}</strong>
+        </p>
+        <p *ngIf="getFormatedTimestamp() | async as formatedTimestamp">
+          <strong>the {{formatedTimestamp | date: 'shortDate'}} at {{formatedTimestamp | date: 'mediumTime'}} </strong>
+        </p>
+      </div>
       <lineage-overview-graph></lineage-overview-graph>
     </div>
 
