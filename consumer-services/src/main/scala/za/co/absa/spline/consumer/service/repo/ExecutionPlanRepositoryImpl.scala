@@ -19,8 +19,8 @@ package za.co.absa.spline.consumer.service.repo
 import com.arangodb.ArangoDatabaseAsync
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import za.co.absa.spline.consumer.service.model.{DataSourceInfo, ExecutedLogicalPlan}
 import za.co.absa.spline.consumer.service.model.ExecutionInfo.Id
+import za.co.absa.spline.consumer.service.model.{DataSourceInfo, ExecutedLogicalPlan}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -29,58 +29,69 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
 
   import za.co.absa.spline.persistence.ArangoImplicits._
 
-  override def findById(execId: Id)
-                       (implicit ec: ExecutionContext): Future[ExecutedLogicalPlan] = {
+  override def findById(execId: Id)(implicit ec: ExecutionContext): Future[ExecutedLogicalPlan] = {
     db.queryOne[ExecutedLogicalPlan](
       """
-      FOR exec IN execution
-          FILTER exec._key == @execId
-          LET opWithEdgePairs = (
-              FOR v, e IN 1..99999
-              OUTBOUND exec executes, follows
-              OPTIONS {uniqueEdges: "none"}
-                  LET operation = MERGE(KEEP(v, "_type", "name", "properties"), {"_id": v._key})
-                  LET inboundEdge = {
-                      "source": PARSE_IDENTIFIER(e._to).key,
-                      "target": PARSE_IDENTIFIER(e._from).key
-                  }
-                  RETURN [operation, inboundEdge]
-          )
-          LET nodes = (FOR pair IN opWithEdgePairs RETURN pair[0])
-          LET edges = (FOR pair IN SLICE(opWithEdgePairs, 1) RETURN pair[1])
+        LET exec = FIRST(FOR ex IN execution FILTER ex._key == @execId RETURN ex)
+        LET writeOp = FIRST(FOR v IN 1 OUTBOUND exec executes RETURN v)
 
-          LET inputSources = FLATTEN(
-            FOR node IN nodes
-                FILTER node._type == "Read"
-                LET sources = (
-                     FOR s IN node.properties.inputSources
-                         RETURN { "sourceType" : node.properties.sourceType , "source" : s}
-                )
-                RETURN sources
-          )
+        LET opsWithInboundEdges = (
+            FOR vi, ei IN 0..99999
+                OUTBOUND writeOp follows
+                COLLECT v=vi INTO edgesByVertex
+                RETURN {
+                    "op": v,
+                    "es": UNIQUE(edgesByVertex[* FILTER NOT_NULL(CURRENT.ei)].ei)
+                }
+            )
 
-          LET outputSource = (
-            FOR node IN nodes
-              FILTER node._type == "Write"
-                RETURN { "sourceType": node.properties.destinationType, "source": node.properties.outputSource }
-          )
+        LET ops = opsWithInboundEdges[*].op
+        LET edges = opsWithInboundEdges[*].es[**]
 
-          LET simpleNodes = (
-            FOR n IN nodes
-              RETURN KEEP(n, "_id", "_type", "name")
-          )
+        LET inputSources = FLATTEN(
+            FOR op IN ops
+                FILTER op._type == "Read"
+                RETURN op.properties.inputSources[* RETURN {
+                    "source": CURRENT,
+                    "sourceType": op.properties.sourceType
+                }]
+            )
 
-          RETURN {
-            "plan": {"nodes" : simpleNodes, "edges" : edges},
-            "execution": {"_id": exec._key, "extra" : MERGE(exec.extra, {"inputSources" : inputSources, "outputSource": FIRST(outputSource)}) }
-          }
-      """,
+        LET outputSource = FIRST(
+            ops[*
+                FILTER CURRENT._type == "Write"
+                RETURN {
+                    "source": CURRENT.properties.outputSource,
+                    "sourceType": CURRENT.properties.destinationType
+                }]
+            )
+
+        RETURN {
+            "plan": {
+                "nodes": ops[* RETURN MERGE(
+                        {"_id": CURRENT._key},
+                        KEEP(CURRENT, "_type", "name")
+                    )],
+                "edges": edges[* RETURN {
+                        "source": PARSE_IDENTIFIER(CURRENT._to).key,
+                        "target": PARSE_IDENTIFIER(CURRENT._from).key
+                    }]
+            },
+            "execution": {
+                "_id": exec._key,
+                "extra" : MERGE(
+                    exec.extra, {
+                    "inputSources" : inputSources,
+                    "outputSource": outputSource
+                })
+            }
+        }""",
       Map("execId" -> execId)
     )
   }
 
   override def findInputDataSourceInfoById(execId: Id)
-                                (implicit ec: ExecutionContext): Future[Array[DataSourceInfo]] = {
+    (implicit ec: ExecutionContext): Future[Array[DataSourceInfo]] = {
 
     db.queryOne[Array[DataSourceInfo]](
       """
