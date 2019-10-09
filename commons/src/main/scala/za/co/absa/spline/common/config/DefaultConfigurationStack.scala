@@ -18,9 +18,20 @@ package za.co.absa.spline.common.config
 
 import java.util
 
+import javax.naming.InitialContext
 import org.apache.commons.configuration._
+import za.co.absa.spline.common.config.DefaultConfigurationStack.jndiConfigurationIfAvailable
+
+import scala.util.Try
 
 abstract class DefaultConfigurationStack extends CompositeConfiguration(util.Arrays.asList(
-  new JNDIConfiguration("java:comp/env"),
-  new SystemConfiguration,
-  new EnvironmentConfiguration))
+  jndiConfigurationIfAvailable.toSeq ++ Seq(
+    new SystemConfiguration,
+    new EnvironmentConfiguration): _*))
+
+object DefaultConfigurationStack {
+  def jndiConfigurationIfAvailable: Option[JNDIConfiguration] = Try({
+    new InitialContext().getEnvironment
+    new JNDIConfiguration("java:comp/env")
+  }).toOption
+}
