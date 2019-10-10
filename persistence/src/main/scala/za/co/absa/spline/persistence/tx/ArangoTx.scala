@@ -22,5 +22,4 @@ import scala.concurrent.Future
 
 trait ArangoTx {
   def execute(db: ArangoDatabaseAsync): Future[Unit]
-  def executeAndReturn(db: ArangoDatabaseAsync): Future[Array[_]]
 }

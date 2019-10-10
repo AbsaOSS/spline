@@ -28,8 +28,6 @@ sealed trait Query
 
 case class InsertQuery(collectionName: String, documents: ArangoDocument*) extends Query
 
-case class NativeQuery(aql: String) extends Query
-
 class TxBuilder {
 
   private var queries: Seq[Query] = Vector.empty
@@ -41,19 +39,15 @@ class TxBuilder {
 
   def buildTx: ArangoTx = new ArangoTxImpl(this)
 
-  private def generateJs(returnResult: Boolean): String = {
+  private def generateJs(): String = {
     val statements = queries.zipWithIndex.map {
       case (InsertQuery(col, _*), _) =>
         s"_params.$col.forEach(o => _db.$col.insert(o));"
-      case (NativeQuery(aql), idx) =>
-        s"_results[$idx] = _db._query(aql`$aql`).toArray();"
     }
     s"""
        |function (_params) {
        |  const _db = require('internal').db;
-       |  const _results = {};
        |  ${statements.mkString("\n")}
-       |  return ${if (returnResult) "_results" else "undefined"};
        |}
        |""".stripMargin
   }
@@ -73,11 +67,8 @@ class TxBuilder {
 object TxBuilder {
 
   private class ArangoTxImpl(txBuilder: TxBuilder) extends ArangoTx {
-    def execute(db: ArangoDatabaseAsync): Future[Unit] =
-      db.transaction(txBuilder.generateJs(returnResult = false), classOf[Unit], txBuilder.options).toScala
-
-    def executeAndReturn(db: ArangoDatabaseAsync): Future[Array[_]] =
-      db.transaction(txBuilder.generateJs(returnResult = true), classOf[Array[_]], txBuilder.options).toScala
+    override def execute(db: ArangoDatabaseAsync): Future[Unit] =
+      db.transaction(txBuilder.generateJs(), classOf[Unit], txBuilder.options).toScala
   }
 
 }
