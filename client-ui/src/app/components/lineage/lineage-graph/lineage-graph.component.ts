@@ -108,7 +108,6 @@ export class LineageGraphComponent implements OnInit, AfterViewInit, OnDestroy {
           })
       )
     })
-
   }
 
   private getLayoutConfiguration = (): void => {
