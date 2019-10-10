@@ -158,7 +158,7 @@ const ROOT_ROUTING = "app/"
       { path: ROOT_ROUTING + 'lineage-overview', component: LineageOverviewComponent },
       { path: ROOT_ROUTING + 'partial-lineage/:uid', component: LineageComponent },
       { path: ROOT_ROUTING + 'error/:httpCode', component: ErrorComponent },
-      { path: '**', redirectTo: ROOT_ROUTING + 'dashboard', pathMatch: 'full' }
+      { path: '**', redirectTo: ROOT_ROUTING + 'dashboard' }
     ]),
     !environment.production ? StoreDevtoolsModule.instrument({ maxAge: 25 }) : [],
   ],
