@@ -19,7 +19,6 @@ import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NgxBootstrapSwitchModule } from 'ngx-bootstrap-switch';
 import { RouterModule } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
 import { routerReducer, RouterStateSerializer, StoreRouterConnectingModule } from '@ngrx/router-store';
@@ -28,8 +27,10 @@ import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import { CytoscapeNgLibModule } from 'cytoscape-ng-lib';
 import { NgrxFormsModule } from 'ngrx-forms';
+import { NgxBootstrapSwitchModule } from 'ngx-bootstrap-switch';
 import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
 import { TimepickerModule } from 'ngx-bootstrap/timepicker';
+import { ToastrModule } from 'ngx-toastr';
 import { filter } from 'rxjs/operators';
 import { environment } from '../environments/environment';
 import { AppComponent } from './app.component';
@@ -50,6 +51,7 @@ import { LineageGraphComponent } from './components/lineage/lineage-graph/lineag
 import { LineageComponent } from './components/lineage/lineage.component';
 import { ConfigEffects } from './effects/config.effects';
 import { DetailsInfoEffects } from './effects/details-info.effects';
+import { ExecutionEventsEffects } from './effects/execution-events.effects';
 import { ExecutionPlanDatasourceInfoEffects } from './effects/execution-plan-datasource-info.effects';
 import { ExecutionPlanEffects } from './effects/execution-plan.effects';
 import { LineageOverviewEffects } from './effects/lineage-overview.effects';
@@ -58,18 +60,18 @@ import { AppState } from './model/app-state';
 import { RouterSerializer } from './serializers/routerSerializer';
 import * as ConfigActions from './store/actions/config.actions';
 import { attributeReducer } from './store/reducers/attribute.reducer';
-import { executionEventReducer } from './store/reducers/execution-events.reducer';
 import { configReducer } from './store/reducers/config.reducer';
 import { contextMenuReducer } from './store/reducers/context-menu.reducer';
 import { dashboardFiltersReducer } from './store/reducers/dashboard-filters.reducer';
 import { datasourceInfoReducer } from './store/reducers/datasource-info.reducer';
 import { detailsInfoReducer } from './store/reducers/details-info.reducer';
 import { errorReducer } from './store/reducers/error.reducer';
+import { executionEventReducer } from './store/reducers/execution-events.reducer';
 import { executionPlanDatasourceInfoReducer } from './store/reducers/execution-plan-datasource-info.reducer';
 import { executionPlanReducer } from './store/reducers/execution-plan.reducer';
 import { layoutReducer } from './store/reducers/layout.reducer';
 import { lineageOverviewReducer } from './store/reducers/lineage-overview.reducer';
-import { ExecutionEventsEffects } from './effects/execution-events.effects';
+import { NotificationsEffects } from './effects/notifications-effects';
 
 
 export function initializeApp(store: Store<AppState>): () => Promise<any> {
@@ -124,6 +126,7 @@ const ROOT_ROUTING = "app/"
     FormsModule,
     ReactiveFormsModule,
     BrowserAnimationsModule,
+    ToastrModule.forRoot(),
     StoreModule.forRoot({
       config: configReducer,
       dashboardForm: dashboardFiltersReducer,
@@ -141,6 +144,7 @@ const ROOT_ROUTING = "app/"
     }),
     EffectsModule.forRoot([
       ConfigEffects,
+      NotificationsEffects,
       ExecutionEventsEffects,
       ExecutionPlanEffects,
       ExecutionPlanDatasourceInfoEffects,

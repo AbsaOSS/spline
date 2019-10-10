@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
 import * as _ from 'lodash';
-import { filter, map, switchMap } from 'rxjs/operators';
+import { filter, map, switchMap, first } from 'rxjs/operators';
 import { LineageControllerService } from 'src/app/generated/services';
 import { AppState } from 'src/app/model/app-state';
 import { RouterStateUrl } from 'src/app/model/routerStateUrl';
@@ -29,6 +29,7 @@ import * as ExecutionPlanDatasourceInfoAction from 'src/app/store/actions/execut
 import * as LayoutAction from 'src/app/store/actions/layout.actions';
 import * as LineageOverviewAction from 'src/app/store/actions/lineage-overview.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
+import { Subscription } from 'rxjs';
 
 
 @Component({
@@ -36,10 +37,12 @@ import * as RouterAction from 'src/app/store/actions/router.actions';
   templateUrl: './lineage-overview-graph.component.html',
   styleUrls: ['./lineage-overview-graph.component.less']
 })
-export class LineageOverviewGraphComponent implements OnInit, AfterViewInit {
+export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild(CytoscapeNgLibComponent, { static: true })
   private cytograph: CytoscapeNgLibComponent
+
+  private subscriptions: Subscription[] = []
 
 
   constructor(
@@ -51,7 +54,7 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.store
+    this.subscriptions.push(this.store
       .select('layout')
       .pipe(
         switchMap(layout => {
@@ -94,7 +97,7 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit {
           this.cytograph.cy.panzoom()
           this.cytograph.cy.layout(state.layout).run()
         }
-      })
+      }))
   }
 
   public ngAfterViewInit(): void {
@@ -133,46 +136,50 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit {
     })
 
     this.cytograph.cy.on('layoutstop', () => {
-      this.store
-        .select('router', 'state', 'queryParams', 'selectedNodeId')
-        .subscribe((selectedNodeId) => {
-          this.cytograph.cy.nodes().unselect()
-          const selectedNode = this.cytograph.cy.nodes().filter(`[id='${selectedNodeId}']`)
-          selectedNode.select()
-          this.getNodeInfo(selectedNode.data())
-        })
+      this.subscriptions.push(
+        this.store
+          .select('router', 'state', 'queryParams', 'selectedNodeId')
+          .subscribe((selectedNodeId) => {
+            this.cytograph.cy.nodes().unselect()
+            const selectedNode = this.cytograph.cy.nodes().filter(`[id='${selectedNodeId}']`)
+            selectedNode.select()
+            this.getNodeInfo(selectedNode.data())
+          })
+      )
     })
   }
 
   private getOverviewLineage = (): void => {
-    this.store
-      .select('router', 'state', 'queryParams', 'path')
-      .pipe(
-        filter(state => state != null),
-        switchMap(path => {
-          return this.store
-            .select('router', 'state', 'queryParams', 'applicationId')
-            .pipe(
-              filter(state => state != null),
-              map(applicationId => {
-                return { path, applicationId }
-              })
-            )
-        })
-      ).subscribe(
-        queryParams => {
-          const serviceParams: LineageControllerService.LineageUsingGET1Params = {
-            path: queryParams.path,
-            applicationId: queryParams.applicationId
+    this.subscriptions.push(
+      this.store
+        .select('router', 'state', 'queryParams', 'path')
+        .pipe(
+          filter(state => state != null),
+          switchMap(path => {
+            return this.store
+              .select('router', 'state', 'queryParams', 'applicationId')
+              .pipe(
+                filter(state => state != null),
+                map(applicationId => {
+                  return { path, applicationId }
+                })
+              )
+          })
+        ).subscribe(
+          queryParams => {
+            const serviceParams: LineageControllerService.LineageUsingGET1Params = {
+              path: queryParams.path,
+              applicationId: queryParams.applicationId
+            }
+            this.store.dispatch(new LineageOverviewAction.Get(serviceParams))
+            this.store.dispatch(new LineageOverviewAction.Save(serviceParams as LineageOverviewVM))
           }
-          this.store.dispatch(new LineageOverviewAction.Get(serviceParams))
-          this.store.dispatch(new LineageOverviewAction.Save(serviceParams as LineageOverviewVM))
-        }
-      )
+        )
+    )
   }
 
   private getNodeInfo = (node: any): void => {
-    if (node != null) {
+    if (node) {
       switch (node._type) {
         case LineageOverviewNodeType.Execution: {
           this.store.dispatch(new DataSourceInfoActions.Reset())
@@ -181,9 +188,13 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit {
         }
         case LineageOverviewNodeType.DataSource: {
           this.store.dispatch(new ExecutionPlanDatasourceInfoAction.Reset())
-          this.store.select('router', 'state', 'queryParams', 'applicationId').subscribe(
-            applicationId => this.store.dispatch(new DataSourceInfoActions.Get({ "source": node._id, "applicationId": applicationId }))
-          )
+          this.store.select('router', 'state', 'queryParams', 'applicationId')
+            .pipe(
+              first()
+            )
+            .subscribe(applicationId => {
+              this.store.dispatch(new DataSourceInfoActions.Get({ "source": node._id, "applicationId": applicationId }))
+            })
           break
         }
       }
@@ -199,6 +210,10 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit {
 
   private getLayoutConfiguration = (): void => {
     this.store.dispatch(new LayoutAction.Get())
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(s => s.unsubscribe())
   }
 
 }

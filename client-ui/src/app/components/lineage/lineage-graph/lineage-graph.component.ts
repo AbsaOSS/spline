@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
 import { filter, map, switchMap, first } from 'rxjs/operators';
@@ -24,6 +24,7 @@ import * as DetailsInfosAction from 'src/app/store/actions/details-info.actions'
 import * as ExecutionPlanAction from 'src/app/store/actions/execution-plan.actions';
 import * as LayoutAction from 'src/app/store/actions/layout.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
+import { Subscription } from 'rxjs';
 
 
 @Component({
@@ -31,10 +32,12 @@ import * as RouterAction from 'src/app/store/actions/router.actions';
   templateUrl: './lineage-graph.component.html',
   styleUrls: ['./lineage-graph.component.less']
 })
-export class LineageGraphComponent implements OnInit, AfterViewInit {
+export class LineageGraphComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild(CytoscapeNgLibComponent, { static: true })
   private cytograph: CytoscapeNgLibComponent
+
+  private subscriptions: Subscription[] = []
 
   constructor(
     private store: Store<AppState>
@@ -44,33 +47,35 @@ export class LineageGraphComponent implements OnInit, AfterViewInit {
   }
 
   public ngOnInit(): void {
-    this.store
-      .select('layout')
-      .pipe(
-        switchMap(layout => {
-          return this.store
-            .select('executedLogicalPlan')
-            .pipe(
-              filter(state => state != null),
-              map(state => {
-                return { plan: state.plan, layout: layout }
-              })
-            )
+    this.subscriptions.push(
+      this.store
+        .select('layout')
+        .pipe(
+          switchMap(layout => {
+            return this.store
+              .select('executedLogicalPlan')
+              .pipe(
+                filter(state => state != null),
+                map(state => {
+                  return { plan: state.plan, layout: layout }
+                })
+              )
+          })
+        )
+        .subscribe(state => {
+          if (state && this.cytograph.cy) {
+            this.cytograph.cy.add(state.plan)
+            this.cytograph.cy.nodeHtmlLabel([{
+              tpl: function (data) {
+                if (data.icon) return '<i class="fa fa-4x" style="color:' + data.color + '">' + String.fromCharCode(data.icon) + '</i>'
+                return null
+              }
+            }])
+            this.cytograph.cy.panzoom()
+            this.cytograph.cy.layout(state.layout).run()
+          }
         })
-      )
-      .subscribe(state => {
-        if (state && this.cytograph.cy) {
-          this.cytograph.cy.add(state.plan)
-          this.cytograph.cy.nodeHtmlLabel([{
-            tpl: function (data) {
-              if (data.icon) return '<i class="fa fa-4x" style="color:' + data.color + '">' + String.fromCharCode(data.icon) + '</i>'
-              return null
-            }
-          }])
-          this.cytograph.cy.panzoom()
-          this.cytograph.cy.layout(state.layout).run()
-        }
-      })
+    )
   }
 
   public ngAfterViewInit(): void {
@@ -89,16 +94,19 @@ export class LineageGraphComponent implements OnInit, AfterViewInit {
       })
     })
 
+
     this.cytograph.cy.on('layoutstop', () => {
-      this.store
-        .select('router', 'state', 'queryParams', 'selectedNode').pipe(
-          filter(state => state != null)
-        )
-        .subscribe((selectedNode: string) => {
-          this.cytograph.cy.nodes().unselect()
-          this.cytograph.cy.nodes().filter("[id='" + selectedNode + "']").select()
-          this.getDetailsInfo(selectedNode)
-        })
+      this.subscriptions.push(
+        this.store
+          .select('router', 'state', 'queryParams', 'selectedNode').pipe(
+            filter(state => state != null)
+          )
+          .subscribe((selectedNode: string) => {
+            this.cytograph.cy.nodes().unselect()
+            this.cytograph.cy.nodes().filter("[id='" + selectedNode + "']").select()
+            this.getDetailsInfo(selectedNode)
+          })
+      )
     })
 
   }
@@ -108,15 +116,17 @@ export class LineageGraphComponent implements OnInit, AfterViewInit {
   }
 
   private getExecutedLogicalPlan = (): void => {
-    this.store
-      .select('router', 'state', 'params', 'uid').pipe(
-        filter(state => state != null)
-      )
-      .subscribe(
-        uid => {
-          this.store.dispatch(new ExecutionPlanAction.Get(uid))
-        }
-      )
+    this.subscriptions.push(
+      this.store
+        .select('router', 'state', 'params', 'uid').pipe(
+          filter(state => state != null)
+        )
+        .subscribe(
+          uid => {
+            this.store.dispatch(new ExecutionPlanAction.Get(uid))
+          }
+        )
+    )
   }
 
   private getDetailsInfo = (nodeId: string): void => {
@@ -128,24 +138,30 @@ export class LineageGraphComponent implements OnInit, AfterViewInit {
   }
 
   public onBackClick = (): void => {
-    this.store
-      .select('lineageOverview')
-      .pipe(
-        first()
-      )
-      .subscribe(lineage => {
-        const params: RouterStateUrl = {
-          url: "/app/lineage-overview",
-          queryParams: { path: lineage.path, applicationId: lineage.applicationId }
-        }
-        this.store.dispatch(new RouterAction.Go(params))
-      })
+    this.subscriptions.push(
+      this.store
+        .select('lineageOverview')
+        .pipe(
+          first()
+        )
+        .subscribe(lineage => {
+          const params: RouterStateUrl = {
+            url: "/app/lineage-overview",
+            queryParams: { path: lineage.path, applicationId: lineage.applicationId }
+          }
+          this.store.dispatch(new RouterAction.Go(params))
+        })
+    )
   }
 
   public onHomeClick = (): void => {
     this.store.dispatch(
       new RouterAction.Go({ url: "/app/dashboard" })
     )
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(s => s.unsubscribe())
   }
 
 }

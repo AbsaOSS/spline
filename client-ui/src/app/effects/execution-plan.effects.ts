@@ -19,7 +19,7 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
 import * as _ from 'lodash';
-import { Observable, throwError } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { OperationType } from 'src/app/model/types/operationType';
 import { ExecutedLogicalPlan, Operation, Transition } from '../generated/models';
@@ -31,6 +31,7 @@ import { CytoscapeOperationVM } from '../model/viewModels/cytoscape/cytoscapeOpe
 import { ExecutedLogicalPlanVM } from '../model/viewModels/executedLogicalPlanVM';
 import * as ExecutionPlanAction from '../store/actions/execution-plan.actions';
 import { operationColorCodes, operationIconCodes } from '../store/reducers/execution-plan.reducer';
+import * as ErrorActions from '../store/actions/error.actions';
 
 
 export type Action = ExecutionPlanAction.ExecutionPlanActions
@@ -55,11 +56,13 @@ export class ExecutionPlanEffects {
         switchMap((action: any) => this.getExecutedLogicalPlan(action.payload)),
         map(res => new ExecutionPlanAction.GetSuccess(res))
     )
-
     private getExecutedLogicalPlan = (executionPlanId: string): Observable<ExecutedLogicalPlanVM> => {
         return this.executionPlanControllerService.lineageUsingGETResponse(executionPlanId).pipe(
             map(response => this.toLogicalPlanView(response)),
-            catchError(this.handleError)
+            catchError(err => {
+                this.handleError(err)
+                return of<ExecutedLogicalPlanVM>()
+            })
         )
     }
 
@@ -86,14 +89,10 @@ export class ExecutionPlanEffects {
         return executedLogicalPlanVM
     }
 
-    private handleError = (err: HttpErrorResponse): Observable<never> => {
-        let errorMessage = ''
-        if (err.error instanceof ErrorEvent) {
-            errorMessage = `An error occurred: ${err.error.message}`
-        } else {
-            errorMessage = `Server returned code: ${err.status}, error message is: ${err.message}`
-        }
-        return throwError(errorMessage)
+    private handleError = (err: HttpErrorResponse): void => {
+        const errorMessage = (err.error instanceof ErrorEvent)
+            ? `An error occurred: ${err.error.message}`
+            : `Server returned code: ${err.status}, error message is: ${err.message}`
+        this.store.dispatch(new ErrorActions.ServiceErrorGet(errorMessage))
     }
-
 }

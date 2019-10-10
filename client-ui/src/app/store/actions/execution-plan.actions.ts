@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Action} from '@ngrx/store';
-import {ExecutedLogicalPlanVM} from '../../model/viewModels/executedLogicalPlanVM';
+import { Action } from '@ngrx/store';
+import { ExecutedLogicalPlanVM } from '../../model/viewModels/executedLogicalPlanVM';
 
 export enum ExecutionPlanActionTypes {
     EXECUTION_PLAN_GET = '[Execution Plan] Get',

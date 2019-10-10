@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import * as ExecutionPlanAction from '../actions/execution-plan.actions';
-import {ExecutedLogicalPlanVM} from '../../model/viewModels/executedLogicalPlanVM';
-import {OperationType} from '../../model/types/operationType';
+import { ExecutedLogicalPlanVM } from '../../model/viewModels/executedLogicalPlanVM';
+import { OperationType } from '../../model/types/operationType';
 
 export type Action = ExecutionPlanAction.ExecutionPlanActions
 

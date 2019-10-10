@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation, OnDestroy } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { DatatableComponent } from '@swimlane/ngx-datatable';
 import * as _ from 'lodash';
 import * as moment from 'moment';
 import { Params } from "@angular/router";
 import { FormGroupState, NgrxValueConverter } from 'ngrx-forms';
-import { fromEvent, Observable } from 'rxjs';
+import { fromEvent, Observable, Subscription } from 'rxjs';
 import { debounceTime, filter, map, switchMap, tap } from 'rxjs/operators';
 import { AppState } from 'src/app/model/app-state';
 import { RouterStateUrl } from 'src/app/model/routerStateUrl';
@@ -34,7 +34,7 @@ import * as RouterAction from 'src/app/store/actions/router.actions';
   styleUrls: ['dashboard.component.less'],
   encapsulation: ViewEncapsulation.None
 })
-export class DashboardComponent implements OnInit, AfterViewInit {
+export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private store: Store<AppState>
   ) {
@@ -45,7 +45,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   @ViewChild(DatatableComponent, { static: false }) table: DatatableComponent
 
-
+  private subscribtions: Subscription[] = []
   public rows: any[] = []
   public loading: boolean = false
   public totalCount: number = 0
@@ -81,83 +81,96 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   } as NgrxValueConverter<Date, number>
 
   ngOnInit(): void {
-    this.store.select('router', 'state', 'queryParams')
-      .subscribe((queryParams: any) => {
-        if (!_.isEmpty(queryParams)) {
-          this.queryParams = queryParams
-          if (queryParams.timestampStart != 0) {
-            this.liveData = false
+    this.subscribtions.push(
+      this.store.select('router', 'state', 'queryParams')
+        .subscribe((queryParams: any) => {
+          if (!_.isEmpty(queryParams)) {
+            this.queryParams = queryParams
+            if (queryParams.timestampStart != 0) {
+              this.liveData = false
+            }
+            this.store.dispatch(new ExecutionEventsActions.Get({ ...this.queryParams, asAtTime: this.asAtTime }))
           }
-          this.store.dispatch(new ExecutionEventsActions.Get({ ...this.queryParams, asAtTime: this.asAtTime }))
-        }
-        if (this.liveData) {
-          this.store.dispatch(new ExecutionEventsActions.GetDefault({}))
-        }
-        this.store.dispatch(new DashboardFormActions.InitializeForm({ minDate: this.queryParams.timestampStart, maxDate: this.queryParams.timestampEnd }))
-      })
-
-    this.store
-      .select('dashboardForm', 'dashboardFilters', 'value', 'minDate')
-      .pipe(
-        switchMap(minDate => {
-          return this.store
-            .select('dashboardForm', 'dashboardFilters', 'value', 'maxDate')
-            .pipe(
-              map(maxDate => {
-                return { minDate: minDate, maxDate: maxDate }
-              })
-            )
+          if (this.liveData) {
+            this.store.dispatch(new ExecutionEventsActions.GetDefault({}))
+          }
+          this.store.dispatch(new DashboardFormActions.InitializeForm({ minDate: this.queryParams.timestampStart, maxDate: this.queryParams.timestampEnd }))
         })
-      )
-      .subscribe(state => {
-        if (!this.liveData) {
-          this.queryParams = { ...this.queryParams, timestampStart: state.minDate, timestampEnd: state.maxDate }
-          this.store.dispatch(new RouterAction.ReplaceUrlState(this.queryParams))
-          this.store.dispatch(new ExecutionEventsActions.Get({ ...this.queryParams, asAtTime: this.asAtTime }))
-        }
-      })
+    )
 
-    this.store.select('executionEvents')
-      .pipe(
-        filter(state => state != null)
-      ).subscribe(executionEvents => {
-        this.rows = executionEvents.elements[1]
-        this.queryParams = { ...this.queryParams, offset: executionEvents.offset }
-        this.totalCount = executionEvents.totalCount
-      })
+    this.subscribtions.push(
+      this.store
+        .select('dashboardForm', 'dashboardFilters', 'value', 'minDate')
+        .pipe(
+          switchMap(minDate => {
+            return this.store
+              .select('dashboardForm', 'dashboardFilters', 'value', 'maxDate')
+              .pipe(
+                map(maxDate => {
+                  return { minDate: minDate, maxDate: maxDate }
+                })
+              )
+          })
+        )
+        .subscribe(state => {
+          if (!this.liveData) {
+            this.queryParams = { ...this.queryParams, timestampStart: state.minDate, timestampEnd: state.maxDate }
+            this.store.dispatch(new RouterAction.ReplaceUrlState(this.queryParams))
+            this.store.dispatch(new ExecutionEventsActions.Get({ ...this.queryParams, asAtTime: this.asAtTime }))
+          }
+        })
+    )
+
+    this.subscribtions.push(
+      this.store.select('executionEvents')
+        .pipe(
+          filter(state => state != null)
+        ).subscribe(executionEvents => {
+          this.rows = executionEvents.elements[1]
+          this.queryParams = { ...this.queryParams, offset: executionEvents.offset }
+          this.totalCount = executionEvents.totalCount
+        })
+    )
   }
 
   ngAfterViewInit(): void {
-    this.table.page.pipe(
-      tap(_ => this.loading = true),
-    ).subscribe(
-      page => {
-        this.queryParams = { ...this.queryParams, offset: page.offset }
-        this.applyFilters()
-      }
-    )
 
-    this.table.sort.pipe(
-      tap(_ => this.loading = true),
-      map(event => event.sorts[0]),
-    ).subscribe(
-      sort => {
-        this.queryParams = { ...this.queryParams, offset: 0, sortName: sort.prop, sortDirection: sort.dir }
-        this.applyFilters()
-      }
-    )
-
-    fromEvent<any>(this.searchInput.nativeElement, 'keyup')
-      .pipe(
+    this.subscribtions.push(
+      this.table.page.pipe(
         tap(_ => this.loading = true),
-        map(event => event.target.value),
-        debounceTime(400)
       ).subscribe(
-        searchTerm => {
-          this.queryParams = { ...this.queryParams, offset: 0, searchTerm: searchTerm }
+        page => {
+          this.queryParams = { ...this.queryParams, offset: page.offset }
           this.applyFilters()
         }
       )
+    )
+
+    this.subscribtions.push(
+      this.table.sort.pipe(
+        tap(_ => this.loading = true),
+        map(event => event.sorts[0]),
+      ).subscribe(
+        sort => {
+          this.queryParams = { ...this.queryParams, offset: 0, sortName: sort.prop, sortDirection: sort.dir }
+          this.applyFilters()
+        }
+      )
+    )
+
+    this.subscribtions.push(
+      fromEvent<any>(this.searchInput.nativeElement, 'keyup')
+        .pipe(
+          tap(_ => this.loading = true),
+          map(event => event.target.value),
+          debounceTime(400)
+        ).subscribe(
+          searchTerm => {
+            this.queryParams = { ...this.queryParams, offset: 0, searchTerm: searchTerm }
+            this.applyFilters()
+          }
+        )
+    )
 
   }
 
@@ -192,6 +205,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     } else {
       return ""
     }
+  }
+
+  ngOnDestroy(): void {
+    this.subscribtions.forEach(s => s.unsubscribe())
   }
 
 }

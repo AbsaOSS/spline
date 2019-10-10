@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as DetailsInfoAction from '../actions/details-info.actions';
-import {OperationDetailsVM} from '../../model/viewModels/operationDetailsVM';
+import { OperationDetailsVM } from '../../model/viewModels/operationDetailsVM';
 
 export type Action = DetailsInfoAction.DetailsInfoActions
 
