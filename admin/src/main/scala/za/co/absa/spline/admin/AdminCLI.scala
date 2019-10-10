@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.admin
 
+import scopt.{OptionDef, OptionParser}
 import za.co.absa.spline.admin.AdminCLI.AdminCLIConfig
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoInit}
@@ -34,27 +35,38 @@ class AdminCLI(arangoInit: ArangoInit) {
 
   def exec(args: Array[String]): Unit = {
 
-    val cliParser = new scopt.OptionParser[AdminCLIConfig]("Spline Admin CLI") {
+    val cliParser: OptionParser[AdminCLIConfig] = new OptionParser[AdminCLIConfig]("Spline Admin CLI") {
       head("Spline Admin Command Line Interface", SplineBuildInfo.version)
 
       help("help").text("prints this usage text")
 
-      (cmd("initdb")
-        action ((_, c) => c.copy(cmd = InitDB()))
-        text "Initialize Spline database."
-        children(
+      def dbCommandOptions: Seq[OptionDef[_, AdminCLIConfig]] = Seq(
+        opt[String]('t', "timeout")
+          text s"Timeout in format `<length><unit>` or `Inf` for infinity. Default is ${DBInit().timeout}"
+          action { case (s, c@AdminCLIConfig(cmd: DBCommand)) => c.copy(cmd.timeout = Duration(s)) },
+        arg[String]("<db_url>")
+          required()
+          text "ArangoDB connection string in the format: arangodb://[user[:password]@]host[:port]/database"
+          action { case (url, c@AdminCLIConfig(cmd: DBCommand)) => c.copy(cmd.dbUrl = url) })
+
+      (cmd("db-init")
+        action ((_, c) => c.copy(cmd = DBInit()))
+        text "Initialize Spline database"
+        children (dbCommandOptions: _*)
+        children (
         opt[Unit]('f', "force")
           text "Re-create the database if one already exists"
-          action { case (_, c@AdminCLIConfig(cmd: InitDB)) => c.copy(cmd.copy(force = true)) },
-        opt[String]('t', "timeout")
-          text s"Timeout in format `<length><unit>` or `Inf` for infinity. Default is ${InitDB().timeout}"
-          action { case (s, c@AdminCLIConfig(cmd: InitDB)) => c.copy(cmd.copy(timeout = Duration(s))) },
-        arg[String]("<db_url>")
-          text "ArangoDB connection string in the format: arangodb://[user[:password]@]host[:port]/database"
-          action { case (url, c@AdminCLIConfig(cmd: InitDB)) => c.copy(cmd.copy(dbUrl = url)) }))
+          action { case (_, c@AdminCLIConfig(cmd: DBInit)) => c.copy(cmd.copy(force = true)) }
+        ))
+
+      (cmd("db-upgrade")
+        action ((_, c) => c.copy(cmd = DBUpgrade()))
+        text "Upgrade Spline database"
+        children (dbCommandOptions: _*))
 
       checkConfig {
-        case AdminCLIConfig(null) => failure("No command given.")
+        case AdminCLIConfig(null) => failure("No command given")
+        case AdminCLIConfig(cmd: DBCommand) if cmd.dbUrl == null => failure("DB connection string is required")
         case _ => success
       }
     }
@@ -65,8 +77,10 @@ class AdminCLI(arangoInit: ArangoInit) {
       .cmd
 
     command match {
-      case InitDB(force, url, timeout) =>
+      case DBInit(url, timeout, force) =>
         Await.result(arangoInit.initialize(ArangoConnectionURL(url), dropIfExists = force), timeout)
+      case DBUpgrade(url, timeout) =>
+        Await.result(arangoInit.upgrade(ArangoConnectionURL(url)), timeout)
     }
   }
 }

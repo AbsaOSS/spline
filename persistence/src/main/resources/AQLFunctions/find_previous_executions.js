@@ -17,7 +17,7 @@
     'use strict';
     const db = require('@arangodb').db;
     const AQL_FUNCTION = db._query;
-    var graphDepth = depth - 1;
+    const graphDepth = depth - 1;
     const concat = (x, y) => x.concat(y);
 
     if (executionKey === undefined || executionKey === null || executionKey === "" || depth === 0) {

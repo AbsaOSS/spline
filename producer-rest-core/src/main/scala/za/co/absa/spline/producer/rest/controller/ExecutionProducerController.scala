@@ -18,7 +18,7 @@ package za.co.absa.spline.producer.rest.controller
 
 import java.util.UUID
 
-import io.swagger.annotations.{ApiImplicitParams, ApiOperation}
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.{PostMapping, RequestBody, RequestMapping, RestController}
 import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
@@ -39,8 +39,8 @@ class ExecutionProducerController @Autowired()(
 
   @PostMapping(Array("/plan"))
   @ApiOperation(
-    value="/execution/plan",
-    notes=
+    value = "/execution/plan",
+    notes =
       """
         Record an execution plan
 
@@ -108,14 +108,14 @@ class ExecutionProducerController @Autowired()(
         extraInfo: Map[String, Any]
       """
   )
-  def executionPlan(@RequestBody execPlan: ExecutionPlan): Future[UUID] = {
-    repo.insertExecutionPlan(execPlan)
-  }
+  def executionPlan(@RequestBody execPlan: ExecutionPlan): Future[UUID] = repo
+    .insertExecutionPlan(execPlan)
+    .map(_ => execPlan.id)
 
   @PostMapping(Array("/event"))
   @ApiOperation(
-    value="/execution/event",
-    notes=
+    value = "/execution/event",
+    notes =
       """
         Record a list of execution events
 
@@ -134,7 +134,7 @@ class ExecutionProducerController @Autowired()(
         ]
       """
   )
-  def executionEvent(@RequestBody execEvents: Array[ExecutionEvent]): Future[Array[String]] = {
+  def executionEvent(@RequestBody execEvents: Array[ExecutionEvent]): Future[Unit] = {
     repo.insertExecutionEvents(execEvents)
   }
 

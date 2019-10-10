@@ -78,7 +78,7 @@ class PersisterSpec
 
   private def createDataSources(): Iterable[VPackSlice] = {
     Seq(
-      DataSource("hdfs//blabla", Some("92242e53-eaea-4c5b-bc90-5e174ab3e898"))
+      DataSource("hdfs//blabla", "92242e53-eaea-4c5b-bc90-5e174ab3e898")
     ).map(Persister.vpack.serialize).asJava
   }
 

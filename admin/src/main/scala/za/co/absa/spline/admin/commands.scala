@@ -20,8 +20,37 @@ import scala.concurrent.duration._
 
 sealed trait Command
 
-case class InitDB(
-  force: Boolean = false,
-  dbUrl: String = "",
-  timeout: Duration = 1.minute
-) extends Command
+sealed trait DBCommand extends Command {
+  def dbUrl: String
+
+  def timeout: Duration
+
+  def timeout_=(t: Duration): Self = selfCopy(dbUrl, t)
+
+  def dbUrl_=(url: String): Self = selfCopy(url, timeout)
+
+  protected type Self <: DBCommand
+
+  protected def selfCopy: (String, Duration) => Self
+}
+
+object DBCommand {
+  val defaultTimeout: Duration = 1.minute
+}
+
+case class DBInit(
+  override val dbUrl: String = null,
+  override val timeout: Duration = DBCommand.defaultTimeout,
+  force: Boolean = false
+) extends DBCommand {
+  protected override type Self = DBInit
+  protected override val selfCopy: (String, Duration) => DBInit = copy(_, _)
+}
+
+case class DBUpgrade(
+  override val dbUrl: String = null,
+  override val timeout: Duration = DBCommand.defaultTimeout
+) extends DBCommand {
+  protected override type Self = DBUpgrade
+  protected override val selfCopy: (String, Duration) => DBUpgrade = copy
+}

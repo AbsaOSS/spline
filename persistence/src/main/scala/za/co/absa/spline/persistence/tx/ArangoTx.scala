@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.consumer.service.repo
+package za.co.absa.spline.persistence.tx
 
-import za.co.absa.spline.consumer.service.model.ExecutionInfo.Id
-import za.co.absa.spline.consumer.service.model.{DataSourceInfo, ExecutedLogicalPlan}
+import com.arangodb.ArangoDatabaseAsync
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
-trait ExecutionPlanRepository {
-  def findById(execId: Id)(implicit ec: ExecutionContext): Future[ExecutedLogicalPlan]
-  def findInputDataSourceInfoById(execId: Id)(implicit ec: ExecutionContext): Future[Array[DataSourceInfo]]
+trait ArangoTx {
+  def execute(db: ArangoDatabaseAsync): Future[Unit]
 }

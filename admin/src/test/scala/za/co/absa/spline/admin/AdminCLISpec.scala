@@ -48,7 +48,7 @@ class AdminCLISpec
   }
 
 
-  behavior of "InitDB"
+  behavior of "DB Commands"
 
   {
     val connUrlCaptor: ArgumentCaptor[ArangoConnectionURL] = ArgumentCaptor.forClass(classOf[ArangoConnectionURL])
@@ -56,28 +56,37 @@ class AdminCLISpec
 
     (when(
       arangoInitMock.initialize(connUrlCaptor.capture, dropFlgCaptor.capture))
-      thenReturn Future.successful(null))
+      thenReturn Future.successful({}))
+
+    (when(
+      arangoInitMock.upgrade(connUrlCaptor.capture))
+      thenReturn Future.successful({}))
 
     it should "when called with wrong options, print welcome message" in {
       captureStdErr {
-        captureExitStatus(cli.exec(Array("initdb"))) should be(1)
+        captureExitStatus(cli.exec(Array("db-init"))) should be(1)
       } should include("--help")
 
       captureStdErr {
-        captureExitStatus(cli.exec(Array("initdb", "-f"))) should be(1)
+        captureExitStatus(cli.exec(Array("db-upgrade", "-f"))) should be(1)
       } should include("--help")
     }
 
     it should "initialize database" in {
-      cli.exec(Array("initdb", "arangodb://foo/bar"))
+      cli.exec(Array("db-init", "arangodb://foo/bar"))
       connUrlCaptor.getValue should be(ArangoConnectionURL("arangodb://foo/bar"))
       dropFlgCaptor.getValue should be(false)
     }
 
     it should "initialize database forcedly" in {
-      cli.exec(Array("initdb", "arangodb://foo/bar", "-f"))
+      cli.exec(Array("db-init", "arangodb://foo/bar", "-f"))
       connUrlCaptor.getValue should be(ArangoConnectionURL("arangodb://foo/bar"))
       dropFlgCaptor.getValue should be(true)
+    }
+
+    it should "upgrade database" in {
+      cli.exec(Array("db-upgrade", "arangodb://foo/bar"))
+      connUrlCaptor.getValue should be(ArangoConnectionURL("arangodb://foo/bar"))
     }
   }
 }
