@@ -31,7 +31,6 @@ class GenericNodeBuilder
     id = id,
     childIds = childIds,
     schema = Some(outputSchema),
-    params = componentCreatorFactory.operationParamsConverter.convert(operation)
-      + (OperationParams.Name -> operation.nodeName)
+    params = Map(OperationParams.Name -> operation.nodeName) ++ componentCreatorFactory.operationParamsConverter.convert(operation)
   )
 }
