@@ -99,6 +99,7 @@ export class LineageGraphComponent implements OnInit, AfterViewInit, OnDestroy {
       this.subscriptions.push(
         this.store
           .select('router', 'state', 'queryParams', 'selectedNode').pipe(
+            first(),
             filter(state => state != null)
           )
           .subscribe((selectedNode: string) => {
