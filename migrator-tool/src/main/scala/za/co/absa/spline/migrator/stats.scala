@@ -35,13 +35,9 @@ sealed trait Stats {
   val queued: Int
 
   def processed: Int = success + failures
-
   def inc(successInc: Int, failureInc: Int, queued: Int): T
-
   def incSuccess: T = inc(1, 0, -1)
-
   def incFailure: T = inc(0, 1, -1)
-
   def incQueue: T = inc(0, 0, 1)
 }
 

@@ -16,21 +16,17 @@
 package za.co.absa.spline.persistence.model
 
 case class Progress(
-    _creationTimestamp: Long,
-    timestamp: Long,
-    error: Option[Any],
-    extra: Map[String, Any],
-    override val _key: Option[String] = None,
-    override val _id: Option[String] = None,
-    override val _rev: Option[String] = None
-  ) extends ArangoDocument
+  timestamp: Long,
+  error: Option[Any],
+  extra: Map[String, Any],
+  override val _key: String,
+  _creationTimestamp: Long = System.currentTimeMillis
+) extends Vertex
 
 case class Execution(
-    extra: Map[String, Any],
-    override val _key: Option[String] = None,
-    override val _id: Option[String] = None,
-    override val _rev: Option[String] = None
-  ) extends ArangoDocument
+  extra: Map[String, Any],
+  override val _key: String
+) extends Vertex
 
 trait DataType {
   def id: String
@@ -38,50 +34,47 @@ trait DataType {
 }
 
 case class SimpleDataType(
-     override val id: String,
-     override val nullable: Boolean,
-     name: String
- ) extends DataType {
-
-  def this() = this("", true, "")
-
+  override val id: String,
+  override val nullable: Boolean,
+  name: String
+) extends DataType {
+  def this() = this(null, false, null)
 }
 
 case class StructDataType(
-     override val id: String,
-     override val nullable: Boolean,
-     fields: Array[Attribute]
-  ) extends DataType {
-
-  def this() = this("", true, null)
-
+  override val id: String,
+  override val nullable: Boolean,
+  fields: Array[Attribute]
+) extends DataType {
+  def this() = this(null, false, null)
 }
 
 case class ArrayDataType(
-     override val id: String,
-     override val nullable: Boolean,
-     elementDataTypeId: String
-  ) extends DataType {
-
-  def this() = this("", true, "")
-
+  override val id: String,
+  override val nullable: Boolean,
+  elementDataTypeId: String
+) extends DataType {
+  def this() = this(null, false, null)
 }
 
 case class Schema(
   attributes: Array[Attribute])
 
-trait ArangoDocument {
-  def _id: Option[String]
-  def _rev: Option[String]
-  def _key: Option[String]
+trait ArangoDocument
+
+trait Vertex extends ArangoDocument {
+  def _key: String
 }
 
-trait ArangoEdge extends ArangoDocument {
-  def _from: String
-  def _to: String
+case class Edge(
+  _from: String,
+  _to: String
+) extends ArangoDocument {
+  def this() = this(null, null)
 }
 
-trait Operation extends ArangoDocument {
+
+trait Operation extends Vertex {
   def name: String
   def properties: Map[String, Any]
   def outputSchema: Option[Any]
@@ -89,115 +82,44 @@ trait Operation extends ArangoDocument {
 }
 
 case class Read(
-    override val name: String,
-    override val properties: Map[String, Any],
-    override val outputSchema: Option[Any],
-    override val _key: Option[String] = None,
-    override val _id: Option[String] = None,
-    override val _rev: Option[String] = None,
-    override val _type: String = "Read"
-  ) extends Operation {
-
-  def this() = this("", null, None, null)
+  override val name: String,
+  override val properties: Map[String, Any],
+  override val outputSchema: Option[Any],
+  override val _key: String,
+  override val _type: String = "Read"
+) extends Operation {
+  def this() = this(null, null, null, null)
 }
 
 case class Write(
-    override val name: String,
-    override val properties: Map[String, Any],
-    override val outputSchema: Option[Any],
-    override val _key: Option[String] = None,
-    override val _id: Option[String] = None,
-    override val _rev: Option[String] = None,
-    override val _type: String = "Write"
-  ) extends Operation {
-
-  def this() = this("", null, None, null)
+  override val name: String,
+  override val properties: Map[String, Any],
+  override val outputSchema: Option[Any],
+  override val _key: String,
+  override val _type: String = "Write"
+) extends Operation {
+  def this() = this(null, null, null, null)
 }
 
 case class Transformation(
-    override val name: String,
-    override val properties: Map[String, Any],
-    override val outputSchema: Option[Any],
-    override val _key: Option[String] = None,
-    override val _id: Option[String] = None,
-    override val _rev: Option[String] = None,
-    override val _type: String = "Transformation"
-  ) extends Operation {
-
-  def this() = this("", null, null)
+  override val name: String,
+  override val properties: Map[String, Any],
+  override val outputSchema: Option[Any],
+  override val _key: String,
+  override val _type: String = "Transformation"
+) extends Operation {
+  def this() = this(null, null, null, null)
 }
 
 case class DataSource(
-    uri: String,
-    override val _key: Option[String] = None,
-    override val _rev: Option[String] = None,
-    override val _id: Option[String] = None
-  ) extends ArangoDocument {
-
-  def this() = this("")
+  uri: String,
+  override val _key: String
+) extends Vertex {
+  def this() = this(null, null)
 }
 
 case class Attribute(
-    name: String,
-    dataTypeId: String
-  ) {
-
-  def this() = this("", "")
-}
-
-case class ProgressOf(
-    override val _from: String,
-    override val _to: String,
-    override val _key: Option[String] = None,
-    override val _id: Option[String] = None,
-    override val _rev: Option[String] = None
-  ) extends ArangoEdge {
-
-  def this() = this("", "")
-}
-
-case class Follows(
-    override val _from: String,
-    override val _to: String,
-    override val _key: Option[String] = None,
-    override val _id: Option[String] = None,
-    override val _rev: Option[String] = None
-  ) extends ArangoEdge {
-
-  def this() = this("", "")
-}
-
-case class ReadsFrom(
-    override val _from: String,
-    override val _to: String,
-    override val _key: Option[String] = None,
-    override val _id: Option[String] = None,
-    override val _rev: Option[String] = None
-  ) extends ArangoEdge {
-
-  def this() = this("", "")
-}
-
-
-case class WritesTo(
-    override val _from: String,
-    override val _to: String,
-    override val _key: Option[String] = None,
-    override val _id: Option[String] = None,
-    override val _rev: Option[String] = None
-  ) extends ArangoEdge {
-
-  def this() = this("", "")
-}
-
-
-case class Executes(
-    override val _from: String,
-    override val _to: String,
-    override val _key: Option[String] = None,
-    override val _id: Option[String] = None,
-    override val _rev: Option[String] = None
-  ) extends ArangoEdge {
-
-  def this() = this("", "")
+  name: String,
+  dataTypeId: String) {
+  def this() = this(null, null)
 }

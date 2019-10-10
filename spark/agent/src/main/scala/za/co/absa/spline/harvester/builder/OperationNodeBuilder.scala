@@ -27,18 +27,13 @@ trait OperationNodeBuilder {
   protected type R <: OperationLike
 
   val id: Int = componentCreatorFactory.nextId
-
   private var childBuilders: Seq[OperationNodeBuilder] = Nil
 
   def operation: LogicalPlan
-
   def build(): R
-
   def +=(childBuilder: OperationNodeBuilder): Unit = childBuilders :+= childBuilder
 
   protected def componentCreatorFactory: ComponentCreatorFactory
-
   protected def outputSchema: Seq[UUID] = operation.output.map(componentCreatorFactory.attributeConverter.convert(_).id)
-
   protected def childIds: Seq[Int] = childBuilders.map(_.id)
 }

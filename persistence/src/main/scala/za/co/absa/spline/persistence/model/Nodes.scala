@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.consumer.service.repo
+package za.co.absa.spline.persistence.model
 
-import za.co.absa.spline.consumer.service.model.ExecutionInfo.Id
-import za.co.absa.spline.consumer.service.model.{DataSourceInfo, ExecutedLogicalPlan}
-
-import scala.concurrent.{ExecutionContext, Future}
-
-trait ExecutionPlanRepository {
-  def findById(execId: Id)(implicit ec: ExecutionContext): Future[ExecutedLogicalPlan]
-  def findInputDataSourceInfoById(execId: Id)(implicit ec: ExecutionContext): Future[Array[DataSourceInfo]]
+object Nodes {
+  val Operation = "operation"
+  val DataSource = "dataSource"
+  val Execution = "execution"
+  val Progress = "progress"
 }
+
+
