@@ -23,9 +23,7 @@ const FORM_ID = 'dashboardFilter'
 const initialFormState = createFormGroupState<any>(FORM_ID, {
     minDate: moment().valueOf(),
     maxDate: moment().add(1, 'd').valueOf(),
-    range: [moment().valueOf(), moment().add(1, 'M').valueOf()],
-    sliderRange: [moment().valueOf(), moment().add(1, 'd').valueOf()]
-
+    range: [moment().valueOf(), moment().add(1, 'M').valueOf()]
 })
 
 const initialState: any = {
@@ -36,8 +34,8 @@ export function dashboardFiltersReducer(state = initialState, action: Action): a
 
     switch (action.type) {
         case DashboardFormActionTypes.DASHBOARD_FORM_INITIALIZE: {
-            const minDate = action['payload']['minDate']
-            const maxDate = action['payload']['maxDate']
+            const minDate = Number(action['payload']['minDate'])
+            const maxDate = Number(action['payload']['maxDate'])
             if (minDate && maxDate) {
                 let newState = state
                 newState.dashboardFilters.value.minDate = minDate
@@ -46,51 +44,28 @@ export function dashboardFiltersReducer(state = initialState, action: Action): a
                 newState.dashboardFilters.controls.maxDate.value = maxDate
                 newState.dashboardFilters.value.range = [minDate, maxDate]
                 newState.dashboardFilters.controls.range.value = newState.dashboardFilters.value.range
-                newState.dashboardFilters.value.sliderRange = newState.dashboardFilters.value.range
-                newState.dashboardFilters.controls.sliderRange.value = newState.dashboardFilters.value.range
                 return newState
             } else {
                 return state
             }
         }
         case SetValueAction.TYPE: {
-            //unboxing value for the slider Range control
-            if (action['controlId'] == "dashboardFilter.sliderRange") {
-                action['value'] = unbox(action['value'])
-            }
-            // reduce the form state
             let dashboardFilters = formGroupReducer(state.dashboardFilters, action)
             state = { ...state, dashboardFilters }
 
-            // manual form control rules of the state
             if (action['controlId'] == "dashboardFilter.minDate") {
                 state.dashboardFilters.value.range = [action['value'], state.dashboardFilters.value.maxDate]
                 state.dashboardFilters.controls.range.value = state.dashboardFilters.value.range
-                state.dashboardFilters.value.sliderRange = [action['value'], state.dashboardFilters.value.sliderRange[1]]
-                state.dashboardFilters.controls.sliderRange.value = state.dashboardFilters.value.sliderRange
             }
             if (action['controlId'] == "dashboardFilter.maxDate") {
                 state.dashboardFilters.value.range = [state.dashboardFilters.value.minDate, action['value']]
                 state.dashboardFilters.controls.range.value = state.dashboardFilters.value.range
             }
             if (action['controlId'] == "dashboardFilter.range") {
-                //custom value for not repeating change on the UI
-                state.dashboardFilters.value.dateRange = action['value']
-
                 state.dashboardFilters.value.minDate = action['value'][0]
                 state.dashboardFilters.controls.minDate.value = state.dashboardFilters.value.minDate
                 state.dashboardFilters.value.maxDate = action['value'][1]
                 state.dashboardFilters.controls.maxDate.value = state.dashboardFilters.value.maxDate
-                state.dashboardFilters.value.sliderRange = action['value']
-                state.dashboardFilters.controls.sliderRange.value = action['value']
-            }
-            if (action['controlId'] == "dashboardFilter.sliderRange") {
-                state.dashboardFilters.value.minDate = action['value'][0]
-                state.dashboardFilters.controls.minDate.value = state.dashboardFilters.value.minDate
-                state.dashboardFilters.value.maxDate = action['value'][1]
-                state.dashboardFilters.controls.maxDate.value = state.dashboardFilters.value.maxDate
-                state.dashboardFilters.value.range = action['value']
-                state.dashboardFilters.controls.range.value = action['value']
             }
             return state
         }

@@ -18,8 +18,8 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
 import * as _ from 'lodash';
-import { Observable, throwError } from 'rxjs';
-import { catchError, flatMap, map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError, flatMap, map, switchMap } from 'rxjs/operators';
 import { Attribute, DataType, OperationDetails } from '../generated/models';
 import { OperationDetailsControllerService } from '../generated/services';
 import { StrictHttpResponse } from '../generated/strict-http-response';
@@ -29,8 +29,9 @@ import { AttributeVM } from '../model/viewModels/attributeVM';
 import { DataTypeVM } from '../model/viewModels/dataTypeVM';
 import { GenericDataTypeVM } from '../model/viewModels/GenericDataTypeVM';
 import { OperationDetailsVM } from '../model/viewModels/operationDetailsVM';
-import * as DetailsInfoAction from '../store/actions/details-info.actions';
 import * as DatasourceAction from '../store/actions/datasource.info.actions';
+import * as DetailsInfoAction from '../store/actions/details-info.actions';
+import * as ErrorActions from '../store/actions/error.actions';
 
 
 @Injectable()
@@ -57,21 +58,31 @@ export class DetailsInfoEffects {
     private getDetailsInfo = (nodeId: string): Observable<OperationDetailsVM> => {
         return this.operationDetailsControllerService.operationUsingGETResponse(nodeId).pipe(
             map(this.toOperationDetailsView),
-            catchError(this.handleError)
+            catchError(err => {
+                this.handleError(err)
+                this.store.dispatch(new DetailsInfoAction.Reset())
+                return of<OperationDetailsVM>()
+            })
         )
     }
 
     @Effect()
-    public getDatasourceInfo$: Observable<Action> = this.actions$.pipe(
-        ofType(DatasourceAction.DataSourceActionTypes.DATASOURCE_INFOS_GET),
-        flatMap((action: any) => this.getDatasourceInfo(action.payload.source, action.payload.applicationId)),
-        map(res => new DatasourceAction.GetSuccess(res))
-    )
+    public getDatasourceInfo$(): Observable<Action> {
+        return this.actions$.pipe(
+            ofType(DatasourceAction.DataSourceActionTypes.DATASOURCE_INFOS_GET),
+            switchMap((action: any) => this.getDatasourceInfo(action.payload.source, action.payload.applicationId)),
+            map(res => new DatasourceAction.GetSuccess(res))
+        )
+    }
 
     private getDatasourceInfo = (source: string, applicationId: string): Observable<OperationDetailsVM> => {
         return this.operationDetailsControllerService.operationFromSourceAndApplicationIdUsingGETResponse({ "source": source, "applicationId": applicationId }).pipe(
             map(this.toOperationDetailsView),
-            catchError(this.handleError)
+            catchError(err => {
+                this.handleError(err)
+                this.store.dispatch(new DatasourceAction.Reset())
+                return of<OperationDetailsVM>()
+            })
         )
     }
 
@@ -124,11 +135,11 @@ export class DetailsInfoEffects {
         return _.find(dataTypes, (dt: GenericDataTypeVM) => dt.id == dataTypeId)
     }
 
-    private handleError = (err: HttpErrorResponse): Observable<never> => {
-        return throwError(
-            (err.error instanceof ErrorEvent)
-                ? `An error occurred: ${err.error.message}`
-                : `Server returned code: ${err.status}, error message is: ${err.message}`)
+    private handleError = (err: HttpErrorResponse): void => {
+        const errorMessage = (err.error instanceof ErrorEvent)
+            ? `An error occurred: ${err.error.message}`
+            : `Server returned code: ${err.status}, error message is: ${err.message}`
+        this.store.dispatch(new ErrorActions.ServiceErrorGet(errorMessage))
     }
 
 }

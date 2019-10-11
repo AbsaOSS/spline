@@ -20,6 +20,7 @@ import { DataSourceInfo } from 'src/app/generated/models';
 import { Observable } from 'rxjs';
 import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM';
 import { AttributeVM } from 'src/app/model/viewModels/attributeVM';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'lineage-overview-details',
@@ -42,10 +43,13 @@ export class LineageOverviewDetailsComponent {
 
   public getDataSourceInfo(): Observable<OperationDetailsVM> {
     return this.store.select('dataSourceInfo')
+      .pipe(
+        filter((operationDetails => operationDetails && operationDetails.schemas != null))
+      )
   }
 
   public getOutputSchema = (operationDetails: OperationDetailsVM): AttributeVM[] => {
-    return operationDetails && operationDetails.schemas[operationDetails.output]
+    return operationDetails.schemas[operationDetails.output]
   }
 
 }

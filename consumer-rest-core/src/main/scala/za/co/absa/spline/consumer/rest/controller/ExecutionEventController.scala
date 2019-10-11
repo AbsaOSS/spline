@@ -50,8 +50,8 @@ class ExecutionEventController @Autowired()(val repo: ExecutionEventRepository) 
     @RequestParam(value = "size", required = false, defaultValue = "10") size: Int,
     @ApiParam(value = "Name of the attribute to sort on")
     @RequestParam(value = "sortName", required = false, defaultValue = "timestamp") sortName: String,
-    @ApiParam(value = "Sort Direction", example = "DESC")
-    @RequestParam(value = "sortDirection", required = false, defaultValue = "ASC") sortDirection: String,
+    @ApiParam(value = "Sort Direction", example = "asc")
+    @RequestParam(value = "sortDirection", required = false, defaultValue = "desc") sortDirection: String,
     @ApiParam(value = "Text to filter the results")
     @RequestParam(value = "searchTerm", required = false) searchTerm: String
   ): Future[Pageable[ExecutionEvent]] = {

@@ -13,48 +13,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
 import { map, switchMap } from 'rxjs/operators';
 import { AppState } from 'src/app/model/app-state';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'attribute-details',
   templateUrl: './attribute-details.component.html',
   styleUrls: ['./attribute-details.component.less']
 })
-export class AttributeDetailsComponent implements AfterViewInit {
+export class AttributeDetailsComponent implements AfterViewInit, OnDestroy {
 
   @ViewChild(CytoscapeNgLibComponent, { static: true })
   private cytograph: CytoscapeNgLibComponent
+
+  private subscriptions: Subscription[] = []
 
   constructor(
     private store: Store<AppState>
   ) { }
 
   public ngAfterViewInit(): void {
-    this.store
-      .select('layout')
-      .pipe(
-        switchMap(layout =>
-          this.store
-            .select('attributes')
-            .pipe(
-              map(attributes => ({ attributes, layout }))
-            )
+    this.subscriptions.push(
+      this.store
+        .select('layout')
+        .pipe(
+          switchMap(layout =>
+            this.store
+              .select('attributes')
+              .pipe(
+                map(attributes => ({ attributes, layout }))
+              )
+          )
         )
-      )
-      .subscribe(state => {
-        if (this.cytograph.cy) {
-          this.cytograph.cy.remove(this.cytograph.cy.elements())
-          if (state.attributes) {
-            this.cytograph.cy.add(state.attributes)
-            this.cytograph.cy.layout(state.layout).run()
-            this.cytograph.cy.panzoom()
+        .subscribe(state => {
+          if (this.cytograph.cy) {
+            this.cytograph.cy.remove(this.cytograph.cy.elements())
+            if (state.attributes) {
+              this.cytograph.cy.add(state.attributes)
+              this.cytograph.cy.layout(state.layout).run()
+              this.cytograph.cy.panzoom()
+            }
           }
-        }
-      })
+        })
+    )
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(s => s.unsubscribe())
   }
 
 

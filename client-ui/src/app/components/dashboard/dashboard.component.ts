@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation, OnDestroy } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { DatatableComponent } from '@swimlane/ngx-datatable';
 import * as _ from 'lodash';
 import * as moment from 'moment';
-import { Moment } from 'moment';
-import { CustomStepDefinition, LabelType, Options } from 'ng5-slider';
+import { Params } from "@angular/router";
 import { FormGroupState, NgrxValueConverter } from 'ngrx-forms';
-import { fromEvent, Observable } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
+import { fromEvent, Observable, Subscription } from 'rxjs';
+import { debounceTime, filter, map, switchMap, tap } from 'rxjs/operators';
 import { AppState } from 'src/app/model/app-state';
 import { RouterStateUrl } from 'src/app/model/routerStateUrl';
 import * as DashboardFormActions from 'src/app/store/actions/dashboard-form.actions';
@@ -35,7 +34,7 @@ import * as RouterAction from 'src/app/store/actions/router.actions';
   styleUrls: ['dashboard.component.less'],
   encapsulation: ViewEncapsulation.None
 })
-export class DashboardComponent implements OnInit, AfterViewInit {
+export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private store: Store<AppState>
   ) {
@@ -46,27 +45,22 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   @ViewChild(DatatableComponent, { static: false }) table: DatatableComponent
 
-
+  private subscribtions: Subscription[] = []
   public rows: any[] = []
   public loading: boolean = false
-  public offset: number = 0
   public totalCount: number = 0
-  public timestampStart: number = 0
-  public timestampEnd: number = 0
-  public sortName: string = "timestamp"
-  public sortDirection: string = "asc"
-  public searchTerm: string = ""
-  public asAtTime = moment().valueOf()
+  public limit: number = 10
   public formState$: Observable<FormGroupState<any>>
-  public maxRange: Moment = moment().add(1, 'M')
-  options: Options = {
-    stepsArray: this.createStepArray(),
-    translate: (value: number, label: LabelType): string => {
-      return moment(value).format('DD/MM/YYYY, h:mm:ss A')
-    },
-    showTicks: true,
-    precisionLimit: 100
+  public asAtTime: number = moment().valueOf()
+  public queryParams: Params = {
+    timestampStart: 0,
+    timestampEnd: 0,
+    offset: 0,
+    sortName: "timestamp",
+    sortDirection: "desc",
+    searchTerm: ""
   }
+  public liveData: boolean = true
 
   rangeConverter = {
     convertViewToStateValue: dates => {
@@ -87,119 +81,111 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   } as NgrxValueConverter<Date, number>
 
   ngOnInit(): void {
-    this.store
-      .select('router', 'state', 'queryParams')
-      .subscribe((queryParams: any) => {
-        if (!_.isEmpty(queryParams)) {
-          this.timestampStart = queryParams.timestampStart
-          this.timestampEnd = queryParams.timestampEnd
-          this.asAtTime = this.asAtTime = Number(queryParams.asAtTime) || this.asAtTime
-          this.offset = Number(queryParams.offset)
-          this.sortName = queryParams.sortName
-          this.sortDirection = queryParams.sortDirection
-          this.searchTerm = queryParams.searchTerm
-          this.updateDateRange(moment(Number(queryParams.timestampStart)).toDate(), moment(Number(queryParams.timestampEnd)).toDate())
-          this.store.dispatch(new ExecutionEventsActions.Get(queryParams))
-          this.store.dispatch(new DashboardFormActions.InitializeForm({ minDate: this.timestampStart, maxDate: this.timestampEnd }))
-        } else {
-          this.store.dispatch(new ExecutionEventsActions.GetDefault({}))
-        }
-      })
-
-    this.store
-      .select('dashboardForm', 'dashboardFilters', 'value', 'dateRange')
-      .pipe(
-        filter(state => state != null)
-      )
-      .subscribe(dateRange => {
-        this.updateDateRange(moment(dateRange[0]).toDate(), moment(dateRange[1]).toDate())
-      })
-
-    this.store
-      .select('dashboardForm', 'dashboardFilters', 'value', 'minDate')
-      .pipe(
-        switchMap(minDate => {
-          return this.store
-            .select('dashboardForm', 'dashboardFilters', 'value', 'sliderRange')
-            .pipe(
-              map(sliderRange => {
-                return { sliderRange: sliderRange, minDate: minDate }
-              })
-            )
-        }),
-        switchMap(state => {
-          return this.store
-            .select('dashboardForm', 'dashboardFilters', 'value', 'maxDate')
-            .pipe(
-              map(maxDate => {
-                return { sliderRange: state.sliderRange, minDate: state.minDate, maxDate: maxDate }
-              })
-            )
+    this.subscribtions.push(
+      this.store.select('router', 'state', 'queryParams')
+        .subscribe((queryParams: any) => {
+          if (!_.isEmpty(queryParams)) {
+            this.queryParams = queryParams
+            if (queryParams.timestampStart != 0) {
+              this.liveData = false
+            }
+            this.store.dispatch(new ExecutionEventsActions.Get({ ...this.queryParams, asAtTime: this.asAtTime }))
+          }
+          if (this.liveData) {
+            this.store.dispatch(new ExecutionEventsActions.GetDefault({}))
+          }
+          this.store.dispatch(new DashboardFormActions.InitializeForm({ minDate: this.queryParams.timestampStart, maxDate: this.queryParams.timestampEnd }))
         })
-      )
-      .subscribe(state => {
-        this.updateTimestamp(state.sliderRange[0], state.minDate) 
-        this.updateTimestamp(state.sliderRange[1], state.maxDate)
-        this.timestampStart = state.sliderRange[0]
-        this.timestampEnd = state.sliderRange[1]
-        const params: RouterStateUrl = this.createParams()
-        this.store.dispatch(new ExecutionEventsActions.Get(params.queryParams))
-        this.store.dispatch(new RouterAction.ReplaceUrlState(params.queryParams))
-      })
+    )
 
-    this.store.select('executionEvents')
-      .pipe(
-        filter(state => state != null)
-      ).subscribe(executionEvents => {
-        this.rows = executionEvents.elements[1]
-        this.offset = executionEvents.offset
-        this.totalCount = executionEvents.totalCount
-      })
+    this.subscribtions.push(
+      this.store
+        .select('dashboardForm', 'dashboardFilters', 'value', 'minDate')
+        .pipe(
+          switchMap(minDate => {
+            return this.store
+              .select('dashboardForm', 'dashboardFilters', 'value', 'maxDate')
+              .pipe(
+                map(maxDate => {
+                  return { minDate: minDate, maxDate: maxDate }
+                })
+              )
+          })
+        )
+        .subscribe(state => {
+          if (!this.liveData) {
+            this.queryParams = { ...this.queryParams, timestampStart: state.minDate, timestampEnd: state.maxDate }
+            this.store.dispatch(new RouterAction.ReplaceUrlState(this.queryParams))
+            this.store.dispatch(new ExecutionEventsActions.Get({ ...this.queryParams, asAtTime: this.asAtTime }))
+          }
+        })
+    )
+
+    this.subscribtions.push(
+      this.store.select('executionEvents')
+        .pipe(
+          filter(state => state != null)
+        ).subscribe(executionEvents => {
+          this.rows = executionEvents.elements[1]
+          this.queryParams = { ...this.queryParams, offset: executionEvents.offset }
+          this.totalCount = executionEvents.totalCount
+        })
+    )
   }
 
   ngAfterViewInit(): void {
 
-    this.table.page.pipe(
-      tap(_ => this.loading = true),
-    ).subscribe(
-      page => {
-        this.offset = page.offset
-        const params = this.createParams()
-        this.store.dispatch(new RouterAction.Go(params))
-        this.loading = false
-      }
-    )
-
-    this.table.sort.pipe(
-      tap(_ => this.loading = true),
-      map(event => event.sorts[0]),
-    ).subscribe(
-      sort => {
-        this.sortName = sort.prop
-        this.sortDirection = sort.dir
-        this.offset = 0
-        const params = this.createParams()
-        this.store.dispatch(new RouterAction.Go(params))
-        this.loading = false
-      }
-    )
-
-    fromEvent<any>(this.searchInput.nativeElement, 'keyup')
-      .pipe(
+    this.subscribtions.push(
+      this.table.page.pipe(
         tap(_ => this.loading = true),
-        map(event => event.target.value),
-        debounceTime(400),
-        distinctUntilChanged()
       ).subscribe(
-        searchTerm => {
-          this.offset = 0
-          this.searchTerm = searchTerm
-          let params = this.createParams()
-          this.store.dispatch(new RouterAction.Go(params))
-          this.loading = false
+        page => {
+          this.queryParams = { ...this.queryParams, offset: page.offset }
+          this.applyFilters()
         }
       )
+    )
 
+    this.subscribtions.push(
+      this.table.sort.pipe(
+        tap(_ => this.loading = true),
+        map(event => event.sorts[0]),
+      ).subscribe(
+        sort => {
+          this.queryParams = { ...this.queryParams, offset: 0, sortName: sort.prop, sortDirection: sort.dir }
+          this.applyFilters()
+        }
+      )
+    )
+
+    this.subscribtions.push(
+      fromEvent<any>(this.searchInput.nativeElement, 'keyup')
+        .pipe(
+          tap(_ => this.loading = true),
+          map(event => event.target.value),
+          debounceTime(400)
+        ).subscribe(
+          searchTerm => {
+            this.queryParams = { ...this.queryParams, offset: 0, searchTerm: searchTerm }
+            this.applyFilters()
+          }
+        )
+    )
+
+  }
+
+  private applyFilters() {
+    if (!this.liveData) {
+      this.store.dispatch(new RouterAction.ReplaceUrlState(this.queryParams))
+    }
+    this.store.dispatch(new ExecutionEventsActions.Get({ ...this.queryParams, asAtTime: this.asAtTime }))
+    this.loading = false
+  }
+
+  public onDataModeChange(value) {
+    this.liveData = value
+    this.queryParams = (this.liveData == true && {})
+    this.store.dispatch(new RouterAction.ReplaceUrlState(this.queryParams))
   }
 
   public onSelect(event): void {
@@ -221,57 +207,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
   }
 
-  private createParams(): RouterStateUrl {
-    const routerStateParams = {} as RouterStateUrl
-    routerStateParams.queryParams = {
-      timestampStart: this.timestampStart,
-      timestampEnd: this.timestampEnd,
-      asAtTime: this.asAtTime,
-      offset: this.offset,
-      sortName: this.sortName,
-      sortDirection: this.sortDirection,
-      searchTerm: this.searchTerm
-    }
-    return routerStateParams
-  }
-
-
-  private createStepArray(startDate?: Date, endDate?: Date): CustomStepDefinition[] {
-    const timestampSteps: number[] = []
-    const start: Moment = startDate ? moment(startDate) : moment()
-    const end: Moment = endDate ? startDate.valueOf() == endDate.valueOf() ? moment(endDate).add(2, 'days') : moment(endDate).add(1, 'days') : this.maxRange
-    for (let m = start; m.isBefore(end); m.add(1, 'days')) {
-      timestampSteps.push(m.valueOf())
-    }
-
-    const stepArray = timestampSteps.map((timestamp: number) => {
-      if (moment(timestamp).format('DD') == "01") {
-        return { value: timestamp, legend: `${moment(timestamp).format('DD')} \n ${moment(timestamp).format('MMMM')} ` }
-      }
-      if (timestampSteps.length < 120) {
-        return { value: timestamp, legend: moment(timestamp).format('DD') }
-      } else {
-        return { value: timestamp }
-      }
-    })
-    return stepArray
-  }
-
-  private updateTimestamp(timestampStepValue: number, newTimestamp: number): void {
-    const indexToChange: number = this.options.stepsArray.findIndex(x => moment(x.value).format('LL') === moment(timestampStepValue).format('LL'))
-    if (this.options.stepsArray[indexToChange]) {
-      const replacementItem: CustomStepDefinition = { value: newTimestamp, legend: this.options.stepsArray[indexToChange].legend }
-      const newSteps = Object.assign([], this.options.stepsArray, { [indexToChange]: replacementItem })
-      const newOptions: Options = Object.assign({}, this.options)
-      newOptions.stepsArray = newSteps
-      this.options = newOptions
-    }
-  }
-
-  private updateDateRange(startDate: Date, endDate: Date): void {
-    const newOptions: Options = Object.assign({}, this.options)
-    newOptions.stepsArray = this.createStepArray(startDate, endDate)
-    this.options = newOptions
+  ngOnDestroy(): void {
+    this.subscribtions.forEach(s => s.unsubscribe())
   }
 
 }

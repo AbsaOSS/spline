@@ -18,7 +18,7 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
 import * as _ from 'lodash';
-import { Observable, throwError } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { LineageOverview, Transition } from '../generated/models';
 import { LineageControllerService } from '../generated/services';
@@ -31,6 +31,8 @@ import { LineageOverviewVM } from '../model/viewModels/lineageOverview';
 import { LineageOverviewNodeVM } from '../model/viewModels/LineageOverviewNodeVM';
 import * as LineageOverviewAction from '../store/actions/lineage-overview.actions';
 import { lineageOverviewColorCodes, lineageOverviewIconCodes } from '../store/reducers/lineage-overview.reducer';
+import * as ErrorActions from '../store/actions/error.actions';
+
 
 
 @Injectable()
@@ -52,10 +54,13 @@ export class LineageOverviewEffects {
         map(res => new LineageOverviewAction.GetSuccess(res))
     )
 
-    private getLineageOverview(payload: LineageControllerService.LineageUsingGET1Params) {
+    private getLineageOverview(payload: LineageControllerService.LineageUsingGET1Params): Observable<LineageOverviewVM> {
         return this.lineageOverviewControllerService.lineageUsingGET1Response(payload).pipe(
             map(response => this.toLineageOverviewVM(response)),
-            catchError(this.handleError)
+            catchError(err => {
+                this.handleError(err)
+                return of<LineageOverviewVM>()
+            })
         )
     }
 
@@ -64,8 +69,18 @@ export class LineageOverviewEffects {
         const cytoscapeGraphVM = {} as CytoscapeGraphVM
         cytoscapeGraphVM.nodes = []
         cytoscapeGraphVM.edges = []
+        let targetNodeId = ""
+        let targetNodeFound = false
+        let targetNodeName = ""
         _.each(lineageUsingGET1Response.body.lineage.nodes, (node: LineageOverviewNodeVM) => {
             const cytoscapeOperation = {} as CytoscapeOperationVM
+            if (!targetNodeFound && node._type == LineageOverviewNodeType.Execution) {
+                targetNodeId = node.writesTo
+                targetNodeFound = true
+            } else if (node._type == LineageOverviewNodeType.DataSource && node._id == targetNodeId) {
+                targetNodeName = node.name
+                cytoscapeOperation.properties = { "targetNode": true }
+            }
             cytoscapeOperation._type = node._type
             cytoscapeOperation.id = node._id
             cytoscapeOperation._id = node.name
@@ -82,14 +97,14 @@ export class LineageOverviewEffects {
 
         const lineageOverviewVM = {} as LineageOverviewVM
         lineageOverviewVM.lineage = cytoscapeGraphVM
-        lineageOverviewVM.lineageInfo = lineageUsingGET1Response.body.lineageInfo
+        lineageOverviewVM.lineageInfo = { ...lineageUsingGET1Response.body.lineageInfo, ...{ "targetNodeName": targetNodeName } }
         return lineageOverviewVM
     }
 
-    private handleError = (err: HttpErrorResponse): Observable<never> => {
-        return throwError(
-            (err.error instanceof ErrorEvent)
-                ? `An error occurred: ${err.error.message}`
-                : `Server returned code: ${err.status}, error message is: ${err.message} `)
+    private handleError = (err: HttpErrorResponse): void => {
+        const errorMessage = (err.error instanceof ErrorEvent)
+            ? `An error occurred: ${err.error.message}`
+            : `Server returned code: ${err.status}, error message is: ${err.message}`
+        this.store.dispatch(new ErrorActions.ServiceErrorGet(errorMessage))
     }
 }
