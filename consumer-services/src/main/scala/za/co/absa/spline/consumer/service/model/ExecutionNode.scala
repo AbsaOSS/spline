@@ -18,10 +18,9 @@ package za.co.absa.spline.consumer.service.model
 case class ExecutionNode
 (
   override val _id: String,
-  override val name: String,
-  writesTo: String
+  override val name: String
 ) extends LineageOverviewNode {
   override type Id = String
 
-  def this() = this("", "", "")
+  def this() = this("", "")
 }

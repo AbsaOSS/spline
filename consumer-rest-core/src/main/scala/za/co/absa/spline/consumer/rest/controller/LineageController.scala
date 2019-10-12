@@ -19,6 +19,7 @@ package za.co.absa.spline.consumer.rest.controller
 import io.swagger.annotations.{ApiOperation, ApiParam}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
+import za.co.absa.spline.consumer.rest.controller.LineageController.DefaultMaxDepth
 import za.co.absa.spline.consumer.service.model.LineageOverview
 import za.co.absa.spline.consumer.service.repo.LineageRepository
 
@@ -32,14 +33,27 @@ class LineageController @Autowired()(val repo: LineageRepository) {
   @GetMapping(Array("/lineage"))
   @ApiOperation(
     value = "GET /lineage",
-    notes = "Returns a lineage overview of executionEvent Id"
+    notes = "Returns a lineage overview of executionEvent ID"
   )
-  def lineage
-  (
-    @ApiParam(value="Id of the application")
-    @RequestParam("executionEventId") executionEventId: String
-  ): Future[LineageOverview] = {
-    repo.findExecutionEventId(executionEventId)
-  }
+  def lineage(
+    @ApiParam("Execution event ID")
+    @RequestParam("executionEventId")
+    executionEventId: String,
 
+    @ApiParam(
+      value = "Max depth of the graph. ([Source] -> [App] -> [Target]) is considered one level",
+      required = false,
+      defaultValue = DefaultMaxDepth
+    )
+    @RequestParam(
+      name = "maxDepth",
+      defaultValue = DefaultMaxDepth
+    )
+    maxDepth: Int
+
+  ): Future[LineageOverview] = repo.findExecutionEventId(executionEventId, maxDepth)
+}
+
+object LineageController {
+  final val DefaultMaxDepth = "5"
 }
