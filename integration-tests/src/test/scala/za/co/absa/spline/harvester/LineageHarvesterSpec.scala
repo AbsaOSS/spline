@@ -19,16 +19,24 @@ package za.co.absa.spline.harvester
 import java.util.UUID
 import java.util.UUID.randomUUID
 
+import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.functions._
 import org.scalatest.Inside._
 import org.scalatest.{Assertion, FlatSpec, Matchers}
+import za.co.absa.spline.common.ConditionalTestTags.ignoreIf
 import za.co.absa.spline.common.TempDirectory
+import za.co.absa.spline.common.Version.VersionOrdering.{max => _, min => _, _}
+import za.co.absa.spline.common.Version._
 import za.co.absa.spline.model.{Attribute, dt}
 import za.co.absa.spline.producer.rest.model._
-import za.co.absa.spline.test.fixture.SparkFixture
 import za.co.absa.spline.test.fixture.spline.SplineFixture
+import za.co.absa.spline.test.fixture.{SparkDatabaseFixture, SparkFixture}
 
-class LineageHarvesterSpec extends FlatSpec with Matchers with SparkFixture with SplineFixture {
+class LineageHarvesterSpec extends FlatSpec
+  with Matchers
+  with SparkFixture
+  with SplineFixture
+  with SparkDatabaseFixture {
 
   import za.co.absa.spline.harvester.LineageHarvesterSpec._
 
@@ -218,6 +226,56 @@ class LineageHarvesterSpec extends FlatSpec with Matchers with SparkFixture with
         assertDataLineage(expectedOperations, expectedAttributes, plan)
       }
     })
+
+  "Create table as" should "produce lineage when creating a Hive table from temp view" taggedAs ignoreIf(ver"$SPARK_VERSION" < ver"2.3") in
+    withRestartingSparkContext {
+      withCustomSparkSession(_
+        .enableHiveSupport()
+        .config("hive.exec.dynamic.partition.mode", "nonstrict")) { spark =>
+
+        val databaseName = s"unitTestDatabase_${this.getClass.getSimpleName}"
+        withHiveDatabase(spark)(databaseName) {
+
+          val (plan, _)= withLineageTracking(spark) { lineageCaptor => {
+
+            import spark.implicits._
+
+            val df = spark.createDataset(Seq(TestRow(1, 2.3, "text")))
+
+            lineageCaptor.lineageOf {
+              df.createOrReplaceTempView("tempView")
+              spark.sql("create table users_sales as select * from tempView ")
+            }
+          }}
+
+          val writeOperation = plan.operations.write
+          writeOperation.id shouldEqual 0
+          writeOperation.append shouldEqual false
+          writeOperation.childIds shouldEqual Seq(1)
+          writeOperation.params("destinationType") shouldEqual Some("hive")
+
+          val otherOperations = plan.operations.other.sortBy(_.id)
+
+          val firstOperation = otherOperations(0)
+          firstOperation.id shouldEqual 1
+          firstOperation.childIds shouldEqual Seq(2)
+          firstOperation.params("name") shouldEqual "Project"
+
+          val secondOperation = otherOperations(1)
+          secondOperation.id shouldEqual 2
+          secondOperation.childIds shouldEqual Seq(3)
+          if (ver"$SPARK_VERSION" < ver"2.4")
+            secondOperation.params("name") shouldEqual "SubqueryAlias"
+          else
+            secondOperation.params("name") shouldEqual Some("`tempview`")
+
+          val thirdOperation = otherOperations(2)
+          thirdOperation.id shouldEqual 3
+          thirdOperation.childIds shouldEqual Nil
+          thirdOperation.params("name") shouldEqual "LocalRelation"
+        }
+      }
+    }
 }
 
 object LineageHarvesterSpec extends Matchers {
