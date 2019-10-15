@@ -73,4 +73,21 @@ class ExecutionEventController @Autowired()(val repo: ExecutionEventRepository) 
   }
 
 
+  @GetMapping(Array("/executionEvent/search"))
+  @ApiOperation(
+    value = "GET /executionEvent/search",
+    notes ="Returns a list of execution event Ids that concerns the path or the applicationId given in parameters",
+    response = classOf[Array[String]]
+  )
+  def search
+  (
+    @ApiParam(value = "Id of the application")
+    @RequestParam(value = "applicationId", required = false) applicationId: String,
+    @ApiParam(value = "path of the destination")
+    @RequestParam(value = "destinationPath", required = false) destinationPath: String
+  ): Future[Array[String]] = {
+    repo.search(applicationId,destinationPath)
+  }
+
+
 }

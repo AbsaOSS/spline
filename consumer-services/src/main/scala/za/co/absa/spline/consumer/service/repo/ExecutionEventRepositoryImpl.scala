@@ -76,6 +76,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
                           RETURN o
                   )
                 RETURN {
+                    "executionEventId" : ee._key,
                     "frameworkName" : CONCAT([exec.extra.systemInfo.name, " ", exec.extra.systemInfo.version]),
                     "applicationName" : exec.extra.appName,
                     "applicationId" : ee.extra.appId,
@@ -119,5 +120,35 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
       if query.hasNext
       next = query.next
     } yield new Pageable[ExecutionEvent](next.elements, next.totalCount - filteredCount , pageRequest.offset, pageRequest.size)
+  }
+
+  override def search(applicationId: String, destinationPath: String)(implicit ec: ExecutionContext): Future[Array[String]] = {
+    import za.co.absa.spline.persistence.ArangoImplicits._
+
+    db.queryOne[Array[String]](
+      """
+          LET executionEventsFromApplicationId = FLATTEN(
+              FOR p IN progress
+                  FILTER p.extra.appId == @applicationId
+                  RETURN p._key
+          )
+
+          LET executionEventsFromDestinationPath = FLATTEN(
+              FOR ds IN dataSource
+                  FILTER ds.uri == @destinationPath
+                  LET eeId = (
+                      FOR v, e IN 1..99999
+                          INBOUND ds affects, progressOf
+                          FILTER IS_SAME_COLLECTION("progress", v)
+                          RETURN v._key
+                  )
+                  RETURN eeId
+
+          )
+          RETURN UNION_DISTINCT(executionEventsFromApplicationId,  executionEventsFromDestinationPath)
+        """
+    ,
+    Map("applicationId" -> applicationId, "destinationPath" -> destinationPath)
+    )
   }
 }

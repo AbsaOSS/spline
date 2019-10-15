@@ -45,11 +45,7 @@ class OperationDetailsController @Autowired()
     @PathVariable("operationId") operationId: Operation.Id
   ): Future[OperationDetails] = {
     val result: Future[OperationDetails] = repo.findById(operationId)
-
-    result.map(res => {
-      val reducedDt = reducedDataTypes(res.dataTypes, res.schemas)
-      res.copy(dataTypes = reducedDt)
-    })
+    result.map(toOperationDetails)
 
   }
 
@@ -62,15 +58,17 @@ class OperationDetailsController @Autowired()
   (
     @ApiParam(value = "DataSource uri related to the operation (Output DataSource uri for a Write Operation or one of the Input DataSources uri if it is a Read Operation)")
     @RequestParam("source") source: String,
-    @ApiParam(value = "Id of the application that triggered the operation")
-    @RequestParam("applicationId") applicationId: String
+    @ApiParam(value = "Id of the executionEvent that triggered the operation")
+    @RequestParam("executionEventId") executionEventId: String
   ): Future[OperationDetails] = {
-    val result: Future[OperationDetails] = repo.findBySourceAndApplicationId(source, applicationId)
+    val result: Future[OperationDetails] = repo.findBySourceAndExecutionEventId(source, executionEventId)
+    result.map(toOperationDetails)
+  }
 
-    result.map(res => {
-      val reducedDt = reducedDataTypes(res.dataTypes, res.schemas)
-      res.copy(dataTypes = reducedDt)
-    })
+
+  private def toOperationDetails(operationDetails : OperationDetails) : OperationDetails = {
+    val reducedDt = reducedDataTypes(operationDetails.dataTypes, operationDetails.schemas)
+    operationDetails.copy(dataTypes = reducedDt)
   }
 
   private def reducedDataTypes(dataTypes: Array[persistence.DataType], schemas: Array[Array[persistence.Attribute]]): Array[persistence.DataType] = {

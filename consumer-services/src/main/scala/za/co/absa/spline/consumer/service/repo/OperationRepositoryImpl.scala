@@ -37,65 +37,64 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
     )
   }
 
-  override def findBySourceAndApplicationId(source: String, applicationId : String)(implicit ec: ExecutionContext): Future[OperationDetails] = {
+  override def findBySourceAndExecutionEventId(source: String, executionEventId : String)(implicit ec: ExecutionContext): Future[OperationDetails] = {
     db.queryOne[OperationDetails](
       """
-         LET writeOp = FIRST(
-             FOR ope IN operation
-                 FILTER ope.properties.outputSource == @source
-                 LET executionEventFiltered = FIRST(
-                     FOR v, e IN 1..9999
-                         INBOUND ope executes, progressOf
-                         OPTIONS {uniqueEdges: "none"}
-                         FILTER v.extra.appId == @applicationId
-                         RETURN v
-                 )
-                 RETURN executionEventFiltered && ope
-             )
-         
-         LET pairExecutionKeyTimestamp = FIRST(
-             FOR p IN progress
-                 FILTER p.extra.appId == @applicationId
-                 LET timestamp = p.timestamp
-                 LET executionKey = FIRST(
-                     FOR v, e IN 1..9999
-                     OUTBOUND p progressOf
-                     OPTIONS {uniqueEdges: "none"}
-                     RETURN v._key
-                 )
-                 RETURN { "executionKey" : executionKey, "timestamp" : timestamp }
-         )
-         LET previousExecutions = SPLINE::FIND_PREVIOUS_EXECUTIONS(pairExecutionKeyTimestamp.executionKey, pairExecutionKeyTimestamp.timestamp, 5)
-         
-         LET previousApplicationIds = UNIQUE(
-             FOR exec in execution
-             FILTER CONTAINS(previousExecutions, exec._key)
-             LET appId = FIRST(
-                 FOR v, e IN 1..9999
-                 INBOUND exec progressOf
-                 OPTIONS {uniqueEdges: "none"}
-                 RETURN v.extra.appId
-             )
-             RETURN appId
-         )
-         
-         LET readOp = FIRST(
-             FOR ope IN operation
-                 FILTER CONTAINS(ope.properties.inputSources, @source)
-                 LET executionEventFiltered = FIRST(
-                     FOR v, e IN 1..9999
-                         INBOUND ope follows, executes, progressOf
-                         FILTER CONTAINS(APPEND(previousApplicationIds, @applicationId), v.extra.appId)
-                         RETURN v
-                 )
-         
+        LET executionEventFiltered = FIRST(
+          FOR p IN progress
+              FILTER p._key == @executionEventId
+              RETURN p
+        )
+
+        LET writeOp = FIRST(
+            FOR ope IN operation
+                FILTER ope.properties.outputSource == @source
                 RETURN executionEventFiltered && ope
-         )
-         
-         LET op = writeOp != null ? writeOp : readOp
-         RETURN SPLINE::FIND_OPERATION_BY_ID(op._key)
+        )
+
+
+        LET pairExecutionKeyTimestamp = FIRST(
+            LET executionKey = FIRST(
+                FOR po IN progressOf
+                    FILTER po._from == executionEventFiltered._id
+                    RETURN DOCUMENT(po._to)._key
+            )
+            RETURN { "executionKey" : executionKey, "timestamp" : executionEventFiltered.timestamp }
+        )
+
+
+
+
+        LET previousExecutions = SPLINE::FIND_PREVIOUS_EXECUTIONS(pairExecutionKeyTimestamp.executionKey, pairExecutionKeyTimestamp.timestamp, 5)
+
+        LET previousApplicationIds = UNIQUE(
+            FOR exec in execution
+                FILTER CONTAINS(previousExecutions, exec._key)
+                LET appId = FIRST(
+                    FOR po IN progressOf
+                        FILTER po._to == exec._id
+                        RETURN DOCUMENT(po._from).extra.appId
+                )
+                RETURN appId
+        )
+
+        LET readOp = FIRST(
+            FOR ope IN operation
+                FILTER CONTAINS(ope.properties.inputSources, @source)
+                LET execEventFiltered = FIRST(
+                FOR v, e IN 1..9999
+                    INBOUND ope follows, executes, progressOf
+                    FILTER CONTAINS(APPEND(previousApplicationIds, executionEventFiltered.extra.appId), v.extra.appId)
+                    RETURN v
+                )
+                RETURN execEventFiltered && ope
+        )
+
+
+        LET op = writeOp != null ? writeOp : readOp
+        RETURN SPLINE::FIND_OPERATION_BY_ID(op._key)
       """,
-      Map("source" -> source, "applicationId" -> applicationId)
+      Map("source" -> source, "executionEventId" -> executionEventId)
     )
   }
 }

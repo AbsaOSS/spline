@@ -18,11 +18,9 @@ import { Store } from '@ngrx/store';
 import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
 import * as _ from 'lodash';
 import { filter, map, switchMap, first } from 'rxjs/operators';
-import { LineageControllerService } from 'src/app/generated/services';
 import { AppState } from 'src/app/model/app-state';
 import { RouterStateUrl } from 'src/app/model/routerStateUrl';
 import { LineageOverviewNodeType } from 'src/app/model/types/lineageOverviewNodeType';
-import { LineageOverviewVM } from 'src/app/model/viewModels/lineageOverview';
 import * as ContextMenuAction from 'src/app/store/actions/context-menu.actions';
 import * as DataSourceInfoActions from 'src/app/store/actions/datasource.info.actions';
 import * as ExecutionPlanDatasourceInfoAction from 'src/app/store/actions/execution-plan-datasource-info.actions';
@@ -152,28 +150,12 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
   private getOverviewLineage = (): void => {
     this.subscriptions.push(
       this.store
-        .select('router', 'state', 'queryParams', 'path')
+        .select('router', 'state', 'queryParams', 'executionEventId')
         .pipe(
-          filter(state => state != null),
-          switchMap(path => {
-            return this.store
-              .select('router', 'state', 'queryParams', 'applicationId')
-              .pipe(
-                filter(state => state != null),
-                map(applicationId => {
-                  return { path, applicationId }
-                })
-              )
-          })
-        ).subscribe(
-          queryParams => {
-            const serviceParams: LineageControllerService.LineageUsingGET1Params = {
-              path: queryParams.path,
-              applicationId: queryParams.applicationId
-            }
-            this.store.dispatch(new LineageOverviewAction.Get(serviceParams))
-            this.store.dispatch(new LineageOverviewAction.Save(serviceParams as LineageOverviewVM))
-          }
+          filter(state => state != null)
+        )
+        .subscribe(
+          executionEventId => this.store.dispatch(new LineageOverviewAction.Get(executionEventId))
         )
     )
   }
@@ -188,12 +170,12 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
         }
         case LineageOverviewNodeType.DataSource: {
           this.store.dispatch(new ExecutionPlanDatasourceInfoAction.Reset())
-          this.store.select('router', 'state', 'queryParams', 'applicationId')
+          this.store.select('router', 'state', 'queryParams', 'executionEventId')
             .pipe(
               first()
             )
-            .subscribe(applicationId => {
-              this.store.dispatch(new DataSourceInfoActions.Get({ "source": node._id, "applicationId": applicationId }))
+            .subscribe(executionEventId => {
+              this.store.dispatch(new DataSourceInfoActions.Get({ "source": node._id, "executionEventId": executionEventId }))
             })
           break
         }

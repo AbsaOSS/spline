@@ -70,13 +70,13 @@ export class DetailsInfoEffects {
     public getDatasourceInfo$(): Observable<Action> {
         return this.actions$.pipe(
             ofType(DatasourceAction.DataSourceActionTypes.DATASOURCE_INFOS_GET),
-            switchMap((action: any) => this.getDatasourceInfo(action.payload.source, action.payload.applicationId)),
+            switchMap((action: any) => this.getDatasourceInfo(action.payload.source, action.payload.executionEventId)),
             map(res => new DatasourceAction.GetSuccess(res))
         )
     }
 
-    private getDatasourceInfo = (source: string, applicationId: string): Observable<OperationDetailsVM> => {
-        return this.operationDetailsControllerService.operationFromSourceAndApplicationIdUsingGETResponse({ "source": source, "applicationId": applicationId }).pipe(
+    private getDatasourceInfo = (source: string, executionEventId: string): Observable<OperationDetailsVM> => {
+        return this.operationDetailsControllerService.operationFromSourceAndApplicationIdUsingGETResponse({ "source": source, "executionEventId": executionEventId }).pipe(
             map(this.toOperationDetailsView),
             catchError(err => {
                 this.handleError(err)

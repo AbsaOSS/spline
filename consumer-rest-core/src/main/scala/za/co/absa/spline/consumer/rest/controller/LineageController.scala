@@ -32,16 +32,14 @@ class LineageController @Autowired()(val repo: LineageRepository) {
   @GetMapping(Array("/lineage"))
   @ApiOperation(
     value = "GET /lineage",
-    notes = "Returns a lineage overview of a given dataSource uri and an application Id and"
+    notes = "Returns a lineage overview of executionEvent Id"
   )
   def lineage
   (
-    @ApiParam(value="Output DataSource uri")
-    @RequestParam("path") path: String,
     @ApiParam(value="Id of the application")
-    @RequestParam("applicationId") applicationId: String
+    @RequestParam("executionEventId") executionEventId: String
   ): Future[LineageOverview] = {
-    repo.findByApplicationIdAndPath(path, applicationId)
+    repo.findExecutionEventId(executionEventId)
   }
 
 }

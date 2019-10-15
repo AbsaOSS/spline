@@ -54,9 +54,9 @@ export class LineageOverviewEffects {
         map(res => new LineageOverviewAction.GetSuccess(res))
     )
 
-    private getLineageOverview(payload: LineageControllerService.LineageUsingGET1Params): Observable<LineageOverviewVM> {
-        return this.lineageOverviewControllerService.lineageUsingGET1Response(payload).pipe(
-            map(response => this.toLineageOverviewVM(response)),
+    private getLineageOverview(executionEventId: string): Observable<LineageOverviewVM> {
+        return this.lineageOverviewControllerService.lineageUsingGET1Response(executionEventId).pipe(
+            map(response => this.toLineageOverviewVM(response, executionEventId)),
             catchError(err => {
                 this.handleError(err)
                 return of<LineageOverviewVM>()
@@ -65,7 +65,7 @@ export class LineageOverviewEffects {
     }
 
 
-    private toLineageOverviewVM = (lineageUsingGET1Response: StrictHttpResponse<LineageOverview>): LineageOverviewVM => {
+    private toLineageOverviewVM = (lineageUsingGET1Response: StrictHttpResponse<LineageOverview>, executionEventId: String): LineageOverviewVM => {
         const cytoscapeGraphVM = {} as CytoscapeGraphVM
         cytoscapeGraphVM.nodes = []
         cytoscapeGraphVM.edges = []
@@ -97,7 +97,7 @@ export class LineageOverviewEffects {
 
         const lineageOverviewVM = {} as LineageOverviewVM
         lineageOverviewVM.lineage = cytoscapeGraphVM
-        lineageOverviewVM.lineageInfo = { ...lineageUsingGET1Response.body.lineageInfo, ...{ "targetNodeName": targetNodeName } }
+        lineageOverviewVM.lineageInfo = { ...lineageUsingGET1Response.body.lineageInfo, ...{ "targetNodeName": targetNodeName, "executionEventId": executionEventId } }
         return lineageOverviewVM
     }
 

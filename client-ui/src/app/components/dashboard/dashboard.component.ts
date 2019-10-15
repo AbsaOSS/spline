@@ -189,11 +189,9 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public onSelect(event): void {
-    const appId = event.selected[0].applicationId
-    const datasource = event.selected[0].datasource
+    const executionEventId = event.selected[0].executionEventId
     const params = {} as RouterStateUrl
-    params.url = `/app/partial-lineage/${appId}`
-    params.queryParams = { "path": datasource, "applicationId": appId }
+    params.queryParams = { "executionEventId": executionEventId }
     params.url = "/app/lineage-overview/"
     this.store.dispatch(new RouterAction.Go(params))
   }

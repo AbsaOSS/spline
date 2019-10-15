@@ -146,7 +146,7 @@ export class LineageGraphComponent implements OnInit, AfterViewInit, OnDestroy {
         .subscribe(lineage => {
           const params: RouterStateUrl = {
             url: "/app/lineage-overview",
-            queryParams: { path: lineage.path, applicationId: lineage.applicationId }
+            queryParams: { executionEventId: lineage.lineageInfo.executionEventId }
           }
           this.store.dispatch(new RouterAction.Go(params))
         })

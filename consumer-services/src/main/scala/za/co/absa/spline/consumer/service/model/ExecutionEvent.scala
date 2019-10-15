@@ -19,6 +19,8 @@ import io.swagger.annotations.ApiModelProperty
 
 case class ExecutionEvent
 (
+  @ApiModelProperty(value = "Id of the executionEvent")
+  executionEventId: String,
   @ApiModelProperty(value = "Name of the framework that triggered this execution event")
   frameworkName: String,
   @ApiModelProperty(value = "Name of the application/job")
@@ -34,7 +36,7 @@ case class ExecutionEvent
   @ApiModelProperty(value = "Write mode - (true=Append; false=Override)")
   append: Boolean
 ) {
-  def this() = this(null, null, null, 0, null, null, false)
+  def this() = this(null, null, null, null, 0, null, null, false)
 }
 
 case class PageableExecutionEvent() extends Pageable[ExecutionEvent] {

@@ -30,4 +30,12 @@ trait ExecutionEventRepository {
     searchTerm: String
   )
   (implicit ec: ExecutionContext): Future[Pageable[ExecutionEvent]]
+
+
+  def search
+  (
+    applicationId: String,
+    destinationPath: String
+  )
+  (implicit ec: ExecutionContext): Future[Array[String]]
 }
