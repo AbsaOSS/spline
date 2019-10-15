@@ -69,15 +69,14 @@ export class LineageOverviewEffects {
         const cytoscapeGraphVM = {} as CytoscapeGraphVM
         cytoscapeGraphVM.nodes = []
         cytoscapeGraphVM.edges = []
-        let targetNodeId = ""
-        let targetNodeFound = false
+        const writesTo = lineageUsingGET1Response.body.lineage.nodes.filter(
+            n => n["writesTo"] && !lineageUsingGET1Response.body.lineage.edges.find(e => e.source == n["writesTo"])
+        ).map(n => n["writesTo"])
+        const targetNodeId = _.flatten(writesTo)
         let targetNodeName = ""
         _.each(lineageUsingGET1Response.body.lineage.nodes, (node: LineageOverviewNodeVM) => {
             const cytoscapeOperation = {} as CytoscapeOperationVM
-            if (!targetNodeFound && node._type == LineageOverviewNodeType.Execution) {
-                targetNodeId = node.writesTo
-                targetNodeFound = true
-            } else if (node._type == LineageOverviewNodeType.DataSource && node._id == targetNodeId) {
+            if (node._id == targetNodeId) {
                 targetNodeName = node.name
                 cytoscapeOperation.properties = { "targetNode": true }
             }

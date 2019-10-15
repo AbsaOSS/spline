@@ -41,9 +41,9 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
     db.queryOne[OperationDetails](
       """
         LET executionEventFiltered = FIRST(
-          FOR p IN progress
-              FILTER p._key == @executionEventId
-              RETURN p
+            FOR p IN progress
+                FILTER p._key == @executionEventId
+                RETURN p
         )
 
         LET writeOp = FIRST(
@@ -51,7 +51,6 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
                 FILTER ope.properties.outputSource == @source
                 RETURN executionEventFiltered && ope
         )
-
 
         LET pairExecutionKeyTimestamp = FIRST(
             LET executionKey = FIRST(
@@ -62,32 +61,19 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
             RETURN { "executionKey" : executionKey, "timestamp" : executionEventFiltered.timestamp }
         )
 
-
-
-
-        LET previousExecutions = SPLINE::FIND_PREVIOUS_EXECUTIONS(pairExecutionKeyTimestamp.executionKey, pairExecutionKeyTimestamp.timestamp, 5)
-
-        LET previousApplicationIds = UNIQUE(
-            FOR exec in execution
-                FILTER CONTAINS(previousExecutions, exec._key)
-                LET appId = FIRST(
-                    FOR po IN progressOf
-                        FILTER po._to == exec._id
-                        RETURN DOCUMENT(po._from).extra.appId
-                )
-                RETURN appId
-        )
-
         LET readOp = FIRST(
+            FLATTEN(
             FOR ope IN operation
                 FILTER CONTAINS(ope.properties.inputSources, @source)
-                LET execEventFiltered = FIRST(
-                FOR v, e IN 1..9999
-                    INBOUND ope follows, executes, progressOf
-                    FILTER CONTAINS(APPEND(previousApplicationIds, executionEventFiltered.extra.appId), v.extra.appId)
-                    RETURN v
+
+                LET execEventFiltered = (
+                    FOR v, e IN 1..9999
+                        INBOUND ope follows, executes, progressOf
+                        FILTER IS_SAME_COLLECTION("progress", v) AND v._key == @executionEventId
+                        RETURN v
                 )
                 RETURN execEventFiltered && ope
+            )
         )
 
 
