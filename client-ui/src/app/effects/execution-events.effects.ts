@@ -57,7 +57,7 @@ export class ExecutionEventsEffects {
         switchMap((action: any) => this.executionEventControllerService.executionEventUsingGET(action.payload)),
         debounceTime(100),
         map((res: PageableExecutionEvent) => {
-            const timestamps = res.elements[1].map(r => r.timestamp)
+            const timestamps = (res.elements[1] as any).map(r => r.timestamp)
             const minDate = _.min(timestamps)
             const maxDate = _.max(timestamps)
             this.store.dispatch(new DashboardFormActions.InitializeForm({ minDate: minDate, maxDate: maxDate }))
