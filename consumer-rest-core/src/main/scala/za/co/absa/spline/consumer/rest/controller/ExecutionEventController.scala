@@ -54,7 +54,7 @@ class ExecutionEventController @Autowired()(val repo: ExecutionEventRepository) 
     @RequestParam(value = "sortDirection", required = false, defaultValue = "desc") sortDirection: String,
     @ApiParam(value = "Text to filter the results")
     @RequestParam(value = "searchTerm", required = false) searchTerm: String
-  ): Future[Pageable[ExecutionEvent]] = {
+  ): Future[Pageable[ExecutionEventInfo]] = {
 
     val pageRequest = asAtTime match {
       case 0 => new PageRequest(new Date().getTime, 0, 10)
@@ -77,7 +77,7 @@ class ExecutionEventController @Autowired()(val repo: ExecutionEventRepository) 
   @ApiOperation(
     value = "GET /executionEvent/search",
     notes ="Returns a list of execution event Ids that concerns the path or the applicationId given in parameters",
-    response = classOf[Array[String]]
+    response = classOf[ExecutionEvent]
   )
   def search
   (
@@ -85,7 +85,7 @@ class ExecutionEventController @Autowired()(val repo: ExecutionEventRepository) 
     @RequestParam(value = "applicationId", required = false) applicationId: String,
     @ApiParam(value = "path of the destination")
     @RequestParam(value = "destinationPath", required = false) destinationPath: String
-  ): Future[Array[String]] = {
+  ): Future[ExecutionEvent] = {
     repo.search(applicationId,destinationPath)
   }
 

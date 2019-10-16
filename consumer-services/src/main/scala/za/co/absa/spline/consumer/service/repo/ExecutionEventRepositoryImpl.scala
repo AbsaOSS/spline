@@ -33,7 +33,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
     pageRequest: PageRequest,
     sortRequest: SortRequest,
     searchTerm: String
-  )(implicit ec: ExecutionContext): Future[Pageable[ExecutionEvent]] = {
+  )(implicit ec: ExecutionContext): Future[Pageable[ExecutionEventInfo]] = {
     import za.co.absa.spline.persistence.ArangoImplicits._
 
     val arangoCursorAsync = db.queryAs[ExecutionEventQueryResult](
@@ -119,36 +119,22 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
       filteredCount = query.getStats.getFiltered
       if query.hasNext
       next = query.next
-    } yield new Pageable[ExecutionEvent](next.elements, next.totalCount - filteredCount , pageRequest.offset, pageRequest.size)
+    } yield new Pageable[ExecutionEventInfo](next.elements, next.totalCount - filteredCount , pageRequest.offset, pageRequest.size)
   }
 
-  override def search(applicationId: String, destinationPath: String)(implicit ec: ExecutionContext): Future[Array[String]] = {
+  override def search(applicationId: String, destinationPath: String)(implicit ec: ExecutionContext): Future[ExecutionEvent] = {
     import za.co.absa.spline.persistence.ArangoImplicits._
 
-    db.queryOne[Array[String]](
+    db.queryOne[ExecutionEvent](
       """
-          LET executionEventsFromApplicationId = FLATTEN(
-              FOR p IN progress
-                  FILTER p.extra.appId == @applicationId
-                  RETURN p._key
-          )
-
-          LET executionEventsFromDestinationPath = FLATTEN(
-              FOR ds IN dataSource
-                  FILTER ds.uri == @destinationPath
-                  LET eeId = (
-                      FOR v, e IN 1..99999
-                          INBOUND ds affects, progressOf
-                          FILTER IS_SAME_COLLECTION("progress", v)
-                          RETURN v._key
-                  )
-                  RETURN eeId
-
-          )
-          RETURN UNION_DISTINCT(executionEventsFromApplicationId,  executionEventsFromDestinationPath)
-        """
-    ,
-    Map("applicationId" -> applicationId, "destinationPath" -> destinationPath)
+        FOR ds IN dataSource
+          FILTER ds.uri == @destinationPath
+          FOR e IN 2
+            INBOUND ds affects, progressOf
+            FILTER e.extra.appId == @applicationId
+            RETURN MERGE(UNSET(e, "_rev", "_id", "_key", "_creationTimestamp"), {"creationTimestamp" : e._creationTimestamp, "id" : e._key})
+        """,
+      Map("applicationId" -> applicationId, "destinationPath" -> destinationPath)
     )
   }
 }

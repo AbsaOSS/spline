@@ -15,7 +15,7 @@
  */
 package za.co.absa.spline.consumer.service.repo
 
-import za.co.absa.spline.consumer.service.model.{ExecutionEvent, PageRequest, Pageable, SortRequest}
+import za.co.absa.spline.consumer.service.model.{ExecutionEvent, ExecutionEventInfo, PageRequest, Pageable, SortRequest}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -29,7 +29,7 @@ trait ExecutionEventRepository {
     sortRequest: SortRequest,
     searchTerm: String
   )
-  (implicit ec: ExecutionContext): Future[Pageable[ExecutionEvent]]
+  (implicit ec: ExecutionContext): Future[Pageable[ExecutionEventInfo]]
 
 
   def search
@@ -37,5 +37,5 @@ trait ExecutionEventRepository {
     applicationId: String,
     destinationPath: String
   )
-  (implicit ec: ExecutionContext): Future[Array[String]]
+  (implicit ec: ExecutionContext): Future[ExecutionEvent]
 }
