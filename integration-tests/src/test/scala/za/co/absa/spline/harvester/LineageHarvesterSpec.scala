@@ -244,7 +244,7 @@ class LineageHarvesterSpec extends FlatSpec
 
             lineageCaptor.lineageOf {
               df.createOrReplaceTempView("tempView")
-              spark.sql("create table users_sales as select * from tempView ")
+              spark.sql("create table users_sales as select i, d, s from tempView ")
             }
           }}
 
@@ -264,10 +264,7 @@ class LineageHarvesterSpec extends FlatSpec
           val secondOperation = otherOperations(1)
           secondOperation.id shouldEqual 2
           secondOperation.childIds shouldEqual Seq(3)
-          if (ver"$SPARK_VERSION" < ver"2.4")
-            secondOperation.params("name") shouldEqual "SubqueryAlias"
-          else
-            secondOperation.params("name") shouldEqual Some("`tempview`")
+          secondOperation.params("name") should (equal("SubqueryAlias") or equal(Some("`tempview`"))) // Spark 2.3/2.4
 
           val thirdOperation = otherOperations(2)
           thirdOperation.id shouldEqual 3
