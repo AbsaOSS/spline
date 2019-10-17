@@ -14,33 +14,24 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
-import { Store } from '@ngrx/store';
 import { AppState } from 'src/app/model/app-state';
+import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
-import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM';
-import { AttributeVM } from 'src/app/model/viewModels/attributeVM';
+import { ExecutedLogicalPlanVM } from 'src/app/model/viewModels/executedLogicalPlanVM';
 
 @Component({
-  selector: 'lineage-overview-details',
-  templateUrl: './lineage-overview-details.component.html',
-  styleUrls: ['./lineage-overview-details.component.less']
+  selector: 'execution-plan-details',
+  templateUrl: './execution-plan-details.component.html',
+  styleUrls: ['./execution-plan-details.component.less']
 })
-export class LineageOverviewDetailsComponent {
+export class ExecutionPlanDetailsComponent {
+
 
   constructor(
     private store: Store<AppState>
   ) { }
 
-  public getLineageOverviewInfo = (): Observable<{ [key: string]: {} }> => {
-    return this.store.select('lineageOverview', "lineageInfo")
+  public getExecutionPlanVM(): Observable<ExecutedLogicalPlanVM> {
+    return this.store.select('executedLogicalPlan')
   }
-
-  public getDetailsInfo = (): Observable<OperationDetailsVM> => {
-    return this.store.select('detailsInfos')
-  }
-
-  public getOutputSchema = (operationDetails: OperationDetailsVM): AttributeVM[] => {
-    return operationDetails.schemas[operationDetails.output]
-  }
-
 }

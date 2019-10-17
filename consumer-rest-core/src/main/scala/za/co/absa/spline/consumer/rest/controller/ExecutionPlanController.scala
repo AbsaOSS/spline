@@ -42,17 +42,4 @@ class ExecutionPlanController @Autowired()(
    ): Future[ExecutedLogicalPlan] = {
     repo.findById(execId)
   }
-
-  @GetMapping(Array("/{execId}/info"))
-  @ApiOperation(
-    value="GET /execution/{execId}/info",
-    notes="Return input datasource information related the an Execution Plan"
-  )
-  def info
-  (
-    @ApiParam(value = "Id of the execution to retrieve")
-    @PathVariable("execId") execId: ExecutionInfo.Id
-  ): Future[Array[DataSourceInfo]] = {
-    repo.findInputDataSourceInfoById(execId)
-  }
 }

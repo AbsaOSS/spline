@@ -22,8 +22,13 @@ export type Action = ExecutionPlanAction.ExecutionPlanActions
 export function executionPlanReducer(state: ExecutedLogicalPlanVM, action: Action): ExecutedLogicalPlanVM {
     switch (action.type) {
         case ExecutionPlanAction.ExecutionPlanActionTypes.EXECUTION_PLAN_GET_SUCCESS: return { ...state, ...action.payload }
+        case ExecutionPlanAction.ExecutionPlanActionTypes.EXECUTION_PLAN_RESET: return null
         default: return state
     }
+}
+
+export function getWriteOperationIdFromExecutionId(executionId: string): string {
+    return `${executionId}:0`
 }
 
 export const operationIconCodes: Map<string, number> = new Map([

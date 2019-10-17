@@ -18,7 +18,8 @@ import { ExecutedLogicalPlanVM } from '../../model/viewModels/executedLogicalPla
 
 export enum ExecutionPlanActionTypes {
     EXECUTION_PLAN_GET = '[Execution Plan] Get',
-    EXECUTION_PLAN_GET_SUCCESS = '[Execution Plan] Get Success'
+    EXECUTION_PLAN_GET_SUCCESS = '[Execution Plan] Get Success',
+    EXECUTION_PLAN_RESET = '[Execution Plan] Reset'
 }
 
 export class Get implements Action {
@@ -31,6 +32,11 @@ export class GetSuccess implements Action {
     constructor(public payload: ExecutedLogicalPlanVM) { }
 }
 
+export class Reset implements Action {
+    public readonly type = ExecutionPlanActionTypes.EXECUTION_PLAN_RESET
+}
+
 export type ExecutionPlanActions
     = Get
     | GetSuccess
+    | Reset

@@ -1,0 +1,50 @@
+<!--
+  ~ Copyright 2019 ABSA Group Limited
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<div *ngIf="(getExecutionPlanVM() | async )" class="execution-details">
+    <h2 class="text-center"> Execution Plan : {{ (getExecutionPlanVM() | async )?.execution.extra.appName }}</h2>
+    <br />
+    <div class="details-execution-attributes">
+        <p>
+            <span class="execution-details-title">System Info:</span>
+            {{ (getExecutionPlanVM() | async )?.execution.extra.systemInfo.name }}
+            {{ (getExecutionPlanVM() | async )?.execution.extra.systemInfo.version }}
+        </p>
+        <p>
+            <span class="execution-details-title">Agent Info:</span>
+            {{ (getExecutionPlanVM() | async )?.execution.extra.agentInfo.name }}
+            {{ (getExecutionPlanVM() | async )?.execution.extra.agentInfo.version }}
+        </p>
+        <hr>
+        <p>
+            <span class="execution-details-title">Input Sources:</span>
+        </p>
+        <ul *ngFor="let inputSource of (getExecutionPlanVM() | async )?.execution.extra.inputSources[1]">
+            <span class="execution-details-title">URI:</span> {{ inputSource.source }} |
+            <span class="execution-details-title">Type:</span> {{ inputSource.sourceType }}
+        </ul>
+        <hr>
+        <p>
+            <span class="execution-details-title">Output Source:</span>
+
+        </p>
+        <ul>
+            <span class="execution-details-title">URI:</span>
+            {{ (getExecutionPlanVM() | async )?.execution.extra.outputSource.source }}
+            <span class="execution-details-title">Type:</span>
+            {{ (getExecutionPlanVM() | async )?.execution.extra.outputSource.sourceType }}
+        </ul>
+    </div>
+</div>

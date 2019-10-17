@@ -49,23 +49,6 @@ class OperationDetailsController @Autowired()
 
   }
 
-  @GetMapping(Array("/info"))
-  @ApiOperation(
-    value = "GET /operation/info",
-    notes = "Returns details of an operation node from a DataSource uri and an applicationId"
-  )
-  def operationFromSourceAndApplicationId
-  (
-    @ApiParam(value = "DataSource uri related to the operation (Output DataSource uri for a Write Operation or one of the Input DataSources uri if it is a Read Operation)")
-    @RequestParam("source") source: String,
-    @ApiParam(value = "Id of the executionEvent that triggered the operation")
-    @RequestParam("executionEventId") executionEventId: String
-  ): Future[OperationDetails] = {
-    val result: Future[OperationDetails] = repo.findBySourceAndExecutionEventId(source, executionEventId)
-    result.map(toOperationDetails)
-  }
-
-
   private def toOperationDetails(operationDetails : OperationDetails) : OperationDetails = {
     val reducedDt = reducedDataTypes(operationDetails.dataTypes, operationDetails.schemas)
     operationDetails.copy(dataTypes = reducedDt)
