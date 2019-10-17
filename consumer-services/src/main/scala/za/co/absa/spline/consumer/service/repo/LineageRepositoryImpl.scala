@@ -27,39 +27,31 @@ class LineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Lineag
 
   import za.co.absa.spline.persistence.ArangoImplicits._
 
-  override def findByApplicationIdAndPath(path: String, applicationId: String, depth: String)(implicit ec: ExecutionContext): Future[LineageOverview] = {
+  override def findExecutionEventId(executionEventId : String, depth: String)(implicit ec: ExecutionContext): Future[LineageOverview] = {
     db.queryOne[LineageOverview](
       """
-        LET endNode = (
-            FOR ds IN dataSource
-                FILTER ds.uri == @path
-                RETURN MERGE(UNSET(ds, "_rev", "_id", "_key", "uri" ), {"_id" : ds._key, "_class" : "za.co.absa.spline.consumer.service.model.DataSourceNode", "name" : ds.uri})
-        )
-
-        LET endExecutionIds = (
-            FOR w IN operation
-              FILTER w.properties.outputSource == @path
-              FOR exec IN executes
-                  FILTER exec._to == w._id
-                  RETURN exec._from
-        )
-
-        LET pairTimestampStartExecutionKeys = FIRST(
+        LET executionEvent = FIRST(
             FOR p IN progress
-                FILTER p.extra.appId == @applicationId
-                LET timestamp = p.timestamp
-                LET startExecutionIds = (
-                    FOR po IN progressOf
-                        FILTER po._from == p._id
-                            RETURN po._to
-                )
-                RETURN {"timestamp": timestamp, "startExecutionIds" : startExecutionIds}
+                FILTER p._key == @executionEventId
+                RETURN p
         )
-        LET startExecutionId = FIRST(pairTimestampStartExecutionKeys.startExecutionIds)
-        LET finalExecutionId = POSITION(endExecutionIds, startExecutionId) ? startExecutionId  : null
-        LET finalExecutionKey = DOCUMENT(finalExecutionId)._key
-        LET previousExecutionsKeys = SPLINE::FIND_PREVIOUS_EXECUTIONS(finalExecutionKey, pairTimestampStartExecutionKeys.timestamp, @depth)
-        LET allExecutionKeys = APPEND(previousExecutionsKeys, finalExecutionKey)
+
+        LET finalExecutions = (
+            FOR po in progressOf
+                FILTER po._from == executionEvent._id
+                RETURN DOCUMENT(po._to)
+        )
+
+        LET endNode = (
+             FOR a IN affects
+             FILTER a._from == finalExecutions[0]._id
+             LET ds = DOCUMENT(a._to)
+             RETURN MERGE(UNSET(ds, "_rev", "_id", "_key", "uri" ), {"_id" : ds._key, "_class" : "za.co.absa.spline.consumer.service.model.DataSourceNode", "name" : ds.uri})
+        )
+
+
+        LET previousExecutionsKeys = SPLINE::FIND_PREVIOUS_EXECUTIONS(finalExecutions[0]._key, executionEvent.timestamp, @depth)
+        LET allExecutionKeys = APPEND(previousExecutionsKeys, finalExecutions[0]._key)
 
         LET lineage = FIRST(
             LET lineageGraph = (
@@ -111,11 +103,11 @@ class LineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Lineag
             RETURN {"nodes" : FLATTEN(APPEND(appendedNodes, endNode)), "edges": FLATTEN(appendedEdges) }
         )
 
-        LET lineageInfo = { "timestamp" : pairTimestampStartExecutionKeys.timestamp, "applicationId" : @applicationId }
+        LET lineageInfo = { "timestamp" : executionEvent.timestamp, "applicationId" : executionEvent.extra.appId }
         RETURN allExecutionKeys == [] ? null  : { "lineage" : lineage, "lineageInfo" : lineageInfo }
 
       """,
-      Map("path" -> path, "applicationId" -> applicationId, "depth" -> depth)
+      Map("executionEventId" -> executionEventId, "depth" -> depth)
     )
   }
 }

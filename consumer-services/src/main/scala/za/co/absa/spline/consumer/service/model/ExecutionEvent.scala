@@ -17,33 +17,16 @@ package za.co.absa.spline.consumer.service.model
 
 import io.swagger.annotations.ApiModelProperty
 
-case class ExecutionEvent
-(
-  @ApiModelProperty(value = "Name of the framework that triggered this execution event")
-  frameworkName: String,
-  @ApiModelProperty(value = "Name of the application/job")
-  applicationName: String,
-  @ApiModelProperty(value = "Id of the application/job")
-  applicationId: String,
-  @ApiModelProperty(value = "When the execution was triggered")
-  timestamp: Long,
-  @ApiModelProperty(value = "Output file uri")
-  datasource: String,
-  @ApiModelProperty(value = "Type of the output file")
-  datasourceType: String,
-  @ApiModelProperty(value = "Write mode - (true=Append; false=Override)")
-  append: Boolean
-) {
-  def this() = this(null, null, null, 0, null, null, false)
+case class ExecutionEvent(
+                           @ApiModelProperty(value = "Id of the executionEvent")
+                           id: String,
+                           @ApiModelProperty(value = "When the execution was triggered")
+                           timestamp: Long,
+                           @ApiModelProperty(value = "Any other extra information related to the execution Event Like the application Id for instance")
+                           extra: Map[String, Any],
+                           @ApiModelProperty(value = "Creation timestamp of the execution event")
+                           creationTimestamp: Long
+                         ) {
+  def this() = this(null, 0, null, 0)
 }
 
-case class PageableExecutionEvent() extends Pageable[ExecutionEvent] {
-  @ApiModelProperty(value = "Array of Execution events")
-  override val elements: Array[ExecutionEvent] = Array.empty
-  @ApiModelProperty(value = "Total number of executionEvents retrieved")
-  override val totalCount: Long = 0
-  @ApiModelProperty(value = "Page index")
-  override val offset: Int = 0
-  @ApiModelProperty(value = "Page size")
-  override val size: Int = 0
-}
