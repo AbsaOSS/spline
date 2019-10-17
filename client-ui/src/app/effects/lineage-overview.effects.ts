@@ -54,9 +54,9 @@ export class LineageOverviewEffects {
         map(res => new LineageOverviewAction.GetSuccess(res))
     )
 
-    private getLineageOverview(payload: LineageControllerService.LineageUsingGET1Params): Observable<LineageOverviewVM> {
-        return this.lineageOverviewControllerService.lineageUsingGET1Response(payload).pipe(
-            map(response => this.toLineageOverviewVM(response)),
+    private getLineageOverview(executionEventId: string): Observable<LineageOverviewVM> {
+        return this.lineageOverviewControllerService.lineageUsingGET1Response(executionEventId).pipe(
+            map(response => this.toLineageOverviewVM(response, executionEventId)),
             catchError(err => {
                 this.handleError(err)
                 return of<LineageOverviewVM>()
@@ -65,19 +65,18 @@ export class LineageOverviewEffects {
     }
 
 
-    private toLineageOverviewVM = (lineageUsingGET1Response: StrictHttpResponse<LineageOverview>): LineageOverviewVM => {
+    private toLineageOverviewVM = (lineageUsingGET1Response: StrictHttpResponse<LineageOverview>, executionEventId: String): LineageOverviewVM => {
         const cytoscapeGraphVM = {} as CytoscapeGraphVM
         cytoscapeGraphVM.nodes = []
         cytoscapeGraphVM.edges = []
-        let targetNodeId = ""
-        let targetNodeFound = false
+        const writesTo = lineageUsingGET1Response.body.lineage.nodes.filter(
+            n => n["writesTo"] && !lineageUsingGET1Response.body.lineage.edges.find(e => e.source == n["writesTo"])
+        ).map(n => n["writesTo"])
+        const targetNodeId = _.flatten(writesTo)
         let targetNodeName = ""
         _.each(lineageUsingGET1Response.body.lineage.nodes, (node: LineageOverviewNodeVM) => {
             const cytoscapeOperation = {} as CytoscapeOperationVM
-            if (!targetNodeFound && node._type == LineageOverviewNodeType.Execution) {
-                targetNodeId = node.writesTo
-                targetNodeFound = true
-            } else if (node._type == LineageOverviewNodeType.DataSource && node._id == targetNodeId) {
+            if (node._id == targetNodeId) {
                 targetNodeName = node.name
                 cytoscapeOperation.properties = { "targetNode": true }
             }
@@ -97,7 +96,7 @@ export class LineageOverviewEffects {
 
         const lineageOverviewVM = {} as LineageOverviewVM
         lineageOverviewVM.lineage = cytoscapeGraphVM
-        lineageOverviewVM.lineageInfo = { ...lineageUsingGET1Response.body.lineageInfo, ...{ "targetNodeName": targetNodeName } }
+        lineageOverviewVM.lineageInfo = { ...lineageUsingGET1Response.body.lineageInfo, ...{ "targetNodeName": targetNodeName, "executionEventId": executionEventId } }
         return lineageOverviewVM
     }
 

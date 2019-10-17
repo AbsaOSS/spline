@@ -33,7 +33,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
     pageRequest: PageRequest,
     sortRequest: SortRequest,
     searchTerm: String
-  )(implicit ec: ExecutionContext): Future[Pageable[ExecutionEvent]] = {
+  )(implicit ec: ExecutionContext): Future[Pageable[ExecutionEventInfo]] = {
     import za.co.absa.spline.persistence.ArangoImplicits._
 
     val arangoCursorAsync = db.queryAs[ExecutionEventQueryResult](
@@ -76,6 +76,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
                           RETURN o
                   )
                 RETURN {
+                    "executionEventId" : ee._key,
                     "frameworkName" : CONCAT([exec.extra.systemInfo.name, " ", exec.extra.systemInfo.version]),
                     "applicationName" : exec.extra.appName,
                     "applicationId" : ee.extra.appId,
@@ -118,6 +119,22 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
       filteredCount = query.getStats.getFiltered
       if query.hasNext
       next = query.next
-    } yield new Pageable[ExecutionEvent](next.elements, next.totalCount - filteredCount , pageRequest.offset, pageRequest.size)
+    } yield new Pageable[ExecutionEventInfo](next.elements, next.totalCount - filteredCount , pageRequest.offset, pageRequest.size)
+  }
+
+  override def search(applicationId: String, destinationPath: String)(implicit ec: ExecutionContext): Future[ExecutionEvent] = {
+    import za.co.absa.spline.persistence.ArangoImplicits._
+
+    db.queryOne[ExecutionEvent](
+      """
+        FOR ds IN dataSource
+          FILTER ds.uri == @destinationPath
+          FOR e IN 2
+            INBOUND ds affects, progressOf
+            FILTER e.extra.appId == @applicationId
+            RETURN MERGE(UNSET(e, "_rev", "_id", "_key", "_creationTimestamp"), {"creationTimestamp" : e._creationTimestamp, "id" : e._key})
+        """,
+      Map("applicationId" -> applicationId, "destinationPath" -> destinationPath)
+    )
   }
 }

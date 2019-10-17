@@ -17,7 +17,7 @@ package za.co.absa.spline.consumer.service.model
 
 case class ExecutionEventQueryResult
 (
-  elements: Array[ExecutionEvent],
+  elements: Array[ExecutionEventInfo],
   totalCount: Long
 ) {
   def this() = this(Array.empty, 0)

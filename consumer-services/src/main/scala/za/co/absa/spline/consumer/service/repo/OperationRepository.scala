@@ -23,5 +23,5 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait OperationRepository {
   def findById(operationId: Id)(implicit ec: ExecutionContext): Future[OperationDetails]
-  def findBySourceAndApplicationId(source: String, applicationId : String)(implicit ec: ExecutionContext): Future[OperationDetails]
+  def findBySourceAndExecutionEventId(source: String, executionEventId : String)(implicit ec: ExecutionContext): Future[OperationDetails]
 }
