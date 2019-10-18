@@ -21,11 +21,11 @@ describe('ExecutionPlanDetailsComponent', () => {
   let component: ExecutionPlanDetailsComponent;
   let fixture: ComponentFixture<ExecutionPlanDetailsComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ExecutionPlanDetailsComponent]
-    })
-      .compileComponents();
+  beforeEach(async(() => { TestBed
+      .configureTestingModule({
+        declarations: [ExecutionPlanDetailsComponent]
+      })
+    .compileComponents();
   }));
 
   beforeEach(() => {
