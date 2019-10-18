@@ -17,17 +17,18 @@ import { AfterViewInit, Component, OnInit, ViewChild, OnDestroy } from '@angular
 import { Store } from '@ngrx/store';
 import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
 import * as _ from 'lodash';
-import { filter, map, switchMap, first } from 'rxjs/operators';
+import { filter, map, switchMap } from 'rxjs/operators';
 import { AppState } from 'src/app/model/app-state';
 import { RouterStateUrl } from 'src/app/model/routerStateUrl';
 import { LineageOverviewNodeType } from 'src/app/model/types/lineageOverviewNodeType';
 import * as ContextMenuAction from 'src/app/store/actions/context-menu.actions';
-import * as DataSourceInfoActions from 'src/app/store/actions/datasource.info.actions';
-import * as ExecutionPlanDatasourceInfoAction from 'src/app/store/actions/execution-plan-datasource-info.actions';
+import * as DetailsInfosAction from 'src/app/store/actions/details-info.actions';
 import * as LayoutAction from 'src/app/store/actions/layout.actions';
 import * as LineageOverviewAction from 'src/app/store/actions/lineage-overview.actions';
+import * as ExecutionPlanAction from 'src/app/store/actions/execution-plan.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
 import { Subscription } from 'rxjs';
+import { getWriteOperationIdFromExecutionId } from 'src/app/store/reducers/execution-plan.reducer';
 
 
 @Component({
@@ -162,27 +163,30 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
 
   private getNodeInfo = (node: any): void => {
     if (node) {
+      this.store.dispatch(new DetailsInfosAction.Reset())
       switch (node._type) {
         case LineageOverviewNodeType.Execution: {
-          this.store.dispatch(new DataSourceInfoActions.Reset())
-          this.store.dispatch(new ExecutionPlanDatasourceInfoAction.Get(node.id))
+          this.store.dispatch(new ExecutionPlanAction.Get(node.id))
           break
         }
         case LineageOverviewNodeType.DataSource: {
-          this.store.dispatch(new ExecutionPlanDatasourceInfoAction.Reset())
-          this.store.select('router', 'state', 'queryParams', 'executionEventId')
-            .pipe(
-              first()
-            )
-            .subscribe(executionEventId => {
-              this.store.dispatch(new DataSourceInfoActions.Get({ "source": node._id, "executionEventId": executionEventId }))
-            })
+          this.store.dispatch(new ExecutionPlanAction.Reset())
+          this.subscriptions.push(
+            this.store.select('lineageOverview')
+              .subscribe(lineageOverview => {
+                const edge = lineageOverview.lineage.edges.find(e => e.data.target == node.id)
+                if (edge) {
+                  const executionPlanId = edge.data.source
+                  this.store.dispatch(new DetailsInfosAction.Get(getWriteOperationIdFromExecutionId(executionPlanId)))
+                }
+              })
+          )
           break
         }
       }
     } else {
-      this.store.dispatch(new DataSourceInfoActions.Reset())
-      this.store.dispatch(new ExecutionPlanDatasourceInfoAction.Reset())
+      this.store.dispatch(new DetailsInfosAction.Reset())
+      this.store.dispatch(new ExecutionPlanAction.Reset())
     }
   }
 

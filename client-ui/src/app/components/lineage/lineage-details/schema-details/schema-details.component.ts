@@ -24,7 +24,6 @@ import { IAlias, IAttrRef, IBinary, IExpression, IGeneric, IGenericLeaf, ILitera
 import { ExpressionType } from 'src/app/model/types/expressionType';
 import { ExpressionComponents, OperationType } from 'src/app/model/types/operationType';
 import { AttributeVM } from 'src/app/model/viewModels/attributeVM';
-import { ExecutedLogicalPlanVM } from 'src/app/model/viewModels/executedLogicalPlanVM';
 import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM';
 import { operationColorCodes, operationIconCodes } from 'src/app/store/reducers/execution-plan.reducer';
 
@@ -67,10 +66,6 @@ export class SchemaDetailsComponent implements AfterViewInit {
 
   public getDetailsInfo(): Observable<OperationDetailsVM> {
     return this.store.select('detailsInfos')
-  }
-
-  public getExecutionPlanVM(): Observable<ExecutedLogicalPlanVM> {
-    return this.store.select('executedLogicalPlan')
   }
 
   public getIcon(operationName: string): string {

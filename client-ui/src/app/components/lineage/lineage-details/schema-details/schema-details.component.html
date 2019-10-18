@@ -31,42 +31,5 @@
   </div>
 </div>
 <div *ngIf="! (getDetailsInfo() | async)">
-  <div class="execution-details">
-    <h2 class="text-center"> Summary </h2>
-    <br />
-    <div class="details-execution-attributes">
-      <h4>{{ (getExecutionPlanVM() | async )?.execution.extra.appName }}</h4>
-      <hr>
-      <p>
-        <span class="execution-details-title">System Info:</span>
-        {{ (getExecutionPlanVM() | async )?.execution.extra.systemInfo.name }}
-        {{ (getExecutionPlanVM() | async )?.execution.extra.systemInfo.version }}
-      </p>
-      <p>
-        <span class="execution-details-title">Agent Info:</span>
-        {{ (getExecutionPlanVM() | async )?.execution.extra.agentInfo.name }}
-        {{ (getExecutionPlanVM() | async )?.execution.extra.agentInfo.version }}
-      </p>
-      <hr>
-      <p>
-        <span class="execution-details-title">Input Sources Type:</span>
-        {{ (getExecutionPlanVM() | async )?.execution.extra.inputSources[1][0].sourceType }}
-      </p>
-      <p>
-        <li *ngFor="let inputSource of (getExecutionPlanVM() | async )?.execution.extra.inputSources[1]">
-          {{ inputSource.source }}
-        </li>
-      </p>
-      <hr>
-      <p>
-        <span class="execution-details-title">Output Source Type:</span>
-        {{ (getExecutionPlanVM() | async )?.execution.extra.outputSource.sourceType }}
-      </p>
-      <p>
-        <li>
-          {{ (getExecutionPlanVM() | async )?.execution.extra.outputSource.source }}
-        </li>
-      </p>
-    </div>
-  </div>
+  <execution-plan-details></execution-plan-details>
 </div>

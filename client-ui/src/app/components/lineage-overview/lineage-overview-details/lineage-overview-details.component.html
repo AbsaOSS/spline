@@ -16,6 +16,8 @@
 <div class="lineage-overview-container">
   <div *ngIf="(getLineageOverviewInfo() | async)" class="lineage-overview-details container-fluid">
     <br />
+    <h2 class="text-center"> Execution Event</h2>
+    <br />
     <p>
       <span class="lineage-overview-details-title">Application ID:</span>
       {{ (getLineageOverviewInfo() | async )?.applicationId }}
@@ -26,20 +28,11 @@
     </p>
     <hr>
 
-    <div *ngIf="(getExecutionPlanDatasourceInfo() | async); let executionPlanDataSourceInfo">
-      <p>
-        <span class="lineage-overview-details-title">Sources : </span>
-      </p>
-      <p>
-        <b>{{ executionPlanDataSourceInfo[0].sourceType }} :</b></p>
-      <span *ngFor='let datasourceInfo of executionPlanDataSourceInfo |  keyvalue '>
-        {{datasourceInfo.value.source}} <br />
-      </span>
-    </div>
+    <execution-plan-details></execution-plan-details>
 
-    <div *ngIf="(getDataSourceInfo() | async)">
+    <div *ngIf="(getDetailsInfo() | async)">
       <div>
-        <schema [schemaId]="'output_schema'" [schemaType]=2 [schema]="getOutputSchema((getDataSourceInfo() | async))">
+        <schema [schemaId]="'output_schema'" [schemaType]=2 [schema]="getOutputSchema((getDetailsInfo() | async))">
         </schema>
       </div>
     </div>

@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as DatasourceInfoAction from '../actions/datasource.info.actions';
-import { OperationDetailsVM } from '../../model/viewModels/operationDetailsVM';
+ 
+ .details-title{
+    padding-top:10px;
+    font-weight: bold;
+    font-size: 110%;
+    color:#555;
+    text-align: center;
+}
 
-export type Action = DatasourceInfoAction.DataSourceInfoActions
+.execution-details-title{
+    color: #e39255;
+}
 
-export function datasourceInfoReducer(state: OperationDetailsVM, action: Action): OperationDetailsVM {
-    switch (action.type) {
-        case DatasourceInfoAction.DataSourceActionTypes.DATASOURCE_INFOS_GET_SUCCESS: return { ...state, ...action.payload }
-        case DatasourceInfoAction.DataSourceActionTypes.DATASOURCE_INFOS_RESET: return null
-        default: return state
-
-    }
+.details-execution-attributes{
+    margin-top: 0%;
 }

@@ -52,7 +52,6 @@ import { LineageComponent } from './components/lineage/lineage.component';
 import { ConfigEffects } from './effects/config.effects';
 import { DetailsInfoEffects } from './effects/details-info.effects';
 import { ExecutionEventsEffects } from './effects/execution-events.effects';
-import { ExecutionPlanDatasourceInfoEffects } from './effects/execution-plan-datasource-info.effects';
 import { ExecutionPlanEffects } from './effects/execution-plan.effects';
 import { LineageOverviewEffects } from './effects/lineage-overview.effects';
 import { RouterEffects } from './effects/router.effects';
@@ -63,15 +62,14 @@ import { attributeReducer } from './store/reducers/attribute.reducer';
 import { configReducer } from './store/reducers/config.reducer';
 import { contextMenuReducer } from './store/reducers/context-menu.reducer';
 import { dashboardFiltersReducer } from './store/reducers/dashboard-filters.reducer';
-import { datasourceInfoReducer } from './store/reducers/datasource-info.reducer';
 import { detailsInfoReducer } from './store/reducers/details-info.reducer';
 import { errorReducer } from './store/reducers/error.reducer';
 import { executionEventReducer } from './store/reducers/execution-events.reducer';
-import { executionPlanDatasourceInfoReducer } from './store/reducers/execution-plan-datasource-info.reducer';
 import { executionPlanReducer } from './store/reducers/execution-plan.reducer';
 import { layoutReducer } from './store/reducers/layout.reducer';
 import { lineageOverviewReducer } from './store/reducers/lineage-overview.reducer';
 import { NotificationsEffects } from './effects/notifications-effects';
+import { ExecutionPlanDetailsComponent } from './components/execution-plan-details/execution-plan-details.component';
 
 
 export function initializeApp(store: Store<AppState>): () => Promise<any> {
@@ -106,7 +104,8 @@ const ROOT_ROUTING = "app/"
     LineageOverviewComponent,
     LineageOverviewDetailsComponent,
     LineageOverviewGraphComponent,
-    DashboardComponent
+    DashboardComponent,
+    ExecutionPlanDetailsComponent
   ],
   entryComponents: [
     SchemaTableComponent,
@@ -133,8 +132,6 @@ const ROOT_ROUTING = "app/"
       executedLogicalPlan: executionPlanReducer,
       lineageOverview: lineageOverviewReducer,
       detailsInfos: detailsInfoReducer,
-      dataSourceInfo: datasourceInfoReducer,
-      executionPlanDatasourceInfo: executionPlanDatasourceInfoReducer,
       executionEvents: executionEventReducer,
       attributes: attributeReducer,
       router: routerReducer,
@@ -147,7 +144,6 @@ const ROOT_ROUTING = "app/"
       NotificationsEffects,
       ExecutionEventsEffects,
       ExecutionPlanEffects,
-      ExecutionPlanDatasourceInfoEffects,
       LineageOverviewEffects,
       DetailsInfoEffects,
       RouterEffects

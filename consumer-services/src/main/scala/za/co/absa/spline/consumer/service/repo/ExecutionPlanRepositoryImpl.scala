@@ -90,32 +90,5 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     )
   }
 
-  override def findInputDataSourceInfoById(execId: Id)
-    (implicit ec: ExecutionContext): Future[Array[DataSourceInfo]] = {
 
-    db.queryOne[Array[DataSourceInfo]](
-      """
-        FOR exec IN execution
-            FILTER exec._key == @execId
-        
-            LET sources = FIRST(
-              FOR v, e IN 1..99999
-                OUTBOUND exec executes, follows, readsFrom
-                FILTER v._type == "Read"
-                RETURN v.properties
-            )
-        
-            LET inputDataSourceInfo = (
-                FOR inputSource IN sources.inputSources
-                RETURN {
-                  "sourceType" : sources.sourceType,
-                  "source" : inputSource
-                }
-            )
-            
-            RETURN inputDataSourceInfo
-      """,
-      Map("execId" -> execId)
-    )
-  }
 }
