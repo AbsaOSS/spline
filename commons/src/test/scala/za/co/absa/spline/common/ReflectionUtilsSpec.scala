@@ -25,7 +25,7 @@ class ReflectionUtilsSpec extends FlatSpec with Matchers {
 
   behavior of "ReflectionUtils"
 
-  it should "compile" in {
+  "compile()" should "compile a given Scala code block and return an eval() function" in {
     val plus = ReflectionUtils.compile[Int](
       q"""
           val x: Int = args("x")
@@ -35,16 +35,32 @@ class ReflectionUtilsSpec extends FlatSpec with Matchers {
     plus(Map("x" -> 2, "y" -> 40)) should be(42)
   }
 
-  it should "extractProductElementsWithNames" in {
+  "extractProductElementsWithNames()" should "for given Product return a map of element names to their values" in {
     ReflectionUtils.extractProductElementsWithNames(Foo("bar", 42)) should be(Map("x" -> "bar", "y" -> 42))
   }
 
-  it should "extractFieldValue" in {
+  "extractFieldValue()" should "return a value of a private field" in {
     ReflectionUtils.extractFieldValue[Int](Foo, "privateVal") should be(42)
   }
 
-  it should "subClassesOf" in {
-    ReflectionUtils.subClassesOf[MyTrait] should be(List(classOf[MyClass], MyObject.getClass))
+  "directSubClassesOf()" should "return direct subclasses of a sealed class/trait" in {
+    ReflectionUtils.directSubClassesOf[MyTrait] should be(Seq(classOf[MyClass], MyObject.getClass))
+  }
+
+  it should "fail for non-sealed classes" in intercept[IllegalArgumentException] {
+    ReflectionUtils.directSubClassesOf[MyClass]
+  }
+
+  "objectsOf()" should "return objects of a sealed class/trait" in {
+    ReflectionUtils.objectsOf[MyTrait] should be(Seq(MyObject))
+  }
+
+  it should "fail for non-sealed classes" in intercept[IllegalArgumentException] {
+    ReflectionUtils.objectsOf[MyClass]
+  }
+
+  "objectForName()" should "return an 'static' Scala object instance by a full qualified name" in {
+    ReflectionUtils.objectForName[AnyRef](MyObject.getClass.getName) should be theSameInstanceAs MyObject
   }
 
 }

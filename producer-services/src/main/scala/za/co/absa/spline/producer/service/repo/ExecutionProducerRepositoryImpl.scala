@@ -56,7 +56,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
     }
     val eventualPersistedDSes = db.queryAs[DataSource](
       s"""
-         |FOR ds IN ${Nodes.DataSource}
+         |FOR ds IN ${NodeDef.DataSource.name}
          |    FILTER ds.uri IN [${referencedDSURIs.map(wrap(_, '"')).mkString(", ")}]
          |    RETURN ds
          |    """.stripMargin
@@ -68,15 +68,15 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
       _ <- {
         val referencedDSes = transientDSes ++ persistedDSes
         new TxBuilder()
-          .addQuery(InsertQuery(Nodes.Operation, createOperations(executionPlan): _*))
-          .addQuery(InsertQuery(Edges.Follows, createFollows(executionPlan): _*))
-          .addQuery(InsertQuery(Nodes.DataSource, createDataSources(transientDSes): _*))
-          .addQuery(InsertQuery(Edges.WritesTo, createWriteTo(executionPlan, referencedDSes)))
-          .addQuery(InsertQuery(Edges.ReadsFrom, createReadsFrom(executionPlan, referencedDSes): _*))
-          .addQuery(InsertQuery(Edges.Executes, createExecutes(executionPlan)))
-          .addQuery(InsertQuery(Nodes.Execution, createExecution(executionPlan)))
-          .addQuery(InsertQuery(Edges.Depends, createExecutionDepends(executionPlan, referencedDSes): _*))
-          .addQuery(InsertQuery(Edges.Affects, createExecutionAffects(executionPlan, referencedDSes)))
+          .addQuery(InsertQuery(NodeDef.Operation, createOperations(executionPlan): _*))
+          .addQuery(InsertQuery(EdgeDef.Follows, createFollows(executionPlan): _*))
+          .addQuery(InsertQuery(NodeDef.DataSource, createDataSources(transientDSes): _*))
+          .addQuery(InsertQuery(EdgeDef.WritesTo, createWriteTo(executionPlan, referencedDSes)))
+          .addQuery(InsertQuery(EdgeDef.ReadsFrom, createReadsFrom(executionPlan, referencedDSes): _*))
+          .addQuery(InsertQuery(EdgeDef.Executes, createExecutes(executionPlan)))
+          .addQuery(InsertQuery(NodeDef.Execution, createExecution(executionPlan)))
+          .addQuery(InsertQuery(EdgeDef.Depends, createExecutionDepends(executionPlan, referencedDSes): _*))
+          .addQuery(InsertQuery(EdgeDef.Affects, createExecutionAffects(executionPlan, referencedDSes)))
           .buildTx
           .execute(db)
       }
@@ -92,11 +92,11 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 
     val progressesOf = progresses
       .zip(events)
-      .map({ case (p, e) => Edge(s"${Nodes.Progress}/${p._key}", s"${Nodes.Execution}/${e.planId}") })
+      .map({ case (p, e) => EdgeDef.ProgressOf.edge(p._key, e.planId) })
 
     new TxBuilder()
-      .addQuery(InsertQuery(Nodes.Progress, progresses: _*))
-      .addQuery(InsertQuery(Edges.ProgressOf, progressesOf: _*))
+      .addQuery(InsertQuery(NodeDef.Progress, progresses: _*))
+      .addQuery(InsertQuery(EdgeDef.ProgressOf, progressesOf: _*))
       .buildTx
       .execute(db)
   }
@@ -104,9 +104,9 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 
 object ExecutionProducerRepositoryImpl {
 
-  private def createExecutes(executionPlan: ExecutionPlan) = Edge(
-    s"${Nodes.Execution}/${executionPlan.id}",
-    s"${Nodes.Operation}/${executionPlan.id}:${executionPlan.operations.write.id}")
+  private def createExecutes(executionPlan: ExecutionPlan) = EdgeDef.Executes.edge(
+    executionPlan.id,
+    s"${executionPlan.id}:${executionPlan.operations.write.id}")
 
   private def createExecution(executionPlan: ExecutionPlan): Execution = {
     val extras = executionPlan
@@ -122,24 +122,24 @@ object ExecutionProducerRepositoryImpl {
   private def createReadsFrom(plan: ExecutionPlan, dsUriToKey: String => String): Seq[Edge] = for {
     ro <- plan.operations.reads
     ds <- ro.inputSources
-  } yield Edge(
-    s"${Nodes.Operation}/${plan.id}:${ro.id}",
-    s"${Nodes.DataSource}/${dsUriToKey(ds)}")
+  } yield EdgeDef.ReadsFrom.edge(
+    s"${plan.id}:${ro.id}",
+    dsUriToKey(ds))
 
-  private def createWriteTo(executionPlan: ExecutionPlan, dsUriToKey: String => String) = Edge(
-    s"${Nodes.Operation}/${executionPlan.id}:${executionPlan.operations.write.id}",
-    s"${Nodes.DataSource}/${dsUriToKey(executionPlan.operations.write.outputSource)}")
+  private def createWriteTo(executionPlan: ExecutionPlan, dsUriToKey: String => String) = EdgeDef.WritesTo.edge(
+    s"${executionPlan.id}:${executionPlan.operations.write.id}",
+    dsUriToKey(executionPlan.operations.write.outputSource))
 
   private def createExecutionDepends(plan: ExecutionPlan, dsUriToKey: String => String): Seq[Edge] = for {
     ro <- plan.operations.reads
     ds <- ro.inputSources
-  } yield Edge(
-    s"${Nodes.Execution}/${plan.id}",
-    s"${Nodes.DataSource}/${dsUriToKey(ds)}")
+  } yield EdgeDef.Depends.edge(
+    plan.id,
+    dsUriToKey(ds))
 
-  private def createExecutionAffects(executionPlan: ExecutionPlan, dsUriToKey: String => String) = Edge(
-    s"${Nodes.Execution}/${executionPlan.id}",
-    s"${Nodes.DataSource}/${dsUriToKey(executionPlan.operations.write.outputSource)}")
+  private def createExecutionAffects(executionPlan: ExecutionPlan, dsUriToKey: String => String) = EdgeDef.Affects.edge(
+    executionPlan.id,
+    dsUriToKey(executionPlan.operations.write.outputSource))
 
   private def createDataSources(dsUriToKey: Map[String, String]): Seq[DataSource] = dsUriToKey
     .map({ case (uri, key) => DataSource(uri, key) })
@@ -173,7 +173,7 @@ object ExecutionProducerRepositoryImpl {
     for {
       operation <- executionPlan.operations.all
       childId <- operation.childIds
-    } yield Edge(
-      s"${Nodes.Operation}/${executionPlan.id}:${operation.id}",
-      s"${Nodes.Operation}/${executionPlan.id}:$childId")
+    } yield EdgeDef.Follows.edge(
+      s"${executionPlan.id}:${operation.id}",
+      s"${executionPlan.id}:$childId")
 }

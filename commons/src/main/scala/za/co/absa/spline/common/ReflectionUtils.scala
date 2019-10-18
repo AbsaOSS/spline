@@ -49,15 +49,41 @@ object ReflectionUtils {
   }
 
   /**
-    * Lists all direct sub-classes of the given trait T
+    * Lists all direct sub-classes of the given sealed type T
     *
-    * @tparam T sealed trait type
-    * @return List of Class[_] instances
+    * @tparam T sealed type
+    * @return sequence of classes
     */
-  def subClassesOf[T: TypeTag]: List[Class[_]] = {
+  def directSubClassesOf[T: TypeTag]: Seq[Class[_ <: T]] = {
     val clazz: ClassSymbol = typeOf[T].typeSymbol.asClass
-    require(clazz.isTrait && clazz.isSealed)
-    clazz.knownDirectSubclasses.toList map ((s: Symbol) => mirror runtimeClass s.asClass)
+    require(clazz.isSealed, s"$clazz must be sealed")
+    clazz.knownDirectSubclasses.toSeq.map((s: Symbol) =>
+      mirror.runtimeClass(s.asClass).asInstanceOf[Class[_ <: T]])
+  }
+
+  /**
+    * Returns a sequence of all known objects that directly inherit from the given sealed type T
+    *
+    * @tparam T sealed type
+    * @return sequence of object instances
+    */
+  def objectsOf[T <: AnyRef : TypeTag]: Seq[T] = {
+    val clazz: ClassSymbol = typeOf[T].typeSymbol.asClass
+    require(clazz.isSealed, s"$clazz must be sealed")
+    clazz.knownDirectSubclasses.toSeq
+      .filter(_.isModuleClass)
+      .map((s: Symbol) => objectForName[T](s.fullName))
+  }
+
+  /**
+    * Returns an object instance with the specified name.
+    * Similar to as Class.forName() returns a Class instance by name, this method returns a Scala object instance by name.
+    *
+    * @param name fully qualified object instance name
+    */
+  def objectForName[T <: AnyRef](name: String): T = {
+    val moduleSymbol = mirror.staticModule(name)
+    mirror.reflectModule(moduleSymbol).instance.asInstanceOf[T]
   }
 
   def extractFieldValue[T](o: AnyRef, fieldName: String): T = {
