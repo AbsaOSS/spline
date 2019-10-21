@@ -18,9 +18,6 @@ package za.co.absa.spline.consumer.rest
 
 import java.util
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo.{As, Id}
-import com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder
-import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping.OBJECT_AND_NON_CONCRETE
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.springframework.context.annotation.{Bean, ComponentScan, Configuration}
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
@@ -51,11 +48,7 @@ class ConsumerRESTConfig extends WebMvcConfigurer {
 
   @Bean def jacksonConfigurer = new ObjectMapperBeanPostProcessor(_
     .registerModule(DefaultScalaModule)
-    .setDefaultTyping(new DefaultTypeResolverBuilder(OBJECT_AND_NON_CONCRETE)
-      .init(Id.NAME, null)
-      .inclusion(As.PROPERTY)
-      .typeProperty("_type")
-    )
+    .setDefaultTyping(new ConsumerTypeResolver)
   )
 }
 

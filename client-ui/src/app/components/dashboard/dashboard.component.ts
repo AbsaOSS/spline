@@ -126,7 +126,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         .pipe(
           filter(state => state != null)
         ).subscribe(executionEvents => {
-          this.rows = (executionEvents.elements[1] as any)
+          this.rows = executionEvents.elements
           this.queryParams = { ...this.queryParams, offset: executionEvents.offset }
           this.totalCount = executionEvents.totalCount
         })
