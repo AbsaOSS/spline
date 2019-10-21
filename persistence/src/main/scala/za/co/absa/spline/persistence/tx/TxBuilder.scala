@@ -18,7 +18,7 @@ package za.co.absa.spline.persistence.tx
 
 import com.arangodb.ArangoDatabaseAsync
 import com.arangodb.model.TransactionOptions
-import za.co.absa.spline.persistence.model.ArangoDocument
+import za.co.absa.spline.persistence.model.{ArangoDocument, CollectionDef}
 import za.co.absa.spline.persistence.tx.TxBuilder.ArangoTxImpl
 
 import scala.compat.java8.FutureConverters._
@@ -26,7 +26,7 @@ import scala.concurrent.Future
 
 sealed trait Query
 
-case class InsertQuery(collectionName: String, documents: ArangoDocument*) extends Query
+case class InsertQuery(collectionDef: CollectionDef, documents: ArangoDocument*) extends Query
 
 class TxBuilder {
 
@@ -42,7 +42,7 @@ class TxBuilder {
   private def generateJs(): String = {
     val statements = queries.zipWithIndex.map {
       case (InsertQuery(col, _*), _) =>
-        s"_params.$col.forEach(o => _db.$col.insert(o));"
+        s"_params.${col.name}.forEach(o => _db.${col.name}.insert(o));"
     }
     s"""
        |function (_params) {
@@ -54,7 +54,7 @@ class TxBuilder {
 
   private def options: TransactionOptions = {
     val writeCollections = queries
-      .collect({ case InsertQuery(col, docs@_*) => col -> docs.toVector })
+      .collect({ case InsertQuery(col, docs@_*) => col.name -> docs.toVector })
       .toMap
     new TransactionOptions()
       .params(writeCollections)

@@ -40,13 +40,13 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
       """
         LET executionEventsFiltered = (
           FOR p IN progress
-            FILTER p._creationTimestamp < TO_NUMBER(@asAtTime) && p.timestamp >= TO_NUMBER(@timestampStart) && p.timestamp <= TO_NUMBER(@timestampEnd)
+            FILTER p._creationTimestamp < @asAtTime && p.timestamp >= @timestampStart && p.timestamp <= @timestampEnd
             RETURN p
         )
 
         LET executionEventsDefault = (
           FOR p IN progress
-            FILTER p._creationTimestamp < TO_NUMBER(@asAtTime)
+            FILTER p._creationTimestamp < @asAtTime
             SORT p.timestamp desc
             LIMIT 100
             RETURN p

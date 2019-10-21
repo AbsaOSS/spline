@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Actions, Effect, ofType } from '@ngrx/effects';
-import { Action, Store } from '@ngrx/store';
+import {HttpErrorResponse} from '@angular/common/http';
+import {Injectable} from '@angular/core';
+import {Actions, Effect, ofType} from '@ngrx/effects';
+import {Action, Store} from '@ngrx/store';
 import * as _ from 'lodash';
-import { Observable, of } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
-import { LineageOverview, Transition } from '../generated/models';
-import { LineageControllerService } from '../generated/services';
-import { StrictHttpResponse } from '../generated/strict-http-response';
-import { AppState } from '../model/app-state';
-import { LineageOverviewNodeType } from '../model/types/lineageOverviewNodeType';
-import { CytoscapeGraphVM } from '../model/viewModels/cytoscape/cytoscapeGraphVM';
-import { CytoscapeOperationVM } from '../model/viewModels/cytoscape/cytoscapeOperationVM';
-import { LineageOverviewVM } from '../model/viewModels/lineageOverview';
-import { LineageOverviewNodeVM } from '../model/viewModels/LineageOverviewNodeVM';
+import {Observable, of} from 'rxjs';
+import {catchError, map, switchMap} from 'rxjs/operators';
+import {LineageOverview, Transition} from '../generated/models';
+import {LineageControllerService} from '../generated/services';
+import {StrictHttpResponse} from '../generated/strict-http-response';
+import {AppState} from '../model/app-state';
+import {LineageOverviewNodeType} from '../model/types/lineageOverviewNodeType';
+import {CytoscapeGraphVM} from '../model/viewModels/cytoscape/cytoscapeGraphVM';
+import {CytoscapeOperationVM} from '../model/viewModels/cytoscape/cytoscapeOperationVM';
+import {LineageOverviewVM} from '../model/viewModels/lineageOverview';
+import {LineageOverviewNodeVM} from '../model/viewModels/LineageOverviewNodeVM';
 import * as LineageOverviewAction from '../store/actions/lineage-overview.actions';
-import { lineageOverviewColorCodes, lineageOverviewIconCodes } from '../store/reducers/lineage-overview.reducer';
+import {lineageOverviewColorCodes, lineageOverviewIconCodes} from '../store/reducers/lineage-overview.reducer';
 import * as ErrorActions from '../store/actions/error.actions';
-
 
 
 @Injectable()
@@ -55,13 +54,15 @@ export class LineageOverviewEffects {
     )
 
     private getLineageOverview(executionEventId: string): Observable<LineageOverviewVM> {
-        return this.lineageOverviewControllerService.lineageUsingGET1Response(executionEventId).pipe(
+        return this.lineageOverviewControllerService
+          .lineageUsingGET1Response({executionEventId})
+          .pipe(
             map(response => this.toLineageOverviewVM(response, executionEventId)),
             catchError(err => {
-                this.handleError(err)
-                return of<LineageOverviewVM>()
+              this.handleError(err)
+              return of<LineageOverviewVM>()
             })
-        )
+          )
     }
 
 
@@ -69,10 +70,13 @@ export class LineageOverviewEffects {
         const cytoscapeGraphVM = {} as CytoscapeGraphVM
         cytoscapeGraphVM.nodes = []
         cytoscapeGraphVM.edges = []
-        const writesTo = lineageUsingGET1Response.body.lineage.nodes.filter(
-            n => n["writesTo"] && !lineageUsingGET1Response.body.lineage.edges.find(e => e.source == n["writesTo"])
-        ).map(n => n["writesTo"])
-        const targetNodeId = _.flatten(writesTo)
+
+        const lineage = lineageUsingGET1Response.body.lineage
+        const nonTerminalNodeIds = new Set(lineage.edges.map(e => e.source))
+        const targetNodeId = lineage.nodes
+          .map((n: LineageOverviewNodeVM) => n._id)
+          .find(id => !nonTerminalNodeIds.has(id))
+
         let targetNodeName = ""
         _.each(lineageUsingGET1Response.body.lineage.nodes, (node: LineageOverviewNodeVM) => {
             const cytoscapeOperation = {} as CytoscapeOperationVM

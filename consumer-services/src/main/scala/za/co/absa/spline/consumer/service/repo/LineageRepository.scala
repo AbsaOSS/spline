@@ -21,6 +21,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait LineageRepository {
 
-  def findExecutionEventId(executionEventId: String, depth: String = "5")
-                                (implicit ec: ExecutionContext): Future[LineageOverview]
+  def findExecutionEventId(executionEventId: String, maxDepth: Int)
+    (implicit ec: ExecutionContext): Future[LineageOverview]
 }
