@@ -18,19 +18,21 @@
 """
 This is simplest example of how to track a lineage with Spline.
 
-Go to examples directory:
+1. Make sure the Spline Producer instance is running. (See README.md)
+
+2. Go to examples directory:
   cd examples
 
-Make sure "spline.properties" file is properly configured for e.g. Mongo:
-  vi src/main/resources/spline.properties
+3. Build Spline Examples:
+  mvn package
 
-Build project Example with Shade profile to create Fat-JAR containing all needed dependencies:
-  mvn package -P spark-2.3,shade
+4. Execute `pyspark` with a Spline spark-bundle corresponding to the Spark version in use:
+  pyspark \
+    --jars target/spline-examples-0.4.0.jar \
+    --packages za.co.absa.spline:spark-bundle-2.4:0.4.0 \
+    --conf spline.producer.url=http://localhost:8888/producer
 
-Execute pyspark with Fat-JAR on class path:
-  pyspark --jars 'target/spline-examples-0.4.0-SNAPSHOT.jar'
-
-Execute rest of this file inside PySpark.
+5. Execute the rest of this file inside PySpark.
 """
 
 # Enable Spline tracking:
@@ -46,4 +48,4 @@ spark.read\
     .mode('overwrite')\
     .csv("data/output/batch/python-sample.csv")
 
-# Review lineage on the UI or inside MongoDB.
+# Review lineage on the Spline UI.
