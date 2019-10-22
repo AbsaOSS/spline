@@ -55,7 +55,7 @@ export class LineageOverviewEffects {
 
     private getLineageOverview(executionEventId: string): Observable<LineageOverviewVM> {
         return this.lineageOverviewControllerService
-          .lineageUsingGET1Response({executionEventId})
+          .lineageUsingGET1Response({executionEventId, maxDepth: 10})
           .pipe(
             map(response => this.toLineageOverviewVM(response, executionEventId)),
             catchError(err => {
