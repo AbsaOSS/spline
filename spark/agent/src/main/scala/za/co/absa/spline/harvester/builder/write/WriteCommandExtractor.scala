@@ -19,7 +19,11 @@ package za.co.absa.spline.harvester.builder.write
 import org.apache.spark.sql.SaveMode._
 import org.apache.spark.sql.catalyst.catalog.{CatalogStorageFormat, CatalogTable}
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
-import org.apache.spark.sql.execution.command.{AlterTableAddColumnsCommand, AlterTableChangeColumnCommand, AlterTableRenameCommand, AlterTableSetLocationCommand, CreateDataSourceTableAsSelectCommand, CreateDataSourceTableCommand, CreateDatabaseCommand, CreateTableCommand, CreateTableLikeCommand, DropDatabaseCommand, DropTableCommand, LoadDataCommand, TruncateTableCommand}
+import org.apache.spark.sql.execution.command.{
+  AlterTableAddColumnsCommand, AlterTableChangeColumnCommand, AlterTableRenameCommand, AlterTableSetLocationCommand,
+  CreateDataSourceTableAsSelectCommand, CreateDataSourceTableCommand, CreateDatabaseCommand, CreateTableCommand,
+  CreateTableLikeCommand, DropDatabaseCommand, DropTableCommand, LoadDataCommand, TruncateTableCommand
+}
 import org.apache.spark.sql.execution.datasources.jdbc.JdbcRelationProvider
 import org.apache.spark.sql.execution.datasources.{InsertIntoHadoopFsRelationCommand, SaveIntoDataSourceCommand}
 import org.apache.spark.sql.hive.execution.{CreateHiveTableAsSelectCommand, InsertIntoHiveTable}

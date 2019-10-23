@@ -66,7 +66,6 @@ ListFilesCommand (org.apache.spark.sql.execution.command)
 ListJarsCommand (org.apache.spark.sql.execution.command)
 RefreshResource (org.apache.spark.sql.execution.datasources)
 RefreshTable (org.apache.spark.sql.execution.datasources)
-
 ResetCommand$ (org.apache.spark.sql.execution.command)
 SetCommand (org.apache.spark.sql.execution.command)
 SetDatabaseCommand (org.apache.spark.sql.execution.command)

@@ -211,7 +211,7 @@ class SparkUnimplementedCommandsSpec extends FlatSpec
       }
     }
 
-  private def printToFile(filePath: String)(op: java.io.PrintWriter => Unit) {
+  private def printToFile(filePath: String)(op: java.io.PrintWriter => Unit): Unit = {
     val file = new java.io.File(filePath)
     val p = new java.io.PrintWriter(file)
     try { op(p) } finally { p.close() }
@@ -225,7 +225,7 @@ class SparkUnimplementedCommandsSpec extends FlatSpec
       withHiveDatabase(spark)(databaseName,
         (tableName, "(x String, ymd int)", Seq(("Tata", 20190401), ("Tere", 20190403)))) {
 
-        val newPath = getNewTableLocation(spark)
+        val newPath = newTableLocation(spark)
 
         withLineageTracking(spark) { lineageCaptor =>
           val (plan, _) = lineageCaptor.lineageOf {
@@ -235,7 +235,7 @@ class SparkUnimplementedCommandsSpec extends FlatSpec
       }
     }
 
-  private def getNewTableLocation(spark: SparkSession):String = {
+  private def newTableLocation(spark: SparkSession):String = {
     import spark.implicits._
 
     val tablePath = spark.sql(s"DESCRIBE FORMATTED $tableName")
