@@ -6,7 +6,7 @@ This module is responsible for listening to spark command events and converting 
 Some events provided by Spark are not yet implemented. Some of them will be implemented in future 
 and some of them bear no lineage information and should be ignored.
 
-All commands inherits from ```org.apache.spark.sql.catalyst.plans.logical.Command```.
+All commands inherit from ```org.apache.spark.sql.catalyst.plans.logical.Command```.
 
 You can see how to produce unimplemented commands in ```za.co.absa.spline.harvester.SparkUnimplementedCommandsSpec```.
 ### Implemented

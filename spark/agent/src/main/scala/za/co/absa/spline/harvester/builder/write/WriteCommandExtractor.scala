@@ -43,23 +43,7 @@ class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession,
   def asWriteCommand(operation: LogicalPlan): Option[WriteCommand] = {
     val maybeWriteCommand = condOpt(operation) {
       case cmd: SaveIntoDataSourceCommand =>
-        val maybeSourceType = DataSourceTypeExtractor.unapply(cmd)
-        maybeSourceType match {
-          case Some(sourceType) if sourceType == "jdbc" || sourceType.isInstanceOf[JdbcRelationProvider] =>
-            val jdbcConnectionString = cmd.options("url")
-            val tableName = cmd.options("dbtable")
-            WriteCommand(cmd.nodeName, SourceIdentifier.forJDBC(jdbcConnectionString, tableName), cmd.mode, cmd.query)
-          case _ =>
-            val maybeFormat = maybeSourceType.map {
-              case dsr: DataSourceRegister => dsr.shortName
-              case o => o.toString
-            }
-            val opts = cmd.options
-            val uri = opts.get("path").map(pathQualifier.qualify)
-              .orElse(opts.get("topic").filter(_ => opts.contains("kafka.bootstrap.servers")).map(SourceUri.forKafka))
-              .getOrElse(sys.error(s"Cannot extract source URI from the options: ${opts.keySet mkString ","}"))
-            WriteCommand(cmd.nodeName, SourceIdentifier(maybeFormat, uri), cmd.mode, cmd.query, opts)
-        }
+        asDataSourceWriteCommand(cmd)
 
       case cmd: InsertIntoHadoopFsRelationCommand =>
         val path = cmd.outputPath.toString
@@ -97,6 +81,26 @@ class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession,
     if (maybeWriteCommand.isEmpty) alertWhenUnimplementedCommand(operation)
 
     maybeWriteCommand
+  }
+
+  private def asDataSourceWriteCommand(cmd: SaveIntoDataSourceCommand) = {
+    val maybeSourceType = DataSourceTypeExtractor.unapply(cmd)
+    maybeSourceType match {
+      case Some(sourceType) if sourceType == "jdbc" || sourceType.isInstanceOf[JdbcRelationProvider] =>
+        val jdbcConnectionString = cmd.options("url")
+        val tableName = cmd.options("dbtable")
+        WriteCommand(cmd.nodeName, SourceIdentifier.forJDBC(jdbcConnectionString, tableName), cmd.mode, cmd.query)
+      case _ =>
+        val maybeFormat = maybeSourceType.map {
+          case dsr: DataSourceRegister => dsr.shortName
+          case o => o.toString
+        }
+        val opts = cmd.options
+        val uri = opts.get("path").map(pathQualifier.qualify)
+          .orElse(opts.get("topic").filter(_ => opts.contains("kafka.bootstrap.servers")).map(SourceUri.forKafka))
+          .getOrElse(sys.error(s"Cannot extract source URI from the options: ${opts.keySet mkString ","}"))
+        WriteCommand(cmd.nodeName, SourceIdentifier(maybeFormat, uri), cmd.mode, cmd.query, opts)
+    }
   }
 
   private def asDirWriteCommand(name: String, storage: CatalogStorageFormat, provider: String, overwrite: Boolean, query: LogicalPlan) = {
