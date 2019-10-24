@@ -13,12 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component} from '@angular/core';
-import {ExpressionComponent} from '../expression/expression.component';
+import { Component } from '@angular/core';
+import { ExpressionComponent } from '../expression/expression.component';
+import { Expression } from 'src/app/model/expression';
 
 @Component({
   selector: 'projection',
   templateUrl: './projection.component.html',
   styleUrls: ['./projection.component.less']
 })
-export class ProjectionComponent extends ExpressionComponent { }
+export class ProjectionComponent extends ExpressionComponent {
+
+  public hasDroppedAttribute(expressions: Expression[]): boolean {
+    return expressions.filter(e => e.title == "Dropped Attributes").length > 0
+  }
+
+}

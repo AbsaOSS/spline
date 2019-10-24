@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { JoinComponent } from './join.component';
 
-describe('JoinComponent', () => {
-  let component: JoinComponent;
-  let fixture: ComponentFixture<JoinComponent>;
+import { FilterComponent } from './filter.component';
+
+describe('FilterComponent', () => {
+  let component: FilterComponent;
+  let fixture: ComponentFixture<FilterComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [JoinComponent]
+      declarations: [FilterComponent]
     })
       .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(JoinComponent);
+    fixture = TestBed.createComponent(FilterComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

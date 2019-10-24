@@ -13,11 +13,17 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<div *ngFor="let expression of expressions ;let i=index">
-  <div class="collapsible" data-toggle="collapse" [attr.data-target]="'#expression'+i" aria-expanded="true">
-    <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp;{{expression.title}}
-  </div>
-  <div id="expression{{i}}" class="accordion-body collapse in show">
-    <a href="" (click)="openExprViewDialog($event, expression)"><code>{{expression.value}}</code></a>
-  </div>
+<div class="modal-header">
+    <h4 class="modal-title pull-left splineColor">{{title}}</h4>
+    <button type="button" class="close pull-right" aria-label="Close" (click)="close()">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <tree-root #tree [nodes]="exprTree" [options]="treeOptions">
+        <ng-template #treeNodeTemplate let-node>{{ node.data.name }}</ng-template>
+    </tree-root>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-warning" (click)="close()">Close</button>
 </div>

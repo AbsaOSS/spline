@@ -25,10 +25,13 @@ import { routerReducer, RouterStateSerializer, StoreRouterConnectingModule } fro
 import { Store, StoreModule } from '@ngrx/store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
+import { TreeModule } from 'angular-tree-component';
+import { PrettyJsonModule } from 'angular2-prettyjson';
 import { CytoscapeNgLibModule } from 'cytoscape-ng-lib';
 import { NgrxFormsModule } from 'ngrx-forms';
 import { NgxBootstrapSwitchModule } from 'ngx-bootstrap-switch';
 import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
+import { ModalModule } from 'ngx-bootstrap/modal';
 import { TimepickerModule } from 'ngx-bootstrap/timepicker';
 import { ToastrModule } from 'ngx-toastr';
 import { filter } from 'rxjs/operators';
@@ -41,19 +44,26 @@ import { LineageOverviewGraphComponent } from './components/lineage-overview/lin
 import { LineageOverviewComponent } from './components/lineage-overview/lineage-overview.component';
 import { AttributeDetailsComponent } from './components/lineage/lineage-details/attribute-details/attribute-details.component';
 import { LineageDetailsComponent } from './components/lineage/lineage-details/lineage-details.component';
+import { AggregateComponent } from './components/lineage/lineage-details/schema-details/aggregate/aggregate.component';
 import { ExpressionComponent } from './components/lineage/lineage-details/schema-details/expression/expression.component';
+import { FilterComponent } from './components/lineage/lineage-details/schema-details/filter/filter.component';
+import { GenericComponent } from './components/lineage/lineage-details/schema-details/generic/generic.component';
 import { JoinComponent } from './components/lineage/lineage-details/schema-details/join/join.component';
+import { LogicalRelationComponent } from './components/lineage/lineage-details/schema-details/logical-relation/logical-relation.component';
 import { ProjectionComponent } from './components/lineage/lineage-details/schema-details/projection/projection.component';
 import { SchemaDetailsComponent } from './components/lineage/lineage-details/schema-details/schema-details.component';
+import { SortComponent } from './components/lineage/lineage-details/schema-details/sort/sort.component';
 import { SchemaTableComponent } from './components/lineage/lineage-details/schema-table/schema-table.component';
 import { SchemaComponent } from './components/lineage/lineage-details/schema/schema.component';
 import { LineageGraphComponent } from './components/lineage/lineage-graph/lineage-graph.component';
 import { LineageComponent } from './components/lineage/lineage.component';
+import { ModalExpressionComponent } from './components/modal/modal-expression/modal-expression.component';
 import { ConfigEffects } from './effects/config.effects';
 import { DetailsInfoEffects } from './effects/details-info.effects';
 import { ExecutionEventsEffects } from './effects/execution-events.effects';
 import { ExecutionPlanEffects } from './effects/execution-plan.effects';
 import { LineageOverviewEffects } from './effects/lineage-overview.effects';
+import { ModalEffects } from './effects/modal.effects';
 import { RouterEffects } from './effects/router.effects';
 import { AppState } from './model/app-state';
 import { RouterSerializer } from './serializers/routerSerializer';
@@ -91,6 +101,7 @@ const ROOT_ROUTING = "app/"
 @NgModule({
   declarations: [
     AppComponent,
+    ModalExpressionComponent,
     LineageGraphComponent,
     LineageDetailsComponent,
     LineageComponent,
@@ -106,15 +117,28 @@ const ROOT_ROUTING = "app/"
     LineageOverviewDetailsComponent,
     LineageOverviewGraphComponent,
     DashboardComponent,
-    ExecutionPlanDetailsComponent
+    ExecutionPlanDetailsComponent,
+    AggregateComponent,
+    LogicalRelationComponent,
+    SortComponent,
+    FilterComponent,
+    GenericComponent
   ],
   entryComponents: [
+    ModalExpressionComponent,
     SchemaTableComponent,
     ExpressionComponent,
     JoinComponent,
-    ProjectionComponent
+    ProjectionComponent,
+    AggregateComponent,
+    LogicalRelationComponent,
+    SortComponent,
+    FilterComponent,
+    GenericComponent
   ],
   imports: [
+    PrettyJsonModule,
+    TreeModule.forRoot(),
     BrowserModule,
     TooltipModule.forRoot(),
     CytoscapeNgLibModule,
@@ -127,6 +151,7 @@ const ROOT_ROUTING = "app/"
     FormsModule,
     ReactiveFormsModule,
     BrowserAnimationsModule,
+    ModalModule.forRoot(),
     ToastrModule.forRoot(),
     StoreModule.forRoot({
       config: configReducer,
@@ -148,7 +173,8 @@ const ROOT_ROUTING = "app/"
       ExecutionPlanEffects,
       LineageOverviewEffects,
       DetailsInfoEffects,
-      RouterEffects
+      RouterEffects,
+      ModalEffects
     ]),
     StoreRouterConnectingModule.forRoot(),
     RouterModule.forRoot([

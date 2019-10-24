@@ -15,23 +15,27 @@
   -->
 
 <div class="collapsible" data-toggle="collapse" [attr.data-target]="'#expression0'" aria-expanded="true">
-  <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp; Transformations
+  <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp; Aggregate
 </div>
 <div *ngFor="let expression of expressions ;let i=index">
   <div id="expression0" class="accordion-body collapse in show">
-    <div *ngIf="expression.title==='Transformations'"><a href="" (click)="openExprViewDialog($event, expression)">
-        <i class='transformation-prexif'>λ = </i><code>{{expression.value}}</code></a></div>
+    <div *ngIf="expression.title==='Aggregate'">
+      <a href="" (click)="openExprViewDialog($event, expression)">
+        <i class='transformation-prexif'>Σ = </i><code>{{expression.value}}</code>
+      </a>
+    </div>
   </div>
 </div>
 
-<div *ngIf="hasDroppedAttribute(expressions)">
-  <div class="collapsible" data-toggle="collapse" [attr.data-target]="'#expression1'" aria-expanded="true">
-    <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp; Dropped Attributes
-  </div>
-  <div *ngFor="let expression of expressions ;let i=index">
-    <div id="expression1" class="accordion-body collapse in show">
-      <div *ngIf="expression.title==='Dropped Attributes'"><i class='dropped-attribute-prexif'>a =
-        </i><del><code>{{expression.value}}</code></del></div>
+<div class="collapsible" data-toggle="collapse" [attr.data-target]="'#expression1'" aria-expanded="true">
+  <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp; Grouping
+</div>
+<div *ngFor="let expression of expressions ;let i=index">
+  <div id="expression1" class="accordion-body collapse in show">
+    <div *ngIf="expression.title==='Grouping'">
+      <a href="" (click)="openExprViewDialog($event, expression)">
+        <i class='transformation-prexif'>[] = </i><code>{{expression.value}}</code>
+      </a>
     </div>
   </div>
 </div>

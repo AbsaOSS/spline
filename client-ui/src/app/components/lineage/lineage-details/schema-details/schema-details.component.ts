@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, ChangeDetectorRef, Component, ComponentFactoryResolver, QueryList, ViewChildren, ViewContainerRef } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ComponentFactoryResolver, OnDestroy, QueryList, ViewChildren, ViewContainerRef } from '@angular/core';
 import { Store } from '@ngrx/store';
 import * as _ from 'lodash';
-import { Observable } from 'rxjs';
-import { switchMap, tap } from 'rxjs/operators';
+import { Observable, Subscription } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { AppState } from 'src/app/model/app-state';
 import { Expression } from 'src/app/model/expression';
-import { IAlias, IAttrRef, IBinary, IExpression, IGeneric, IGenericLeaf, ILiteral, IUDF } from 'src/app/model/expression-model';
-import { ExpressionType } from 'src/app/model/types/expressionType';
 import { ExpressionComponents, OperationType } from 'src/app/model/types/operationType';
 import { AttributeVM } from 'src/app/model/viewModels/attributeVM';
 import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM';
 import { operationColorCodes, operationIconCodes } from 'src/app/store/reducers/execution-plan.reducer';
+import { getText } from 'src/app/store/reducers/expression.reducer';
 
 
 @Component({
@@ -33,7 +32,7 @@ import { operationColorCodes, operationIconCodes } from 'src/app/store/reducers/
   templateUrl: './schema-details.component.html',
   styleUrls: ['./schema-details.component.less']
 })
-export class SchemaDetailsComponent implements AfterViewInit {
+export class SchemaDetailsComponent implements AfterViewInit, OnDestroy {
 
   @ViewChildren('expressionPanel', { read: ViewContainerRef })
   expressionPanel: QueryList<ViewContainerRef>
@@ -44,23 +43,43 @@ export class SchemaDetailsComponent implements AfterViewInit {
     private store: Store<AppState>
   ) { }
 
+  private subscriptions: Subscription[] = []
+
   public ngAfterViewInit(): void {
-    this.expressionPanel.changes.pipe(
-      switchMap(_ => {
-        return this.store.select('detailsInfos')
-      }),
-      tap(opDetails => {
-        const container = this.expressionPanel.first
-        if (container && opDetails) {
-          container.remove(0)
-          const type = opDetails.operation.name
-          const factory = this.componentFactoryResolver.resolveComponentFactory(ExpressionComponents.get(type))
-          const instance = container.createComponent(factory).instance
-          instance.expressions = this.getExpressions(opDetails)
-          instance.expressionType = type
-          this.changedetectorRef.detectChanges()
-        }
-      })
+    this.subscriptions.push(
+      this.expressionPanel.changes.pipe(
+        switchMap(_ =>
+          this.store
+            .select('detailsInfos')
+            .pipe(
+              switchMap(detailsInfos => {
+                return this.store
+                  .select('executedLogicalPlan')
+                  .pipe(
+                    map(executedLogicalPlan => {
+                      return { detailsInfos: detailsInfos, executedLogicalPlan: executedLogicalPlan }
+                    })
+                  )
+              })
+            )
+        )
+      ).
+        subscribe(store => {
+          const container = this.expressionPanel.first
+          if (container && store.detailsInfos) {
+            container.clear()
+            let type = store.detailsInfos.operation.name
+            if (!ExpressionComponents.has(type)) {
+              type = OperationType.Generic
+            }
+            const expressions = this.getExpressions(store.detailsInfos, store.executedLogicalPlan.execution.extra.attributes)
+            const factory = this.componentFactoryResolver.resolveComponentFactory(ExpressionComponents.get(type))
+            const instance = container.createComponent(factory).instance
+            instance.expressions = expressions
+            instance.expressionType = type
+            if (!this.changedetectorRef['destroyed']) this.changedetectorRef.detectChanges()
+          }
+        })
     )
   }
 
@@ -76,101 +95,53 @@ export class SchemaDetailsComponent implements AfterViewInit {
     return operationColorCodes.get(operationName) || operationColorCodes.get(OperationType.Generic)
   }
 
-  private getType(attribute?: any): string {
-    return attribute._type
-  }
 
-  private getExpressions(attribute: any): Expression[] {
+  private getExpressions(detailsInfos: any, attributeList: any): Expression[] {
+    const properties = detailsInfos.operation.properties
     let expressions = []
-    switch (attribute._type) {
+    switch (properties.name) {
       case OperationType.Join:
-        // Build the join expression
-        const title = attribute.joinType
-        const values = [attribute.condition.text]
-        const expression = new Expression(title, values)
-        expressions.push(expression)
+        const joinExpression = new Expression(`${properties.joinType} Join On`, getText(properties.condition, attributeList), properties.condition)
+        expressions.push(joinExpression)
         break
       case OperationType.Projection:
-        // Build the transformations expressions
-        if (attribute.transformations) {
-          const title = "Transformations"
-          const values = new Array()
-          attribute.transformations.forEach(transformation => values.push(this.getText(transformation)))
-          const transformationExpression: Expression = new Expression(title, values)
-          expressions.push(transformationExpression)
+        if (properties.projectList) {
+          properties.projectList.forEach(projection =>
+            expressions.push(new Expression("Transformations", getText(projection[1], attributeList), projection[1]))
+          )
         }
-        // Build the dropped Attributes expressions
         let inputs = []
-        _.each(attribute.inputs, schemaIndex => inputs = _.concat(inputs, attribute.schemas[schemaIndex]))
-        const output = attribute.schemas[attribute.output]
+        _.each(detailsInfos.inputs, schemaIndex => inputs = _.concat(inputs, detailsInfos.schemas[schemaIndex]))
+        const output = detailsInfos.schemas[detailsInfos.output]
         const diff = _.differenceBy(inputs, output, 'name')
         if (diff.length > 0) {
-          const title = "Dropped Attributes"
-          const values = diff.map(item => item.name);
-          const droppedAttributes = new Expression(title, values)
-          expressions.push(droppedAttributes)
+          diff.map(item => expressions.push(new Expression("Dropped Attributes", item.name, null)))
         }
         break
-      //TODO : Implement the other expressions for the other types
+      case OperationType.Aggregate:
+        properties.aggregateExpressions.forEach(aggregate => expressions.push(new Expression("Aggregate", getText(aggregate[1], attributeList), aggregate[1])))
+        properties.groupingExpressions.forEach(grouping => expressions.push(new Expression("Grouping", getText(grouping[1], attributeList), grouping[1])))
+        break
+      case OperationType.LogicalRelation:
+        const inputSourceExpression = new Expression("inputSource", properties.inputSources[0], null)
+        const inputSourceTypeExpression = new Expression("Type", properties.sourceType, null)
+        expressions.push(inputSourceExpression)
+        expressions.push(inputSourceTypeExpression)
+        break
+      case OperationType.Sort:
+        properties.order.forEach(order => expressions.push(new Expression("Sort", `${getText(order.expression, attributeList)} ${order.direction}`, order.expression)))
+        break
+      case OperationType.Filter:
+        const filterExpression = new Expression("Filter", getText(properties.condition, attributeList), properties.condition)
+        expressions.push(filterExpression)
+        break
+      default:
+        const genericExpression = new Expression(properties.name, properties, null)
+        expressions.push(genericExpression)
+        break
     }
     return expressions
 
-  }
-
-  public getText(expr: IExpression): string {
-    switch (this.getType(expr)) {
-      case ExpressionType.Literal: {
-        return (expr as ILiteral).value
-      }
-      case ExpressionType.Binary: {
-        const binaryExpr = <IBinary>expr
-        const leftOperand = binaryExpr.children[0]
-        const rightOperand = binaryExpr.children[1]
-        const render = (operand: IExpression) => {
-          const text = this.getText(operand)
-          return this.getType(operand) == "Binary" ? `(${text})` : text
-        }
-        //TODO : This should be the same, to verify. 
-        //console.log(`${render(leftOperand)} ${binaryExpr.symbol} ${render(rightOperand)}`)
-        //this.renderValue(leftOperand) + " " + binaryExpr + " "+ this.renderValue(rightOperand) 
-        return `${render(leftOperand)} ${binaryExpr.symbol} ${render(rightOperand)}`
-      }
-      case ExpressionType.Alias: {
-        const ae = <IAlias>expr
-        return this.getText(ae.child) + " AS " + ae.alias
-      }
-      case ExpressionType.UDF: {
-        const udf = <IUDF>expr
-        const paramList = _.map(udf.children, child => this.getText(child))
-        return "UDF:" + udf.name + "(" + _.join(paramList, ", ") + ")"
-      }
-      case ExpressionType.AttrRef: {
-        const ar = <IAttrRef>expr
-        //TODO : put the expression in the mock data not the reference to it
-        return ar.refId
-      }
-      case ExpressionType.GenericLeaf: {
-        return this.renderAsGenericLeafExpr(expr as IGenericLeaf)
-      }
-      case ExpressionType.Generic: {
-        const leafText = this.renderAsGenericLeafExpr(expr as IGenericLeaf)
-        const childrenTexts = (expr as IGeneric).children.map(child => this.getText(child))
-        return leafText + _.join(childrenTexts, ", ")
-      }
-    }
-  }
-
-  private renderAsGenericLeafExpr(gle: IGenericLeaf): string {
-    const paramList = _.map(gle.params, (value, name) => name + "=" + this.renderValue(value))
-    return _.isEmpty(paramList) ? gle.name : gle.name + "[" + _.join(paramList, ", ") + "]"
-  }
-
-  private renderValue(obj: any): string {
-    if (this.getType(obj)) {
-      return this.getText(obj as IExpression)
-    } else {
-      return JSON.stringify(obj)
-    }
   }
 
   public getInputSchemas = (operationDetails: OperationDetailsVM): AttributeVM[] => {
@@ -189,5 +160,8 @@ export class SchemaDetailsComponent implements AfterViewInit {
     return operationDetails ? operationDetails.schemas[operationDetails.output] : null
   }
 
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(s => s.unsubscribe())
+  }
 }
 

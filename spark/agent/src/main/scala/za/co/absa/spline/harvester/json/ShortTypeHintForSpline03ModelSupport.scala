@@ -27,7 +27,7 @@ import scala.reflect.runtime.universe._
 trait ShortTypeHintForSpline03ModelSupport extends FormatsBuilder {
   override protected def formats: Formats = createFormats(Map(
     "typeHintFieldName" -> "_typeHint",
-    "typeHints" -> ShortTypeHints(Nil
+    "typeHints" -> SplineShortTypeHints(Nil
       ++ directSubClassesOf[model.dt.DataType]
       ++ directSubClassesOf[model.expr.Expression]
     ),

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 ABSA Group Limited
+ * Copyright 2019 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { JoinComponent } from './join.component';
 
-describe('JoinComponent', () => {
-  let component: JoinComponent;
-  let fixture: ComponentFixture<JoinComponent>;
+import { ModalExpressionComponent } from './modal-expression.component';
+
+describe('ModalExpressionComponent', () => {
+  let component: ModalExpressionComponent;
+  let fixture: ComponentFixture<ModalExpressionComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [JoinComponent]
+      declarations: [ModalExpressionComponent]
     })
       .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(JoinComponent);
+    fixture = TestBed.createComponent(ModalExpressionComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

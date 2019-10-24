@@ -14,10 +14,10 @@
   ~ limitations under the License.
   -->
 <div *ngFor="let expression of expressions ;let i=index">
-  <div class="collapsible" data-toggle="collapse" [attr.data-target]="'#expression'+i" aria-expanded="true">
-    <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp;{{expression.title}}
-  </div>
-  <div id="expression{{i}}" class="accordion-body collapse in show">
-    <a href="" (click)="openExprViewDialog($event, expression)"><code>{{expression.value}}</code></a>
-  </div>
+    <div class="collapsible" data-toggle="collapse" [attr.data-target]="'#expression'+i" aria-expanded="true">
+        <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp;{{expression.title}}
+    </div>
+    <div id="expression{{i}}" class="accordion-body collapse in show">
+        <pre [innerHtml]="expression.value | prettyjson"></pre>
+    </div>
 </div>

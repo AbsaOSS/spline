@@ -13,3 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component } from '@angular/core';
+import { ExpressionComponent } from '../expression/expression.component';
+
+@Component({
+  selector: 'app-logical-relation',
+  templateUrl: './logical-relation.component.html'
+})
+export class LogicalRelationComponent extends ExpressionComponent {
+
+}

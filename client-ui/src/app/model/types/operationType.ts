@@ -18,6 +18,11 @@ import { JoinComponent } from "../../components/lineage/lineage-details/schema-d
 import { Type } from "@angular/core";
 import { ProjectionComponent } from "../../components/lineage/lineage-details/schema-details/projection/projection.component";
 import { ExpressionComponent } from "../../components/lineage/lineage-details/schema-details/expression/expression.component";
+import { FilterComponent } from 'src/app/components/lineage/lineage-details/schema-details/filter/filter.component';
+import { SortComponent } from 'src/app/components/lineage/lineage-details/schema-details/sort/sort.component';
+import { LogicalRelationComponent } from 'src/app/components/lineage/lineage-details/schema-details/logical-relation/logical-relation.component';
+import { GenericComponent } from 'src/app/components/lineage/lineage-details/schema-details/generic/generic.component';
+import { AggregateComponent } from 'src/app/components/lineage/lineage-details/schema-details/aggregate/aggregate.component';
 
 
 export const enum OperationType {
@@ -41,14 +46,14 @@ export const enum OperationType {
 export const ExpressionComponents: Map<string, Type<ExpressionComponent>> = new Map([
     [OperationType.Join, JoinComponent],
     [OperationType.Projection, ProjectionComponent],
-    [OperationType.LogicalRelation, ExpressionComponent],
+    [OperationType.LogicalRelation, LogicalRelationComponent],
     [OperationType.BatchRead, ExpressionComponent],
     [OperationType.StreamRead, ExpressionComponent],
     [OperationType.Union, ExpressionComponent],
-    [OperationType.Generic, ExpressionComponent],
-    [OperationType.Filter, ExpressionComponent],
-    [OperationType.Sort, ExpressionComponent],
-    [OperationType.Aggregate, ExpressionComponent],
+    [OperationType.Generic, GenericComponent],
+    [OperationType.Filter, FilterComponent],
+    [OperationType.Sort, SortComponent],
+    [OperationType.Aggregate, AggregateComponent],
     [OperationType.WriteCommand, ExpressionComponent],
     [OperationType.BatchWrite, ExpressionComponent],
     [OperationType.StreamWrite, ExpressionComponent],

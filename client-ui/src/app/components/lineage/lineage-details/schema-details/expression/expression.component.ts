@@ -13,16 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input} from '@angular/core';
-import {Expression} from 'src/app/model/expression';
-import {OperationType} from 'src/app/model/types/operationType';
-import {operationColorCodes, operationIconCodes} from 'src/app/store/reducers/execution-plan.reducer';
+import { Component, Input, OnDestroy } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { Subscription } from 'rxjs';
+import { ModalExpressionComponent } from 'src/app/components/modal/modal-expression/modal-expression.component';
+import { AppState } from 'src/app/model/app-state';
+import { Expression } from 'src/app/model/expression';
+import { OperationType } from 'src/app/model/types/operationType';
+import { operationColorCodes, operationIconCodes } from 'src/app/store/reducers/execution-plan.reducer';
+import * as ModalAction from 'src/app/store/actions/modal.actions';
 
 @Component({
   selector: 'app-expression',
   template: ''
 })
-export class ExpressionComponent {
+export class ExpressionComponent implements OnDestroy {
+
+  constructor(private store: Store<AppState>) { }
+
+  private subscriptions: Subscription[] = []
 
   @Input()
   expressionType: string
@@ -37,4 +46,25 @@ export class ExpressionComponent {
   public getOperationColor(): string {
     return operationColorCodes.get(this.expressionType) || operationColorCodes.get(OperationType.Generic)
   }
+
+  openExprViewDialog(event: Event, expression: Expression) {
+    event.preventDefault()
+    this.subscriptions.push(
+      this.store
+        .select('executedLogicalPlan', 'execution', 'extra', 'attributes')
+        .subscribe(attributes => {
+          const initialState = {
+            data: expression,
+            attributes: attributes,
+            title: this.expressionType
+          }
+          this.store.dispatch(new ModalAction.Open(ModalExpressionComponent, { initialState }))
+        })
+    )
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(s => s.unsubscribe())
+  }
+
 }

@@ -16,12 +16,13 @@
 export class Expression {
 
     title: string
-    values: string[]
+    value: any
+    metadata: any
 
-    constructor(title: string, values: string[]) {
+    constructor(title: string, value: any, metadata: any) {
         this.title = title
-        this.values = values
+        this.value = value
+        this.metadata = metadata
     }
-
 
 }

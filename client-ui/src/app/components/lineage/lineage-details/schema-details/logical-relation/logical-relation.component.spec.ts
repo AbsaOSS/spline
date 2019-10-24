@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { JoinComponent } from './join.component';
 
-describe('JoinComponent', () => {
-  let component: JoinComponent;
-  let fixture: ComponentFixture<JoinComponent>;
+import { LogicalRelationComponent } from './logical-relation.component';
+
+describe('LogicalRelationComponent', () => {
+  let component: LogicalRelationComponent;
+  let fixture: ComponentFixture<LogicalRelationComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [JoinComponent]
+      declarations: [LogicalRelationComponent]
     })
       .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(JoinComponent);
+    fixture = TestBed.createComponent(LogicalRelationComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

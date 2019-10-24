@@ -77,8 +77,8 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
                     RETURN MERGE(
                         KEEP(d,  "id", "name", "fields", "nullable", "elementDataTypeId"),
                         {
-                            "_class": d._typeHint == "Simple" ? "za.co.absa.spline.persistence.model.SimpleDataType"
-                                    : d._typeHint == "Array" ? "za.co.absa.spline.persistence.model.ArrayDataType"
+                            "_class": d._typeHint == "dt.Simple" ? "za.co.absa.spline.persistence.model.SimpleDataType"
+                                    : d._typeHint == "dt.Array" ? "za.co.absa.spline.persistence.model.ArrayDataType"
                                     : "za.co.absa.spline.persistence.model.StructDataType"
                         }
                     )
@@ -86,7 +86,7 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
 
 
             RETURN {
-                "operation" : MERGE(KEEP(ope, "_type", "name"), {"_id": ope._key }, {"readsFrom" : readsFrom}, {"writesTo" : writesTo}),
+                "operation" : MERGE(KEEP(ope, "_type", "name", "properties"), {"_id": ope._key }, {"readsFrom" : readsFrom}, {"writesTo" : writesTo}),
                 "dataTypes": dataTypesFormatted,
                 "schemas" : schemas,
                 "inputs": LENGTH(inputs) > 0 ? RANGE(0, LENGTH(inputs)-1) : [],
