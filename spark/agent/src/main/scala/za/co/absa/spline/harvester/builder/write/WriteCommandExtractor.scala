@@ -19,11 +19,7 @@ package za.co.absa.spline.harvester.builder.write
 import org.apache.spark.sql.SaveMode._
 import org.apache.spark.sql.catalyst.catalog.{CatalogStorageFormat, CatalogTable}
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
-import org.apache.spark.sql.execution.command.{
-  AlterTableAddColumnsCommand, AlterTableChangeColumnCommand, AlterTableRenameCommand, AlterTableSetLocationCommand,
-  CreateDataSourceTableAsSelectCommand, CreateDataSourceTableCommand, CreateDatabaseCommand, CreateTableCommand,
-  CreateTableLikeCommand, DropDatabaseCommand, DropTableCommand, LoadDataCommand, TruncateTableCommand
-}
+import org.apache.spark.sql.execution.command._
 import org.apache.spark.sql.execution.datasources.jdbc.JdbcRelationProvider
 import org.apache.spark.sql.execution.datasources.{InsertIntoHadoopFsRelationCommand, SaveIntoDataSourceCommand}
 import org.apache.spark.sql.hive.execution.{CreateHiveTableAsSelectCommand, InsertIntoHiveTable}
@@ -33,17 +29,19 @@ import org.slf4s.LoggerFactory
 import za.co.absa.spline.common.extractors.{AccessorMethodValueExtractor, SafeTypeMatchingExtractor}
 import za.co.absa.spline.harvester.builder.write.WriteCommandExtractor._
 import za.co.absa.spline.harvester.builder.{SourceIdentifier, SourceUri}
+import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode
+import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode.SplineMode
 import za.co.absa.spline.harvester.qualifier.PathQualifier
 
 import scala.PartialFunction.condOpt
 import scala.language.reflectiveCalls
 
-class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession) {
+class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession, splineMode: SplineMode) {
 
   private val logger = LoggerFactory.getLogger(getClass.getSimpleName)
 
   def asWriteCommand(operation: LogicalPlan): Option[WriteCommand] = {
-    val writeCommand = condOpt(operation) {
+    val maybeWriteCommand = condOpt(operation) {
       case cmd: SaveIntoDataSourceCommand =>
         val maybeSourceType = DataSourceTypeExtractor.unapply(cmd)
         maybeSourceType match {
@@ -96,9 +94,9 @@ class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession)
         WriteCommand(ctc.nodeName, sourceId, Overwrite, ctc)
     }
 
-    if (writeCommand.isEmpty) logUnimplementedComamnd(operation)
+    if (maybeWriteCommand.isEmpty) alertWhenUnimplementedCommand(operation)
 
-    writeCommand
+    maybeWriteCommand
   }
 
   private def asDirWriteCommand(name: String, storage: CatalogStorageFormat, provider: String, overwrite: Boolean, query: LogicalPlan) = {
@@ -112,17 +110,29 @@ class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession)
     WriteCommand(name, sourceIdentifier, mode, query, Map("table" -> table))
   }
 
-  private val toBeImplemented = Seq(classOf[AlterTableAddColumnsCommand], classOf[AlterTableChangeColumnCommand],
-    classOf[AlterTableRenameCommand], classOf[AlterTableSetLocationCommand], classOf[CreateDataSourceTableCommand],
-    classOf[CreateDatabaseCommand], classOf[CreateTableLikeCommand], classOf[DropDatabaseCommand],
-    classOf[LoadDataCommand], classOf[TruncateTableCommand])
+  private val commandsToBeImplemented = Seq(
+    classOf[AlterTableAddColumnsCommand],
+    classOf[AlterTableChangeColumnCommand],
+    classOf[AlterTableRenameCommand],
+    classOf[AlterTableSetLocationCommand],
+    classOf[CreateDataSourceTableCommand],
+    classOf[CreateDatabaseCommand],
+    classOf[CreateTableLikeCommand],
+    classOf[DropDatabaseCommand],
+    classOf[LoadDataCommand],
+    classOf[TruncateTableCommand]
+  )
 
-  private def logUnimplementedComamnd(c: LogicalPlan): Unit = {
-    if (toBeImplemented.contains(c.getClass)) {
-      logger.warn(s"Spark command was intercepted, but is not yet implemented! Command:'${c.getClass}'")
+  private def alertWhenUnimplementedCommand(c: LogicalPlan): Unit = {
+    if (commandsToBeImplemented.contains(c.getClass)) {
+      val msg = s"Spark command was intercepted, but is not yet implemented! Command:'${c.getClass}'"
+
+      splineMode match {
+        case SplineMode.REQUIRED => throw new UnsupportedOperationException(msg)
+        case SplineMode.BEST_EFFORT => logger.warn(msg)
+      }
     }
   }
-
 }
 
 object WriteCommandExtractor {

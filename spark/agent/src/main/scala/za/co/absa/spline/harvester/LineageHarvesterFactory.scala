@@ -20,6 +20,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.SparkPlan
+import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode.SplineMode
 
 import scala.language.postfixOps
 
@@ -27,12 +28,12 @@ import scala.language.postfixOps
  *
  * @param hadoopConfiguration A hadoop configuration
  */
-class LineageHarvesterFactory(hadoopConfiguration: Configuration) {
+class LineageHarvesterFactory(hadoopConfiguration: Configuration, splineMode: SplineMode) {
 
   /** A main method of the object that performs transformation of Spark internal structures to library lineage representation.
    *
    * @return A lineage representation
    */
   def harvester(logicalPlan: LogicalPlan, executedPlan: Option[SparkPlan], session: SparkSession): LineageHarvester =
-    new LineageHarvester(logicalPlan, executedPlan, session)(hadoopConfiguration)
+    new LineageHarvester(logicalPlan, executedPlan, session)(hadoopConfiguration, splineMode)
 }

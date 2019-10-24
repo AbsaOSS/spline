@@ -30,16 +30,17 @@ import za.co.absa.spline.harvester.ModelConstants.{AppMetaInfo, ExecutionEventEx
 import za.co.absa.spline.harvester.builder.read.{ReadCommandExtractor, ReadNodeBuilder}
 import za.co.absa.spline.harvester.builder.write.{WriteCommandExtractor, WriteNodeBuilder}
 import za.co.absa.spline.harvester.builder.{GenericNodeBuilder, _}
+import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode.SplineMode
 import za.co.absa.spline.harvester.qualifier.HDFSPathQualifier
 import za.co.absa.spline.producer.rest.model._
 
 class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPlan], session: SparkSession)
-  (hadoopConfiguration: Configuration) {
+  (hadoopConfiguration: Configuration, splineMode: SplineMode) {
 
   implicit private val componentCreatorFactory: ComponentCreatorFactory = new ComponentCreatorFactory
 
   private val pathQualifier = new HDFSPathQualifier(hadoopConfiguration)
-  private val writeCommandExtractor = new WriteCommandExtractor(pathQualifier, session)
+  private val writeCommandExtractor = new WriteCommandExtractor(pathQualifier, session, splineMode)
   private val readCommandExtractor = new ReadCommandExtractor(pathQualifier, session)
 
   def harvest(): HarvestResult = {
