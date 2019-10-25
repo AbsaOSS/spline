@@ -25,20 +25,15 @@ import org.apache.spark.sql.execution.datasources.{InsertIntoHadoopFsRelationCom
 import org.apache.spark.sql.hive.execution.{CreateHiveTableAsSelectCommand, InsertIntoHiveTable}
 import org.apache.spark.sql.sources.DataSourceRegister
 import org.apache.spark.sql.{SaveMode, SparkSession}
-import org.slf4s.LoggerFactory
 import za.co.absa.spline.common.extractors.{AccessorMethodValueExtractor, SafeTypeMatchingExtractor}
 import za.co.absa.spline.harvester.builder.write.WriteCommandExtractor._
 import za.co.absa.spline.harvester.builder.{SourceIdentifier, SourceUri}
-import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode
-import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode.SplineMode
 import za.co.absa.spline.harvester.qualifier.PathQualifier
 
 import scala.PartialFunction.condOpt
 import scala.language.reflectiveCalls
 
-class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession, splineMode: SplineMode) {
-
-  private val logger = LoggerFactory.getLogger(getClass.getSimpleName)
+class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession) {
 
   @throws(classOf[UnsupportedSparkCommandException])
   def asWriteCommand(operation: LogicalPlan): Option[WriteCommand] = {
@@ -125,14 +120,7 @@ class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession,
   )
 
   private def alertWhenUnimplementedCommand(c: LogicalPlan): Unit = {
-    if (commandsToBeImplemented.contains(c.getClass)) {
-      val msg = s"Spark command was intercepted, but is not yet implemented! Command:'${c.getClass}'"
-
-      splineMode match {
-        case SplineMode.REQUIRED => throw new UnsupportedSparkCommandException(msg)
-        case SplineMode.BEST_EFFORT => logger.warn(msg)
-      }
-    }
+    if (commandsToBeImplemented.contains(c.getClass)) throw new UnsupportedSparkCommandException(c)
   }
 }
 
@@ -165,4 +153,5 @@ object WriteCommandExtractor {
 
 }
 
-class UnsupportedSparkCommandException(msg: String) extends Exception(msg)
+class UnsupportedSparkCommandException(command: LogicalPlan) extends
+  Exception(s"Spark command was intercepted, but is not yet implemented! Command:'${command.getClass}'")
