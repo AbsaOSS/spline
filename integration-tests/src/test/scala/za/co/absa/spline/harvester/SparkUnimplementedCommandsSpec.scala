@@ -48,11 +48,10 @@ class SparkUnimplementedCommandsSpec extends FlatSpec
   val tableName = "testTable"
 
   "Lineage for create database" should "be caught" in
-    withCustomSparkSession(_
-      .enableHiveSupport()
-      .config("hive.exec.dynamic.partition.mode", "nonstrict")) { spark =>
+    withNewSparkSession { spark =>
+      withDatabase(spark)(databaseName) {
+        spark.sql(s"DROP DATABASE IF EXISTS $databaseName CASCADE")
 
-      withRestartingSparkContext {
         withLineageTracking(spark) { lineageCaptor =>
           val (plan, _) = lineageCaptor.lineageOf {
             spark.sql(s"CREATE DATABASE $databaseName") // CreateDatabaseCommand
@@ -62,18 +61,13 @@ class SparkUnimplementedCommandsSpec extends FlatSpec
     }
 
   "Lineage for drop database" should "be caught" in
-    withCustomSparkSession(_
-      .enableHiveSupport()
-      .config("hive.exec.dynamic.partition.mode", "nonstrict")) { spark =>
+    withNewSparkSession { spark =>
+      withDatabase(spark)(databaseName) {
 
-      spark.sql(s"DROP DATABASE IF EXISTS $databaseName CASCADE")
-      spark.sql(s"CREATE DATABASE $databaseName")
-      spark.sql(s"USE $databaseName")
-      spark.sql(s"CREATE TABLE $tableName (x String, ymd int)")
-
-      withLineageTracking(spark) { lineageCaptor =>
-        val (plan, _) = lineageCaptor.lineageOf {
-          spark.sql(s"DROP DATABASE $databaseName CASCADE") // DropDatabaseCommand
+        withLineageTracking(spark) { lineageCaptor =>
+          val (plan, _) = lineageCaptor.lineageOf {
+            spark.sql(s"DROP DATABASE $databaseName CASCADE") // DropDatabaseCommand
+          }
         }
       }
     }

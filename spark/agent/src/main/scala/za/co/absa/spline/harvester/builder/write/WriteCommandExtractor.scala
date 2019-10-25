@@ -40,10 +40,27 @@ class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession,
 
   private val logger = LoggerFactory.getLogger(getClass.getSimpleName)
 
+  @throws(classOf[UnsupportedSparkCommandException])
   def asWriteCommand(operation: LogicalPlan): Option[WriteCommand] = {
     val maybeWriteCommand = condOpt(operation) {
       case cmd: SaveIntoDataSourceCommand =>
-        asDataSourceWriteCommand(cmd)
+        val maybeSourceType = DataSourceTypeExtractor.unapply(cmd)
+        maybeSourceType match {
+          case Some(sourceType) if sourceType == "jdbc" || sourceType.isInstanceOf[JdbcRelationProvider] =>
+            val jdbcConnectionString = cmd.options("url")
+            val tableName = cmd.options("dbtable")
+            WriteCommand(cmd.nodeName, SourceIdentifier.forJDBC(jdbcConnectionString, tableName), cmd.mode, cmd.query)
+          case _ =>
+            val maybeFormat = maybeSourceType.map {
+              case dsr: DataSourceRegister => dsr.shortName
+              case o => o.toString
+            }
+            val opts = cmd.options
+            val uri = opts.get("path").map(pathQualifier.qualify)
+              .orElse(opts.get("topic").filter(_ => opts.contains("kafka.bootstrap.servers")).map(SourceUri.forKafka))
+              .getOrElse(sys.error(s"Cannot extract source URI from the options: ${opts.keySet mkString ","}"))
+            WriteCommand(cmd.nodeName, SourceIdentifier(maybeFormat, uri), cmd.mode, cmd.query, opts)
+        }
 
       case cmd: InsertIntoHadoopFsRelationCommand =>
         val path = cmd.outputPath.toString
@@ -83,26 +100,6 @@ class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession,
     maybeWriteCommand
   }
 
-  private def asDataSourceWriteCommand(cmd: SaveIntoDataSourceCommand) = {
-    val maybeSourceType = DataSourceTypeExtractor.unapply(cmd)
-    maybeSourceType match {
-      case Some(sourceType) if sourceType == "jdbc" || sourceType.isInstanceOf[JdbcRelationProvider] =>
-        val jdbcConnectionString = cmd.options("url")
-        val tableName = cmd.options("dbtable")
-        WriteCommand(cmd.nodeName, SourceIdentifier.forJDBC(jdbcConnectionString, tableName), cmd.mode, cmd.query)
-      case _ =>
-        val maybeFormat = maybeSourceType.map {
-          case dsr: DataSourceRegister => dsr.shortName
-          case o => o.toString
-        }
-        val opts = cmd.options
-        val uri = opts.get("path").map(pathQualifier.qualify)
-          .orElse(opts.get("topic").filter(_ => opts.contains("kafka.bootstrap.servers")).map(SourceUri.forKafka))
-          .getOrElse(sys.error(s"Cannot extract source URI from the options: ${opts.keySet mkString ","}"))
-        WriteCommand(cmd.nodeName, SourceIdentifier(maybeFormat, uri), cmd.mode, cmd.query, opts)
-    }
-  }
-
   private def asDirWriteCommand(name: String, storage: CatalogStorageFormat, provider: String, overwrite: Boolean, query: LogicalPlan) = {
     val uri = storage.locationUri.getOrElse(sys.error(s"Cannot determine the data source location: $storage"))
     val mode = if (overwrite) Overwrite else Append
@@ -132,7 +129,7 @@ class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession,
       val msg = s"Spark command was intercepted, but is not yet implemented! Command:'${c.getClass}'"
 
       splineMode match {
-        case SplineMode.REQUIRED => throw new UnsupportedOperationException(msg)
+        case SplineMode.REQUIRED => throw new UnsupportedSparkCommandException(msg)
         case SplineMode.BEST_EFFORT => logger.warn(msg)
       }
     }
@@ -167,3 +164,5 @@ object WriteCommandExtractor {
   }
 
 }
+
+class UnsupportedSparkCommandException(msg: String) extends Exception(msg)
