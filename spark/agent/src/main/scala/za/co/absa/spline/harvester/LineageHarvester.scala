@@ -23,6 +23,7 @@ import org.apache.spark
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.execution.{LeafExecNode, SparkPlan}
 import org.apache.spark.sql.{SaveMode, SparkSession}
+import org.slf4s.LoggerFactory
 import scalaz.Scalaz._
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.harvester.LineageHarvester._
@@ -30,11 +31,17 @@ import za.co.absa.spline.harvester.ModelConstants.{AppMetaInfo, ExecutionEventEx
 import za.co.absa.spline.harvester.builder.read.{ReadCommandExtractor, ReadNodeBuilder}
 import za.co.absa.spline.harvester.builder.write.{WriteCommandExtractor, WriteNodeBuilder}
 import za.co.absa.spline.harvester.builder.{GenericNodeBuilder, _}
+import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode
+import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode.SplineMode
 import za.co.absa.spline.harvester.qualifier.HDFSPathQualifier
 import za.co.absa.spline.producer.rest.model._
 
+import scala.util.{Failure, Success, Try}
+
 class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPlan], session: SparkSession)
-  (hadoopConfiguration: Configuration) {
+  (hadoopConfiguration: Configuration, splineMode: SplineMode) {
+
+  private val logger = LoggerFactory.getLogger(getClass.getSimpleName)
 
   implicit private val componentCreatorFactory: ComponentCreatorFactory = new ComponentCreatorFactory
 
@@ -47,7 +54,16 @@ class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPl
       map(getExecutedReadWriteMetrics).
       getOrElse((Map.empty, Map.empty))
 
-    val maybeCommand = writeCommandExtractor.asWriteCommand(logicalPlan)
+    val maybeCommand = Try(writeCommandExtractor.asWriteCommand(logicalPlan)) match {
+      case Success(result) => result
+      case Failure(e) => splineMode match {
+        case SplineMode.REQUIRED =>
+          throw e
+        case SplineMode.BEST_EFFORT =>
+          logger.warn(e.getMessage)
+          None
+      }
+    }
 
     maybeCommand.flatMap(writeCommand => {
       val writeOpBuilder = new WriteNodeBuilder(writeCommand)

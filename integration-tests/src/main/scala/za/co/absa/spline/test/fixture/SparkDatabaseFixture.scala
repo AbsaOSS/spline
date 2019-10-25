@@ -24,10 +24,11 @@ trait SparkDatabaseFixture {
   private type TableDef = String
   private type TableData = Seq[Any]
 
+  /**
+   * this function creates tables in a way that is hive dependent, therefore hive must be enabled for this to work
+   */
   def withHiveDatabase[T](spark: SparkSession)(databaseName: DatabaseName, tableDefs: (TableName, TableDef, TableData)*)(testBody: => T): T = {
-    spark.sql(s"DROP DATABASE IF EXISTS $databaseName CASCADE")
-    spark.sql(s"CREATE DATABASE $databaseName")
-    spark.sql(s"USE $databaseName")
+    prepareDatabase(spark, databaseName)
 
     tableDefs.foreach({
       case (tableName, tableDef, rows) =>
@@ -41,7 +42,26 @@ trait SparkDatabaseFixture {
     try
       testBody
     finally
-      spark.sql(s"DROP DATABASE $databaseName CASCADE")
+      dropDatabase(spark, databaseName)
+  }
+
+  def withDatabase[T](spark: SparkSession)(databaseName: DatabaseName)(testBody: => T): T = {
+    prepareDatabase(spark, databaseName)
+
+    try
+      testBody
+    finally
+      dropDatabase(spark, databaseName)
+  }
+
+  private def prepareDatabase(spark: SparkSession, databaseName: DatabaseName) :Unit = {
+    spark.sql(s"DROP DATABASE IF EXISTS $databaseName CASCADE")
+    spark.sql(s"CREATE DATABASE $databaseName")
+    spark.sql(s"USE $databaseName")
+  }
+
+  private def dropDatabase(spark: SparkSession, databaseName: DatabaseName) :Unit = {
+    spark.sql(s"DROP DATABASE IF EXISTS $databaseName CASCADE")
   }
 
   private def sqlizeRow[T](row: Any) = {

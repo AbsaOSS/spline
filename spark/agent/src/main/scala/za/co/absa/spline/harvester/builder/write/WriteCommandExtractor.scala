@@ -19,7 +19,7 @@ package za.co.absa.spline.harvester.builder.write
 import org.apache.spark.sql.SaveMode._
 import org.apache.spark.sql.catalyst.catalog.{CatalogStorageFormat, CatalogTable}
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
-import org.apache.spark.sql.execution.command.{CreateDataSourceTableAsSelectCommand, CreateTableCommand, DropTableCommand}
+import org.apache.spark.sql.execution.command._
 import org.apache.spark.sql.execution.datasources.jdbc.JdbcRelationProvider
 import org.apache.spark.sql.execution.datasources.{InsertIntoHadoopFsRelationCommand, SaveIntoDataSourceCommand}
 import org.apache.spark.sql.hive.execution.{CreateHiveTableAsSelectCommand, InsertIntoHiveTable}
@@ -35,57 +35,64 @@ import scala.language.reflectiveCalls
 
 class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession) {
 
-  def asWriteCommand(operation: LogicalPlan): Option[WriteCommand] = condOpt(operation) {
-    case cmd: SaveIntoDataSourceCommand =>
-      val maybeSourceType = DataSourceTypeExtractor.unapply(cmd)
-      maybeSourceType match {
-        case Some(sourceType) if sourceType == "jdbc" || sourceType.isInstanceOf[JdbcRelationProvider] =>
-          val jdbcConnectionString = cmd.options("url")
-          val tableName = cmd.options("dbtable")
-          WriteCommand(cmd.nodeName, SourceIdentifier.forJDBC(jdbcConnectionString, tableName), cmd.mode, cmd.query)
-        case _ =>
-          val maybeFormat = maybeSourceType.map {
-            case dsr: DataSourceRegister => dsr.shortName
-            case o => o.toString
-          }
-          val opts = cmd.options
-          val uri = opts.get("path").map(pathQualifier.qualify)
-            .orElse(opts.get("topic").filter(_ => opts.contains("kafka.bootstrap.servers")).map(SourceUri.forKafka))
-            .getOrElse(sys.error(s"Cannot extract source URI from the options: ${opts.keySet mkString ","}"))
-          WriteCommand(cmd.nodeName, SourceIdentifier(maybeFormat, uri), cmd.mode, cmd.query, opts)
-      }
+  @throws(classOf[UnsupportedSparkCommandException])
+  def asWriteCommand(operation: LogicalPlan): Option[WriteCommand] = {
+    val maybeWriteCommand = condOpt(operation) {
+      case cmd: SaveIntoDataSourceCommand =>
+        val maybeSourceType = DataSourceTypeExtractor.unapply(cmd)
+        maybeSourceType match {
+          case Some(sourceType) if sourceType == "jdbc" || sourceType.isInstanceOf[JdbcRelationProvider] =>
+            val jdbcConnectionString = cmd.options("url")
+            val tableName = cmd.options("dbtable")
+            WriteCommand(cmd.nodeName, SourceIdentifier.forJDBC(jdbcConnectionString, tableName), cmd.mode, cmd.query)
+          case _ =>
+            val maybeFormat = maybeSourceType.map {
+              case dsr: DataSourceRegister => dsr.shortName
+              case o => o.toString
+            }
+            val opts = cmd.options
+            val uri = opts.get("path").map(pathQualifier.qualify)
+              .orElse(opts.get("topic").filter(_ => opts.contains("kafka.bootstrap.servers")).map(SourceUri.forKafka))
+              .getOrElse(sys.error(s"Cannot extract source URI from the options: ${opts.keySet mkString ","}"))
+            WriteCommand(cmd.nodeName, SourceIdentifier(maybeFormat, uri), cmd.mode, cmd.query, opts)
+        }
 
-    case cmd: InsertIntoHadoopFsRelationCommand =>
-      val path = cmd.outputPath.toString
-      val format = cmd.fileFormat.toString
-      val qPath = pathQualifier.qualify(path)
-      WriteCommand(cmd.nodeName, SourceIdentifier(Some(format), qPath), cmd.mode, cmd.query, cmd.options)
+      case cmd: InsertIntoHadoopFsRelationCommand =>
+        val path = cmd.outputPath.toString
+        val format = cmd.fileFormat.toString
+        val qPath = pathQualifier.qualify(path)
+        WriteCommand(cmd.nodeName, SourceIdentifier(Some(format), qPath), cmd.mode, cmd.query, cmd.options)
 
-    case `_: InsertIntoDataSourceDirCommand`(cmd) =>
-      asDirWriteCommand(cmd.nodeName, cmd.storage, cmd.provider, cmd.overwrite, cmd.query)
+      case `_: InsertIntoDataSourceDirCommand`(cmd) =>
+        asDirWriteCommand(cmd.nodeName, cmd.storage, cmd.provider, cmd.overwrite, cmd.query)
 
-    case `_: InsertIntoHiveDirCommand`(cmd) =>
-      asDirWriteCommand(cmd.nodeName, cmd.storage, "hive", cmd.overwrite, cmd.query)
+      case `_: InsertIntoHiveDirCommand`(cmd) =>
+        asDirWriteCommand(cmd.nodeName, cmd.storage, "hive", cmd.overwrite, cmd.query)
 
-    case `_: InsertIntoHiveTable`(cmd) =>
-      val mode = if (cmd.overwrite) Overwrite else Append
-      asTableWriteCommand(cmd.nodeName, cmd.table, mode, cmd.query)
+      case `_: InsertIntoHiveTable`(cmd) =>
+        val mode = if (cmd.overwrite) Overwrite else Append
+        asTableWriteCommand(cmd.nodeName, cmd.table, mode, cmd.query)
 
-    case `_: CreateHiveTableAsSelectCommand`(cmd) =>
-      val sourceId = SourceIdentifier.forTable(cmd.tableDesc)(pathQualifier, session)
-      WriteCommand(cmd.nodeName, sourceId, cmd.mode, cmd.query)
+      case `_: CreateHiveTableAsSelectCommand`(cmd) =>
+        val sourceId = SourceIdentifier.forTable(cmd.tableDesc)(pathQualifier, session)
+        WriteCommand(cmd.nodeName, sourceId, cmd.mode, cmd.query)
 
-    case cmd: CreateDataSourceTableAsSelectCommand =>
-      asTableWriteCommand(cmd.nodeName, cmd.table, cmd.mode, cmd.query)
+      case cmd: CreateDataSourceTableAsSelectCommand =>
+        asTableWriteCommand(cmd.nodeName, cmd.table, cmd.mode, cmd.query)
 
-    case dtc: DropTableCommand =>
-      val uri = SourceUri.forTable(dtc.tableName)(session)
-      val sourceId = SourceIdentifier(None, pathQualifier.qualify(uri))
-      WriteCommand(dtc.nodeName, sourceId, Overwrite, dtc)
+      case dtc: DropTableCommand =>
+        val uri = SourceUri.forTable(dtc.tableName)(session)
+        val sourceId = SourceIdentifier(None, pathQualifier.qualify(uri))
+        WriteCommand(dtc.nodeName, sourceId, Overwrite, dtc)
 
-    case ctc: CreateTableCommand =>
-      val sourceId = SourceIdentifier.forTable(ctc.table)(pathQualifier, session)
-      WriteCommand(ctc.nodeName, sourceId, Overwrite, ctc)
+      case ctc: CreateTableCommand =>
+        val sourceId = SourceIdentifier.forTable(ctc.table)(pathQualifier, session)
+        WriteCommand(ctc.nodeName, sourceId, Overwrite, ctc)
+    }
+
+    if (maybeWriteCommand.isEmpty) alertWhenUnimplementedCommand(operation)
+
+    maybeWriteCommand
   }
 
   private def asDirWriteCommand(name: String, storage: CatalogStorageFormat, provider: String, overwrite: Boolean, query: LogicalPlan) = {
@@ -97,6 +104,23 @@ class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession)
   private def asTableWriteCommand(name: String, table: CatalogTable, mode: SaveMode, query: LogicalPlan) = {
     val sourceIdentifier = SourceIdentifier.forTable(table)(pathQualifier, session)
     WriteCommand(name, sourceIdentifier, mode, query, Map("table" -> table))
+  }
+
+  private val commandsToBeImplemented = Seq(
+    classOf[AlterTableAddColumnsCommand],
+    classOf[AlterTableChangeColumnCommand],
+    classOf[AlterTableRenameCommand],
+    classOf[AlterTableSetLocationCommand],
+    classOf[CreateDataSourceTableCommand],
+    classOf[CreateDatabaseCommand],
+    classOf[CreateTableLikeCommand],
+    classOf[DropDatabaseCommand],
+    classOf[LoadDataCommand],
+    classOf[TruncateTableCommand]
+  )
+
+  private def alertWhenUnimplementedCommand(c: LogicalPlan): Unit = {
+    if (commandsToBeImplemented.contains(c.getClass)) throw new UnsupportedSparkCommandException(c)
   }
 }
 
@@ -128,3 +152,6 @@ object WriteCommandExtractor {
   }
 
 }
+
+class UnsupportedSparkCommandException(command: LogicalPlan) extends
+  Exception(s"Spark command was intercepted, but is not yet implemented! Command:'${command.getClass}'")
