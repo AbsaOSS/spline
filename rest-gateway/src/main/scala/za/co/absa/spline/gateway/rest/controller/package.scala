@@ -13,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package za.co.absa.spline.gateway.rest
 
-import za.co.absa.spline.common.config.{ConfTyped, DefaultConfigurationStack}
+package object controller {
 
-object CorsConfig extends DefaultConfigurationStack with ConfTyped {
-  override val rootPrefix: String = "spline"
-
-  object CorsFilterConf extends Conf("corsFilter") {
-    val allowedOrigin: String = getString(Prop("allowedOrigin"))
-    val allowedHeader: Array[String] = getStringArray(Prop("allowedHeader"))
-  }
+  trait _package
 
 }
-
