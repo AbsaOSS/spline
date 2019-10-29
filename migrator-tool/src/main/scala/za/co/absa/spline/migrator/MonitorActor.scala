@@ -44,7 +44,7 @@ class MonitorActor(conf: MigratorConfig) extends Actor {
         f"Processed: $total%1$$-10s",
         f"Failures: $failures%1$$-10s",
         f"Speed [doc/sec]: $speed%1$$-10s",
-        s"Load: [$loadBar]"
+        s"Queue: [$loadBar]"
       ).mkString
 
       Console.print(s"\r$statusStr")

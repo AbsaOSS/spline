@@ -28,11 +28,11 @@ class ArangoRepoConfig extends InitializingBean with Logging {
   import za.co.absa.spline.persistence.ArangoRepoConfig._
 
   override def afterPropertiesSet(): Unit = {
-    log.info(s"Connecting to ${Database.url}")
+    log.info(s"Connecting to ${Database.connectionURL.toURI}")
     arangoDatabase.getInfo.get()
   }
 
-  @Bean def arangoDatabaseFacade: ArangoDatabaseFacade = new ArangoDatabaseFacade(Database.url)
+  @Bean def arangoDatabaseFacade: ArangoDatabaseFacade = new ArangoDatabaseFacade(Database.connectionURL)
 
   @Bean def arangoDatabase: ArangoDatabaseAsync = arangoDatabaseFacade.db
 }
@@ -44,7 +44,7 @@ object ArangoRepoConfig extends DefaultConfigurationStack with ConfTyped {
   override val rootPrefix: String = "spline"
 
   object Database extends Conf("database") {
-    val url: ArangoConnectionURL = ArangoConnectionURL(getString(Prop("connectionUrl")))
+    val connectionURL: ArangoConnectionURL = ArangoConnectionURL(getString(Prop("connectionUrl")))
   }
 
 }
