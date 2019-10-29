@@ -91,13 +91,13 @@ function renderAsGenericLeafExpr(gle: IGenericLeaf, attributeList: any): string 
 }
 
 function renderValue(obj: any, attributeList: any): string {
-    if (getType(obj)) {
-        return getText(obj as IExpression, attributeList)
-    } else if (_.isArray(obj)) {
-        return `[${obj.map(o => renderValue(o, attributeList)).join(", ")}]`
-    } else if (_.isPlainObject(obj)) {
-        const renderedPairs = _.toPairs(obj).map(([k, v]) => `${k}: ${renderValue(v, attributeList)}`)
-        return `{${renderedPairs.join(", ")}}`
-    } else
-        return obj.toString()
+    switch (obj) {
+        case getType(obj): return getText(obj as IExpression, attributeList)
+        case _.isArray(obj): return `[${obj.map(o => renderValue(o, attributeList)).join(", ")}]`
+        case _.isPlainObject(obj): {
+            const renderedPairs = _.toPairs(obj).map(([k, v]) => `${k}: ${renderValue(v, attributeList)}`)
+            return `{${renderedPairs.join(", ")}}`
+        }
+        default: return obj.toString()
+    }
 }

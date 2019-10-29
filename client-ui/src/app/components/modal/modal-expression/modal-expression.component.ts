@@ -33,16 +33,13 @@ export class ModalExpressionComponent implements AfterContentInit {
     this.exprTree = this.buildExprTree()
   }
 
-  data: any
-  title: any
-  attributes: any
-  exprTree: any[]
+  private data: any
+  private attributes: any
+  public title: any
+  public exprTree: any[]
 
   constructor(private store: Store<AppState>) { }
 
-  public close() {
-    this.store.dispatch(new ModalAction.Close())
-  }
 
   private buildExprTree(): any[] {
     let seq = 0
@@ -59,19 +56,25 @@ export class ModalExpressionComponent implements AfterContentInit {
     return [buildNode(this.data.metadata)]
   }
 
-  readonly actionMapping: IActionMapping = {
+
+  private readonly actionMapping: IActionMapping = {
     mouse: {
       click: (_, node) => ModalExpressionComponent.onNodeClicked(node)
     }
   }
 
-  readonly treeOptions: ITreeOptions = {
+  private static onNodeClicked(node: ITreeNode): void {
+    node.toggleExpanded()
+  }
+
+  public readonly treeOptions: ITreeOptions = {
     actionMapping: this.actionMapping,
     allowDrag: false,
     allowDrop: false,
   }
 
-  static onNodeClicked(node: ITreeNode) {
-    node.toggleExpanded()
+  public close(): void {
+    this.store.dispatch(new ModalAction.Close())
   }
+
 }

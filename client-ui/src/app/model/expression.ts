@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 export class Expression {
-
-    title: string
-    value: any
-    metadata: any
+    public title: string
+    public value: any
+    public metadata: any
 
     constructor(title: string, value: any, metadata: any) {
         this.title = title

@@ -18,10 +18,10 @@ package za.co.absa.spline.harvester.json
 import org.json4s.TypeHints
 
 case class SplineShortTypeHints(hints: List[Class[_]]) extends TypeHints {
-  def hintFor(clazz: Class[_]) = {
+  def hintFor(clazz: Class[_]): String = {
     val classNameSplit : Array[String] = clazz.getName.split('.')
     s"${classNameSplit(classNameSplit.length-2)}.${classNameSplit(classNameSplit.length-1)}"
   }
 
-  def classFor(hint: String) = hints find (hintFor(_) == hint)
+  def classFor(hint: String): Option[Class[_]] = hints find (hintFor(_) == hint)
 }

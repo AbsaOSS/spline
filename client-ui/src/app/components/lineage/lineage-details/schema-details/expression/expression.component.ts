@@ -47,7 +47,7 @@ export class ExpressionComponent implements OnDestroy {
     return operationColorCodes.get(this.expressionType) || operationColorCodes.get(OperationType.Generic)
   }
 
-  openExprViewDialog(event: Event, expression: Expression) {
+  public openExprViewDialog(event: Event, expression: Expression): void {
     event.preventDefault()
     this.subscriptions.push(
       this.store
