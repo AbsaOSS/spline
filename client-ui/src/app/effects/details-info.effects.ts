@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
 import * as _ from 'lodash';
-import { Observable, of } from 'rxjs';
+import { empty, Observable } from 'rxjs';
 import { catchError, flatMap, map } from 'rxjs/operators';
 import { Attribute, DataType, OperationDetails } from '../generated/models';
 import { OperationDetailsControllerService } from '../generated/services';
@@ -31,6 +30,7 @@ import { GenericDataTypeVM } from '../model/viewModels/GenericDataTypeVM';
 import { OperationDetailsVM } from '../model/viewModels/operationDetailsVM';
 import * as DetailsInfoAction from '../store/actions/details-info.actions';
 import * as ErrorActions from '../store/actions/error.actions';
+import { handleError } from '../store/reducers/error.reducer';
 
 
 @Injectable()
@@ -58,9 +58,8 @@ export class DetailsInfoEffects {
         return this.operationDetailsControllerService.operationUsingGETResponse(nodeId).pipe(
             map(this.toOperationDetailsView),
             catchError(err => {
-                this.handleError(err)
-                this.store.dispatch(new DetailsInfoAction.Reset())
-                return of<OperationDetailsVM>()
+                this.store.dispatch(new ErrorActions.ServiceErrorGet(handleError(err)))
+                return empty()
             })
         )
     }
@@ -112,13 +111,6 @@ export class DetailsInfoEffects {
 
     private getDataType = (dataTypes: Array<DataType>, dataTypeId: string): GenericDataTypeVM => {
         return _.find(dataTypes, (dt: GenericDataTypeVM) => dt.id == dataTypeId)
-    }
-
-    private handleError = (err: HttpErrorResponse): void => {
-        const errorMessage = (err.error instanceof ErrorEvent)
-            ? `An error occurred: ${err.error.message}`
-            : `Server returned code: ${err.status}, error message is: ${err.message}`
-        this.store.dispatch(new ErrorActions.ServiceErrorGet(errorMessage))
     }
 
 }

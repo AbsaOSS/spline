@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
 import * as _ from 'lodash';
-import { Observable, of } from 'rxjs';
+import { empty, Observable } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { OperationType } from 'src/app/model/types/operationType';
 import { ExecutedLogicalPlan, Operation, Transition } from '../generated/models';
@@ -29,9 +28,10 @@ import { AppState } from '../model/app-state';
 import { CytoscapeGraphVM } from '../model/viewModels/cytoscape/cytoscapeGraphVM';
 import { CytoscapeOperationVM } from '../model/viewModels/cytoscape/cytoscapeOperationVM';
 import { ExecutedLogicalPlanVM } from '../model/viewModels/executedLogicalPlanVM';
-import * as ExecutionPlanAction from '../store/actions/execution-plan.actions';
-import { operationColorCodes, operationIconCodes } from '../store/reducers/execution-plan.reducer';
 import * as ErrorActions from '../store/actions/error.actions';
+import * as ExecutionPlanAction from '../store/actions/execution-plan.actions';
+import { handleError } from '../store/reducers/error.reducer';
+import { operationColorCodes, operationIconCodes } from '../store/reducers/execution-plan.reducer';
 
 
 export type Action = ExecutionPlanAction.ExecutionPlanActions
@@ -60,8 +60,8 @@ export class ExecutionPlanEffects {
         return this.executionPlanControllerService.lineageUsingGETResponse(executionPlanId).pipe(
             map(response => this.toLogicalPlanView(response)),
             catchError(err => {
-                this.handleError(err)
-                return of<ExecutedLogicalPlanVM>()
+                this.store.dispatch(new ErrorActions.ServiceErrorGet(handleError(err)))
+                return empty()
             })
         )
     }
@@ -87,12 +87,5 @@ export class ExecutionPlanEffects {
         executedLogicalPlanVM.execution = executedLogicalPlanHttpResponse.body.execution
         executedLogicalPlanVM.plan = cytoscapeGraphVM
         return executedLogicalPlanVM
-    }
-
-    private handleError = (err: HttpErrorResponse): void => {
-        const errorMessage = (err.error instanceof ErrorEvent)
-            ? `An error occurred: ${err.error.message}`
-            : `Server returned code: ${err.status}, error message is: ${err.message}`
-        this.store.dispatch(new ErrorActions.ServiceErrorGet(errorMessage))
     }
 }

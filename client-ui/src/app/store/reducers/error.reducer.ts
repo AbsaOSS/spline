@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as ErrorAction from '../actions/error.actions';
+import { HttpErrorResponse } from '@angular/common/http';
 
 export type Action = ErrorAction.ErrorActions
 
@@ -24,6 +25,12 @@ export function errorReducer(state: string, action: Action): string {
         case ErrorAction.ErrorActionTypes.SERVICE_ERROR_RESET: return ""
         default: return state
     }
+}
+
+export function handleError(err: HttpErrorResponse): string {
+    return (err.error instanceof ErrorEvent)
+        ? `An error occurred: ${err.error.message}`
+        : `Server returned code: ${err.status}, error message is: ${err.message}`
 }
 
 function getTextError(httpCode: string): string {
