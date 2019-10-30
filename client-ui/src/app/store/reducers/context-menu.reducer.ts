@@ -15,7 +15,6 @@
  */
 import * as ContextMenuAction from '../actions/context-menu.actions';
 import { LineageOverviewNodeType } from 'src/app/model/types/lineageOverviewNodeType';
-import * as RouterAction from 'src/app/store/actions/router.actions';
 
 export type Action = ContextMenuAction.ContextMenuActions
 
@@ -29,7 +28,7 @@ export function contextMenuReducer(state: string, action: Action): any {
 function getConfiguration(): any {
     return {
         menuRadius: 120, // the radius of the circular menu in pixels
-        selector: 'node', // elements matching this Cytoscape.js selector will trigger cxtmenus
+        selector: "node[_type='ExecutionNode']", // elements matching this Cytoscape.js selector will trigger cxtmenus
         fillColor: 'rgba(0, 0, 0, 0.75)', // the background colour of the menu
         activeFillColor: 'rgba(1, 105, 217, 0.75)', // the colour used to indicate the selected command
         activePadding: 20, // additional size in pixels for the active command
