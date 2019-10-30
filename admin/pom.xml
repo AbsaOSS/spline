@@ -44,7 +44,10 @@
         <dependency>
             <groupId>com.github.scopt</groupId>
             <artifactId>scopt_${scala.compat.version}</artifactId>
-            <version>3.7.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.backuity</groupId>
+            <artifactId>ansi-interpolator_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>

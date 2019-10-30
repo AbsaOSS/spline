@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.admin
 
+import org.backuity.ansi.AnsiFormatter.FormattedHelper
 import scopt.{OptionDef, OptionParser}
 import za.co.absa.spline.admin.AdminCLI.AdminCLIConfig
 import za.co.absa.spline.common.SplineBuildInfo
@@ -65,9 +66,13 @@ class AdminCLI(arangoInit: ArangoInit) {
         children (dbCommandOptions: _*))
 
       checkConfig {
-        case AdminCLIConfig(null) => failure("No command given")
-        case AdminCLIConfig(cmd: DBCommand) if cmd.dbUrl == null => failure("DB connection string is required")
-        case _ => success
+        case AdminCLIConfig(null) =>
+          failure("No command given")
+        case AdminCLIConfig(cmd: DBCommand) if cmd.dbUrl == null =>
+          failure("DB connection string is required")
+        case _ =>
+          println(ansi"%green{DONE}")
+          success
       }
     }
 
