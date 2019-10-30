@@ -192,6 +192,14 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <filters>
+                        <filter>
+                            <artifact>za.co.absa.spline:spark-agent</artifact>
+                            <excludes>
+                                <exclude>za/co/absa/spline/model/**</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
                     <transformers>
                         <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                             <resource>reference.conf</resource>

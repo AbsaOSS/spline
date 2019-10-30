@@ -46,7 +46,7 @@ object Persister extends Logging {
         case RetryableException(e) =>
           if (left == 0) throw e
           else {
-            log.warn(s"Got an error, retrying... ($left attempts left)", e)
+            log.warn(s"Got an error, retrying... ($left attempts left): {}", e.getMessage)
             saveWithRetry(entity, attemptSave, left)
           }
       }

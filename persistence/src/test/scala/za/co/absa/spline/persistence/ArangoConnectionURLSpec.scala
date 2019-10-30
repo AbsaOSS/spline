@@ -22,6 +22,8 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class ArangoConnectionURLSpec extends FlatSpec with Matchers {
 
+  behavior of "URL parser"
+
   it should "parse ArangoDB connection URL without port number" in {
     val url = ArangoConnectionURL("arangodb://my.host.com/foo-bar_db")
     url.host shouldEqual "my.host.com"
@@ -58,6 +60,17 @@ class ArangoConnectionURLSpec extends FlatSpec with Matchers {
 
   it should "fail on missing host, port or database name" in {
     a[MalformedURLException] should be thrownBy ArangoConnectionURL("arangodb://my.host.com:1234")
+  }
+
+  behavior of "toURI()"
+
+  it should "compose equivalent representation of the input" in {
+    ArangoConnectionURL(None, None, "host", 42, "test").toURI.toString shouldEqual "arangodb://host:42/test"
+    ArangoConnectionURL(Some("alice"), None, "host", 42, "test").toURI.toString shouldEqual "arangodb://alice@host:42/test"
+  }
+
+  it should "hide user password" in {
+    ArangoConnectionURL(Some("bob"), Some("secret"), "host", 42, "test").toURI.toString shouldEqual "arangodb://bob:*****@host:42/test"
   }
 
 }

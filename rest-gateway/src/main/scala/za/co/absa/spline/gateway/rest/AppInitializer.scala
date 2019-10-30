@@ -23,8 +23,8 @@ import javax.servlet.ServletContext
 import org.springframework.web.WebApplicationInitializer
 import org.springframework.web.context.ContextLoaderListener
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext
-import org.springframework.web.filter.DelegatingFilterProxy
 import org.springframework.web.servlet.DispatcherServlet
+import za.co.absa.spline.common.webmvc.cors.PermissiveCorsFilter
 import za.co.absa.spline.consumer.rest.ConsumerRESTConfig
 import za.co.absa.spline.consumer.service.ConsumerServicesConfig
 import za.co.absa.spline.persistence.ArangoRepoConfig
@@ -35,21 +35,25 @@ import scala.reflect.ClassTag
 
 object AppInitializer extends WebApplicationInitializer {
   override def onStartup(container: ServletContext): Unit = {
-
-    val rootCtx = new AnnotationConfigWebApplicationContext {
-      setAllowBeanDefinitionOverriding(false)
-      register(
-        classOf[AppConfig],
-        classOf[ConsumerServicesConfig],
-        classOf[ProducerServicesConfig],
-        classOf[ArangoRepoConfig])
-    }
-
-    container.addListener(new ContextLoaderListener(rootCtx))
+    container
+      .addListener(new ContextLoaderListener(new AnnotationConfigWebApplicationContext {
+        setAllowBeanDefinitionOverriding(false)
+        register(
+          classOf[ConsumerServicesConfig],
+          classOf[ProducerServicesConfig],
+          classOf[ArangoRepoConfig])
+      }))
 
     container
-      .addFilter("springFilterProxy", new DelegatingFilterProxy)
+      .addFilter("CORSFilter", new PermissiveCorsFilter)
       .addMappingForUrlPatterns(util.EnumSet.of(REQUEST, ASYNC), false, "/*")
+
+    container
+      .addServlet("RootDispatcher", new DispatcherServlet(new AnnotationConfigWebApplicationContext {
+        setAllowBeanDefinitionOverriding(false)
+        register(classOf[RootWebContextConfig])
+      }))
+      .addMapping("/*")
 
     registerRESTDispatcher[ConsumerRESTConfig](container, "consumer")
     registerRESTDispatcher[ProducerRESTConfig](container, "producer")

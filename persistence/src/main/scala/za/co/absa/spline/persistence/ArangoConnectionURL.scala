@@ -16,18 +16,26 @@
 
 package za.co.absa.spline.persistence
 
-import java.net.MalformedURLException
+import java.net.{MalformedURLException, URI}
 
+import org.apache.commons.lang3.StringUtils.trimToNull
 import za.co.absa.spline.common.OptionImplicits.StringWrapper
+import za.co.absa.spline.persistence.ArangoConnectionURL.ArangoDbScheme
 
 import scala.util.matching.Regex
 
 case class ArangoConnectionURL(user: Option[String], password: Option[String], host: String, port: Int, dbName: String) {
   require(user.isDefined || password.isEmpty, "user cannot be blank if password is specified")
+
+  def toURI: URI = {
+    val userInfo = trimToNull(Seq(user, password.map(_ => "*****")).flatten.mkString(":"))
+    new URI(ArangoDbScheme, userInfo, host, port, s"/$dbName", null, null)
+  }
 }
 
 object ArangoConnectionURL {
 
+  private val ArangoDbScheme = "arangodb"
   private val DefaultPort = 8529
 
   private val arangoConnectionUrlRegex = {
@@ -36,7 +44,7 @@ object ArangoConnectionURL {
     val host = "([^@:]+)"
     val port = "(\\d+)"
     val dbName = "(\\S+)"
-    new Regex(s"arangodb://(?:$user(?::$password)?@)?$host(?::$port)?/$dbName")
+    new Regex(s"$ArangoDbScheme://(?:$user(?::$password)?@)?$host(?::$port)?/$dbName")
   }
 
   def apply(url: String): ArangoConnectionURL = try {
