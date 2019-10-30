@@ -72,19 +72,19 @@ class AdminCLISpec
       } should include("--help")
     }
 
-    it should "initialize database" in {
+    it should "initialize database" in assertingStdOut(include("DONE")) {
       cli.exec(Array("db-init", "arangodb://foo/bar"))
       connUrlCaptor.getValue should be(ArangoConnectionURL("arangodb://foo/bar"))
       dropFlgCaptor.getValue should be(false)
     }
 
-    it should "initialize database forcedly" in {
+    it should "initialize database forcedly" in assertingStdOut(include("DONE")) {
       cli.exec(Array("db-init", "arangodb://foo/bar", "-f"))
       connUrlCaptor.getValue should be(ArangoConnectionURL("arangodb://foo/bar"))
       dropFlgCaptor.getValue should be(true)
     }
 
-    it should "upgrade database" in {
+    it should "upgrade database" in assertingStdOut(include("DONE")) {
       cli.exec(Array("db-upgrade", "arangodb://foo/bar"))
       connUrlCaptor.getValue should be(ArangoConnectionURL("arangodb://foo/bar"))
     }
