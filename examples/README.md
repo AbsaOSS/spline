@@ -6,9 +6,10 @@ There are two ways how to do it:
 
 #### Download prebuild Spline artifacts from the Maven repo
 -   [```za.co.absa.spline:admin:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/admin/0.4.0/)
--   [```za.co.absa.spline:client-web:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/client-web/0.4.0/)
+-   [```za.co.absa.spline:rest-gateway:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/rest-gateway/0.4.0/) (optional)
+-   [```za.co.absa.spline:client-web:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/client-web/0.4.0/) (optional)
 
-Download `*-exec.jar`'s from the above modules.
+(REST Server and Web Client modules are also available as [Docker containers](https://hub.docker.com/u/absaoss))
 
 -or-
 
@@ -86,10 +87,20 @@ mvn test -P examples -D spline.producer.url=http://localhost:8888/producer
 ```
 
 ## Run Spline UI
+The easiest way to spin up the Spline Web client is to use Docker:
+
 ```shell script
-java -jar client-web/target/spline-ui-0.4.0.exec.jar -httpPort 9090 -D spline.server.rest_endpoint=http://localhost:8080/consumer
+docker container run \
+      -e spline.server.rest_endpoint=http://172.17.0.1:8080/consumer \
+      -p 9090:8080 \
+      absaoss/spline-web-client
 ```
-and check the result in the browser
+
+Or you can deploy it as a WAR-file into any Java compatible Web-Container, e.g. Tomcat.
+You can find a WAR-file in the Maven repo here:
+[```za.co.absa.spline:client-web:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/client-web/0.4.0/)
+
+## Check the result in the browser
 http://localhost:9090
  
 ---
