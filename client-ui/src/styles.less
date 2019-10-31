@@ -25,7 +25,6 @@ html, body {
     width:100%;
     max-width: 100%;
     height: 100%;
-    font-size: 0.5vw;
     font-family: "Roboto", "Trebuchet MS", Arial, Helvetica, sans-serif;
     color:#555;
     margin-left: 0 !important;
@@ -129,13 +128,11 @@ table.noheader thead{
   transform:         rotate(90deg);
 }
 
-// Common style for ngx-datatable
-.datatable-body-cell-label{
-    font-size: 0.5vw;
-}
-
-.datatable-body-cell-label span{
-    font-size: 0.5vw;
+.tooltipCell{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+	width: 100%;
 }
 
 .ngx-datatable.material .datatable-footer .page-count {
