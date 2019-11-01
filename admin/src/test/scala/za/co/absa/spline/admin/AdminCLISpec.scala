@@ -17,6 +17,7 @@
 package za.co.absa.spline.admin
 
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers, OneInstancePerTest}
@@ -87,6 +88,15 @@ class AdminCLISpec
     it should "upgrade database" in assertingStdOut(include("DONE")) {
       cli.exec(Array("db-upgrade", "arangodb://foo/bar"))
       connUrlCaptor.getValue should be(ArangoConnectionURL("arangodb://foo/bar"))
+    }
+
+    it must "not say DONE when it's not done" in {
+      when(arangoInitMock.upgrade(any())) thenReturn Future.failed(new Exception("Boom!"))
+      assertingStdOut(not(include("DONE"))) {
+        intercept[Exception] {
+          cli.exec(Array("db-upgrade", "arangodb://foo/bar"))
+        }
+      }
     }
   }
 }
