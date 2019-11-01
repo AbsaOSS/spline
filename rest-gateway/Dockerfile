@@ -13,7 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-log4j.rootLogger=info, console
-log4j.appender.console=org.apache.log4j.ConsoleAppender
-log4j.appender.console.layout=org.apache.log4j.PatternLayout
-log4j.appender.console.layout.ConversionPattern=%-4r [%t] %-5p %c %x - %m%n
+
+FROM tomcat:9.0.27-jdk8-corretto
+
+LABEL \
+    vendor="ABSA" \
+    copyright="2019 ABSA Group Limited" \
+    license="Apache License, version 2.0" \
+    name="Spline REST Gateway Server"
+
+EXPOSE 8080
+EXPOSE 8009
+
+RUN rm -rf /usr/local/tomcat/webapps/*
+COPY target/*.war /usr/local/tomcat/webapps/ROOT.war

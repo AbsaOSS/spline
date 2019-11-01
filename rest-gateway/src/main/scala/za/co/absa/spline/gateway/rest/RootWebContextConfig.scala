@@ -14,27 +14,14 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence
+package za.co.absa.spline.gateway.rest
 
-import com.arangodb.ArangoDBException
-import za.co.absa.spline.persistence.ArangoCode._
+import org.springframework.context.annotation.{ComponentScan, Configuration}
+import org.springframework.web.servlet.config.annotation.{DefaultServletHandlerConfigurer, EnableWebMvc, WebMvcConfigurer}
 
-import scala.PartialFunction.condOpt
-
-object RetryableException {
-
-  private val retryableCodes = Set(
-    ArangoConflict,
-    ArangoUniqueConstraintViolated,
-    Deadlock,
-    ArangoSyncTimeout,
-    LockTimeout,
-    ArangoWriteThrottleTimeout,
-    ClusterTimeout)
-    .map(_.code)
-
-  def unapply(exception: Exception): Option[ArangoDBException] = condOpt(exception) {
-    case e: ArangoDBException if retryableCodes(e.getErrorNum) => e
-  }
-
+@EnableWebMvc
+@Configuration
+@ComponentScan(basePackageClasses = Array(classOf[controller._package]))
+class RootWebContextConfig extends WebMvcConfigurer {
+  override def configureDefaultServletHandling(configurer: DefaultServletHandlerConfigurer): Unit = configurer.enable()
 }

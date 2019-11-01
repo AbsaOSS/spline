@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.consumer.rest.controller
+package za.co.absa.spline.gateway.rest.controller
 
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import io.swagger.annotations._

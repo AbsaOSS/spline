@@ -14,27 +14,11 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence
+package za.co.absa.spline.common.webmvc.cors
 
-import com.arangodb.ArangoDBException
-import za.co.absa.spline.persistence.ArangoCode._
+import javax.servlet.http.HttpServletRequest
+import org.springframework.web.cors.{CorsConfiguration, CorsConfigurationSource}
 
-import scala.PartialFunction.condOpt
-
-object RetryableException {
-
-  private val retryableCodes = Set(
-    ArangoConflict,
-    ArangoUniqueConstraintViolated,
-    Deadlock,
-    ArangoSyncTimeout,
-    LockTimeout,
-    ArangoWriteThrottleTimeout,
-    ClusterTimeout)
-    .map(_.code)
-
-  def unapply(exception: Exception): Option[ArangoDBException] = condOpt(exception) {
-    case e: ArangoDBException if retryableCodes(e.getErrorNum) => e
-  }
-
+class ConstantCorsConfigurationSource(conf: CorsConfiguration) extends CorsConfigurationSource {
+  override def getCorsConfiguration(request: HttpServletRequest): CorsConfiguration = conf
 }
