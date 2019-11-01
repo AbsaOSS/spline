@@ -18,8 +18,8 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
 import * as _ from 'lodash';
-import { empty, Observable } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { OperationType } from 'src/app/model/types/operationType';
 import { ExecutedLogicalPlan, Operation, Transition } from '../generated/models';
 import { ExecutionPlanControllerService } from '../generated/services';
@@ -28,9 +28,8 @@ import { AppState } from '../model/app-state';
 import { CytoscapeGraphVM } from '../model/viewModels/cytoscape/cytoscapeGraphVM';
 import { CytoscapeOperationVM } from '../model/viewModels/cytoscape/cytoscapeOperationVM';
 import { ExecutedLogicalPlanVM } from '../model/viewModels/executedLogicalPlanVM';
-import * as ErrorActions from '../store/actions/error.actions';
+import { handleException } from '../rxjs/operators/handleException';
 import * as ExecutionPlanAction from '../store/actions/execution-plan.actions';
-import { handleError } from '../store/reducers/error.reducer';
 import { operationColorCodes, operationIconCodes } from '../store/reducers/execution-plan.reducer';
 
 
@@ -59,10 +58,7 @@ export class ExecutionPlanEffects {
     private getExecutedLogicalPlan = (executionPlanId: string): Observable<ExecutedLogicalPlanVM> => {
         return this.executionPlanControllerService.lineageUsingGETResponse(executionPlanId).pipe(
             map(response => this.toLogicalPlanView(response)),
-            catchError(err => {
-                this.store.dispatch(new ErrorActions.ServiceErrorGet(handleError(err)))
-                return empty()
-            })
+            handleException(this.store)
         )
     }
 

@@ -17,8 +17,8 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
 import * as _ from 'lodash';
-import { empty, Observable } from 'rxjs';
-import { catchError, flatMap, map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { flatMap, map } from 'rxjs/operators';
 import { Attribute, DataType, OperationDetails } from '../generated/models';
 import { OperationDetailsControllerService } from '../generated/services';
 import { StrictHttpResponse } from '../generated/strict-http-response';
@@ -28,9 +28,8 @@ import { AttributeVM } from '../model/viewModels/attributeVM';
 import { DataTypeVM } from '../model/viewModels/dataTypeVM';
 import { GenericDataTypeVM } from '../model/viewModels/GenericDataTypeVM';
 import { OperationDetailsVM } from '../model/viewModels/operationDetailsVM';
+import { handleException } from '../rxjs/operators/handleException';
 import * as DetailsInfoAction from '../store/actions/details-info.actions';
-import * as ErrorActions from '../store/actions/error.actions';
-import { handleError } from '../store/reducers/error.reducer';
 
 
 @Injectable()
@@ -57,10 +56,7 @@ export class DetailsInfoEffects {
     private getDetailsInfo = (nodeId: string): Observable<OperationDetailsVM> => {
         return this.operationDetailsControllerService.operationUsingGETResponse(nodeId).pipe(
             map(this.toOperationDetailsView),
-            catchError(err => {
-                this.store.dispatch(new ErrorActions.ServiceErrorGet(handleError(err)))
-                return empty()
-            })
+            handleException(this.store)
         )
     }
 

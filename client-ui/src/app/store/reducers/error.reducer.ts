@@ -27,12 +27,6 @@ export function errorReducer(state: string, action: Action): string {
     }
 }
 
-export function handleError(err: HttpErrorResponse): string {
-    return (err.error instanceof ErrorEvent)
-        ? `An error occurred: ${err.error.message}`
-        : `Server returned code: ${err.status}, error message is: ${err.message}`
-}
-
 function getTextError(httpCode: string): string {
     switch (Number(httpCode)) {
         case 404: return "404 ! Could not find the requested lineage"

@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
 import * as _ from 'lodash';
-import { Observable, empty } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { LineageOverview, Transition } from '../generated/models';
 import { LineageControllerService } from '../generated/services';
 import { StrictHttpResponse } from '../generated/strict-http-response';
@@ -29,10 +28,9 @@ import { CytoscapeGraphVM } from '../model/viewModels/cytoscape/cytoscapeGraphVM
 import { CytoscapeOperationVM } from '../model/viewModels/cytoscape/cytoscapeOperationVM';
 import { LineageOverviewVM } from '../model/viewModels/lineageOverview';
 import { LineageOverviewNodeVM } from '../model/viewModels/LineageOverviewNodeVM';
+import { handleException } from '../rxjs/operators/handleException';
 import * as LineageOverviewAction from '../store/actions/lineage-overview.actions';
 import { lineageOverviewColorCodes, lineageOverviewIconCodes } from '../store/reducers/lineage-overview.reducer';
-import * as ErrorActions from '../store/actions/error.actions';
-import { handleError } from '../store/reducers/error.reducer';
 
 
 @Injectable()
@@ -59,10 +57,7 @@ export class LineageOverviewEffects {
             .lineageUsingGET1Response({ executionEventId, maxDepth: 10 })
             .pipe(
                 map(response => this.toLineageOverviewVM(response, executionEventId)),
-                catchError(err => {
-                    this.store.dispatch(new ErrorActions.ServiceErrorGet(handleError(err)))
-                    return empty()
-                })
+                handleException(this.store)
             )
     }
 

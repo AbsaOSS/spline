@@ -18,15 +18,14 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import * as _ from 'lodash';
-import { empty, Observable } from 'rxjs';
-import { catchError, debounceTime, map, switchMap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { debounceTime, map, switchMap } from 'rxjs/operators';
 import * as DashboardFormActions from 'src/app/store/actions/dashboard-form.actions';
 import { PageableExecutionEvent } from '../generated/models/pageable-execution-event';
 import { ExecutionEventControllerService } from '../generated/services';
 import { AppState } from '../model/app-state';
-import * as ErrorActions from '../store/actions/error.actions';
+import { handleException } from '../rxjs/operators/handleException';
 import * as ExecutionEventsAction from '../store/actions/execution-events.actions';
-import { handleError } from '../store/reducers/error.reducer';
 import { Action } from '../store/reducers/execution-events.reducer';
 
 export type Action = ExecutionEventsAction.ExecutionEventsActions
@@ -49,10 +48,7 @@ export class ExecutionEventsEffects {
         ofType(ExecutionEventsAction.ExecutionEventsActionTypes.EXECUTION_EVENTS_GET),
         switchMap((action: any) => this.executionEventControllerService.executionEventUsingGET(action.payload)),
         map((res: PageableExecutionEvent) => new ExecutionEventsAction.GetSuccess(res)),
-        catchError(err => {
-            this.store.dispatch(new ErrorActions.ServiceErrorGet(handleError(err)))
-            return empty()
-        })
+        handleException(this.store)
     )
 
     @Effect()
@@ -67,10 +63,7 @@ export class ExecutionEventsEffects {
             this.store.dispatch(new DashboardFormActions.InitializeForm({ minDate: minDate, maxDate: maxDate }))
             return new ExecutionEventsAction.GetSuccessDefault(res)
         }),
-        catchError(err => {
-            this.store.dispatch(new ErrorActions.ServiceErrorGet(handleError(err)))
-            return empty()
-        })
+        handleException(this.store)
     )
 
 }
