@@ -25,6 +25,7 @@ import org.apache.spark.sql.execution.datasources.{InsertIntoHadoopFsRelationCom
 import org.apache.spark.sql.hive.execution.{CreateHiveTableAsSelectCommand, InsertIntoHiveTable}
 import org.apache.spark.sql.sources.DataSourceRegister
 import org.apache.spark.sql.{SaveMode, SparkSession}
+import za.co.absa.spline.common.SplineException
 import za.co.absa.spline.common.extractors.{AccessorMethodValueExtractor, SafeTypeMatchingExtractor}
 import za.co.absa.spline.harvester.builder.write.WriteCommandExtractor._
 import za.co.absa.spline.harvester.builder.{SourceIdentifier, SourceUri}
@@ -154,4 +155,4 @@ object WriteCommandExtractor {
 }
 
 class UnsupportedSparkCommandException(command: LogicalPlan) extends
-  Exception(s"Spark command was intercepted, but is not yet implemented! Command:'${command.getClass}'")
+  SplineException(s"Spark command was intercepted, but is not yet implemented! Command:'${command.getClass}'")

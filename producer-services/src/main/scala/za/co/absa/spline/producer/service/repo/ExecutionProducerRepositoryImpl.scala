@@ -21,6 +21,7 @@ import java.util.UUID.randomUUID
 
 import com.arangodb.ArangoDatabaseAsync
 import org.apache.commons.lang3.StringUtils.wrap
+import org.slf4s.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.common.OptionImplicits._
@@ -30,11 +31,15 @@ import za.co.absa.spline.persistence.{ArangoImplicits, Persister}
 import za.co.absa.spline.producer.rest.model._
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepositoryImpl._
 
+import scala.compat.java8.FutureConverters._
 import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 
 @Repository
 class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExecutionProducerRepository {
+
+  private val logger = LoggerFactory.getLogger(getClass.getSimpleName)
 
   import ArangoImplicits._
 
@@ -99,6 +104,22 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
       .addQuery(InsertQuery(EdgeDef.ProgressOf, progressesOf: _*))
       .buildTx
       .execute(db)
+  }
+
+  /**
+   * Sanity check to find out whether the database is reachable and initialized
+   */
+  override def isDatabaseOk(): Future[Boolean] = {
+    try {
+      val futureIsDbOk = db.collection("execution").exists().toScala.map(_.booleanValue())
+      futureIsDbOk.onSuccess{
+        case collectionExists if !collectionExists =>
+          logger.error("Collection 'execution' does not exists. Spline database is no initialized properly!")
+      }
+      futureIsDbOk.recover {case _ => false}
+    } catch {
+      case NonFatal(_) => Future.successful(false)
+    }
   }
 }
 
