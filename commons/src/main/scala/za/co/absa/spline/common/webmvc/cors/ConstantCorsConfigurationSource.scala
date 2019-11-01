@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 ABSA Group Limited
+ * Copyright 2019 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-.attribute-title {
-    font-weight: bold;
-    font-size  : 20px;
-    color      : #e39255;
-}
+package za.co.absa.spline.common.webmvc.cors
 
+import javax.servlet.http.HttpServletRequest
+import org.springframework.web.cors.{CorsConfiguration, CorsConfigurationSource}
 
-cytoscape-ng {
-    height: 53vh;
-    float : left;
-    width : 100%;
+class ConstantCorsConfigurationSource(conf: CorsConfiguration) extends CorsConfigurationSource {
+  override def getCorsConfiguration(request: HttpServletRequest): CorsConfiguration = conf
 }

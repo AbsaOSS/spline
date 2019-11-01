@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Params } from "@angular/router";
 import { Store } from '@ngrx/store';
 import { DatatableComponent } from '@swimlane/ngx-datatable';
 import * as _ from 'lodash';
 import * as moment from 'moment';
-import { Params } from "@angular/router";
 import { FormGroupState, NgrxValueConverter } from 'ngrx-forms';
 import { fromEvent, Observable, Subscription } from 'rxjs';
-import { debounceTime, filter, map, switchMap, tap } from 'rxjs/operators';
+import { debounceTime, filter, first, map, switchMap, tap } from 'rxjs/operators';
 import { AppState } from 'src/app/model/app-state';
 import { RouterStateUrl } from 'src/app/model/routerStateUrl';
 import * as DashboardFormActions from 'src/app/store/actions/dashboard-form.actions';
@@ -174,7 +174,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   }
 
-  private applyFilters() {
+  private applyFilters(): void {
     if (!this.liveData) {
       this.store.dispatch(new RouterAction.ReplaceUrlState(this.queryParams))
     }
@@ -182,7 +182,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loading = false
   }
 
-  public onDataModeChange(value) {
+  public onDataModeChange(value): void {
     this.liveData = value
     this.queryParams = (this.liveData == true && {})
     this.store.dispatch(new RouterAction.ReplaceUrlState(this.queryParams))
@@ -197,7 +197,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
-  public getFrameworkImg(frameworkName: String) {
+  public getFrameworkImg(frameworkName: String): String {
     if (frameworkName.toLowerCase().includes('spark')) {
       return "spark"
     } else {

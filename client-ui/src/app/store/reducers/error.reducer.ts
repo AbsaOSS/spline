@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as ErrorAction from '../actions/error.actions';
+import { HttpErrorResponse } from '@angular/common/http';
 
 export type Action = ErrorAction.ErrorActions
 

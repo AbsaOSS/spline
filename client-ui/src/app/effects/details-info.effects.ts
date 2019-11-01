@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
 import * as _ from 'lodash';
-import { Observable, of } from 'rxjs';
-import { catchError, flatMap, map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { flatMap, map } from 'rxjs/operators';
 import { Attribute, DataType, OperationDetails } from '../generated/models';
 import { OperationDetailsControllerService } from '../generated/services';
 import { StrictHttpResponse } from '../generated/strict-http-response';
@@ -29,8 +28,8 @@ import { AttributeVM } from '../model/viewModels/attributeVM';
 import { DataTypeVM } from '../model/viewModels/dataTypeVM';
 import { GenericDataTypeVM } from '../model/viewModels/GenericDataTypeVM';
 import { OperationDetailsVM } from '../model/viewModels/operationDetailsVM';
+import { handleException } from '../rxjs/operators/handleException';
 import * as DetailsInfoAction from '../store/actions/details-info.actions';
-import * as ErrorActions from '../store/actions/error.actions';
 
 
 @Injectable()
@@ -57,11 +56,7 @@ export class DetailsInfoEffects {
     private getDetailsInfo = (nodeId: string): Observable<OperationDetailsVM> => {
         return this.operationDetailsControllerService.operationUsingGETResponse(nodeId).pipe(
             map(this.toOperationDetailsView),
-            catchError(err => {
-                this.handleError(err)
-                this.store.dispatch(new DetailsInfoAction.Reset())
-                return of<OperationDetailsVM>()
-            })
+            handleException(this.store)
         )
     }
 
@@ -112,13 +107,6 @@ export class DetailsInfoEffects {
 
     private getDataType = (dataTypes: Array<DataType>, dataTypeId: string): GenericDataTypeVM => {
         return _.find(dataTypes, (dt: GenericDataTypeVM) => dt.id == dataTypeId)
-    }
-
-    private handleError = (err: HttpErrorResponse): void => {
-        const errorMessage = (err.error instanceof ErrorEvent)
-            ? `An error occurred: ${err.error.message}`
-            : `Server returned code: ${err.status}, error message is: ${err.message}`
-        this.store.dispatch(new ErrorActions.ServiceErrorGet(errorMessage))
     }
 
 }

@@ -18,6 +18,7 @@ package za.co.absa.spline.producer.service.repo
 
 
 import java.util.UUID.randomUUID
+import java.{lang => jl}
 
 import com.arangodb.ArangoDatabaseAsync
 import org.apache.commons.lang3.StringUtils.wrap
@@ -54,11 +55,22 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
   }
 
   private def attemptSaveExecutionPlan(executionPlan: ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = {
+
+    val eventuallyExists = db.queryOne[Boolean](
+      s"""
+         |FOR ex IN ${NodeDef.Execution.name}
+         |    FILTER ex._key == @key
+         |    COLLECT WITH COUNT INTO cnt
+         |    RETURN TO_BOOL(cnt)
+         |    """.stripMargin,
+      Map("key" -> executionPlan.id))
+
     val referencedDSURIs = {
       val readSources = executionPlan.operations.reads.flatMap(_.inputSources).toSet
       val writeSource = executionPlan.operations.write.outputSource
       readSources + writeSource
     }
+
     val eventualPersistedDSes = db.queryAs[DataSource](
       s"""
          |FOR ds IN ${NodeDef.DataSource.name}
@@ -69,23 +81,27 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 
     for {
       persistedDSes: Map[String, String] <- eventualPersistedDSes
-      transientDSes: Map[String, String] = (referencedDSURIs -- persistedDSes.keys).map(_ -> randomUUID.toString).toMap
-      _ <- {
-        val referencedDSes = transientDSes ++ persistedDSes
-        new TxBuilder()
-          .addQuery(InsertQuery(NodeDef.Operation, createOperations(executionPlan): _*))
-          .addQuery(InsertQuery(EdgeDef.Follows, createFollows(executionPlan): _*))
-          .addQuery(InsertQuery(NodeDef.DataSource, createDataSources(transientDSes): _*))
-          .addQuery(InsertQuery(EdgeDef.WritesTo, createWriteTo(executionPlan, referencedDSes)))
-          .addQuery(InsertQuery(EdgeDef.ReadsFrom, createReadsFrom(executionPlan, referencedDSes): _*))
-          .addQuery(InsertQuery(EdgeDef.Executes, createExecutes(executionPlan)))
-          .addQuery(InsertQuery(NodeDef.Execution, createExecution(executionPlan)))
-          .addQuery(InsertQuery(EdgeDef.Depends, createExecutionDepends(executionPlan, referencedDSes): _*))
-          .addQuery(InsertQuery(EdgeDef.Affects, createExecutionAffects(executionPlan, referencedDSes)))
-          .buildTx
-          .execute(db)
-      }
+      alreadyExists: Boolean <- eventuallyExists
+      _ <-
+        if (alreadyExists) Future.successful(Unit)
+        else createInsertTransaction(executionPlan, referencedDSURIs, persistedDSes).execute(db).map(_ => true)
     } yield Unit
+  }
+
+  private def createInsertTransaction(executionPlan: ExecutionPlan, referencedDSURIs: Set[String], persistedDSes: Map[String, String]) = {
+    val transientDSes: Map[String, String] = (referencedDSURIs -- persistedDSes.keys).map(_ -> randomUUID.toString).toMap
+    val referencedDSes = transientDSes ++ persistedDSes
+    new TxBuilder()
+      .addQuery(InsertQuery(NodeDef.Operation, createOperations(executionPlan): _*))
+      .addQuery(InsertQuery(EdgeDef.Follows, createFollows(executionPlan): _*))
+      .addQuery(InsertQuery(NodeDef.DataSource, createDataSources(transientDSes): _*))
+      .addQuery(InsertQuery(EdgeDef.WritesTo, createWriteTo(executionPlan, referencedDSes)))
+      .addQuery(InsertQuery(EdgeDef.ReadsFrom, createReadsFrom(executionPlan, referencedDSes): _*))
+      .addQuery(InsertQuery(EdgeDef.Executes, createExecutes(executionPlan)))
+      .addQuery(InsertQuery(NodeDef.Execution, createExecution(executionPlan)))
+      .addQuery(InsertQuery(EdgeDef.Depends, createExecutionDepends(executionPlan, referencedDSes): _*))
+      .addQuery(InsertQuery(EdgeDef.Affects, createExecutionAffects(executionPlan, referencedDSes)))
+      .buildTx
   }
 
   private def attemptSaveExecutionEvents(events: Array[ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = {
@@ -93,15 +109,15 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
       e.timestamp,
       e.error,
       e.extra,
-      randomUUID.toString))
+      createEventKey(e)))
 
     val progressesOf = progresses
       .zip(events)
       .map({ case (p, e) => EdgeDef.ProgressOf.edge(p._key, e.planId) })
 
     new TxBuilder()
-      .addQuery(InsertQuery(NodeDef.Progress, progresses: _*))
-      .addQuery(InsertQuery(EdgeDef.ProgressOf, progressesOf: _*))
+      .addQuery(InsertQuery(NodeDef.Progress, progresses: _*).copy(ignoreExisting = true))
+      .addQuery(InsertQuery(EdgeDef.ProgressOf, progressesOf: _*).copy(ignoreExisting = true))
       .buildTx
       .execute(db)
   }
@@ -124,6 +140,8 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 }
 
 object ExecutionProducerRepositoryImpl {
+  private[repo] def createEventKey(e: ExecutionEvent) =
+    s"${e.planId}:${jl.Long.toString(e.timestamp, 36)}"
 
   private def createExecutes(executionPlan: ExecutionPlan) = EdgeDef.Executes.edge(
     executionPlan.id,

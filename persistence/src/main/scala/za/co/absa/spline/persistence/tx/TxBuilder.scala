@@ -19,14 +19,18 @@ package za.co.absa.spline.persistence.tx
 import com.arangodb.ArangoDatabaseAsync
 import com.arangodb.model.TransactionOptions
 import za.co.absa.spline.persistence.model.{ArangoDocument, CollectionDef}
-import za.co.absa.spline.persistence.tx.TxBuilder.ArangoTxImpl
+import za.co.absa.spline.persistence.tx.TxBuilder.{ArangoTxImpl, condStmt}
 
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.Future
 
 sealed trait Query
 
-case class InsertQuery(collectionDef: CollectionDef, documents: ArangoDocument*) extends Query
+case class InsertQuery(collectionDef: CollectionDef, documents: Seq[ArangoDocument], ignoreExisting: Boolean = false) extends Query
+
+object InsertQuery {
+  def apply(colDef: CollectionDef, docs: ArangoDocument*): InsertQuery = InsertQuery(colDef, docs)
+}
 
 class TxBuilder {
 
@@ -39,22 +43,36 @@ class TxBuilder {
 
   def buildTx: ArangoTx = new ArangoTxImpl(this)
 
-  private def generateJs(): String = {
+  private[tx] def generateJs(): String = {
     val statements = queries.zipWithIndex.map {
-      case (InsertQuery(col, _*), _) =>
-        s"_params.${col.name}.forEach(o => _db.${col.name}.insert(o));"
+      case (InsertQuery(col, _, ignoreExisting), _) =>
+        Seq(
+          s"_params.${col.name}.forEach(o => ",
+          condStmt(ignoreExisting,
+            s"""0 ||
+               |    o._key && _db.${col.name}.exists(o._key) ||
+               |    o._from && o._to && _db._query(`
+               |      FOR e IN ${col.name}
+               |          FILTER e._from == @o._from && e._to == @o._to
+               |          LIMIT 1
+               |          COLLECT WITH COUNT INTO cnt
+               |          RETURN !!cnt
+               |      `, {o}).next() ||
+               |    """.stripMargin),
+          s"_db.${col.name}.insert(o, {silent:true}));"
+        ).mkString
     }
     s"""
        |function (_params) {
        |  const _db = require('internal').db;
-       |  ${statements.mkString("\n")}
+       |  ${statements.mkString("\n  ")}
        |}
        |""".stripMargin
   }
 
   private def options: TransactionOptions = {
     val writeCollections = queries
-      .collect({ case InsertQuery(col, docs@_*) => col.name -> docs.toVector })
+      .collect({ case InsertQuery(col, docs, _) => col.name -> docs.toVector })
       .toMap
     new TransactionOptions()
       .params(writeCollections)
@@ -71,4 +89,5 @@ object TxBuilder {
       db.transaction(txBuilder.generateJs(), classOf[Unit], txBuilder.options).toScala
   }
 
+  private def condStmt(cond: => Boolean, stmt: => String): String = if (cond) stmt else ""
 }

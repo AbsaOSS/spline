@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 ABSA Group Limited
+ * Copyright 2019 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-.attribute-title {
-    font-weight: bold;
-    font-size  : 20px;
-    color      : #e39255;
+package za.co.absa.spline.common.webmvc.cors
+
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.filter.CorsFilter
+import za.co.absa.spline.common.webmvc.cors.PermissiveCorsFilter.PermissiveCorsConfiguration
+
+class PermissiveCorsFilter extends CorsFilter(
+  new ConstantCorsConfigurationSource(PermissiveCorsConfiguration))
+
+object PermissiveCorsFilter {
+  private val PermissiveCorsConfiguration = new CorsConfiguration().applyPermitDefaultValues()
 }
 
 
-cytoscape-ng {
-    height: 53vh;
-    float : left;
-    width : 100%;
-}

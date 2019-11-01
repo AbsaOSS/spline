@@ -19,6 +19,8 @@ package za.co.absa.spline.persistence
 import com.arangodb.ArangoDBException
 import za.co.absa.spline.persistence.ArangoCode._
 
+import scala.PartialFunction.condOpt
+
 object RetryableException {
 
   private val retryableCodes = Set(
@@ -31,12 +33,8 @@ object RetryableException {
     ClusterTimeout)
     .map(_.code)
 
-  def unapply(exception: Exception): Option[ArangoDBException] = {
-    exception match {
-      case e: ArangoDBException if retryableCodes.contains(e.getErrorNum)  => Some(e)
-      case _ => None
-    }
-
+  def unapply(exception: Exception): Option[ArangoDBException] = condOpt(exception) {
+    case e: ArangoDBException if retryableCodes(e.getErrorNum) => e
   }
 
 }

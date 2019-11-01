@@ -15,7 +15,6 @@
   -->
 <div>
   <div class="float-right splineIcon big"></div>
-
   <div class="container-fluid">
     <div class="row padding4">
       <div class="col-md-12">
@@ -35,26 +34,35 @@
               <td class="{{getFrameworkImg(row.frameworkName)}}"></td>
             </ng-template>
           </ngx-datatable-column>
-          <ngx-datatable-column name="Application Name" prop="applicationName" [width]="350">
+          <ngx-datatable-column name="Application Name" prop="applicationName" [width]="50">
             <ng-template let-expanded="applicationName" let-row="row" ngx-datatable-cell-template>
-              {{row.applicationName}}
+              <div class="tooltipCell" tooltip="{{row.applicationName}}" container="body" placement="top">
+                {{row.applicationName}}
+              </div>
             </ng-template>
           </ngx-datatable-column>
-          <ngx-datatable-column name="Application Id" prop="applicationId" [width]="10">
+          <ngx-datatable-column name="Application Id" prop="applicationId" [width]="50">
             <ng-template let-expanded="applicationId" let-row="row" ngx-datatable-cell-template>
-              {{row.applicationId}}
+              <div class="tooltipCell" tooltip="{{row.applicationId}}" placement="top">
+                {{row.applicationId}}
+              </div>
             </ng-template>
           </ngx-datatable-column>
-          <ngx-datatable-column name="Execution Date" prop="timestamp" [width]="10">
+          <ngx-datatable-column name="Execution Date" prop="timestamp" [width]="50">
             <ng-template let-expanded="timestamp" let-row="row" ngx-datatable-cell-template>
-              {{row.timestamp | date:'dd/MM/yyyy, h:mm:ss a'}}
+              <div class="tooltipCell" tooltip=" {{row.timestamp | date:'dd/MM/yyyy, h:mm:ss a'}}" placement="top">
+                {{row.timestamp | date:'dd/MM/yyyy, h:mm:ss a'}}
+              </div>
             </ng-template>
           </ngx-datatable-column>
           <ngx-datatable-column name="Destination" prop="datasource" [width]="400">
             <ng-template let-expanded="datasource" let-row="row" ngx-datatable-cell-template>
-              {{row.datasource}}
+              <div class="tooltipCell" tooltip="{{row.datasource}}" placement="top">
+                {{row.datasource}}
+              </div>
             </ng-template>
           </ngx-datatable-column>
+
           <ngx-datatable-column name="DataSource Type" prop="datasourceType" [width]="10">
             <ng-template let-expanded="datasourceType" let-row="row" ngx-datatable-cell-template>
               {{row.datasourceType}}
