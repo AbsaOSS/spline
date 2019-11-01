@@ -70,6 +70,7 @@ import { layoutReducer } from './store/reducers/layout.reducer';
 import { lineageOverviewReducer } from './store/reducers/lineage-overview.reducer';
 import { NotificationsEffects } from './effects/notifications-effects';
 import { ExecutionPlanDetailsComponent } from './components/execution-plan-details/execution-plan-details.component';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
 
 export function initializeApp(store: Store<AppState>): () => Promise<any> {
@@ -115,6 +116,7 @@ const ROOT_ROUTING = "app/"
   ],
   imports: [
     BrowserModule,
+    TooltipModule.forRoot(),
     CytoscapeNgLibModule,
     HttpClientModule,
     NgxDatatableModule,
