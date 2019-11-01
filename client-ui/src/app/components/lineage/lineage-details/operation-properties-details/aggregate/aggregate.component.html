@@ -14,27 +14,27 @@
   ~ limitations under the License.
   -->
 
-<div class="collapsible" data-toggle="collapse" [attr.data-target]="'#expression0'" aria-expanded="true">
+<div class="collapsible" data-toggle="collapse" [attr.data-target]="'#property0'" aria-expanded="true">
   <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp; Aggregate
 </div>
-<div *ngFor="let expression of expressions ;let i=index">
-  <div id="expression0" class="accordion-body collapse in show">
-    <div *ngIf="expression.title==='Aggregate'">
-      <a href="" (click)="openExprViewDialog($event, expression)">
-        <i class='transformation-prexif'>Σ = </i><code>{{expression.value}}</code>
+<div *ngFor="let property of properties ;let i=index">
+  <div id="property0" class="accordion-body collapse in show">
+    <div *ngIf="property.type==='Aggregate'">
+      <a href="" (click)="openExprViewDialog($event, property)">
+        <i class='transformation-prexif'>Σ = </i><code>{{property.value}}</code>
       </a>
     </div>
   </div>
 </div>
 
-<div class="collapsible" data-toggle="collapse" [attr.data-target]="'#expression1'" aria-expanded="true">
+<div class="collapsible" data-toggle="collapse" [attr.data-target]="'#property1'" aria-expanded="true">
   <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp; Grouping
 </div>
-<div *ngFor="let expression of expressions ;let i=index">
-  <div id="expression1" class="accordion-body collapse in show">
-    <div *ngIf="expression.title==='Grouping'">
-      <a href="" (click)="openExprViewDialog($event, expression)">
-        <i class='transformation-prexif'>[] = </i><code>{{expression.value}}</code>
+<div *ngFor="let property of properties ;let i=index">
+  <div id="property1" class="accordion-body collapse in show">
+    <div *ngIf="property.type==='Grouping'">
+      <a href="" (click)="openExprViewDialog($event, property)">
+        <i class='transformation-prexif'>[] = </i><code>{{property.value}}</code>
       </a>
     </div>
   </div>

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
-import { ExpressionComponent } from '../expression/expression.component';
+import { PropertiesComponent } from '../properties/properties.component';
 
 @Component({
-  selector: 'filter',
-  templateUrl: './filter.component.html'
+  selector: 'join',
+  templateUrl: './join.component.html'
 })
-export class FilterComponent extends ExpressionComponent { }
+export class JoinComponent extends PropertiesComponent { }

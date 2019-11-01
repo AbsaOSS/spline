@@ -13,13 +13,11 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<div class="collapsible" data-toggle="collapse" [attr.data-target]="'#expression0'" aria-expanded="true">
-    <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp; Filter On
-</div>
-<div *ngFor="let expression of expressions ;let i=index">
-    <div id="expression0" class="accordion-body collapse in show">
-        <a href="" (click)="openExprViewDialog($event, expression)">
-            <code>{{expression.value}}</code>
-        </a>
-    </div>
+<div *ngFor="let property of properties ;let i=index">
+  <div class="collapsible" data-toggle="collapse" [attr.data-target]="'#property'+i" aria-expanded="true">
+    <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp;{{property.type}}
+  </div>
+  <div id="property{{i}}" class="accordion-body collapse in show">
+    <a href="" (click)="openExprViewDialog($event, property)"><code>{{property.value}}</code></a>
+  </div>
 </div>

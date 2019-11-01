@@ -93,7 +93,7 @@ function renderAsGenericLeafExpr(gle: IGenericLeaf, attributeList: any): string 
 function renderValue(obj: any, attributeList: any): string {
     switch (obj) {
         case getType(obj): return getText(obj as IExpression, attributeList)
-        case _.isArray(obj): return `[${obj.map(o => renderValue(o, attributeList)).join(", ")}]`
+        case obj.isArray: return `[${obj.map(o => renderValue(o, attributeList)).join(", ")}]`
         case _.isPlainObject(obj): {
             const renderedPairs = _.toPairs(obj).map(([k, v]) => `${k}: ${renderValue(v, attributeList)}`)
             return `{${renderedPairs.join(", ")}}`

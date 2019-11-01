@@ -13,15 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class Expression {
-    public title: string
+export class Property {
+    public type: string
     public value: any
     public metadata: any
 
-    constructor(title: string, value: any, metadata: any) {
-        this.title = title
+    constructor(type: PropertyType, value: any, metadata: any) {
+        this.type = type
         this.value = value
         this.metadata = metadata
     }
 
+}
+
+export const enum PropertyType {
+    Join = "Join",
+    Transformations = "Transformations",
+    DroppedAttributes = "Dropped Attributes",
+    Aggregate = "Aggregate",
+    Grouping = "Grouping",
+    InputSource = "Input Source",
+    SourceType = "Source Type",
+    Sort = "Sort",
+    Filter = "Filter",
+    Properties = "Properties"
 }

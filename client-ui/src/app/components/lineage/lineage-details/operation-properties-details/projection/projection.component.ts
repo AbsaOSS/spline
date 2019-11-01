@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
-import { ExpressionComponent } from '../expression/expression.component';
+import { PropertiesComponent } from '../properties/properties.component';
+import { Property, PropertyType } from 'src/app/model/property';
 
 @Component({
-  selector: 'join',
-  templateUrl: './join.component.html'
+  selector: 'projection',
+  templateUrl: './projection.component.html',
+  styleUrls: ['./projection.component.less']
 })
-export class JoinComponent extends ExpressionComponent { }
+export class ProjectionComponent extends PropertiesComponent {
+
+  public hasDroppedAttribute(properties: Property[]): boolean {
+    return properties.filter(p => p.type == PropertyType.DroppedAttributes).length > 0
+  }
+
+}

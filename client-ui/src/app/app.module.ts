@@ -44,15 +44,15 @@ import { LineageOverviewGraphComponent } from './components/lineage-overview/lin
 import { LineageOverviewComponent } from './components/lineage-overview/lineage-overview.component';
 import { AttributeDetailsComponent } from './components/lineage/lineage-details/attribute-details/attribute-details.component';
 import { LineageDetailsComponent } from './components/lineage/lineage-details/lineage-details.component';
-import { AggregateComponent } from './components/lineage/lineage-details/schema-details/aggregate/aggregate.component';
-import { ExpressionComponent } from './components/lineage/lineage-details/schema-details/expression/expression.component';
-import { FilterComponent } from './components/lineage/lineage-details/schema-details/filter/filter.component';
-import { GenericComponent } from './components/lineage/lineage-details/schema-details/generic/generic.component';
-import { JoinComponent } from './components/lineage/lineage-details/schema-details/join/join.component';
-import { LogicalRelationComponent } from './components/lineage/lineage-details/schema-details/logical-relation/logical-relation.component';
-import { ProjectionComponent } from './components/lineage/lineage-details/schema-details/projection/projection.component';
-import { SchemaDetailsComponent } from './components/lineage/lineage-details/schema-details/schema-details.component';
-import { SortComponent } from './components/lineage/lineage-details/schema-details/sort/sort.component';
+import { AggregateComponent } from './components/lineage/lineage-details/operation-properties-details/aggregate/aggregate.component';
+import { PropertiesComponent } from './components/lineage/lineage-details/operation-properties-details/properties/properties.component';
+import { FilterComponent } from './components/lineage/lineage-details/operation-properties-details/filter/filter.component';
+import { GenericComponent } from './components/lineage/lineage-details/operation-properties-details/generic/generic.component';
+import { JoinComponent } from './components/lineage/lineage-details/operation-properties-details/join/join.component';
+import { LogicalRelationComponent } from './components/lineage/lineage-details/operation-properties-details/logical-relation/logical-relation.component';
+import { ProjectionComponent } from './components/lineage/lineage-details/operation-properties-details/projection/projection.component';
+import { OperationPropertiesDetailsComponent } from './components/lineage/lineage-details/operation-properties-details/operation-properties-details.component';
+import { SortComponent } from './components/lineage/lineage-details/operation-properties-details/sort/sort.component';
 import { SchemaTableComponent } from './components/lineage/lineage-details/schema-table/schema-table.component';
 import { SchemaComponent } from './components/lineage/lineage-details/schema/schema.component';
 import { LineageGraphComponent } from './components/lineage/lineage-graph/lineage-graph.component';
@@ -108,10 +108,10 @@ const ROOT_ROUTING = "app/"
     ErrorComponent,
     SchemaComponent,
     AttributeDetailsComponent,
-    SchemaDetailsComponent,
+    OperationPropertiesDetailsComponent,
     SchemaTableComponent,
     JoinComponent,
-    ExpressionComponent,
+    PropertiesComponent,
     ProjectionComponent,
     LineageOverviewComponent,
     LineageOverviewDetailsComponent,
@@ -127,7 +127,7 @@ const ROOT_ROUTING = "app/"
   entryComponents: [
     ModalExpressionComponent,
     SchemaTableComponent,
-    ExpressionComponent,
+    PropertiesComponent,
     JoinComponent,
     ProjectionComponent,
     AggregateComponent,

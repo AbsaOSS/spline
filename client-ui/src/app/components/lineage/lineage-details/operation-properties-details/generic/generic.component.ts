@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
-import { ExpressionComponent } from '../expression/expression.component';
-import { Expression } from 'src/app/model/expression';
+import { PropertiesComponent } from '../properties/properties.component';
 
 @Component({
-  selector: 'projection',
-  templateUrl: './projection.component.html',
-  styleUrls: ['./projection.component.less']
+  selector: 'app-generic',
+  templateUrl: './generic.component.html'
 })
-export class ProjectionComponent extends ExpressionComponent {
-
-  public hasDroppedAttribute(expressions: Expression[]): boolean {
-    return expressions.filter(e => e.title == "Dropped Attributes").length > 0
-  }
-
-}
+export class GenericComponent extends PropertiesComponent { }

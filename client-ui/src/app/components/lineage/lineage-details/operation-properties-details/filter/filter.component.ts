@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
-import { ExpressionComponent } from '../expression/expression.component';
+import { PropertiesComponent } from '../properties/properties.component';
 
 @Component({
-  selector: 'aggregate',
-  templateUrl: './aggregate.component.html'
+  selector: 'filter',
+  templateUrl: './filter.component.html'
 })
-export class AggregateComponent extends ExpressionComponent {
-
-}
+export class FilterComponent extends PropertiesComponent { }

@@ -15,21 +15,21 @@
  */
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-import {SchemaDetailsComponent} from './schema-details.component';
+import {OperationPropertiesDetailsComponent} from './operation-properties-details.component';
 
 describe('LineageDetailsComponent', () => {
-  let component: SchemaDetailsComponent;
-  let fixture: ComponentFixture<SchemaDetailsComponent>;
+  let component: OperationPropertiesDetailsComponent;
+  let fixture: ComponentFixture<OperationPropertiesDetailsComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [SchemaDetailsComponent]
+      declarations: [OperationPropertiesDetailsComponent]
     })
       .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(SchemaDetailsComponent);
+    fixture = TestBed.createComponent(OperationPropertiesDetailsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

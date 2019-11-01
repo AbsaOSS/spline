@@ -15,12 +15,13 @@
  */
 package za.co.absa.spline.harvester.json
 
+import org.apache.commons.lang3.StringUtils._
 import org.json4s.TypeHints
 
 case class SplineShortTypeHints(hints: List[Class[_]]) extends TypeHints {
   def hintFor(clazz: Class[_]): String = {
-    val classNameSplit : Array[String] = clazz.getName.split('.')
-    s"${classNameSplit(classNameSplit.length-2)}.${classNameSplit(classNameSplit.length-1)}"
+    val className = clazz.getName
+    className.substring(1 + lastOrdinalIndexOf(className, ".", 2))
   }
 
   def classFor(hint: String): Option[Class[_]] = hints find (hintFor(_) == hint)

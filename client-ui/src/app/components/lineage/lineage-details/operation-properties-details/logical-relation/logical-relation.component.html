@@ -13,11 +13,13 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<div *ngFor="let expression of expressions ;let i=index">
-    <div class="collapsible" data-toggle="collapse" [attr.data-target]="'#expression'+i" aria-expanded="true">
-        <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp;{{expression.title}}
-    </div>
-    <div id="expression{{i}}" class="accordion-body collapse in show">
-        <pre [innerHtml]="expression.value | prettyjson"></pre>
-    </div>
+<div class="collapsible" data-toggle="collapse" [attr.data-target]="'#property'" aria-expanded="true">
+    <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp; LogicalRelation
+</div>
+<br />
+<div id="property" *ngFor="let property of properties ;let i=index" class="accordion-body collapse in show">
+    <li style="list-style-type:none;">
+        <span class="splineColor"> {{property.type}}: </span>
+        <span style="color:#337ab7;">{{property.value}}</span>
+    </li>
 </div>

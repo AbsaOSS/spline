@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.harvester.json
 
-import org.json4s.{DefaultFormats, Formats, ShortTypeHints}
+import org.json4s.{DefaultFormats, Formats}
 import za.co.absa.spline.common.ReflectionUtils._
 import za.co.absa.spline.common.json.format.FormatsBuilder
 import za.co.absa.spline.harvester.json.ShortTypeHintForSpline03ModelSupport._

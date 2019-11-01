@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
-import { ExpressionComponent } from '../expression/expression.component';
+import { PropertiesComponent } from '../properties/properties.component';
 
 @Component({
-  selector: 'app-generic',
-  templateUrl: './generic.component.html'
+  selector: 'app-logical-relation',
+  templateUrl: './logical-relation.component.html'
 })
-export class GenericComponent extends ExpressionComponent { }
+export class LogicalRelationComponent extends PropertiesComponent {
+
+}

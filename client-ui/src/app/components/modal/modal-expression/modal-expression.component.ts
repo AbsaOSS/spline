@@ -17,10 +17,10 @@ import { AfterContentInit, Component } from '@angular/core';
 import { IActionMapping, ITreeOptions } from 'angular-tree-component';
 import { ITreeNode } from 'angular-tree-component/dist/defs/api';
 import { IExpression } from 'src/app/model/expression-model';
-import { getName } from 'src/app/store/reducers/expression.reducer';
 import { Store } from '@ngrx/store';
 import { AppState } from 'src/app/model/app-state';
 import * as ModalAction from 'src/app/store/actions/modal.actions';
+import { getName } from 'src/app/util/expressions';
 
 @Component({
   selector: 'app-modal-expression',

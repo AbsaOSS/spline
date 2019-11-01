@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import { JoinComponent } from "../../components/lineage/lineage-details/schema-details/join/join.component";
+import { JoinComponent } from "../../components/lineage/lineage-details/operation-properties-details/join/join.component";
 import { Type } from "@angular/core";
-import { ProjectionComponent } from "../../components/lineage/lineage-details/schema-details/projection/projection.component";
-import { ExpressionComponent } from "../../components/lineage/lineage-details/schema-details/expression/expression.component";
-import { FilterComponent } from 'src/app/components/lineage/lineage-details/schema-details/filter/filter.component';
-import { SortComponent } from 'src/app/components/lineage/lineage-details/schema-details/sort/sort.component';
-import { LogicalRelationComponent } from 'src/app/components/lineage/lineage-details/schema-details/logical-relation/logical-relation.component';
-import { GenericComponent } from 'src/app/components/lineage/lineage-details/schema-details/generic/generic.component';
-import { AggregateComponent } from 'src/app/components/lineage/lineage-details/schema-details/aggregate/aggregate.component';
+import { ProjectionComponent } from "../../components/lineage/lineage-details/operation-properties-details/projection/projection.component";
+import { PropertiesComponent } from "../../components/lineage/lineage-details/operation-properties-details/properties/properties.component";
+import { FilterComponent } from 'src/app/components/lineage/lineage-details/operation-properties-details/filter/filter.component';
+import { SortComponent } from 'src/app/components/lineage/lineage-details/operation-properties-details/sort/sort.component';
+import { LogicalRelationComponent } from 'src/app/components/lineage/lineage-details/operation-properties-details/logical-relation/logical-relation.component';
+import { GenericComponent } from 'src/app/components/lineage/lineage-details/operation-properties-details/generic/generic.component';
+import { AggregateComponent } from 'src/app/components/lineage/lineage-details/operation-properties-details/aggregate/aggregate.component';
 
 
 export const enum OperationType {
@@ -43,19 +43,19 @@ export const enum OperationType {
 }
 
 
-export const ExpressionComponents: Map<string, Type<ExpressionComponent>> = new Map([
+export const PropertiesComponents: Map<string, Type<PropertiesComponent>> = new Map([
     [OperationType.Join, JoinComponent],
     [OperationType.Projection, ProjectionComponent],
     [OperationType.LogicalRelation, LogicalRelationComponent],
-    [OperationType.BatchRead, ExpressionComponent],
-    [OperationType.StreamRead, ExpressionComponent],
-    [OperationType.Union, ExpressionComponent],
+    [OperationType.BatchRead, PropertiesComponent],
+    [OperationType.StreamRead, PropertiesComponent],
+    [OperationType.Union, PropertiesComponent],
     [OperationType.Generic, GenericComponent],
     [OperationType.Filter, FilterComponent],
     [OperationType.Sort, SortComponent],
     [OperationType.Aggregate, AggregateComponent],
-    [OperationType.WriteCommand, ExpressionComponent],
-    [OperationType.BatchWrite, ExpressionComponent],
-    [OperationType.StreamWrite, ExpressionComponent],
-    [OperationType.Alias, ExpressionComponent]
+    [OperationType.WriteCommand, PropertiesComponent],
+    [OperationType.BatchWrite, PropertiesComponent],
+    [OperationType.StreamWrite, PropertiesComponent],
+    [OperationType.Alias, PropertiesComponent]
 ])

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
-import { ExpressionComponent } from '../expression/expression.component';
+import { PropertiesComponent } from '../properties/properties.component';
 
 @Component({
   selector: 'app-sort',
   templateUrl: './sort.component.html'
 })
-export class SortComponent extends ExpressionComponent {
+export class SortComponent extends PropertiesComponent {
 
 }

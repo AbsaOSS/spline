@@ -30,7 +30,7 @@ import { CytoscapeOperationVM } from '../model/viewModels/cytoscape/cytoscapeOpe
 import { ExecutedLogicalPlanVM } from '../model/viewModels/executedLogicalPlanVM';
 import { handleException } from '../rxjs/operators/handleException';
 import * as ExecutionPlanAction from '../store/actions/execution-plan.actions';
-import { operationColorCodes, operationIconCodes } from '../store/reducers/execution-plan.reducer';
+import { operationColorCodes, operationIconCodes } from '../util/execution-plan';
 
 
 export type Action = ExecutionPlanAction.ExecutionPlanActions
