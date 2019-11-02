@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { Params } from "@angular/router";
-import { Store } from '@ngrx/store';
-import { DatatableComponent } from '@swimlane/ngx-datatable';
+import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
+import {Params} from "@angular/router";
+import {Store} from '@ngrx/store';
+import {DatatableComponent} from '@swimlane/ngx-datatable';
 import * as _ from 'lodash';
 import * as moment from 'moment';
-import { FormGroupState, NgrxValueConverter } from 'ngrx-forms';
-import { fromEvent, Observable, Subscription } from 'rxjs';
-import { debounceTime, filter, first, map, switchMap, tap } from 'rxjs/operators';
-import { AppState } from 'src/app/model/app-state';
-import { RouterStateUrl } from 'src/app/model/routerStateUrl';
+import {FormGroupState, NgrxValueConverter} from 'ngrx-forms';
+import {fromEvent, Observable, Subscription} from 'rxjs';
+import {debounceTime, filter, map, switchMap, tap} from 'rxjs/operators';
+import {AppState} from 'src/app/model/app-state';
+import {RouterStateUrl} from 'src/app/model/routerStateUrl';
 import * as DashboardFormActions from 'src/app/store/actions/dashboard-form.actions';
 import * as ExecutionEventsActions from 'src/app/store/actions/execution-events.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
@@ -54,7 +54,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   public asAtTime: number = moment().valueOf()
   public queryParams: Params = {
     timestampStart: 0,
-    timestampEnd: 0,
+    timestampEnd: undefined,
     offset: 0,
     sortName: "timestamp",
     sortDirection: "desc",

@@ -41,7 +41,7 @@ class ExecutionEventController @Autowired()(val repo: ExecutionEventRepository) 
     @ApiParam(value = "Beginning of the timestamp range used for querying. If timestampStart equals 0, the service will return the first 100 execution events in database", example = "0")
     @RequestParam(value = "timestampStart", required = false, defaultValue = "0") timestampStart: Long,
     @ApiParam(value = "End of the timestamp range used for querying", example = "0")
-    @RequestParam(value = "timestampEnd", required = false, defaultValue = "0") timestampEnd: Long,
+    @RequestParam(value = "timestampEnd", required = false, defaultValue = "9223372036854775807") timestampEnd: Long,
     @ApiParam(value = "Timestamp of the request, if asAtTime equals 0, the current timestamp will be applied", example = "0")
     @RequestParam(value = "asAtTime", required = false, defaultValue = "0") asAtTime: Long,
     @ApiParam(value = "Number of the page", example = "0")
