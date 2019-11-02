@@ -17,10 +17,12 @@ package za.co.absa.spline.consumer.service.repo
 
 import com.arangodb.ArangoDatabaseAsync
 import com.arangodb.model.AqlQueryOptions
+import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.model._
 
+import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Repository
@@ -36,90 +38,61 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
   )(implicit ec: ExecutionContext): Future[Pageable[ExecutionEventInfo]] = {
     import za.co.absa.spline.persistence.ArangoImplicits._
 
-    val arangoCursorAsync = db.queryAs[ExecutionEventQueryResult](
+    val eventualArangoCursorAsync = db.queryAs[ExecutionEventInfo](
       """
-        LET executionEventsFiltered = (
-          FOR p IN progress
-            FILTER p._creationTimestamp < @asAtTime && p.timestamp >= @timestampStart && p.timestamp <= @timestampEnd
-            RETURN p
-        )
-
-        LET executionEventsDefault = (
-          FOR p IN progress
-            FILTER p._creationTimestamp < @asAtTime
-            SORT p.timestamp desc
-            LIMIT 100
-            RETURN p
-        )
-
-        LET executionEvents = @timestampStart == 0 ? executionEventsDefault : executionEventsFiltered
-        LET totalCount = COUNT(executionEvents)
-
-        LET elements = (
-            FOR ee IN executionEvents
-              LET executionEventDetails = FIRST(
-                FOR po IN progressOf
-                  FILTER po._from == ee._id
-                  LET exec = FIRST(
-                      FOR exec IN execution
-                          FILTER exec._id == po._to
-                          RETURN exec
-                  )
-                  LET ope = FIRST(
-                      FOR ex IN executes
-                          FILTER ex._from == exec._id
-                          LET o = FIRST(
-                              FOR op IN operation
-                                  FILTER op._id == ex._to
-                                  RETURN op
-                          )
-                          RETURN o
-                  )
-                RETURN {
-                    "executionEventId" : ee._key,
-                    "frameworkName" : CONCAT([exec.extra.systemInfo.name, " ", exec.extra.systemInfo.version]),
-                    "applicationName" : exec.extra.appName,
-                    "applicationId" : ee.extra.appId,
-                    "timestamp" : ee.timestamp,
-                    "datasource" : ope.properties.outputSource,
-                    "datasourceType" : ope.properties.destinationType,
-                    "append" : ope.properties.append
-                }
-              )
-              FILTER  LENGTH(@searchTerm) == 0 ? : CONTAINS(LOWER(executionEventDetails.frameworkName), LOWER(@searchTerm))
-                    || CONTAINS(LOWER(executionEventDetails.applicationName), LOWER(@searchTerm))
-                    || CONTAINS(executionEventDetails.applicationId, LOWER(@searchTerm))
-                    || CONTAINS(LOWER(executionEventDetails.timestamp), LOWER(@searchTerm))
-                    || CONTAINS(LOWER(executionEventDetails.datasource), LOWER(@searchTerm))
-                    || CONTAINS(LOWER(executionEventDetails.datasourceType), LOWER(@searchTerm))
-                    || CONTAINS(LOWER(executionEventDetails.append), LOWER(@searchTerm))
-              SORT executionEventDetails.@sortName @sortDirection
-              LIMIT @offset*@size, @size
-              RETURN executionEventDetails
-          )
-          RETURN { "elements" : elements, "totalCount": totalCount }
-
-      """,
+        |FOR ee IN progress
+        |    FILTER ee._creationTimestamp < @asAtTime
+        |        && ee.timestamp >= @timestampStart
+        |        && ee.timestamp <= @timestampEnd
+        |
+        |    LET executionEventDetails = FIRST(
+        |        FOR v,e,p IN 2 OUTBOUND ee progressOf, executes
+        |            LET exec = p.vertices[1]
+        |            LET ope = v
+        |            RETURN {
+        |                "executionEventId" : ee._key,
+        |                "frameworkName" : CONCAT(exec.extra.systemInfo.name, " ", exec.extra.systemInfo.version),
+        |                "applicationName" : exec.extra.appName,
+        |                "applicationId" : ee.extra.appId,
+        |                "timestamp" : ee.timestamp,
+        |                "datasource" : ope.properties.outputSource,
+        |                "datasourceType" : ope.properties.destinationType,
+        |                "append" : ope.properties.append
+        |            }
+        |    )
+        |
+        |    FILTER LENGTH(@searchTerm) == 0
+        |        || executionEventDetails.timestamp == @searchTerm
+        |        || CONTAINS(LOWER(executionEventDetails.frameworkName), @searchTerm)
+        |        || CONTAINS(LOWER(executionEventDetails.applicationName), @searchTerm)
+        |        || CONTAINS(LOWER(executionEventDetails.applicationId), @searchTerm)
+        |        || CONTAINS(LOWER(executionEventDetails.datasource), @searchTerm)
+        |        || CONTAINS(LOWER(executionEventDetails.datasourceType), @searchTerm)
+        |
+        |    SORT executionEventDetails.@sortField @sortDirection
+        |    LIMIT @offset*@size, @size
+        |
+        |    RETURN executionEventDetails
+        |""".stripMargin,
       Map(
         "timestampStart" -> (timestampStart: java.lang.Long),
         "timestampEnd" -> (timestampEnd: java.lang.Long),
         "asAtTime" -> (pageRequest.asAtTime: java.lang.Long),
         "offset" -> (pageRequest.offset: Integer),
         "size" -> (pageRequest.size: Integer),
-        "sortName" -> sortRequest.sortName,
+        "sortField" -> sortRequest.sortName,
         "sortDirection" -> sortRequest.sortDirection,
-        "searchTerm" -> searchTerm
+        "searchTerm" -> StringUtils.lowerCase(searchTerm)
       ),
-        new AqlQueryOptions().fullCount(true)
-      )
+      new AqlQueryOptions().fullCount(true)
+    )
 
-
-    for {
-      query <- arangoCursorAsync
-      filteredCount = query.getStats.getFiltered
-      if query.hasNext
-      next = query.next
-    } yield new Pageable[ExecutionEventInfo](next.elements, next.totalCount - filteredCount , pageRequest.offset, pageRequest.size)
+    for (arangoCursorAsync <- eventualArangoCursorAsync)
+      yield new Pageable[ExecutionEventInfo](
+        arangoCursorAsync.streamRemaining().toScala.toArray,
+        arangoCursorAsync.getStats.getFullCount,
+        pageRequest.offset,
+        pageRequest.size)
   }
 
   override def search(applicationId: String, destinationPath: String)(implicit ec: ExecutionContext): Future[ExecutionEvent] = {
@@ -127,13 +100,19 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
 
     db.queryOne[ExecutionEvent](
       """
-        FOR ds IN dataSource
-          FILTER ds.uri == @destinationPath
-          FOR e IN 2
-            INBOUND ds affects, progressOf
-            FILTER e.extra.appId == @applicationId
-            RETURN MERGE(UNSET(e, "_rev", "_id", "_key", "_creationTimestamp"), {"creationTimestamp" : e._creationTimestamp, "id" : e._key})
-        """,
+        |FOR ds IN dataSource
+        |    FILTER ds.uri == @destinationPath
+        |    FOR e IN 2
+        |        INBOUND ds affects, progressOf
+        |        FILTER e.extra.appId == @applicationId
+        |        RETURN MERGE(
+        |            UNSET(e, "_rev", "_id", "_key", "_creationTimestamp"),
+        |            {
+        |                "creationTimestamp": e._creationTimestamp,
+        |                "id": e._key
+        |            }
+        |        )
+        |""".stripMargin,
       Map("applicationId" -> applicationId, "destinationPath" -> destinationPath)
     )
   }

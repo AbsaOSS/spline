@@ -19,16 +19,16 @@
     <div class="row padding4">
       <div class="col-md-12">
         <input type="text" class="search float-right" #searchInput placeholder="Search..."
-          value="{{queryParams.searchTerm}}" />
+               value="{{queryParams.searchTerm}}"/>
         <div class="dataMode float-left">
           <ngx-switch [status]="liveData" [onText]="'Live Data'" [offText]="'Range Selection'" [onColor]="'blue'"
-            [offColor]="'blue'" (statusChange)="onDataModeChange($event)">
+                      [offColor]="'blue'" (statusChange)="onDataModeChange($event)">
           </ngx-switch>
         </div>
         <ngx-datatable #table class='table material expandable' [columnMode]="'force'" [headerHeight]="'auto'"
-          [footerHeight]="'auto'" [rowHeight]="'auto'" [scrollbarV]="false" [rows]="rows" [selectionType]="'single'"
-          [externalPaging]="true" [count]="totalCount" [offset]="queryParams.offset" [loadingIndicator]="loading"
-          [limit]="limit" (select)="onSelect($event)" [externalSorting]="true">
+                       [footerHeight]="'auto'" [rowHeight]="'auto'" [scrollbarV]="false" [rows]="rows" [selectionType]="'single'"
+                       [externalPaging]="true" [count]="totalCount" [offset]="queryParams.offset" [loadingIndicator]="loading"
+                       [limit]="limit" (select)="onSelect($event)" [externalSorting]="true">
           <ngx-datatable-column name="Framework" [width]="10">
             <ng-template let-expanded="frameworkName" let-row="row" ngx-datatable-cell-template>
               <td class="{{getFrameworkImg(row.frameworkName)}}"></td>
@@ -76,17 +76,20 @@
           <!--Footer -->
           <ngx-datatable-footer>
             <ng-template ngx-datatable-footer-template let-rowCount="rowCount" let-pageSize="pageSize"
-              let-selectedCount="selectedCount" let-curPage="curPage" let-offset="queryParams.offset"
-              let-isVisible="isVisible">
-              <div style="padding: 5px 10px">
-                <div><strong>Jobs triggered</strong>: {{ rowCount }}</div>
-                <hr style="width:100%" />
+                         let-selectedCount="selectedCount" let-curPage="curPage" let-offset="queryParams.offset"
+                         let-isVisible="isVisible">
+              <div *ngIf="(rowCount / pageSize) > 1" class="pager-bar-inner">
+                <strong>Total</strong>: {{ rowCount }}
+                <datatable-pager [pagerLeftArrowIcon]="'datatable-icon-left'"
+                                 [pagerRightArrowIcon]="'datatable-icon-right'"
+                                 [pagerPreviousIcon]="'datatable-icon-prev'"
+                                 [pagerNextIcon]="'datatable-icon-skip'"
+                                 [page]="curPage"
+                                 [size]="pageSize"
+                                 [count]="rowCount"
+                                 (change)="table.onFooterPage($event)">
+                </datatable-pager>
               </div>
-              <datatable-pager [pagerLeftArrowIcon]="'datatable-icon-left'"
-                [pagerRightArrowIcon]="'datatable-icon-right'" [pagerPreviousIcon]="'datatable-icon-prev'"
-                [pagerNextIcon]="'datatable-icon-skip'" [page]="curPage" [size]="pageSize" [count]="rowCount"
-                [hidden]="!((rowCount / pageSize) > 1)" (change)="table.onFooterPage($event)">
-              </datatable-pager>
             </ng-template>
           </ngx-datatable-footer>
 
@@ -101,19 +104,19 @@
       <div class="row align-items-center justify-content-end">
         <div class="col-md-2">
           <timepicker [ngrxFormControlState]="(formState$ | async)?.dashboardFilters.controls.minDate"
-            [ngrxValueConverter]="dateConverter">
+                      [ngrxValueConverter]="dateConverter">
           </timepicker>
         </div>
         <div class=" col-sm-8">
           <input type="text" class="form-control text-center" bsDaterangepicker
-            placeholder="{{(formState$ | async).dashboardFilters.controls.range.value[0] | date:'dd/MM/yyyy, h:mm:ss A'}} - {{(formState$ | async).dashboardFilters.controls.range.value[1]  | date:'dd/MM/yyyy, h:mm:ss A'}} "
-            [ngrxFormControlState]="(formState$ | async).dashboardFilters.controls.range"
-            [ngrxValueConverter]="rangeConverter"
-            [bsConfig]="{ containerClass: 'theme-orange', isAnimated: true, adaptivePosition: true, rangeInputFormat: 'DD/MM/YYYY, h:mm:ss A' }">
+                 placeholder="{{(formState$ | async).dashboardFilters.controls.range.value[0] | date:'dd/MM/yyyy, h:mm:ss A'}} - {{(formState$ | async).dashboardFilters.controls.range.value[1]  | date:'dd/MM/yyyy, h:mm:ss A'}} "
+                 [ngrxFormControlState]="(formState$ | async).dashboardFilters.controls.range"
+                 [ngrxValueConverter]="rangeConverter"
+                 [bsConfig]="{ containerClass: 'theme-orange', isAnimated: true, adaptivePosition: true, rangeInputFormat: 'DD/MM/YYYY, h:mm:ss A' }">
         </div>
         <div class="col-md-2">
           <timepicker [ngrxFormControlState]="(formState$ | async).dashboardFilters.controls.maxDate"
-            [ngrxValueConverter]="dateConverter" class="float-right">
+                      [ngrxValueConverter]="dateConverter" class="float-right">
           </timepicker>
         </div>
       </div>
