@@ -17,8 +17,8 @@
 package za.co.absa.spline.example.batch
 
 import org.apache.spark.sql.SaveMode
-import za.co.absa.spline.harvester.SparkLineageInitializer._
 import za.co.absa.spline.example.SparkApp
+import za.co.absa.spline.harvester.SparkLineageInitializer._
 
 object Example2Job extends SparkApp("Example 2") {
 
@@ -34,12 +34,12 @@ object Example2Job extends SparkApp("Example 2") {
   val firstDS = startingDS.filter($"domain_code".eqNullSafe("aa"))
   val secondDS = startingDS.filter($"count_views" > 10)
   val stage1DS = firstDS.union(secondDS)
-  stage1DS.write.mode(SaveMode.Overwrite).parquet("data/results/batch/job2_stage1_results")
+  stage1DS.write.mode(SaveMode.Overwrite).parquet("data/output/batch/job2_stage1_results")
 
   // Stage 2
-  val stage2DS = spark.read.parquet("data/results/batch/job2_stage1_results")
+  val stage2DS = spark.read.parquet("data/output/batch/job2_stage1_results")
   stage2DS
     .filter($"domain_code".eqNullSafe("aa"))
     .select($"page_title".as("name"), $"count_views".as("count"))
-    .write.mode(SaveMode.Overwrite).parquet("data/results/batch/job2_stage2_results")
+    .write.mode(SaveMode.Overwrite).parquet("data/output/batch/job2_stage2_results")
 }

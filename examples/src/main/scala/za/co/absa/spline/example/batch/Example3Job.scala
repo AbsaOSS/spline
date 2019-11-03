@@ -18,8 +18,8 @@ package za.co.absa.spline.example.batch
 
 import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.functions._
-import za.co.absa.spline.harvester.SparkLineageInitializer._
 import za.co.absa.spline.example.SparkApp
+import za.co.absa.spline.harvester.SparkLineageInitializer._
 
 object Example3Job extends SparkApp("Example 3") {
 
@@ -45,5 +45,5 @@ object Example3Job extends SparkApp("Example 3") {
   (journalReferencesDS union otherReferencesDS).limit(100)
     .write
     .mode(SaveMode.Overwrite)
-    .parquet("data/results/batch/job3_results")
+    .parquet("data/output/batch/job3_results")
 }

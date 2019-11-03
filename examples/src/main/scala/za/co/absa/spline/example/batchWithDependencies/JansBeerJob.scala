@@ -51,6 +51,6 @@ object JansBeerJob extends SparkApp("Jan's Beer Job", conf = Seq("spark.sql.shuf
       calculateConsumptionPerCapita("2011")
     )
 
-  result.write.mode(SaveMode.Append).parquet("data/results/batchWithDependencies/beerConsCtl")
+  result.write.mode(SaveMode.Append).parquet("data/output/batchWithDependencies/beerConsCtl")
 
 }

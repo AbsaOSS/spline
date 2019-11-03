@@ -17,8 +17,8 @@
 package za.co.absa.spline.example.batch
 
 import org.apache.spark.sql.SaveMode
-import za.co.absa.spline.harvester.SparkLineageInitializer._
 import za.co.absa.spline.example.SparkApp
+import za.co.absa.spline.harvester.SparkLineageInitializer._
 
 object Example1Job extends SparkApp("Example 1") {
 
@@ -45,5 +45,5 @@ object Example1Job extends SparkApp("Example 1") {
     .join(domainMappingDS, $"domain_code" === $"d_code", "left_outer")
     .select($"page_title".as("page"), $"d_name".as("domain"), $"count_views")
 
-  joinedDS.write.mode(SaveMode.Overwrite).parquet("data/results/batch/job1_results")
+  joinedDS.write.mode(SaveMode.Overwrite).parquet("data/output/batch/job1_results")
 }
