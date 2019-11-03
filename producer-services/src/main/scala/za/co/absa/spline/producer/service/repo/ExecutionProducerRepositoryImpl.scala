@@ -174,14 +174,16 @@ object ExecutionProducerRepositoryImpl {
     case w: WriteOperation =>
       Write(
         name = w.params.get("name").map(n => n.toString).orNull,
-        properties = w.params + ("outputSource" -> w.outputSource) + ("childIds" -> w.childIds) + ("append" -> w.append),
+        properties = w.params
+          + ("outputSource" -> w.outputSource)
+          + ("append" -> w.append),
         outputSchema = w.schema,
         _key = s"${executionPlan.id}:${w.id.toString}"
       )
     case t: DataOperation =>
       Transformation(
-        name = t.params.get("name").map(n => n.toString).orNull,
-        properties = t.params + ("childIds" -> t.childIds),
+        name = t.params.get("name").map(_.toString).orNull,
+        properties = t.params,
         outputSchema = t.schema,
         _key = s"${executionPlan.id}:${t.id.toString}"
       )
