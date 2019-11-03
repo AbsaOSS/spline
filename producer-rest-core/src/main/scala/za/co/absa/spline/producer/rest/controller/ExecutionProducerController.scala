@@ -62,8 +62,6 @@ class ExecutionProducerController @Autowired()(
                 schema: Array[String]
                 // Other parameters containing for instance the name of the operation
                 params: Map[String, Any]
-                // Array of the children operations id
-                childIds: Array[Int]
               ]
               // Write operation of the execution plan
               write: WriteOperation{
@@ -74,7 +72,7 @@ class ExecutionProducerController @Autowired()(
                 // append mode - true if append, false if override
                 append: Boolean
                 // Array of the children operations id
-                childIds: Seq[Int]
+                childIds: Array[Int]
                 // List of references to the dataTypes
                 schema: Option[Any]
                 // Other parameters containing for instance the name of the operation
@@ -85,7 +83,7 @@ class ExecutionProducerController @Autowired()(
                 // Id of the Data operation
                 id: Int,
                 // Array of the children operations id
-                childIds: Seq[Int],
+                childIds: Array[Int],
                 // List of references to the dataTypes
                 schema: Option[Any] = None,
                 // Other parameters containing for instance the name of the operation
