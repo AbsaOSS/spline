@@ -35,7 +35,7 @@
     class GraphBuilder {
         constructor(vertices, edges) {
             this.vertexCollector = new DistinctCollector(v => v._id, vertices);
-            this.edgeCollector = new DistinctCollector(e => e._id, edges);
+            this.edgeCollector = new DistinctCollector(e => `${e.source}:${e.target}`, edges);
         }
 
         add(pGraph) {
@@ -58,7 +58,17 @@
             return null;
         }
 
-        const startSource = db._query(aql`RETURN FIRST(FOR ds IN 2 OUTBOUND ${startEvent} progressOf, affects RETURN ds)`).next();
+        const startSource = db._query(aql`
+            RETURN FIRST(
+                FOR ds IN 2 OUTBOUND ${startEvent} progressOf, affects 
+                    RETURN {
+                        "_id": ds._key,
+                        "_class": "za.co.absa.spline.consumer.service.model.DataSourceNode",
+                        "name": ds.uri
+                    }
+            )`
+        ).next();
+
         const graphBuilder = new GraphBuilder([startSource]);
 
         function traverse(event, depth) {
@@ -73,10 +83,35 @@
                 LET rdsWithInEdges = (FOR ds, e IN 1 OUTBOUND exec depends RETURN [ds, e])
                 LET readSources = rdsWithInEdges[*][0]
                 LET readDsEdges = rdsWithInEdges[*][1]
-                RETURN {
-                    vertices: APPEND(readSources, exec),
-                    edges: APPEND(readDsEdges, affectedDsEdge)
-                }
+                
+                LET vertices = (
+                    FOR vert IN APPEND(readSources, exec)
+                        LET vertType = SPLIT(vert._id, '/')[0]
+                        RETURN vertType == "dataSource"
+                            ? {
+                                "_id": vert._key,
+                                "_class": "za.co.absa.spline.consumer.service.model.DataSourceNode",
+                                "name": vert.uri
+                            }
+                            : {
+                                "_id": vert._key,
+                                "_class": "za.co.absa.spline.consumer.service.model.ExecutionNode",
+                                "name": vert.extra.appName
+                            }
+                )
+                
+                LET edges = (
+                    FOR edge IN APPEND(readDsEdges, affectedDsEdge)
+                        LET edgeType = SPLIT(edge._id, '/')[0]
+                        LET exKey = SPLIT(edge._from, '/')[1]
+                        LET dsKey = SPLIT(edge._to, '/')[1]
+                        RETURN {
+                            "source": edgeType == "depends" ? dsKey : exKey,
+                            "target": edgeType == "affects" ? dsKey : exKey
+                        }
+                )
+                
+                RETURN {vertices, edges}
             `).next();
 
             graphBuilder.add(partialGraph);
