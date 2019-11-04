@@ -21,7 +21,7 @@ import * as _ from 'lodash';
 import { Observable } from 'rxjs';
 import { debounceTime, map, switchMap } from 'rxjs/operators';
 import * as DashboardFormActions from 'src/app/store/actions/dashboard-form.actions';
-import { PageableExecutionEvent } from '../generated/models/pageable-execution-event';
+import { PageableExecutionEventsResponse } from '../generated/models/pageable-execution-events-response';
 import { ExecutionEventControllerService } from '../generated/services';
 import { AppState } from '../model/app-state';
 import { handleException } from '../rxjs/operators/handleException';
@@ -47,7 +47,7 @@ export class ExecutionEventsEffects {
     public getPageableExecutionEvents$: Observable<Action> = this.actions$.pipe(
         ofType(ExecutionEventsAction.ExecutionEventsActionTypes.EXECUTION_EVENTS_GET),
         switchMap((action: any) => this.executionEventControllerService.executionEventUsingGET(action.payload)),
-        map((res: PageableExecutionEvent) => new ExecutionEventsAction.GetSuccess(res)),
+        map((res: PageableExecutionEventsResponse) => new ExecutionEventsAction.GetSuccess(res)),
         handleException(this.store)
     )
 
@@ -56,7 +56,7 @@ export class ExecutionEventsEffects {
         ofType(ExecutionEventsAction.ExecutionEventsActionTypes.EXECUTION_EVENTS_GET_DEFAULT),
         switchMap((action: any) => this.executionEventControllerService.executionEventUsingGET(action.payload)),
         debounceTime(100),
-        map((res: PageableExecutionEvent) => {
+        map((res: PageableExecutionEventsResponse) => {
             const timestamps = res.elements.map(r => r.timestamp)
             const minDate = _.min(timestamps)
             const maxDate = _.max(timestamps)

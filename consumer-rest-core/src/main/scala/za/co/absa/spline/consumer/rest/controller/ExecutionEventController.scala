@@ -34,7 +34,7 @@ class ExecutionEventController @Autowired()(val repo: ExecutionEventRepository) 
   @ApiOperation(
     value = "GET /executionEvent",
     notes = "Returns a Pageable list of execution events within the time range given in parameters",
-    response = classOf[PageableExecutionEvent]
+    response = classOf[PageableExecutionEventsResponse]
   )
   def executionEvent
   (
@@ -54,7 +54,7 @@ class ExecutionEventController @Autowired()(val repo: ExecutionEventRepository) 
     @RequestParam(value = "sortDirection", required = false, defaultValue = "desc") sortDirection: String,
     @ApiParam(value = "Text to filter the results")
     @RequestParam(value = "searchTerm", required = false) searchTerm: String
-  ): Future[Pageable[ExecutionEventInfo]] = {
+  ): Future[PageableExecutionEventsResponse] = {
 
     val pageRequest = asAtTime match {
       case 0 => PageRequest(currentTimeMillis, 0, 10)

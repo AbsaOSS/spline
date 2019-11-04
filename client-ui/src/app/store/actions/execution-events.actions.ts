@@ -15,7 +15,7 @@
  */
 
 import { Action } from '@ngrx/store';
-import { PageableExecutionEvent } from 'src/app/generated/models';
+import { PageableExecutionEventsResponse } from 'src/app/generated/models';
 import { Params } from '@angular/router';
 
 export enum ExecutionEventsActionTypes {
@@ -42,7 +42,7 @@ export class GetSuccessDefault implements Action {
 
 export class GetSuccess implements Action {
     public readonly type = ExecutionEventsActionTypes.EXECUTION_EVENTS_GET_SUCCESS
-    constructor(public payload: PageableExecutionEvent) { }
+    constructor(public payload: PageableExecutionEventsResponse) { }
 }
 
 export type ExecutionEventsActions

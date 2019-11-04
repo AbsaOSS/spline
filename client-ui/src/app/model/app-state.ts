@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import { FormGroupState } from 'ngrx-forms';
-import { PageableExecutionEvent } from "../generated/models";
-import { RouterStateUrl } from "./routerStateUrl";
-import { CytoscapeGraphVM } from "./viewModels/cytoscape/cytoscapeGraphVM";
-import { ExecutedLogicalPlanVM } from "./viewModels/executedLogicalPlanVM";
-import { OperationDetailsVM } from "./viewModels/operationDetailsVM";
-import { LineageOverviewVM } from './viewModels/lineageOverview';
+import {FormGroupState} from 'ngrx-forms';
+import {PageableExecutionEventsResponse} from "../generated/models";
+import {RouterStateUrl} from "./routerStateUrl";
+import {CytoscapeGraphVM} from "./viewModels/cytoscape/cytoscapeGraphVM";
+import {ExecutedLogicalPlanVM} from "./viewModels/executedLogicalPlanVM";
+import {OperationDetailsVM} from "./viewModels/operationDetailsVM";
+import {LineageOverviewVM} from './viewModels/lineageOverview';
 
 export interface AppState {
     config: {
         apiUrl: string
     },
-    executionEvents: PageableExecutionEvent,
+    executionEvents: PageableExecutionEventsResponse,
     dashboardForm: FormGroupState<any>,
     lineageOverview: LineageOverviewVM,
     executedLogicalPlan: ExecutedLogicalPlanVM,

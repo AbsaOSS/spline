@@ -35,8 +35,21 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
     pageRequest: PageRequest,
     sortRequest: SortRequest,
     searchTerm: String
-  )(implicit ec: ExecutionContext): Future[Pageable[ExecutionEventInfo]] = {
+  )(implicit ec: ExecutionContext): Future[PageableExecutionEventsResponse] = {
     import za.co.absa.spline.persistence.ArangoImplicits._
+
+    val eventualTotalDateRange = db.queryOne[Array[Long]](
+      """
+        |FOR ee IN progress
+        |    FILTER ee._creationTimestamp < @asAtTime
+        |    COLLECT AGGREGATE
+        |        minTimestamp = MIN(ee.timestamp),
+        |        maxTimestamp = MAX(ee.timestamp)
+        |    RETURN [minTimestamp, maxTimestamp]
+        |""".stripMargin,
+      Map(
+        "asAtTime" -> (pageRequest.asAtTime: java.lang.Long)
+      ))
 
     val eventualArangoCursorAsync = db.queryAs[ExecutionEventInfo](
       """
@@ -87,12 +100,16 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
       new AqlQueryOptions().fullCount(true)
     )
 
-    for (arangoCursorAsync <- eventualArangoCursorAsync)
-      yield new Pageable[ExecutionEventInfo](
+    for {
+      arangoCursorAsync <- eventualArangoCursorAsync
+      totalDateRange <- eventualTotalDateRange
+    } yield
+      PageableExecutionEventsResponse(
         arangoCursorAsync.streamRemaining().toScala.toArray,
         arangoCursorAsync.getStats.getFullCount,
         pageRequest.offset,
-        pageRequest.size)
+        pageRequest.size,
+        totalDateRange)
   }
 
   override def search(applicationId: String, destinationPath: String)(implicit ec: ExecutionContext): Future[ExecutionEvent] = {

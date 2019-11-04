@@ -39,13 +39,15 @@ case class ExecutionEventInfo
   def this() = this(null, null, null, null, 0, null, null, false)
 }
 
-case class PageableExecutionEvent() extends Pageable[ExecutionEventInfo] {
+case class PageableExecutionEventsResponse(
   @ApiModelProperty(value = "Array of Execution events")
-  override val elements: Array[ExecutionEventInfo] = Array.empty
-  @ApiModelProperty(value = "Total number of executionEvents retrieved")
-  override val totalCount: Long = 0
+  override val elements: Array[ExecutionEventInfo],
+  @ApiModelProperty(value = "Total number of executionEvents in the result set")
+  override val totalCount: Long,
   @ApiModelProperty(value = "Page index")
-  override val offset: Int = 0
+  override val offset: Int,
   @ApiModelProperty(value = "Page size")
-  override val size: Int = 0
-}
+  override val size: Int,
+  @ApiModelProperty(value = "Total date range (min and max timestamp) of the result set")
+  val totalDateRange: Array[Long]
+) extends Pageable[ExecutionEventInfo]
