@@ -24,6 +24,7 @@ import za.co.absa.spline.harvester.exception.SplineNotInitializedException
 import za.co.absa.spline.harvester.json.HarvesterJsonSerDe._
 import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
 
+import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
 class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)
@@ -58,18 +59,14 @@ class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)
   }
 
   override def ensureProducerReady(): Unit = {
-    try {
-      val check = Http(statusUrl)
-        .method("HEAD")
-        .asString
+    val tryStatusOk = Try(Http(statusUrl)
+      .method("HEAD")
+      .asString
+      .isSuccess)
 
-      if (check.isError) {
-        throw new SplineNotInitializedException("Spline is not initialized properly!")
-      }
-
-    } catch {
-      case e: SplineNotInitializedException => throw e
-      case NonFatal(e) => throw new SplineNotInitializedException("Producer is not accessible!", e)
+    tryStatusOk match {
+      case Success(false) => throw new SplineNotInitializedException("Spline is not initialized properly!")
+      case Failure(e) if NonFatal(e) => throw new SplineNotInitializedException("Producer is not accessible!", e)
     }
   }
 }
