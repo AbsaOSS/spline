@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component} from '@angular/core';
-import {ExpressionComponent} from '../expression/expression.component';
+import { Component } from '@angular/core';
+import { PropertiesComponent } from '../properties/properties.component';
 
 @Component({
   selector: 'join',
-  templateUrl: './join.component.html',
-  styleUrls: ['./join.component.less']
+  templateUrl: './join.component.html'
 })
-
-export class JoinComponent extends ExpressionComponent { }
+export class JoinComponent extends PropertiesComponent { }

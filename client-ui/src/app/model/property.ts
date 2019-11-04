@@ -13,14 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export class Property {
+    public type: string
+    public value: any
+    public metadata: any
 
-export const enum ExpressionType {
-    Binary = 'expr.Binary',
-    Literal = 'expr.Literal',
-    Alias = 'expr.Alias',
-    UDF = 'expr.UDF',
-    Union = 'expr.Union',
-    Generic = 'expr.Generic',
-    GenericLeaf = 'expr.GenericLeaf',
-    AttrRef = 'expr.AttrRef'
+    constructor(type: PropertyType, value: any, metadata: any) {
+        this.type = type
+        this.value = value
+        this.metadata = metadata
+    }
+
+}
+
+export const enum PropertyType {
+    Join = "Join",
+    Transformations = "Transformations",
+    DroppedAttributes = "Dropped Attributes",
+    Aggregate = "Aggregate",
+    Grouping = "Grouping",
+    InputSource = "Input Source",
+    SourceType = "Source Type",
+    Sort = "Sort",
+    Filter = "Filter",
+    Properties = "Properties"
 }

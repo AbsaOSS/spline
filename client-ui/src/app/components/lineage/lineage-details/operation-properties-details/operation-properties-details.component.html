@@ -18,7 +18,7 @@
     <i class="fa fa-xs"
       [ngStyle]="{'color':getOperationColor(detailsInfos.operation.name)}">{{getIcon(detailsInfos.operation.name)}}</i>&nbsp;{{detailsInfos.operation.name}}
   </div>
-  <div #expressionPanel>
+  <div #propertiesPanel>
   </div>
   <div class="details">
     <div *ngFor="let inputSchema of getInputSchemas(detailsInfos) ;index as i">

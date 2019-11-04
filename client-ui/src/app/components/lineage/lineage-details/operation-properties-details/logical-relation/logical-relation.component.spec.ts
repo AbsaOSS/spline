@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import {SchemaDetailsComponent} from './schema-details.component';
+import { LogicalRelationComponent } from './logical-relation.component';
 
-describe('LineageDetailsComponent', () => {
-  let component: SchemaDetailsComponent;
-  let fixture: ComponentFixture<SchemaDetailsComponent>;
+describe('LogicalRelationComponent', () => {
+  let component: LogicalRelationComponent;
+  let fixture: ComponentFixture<LogicalRelationComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [SchemaDetailsComponent]
+      declarations: [LogicalRelationComponent]
     })
       .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(SchemaDetailsComponent);
+    fixture = TestBed.createComponent(LogicalRelationComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

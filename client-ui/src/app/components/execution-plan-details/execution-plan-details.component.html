@@ -42,7 +42,7 @@
         </p>
         <ul>
             <span class="execution-details-title">URI:</span>
-            {{ (getExecutionPlanVM() | async )?.execution.extra.outputSource.source }}
+            {{ (getExecutionPlanVM() | async )?.execution.extra.outputSource.source }} |
             <span class="execution-details-title">Type:</span>
             {{ (getExecutionPlanVM() | async )?.execution.extra.outputSource.sourceType }}
         </ul>

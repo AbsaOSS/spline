@@ -45,7 +45,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild(DatatableComponent, { static: false }) table: DatatableComponent
 
-  private subscribtions: Subscription[] = []
+  private subscriptions: Subscription[] = []
   public rows: any[] = []
   public loading: boolean = false
   public totalCount: number = 0
@@ -81,7 +81,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   } as NgrxValueConverter<Date, number>
 
   ngOnInit(): void {
-    this.subscribtions.push(
+    this.subscriptions.push(
       this.store.select('router', 'state', 'queryParams')
         .subscribe((queryParams: any) => {
           if (!_.isEmpty(queryParams)) {
@@ -98,7 +98,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         })
     )
 
-    this.subscribtions.push(
+    this.subscriptions.push(
       this.store
         .select('dashboardForm', 'dashboardFilters', 'value', 'minDate')
         .pipe(
@@ -121,7 +121,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         })
     )
 
-    this.subscribtions.push(
+    this.subscriptions.push(
       this.store.select('executionEvents')
         .pipe(
           filter(state => state != null)
@@ -135,7 +135,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
 
-    this.subscribtions.push(
+    this.subscriptions.push(
       this.table.page.pipe(
         tap(_ => this.loading = true),
       ).subscribe(
@@ -146,7 +146,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       )
     )
 
-    this.subscribtions.push(
+    this.subscriptions.push(
       this.table.sort.pipe(
         tap(_ => this.loading = true),
         map(event => event.sorts[0]),
@@ -158,7 +158,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       )
     )
 
-    this.subscribtions.push(
+    this.subscriptions.push(
       fromEvent<any>(this.searchInput.nativeElement, 'keyup')
         .pipe(
           tap(_ => this.loading = true),
@@ -206,7 +206,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.subscribtions.forEach(s => s.unsubscribe())
+    this.subscriptions.forEach(s => s.unsubscribe())
   }
 
 }

@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package za.co.absa.spline.harvester.json
 
-export const enum ExpressionType {
-    Binary = 'expr.Binary',
-    Literal = 'expr.Literal',
-    Alias = 'expr.Alias',
-    UDF = 'expr.UDF',
-    Union = 'expr.Union',
-    Generic = 'expr.Generic',
-    GenericLeaf = 'expr.GenericLeaf',
-    AttrRef = 'expr.AttrRef'
+import org.apache.commons.lang3.StringUtils._
+import org.json4s.TypeHints
+
+case class SplineShortTypeHints(hints: List[Class[_]]) extends TypeHints {
+  def hintFor(clazz: Class[_]): String = {
+    val className = clazz.getName
+    className.substring(1 + lastOrdinalIndexOf(className, ".", 2))
+  }
+
+  def classFor(hint: String): Option[Class[_]] = hints find (hintFor(_) == hint)
 }

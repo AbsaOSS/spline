@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component } from '@angular/core';
+import { PropertiesComponent } from '../properties/properties.component';
 
-export const enum ExpressionType {
-    Binary = 'expr.Binary',
-    Literal = 'expr.Literal',
-    Alias = 'expr.Alias',
-    UDF = 'expr.UDF',
-    Union = 'expr.Union',
-    Generic = 'expr.Generic',
-    GenericLeaf = 'expr.GenericLeaf',
-    AttrRef = 'expr.AttrRef'
+@Component({
+  selector: 'app-sort',
+  templateUrl: './sort.component.html'
+})
+export class SortComponent extends PropertiesComponent {
+
 }

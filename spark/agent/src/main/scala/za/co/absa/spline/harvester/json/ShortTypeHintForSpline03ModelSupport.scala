@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.harvester.json
 
-import org.json4s.{DefaultFormats, Formats, ShortTypeHints}
+import org.json4s.{DefaultFormats, Formats}
 import za.co.absa.spline.common.ReflectionUtils._
 import za.co.absa.spline.common.json.format.FormatsBuilder
 import za.co.absa.spline.harvester.json.ShortTypeHintForSpline03ModelSupport._
@@ -27,7 +27,7 @@ import scala.reflect.runtime.universe._
 trait ShortTypeHintForSpline03ModelSupport extends FormatsBuilder {
   override protected def formats: Formats = createFormats(Map(
     "typeHintFieldName" -> "_typeHint",
-    "typeHints" -> ShortTypeHints(Nil
+    "typeHints" -> SplineShortTypeHints(Nil
       ++ directSubClassesOf[model.dt.DataType]
       ++ directSubClassesOf[model.expr.Expression]
     ),

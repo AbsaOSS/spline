@@ -29,7 +29,7 @@ case class Operation
   @ApiModelProperty(value = "Name of the operation")
   name: String,
   @ApiModelProperty(value = "Properties of the operation")
-  properties: Any
+  properties: Map[String, Any]
 ) extends Graph.Node {
   override type Id = OperationID
 

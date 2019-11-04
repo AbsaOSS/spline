@@ -28,7 +28,7 @@ import * as LineageOverviewAction from 'src/app/store/actions/lineage-overview.a
 import * as ExecutionPlanAction from 'src/app/store/actions/execution-plan.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
 import { Subscription } from 'rxjs';
-import { getWriteOperationIdFromExecutionId } from 'src/app/store/reducers/execution-plan.reducer';
+import { getWriteOperationIdFromExecutionId } from 'src/app/util/execution-plan';
 
 
 @Component({

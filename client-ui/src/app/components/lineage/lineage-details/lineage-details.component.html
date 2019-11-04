@@ -23,8 +23,8 @@
     </ngx-switch>
   </div>
   <div class="container-fluid"
-    [ngClass]="(getDetailsInfo() | async) && showAttributeGraph ? 'schema-details' : 'execution-details'">
-    <schema-details></schema-details>
+    [ngClass]="(getDetailsInfo() | async) && showAttributeGraph ? 'operation-properties-details' : 'execution-details'">
+    <operation-properties-details></operation-properties-details>
   </div>
   <div *ngIf="(getDetailsInfo() | async) && showAttributeGraph" class="container-fluid attribute-details">
     <attribute-details></attribute-details>

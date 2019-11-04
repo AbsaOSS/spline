@@ -31,12 +31,14 @@ export class ErrorComponent implements OnInit, OnDestroy {
     private store: Store<AppState>
   ) { }
 
-  private subscribtions: Subscription[] = []
+  private subscriptions: Subscription[] = []
 
   public ngOnInit(): void {
-    this.store
-      .select('router', 'state', 'params')
-      .subscribe(params => this.store.dispatch(new ApplicationErrorGet(params.httpCode)))
+    this.subscriptions.push(
+      this.store
+        .select('router', 'state', 'params')
+        .subscribe(params => this.store.dispatch(new ApplicationErrorGet(params.httpCode)))
+    )
   }
 
   public getError = (): Observable<string> => {
@@ -44,7 +46,7 @@ export class ErrorComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.subscribtions.forEach(s => s.unsubscribe())
+    this.subscriptions.forEach(s => s.unsubscribe())
   }
 
 }
