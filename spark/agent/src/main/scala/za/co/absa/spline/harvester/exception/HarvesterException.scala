@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.common
+package za.co.absa.spline.harvester.exception
 
 /**
- * All exceptions thrown by Spline should inherit from this one
+ * All exceptions thrown by Harvester should inherit from this one
  *
  * @param message message describing the exception
  * @param throwable cause (A null value is permitted, and indicates that the cause is nonexistent or unknown.)
  */
-class SplineException(message: String, throwable: Throwable = null) extends Exception(message, throwable)
+class HarvesterException(message: String, throwable: Throwable = null) extends Exception(message, throwable)

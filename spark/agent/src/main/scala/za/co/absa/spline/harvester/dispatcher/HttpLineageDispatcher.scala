@@ -20,6 +20,7 @@ import org.apache.commons.configuration.Configuration
 import scalaj.http.Http
 import za.co.absa.spline.common.ConfigurationImplicits._
 import za.co.absa.spline.common.logging.Logging
+import za.co.absa.spline.harvester.exception.SplineNotInitializedException
 import za.co.absa.spline.harvester.json.HarvesterJsonSerDe._
 import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
 
@@ -31,6 +32,8 @@ class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)
 
   val dataLineagePublishUrl = s"$splineServerRESTEndpointBaseURL/execution/plan"
   val progressEventPublishUrl = s"$splineServerRESTEndpointBaseURL/execution/event"
+  val statusUrl = s"$splineServerRESTEndpointBaseURL/status"
+
 
   override def send(executionPlan: ExecutionPlan): String = {
     sendJson(executionPlan.toJson, dataLineagePublishUrl)
@@ -51,6 +54,22 @@ class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)
       .body
     catch {
       case NonFatal(e) => throw new RuntimeException(s"Cannot send lineage data to $url", e)
+    }
+  }
+
+  override def ensureProducerReady(): Unit = {
+    try {
+      val check = Http(statusUrl)
+        .method("HEAD")
+        .asString
+
+      if (check.isError) {
+        throw new SplineNotInitializedException("Spline is not initialized properly!")
+      }
+
+    } catch {
+      case e: SplineNotInitializedException => throw e
+      case NonFatal(e) => throw new SplineNotInitializedException("Producer is not accessible!", e)
     }
   }
 }

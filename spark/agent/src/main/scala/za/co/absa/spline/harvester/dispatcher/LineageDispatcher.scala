@@ -16,9 +16,15 @@
 
 package za.co.absa.spline.harvester.dispatcher
 
+import za.co.absa.spline.harvester.exception.SplineNotInitializedException
 import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
 
 trait LineageDispatcher {
+
   def send(executionPlan: ExecutionPlan): String
+
   def send(event: ExecutionEvent): Unit
+
+  @throws[SplineNotInitializedException]
+  def ensureProducerReady(): Unit
 }

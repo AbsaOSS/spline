@@ -22,9 +22,10 @@ import org.apache.spark.sql.SparkSession
 import org.slf4s.Logging
 import scalaj.http.Http
 import za.co.absa.spline.common.ConfigurationImplicits._
-import za.co.absa.spline.common.{SplineBuildInfo, SplineException}
+import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.harvester.conf.{DefaultSplineConfigurer, HadoopConfiguration, SparkConfiguration, SplineConfigurer}
+import za.co.absa.spline.harvester.exception.SplineNotInitializedException
 import za.co.absa.spline.harvester.listener.SplineQueryExecutionListener
 
 import scala.collection.JavaConverters._
@@ -79,7 +80,7 @@ object SparkLineageInitializer extends Logging {
         }
 
         if (configurer.splineMode == REQUIRED) {
-          sanityCheck(defaultSplineConfiguration)
+          configurer.lineageDispatcher.ensureProducerReady()
         }
 
         createEventHandler(configurer).foreach(eventHandler =>
@@ -153,26 +154,6 @@ object SparkLineageInitializer extends Logging {
           false
       }
     }
-
-    @throws[SplineNotInitializedException]
-    private def sanityCheck(configuration: Configuration): Unit = {
-      val producerUrlProperty = "spline.producer.url"
-      val url = configuration.getRequiredString(producerUrlProperty)
-
-      try {
-        val check = Http(url + "/status").method("GET")
-          .asString
-          .throwError
-          .body
-
-        if (check == "FAIL") {
-          throw new SplineNotInitializedException("Spline is not initialized properly!")
-        }
-
-      } catch {
-        case NonFatal(e) => throw new SplineNotInitializedException("Producer is not accessible!", e)
-      }
-    }
   }
 
   val initFlagKey = "spline.initialized_flag"
@@ -180,5 +161,3 @@ object SparkLineageInitializer extends Logging {
   // constant take from Spark but is not available in Spark 2.2 so we need to copy value.
   val sparkQueryExecutionListenersKey = "spark.sql.queryExecutionListeners"
 }
-
-class SplineNotInitializedException(msg: String, throwable: Throwable = null) extends SplineException(msg, throwable)

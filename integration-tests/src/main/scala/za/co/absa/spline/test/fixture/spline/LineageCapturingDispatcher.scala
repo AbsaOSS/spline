@@ -31,4 +31,8 @@ class LineageCapturingDispatcher(lineageCaptor: LineageCaptor.Setter) extends Li
   override def send(event: ExecutionEvent): Unit = {
     lineageCaptor.capture(event)
   }
+
+  override def ensureProducerReady(): Unit = {
+    //no operation
+  }
 }

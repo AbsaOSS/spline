@@ -65,7 +65,7 @@ class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkS
     }
   }
 
-  protected lazy val lineageDispatcher = HttpLineageDispatcher(configuration)
+  override lazy val lineageDispatcher = HttpLineageDispatcher(configuration)
 
   private lazy val harvesterFactory = new LineageHarvesterFactory(
     sparkSession.sparkContext.hadoopConfiguration,

@@ -26,6 +26,7 @@ import org.slf4s.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.common.OptionImplicits._
+import za.co.absa.spline.common.logging.Logging
 import za.co.absa.spline.persistence.model._
 import za.co.absa.spline.persistence.tx.{InsertQuery, TxBuilder}
 import za.co.absa.spline.persistence.{ArangoImplicits, Persister}
@@ -38,9 +39,8 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
 @Repository
-class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExecutionProducerRepository {
-
-  private val logger = LoggerFactory.getLogger(getClass.getSimpleName)
+class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExecutionProducerRepository
+  with Logging {
 
   import ArangoImplicits._
 
@@ -127,10 +127,12 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
    */
   override def isDatabaseOk(): Future[Boolean] = {
     try {
-      val futureIsDbOk = db.collection("execution").exists().toScala.map(_.booleanValue())
+      val executionName = NodeDef.Execution.name
+      val futureIsDbOk = db.collection(executionName).exists().toScala.mapTo[Boolean]
       futureIsDbOk.onSuccess{
-        case collectionExists if !collectionExists =>
-          logger.error("Collection 'execution' does not exists. Spline database is no initialized properly!")
+        case false =>
+          log.error(
+            s"Collection '${executionName}' does not exist. Spline database is not initialized properly!")
       }
       futureIsDbOk.recover {case _ => false}
     } catch {

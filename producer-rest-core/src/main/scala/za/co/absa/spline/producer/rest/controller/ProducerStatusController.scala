@@ -17,11 +17,13 @@
 package za.co.absa.spline.producer.rest.controller
 
 import io.swagger.annotations.ApiOperation
+import javax.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation._
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @RestController
 class ProducerStatusController @Autowired()(
@@ -29,23 +31,23 @@ class ProducerStatusController @Autowired()(
 
   import ExecutionContext.Implicits.global
 
-  @GetMapping(value = Array("/status"))
+  @RequestMapping(value = Array("/status"), method = Array(RequestMethod.HEAD))
   @ApiOperation(
     value = "/status",
     notes =
       """
         Check that producer is running and that the database is accessible and initialized
 
-        ResponseBody format :
+        Returned status code:
 
-        OK // when everything's working, or
-        FAIL // when there is a problem
+        200 OK                    // when everything's working, or
+        503 Service Unavailable   // when there is a problem
       """
   )
-  def status(): Future[String] = {
-    repo.isDatabaseOk().map {
-      case true => "OK"
-      case false => "FAIL"
+  def status(response: HttpServletResponse): Unit = {
+    repo.isDatabaseOk().foreach {
+      case true  => response.setStatus(HttpStatus.OK.value())
+      case false => response.setStatus(HttpStatus.SERVICE_UNAVAILABLE.value())
     }
   }
 
