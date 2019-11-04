@@ -71,7 +71,6 @@ class AdminCLI(arangoInit: ArangoInit) {
         case AdminCLIConfig(cmd: DBCommand) if cmd.dbUrl == null =>
           failure("DB connection string is required")
         case _ =>
-          println(ansi"%green{DONE}")
           success
       }
     }
@@ -87,6 +86,7 @@ class AdminCLI(arangoInit: ArangoInit) {
       case DBUpgrade(url, timeout) =>
         Await.result(arangoInit.upgrade(ArangoConnectionURL(url)), timeout)
     }
+
+    println(ansi"%green{DONE}")
   }
 }
-

@@ -1,2 +1,4 @@
 # Created by .ignore support plugin (hsz.mobi)
-data/results/*
+data/output/
+# This one is unused, but was used in earlier versions. So I'll keep this exclusion in place for awhile.
+data/results/

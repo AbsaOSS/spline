@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package za.co.absa.spline.consumer.service.model
+import { Component } from '@angular/core';
+import { PropertiesComponent } from '../properties/properties.component';
 
-case class ExecutionEventQueryResult
-(
-  elements: Array[ExecutionEventInfo],
-  totalCount: Long
-) {
-  def this() = this(Array.empty, 0)
-} 
+@Component({
+  selector: 'aggregate',
+  templateUrl: './aggregate.component.html'
+})
+export class AggregateComponent extends PropertiesComponent {
+
+}

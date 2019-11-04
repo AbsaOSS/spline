@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component} from '@angular/core';
-import {ExpressionComponent} from '../expression/expression.component';
+import { Component } from '@angular/core';
+import { PropertiesComponent } from '../properties/properties.component';
 
 @Component({
-  selector: 'projection',
-  templateUrl: './projection.component.html',
-  styleUrls: ['./projection.component.less']
+  selector: 'filter',
+  templateUrl: './filter.component.html'
 })
-export class ProjectionComponent extends ExpressionComponent { }
+export class FilterComponent extends PropertiesComponent { }

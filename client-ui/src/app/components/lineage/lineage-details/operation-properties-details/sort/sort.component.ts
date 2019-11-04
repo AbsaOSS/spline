@@ -13,3 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component } from '@angular/core';
+import { PropertiesComponent } from '../properties/properties.component';
+
+@Component({
+  selector: 'app-sort',
+  templateUrl: './sort.component.html'
+})
+export class SortComponent extends PropertiesComponent {
+
+}

@@ -15,7 +15,7 @@
  */
 import { Action } from '@ngrx/store';
 import * as moment from 'moment';
-import { createFormGroupState, formGroupReducer, SetValueAction, unbox } from 'ngrx-forms';
+import { createFormGroupState, formGroupReducer, SetValueAction } from 'ngrx-forms';
 import { DashboardFormActionTypes } from '../actions/dashboard-form.actions';
 
 const FORM_ID = 'dashboardFilter'

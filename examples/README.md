@@ -103,6 +103,51 @@ You can find a WAR-file in the Maven repo here:
 ## Check the result in the browser
 http://localhost:9090
  
+## Use spline in your application
+Add a dependency on Spark Agent.
+```xml
+<dependency>
+    <groupId>za.co.absa.spline</groupId>
+    <artifactId>spark-agent</artifactId>
+    <version>4.0.0</version>
+</dependency>
+```
+In your spark job you have to enable spline.
+```scala
+// given a Spark session ...
+val sparkSession: SparkSession = ???
+
+// ... enable data lineage tracking with Spline
+import za.co.absa.spline.core.SparkLineageInitializer._
+sparkSession.enableLineageTracking()
+
+// ... then run some Dataset computations as usual.
+// Data lineage of the job will be captured and stored in the
+// configured database for further visualization by Spline Web UI
+```
+### Properties
+
+You also need to set some configuration properties. Spline combine these properties from several sources:
+1. Hadoop config (`core-site.xml`)
+2. JVM system properties
+3. `spline.properties` file in the classpath
+
+#### `spline.mode`
+- **DISABLED** Lineage tracking is completely disabled and Spline is unhooked from Spark.
+- **REQUIRED** If Spline fails to initialize itself (e.g. wrong configuration, no db connection etc) 
+    the Spark application aborts with an error.
+- **BEST_EFFORT** (default) Spline will try to initialize itself, but if fails it switches to DISABLED mode allowing 
+    the Spark application to proceed normally without Lineage tracking.
+
+#### `spline.producer.url`
+- url of spline producer (part of rest gateway responsible for storing lineages in database)
+
+Example:
+```properties
+spline.mode=REQUIRED
+spline.producer.url=http://localhost:8080/spline
+```
+
 ---
 
     Copyright 2017 ABSA Group Limited

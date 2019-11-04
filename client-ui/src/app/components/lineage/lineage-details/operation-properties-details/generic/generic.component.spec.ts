@@ -13,22 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {ExpressionComponent} from './expression.component';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-describe('ExpressionComponent', () => {
-  let component: ExpressionComponent;
-  let fixture: ComponentFixture<ExpressionComponent>;
+import { GenericComponent } from './generic.component';
+
+describe('GenericComponent', () => {
+  let component: GenericComponent;
+  let fixture: ComponentFixture<GenericComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ExpressionComponent]
+      declarations: [GenericComponent]
     })
       .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ExpressionComponent);
+    fixture = TestBed.createComponent(GenericComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

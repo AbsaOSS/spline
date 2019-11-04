@@ -36,5 +36,5 @@ object CodelessInitExampleJob extends SparkApp(
     .filter($"total_response_size" > 1000)
     .filter($"count_views" > 10)
     .select($"page_title".as("page"), $"count_views")
-    .write.mode(SaveMode.Overwrite).parquet("data/results/batch/codeless_init_job_results")
+    .write.mode(SaveMode.Overwrite).parquet("data/output/batch/codeless_init_job_results")
 }

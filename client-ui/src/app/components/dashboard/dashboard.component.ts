@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { Params } from "@angular/router";
-import { Store } from '@ngrx/store';
-import { DatatableComponent } from '@swimlane/ngx-datatable';
+import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
+import {Params} from "@angular/router";
+import {Store} from '@ngrx/store';
+import {DatatableComponent} from '@swimlane/ngx-datatable';
 import * as _ from 'lodash';
 import * as moment from 'moment';
-import { FormGroupState, NgrxValueConverter } from 'ngrx-forms';
-import { fromEvent, Observable, Subscription } from 'rxjs';
-import { debounceTime, filter, first, map, switchMap, tap } from 'rxjs/operators';
-import { AppState } from 'src/app/model/app-state';
-import { RouterStateUrl } from 'src/app/model/routerStateUrl';
+import {FormGroupState, NgrxValueConverter} from 'ngrx-forms';
+import {fromEvent, Observable, Subscription} from 'rxjs';
+import {debounceTime, filter, map, switchMap, tap} from 'rxjs/operators';
+import {AppState} from 'src/app/model/app-state';
+import {RouterStateUrl} from 'src/app/model/routerStateUrl';
 import * as DashboardFormActions from 'src/app/store/actions/dashboard-form.actions';
 import * as ExecutionEventsActions from 'src/app/store/actions/execution-events.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
@@ -45,7 +45,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild(DatatableComponent, { static: false }) table: DatatableComponent
 
-  private subscribtions: Subscription[] = []
+  private subscriptions: Subscription[] = []
   public rows: any[] = []
   public loading: boolean = false
   public totalCount: number = 0
@@ -54,7 +54,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   public asAtTime: number = moment().valueOf()
   public queryParams: Params = {
     timestampStart: 0,
-    timestampEnd: 0,
+    timestampEnd: undefined,
     offset: 0,
     sortName: "timestamp",
     sortDirection: "desc",
@@ -81,7 +81,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   } as NgrxValueConverter<Date, number>
 
   ngOnInit(): void {
-    this.subscribtions.push(
+    this.subscriptions.push(
       this.store.select('router', 'state', 'queryParams')
         .subscribe((queryParams: any) => {
           if (!_.isEmpty(queryParams)) {
@@ -98,7 +98,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         })
     )
 
-    this.subscribtions.push(
+    this.subscriptions.push(
       this.store
         .select('dashboardForm', 'dashboardFilters', 'value', 'minDate')
         .pipe(
@@ -121,7 +121,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         })
     )
 
-    this.subscribtions.push(
+    this.subscriptions.push(
       this.store.select('executionEvents')
         .pipe(
           filter(state => state != null)
@@ -135,7 +135,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
 
-    this.subscribtions.push(
+    this.subscriptions.push(
       this.table.page.pipe(
         tap(_ => this.loading = true),
       ).subscribe(
@@ -146,7 +146,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       )
     )
 
-    this.subscribtions.push(
+    this.subscriptions.push(
       this.table.sort.pipe(
         tap(_ => this.loading = true),
         map(event => event.sorts[0]),
@@ -158,7 +158,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       )
     )
 
-    this.subscribtions.push(
+    this.subscriptions.push(
       fromEvent<any>(this.searchInput.nativeElement, 'keyup')
         .pipe(
           tap(_ => this.loading = true),
@@ -206,7 +206,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.subscribtions.forEach(s => s.unsubscribe())
+    this.subscriptions.forEach(s => s.unsubscribe())
   }
 
 }

@@ -15,12 +15,12 @@
  */
 
 export const enum ExpressionType {
-    Binary = 'Binary',
-    Literal = 'Literal',
-    Alias = 'Alias',
-    UDF = 'UDF',
-    Union = 'Union',
-    Generic = 'Generic',
-    GenericLeaf = 'GenericLeaf',
-    AttrRef = 'AttrRef'
+    Binary = 'expr.Binary',
+    Literal = 'expr.Literal',
+    Alias = 'expr.Alias',
+    UDF = 'expr.UDF',
+    Union = 'expr.Union',
+    Generic = 'expr.Generic',
+    GenericLeaf = 'expr.GenericLeaf',
+    AttrRef = 'expr.AttrRef'
 }
