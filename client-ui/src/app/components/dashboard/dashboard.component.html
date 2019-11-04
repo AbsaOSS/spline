@@ -21,9 +21,10 @@
         <input type="text" class="search float-right" #searchInput placeholder="Search..."
                value="{{queryParams.searchTerm}}"/>
         <div class="dataMode float-left">
-          <ngx-switch [status]="liveData" [onText]="'Live Data'" [offText]="'Range Selection'" [onColor]="'blue'"
-                      [offColor]="'blue'" (statusChange)="onDataModeChange($event)">
-          </ngx-switch>
+          Select date range
+          <ngx-switch [size]="'small'" [onColor]="'blue'" [offColor]="'gray'"
+                      [status]="useDateRange"
+                      (statusChange)="onUseDateRangeChange($event)"></ngx-switch>
         </div>
         <ngx-datatable #table class='table material expandable' [columnMode]="'force'" [headerHeight]="'auto'"
                        [footerHeight]="'auto'" [rowHeight]="'auto'" [scrollbarV]="false" [rows]="rows" [selectionType]="'single'"
@@ -98,7 +99,7 @@
     </div>
   </div>
 
-  <footer class="footer container-fluid" [ngClass]="liveData ? 'display-none' : 'display-inline' ">
+  <footer class="footer container-fluid" [ngClass]="useDateRange ? 'display-inline' : 'display-none'">
     <hr>
     <form [ngrxFormState]="(formState$ | async)">
       <div class="row align-items-center justify-content-end">

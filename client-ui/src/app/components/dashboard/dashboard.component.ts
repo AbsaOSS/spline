@@ -60,7 +60,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     sortDirection: "desc",
     searchTerm: ""
   }
-  public liveData: boolean = true
+  public useDateRange: boolean = false
 
   rangeConverter = {
     convertViewToStateValue: dates => {
@@ -87,11 +87,11 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           if (!_.isEmpty(queryParams)) {
             this.queryParams = queryParams
             if (queryParams.timestampStart != 0) {
-              this.liveData = false
+              this.useDateRange = true
             }
             this.store.dispatch(new ExecutionEventsActions.Get({ ...this.queryParams, asAtTime: this.asAtTime }))
           }
-          if (this.liveData) {
+          if (!this.useDateRange) {
             this.store.dispatch(new ExecutionEventsActions.GetDefault({}))
           }
           this.store.dispatch(new DashboardFormActions.InitializeForm({ minDate: this.queryParams.timestampStart, maxDate: this.queryParams.timestampEnd }))
@@ -113,7 +113,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           })
         )
         .subscribe(state => {
-          if (!this.liveData) {
+          if (this.useDateRange) {
             this.queryParams = { ...this.queryParams, timestampStart: state.minDate, timestampEnd: state.maxDate }
             this.store.dispatch(new RouterAction.ReplaceUrlState(this.queryParams))
             this.store.dispatch(new ExecutionEventsActions.Get({ ...this.queryParams, asAtTime: this.asAtTime }))
@@ -175,16 +175,16 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private applyFilters(): void {
-    if (!this.liveData) {
+    if (this.useDateRange) {
       this.store.dispatch(new RouterAction.ReplaceUrlState(this.queryParams))
     }
     this.store.dispatch(new ExecutionEventsActions.Get({ ...this.queryParams, asAtTime: this.asAtTime }))
     this.loading = false
   }
 
-  public onDataModeChange(value): void {
-    this.liveData = value
-    this.queryParams = (this.liveData == true && {})
+  public onUseDateRangeChange(value): void {
+    this.useDateRange = value
+    this.queryParams = !this.useDateRange && {}
     this.store.dispatch(new RouterAction.ReplaceUrlState(this.queryParams))
   }
 
