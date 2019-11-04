@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 
 @Component({
-  selector: 'app-lineage',
   templateUrl: './lineage.component.html'
 })
 export class LineageComponent { }

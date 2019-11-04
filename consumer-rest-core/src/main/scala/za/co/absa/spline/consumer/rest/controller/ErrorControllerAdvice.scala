@@ -35,8 +35,7 @@ class ErrorControllerAdvice {
   @ExceptionHandler(Array(
     classOf[MethodArgumentTypeMismatchException]
   ))
-  def handle_400(e: MethodArgumentTypeMismatchException) =
-    new ResponseEntity(ErrorMsg(e.getMessage), BAD_REQUEST)
+  def handle_400(e: MethodArgumentTypeMismatchException) = new ResponseEntity(ErrorMsg(e.getMessage), BAD_REQUEST)
 
   @ExceptionHandler(Array(
     classOf[AsyncRequestTimeoutException]

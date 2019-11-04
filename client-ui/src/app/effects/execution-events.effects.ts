@@ -14,64 +14,42 @@
  * limitations under the License.
  */
 
-import { Injectable } from '@angular/core';
-import { Actions, Effect, ofType } from '@ngrx/effects';
-import { Store } from '@ngrx/store';
-import * as _ from 'lodash';
-import { Observable } from 'rxjs';
-import { debounceTime, map, switchMap } from 'rxjs/operators';
-import * as DashboardFormActions from 'src/app/store/actions/dashboard-form.actions';
-import { PageableExecutionEventsResponse } from '../generated/models/pageable-execution-events-response';
-import { ExecutionEventControllerService } from '../generated/services';
-import { AppState } from '../model/app-state';
-import { handleException } from '../rxjs/operators/handleException';
+import {Injectable} from '@angular/core';
+import {Actions, Effect, ofType} from '@ngrx/effects';
+import {Store} from '@ngrx/store';
+import {Observable} from 'rxjs';
+import {map, switchMap} from 'rxjs/operators';
+import {PageableExecutionEventsResponse} from '../generated/models/pageable-execution-events-response';
+import {ExecutionEventControllerService} from '../generated/services';
+import {AppState} from '../model/app-state';
+import {handleException} from '../rxjs/operators/handleException';
 import * as ExecutionEventsAction from '../store/actions/execution-events.actions';
-import { Action } from '../store/reducers/execution-events.reducer';
 
 export type Action = ExecutionEventsAction.ExecutionEventsActions
 
 @Injectable()
 export class ExecutionEventsEffects {
 
-    constructor(
-        private actions$: Actions,
-        private executionEventControllerService: ExecutionEventControllerService,
-        private store: Store<AppState>
-    ) {
-        this.store
-            .select('config', 'apiUrl')
-            .subscribe(apiUrl => this.executionEventControllerService.rootUrl = apiUrl)
-    }
+  constructor(
+    private actions$: Actions,
+    private executionEventControllerService: ExecutionEventControllerService,
+    private store: Store<AppState>
+  ) {
+    this.store
+      .select('config', 'apiUrl')
+      .subscribe(apiUrl => this.executionEventControllerService.rootUrl = apiUrl)
+  }
 
-    @Effect()
-    public getPageableExecutionEvents$: Observable<Action> = this.actions$.pipe(
-        ofType(ExecutionEventsAction.ExecutionEventsActionTypes.EXECUTION_EVENTS_GET),
-        switchMap((action: any) =>
-            this.executionEventControllerService.executionEventUsingGET(action.payload)
-                .pipe(
-                    handleException(this.store)
-                )
-        ),
-        map((res: PageableExecutionEventsResponse) => new ExecutionEventsAction.GetSuccess(res)),
-    )
-
-    @Effect()
-    public getDefaultPageableExecutionEvents$: Observable<any> = this.actions$.pipe(
-        ofType(ExecutionEventsAction.ExecutionEventsActionTypes.EXECUTION_EVENTS_GET_DEFAULT),
-        switchMap((action: any) =>
-            this.executionEventControllerService.executionEventUsingGET(action.payload)
-                .pipe(
-                    handleException(this.store)
-                )
-        ),
-        debounceTime(100),
-        map((res: PageableExecutionEventsResponse) => {
-            const timestamps = res.elements.map(r => r.timestamp)
-            const minDate = _.min(timestamps)
-            const maxDate = _.max(timestamps)
-            this.store.dispatch(new DashboardFormActions.InitializeForm({ minDate: minDate, maxDate: maxDate }))
-            return new ExecutionEventsAction.GetSuccessDefault(res)
-        }),
+  @Effect()
+  public getDefaultPageableExecutionEvents$: Observable<ExecutionEventsAction.GetSuccess> =
+    this.actions$.pipe(
+      ofType(ExecutionEventsAction.ExecutionEventsActionTypes.GET),
+      switchMap(({payload: params}) =>
+        this.executionEventControllerService
+          .executionEventUsingGET(params)
+          .pipe(handleException(this.store))),
+      map((res: PageableExecutionEventsResponse) =>
+        new ExecutionEventsAction.GetSuccess(res))
     )
 
 }
