@@ -27,49 +27,26 @@ class LineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Lineag
 
   import za.co.absa.spline.persistence.ArangoImplicits._
 
-  override def findExecutionEventId(executionEventId: String, maxDepth: Int)(implicit ec: ExecutionContext): Future[LineageOverview] = {
-    db.queryOne[LineageOverview](
-      s"""
-        LET executionEvent = FIRST(FOR p IN progress FILTER p._key == @executionEventId RETURN p)
-        LET lineageGraph = SPLINE::EVENT_LINEAGE_OVERVIEW(executionEvent, @maxDepth)
-
-        RETURN {
-            "lineageInfo": {
-                "timestamp" : executionEvent.timestamp,
-                "applicationId" : executionEvent.extra.appId
-            },
-            "lineage": {
-                "nodes": (
-                    FOR vert IN lineageGraph.vertices
-                        LET vertType = SPLIT(vert._id, '/')[0]
-                        RETURN vertType == "dataSource"
-                            ? {
-                                "_id": vert._key,
-                                "_class": "za.co.absa.spline.consumer.service.model.DataSourceNode",
-                                "name": vert.uri
-                            }
-                            : {
-                                "_id": vert._key,
-                                "_class": "za.co.absa.spline.consumer.service.model.ExecutionNode",
-                                "name": vert.extra.appName
-                            }
-                    ),
-                "edges": (
-                    FOR edge IN lineageGraph.edges
-                        LET edgeType = SPLIT(edge._id, '/')[0]
-                        LET exKey = SPLIT(edge._from, '/')[1]
-                        LET dsKey = SPLIT(edge._to, '/')[1]
-                        RETURN {
-                            "source": edgeType == "depends" ? dsKey : exKey,
-                            "target": edgeType == "affects" ? dsKey : exKey
-                        }
-                    )
-            }
-        }
-      """,
+  override def findExecutionEventId(executionEventId: String, maxDepth: Int)(implicit ec: ExecutionContext): Future[LineageOverview] = db
+    .queryOne[LineageOverview](
+      """
+        |LET executionEvent = FIRST(FOR p IN progress FILTER p._key == @executionEventId RETURN p)
+        |LET lineageGraph = SPLINE::EVENT_LINEAGE_OVERVIEW(executionEvent, @maxDepth)
+        |
+        |RETURN lineageGraph && {
+        |    "lineageInfo": {
+        |        "timestamp" : executionEvent.timestamp,
+        |        "applicationId" : executionEvent.extra.appId
+        |    },
+        |    "lineage": {
+        |        "nodes": lineageGraph.vertices,
+        |        "edges": lineageGraph.edges
+        |    }
+        |}
+        |""".stripMargin,
       Map(
         "executionEventId" -> executionEventId,
         "maxDepth" -> (maxDepth: Integer))
     )
-  }
+    .filter(null.!=)
 }
