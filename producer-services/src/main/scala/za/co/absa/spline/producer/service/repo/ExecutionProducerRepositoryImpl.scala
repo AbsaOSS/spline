@@ -22,20 +22,25 @@ import java.{lang => jl}
 
 import com.arangodb.ArangoDatabaseAsync
 import org.apache.commons.lang3.StringUtils.wrap
+import org.slf4s.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.common.OptionImplicits._
+import za.co.absa.spline.common.logging.Logging
 import za.co.absa.spline.persistence.model._
 import za.co.absa.spline.persistence.tx.{InsertQuery, TxBuilder}
 import za.co.absa.spline.persistence.{ArangoImplicits, Persister}
 import za.co.absa.spline.producer.rest.model._
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepositoryImpl._
 
+import scala.compat.java8.FutureConverters._
 import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 
 @Repository
-class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExecutionProducerRepository {
+class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExecutionProducerRepository
+  with Logging {
 
   import ArangoImplicits._
 
@@ -115,6 +120,24 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
       .addQuery(InsertQuery(EdgeDef.ProgressOf, progressesOf: _*).copy(ignoreExisting = true))
       .buildTx
       .execute(db)
+  }
+
+  /**
+   * Sanity check to find out whether the database is reachable and initialized
+   */
+  override def isDatabaseOk(): Future[Boolean] = {
+    try {
+      val executionName = NodeDef.Execution.name
+      val futureIsDbOk = db.collection(executionName).exists().toScala.mapTo[Boolean]
+      futureIsDbOk.onSuccess{
+        case false =>
+          log.error(
+            s"Collection '${executionName}' does not exist. Spline database is not initialized properly!")
+      }
+      futureIsDbOk.recover {case _ => false}
+    } catch {
+      case NonFatal(_) => Future.successful(false)
+    }
   }
 }
 

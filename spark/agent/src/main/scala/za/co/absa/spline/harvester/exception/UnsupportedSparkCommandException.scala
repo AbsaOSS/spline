@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.service.repo
+package za.co.absa.spline.harvester.exception
 
-import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
+import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 
-import scala.concurrent.{ExecutionContext, Future}
-
-trait ExecutionProducerRepository {
-  def insertExecutionPlan(executionPlan: ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit]
-  def insertExecutionEvents(executionEvents: Array[ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit]
-  def isDatabaseOk(): Future[Boolean]
-}
+class UnsupportedSparkCommandException(command: LogicalPlan) extends
+  HarvesterException(s"Spark command was intercepted, but is not yet implemented! Command:'${command.getClass}'")

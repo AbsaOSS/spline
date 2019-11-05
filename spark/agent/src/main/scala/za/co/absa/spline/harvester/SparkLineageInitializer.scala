@@ -20,9 +20,12 @@ import org.apache.commons.configuration._
 import org.apache.spark
 import org.apache.spark.sql.SparkSession
 import org.slf4s.Logging
+import scalaj.http.Http
+import za.co.absa.spline.common.ConfigurationImplicits._
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.harvester.conf.{DefaultSplineConfigurer, HadoopConfiguration, SparkConfiguration, SplineConfigurer}
+import za.co.absa.spline.harvester.exception.SplineNotInitializedException
 import za.co.absa.spline.harvester.listener.SplineQueryExecutionListener
 
 import scala.collection.JavaConverters._
@@ -75,8 +78,14 @@ object SparkLineageInitializer extends Logging {
               |enableLineageTracking i.e. the same way as is now."""
               .stripMargin.replaceAll("\n", " "))
         }
+
+        if (configurer.splineMode == REQUIRED) {
+          configurer.lineageDispatcher.ensureProducerReady()
+        }
+
         createEventHandler(configurer).foreach(eventHandler =>
           sparkSession.listenerManager.register(new SplineQueryExecutionListener(Some(eventHandler))))
+
       } else {
         log.warn(
           """
@@ -145,7 +154,6 @@ object SparkLineageInitializer extends Logging {
           false
       }
     }
-
   }
 
   val initFlagKey = "spline.initialized_flag"

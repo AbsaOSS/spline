@@ -28,6 +28,7 @@ import org.apache.spark.sql.{SaveMode, SparkSession}
 import za.co.absa.spline.common.extractors.{AccessorMethodValueExtractor, SafeTypeMatchingExtractor}
 import za.co.absa.spline.harvester.builder.write.WriteCommandExtractor._
 import za.co.absa.spline.harvester.builder.{SourceIdentifier, SourceUri}
+import za.co.absa.spline.harvester.exception.{HarvesterException, UnsupportedSparkCommandException}
 import za.co.absa.spline.harvester.qualifier.PathQualifier
 
 import scala.PartialFunction.condOpt
@@ -152,6 +153,3 @@ object WriteCommandExtractor {
   }
 
 }
-
-class UnsupportedSparkCommandException(command: LogicalPlan) extends
-  Exception(s"Spark command was intercepted, but is not yet implemented! Command:'${command.getClass}'")
