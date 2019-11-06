@@ -33,13 +33,14 @@ import za.co.absa.spline.harvester.builder.write.{WriteCommandExtractor, WriteNo
 import za.co.absa.spline.harvester.builder.{GenericNodeBuilder, _}
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode.SplineMode
-import za.co.absa.spline.harvester.qualifier.HDFSPathQualifier
+import za.co.absa.spline.harvester.converter.{AbstractAttributeLineageExtractor, LineageExtractionContext}
+import za.co.absa.spline.harvester.qualifier.{HDFSPathQualifier, PathQualifier}
 import za.co.absa.spline.producer.rest.model._
 
 import scala.util.{Failure, Success, Try}
 
 class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPlan], session: SparkSession)
-  (hadoopConfiguration: Configuration, splineMode: SplineMode) {
+  (hadoopConfiguration: Configuration, splineMode: SplineMode, attributeLineageExtractor: AbstractAttributeLineageExtractor) {
 
   private val logger = LoggerFactory.getLogger(getClass.getSimpleName)
 
@@ -80,15 +81,25 @@ class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPl
           case ((accRead, accOther), opOther: DataOperation) => (accRead, accOther :+ opOther)
         }
 
-      val plan = ExecutionPlan(
+      lazy val lineageExtractionContext = LineageExtractionContext(
+        logicalPlan,
+        executedPlanOpt,
+        session,
+        pathQualifier,
+        hadoopConfiguration
+      )
+      lazy val attributeLineage = attributeLineageExtractor.convert(lineageExtractionContext)
+      lazy val plan = ExecutionPlan(
         id = UUID.randomUUID,
         operations = Operations(opReads, writeOp, opOthers),
         systemInfo = SystemInfo(AppMetaInfo.Spark, spark.SPARK_VERSION),
         agentInfo = Some(AgentInfo(AppMetaInfo.Spline, SplineBuildInfo.version)),
         extraInfo = Map(
           ExecutionPlanExtra.AppName -> session.sparkContext.appName,
+          ExecutionPlanExtra.AppId -> session.sparkContext.applicationId,
           ExecutionPlanExtra.DataTypes -> componentCreatorFactory.dataTypeConverter.values,
-          ExecutionPlanExtra.Attributes -> componentCreatorFactory.attributeConverter.values
+          ExecutionPlanExtra.Attributes -> componentCreatorFactory.attributeConverter.values,
+          ExecutionPlanExtra.AttributeLineage -> attributeLineage
         )
       )
 

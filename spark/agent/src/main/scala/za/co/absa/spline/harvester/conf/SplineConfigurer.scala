@@ -18,6 +18,7 @@ package za.co.absa.spline.harvester.conf
 
 import za.co.absa.spline.harvester.QueryExecutionEventHandler
 import za.co.absa.spline.harvester.dispatcher.{HttpLineageDispatcher, LineageDispatcher}
+import za.co.absa.spline.harvester.converter.{AbstractAttributeLineageExtractor, DisabledAttributeLineageExtractor}
 
 /**
   * The trait describes settings needed for initialization of the library.
@@ -25,6 +26,11 @@ import za.co.absa.spline.harvester.dispatcher.{HttpLineageDispatcher, LineageDis
 trait SplineConfigurer {
 
   import SplineConfigurer.SplineMode._
+
+  /**
+   * @return [[za.co.absa.spline.harvester.converter.AbstractAttributeLineageExtractor]]
+   */
+  def attributeLineageExtractor: AbstractAttributeLineageExtractor = new DisabledAttributeLineageExtractor
 
   /**
     * A listener handling events from batch processing

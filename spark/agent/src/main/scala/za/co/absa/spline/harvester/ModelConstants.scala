@@ -25,8 +25,10 @@ object ModelConstants {
 
   object ExecutionPlanExtra {
     val AppName = "appName"
+    val AppId = "appId"
     val DataTypes = "dataTypes"
     val Attributes = "attributes"
+    val AttributeLineage = "attributeLineage"
   }
 
   object ExecutionEventExtra {

@@ -21,7 +21,8 @@ import org.apache.spark.sql.SparkSession
 import org.slf4s.Logging
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
-import za.co.absa.spline.harvester.dispatcher.HttpLineageDispatcher
+import za.co.absa.spline.harvester.converter.{AbstractAttributeLineageExtractor, DisabledAttributeLineageExtractor}
+import za.co.absa.spline.harvester.dispatcher.{HttpLineageDispatcher, LineageDispatcher}
 import za.co.absa.spline.harvester.{LineageHarvesterFactory, QueryExecutionEventHandler}
 
 import scala.concurrent.ExecutionContext
@@ -41,8 +42,21 @@ object DefaultSplineConfigurer {
       */
     val MODE = "spline.mode"
     val MODE_DEFAULT = BEST_EFFORT.toString
-  }
 
+    /**
+     * Which lineage dispatcher should be used to report lineages (to Spline or elsewhere)
+     */
+    val LINEAGE_DISPATCHER_CLASS = "spline.lineage_dispatcher.className"
+    val LINEAGE_DISPATCHER_CLASS_DEFAULT = classOf[HttpLineageDispatcher].getCanonicalName
+
+    /**
+     * How Spline attribute lineage should behave.
+     *
+     * @see [[SplineAttributeLineageMode]]
+     */
+    val LINEAGE_EXCTRACTOR_CLASS = "spline.attribute_lineage_extractor.className"
+    val LINEAGE_EXCTRACTOR_CLASS_DEFAULT = classOf[DisabledAttributeLineageExtractor].getCanonicalName
+  }
 }
 
 /**
@@ -65,11 +79,34 @@ class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkS
     }
   }
 
-  override lazy val lineageDispatcher = HttpLineageDispatcher(configuration)
+  override lazy val lineageDispatcher: LineageDispatcher = {
+    configuration.getString(LINEAGE_DISPATCHER_CLASS, LINEAGE_DISPATCHER_CLASS_DEFAULT) match {
+      case LINEAGE_DISPATCHER_CLASS_DEFAULT => HttpLineageDispatcher(configuration)
+      case className =>
+        log debug s"Instantiating a lineage dispatcher for class name: $className"
+        Class.forName(className.trim)
+          .getConstructor(classOf[Configuration])
+          .newInstance(configuration)
+          .asInstanceOf[LineageDispatcher]
+    }
+  }
+
+  override lazy val attributeLineageExtractor: AbstractAttributeLineageExtractor = {
+    configuration.getString(LINEAGE_EXCTRACTOR_CLASS, LINEAGE_EXCTRACTOR_CLASS_DEFAULT) match {
+      case LINEAGE_EXCTRACTOR_CLASS_DEFAULT => new DisabledAttributeLineageExtractor
+      case className =>
+        log debug s"Instantiating an AttributeLineageExtractor for class name: $className"
+        Class.forName(className.trim)
+          .getConstructor()
+          .newInstance()
+          .asInstanceOf[AbstractAttributeLineageExtractor]
+    }
+  }
 
   private lazy val harvesterFactory = new LineageHarvesterFactory(
     sparkSession.sparkContext.hadoopConfiguration,
-    splineMode)
+    splineMode,
+    attributeLineageExtractor)
 
   def queryExecutionEventHandler: QueryExecutionEventHandler =
     new QueryExecutionEventHandler(harvesterFactory, lineageDispatcher, sparkSession)
