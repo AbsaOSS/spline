@@ -14,37 +14,39 @@
   ~ limitations under the License.
   -->
 <div *ngIf="(getExecutionPlanVM() | async )" class="execution-details">
-    <h2 class="text-center"> Execution Plan : {{ (getExecutionPlanVM() | async )?.execution.extra.appName }}</h2>
+    <h3 class="text-center"> Execution Plan : {{ (getExecutionPlanVM() | async )?.execution.extra.appName }}</h3>
     <br />
-    <div class="details-execution-attributes">
+    <div>
         <p>
-            <span class="execution-details-title">System Info:</span>
+            <strong>System Info:</strong>
             {{ (getExecutionPlanVM() | async )?.execution.extra.systemInfo.name }}
             {{ (getExecutionPlanVM() | async )?.execution.extra.systemInfo.version }}
         </p>
         <p>
-            <span class="execution-details-title">Agent Info:</span>
+            <strong>Agent Info:</strong>
             {{ (getExecutionPlanVM() | async )?.execution.extra.agentInfo.name }}
             {{ (getExecutionPlanVM() | async )?.execution.extra.agentInfo.version }}
         </p>
-        <hr>
         <p>
-            <span class="execution-details-title">Input Sources:</span>
+            <strong>Input Sources:</strong>
         </p>
         <ul *ngFor="let inputSource of (getExecutionPlanVM() | async )?.execution.extra.inputSources">
-            <span class="execution-details-title">URI:</span> {{ inputSource.source }} |
-            <span class="execution-details-title">Type:</span> {{ inputSource.sourceType }}
+            <p>
+                <strong>URI:</strong> {{ inputSource.source }}
+                <br />
+                <strong>Type:</strong> {{ inputSource.sourceType }}
+            </p>
         </ul>
-        <hr>
         <p>
-            <span class="execution-details-title">Output Source:</span>
-
+            <strong>Output Source:</strong>
         </p>
         <ul>
-            <span class="execution-details-title">URI:</span>
-            {{ (getExecutionPlanVM() | async )?.execution.extra.outputSource.source }} |
-            <span class="execution-details-title">Type:</span>
-            {{ (getExecutionPlanVM() | async )?.execution.extra.outputSource.sourceType }}
+            <p>
+                <strong>URI:</strong> {{ (getExecutionPlanVM() | async )?.execution.extra.outputSource.source }}
+                <br />
+                <strong> Type: </strong>
+                {{ (getExecutionPlanVM() | async )?.execution.extra.outputSource.sourceType }}
+            </p>
         </ul>
     </div>
 </div>

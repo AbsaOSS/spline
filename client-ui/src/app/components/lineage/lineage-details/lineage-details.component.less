@@ -14,39 +14,12 @@
  * limitations under the License.
  */
 
-.details-container {
-    position: fixed;
-    display : block;
-    padding : 10px;
-    width   : 50%;
-    height  : 100%;
-}
-
 .details {
-    display         : block;
-    width           : 100%;
-    background-color: #F5F5F5;
-    overflow-y      : scroll;
-    border          : 3px solid #e39255;
-    border-radius   : 25px;
-    margin-bottom   : 10px;
+    width     : 100%;
+    overflow-y: hidden;
 }
 
-.execution-details {
-    height: 97%;
-    .details;
-}
-
-.operation-properties-details {
-    height: 40%;
-    .details;
-}
-
-.attribute-details {
-    height: 56%;
-    .details;
-}
-
-.display-block {
-    display: block;
+.detail-container {
+    overflow-y: scroll;
+    position  : relative;
 }

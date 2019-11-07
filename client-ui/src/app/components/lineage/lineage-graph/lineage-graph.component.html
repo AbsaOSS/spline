@@ -15,13 +15,5 @@
   -->
 
 <div class="cytograph">
-  <div class="btn-group">
-    <button type="button" class="btn btn-warning" title="Go back to the dashboard" (click)="onHomeClick()">
-      <i class=" fa fa-home fa-2x"></i> <span class="button-title"> Dashboard</span>
-    </button>
-    <button type="button" class="btn btn-warning" title="Go back to the lineage overview" (click)="onBackClick()">
-      <i class=" fa fa-arrow-circle-o-left fa-2x"></i><span class="button-title"> Previous</span>
-    </button>
-  </div>
-  <cytoscape-ng [elements]="null"></cytoscape-ng>
+  <cytoscape-ng class="graph" [ngClass]="getContainerClass() | async" [elements]="null"></cytoscape-ng>
 </div>

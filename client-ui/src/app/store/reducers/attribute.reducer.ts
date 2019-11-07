@@ -15,10 +15,10 @@
  */
 
 import * as _ from 'lodash';
-import {AttributeType} from '../../model/types/attributeType';
-import {AttributeVM} from '../../model/viewModels/attributeVM';
-import {CytoscapeGraphVM} from '../../model/viewModels/cytoscape/cytoscapeGraphVM';
-import {GraphNode} from '../../model/viewModels/cytoscape/graphNodeVM';
+import { AttributeType } from '../../model/types/attributeType';
+import { AttributeVM } from '../../model/viewModels/attributeVM';
+import { CytoscapeGraphVM } from '../../model/viewModels/cytoscape/cytoscapeGraphVM';
+import { GraphNode } from '../../model/viewModels/cytoscape/graphNodeVM';
 import * as AttributesAction from '../actions/attributes.actions';
 
 export type Action = AttributesAction.AttributeActions

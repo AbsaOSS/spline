@@ -22,14 +22,23 @@
   </div>
   <div class="details">
     <div *ngFor="let inputSchema of getInputSchemas(detailsInfos) ;index as i">
-      <hr />
       <schema [schemaId]="'input_schema'+i" [schemaType]=0 [schema]="inputSchema"></schema>
     </div>
-    <hr />
     <schema [schemaId]="'output_schema'" [schemaType]=1 [schema]="getOutputSchema(detailsInfos)">
     </schema>
   </div>
+  <mat-accordion>
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <i class="fas fa-project-diagram" [style.color]="'#E39256'"></i> &nbsp;Attribute Schema Diagram
+      </mat-expansion-panel-header>
+      <div>
+        <attribute-details></attribute-details>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
 </div>
 <div *ngIf="! (getDetailsInfo() | async)">
+  <br />
   <execution-plan-details></execution-plan-details>
 </div>

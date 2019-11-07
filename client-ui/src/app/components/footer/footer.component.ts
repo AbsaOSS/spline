@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.lineage-overview-title {
-    text-align : right;
-    font-size  : 19px;
-    word-wrap  : break-word;
-    top        : 0;
-    margin-top : 5px;
-    margin-left: 12%;
-    width      : 88%;
-    position   : absolute;
-    z-index    : 99999;
-    line-height: 0.9;
+import { Component } from '@angular/core';
+
+
+declare const __APP_VERSION__: string
+
+
+@Component({
+  selector: 'app-footer',
+  templateUrl: './footer.component.html',
+  styleUrls: ['./footer.component.less']
+})
+export class FooterComponent {
+
+  constructor(
+  ) { }
+
+  appVersion: string = __APP_VERSION__
 }

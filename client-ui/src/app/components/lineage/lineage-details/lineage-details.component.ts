@@ -18,23 +18,27 @@ import { Store } from '@ngrx/store';
 import { AppState } from 'src/app/model/app-state';
 import { Observable } from 'rxjs';
 import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM';
+import { AdaptiveComponent } from '../../adaptive/adaptive.component';
 
 @Component({
   selector: 'lineage-details',
   templateUrl: './lineage-details.component.html',
   styleUrls: ['./lineage-details.component.less']
 })
-export class LineageDetailsComponent {
+export class LineageDetailsComponent extends AdaptiveComponent {
 
   constructor(
     private store: Store<AppState>
-  ) { }
+  ) {
+    super(store)
+  }
 
   public showAttributeGraph = false
 
   public getDetailsInfo = (): Observable<OperationDetailsVM> => {
     return this.store.select('detailsInfos')
   }
+
   public onShowAttributesGraph(value: boolean): void {
     this.showAttributeGraph = value
   }

@@ -1,3 +1,4 @@
 {
-    "apiUrl": "http://localhost:8080/consumer"
+    "apiUrl": "http://localhost:8080/consumer",
+    "embeddedMode": false
 }

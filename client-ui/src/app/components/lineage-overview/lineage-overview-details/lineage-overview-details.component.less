@@ -15,30 +15,23 @@
  */
 
 
-.lineage-overview-container{
-    position: fixed;
-    display:block;
-    padding: 10px;
-    width: 50%;
-    height: 100%;
+.lineage-overview-container {
+    overflow-y: hidden;
 }
 
-.details{
-    display:block;
-    width: 100%;
-    background-color: #F5F5F5;
+.lineage-overview-details {
     overflow-y: scroll;
-    border: 3px solid #e39255;
-    border-radius: 25px;
-    margin-bottom: 10px;
+    height    : 100%;
 }
 
-.lineage-overview-details{
-    height: 97%; 
-    .details;
+.lineage-overview-details-title {
+    font-weight: bold;
 }
 
-.lineage-overview-details-title{
-    color: #e39255;
+.lineage-overview-title {
+    word-wrap : break-word;
+    top       : 0;
+    margin-top: 25px;
+    width     : 100%;
+    z-index   : 99999;
 }
-

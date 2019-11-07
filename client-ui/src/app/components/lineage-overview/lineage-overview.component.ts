@@ -14,33 +14,14 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { AppState } from 'src/app/model/app-state';
-import * as RouterAction from 'src/app/store/actions/router.actions';
-import { Observable } from 'rxjs';
 
 @Component({
   selector: 'lineage-overview',
-  templateUrl: './lineage-overview.component.html',
-  styleUrls: ['./lineage-overview.component.less']
+  templateUrl: './lineage-overview.component.html'
 })
 export class LineageOverviewComponent {
 
-  constructor(
-    private store: Store<AppState>
-  ) { }
+  constructor() { }
 
-  public onHomeClick = (): void => {
-    this.store.dispatch(
-      new RouterAction.Go({ url: "/app/dashboard" })
-    )
-  }
 
-  public getTargetName = (): Observable<any> => {
-    return this.store.select("lineageOverview", "lineageInfo", "targetNodeName")
-  }
-
-  public getFormatedTimestamp = (): Observable<any> => {
-    return this.store.select("lineageOverview", "lineageInfo", "timestamp")
-  }
 }

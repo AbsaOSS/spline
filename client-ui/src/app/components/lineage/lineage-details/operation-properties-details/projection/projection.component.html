@@ -14,24 +14,32 @@
   ~ limitations under the License.
   -->
 
-<div class="collapsible" data-toggle="collapse" [attr.data-target]="'#property0'" aria-expanded="true">
-  <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp; Transformations
-</div>
-<div *ngFor="let property of properties ;let i=index">
-  <div id="property0" class="accordion-body collapse in show">
-    <div *ngIf="property.type==='Transformations'"><a href="" (click)="openExprViewDialog($event, property)">
-        <i class='transformation-prexif'>λ = </i><code>{{property.value}}</code></a></div>
-  </div>
-</div>
+<mat-accordion>
+  <mat-expansion-panel [expanded]="true">
+    <mat-expansion-panel-header>
+      <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp; <b> Transformations </b>
+    </mat-expansion-panel-header>
+    <div>
+      <div *ngFor="let property of properties ;let i=index">
+        <div *ngIf="property.type==='Transformations'"><a href="" (click)="openExprViewDialog($event, property)">
+            <i class='transformation-prexif'>λ = </i><code>{{property.value}}</code></a></div>
+      </div>
+    </div>
+  </mat-expansion-panel>
+</mat-accordion>
 
 <div *ngIf="hasDroppedAttribute(properties)">
-  <div class="collapsible" data-toggle="collapse" [attr.data-target]="'#property1'" aria-expanded="true">
-    <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp; Dropped Attributes
-  </div>
-  <div *ngFor="let property of properties ;let i=index">
-    <div id="property1" class="accordion-body collapse in show">
-      <div *ngIf="property.type==='Dropped Attributes'"><i class='dropped-attribute-prexif'>a =
-        </i><del><code>{{property.value}}</code></del></div>
-    </div>
-  </div>
+  <mat-accordion>
+    <mat-expansion-panel [expanded]="true">
+      <mat-expansion-panel-header>
+        <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp; <b> Dropped Attributes</b>
+      </mat-expansion-panel-header>
+      <div>
+        <div *ngFor="let property of properties ;let i=index">
+          <div *ngIf="property.type==='Dropped Attributes'"><i class='dropped-attribute-prexif'>a =
+            </i><del><code>{{property.value}}</code></del></div>
+        </div>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
 </div>

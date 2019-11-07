@@ -13,20 +13,13 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<div class="details-container">
-  <div class="details-option float-left" style="margin-top:-40px;margin-left:60px;"
-    [ngClass]="(getDetailsInfo() | async)? 'display-block' : 'display-none'">
-    Show attributes graph
-    <ngx-switch [ngClass]="(getDetailsInfo() | async) ? 'display-inline' : 'display-none' " [status]="false"
-      [onText]="'Yes'" [offText]="'No'" [onColor]="'green'" [offColor]="'red'" [size]="'mini'"
-      (statusChange)="onShowAttributesGraph($event)">
-    </ngx-switch>
-  </div>
-  <div class="container-fluid"
-    [ngClass]="(getDetailsInfo() | async) && showAttributeGraph ? 'operation-properties-details' : 'execution-details'">
-    <operation-properties-details></operation-properties-details>
-  </div>
-  <div *ngIf="(getDetailsInfo() | async) && showAttributeGraph" class="container-fluid attribute-details">
-    <attribute-details></attribute-details>
+<div class="detail-container"
+  [ngClass]="(getDetailsInfo() | async) && showAttributeGraph ? 'container-50h' : getContainerClass() | async">
+  <div class="details container-fluid">
+    <div class="row">
+      <div class="col-sm-12 no-padding">
+        <operation-properties-details></operation-properties-details>
+      </div>
+    </div>
   </div>
 </div>
