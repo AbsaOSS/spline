@@ -81,6 +81,10 @@ import { lineageOverviewReducer } from './store/reducers/lineage-overview.reduce
 import { NotificationsEffects } from './effects/notifications-effects';
 import { ExecutionPlanDetailsComponent } from './components/execution-plan-details/execution-plan-details.component';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { HeaderComponent } from './components/header/header.component';
+import { MatExpansionModule } from '@angular/material';
+import { FooterComponent } from './components/footer/footer.component';
+import { AdaptiveComponent } from './components/adaptive/adaptive.component';
 
 
 export function initializeApp(store: Store<AppState>): () => Promise<any> {
@@ -122,7 +126,10 @@ const ROOT_ROUTING = "app/"
     LogicalRelationComponent,
     SortComponent,
     FilterComponent,
-    GenericComponent
+    GenericComponent,
+    HeaderComponent,
+    FooterComponent,
+    AdaptiveComponent
   ],
   entryComponents: [
     ModalExpressionComponent,
@@ -151,6 +158,7 @@ const ROOT_ROUTING = "app/"
     FormsModule,
     ReactiveFormsModule,
     BrowserAnimationsModule,
+    MatExpansionModule,
     ModalModule.forRoot(),
     ToastrModule.forRoot(),
     StoreModule.forRoot({

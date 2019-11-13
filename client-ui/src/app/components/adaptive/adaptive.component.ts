@@ -13,6 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { AppState } from 'src/app/model/app-state';
+
+@Component({
+  template: ""
+})
+export class AdaptiveComponent {
+
+  constructor(
+    private storeAppState: Store<AppState>
+  ) { }
 
 
- 
+  public getContainerClass = (): Observable<string> => {
+    return this.storeAppState.select('config', 'embeddedMode')
+      .pipe(
+        map(embeddedMode => embeddedMode ? "embeddedHeight" : "fullHeight")
+      )
+  }
+
+}

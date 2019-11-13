@@ -13,30 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
 import * as _ from 'lodash';
+import { Subscription } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { AppState } from 'src/app/model/app-state';
 import { RouterStateUrl } from 'src/app/model/routerStateUrl';
 import { LineageOverviewNodeType } from 'src/app/model/types/lineageOverviewNodeType';
 import * as ContextMenuAction from 'src/app/store/actions/context-menu.actions';
 import * as DetailsInfosAction from 'src/app/store/actions/details-info.actions';
+import * as ExecutionPlanAction from 'src/app/store/actions/execution-plan.actions';
 import * as LayoutAction from 'src/app/store/actions/layout.actions';
 import * as LineageOverviewAction from 'src/app/store/actions/lineage-overview.actions';
-import * as ExecutionPlanAction from 'src/app/store/actions/execution-plan.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
-import { Subscription } from 'rxjs';
 import { getWriteOperationIdFromExecutionId } from 'src/app/util/execution-plan';
+import { AdaptiveComponent } from '../../adaptive/adaptive.component';
 
 
 @Component({
   selector: 'lineage-overview-graph',
-  templateUrl: './lineage-overview-graph.component.html',
-  styleUrls: ['./lineage-overview-graph.component.less']
+  templateUrl: './lineage-overview-graph.component.html'
 })
-export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnDestroy {
+export class LineageOverviewGraphComponent extends AdaptiveComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild(CytoscapeNgLibComponent, { static: true })
   private cytograph: CytoscapeNgLibComponent
@@ -47,6 +47,7 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
   constructor(
     private store: Store<AppState>
   ) {
+    super(store)
     this.getContextMenuConfiguration()
     this.getLayoutConfiguration()
     this.getOverviewLineage()

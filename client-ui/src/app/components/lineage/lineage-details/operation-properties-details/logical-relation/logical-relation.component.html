@@ -13,13 +13,14 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<div class="collapsible" data-toggle="collapse" [attr.data-target]="'#property'" aria-expanded="true">
-    <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp; LogicalRelation
-</div>
-<br />
-<div id="property" *ngFor="let property of properties ;let i=index" class="accordion-body collapse in show">
-    <li style="list-style-type:none;">
-        <span class="splineColor"> {{property.type}}: </span>
-        <span style="color:#337ab7;">{{property.value}}</span>
-    </li>
-</div>
+<mat-expansion-panel [expanded]="true">
+    <mat-expansion-panel-header>
+        <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp; <b> LogicalRelation</b>
+    </mat-expansion-panel-header>
+    <div *ngFor="let property of properties ;let i=index">
+        <li style="list-style-type:none;">
+            <span> {{property.type}}: </span>
+            <span style="color:#337ab7;">{{property.value}}</span>
+        </li>
+    </div>
+</mat-expansion-panel>

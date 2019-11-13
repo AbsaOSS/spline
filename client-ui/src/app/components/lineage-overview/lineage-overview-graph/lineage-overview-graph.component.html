@@ -15,5 +15,5 @@
   -->
 
 <div class="cytograph">
-  <cytoscape-ng [elements]="null"></cytoscape-ng>
+  <cytoscape-ng class="graph" [ngClass]="getContainerClass() | async" [elements]="null"></cytoscape-ng>
 </div>

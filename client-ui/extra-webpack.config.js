@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-cytoscape-ng {
-    height          : 96vh;
-    float           : left;
-    width           : 100%;
-    background-color: #FFF;
+const webpack = require('webpack');
+
+module.exports = {
+    plugins: [
+        new webpack.DefinePlugin({
+            __APP_VERSION__: JSON.stringify(process.env.SPLINE_VERSION)
+        })
+    ]
 }

@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
-import { filter, map, switchMap, first } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
+import { filter, first, map, switchMap } from 'rxjs/operators';
 import { AppState } from 'src/app/model/app-state';
 import { RouterStateUrl } from 'src/app/model/routerStateUrl';
 import * as AttributesAction from 'src/app/store/actions/attributes.actions';
@@ -24,15 +25,14 @@ import * as DetailsInfosAction from 'src/app/store/actions/details-info.actions'
 import * as ExecutionPlanAction from 'src/app/store/actions/execution-plan.actions';
 import * as LayoutAction from 'src/app/store/actions/layout.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
-import { Subscription } from 'rxjs';
+import { AdaptiveComponent } from '../../adaptive/adaptive.component';
 
 
 @Component({
   selector: 'lineage-graph',
-  templateUrl: './lineage-graph.component.html',
-  styleUrls: ['./lineage-graph.component.less']
+  templateUrl: './lineage-graph.component.html'
 })
-export class LineageGraphComponent implements OnInit, AfterViewInit, OnDestroy {
+export class LineageGraphComponent extends AdaptiveComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild(CytoscapeNgLibComponent, { static: true })
   private cytograph: CytoscapeNgLibComponent
@@ -42,6 +42,7 @@ export class LineageGraphComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private store: Store<AppState>
   ) {
+    super(store)
     this.getExecutedLogicalPlan()
     this.getLayoutConfiguration()
   }
@@ -135,29 +136,6 @@ export class LineageGraphComponent implements OnInit, AfterViewInit, OnDestroy {
     } else {
       this.store.dispatch(new DetailsInfosAction.Reset())
     }
-  }
-
-  public onBackClick = (): void => {
-    this.subscriptions.push(
-      this.store
-        .select('lineageOverview')
-        .pipe(
-          first()
-        )
-        .subscribe(lineage => {
-          const params: RouterStateUrl = {
-            url: "/app/lineage-overview",
-            queryParams: { executionEventId: lineage.lineageInfo.executionEventId }
-          }
-          this.store.dispatch(new RouterAction.Go(params))
-        })
-    )
-  }
-
-  public onHomeClick = (): void => {
-    this.store.dispatch(
-      new RouterAction.Go({ url: "/app/dashboard" })
-    )
   }
 
   ngOnDestroy(): void {

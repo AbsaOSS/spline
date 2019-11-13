@@ -19,17 +19,21 @@ import { AppState } from 'src/app/model/app-state';
 import { Observable } from 'rxjs';
 import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM';
 import { AttributeVM } from 'src/app/model/viewModels/attributeVM';
+import { map } from 'rxjs/operators';
+import { AdaptiveComponent } from '../../adaptive/adaptive.component';
 
 @Component({
   selector: 'lineage-overview-details',
   templateUrl: './lineage-overview-details.component.html',
   styleUrls: ['./lineage-overview-details.component.less']
 })
-export class LineageOverviewDetailsComponent {
+export class LineageOverviewDetailsComponent extends AdaptiveComponent {
 
   constructor(
     private store: Store<AppState>
-  ) { }
+  ) {
+    super(store)
+  }
 
   public getLineageOverviewInfo = (): Observable<{ [key: string]: {} }> => {
     return this.store.select('lineageOverview', "lineageInfo")
@@ -41,6 +45,14 @@ export class LineageOverviewDetailsComponent {
 
   public getOutputSchema = (operationDetails: OperationDetailsVM): AttributeVM[] => {
     return operationDetails.schemas[operationDetails.output]
+  }
+
+  public getTargetName = (): Observable<any> => {
+    return this.store.select("lineageOverview", "lineageInfo", "targetNodeName")
+  }
+
+  public getFormatedTimestamp = (): Observable<any> => {
+    return this.store.select("lineageOverview", "lineageInfo", "timestamp")
   }
 
 }

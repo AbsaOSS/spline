@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, Input, ViewChild, ViewEncapsulation, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, Input, OnDestroy, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import * as _ from 'lodash';
+import { Subscription } from 'rxjs';
 import { AppState } from 'src/app/model/app-state';
 import { AttributeType } from 'src/app/model/types/attributeType';
 import { AttributeVM } from 'src/app/model/viewModels/attributeVM';
 import * as AttributesAction from 'src/app/store/actions/attributes.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
 import * as attributeReducer from 'src/app/store/reducers/attribute.reducer';
-import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'schema-table',
@@ -71,7 +71,10 @@ export class SchemaTableComponent implements AfterViewInit, OnDestroy {
                   paramsSubscriber.table.offset = page
                   // TODO : Remove the setTimeout as soon as this issue is fixed :https://github.com/swimlane/ngx-datatable/issues/1204
                   setTimeout(function () {
-                    if (selectedRowContent.dataType._type != AttributeType.Simple) {
+                    if (
+                      selectedRowContent.dataType._type != AttributeType.Simple
+                      && !(AttributeType.Array && selectedRowContent.dataType.elementDataType && selectedRowContent.dataType.elementDataType.dataType._type == AttributeType.Simple)
+                    ) {
                       paramsSubscriber.table.rowDetail.toggleExpandRow(selectedRowContent)
                     }
                   })
@@ -102,7 +105,10 @@ export class SchemaTableComponent implements AfterViewInit, OnDestroy {
     const selectedAttribute = selected[0]
     this.store.dispatch(new RouterAction.ReplaceUrlState({ schemaId: this.schemaId, attribute: selectedAttribute.name }))
     this.store.dispatch(new AttributesAction.Get(selectedAttribute))
-    if (selectedAttribute.dataType._type != AttributeType.Simple) {
+    if (
+      selectedAttribute.dataType._type != AttributeType.Simple &&
+      !(AttributeType.Array && selectedAttribute.dataType.elementDataType && selectedAttribute.dataType.elementDataType.dataType._type == AttributeType.Simple)
+    ) {
       this.table.rowDetail.toggleExpandRow(selectedAttribute)
     }
   }

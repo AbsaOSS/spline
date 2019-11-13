@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input} from '@angular/core';
-import {SchemaType} from 'src/app/model/types/schemaType';
+import { Component, Input } from '@angular/core';
+import { SchemaType } from 'src/app/model/types/schemaType';
 
 @Component({
   selector: 'schema',
@@ -30,13 +30,5 @@ export class SchemaComponent {
 
   @Input()
   schema: any
-
-  getSchemaTypeLabel(): any {
-    switch (this.schemaType) {
-      case SchemaType.Input: return "&nbsp;<i class='fa fa-lg fa-arrow-circle-right text-success'></i> Input"
-      case SchemaType.Output: return "&nbsp;<i class='fa fa-lg fa-arrow-circle-left text-danger'></i> Output"
-      default: return "&nbsp;<i class='fa fa-arrow-circle-right'></i> Schema"
-    }
-  }
 
 }

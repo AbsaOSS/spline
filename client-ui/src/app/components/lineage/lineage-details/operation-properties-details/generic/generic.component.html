@@ -14,10 +14,12 @@
   ~ limitations under the License.
   -->
 <div *ngFor="let property of properties ;let i=index">
-    <div class="collapsible" data-toggle="collapse" [attr.data-target]="'#property'+i" aria-expanded="true">
-        <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp;{{property.type}}
-    </div>
-    <div id="property{{i}}" class="accordion-body collapse in show">
-        <pre [innerHtml]="property.value | prettyjson"></pre>
-    </div>
+    <mat-expansion-panel [expanded]="true">
+        <mat-expansion-panel-header>
+            <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp; <b> {{property.type}} </b>
+        </mat-expansion-panel-header>
+        <div id="property{{i}}" class="accordion-body collapse in show">
+            <pre [innerHtml]="property.value | prettyjson"></pre>
+        </div>
+    </mat-expansion-panel>
 </div>
