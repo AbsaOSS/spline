@@ -46,15 +46,24 @@ export class ExecutionEventsEffects {
     @Effect()
     public getPageableExecutionEvents$: Observable<Action> = this.actions$.pipe(
         ofType(ExecutionEventsAction.ExecutionEventsActionTypes.EXECUTION_EVENTS_GET),
-        switchMap((action: any) => this.executionEventControllerService.executionEventUsingGET(action.payload)),
+        switchMap((action: any) =>
+            this.executionEventControllerService.executionEventUsingGET(action.payload)
+                .pipe(
+                    handleException(this.store)
+                )
+        ),
         map((res: PageableExecutionEventsResponse) => new ExecutionEventsAction.GetSuccess(res)),
-        handleException(this.store)
     )
 
     @Effect()
     public getDefaultPageableExecutionEvents$: Observable<any> = this.actions$.pipe(
         ofType(ExecutionEventsAction.ExecutionEventsActionTypes.EXECUTION_EVENTS_GET_DEFAULT),
-        switchMap((action: any) => this.executionEventControllerService.executionEventUsingGET(action.payload)),
+        switchMap((action: any) =>
+            this.executionEventControllerService.executionEventUsingGET(action.payload)
+                .pipe(
+                    handleException(this.store)
+                )
+        ),
         debounceTime(100),
         map((res: PageableExecutionEventsResponse) => {
             const timestamps = res.elements.map(r => r.timestamp)
@@ -63,7 +72,6 @@ export class ExecutionEventsEffects {
             this.store.dispatch(new DashboardFormActions.InitializeForm({ minDate: minDate, maxDate: maxDate }))
             return new ExecutionEventsAction.GetSuccessDefault(res)
         }),
-        handleException(this.store)
     )
 
 }
