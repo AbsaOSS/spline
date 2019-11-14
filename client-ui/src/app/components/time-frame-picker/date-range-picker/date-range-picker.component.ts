@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {NgbDateStruct} from "@ng-bootstrap/ng-bootstrap";
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { NgbDateStruct } from "@ng-bootstrap/ng-bootstrap";
 import * as _ from "lodash"
+import { dateToStruct, structToDate } from 'src/app/util/date-converter';
 
 type Model = [NgbDateStruct, NgbDateStruct]
 type BsModel = [Date, Date]
@@ -32,17 +33,17 @@ export class DateRangePickerComponent {
 
   @Input()
   public set minDate(ngbDate: NgbDateStruct) {
-    this.bsMinDate = DateRangePickerComponent.structToDate(ngbDate)
+    this.bsMinDate = structToDate(ngbDate)
   }
 
   @Input()
   public set maxDate(ngbDate: NgbDateStruct) {
-    this.bsMaxDate = DateRangePickerComponent.structToDate(ngbDate)
+    this.bsMaxDate = structToDate(ngbDate)
   }
 
   @Input()
   public set model(dates: Model) {
-    this.bsModel = dates.map(DateRangePickerComponent.structToDate) as BsModel
+    this.bsModel = dates.map(structToDate) as BsModel
   }
 
   @Output()
@@ -50,23 +51,8 @@ export class DateRangePickerComponent {
 
   public onBsModelChange(updatedBsModel: BsModel): void {
     if (!_.isEqual(this.bsModel, updatedBsModel)) {
-      const newDates = updatedBsModel.map(DateRangePickerComponent.dateToStruct)
+      const newDates = updatedBsModel.map(dateToStruct)
       this.modelChange.emit(newDates)
-    }
-  }
-
-  private static structToDate(ngbDate: NgbDateStruct): Date {
-    return new Date(
-      ngbDate.year,
-      ngbDate.month - 1,
-      ngbDate.day)
-  }
-
-  private static dateToStruct(date: Date): NgbDateStruct {
-    return {
-      year: date.getFullYear(),
-      month: date.getMonth() + 1,
-      day: date.getDate()
     }
   }
 }

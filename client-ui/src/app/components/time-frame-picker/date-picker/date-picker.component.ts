@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-import {Component, EventEmitter, Input, OnChanges, Output} from '@angular/core';
-import {NgbCalendar, NgbDateStruct} from "@ng-bootstrap/ng-bootstrap";
+import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
+import { NgbDateStruct } from "@ng-bootstrap/ng-bootstrap";
 import * as _ from "lodash";
+import * as moment from 'moment';
+import { dateToStruct, structToDate } from 'src/app/util/date-converter';
 
 const MODEL_UPDATE_DELAY_ON_TYPING = 500 //millis
 
@@ -26,13 +28,29 @@ const MODEL_UPDATE_DELAY_ON_TYPING = 500 //millis
 })
 export class DatePickerComponent implements OnChanges {
 
-  @Input() public model: NgbDateStruct
-  @Input() public minDate: NgbDateStruct
-  @Input() public maxDate: NgbDateStruct
+  public bsModel: Date
+  public bsMinDate: Date
+  public bsMaxDate: Date
+
+  @Input()
+  public set model(date: NgbDateStruct) {
+    this.bsModel = moment(structToDate(date)).toDate()
+  }
+
+  @Input()
+  public set minDate(minDate: NgbDateStruct) {
+    this.bsMinDate = structToDate(minDate)
+  }
+
+  @Input()
+  public set maxDate(maxDate: NgbDateStruct) {
+    this.bsMaxDate = structToDate(maxDate)
+  }
 
   @Output() public modelChange = new EventEmitter<NgbDateStruct>()
 
-  constructor(private calendar: NgbCalendar) {
+  constructor(
+  ) {
   }
 
   public valid: boolean
@@ -41,15 +59,13 @@ export class DatePickerComponent implements OnChanges {
     this.valid = true
   }
 
-  public readonly onModelChange: (_: NgbDateStruct) => void = _.debounce(
-    (updatedModel: NgbDateStruct) => {
-      this.valid = _.isObject(updatedModel)
-      if (this.valid)
-        this.modelChange.emit(updatedModel)
+  public readonly onModelChange: (_: Date) => void = _.debounce(
+    (updatedModel: Date) => {
+      this.valid = _.isDate(updatedModel)
+      if (this.valid && !_.isEqual(this.bsModel, updatedModel)) {
+        this.modelChange.emit(dateToStruct(updatedModel))
+      }
     },
     MODEL_UPDATE_DELAY_ON_TYPING)
 
-  public onTodayClick(): void {
-    this.modelChange.emit(this.calendar.getToday())
-  }
 }
