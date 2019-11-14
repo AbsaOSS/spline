@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as ExecutionEventsAction from '../actions/execution-events.actions';
 
-export type Action = ExecutionEventsAction.ExecutionEventsActions
+import {Action} from '@ngrx/store';
 
-export function executionEventReducer(state: string, action: Action): any {
-    switch (action.type) {
-        case ExecutionEventsAction.ExecutionEventsActionTypes.GET_SUCCESS: return { ...action.payload }
-        default: return state
-    }
+export enum DashboardFilterActionTypes {
+  SET_DATE_RANGE = '[Dashboard] Set date range',
 }
+
+export class SetDateRange implements Action {
+  public readonly type = DashboardFilterActionTypes.SET_DATE_RANGE
+
+  constructor(public range: [number, number]) {
+  }
+}
+
+export type DashboardFiltersActions
+  = SetDateRange

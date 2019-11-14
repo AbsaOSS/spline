@@ -13,13 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as ExecutionEventsAction from '../actions/execution-events.actions';
 
-export type Action = ExecutionEventsAction.ExecutionEventsActions
+package za.co.absa.spline.common.logging
 
-export function executionEventReducer(state: string, action: Action): any {
-    switch (action.type) {
-        case ExecutionEventsAction.ExecutionEventsActionTypes.GET_SUCCESS: return { ...action.payload }
-        default: return state
-    }
-}
+case class ErrorMsg(error: String)
+
+

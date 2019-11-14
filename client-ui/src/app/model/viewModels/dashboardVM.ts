@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-import { Action } from '@ngrx/store';
-
-export enum DashboardFormActionTypes {
-    DASHBOARD_FORM_INITIALIZE = '[Dashboard Form] Initialize form',
+export interface DashboardVM {
+  filters: {
+    dateRange: [number, number]
+    searchQuery: string
+  }
+  pagination: Pagination
+  sort: SortOrder
 }
 
-export class InitializeForm implements Action {
-    public readonly type = DashboardFormActionTypes.DASHBOARD_FORM_INITIALIZE
-    constructor(public payload: any) { }
+export interface Pagination {
+  page: number // 0-based
+  size: number
 }
 
-export type DashboardFormActions = InitializeForm
+export interface SortOrder {
+  field: string
+  direction: string
+}

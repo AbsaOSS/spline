@@ -14,39 +14,29 @@
  * limitations under the License.
  */
 
-import { Action } from '@ngrx/store';
-import { PageableExecutionEventsResponse } from 'src/app/generated/models';
-import { Params } from '@angular/router';
+import {Action} from '@ngrx/store';
+import {PageableExecutionEventsResponse} from 'src/app/generated/models';
+import {Params} from '@angular/router';
 
 export enum ExecutionEventsActionTypes {
-    EXECUTION_EVENTS_GET = '[Execution Events] Get',
-    EXECUTION_EVENTS_GET_SUCCESS = '[Execution Events] Get Success',
-    EXECUTION_EVENTS_GET_DEFAULT = '[Execution Events] Get Default ',
-    EXECUTION_EVENTS_GET_SUCESS_DEFAULT = '[Execution Events] Get Success Default',
+  GET = '[Execution Events] Get',
+  GET_SUCCESS = '[Execution Events] Get Success'
 }
 
 export class Get implements Action {
-    public readonly type = ExecutionEventsActionTypes.EXECUTION_EVENTS_GET
-    constructor(public payload: Params) { }
-}
+  public readonly type = ExecutionEventsActionTypes.GET
 
-export class GetDefault implements Action {
-    public readonly type = ExecutionEventsActionTypes.EXECUTION_EVENTS_GET_DEFAULT
-    constructor(public payload: Params) { }
-}
-
-export class GetSuccessDefault implements Action {
-    public readonly type = ExecutionEventsActionTypes.EXECUTION_EVENTS_GET_SUCESS_DEFAULT
-    constructor(public payload: Params) { }
+  constructor(public payload: Params) {
+  }
 }
 
 export class GetSuccess implements Action {
-    public readonly type = ExecutionEventsActionTypes.EXECUTION_EVENTS_GET_SUCCESS
-    constructor(public payload: PageableExecutionEventsResponse) { }
+  public readonly type = ExecutionEventsActionTypes.GET_SUCCESS
+
+  constructor(public payload: PageableExecutionEventsResponse) {
+  }
 }
 
 export type ExecutionEventsActions
-    = Get
-    | GetDefault
-    | GetSuccess
-    | GetSuccessDefault
+  = Get
+  | GetSuccess

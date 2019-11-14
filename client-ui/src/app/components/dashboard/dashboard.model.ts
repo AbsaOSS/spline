@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as ExecutionEventsAction from '../actions/execution-events.actions';
 
-export type Action = ExecutionEventsAction.ExecutionEventsActions
+export interface TableSort {
+  prop: string
+  dir: string
+}
 
-export function executionEventReducer(state: string, action: Action): any {
-    switch (action.type) {
-        case ExecutionEventsAction.ExecutionEventsActionTypes.GET_SUCCESS: return { ...action.payload }
-        default: return state
-    }
+export interface TablePage {
+  count: number
+  pageSize: number
+  limit: number
+  offset: number
 }

@@ -13,13 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as ExecutionEventsAction from '../actions/execution-events.actions';
 
-export type Action = ExecutionEventsAction.ExecutionEventsActions
+const LOADING_INDICATOR_DELAY = 300 //millis
 
-export function executionEventReducer(state: string, action: Action): any {
-    switch (action.type) {
-        case ExecutionEventsAction.ExecutionEventsActionTypes.GET_SUCCESS: return { ...action.payload }
-        default: return state
-    }
+export class DashboardLoadingIndicator {
+  private loading: boolean
+  private timeoutId: number
+
+  public get isActive(): boolean {
+    return this.loading
+  }
+
+  public activate(): void {
+    this.timeoutId = setTimeout(
+      () => this.loading = true,
+      LOADING_INDICATOR_DELAY)
+  }
+
+  public deactivate(): void {
+    this.loading = false
+    clearTimeout(this.timeoutId)
+  }
 }
