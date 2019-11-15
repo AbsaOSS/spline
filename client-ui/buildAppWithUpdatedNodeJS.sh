@@ -16,5 +16,5 @@
 '
 export N_PREFIX=$HOME/.n
 npm install n --no-save --no-color
-node_modules/.bin/n lts
+node_modules/.bin/n 10.16.3
 $HOME/.n/bin/node node_modules/.bin/ng build --prod
