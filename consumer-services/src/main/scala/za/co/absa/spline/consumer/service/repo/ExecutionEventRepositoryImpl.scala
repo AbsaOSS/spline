@@ -41,11 +41,14 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
     val eventualTotalDateRange = db.queryOne[Array[Long]](
       """
         |FOR ee IN progress
-        |    FILTER ee._creationTimestamp < @asAtTime
+        |    FILTER ee._creationTimestamp <= @asAtTime
         |    COLLECT AGGREGATE
         |        minTimestamp = MIN(ee.timestamp),
         |        maxTimestamp = MAX(ee.timestamp)
-        |    RETURN [minTimestamp, maxTimestamp]
+        |    RETURN [
+        |        minTimestamp || DATE_NOW(),
+        |        maxTimestamp || DATE_NOW()
+        |    ]
         |""".stripMargin,
       Map(
         "asAtTime" -> (pageRequest.asAtTime: java.lang.Long)
@@ -54,7 +57,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
     val eventualArangoCursorAsync = db.queryAs[ExecutionEventInfo](
       """
         |FOR ee IN progress
-        |    FILTER ee._creationTimestamp < @asAtTime
+        |    FILTER ee._creationTimestamp <= @asAtTime
         |        && ee.timestamp >= @timestampStart
         |        && ee.timestamp <= @timestampEnd
         |
