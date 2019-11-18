@@ -14,38 +14,33 @@
   ~ limitations under the License.
   -->
 
-<div class="row align-items-center text-left">
-  <div class="col-md-2">
-    <time-picker [model]="model[0].time"
-                 (modelChange)="onTimeFromChange($event)">
+<div class="row align-items-center text-center">
+  <div class="col-sm-1"></div>
+  <div class="col-sm-2">
+    <time-picker [model]="model[0].time" (modelChange)="onTimeFromChange($event)">
     </time-picker>
   </div>
-  <div class="col-sm-3">
+  <div class="col-sm-2">
     <label>From date:</label>
-    <date-picker [model]="model[0].date"
-                 (modelChange)="onSelectedDatesChange([$event, model[1].date])"
-                 [minDate]="(modelBoundaries || [])[0]?.date">
+    <date-picker [model]="model[0].date" (modelChange)="onSelectedDatesChange([$event, model[1].date])"
+      [minDate]="(modelBoundaries || [])[0]?.date" [maxDate]="(modelBoundaries || [])[1]?.date">
     </date-picker>
     <label>&nbsp;</label>
   </div>
   <div class="col-sm-2">
-    <date-range-picker [minDate]="(modelBoundaries || [])[0]?.date"
-                       [maxDate]="(modelBoundaries || [])[1]?.date"
-                       [model]="[model[0].date, model[1].date]"
-                       (modelChange)="onSelectedDatesChange($event)">
+    <date-range-picker [minDate]="(modelBoundaries || [])[0]?.date" [maxDate]="(modelBoundaries || [])[1]?.date"
+      [model]="[model[0].date, model[1].date]" (modelChange)="onSelectedDatesChange($event)">
     </date-range-picker>
   </div>
-  <div class="col-sm-3">
+  <div class="col-sm-2">
     <label>To date:</label>
-    <date-picker [model]="model[1].date"
-                 (modelChange)="onSelectedDatesChange([model[0].date, $event])"
-                 [maxDate]="(modelBoundaries || [])[1]?.date">
+    <date-picker [model]="model[1].date" (modelChange)="onSelectedDatesChange([model[0].date, $event])"
+      [minDate]="(modelBoundaries || [])[0]?.date" [maxDate]="(modelBoundaries || [])[1]?.date">
     </date-picker>
     <label>&nbsp;</label>
   </div>
-  <div class="col-md-2">
-    <time-picker [model]="model[1].time"
-                 (modelChange)="onTimeTillChange($event)">
+  <div class="col-sm-2">
+    <time-picker [model]="model[1].time" (modelChange)="onTimeTillChange($event)">
     </time-picker>
   </div>
 </div>

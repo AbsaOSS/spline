@@ -14,24 +14,7 @@
   ~ limitations under the License.
   -->
 
-<form class="form-inline">
-  <div class="form-group">
-    <div class="input-group">
-      <input name="dp" ngbDatepicker
-             class="form-control" [class.is-invalid]="!valid"
-             placeholder="yyyy-mm-dd"
-             [footerTemplate]="footerTemplate" #d="ngbDatepicker"
-             [ngModel]="model" (ngModelChange)="onModelChange($event)"
-             [minDate]="minDate" [maxDate]="maxDate" >
-      <div class="input-group-append">
-        <button class="btn btn-outline-secondary fa fa-calendar" (click)="d.toggle()" type="button"></button>
-      </div>
-    </div>
-  </div>
-</form>
-
-<ng-template #footerTemplate>
-  <hr class="my-0">
-  <button class="btn btn-primary btn-sm m-2 float-left" (click)="onTodayClick(); d.close()">Today</button>
-  <button class="btn btn-secondary btn-sm m-2 float-right" (click)="d.close()">Close</button>
-</ng-template>
+<input type="text" class="form-control" placement="top" #dp="bsDatepicker" bsDatepicker [bsValue]="bsModel"
+  [minDate]="bsMinDate" [maxDate]="bsMaxDate" [ngClass]="{ 'is-invalid': !valid }"
+  [bsConfig]="{  dateInputFormat: 'YYYY-MM-DD', containerClass: 'theme-dark-blue' }"
+  value="{{ bsModel | date: 'yyyy-MM-dd' }}" (bsValueChange)="onModelChange($event)">
