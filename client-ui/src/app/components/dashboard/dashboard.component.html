@@ -17,37 +17,20 @@
   <div class="row">
     <div class="col-md-12">
       <input type="text" class="search float-right" #searchInput placeholder="Search..."
-             value="{{dashboardState.filters.searchQuery}}"
-             (keyup)="onSearchTermChange($event)"/>
+        value="{{dashboardState.filters.searchQuery}}" (keyup)="onSearchTermChange($event)" />
 
       <div class="dataMode float-left">
         Filter by Date/Time
         <ngx-switch [size]="'small'" [onColor]="'blue'" [offColor]="'gray'"
-                    [status]="!!dashboardState.filters.dateRange"
-                    (statusChange)="onFilterByDateSwitchToggle($event)"></ngx-switch>
+          [status]="!!dashboardState.filters.dateRange" (statusChange)="onFilterByDateSwitchToggle($event)">
+        </ngx-switch>
       </div>
-      <ngx-datatable #table class='table material expandable'
-                     [columnMode]="'force'"
-                     [headerHeight]="'auto'"
-                     [footerHeight]="'auto'"
-                     [rowHeight]="'auto'"
-                     [scrollbarV]="false"
-                     [selectionType]="'single'"
-                     [loadingIndicator]="loadingIndicator.isActive"
-
-                     [rows]="executionEvents.elements"
-                     [count]="executionEvents.totalCount"
-
-                     [externalPaging]="true"
-                     [offset]="dashboardState.pagination.page"
-                     [limit]="dashboardState.pagination.size"
-
-                     [externalSorting]="true"
-                     [sorts]="[sort]"
-
-                     (page)="onPageChange($event)"
-                     (sort)="onSortChange($event.sorts[0])"
-                     (select)="onSelect($event)">
+      <ngx-datatable #table class='table material expandable' [columnMode]="'force'" [headerHeight]="'auto'"
+        [footerHeight]="'auto'" [rowHeight]="'auto'" [scrollbarV]="false" [selectionType]="'single'"
+        [loadingIndicator]="loadingIndicator.isActive" [rows]="executionEvents.elements"
+        [count]="executionEvents.totalCount" [externalPaging]="true" [offset]="dashboardState.pagination.page"
+        [limit]="dashboardState.pagination.size" [externalSorting]="true" [sorts]="[sort]" (page)="onPageChange($event)"
+        (sort)="onSortChange($event.sorts[0])" (select)="onSelect($event)">
 
         <ngx-datatable-column name="Framework" [width]="10">
           <ng-template let-expanded="frameworkName" let-row="row" ngx-datatable-cell-template>
@@ -56,28 +39,28 @@
         </ngx-datatable-column>
         <ngx-datatable-column name="Application Name" prop="applicationName" [width]="50">
           <ng-template let-expanded="applicationName" let-row="row" ngx-datatable-cell-template>
-            <div class="tooltipCell" tooltip="{{row.applicationName}}" container="body" placement="top">
+            <div class="tooltipCell" title="{{row.applicationName}}">
               {{row.applicationName}}
             </div>
           </ng-template>
         </ngx-datatable-column>
         <ngx-datatable-column name="Application Id" prop="applicationId" [width]="50">
           <ng-template let-expanded="applicationId" let-row="row" ngx-datatable-cell-template>
-            <div class="tooltipCell" tooltip="{{row.applicationId}}" placement="top">
+            <div class="tooltipCell" title="{{row.applicationId}}">
               {{row.applicationId}}
             </div>
           </ng-template>
         </ngx-datatable-column>
         <ngx-datatable-column name="Execution Date" prop="timestamp" [width]="50">
           <ng-template let-expanded="timestamp" let-row="row" ngx-datatable-cell-template>
-            <div class="tooltipCell" tooltip=" {{row.timestamp | date:'dd/MM/yyyy, h:mm:ss a'}}" placement="top">
+            <div class="tooltipCell" title=" {{row.timestamp | date:'dd/MM/yyyy, h:mm:ss a'}}" placement="top">
               {{row.timestamp | date:'dd/MM/yyyy, h:mm:ss a'}}
             </div>
           </ng-template>
         </ngx-datatable-column>
         <ngx-datatable-column name="Destination" prop="datasource" [width]="400">
           <ng-template let-expanded="datasource" let-row="row" ngx-datatable-cell-template>
-            <div class="tooltipCell" tooltip="{{row.datasource}}" placement="top">
+            <div class="tooltipCell" title="{{row.datasource}}">
               {{row.datasource}}
             </div>
           </ng-template>
@@ -96,18 +79,13 @@
         <!--Footer -->
         <ngx-datatable-footer>
           <ng-template ngx-datatable-footer-template let-rowCount="rowCount" let-pageSize="pageSize"
-                       let-selectedCount="selectedCount"
-                       let-isVisible="isVisible">
+            let-selectedCount="selectedCount" let-isVisible="isVisible">
             <div *ngIf="(rowCount / pageSize) > 1" class="pager-bar-inner">
               <strong>Total</strong>: {{ rowCount }}
               <datatable-pager [pagerLeftArrowIcon]="'datatable-icon-left'"
-                               [pagerRightArrowIcon]="'datatable-icon-right'"
-                               [pagerPreviousIcon]="'datatable-icon-prev'"
-                               [pagerNextIcon]="'datatable-icon-skip'"
-                               [page]="dashboardState.pagination.page + 1"
-                               [size]="pageSize"
-                               [count]="rowCount"
-                               (change)="table.onFooterPage($event)">
+                [pagerRightArrowIcon]="'datatable-icon-right'" [pagerPreviousIcon]="'datatable-icon-prev'"
+                [pagerNextIcon]="'datatable-icon-skip'" [page]="dashboardState.pagination.page + 1" [size]="pageSize"
+                [count]="rowCount" (change)="table.onFooterPage($event)">
               </datatable-pager>
             </div>
           </ng-template>
@@ -119,8 +97,7 @@
 </div>
 
 <footer *ngIf="dashboardState.filters.dateRange" class="footer container-fluid">
-  <time-frame-picker [range]="dashboardState.filters.dateRange"
-                     [rangeBoundaries]="executionEvents.totalDateRange"
-                     (rangeChange)="onDateRangeSelected($event)">
+  <time-frame-picker [range]="dashboardState.filters.dateRange" [rangeBoundaries]="executionEvents.totalDateRange"
+    (rangeChange)="onDateRangeSelected($event)">
   </time-frame-picker>
 </footer>

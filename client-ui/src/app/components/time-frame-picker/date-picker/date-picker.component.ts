@@ -26,7 +26,7 @@ const MODEL_UPDATE_DELAY_ON_TYPING = 500 //millis
   selector: 'date-picker',
   templateUrl: './date-picker.component.html'
 })
-export class DatePickerComponent implements OnChanges {
+export class DatePickerComponent {
 
   public bsModel: Date
   public bsMinDate: Date
@@ -49,19 +49,13 @@ export class DatePickerComponent implements OnChanges {
 
   @Output() public modelChange = new EventEmitter<NgbDateStruct>()
 
-  constructor(
-  ) {
-  }
+  constructor() { }
 
-  public valid: boolean
-
-  public ngOnChanges(): void {
-    this.valid = true
-  }
+  public valid: boolean = true
 
   public readonly onModelChange: (_: Date) => void = _.debounce(
     (updatedModel: Date) => {
-      this.valid = _.isDate(updatedModel)
+      this.valid = moment(updatedModel).isValid()
       if (this.valid && !_.isEqual(this.bsModel, updatedModel)) {
         this.modelChange.emit(dateToStruct(updatedModel))
       }
