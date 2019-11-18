@@ -28,8 +28,6 @@ import { AggregateComponent } from 'src/app/components/lineage/lineage-details/o
 export const enum OperationType {
     Projection = 'Project',
     LogicalRelation = 'LogicalRelation',
-    BatchRead = 'BatchRead',
-    StreamRead = 'StreamRead',
     Join = 'Join',
     Union = 'Union',
     Generic = 'Generic',
@@ -37,9 +35,8 @@ export const enum OperationType {
     Sort = 'Sort',
     Aggregate = 'Aggregate',
     WriteCommand = 'WriteCommand',
-    BatchWrite = 'BatchWrite',
-    StreamWrite = 'StreamWrite',
-    Alias = 'Alias'
+    SaveIntoDataSourceCommand = 'SaveIntoDataSourceCommand',
+    Alias = 'SubqueryAlias'
 }
 
 
@@ -47,15 +44,12 @@ export const PropertiesComponents: Map<string, Type<PropertiesComponent>> = new 
     [OperationType.Join, JoinComponent],
     [OperationType.Projection, ProjectionComponent],
     [OperationType.LogicalRelation, LogicalRelationComponent],
-    [OperationType.BatchRead, PropertiesComponent],
-    [OperationType.StreamRead, PropertiesComponent],
     [OperationType.Union, PropertiesComponent],
     [OperationType.Generic, GenericComponent],
     [OperationType.Filter, FilterComponent],
     [OperationType.Sort, SortComponent],
     [OperationType.Aggregate, AggregateComponent],
     [OperationType.WriteCommand, PropertiesComponent],
-    [OperationType.BatchWrite, PropertiesComponent],
-    [OperationType.StreamWrite, PropertiesComponent],
+    [OperationType.SaveIntoDataSourceCommand, PropertiesComponent],
     [OperationType.Alias, PropertiesComponent]
 ])

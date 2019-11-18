@@ -1,3 +1,5 @@
+import { NgbDateStruct } from '@ng-bootstrap/ng-bootstrap'
+
 /*
  * Copyright 2019 ABSA Group Limited
  *
@@ -14,17 +16,17 @@
  * limitations under the License.
  */
 
-.footer {
-    position: absolute;
-    bottom  : 0;
+export function structToDate(ngbDate: NgbDateStruct): Date {
+  return new Date(
+    ngbDate.year,
+    ngbDate.month - 1,
+    ngbDate.day)
 }
 
-.title {
-    .footer;
-    border-radius   : 25px;
-    text-align      : center;
-    width           : 10%;
-    bottom          : 10px;
-    left            : 10px;
-    background-color: rgba(255, 255, 255, 0.7);
+export function dateToStruct(date: Date): NgbDateStruct {
+  return {
+    year: date.getFullYear(),
+    month: date.getMonth() + 1,
+    day: date.getDate()
+  }
 }

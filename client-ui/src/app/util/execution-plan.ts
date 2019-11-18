@@ -21,35 +21,29 @@ export function getWriteOperationIdFromExecutionId(executionId: string): string 
 
 export const operationIconCodes: Map<string, number> = new Map([
     [OperationType.Projection, 0xf13a],
-    [OperationType.BatchRead, 0xf085],
     [OperationType.LogicalRelation, 0xf1c0],
-    [OperationType.StreamRead, 0xf085],
     [OperationType.Join, 0xf126],
     [OperationType.Union, 0xf0c9],
     [OperationType.Filter, 0xf0b0],
     [OperationType.Sort, 0xf161],
     [OperationType.Aggregate, 0xf1ec],
     [OperationType.WriteCommand, 0xf0c7],
-    [OperationType.BatchWrite, 0xf0c7],
-    [OperationType.StreamWrite, 0xf0c7],
-    [OperationType.Alias, 0xf111],
-    [OperationType.Generic, 0xf15b]
+    [OperationType.SaveIntoDataSourceCommand, 0xf0c7],
+    [OperationType.Alias, 0xf02b],
+    [OperationType.Generic, 0xf111]
 ])
 
 
 export const operationColorCodes: Map<string, string> = new Map([
     [OperationType.Projection, "#337AB7"],
-    [OperationType.BatchRead, "#337AB7"],
     [OperationType.LogicalRelation, "#e39255"],
-    [OperationType.StreamRead, "#337AB7"],
     [OperationType.Join, "#e39255"],
     [OperationType.Union, "#337AB7"],
     [OperationType.Filter, "#F04100"],
     [OperationType.Sort, "#E0E719"],
     [OperationType.Aggregate, "#008000"],
+    [OperationType.SaveIntoDataSourceCommand, "#333333"],
     [OperationType.WriteCommand, "#e39255"],
-    [OperationType.BatchWrite, "#e39255"],
-    [OperationType.StreamWrite, "#e39255"],
     [OperationType.Alias, "#337AB7"],
-    [OperationType.Generic, "#808080"]
+    [OperationType.Generic, "#337AB7"]
 ])
