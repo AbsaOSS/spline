@@ -15,31 +15,32 @@
   -->
 
 <!doctype html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
 
 <head>
   <meta charset="utf-8">
-  <title>Spline - Lineage Visualization</title>
-  <base href="/">
+  <title th:text="${title}">Spline - Lineage Visualization</title>
+  <base href="/" th:href="@{/}">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
-<script>
-  /*
-  // Uncomment it to set Spline client configuration properties:
+<script th:inline="javascript">
+    var apiUrl = /*[[${apiUrl}]]*/ "PUT_YOUR_SPLINE_CONSUMER_URL_HERE";
+    var embeddedMode = /*[[${embeddedMode}]]*/ false;
 
-  window['SplineConfiguration'] = {
-    apiUrl: "PUT_YOUR_SPLINE_REST_ENDPOINT_URL_HERE",
-    embeddedMode : false // true => hide header / false => display full app with header
-  }
+    // Uncomment the following to set Spline client configuration properties.
+    // Alternatively you can serve config.json via HTTP GET on ./assets/config.json
 
-  // Alternatively you can serve config.json via HTTP GET on ./assets/config.json
-  */
+    /*[+
+
+    window['SplineConfiguration'] = { apiUrl, embeddedMode }
+
+    +]*/
 </script>
 
 <body>
-  <app-root></app-root>
+<app-root></app-root>
 </body>
 
 </html>
