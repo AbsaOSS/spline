@@ -16,9 +16,5 @@
 
 <input type="text" class="form-control" placement="top" #dp="bsDatepicker" bsDatepicker [bsValue]="bsModel"
   [minDate]="bsMinDate" [maxDate]="bsMaxDate" [ngClass]="{ 'is-invalid': !valid }"
-  [bsConfig]="{  dateInputFormat: 'yyyy-MM-dd', containerClass: 'theme-dark-blue' }"
+  [bsConfig]="{  dateInputFormat: 'YYYY-MM-DD', containerClass: 'theme-dark-blue' }"
   value="{{ bsModel | date: 'yyyy-MM-dd' }}" (bsValueChange)="onModelChange($event)">
-
-<div class="invalid-feedback">
-  Please select a valid date.
-</div>
