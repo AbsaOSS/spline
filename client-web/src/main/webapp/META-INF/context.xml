@@ -18,6 +18,6 @@
     <!--
         Spline REST Client API URL.
     -->
-    <Environment name="spline/server/rest_endpoint" type="java.lang.String" override="false"/>
+    <Environment name="spline/consumer/url" type="java.lang.String" override="false"/>
 
 </Context>

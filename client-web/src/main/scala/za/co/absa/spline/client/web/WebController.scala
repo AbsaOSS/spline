@@ -46,8 +46,8 @@ class WebController @Autowired()(webJarAssetLocator: WebJarAssetLocator) {
         """<base href="/?([^"]*)">""",
         s"""<base href="$baseUrlPrefix/$$1">""")
       .replaceAll(
-        "PUT_YOUR_SPLINE_REST_ENDPOINT_URL_HERE",
-        AppConfig.Server.restEndpoint.toExternalForm)
+        "PUT_YOUR_SPLINE_CONSUMER_REST_ENDPOINT_URL_HERE",
+        AppConfig.Consumer.url.toExternalForm)
       .replaceAll(
         """(?m)^\s*((/\*)|(\*/)|(//.*))""",
         "")

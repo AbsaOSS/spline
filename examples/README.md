@@ -91,7 +91,7 @@ The easiest way to spin up the Spline Web client is to use Docker:
 
 ```shell script
 docker container run \
-      -e spline.server.rest_endpoint=http://172.17.0.1:8080/consumer \
+      -e spline.consumer.url=http://172.17.0.1:8080/consumer \
       -p 9090:8080 \
       absaoss/spline-web-client
 ```

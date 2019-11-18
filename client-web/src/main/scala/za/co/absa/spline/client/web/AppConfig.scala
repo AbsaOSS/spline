@@ -25,8 +25,8 @@ object AppConfig extends DefaultConfigurationStack with ConfTyped {
 
   override val rootPrefix: String = "spline"
 
-  object Server extends Conf("server") {
-    val restEndpoint: URL = new URL(AppConfig.this.getRequiredString(Prop("rest_endpoint")))
+  object Consumer extends Conf("consumer") {
+    val url: URL = new URL(AppConfig.this.getRequiredString(Prop("url")))
   }
 
 }
