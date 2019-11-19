@@ -58,7 +58,7 @@
         </ngx-datatable-column>
         <ngx-datatable-column name="Execution Date" prop="timestamp" [width]="50">
           <ng-template let-expanded="timestamp" let-row="row" ngx-datatable-cell-template>
-            <div class="tooltipCell" title=" {{row.timestamp | date:'yyyy-MM-dd, h:mm:ss a'}}" placement="top">
+            <div class="tooltipCell" title=" {{row.timestamp | date:'yyyy-MM-dd, h:mm:ss a'}}" placement="bottom">
               {{row.timestamp | date:'yyyy-MM-dd, h:mm:ss a'}}
             </div>
           </ng-template>
