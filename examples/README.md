@@ -14,6 +14,8 @@ There are two ways how to do it:
 -or-
 
 #### Build Spline from the source code
+1.  Make sure you have JDK 8, Maven and NodeJS installed.
+
 1.  Get and unzip the Spline source code:
     ```shell script
     wget https://github.com/AbsaOSS/spline/archive/release/0.4.0.zip
@@ -109,7 +111,7 @@ Add a dependency on Spark Agent.
 <dependency>
     <groupId>za.co.absa.spline</groupId>
     <artifactId>spark-agent</artifactId>
-    <version>4.0.0</version>
+    <version>0.4.0</version>
 </dependency>
 ```
 In your spark job you have to enable spline.
@@ -118,7 +120,7 @@ In your spark job you have to enable spline.
 val sparkSession: SparkSession = ???
 
 // ... enable data lineage tracking with Spline
-import za.co.absa.spline.core.SparkLineageInitializer._
+import za.co.absa.spline.harvester.SparkLineageInitializer._
 sparkSession.enableLineageTracking()
 
 // ... then run some Dataset computations as usual.
