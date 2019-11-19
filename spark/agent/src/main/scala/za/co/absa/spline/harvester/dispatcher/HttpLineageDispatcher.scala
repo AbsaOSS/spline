@@ -24,15 +24,15 @@ import za.co.absa.spline.harvester.exception.SplineNotInitializedException
 import za.co.absa.spline.harvester.json.HarvesterJsonSerDe._
 import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
 
-import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)
   extends LineageDispatcher
     with Logging {
 
-  val dataLineagePublishUrl = s"$splineServerRESTEndpointBaseURL/execution/plan"
-  val progressEventPublishUrl = s"$splineServerRESTEndpointBaseURL/execution/event"
+  val dataLineagePublishUrl = s"$splineServerRESTEndpointBaseURL/execution-plans"
+  val progressEventPublishUrl = s"$splineServerRESTEndpointBaseURL/execution-events"
   val statusUrl = s"$splineServerRESTEndpointBaseURL/status"
 
 

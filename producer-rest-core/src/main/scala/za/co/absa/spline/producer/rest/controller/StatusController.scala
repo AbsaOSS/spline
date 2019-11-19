@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.producer.rest.controller
 
-import io.swagger.annotations.{ApiOperation, ApiResponse, ApiResponses}
+import io.swagger.annotations.{Api, ApiOperation, ApiResponse, ApiResponses}
 import javax.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.{HttpStatus, ResponseEntity}
@@ -26,12 +26,15 @@ import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 import scala.concurrent.{ExecutionContext, Future}
 
 @RestController
-class ProducerStatusController @Autowired()(
+@Api(tags = Array("status"))
+class StatusController @Autowired()(
   val repo: ExecutionProducerRepository) {
 
   import ExecutionContext.Implicits.global
 
-  @RequestMapping(value = Array("/status"), method = Array(RequestMethod.HEAD))
+  @RequestMapping(
+    path = Array("/status"),
+    method = Array(RequestMethod.HEAD))
   @ApiOperation(
     value = "Server health status",
     notes = "Check that producer is running and that the database is accessible and initialized")
