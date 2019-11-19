@@ -13,6 +13,11 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+<div *ngIf="dashboardState.filters.dateRange" class="filters mo-padding">
+  <time-frame-picker [range]="dashboardState.filters.dateRange" [rangeBoundaries]="executionEvents.totalDateRange"
+    (rangeChange)="onDateRangeSelected($event)">
+  </time-frame-picker>
+</div>
 <div class="container-fluid">
   <div class="row">
     <div class="col-md-12">
@@ -95,9 +100,3 @@
     </div>
   </div>
 </div>
-
-<footer *ngIf="dashboardState.filters.dateRange" class="footer container-fluid">
-  <time-frame-picker [range]="dashboardState.filters.dateRange" [rangeBoundaries]="executionEvents.totalDateRange"
-    (rangeChange)="onDateRangeSelected($event)">
-  </time-frame-picker>
-</footer>

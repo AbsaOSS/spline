@@ -42,6 +42,14 @@ body {
     height: calc(100vh - 29px);
 }
 
+.bootstrap-switch.bootstrap-switch-mini .bootstrap-switch-handle-off,
+.bootstrap-switch.bootstrap-switch-mini .bootstrap-switch-handle-on,
+.bootstrap-switch.bootstrap-switch-mini .bootstrap-switch-label {
+    padding: 1px 2px !important;
+    //fix for EDGE and Safari
+    height: unset !important;
+}
+
 .btn-primary {
     color           : #fff;
     background-color: #337ab7;
@@ -168,7 +176,6 @@ pre span {
 }
 
 /** scrollbar **/
-
 ::-webkit-scrollbar {
     width : 7px;
     height: 7px;
