@@ -16,18 +16,20 @@
 
 package za.co.absa.spline.consumer.rest.controller
 
-import io.swagger.annotations.{ApiOperation, ApiParam}
+import io.swagger.annotations.{Api, ApiOperation, ApiParam}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.service.model._
 import za.co.absa.spline.consumer.service.repo.OperationRepository
 import za.co.absa.spline.persistence.{model => persistence}
 
+import scala.annotation.tailrec
 import scala.concurrent.Future
 
 
 @RestController
-@RequestMapping(Array("/operation"))
+@RequestMapping(Array("/operations"))
+@Api(tags = Array("operations"))
 class OperationDetailsController @Autowired()
 (
   val repo: OperationRepository) {
@@ -35,21 +37,17 @@ class OperationDetailsController @Autowired()
   import scala.concurrent.ExecutionContext.Implicits._
 
   @GetMapping(Array("/{operationId}"))
-  @ApiOperation(
-    value = "GET /operation/{operationId}",
-    notes = "Returns details of an operation node"
-  )
-  def operation
-  (
+  @ApiOperation("Get Operation details")
+  def operation(
     @ApiParam(value = "Id of the operation node to retrieve")
     @PathVariable("operationId") operationId: Operation.Id
   ): Future[OperationDetails] = {
-    val result: Future[OperationDetails] = repo.findById(operationId)
-    result.map(toOperationDetails)
-
+    repo
+      .findById(operationId)
+      .map(toOperationDetails)
   }
 
-  private def toOperationDetails(operationDetails : OperationDetails) : OperationDetails = {
+  private def toOperationDetails(operationDetails: OperationDetails): OperationDetails = {
     val reducedDt = reducedDataTypes(operationDetails.dataTypes, operationDetails.schemas)
     operationDetails.copy(dataTypes = reducedDt)
   }
@@ -61,6 +59,7 @@ class OperationDetailsController @Autowired()
   }
 
 
+  @tailrec
   private def dataTypesFilter(dataTypes: Set[persistence.DataType], dataTypesIdToKeep: Set[String]): Set[persistence.DataType] = {
     val dt = dataTypes.filter(dataType => dataTypesIdToKeep.contains(dataType.id))
     if (getAllIds(dt).size != dataTypesIdToKeep.size) {

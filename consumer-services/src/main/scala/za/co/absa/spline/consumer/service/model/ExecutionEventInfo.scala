@@ -19,8 +19,10 @@ import io.swagger.annotations.ApiModelProperty
 
 case class ExecutionEventInfo
 (
-  @ApiModelProperty(value = "Id of the executionEvent")
+  @ApiModelProperty(value = "Id of the execution event")
   executionEventId: String,
+  @ApiModelProperty(value = "Id of the execution plan")
+  executionPlanId: String,
   @ApiModelProperty(value = "Name of the framework that triggered this execution event")
   frameworkName: String,
   @ApiModelProperty(value = "Name of the application/job")
@@ -30,24 +32,12 @@ case class ExecutionEventInfo
   @ApiModelProperty(value = "When the execution was triggered")
   timestamp: Long,
   @ApiModelProperty(value = "Output file uri")
-  datasource: String,
+  dataSourceUri: String,
   @ApiModelProperty(value = "Type of the output file")
-  datasourceType: String,
+  dataSourceType: String,
   @ApiModelProperty(value = "Write mode - (true=Append; false=Override)")
   append: Boolean
 ) {
-  def this() = this(null, null, null, null, 0, null, null, false)
+  def this() = this(null, null, null, null, null, 0, null, null, false)
 }
 
-case class PageableExecutionEventsResponse(
-  @ApiModelProperty(value = "Array of Execution events")
-  override val elements: Array[ExecutionEventInfo],
-  @ApiModelProperty(value = "Total number of executionEvents in the result set")
-  override val totalCount: Long,
-  @ApiModelProperty(value = "Page index")
-  override val offset: Int,
-  @ApiModelProperty(value = "Page size")
-  override val size: Int,
-  @ApiModelProperty(value = "Total date range (min and max timestamp) of the result set")
-  val totalDateRange: Array[Long]
-) extends Pageable[ExecutionEventInfo]

@@ -19,7 +19,7 @@ package za.co.absa.spline.consumer.service.model
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
 
 @ApiModel(description = "Lineage Graph")
-case class LogicalPlan
+case class LineageDetailedGraph
 (
   @ApiModelProperty(value = "List of graph nodes representing the different operations of the lineage")
   nodes: Array[Operation],

@@ -13,9 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package za.co.absa.spline.consumer.service.model
 
-case class SortRequest(sortField: String, sortOrder: String)
-{
-  def this() =  this(null, null)
-}
+import io.swagger.annotations.ApiModelProperty
+
+case class PageableExecutionEventsResponse(
+  @ApiModelProperty(value = "Array of Execution events")
+  override val items: Array[ExecutionEventInfo],
+  @ApiModelProperty(value = "Total number of executionEvents in the result set")
+  override val totalCount: Long,
+  @ApiModelProperty(value = "Page number")
+  override val pageNum: Int,
+  @ApiModelProperty(value = "Page size")
+  override val pageSize: Int,
+  @ApiModelProperty(value = "Total date range (min and max timestamp) of the result set")
+  totalDateRange: Array[Long]
+) extends Pageable[ExecutionEventInfo]

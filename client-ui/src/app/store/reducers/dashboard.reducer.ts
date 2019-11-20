@@ -23,12 +23,12 @@ const initialState: DashboardVM = {
     searchQuery: undefined
   },
   pagination: {
-    page: 0,
+    page: 1,
     size: 10
   },
   sort: {
     field: "timestamp",
-    direction: "desc",
+    order: "desc",
   }
 }
 
@@ -46,7 +46,7 @@ export function dashboardReducer(state: DashboardVM = initialState, action: Acti
         },
         pagination: {
           ...state.pagination,
-          page: 0
+          page: 1
         }
       }
 
@@ -59,7 +59,7 @@ export function dashboardReducer(state: DashboardVM = initialState, action: Acti
         },
         pagination: {
           ...state.pagination,
-          page: 0
+          page: 1
         }
       }
 
@@ -79,7 +79,7 @@ export function dashboardReducer(state: DashboardVM = initialState, action: Acti
         ...state,
         sort: {
           field: sortAction.field,
-          direction: sortAction.direction
+          order: sortAction.order
         }
       }
 

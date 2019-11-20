@@ -57,7 +57,7 @@ export class SetSortOrder implements Action {
   public readonly type = DashboardActionTypes.SET_SORT_ORDER
 
   constructor(public field: string,
-              public direction: string) {
+              public order: string) {
   }
 }
 

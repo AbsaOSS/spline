@@ -40,18 +40,20 @@ class ExecutionEventsController @Autowired()(
       """
         Saves a list of Execution Events.
 
-        RequestBody format :
+        Payload format:
 
-        Array[ExecutionEvent]
         [
-          // Reference to the Executionplan Id that was triggered
-          planId: UUID
-          // Timestamp of the execution
-          timestamp: Long
-          // If an error occurred during the execution
-          error: Option[Any]
-          // Any other extra information related to the execution Event Like the application Id for instance
-          extra: Map[String, Any]
+          {
+            // Reference to the Executionplan Id that was triggered
+            planId: <UUID>,
+            // Time (milliseconds since Epoch) when the execution finished
+            timestamp: <number>,
+            // [Optional] Additional info about the error (in case there was an error during the execution)
+            error: {...},
+            // Any other extra information related to the given execution event
+            extra: {...}
+          },
+          ...
         ]
       """)
   @ApiResponses(Array(

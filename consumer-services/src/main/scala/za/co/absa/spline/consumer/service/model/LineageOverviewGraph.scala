@@ -18,18 +18,16 @@ package za.co.absa.spline.consumer.service.model
 
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
 
-
-@ApiModel(description = "Execution And Lineage Graph")
-case class ExecutedLogicalPlan
+@ApiModel(description = "Lineage")
+case class LineageOverviewGraph
 (
-  @ApiModelProperty(value = "Information related to the execution")
-  execution: ExecutionInfo,
-  @ApiModelProperty(value = "Lineage of the execution")
-  plan: LogicalPlan
-) {
+  @ApiModelProperty(value = "Array of Lineage Overview nodes representing an Execution or a DataSource")
+  nodes: Array[LineageOverviewNode],
+  @ApiModelProperty(value = "Link between the Executions and the DataSources")
+  edges: Array[Transition]
+) extends Graph {
   def this() = this(null, null)
-}
 
-object ExecutedLogicalPlan {
-  type OperationID = String
+  override type Node = LineageOverviewNode
+  override type Edge = Transition
 }

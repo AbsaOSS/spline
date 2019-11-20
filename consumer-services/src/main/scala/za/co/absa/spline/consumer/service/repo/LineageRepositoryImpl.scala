@@ -27,25 +27,25 @@ class LineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Lineag
 
   import za.co.absa.spline.persistence.ArangoImplicits._
 
-  override def findExecutionEventId(executionEventId: String, maxDepth: Int)(implicit ec: ExecutionContext): Future[LineageOverview] = db
+  override def lineageOverviewForExecutionEvent(eventId: String, maxDepth: Int)(implicit ec: ExecutionContext): Future[LineageOverview] = db
     .queryOne[LineageOverview](
       """
-        |LET executionEvent = FIRST(FOR p IN progress FILTER p._key == @executionEventId RETURN p)
+        |LET executionEvent = FIRST(FOR p IN progress FILTER p._key == @eventId RETURN p)
         |LET lineageGraph = SPLINE::EVENT_LINEAGE_OVERVIEW(executionEvent, @maxDepth)
         |
         |RETURN lineageGraph && {
-        |    "lineageInfo": {
+        |    "info": {
         |        "timestamp" : executionEvent.timestamp,
         |        "applicationId" : executionEvent.extra.appId
         |    },
-        |    "lineage": {
+        |    "graph": {
         |        "nodes": lineageGraph.vertices,
         |        "edges": lineageGraph.edges
         |    }
         |}
         |""".stripMargin,
       Map(
-        "executionEventId" -> executionEventId,
+        "eventId" -> eventId,
         "maxDepth" -> (maxDepth: Integer))
     )
     .filter(null.!=)

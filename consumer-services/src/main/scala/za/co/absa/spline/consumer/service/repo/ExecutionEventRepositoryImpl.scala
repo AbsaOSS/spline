@@ -30,11 +30,14 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
 
   override def findByTimestampRange
   (
+    asAtTime: Long,
     timestampStart: Long,
     timestampEnd: Long,
     pageRequest: PageRequest,
     sortRequest: SortRequest,
-    searchTerm: String
+    searchTerm: String,
+    applicationId: String,
+    dataSourceUri: String
   )(implicit ec: ExecutionContext): Future[PageableExecutionEventsResponse] = {
     import za.co.absa.spline.persistence.ArangoImplicits._
 
@@ -51,7 +54,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |    ]
         |""".stripMargin,
       Map(
-        "asAtTime" -> (pageRequest.asAtTime: java.lang.Long)
+        "asAtTime" -> (asAtTime: java.lang.Long)
       ))
 
     val eventualArangoCursorAsync = db.queryAs[ExecutionEventInfo](
@@ -67,38 +70,43 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |            LET ope = v
         |            RETURN {
         |                "executionEventId" : ee._key,
+        |                "executionPlanId" : exec._key,
         |                "frameworkName" : CONCAT(exec.extra.systemInfo.name, " ", exec.extra.systemInfo.version),
         |                "applicationName" : exec.extra.appName,
         |                "applicationId" : ee.extra.appId,
         |                "timestamp" : ee.timestamp,
-        |                "datasource" : ope.properties.outputSource,
-        |                "datasourceType" : ope.properties.destinationType,
+        |                "dataSourceUri" : ope.properties.outputSource,
+        |                "dataSourceType" : ope.properties.destinationType,
         |                "append" : ope.properties.append
         |            }
         |    )
         |
-        |    FILTER LENGTH(@searchTerm) == 0
+        |    FILTER !LENGTH(@applicationId) || @applicationId == executionEventDetails.applicationId
+        |    FILTER !LENGTH(@dataSourceUri) || @dataSourceUri == executionEventDetails.dataSourceUri
+        |    FILTER !LENGTH(@searchTerm)
         |        || executionEventDetails.timestamp == @searchTerm
         |        || CONTAINS(LOWER(executionEventDetails.frameworkName), @searchTerm)
         |        || CONTAINS(LOWER(executionEventDetails.applicationName), @searchTerm)
         |        || CONTAINS(LOWER(executionEventDetails.applicationId), @searchTerm)
-        |        || CONTAINS(LOWER(executionEventDetails.datasource), @searchTerm)
-        |        || CONTAINS(LOWER(executionEventDetails.datasourceType), @searchTerm)
+        |        || CONTAINS(LOWER(executionEventDetails.dataSourceUri), @searchTerm)
+        |        || CONTAINS(LOWER(executionEventDetails.dataSourceType), @searchTerm)
         |
-        |    SORT executionEventDetails.@sortField @sortDirection
-        |    LIMIT @offset*@size, @size
+        |    SORT executionEventDetails.@sortField @sortOrder
+        |    LIMIT @pageOffset*@pageSize, @pageSize
         |
         |    RETURN executionEventDetails
         |""".stripMargin,
       Map(
+        "asAtTime" -> (asAtTime: java.lang.Long),
         "timestampStart" -> (timestampStart: java.lang.Long),
         "timestampEnd" -> (timestampEnd: java.lang.Long),
-        "asAtTime" -> (pageRequest.asAtTime: java.lang.Long),
-        "offset" -> (pageRequest.offset: Integer),
-        "size" -> (pageRequest.size: Integer),
-        "sortField" -> sortRequest.sortName,
-        "sortDirection" -> sortRequest.sortDirection,
-        "searchTerm" -> StringUtils.lowerCase(searchTerm)
+        "pageOffset" -> (pageRequest.page - 1: Integer),
+        "pageSize" -> (pageRequest.size: Integer),
+        "sortField" -> sortRequest.sortField,
+        "sortOrder" -> sortRequest.sortOrder,
+        "searchTerm" -> StringUtils.lowerCase(searchTerm),
+        "applicationId" -> applicationId,
+        "dataSourceUri" -> dataSourceUri
       ),
       new AqlQueryOptions().fullCount(true)
     )
@@ -110,30 +118,8 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
       PageableExecutionEventsResponse(
         arangoCursorAsync.streamRemaining().toScala.toArray,
         arangoCursorAsync.getStats.getFullCount,
-        pageRequest.offset,
+        pageRequest.page,
         pageRequest.size,
         totalDateRange)
-  }
-
-  override def search(applicationId: String, destinationPath: String)(implicit ec: ExecutionContext): Future[ExecutionEvent] = {
-    import za.co.absa.spline.persistence.ArangoImplicits._
-
-    db.queryOne[ExecutionEvent](
-      """
-        |FOR ds IN dataSource
-        |    FILTER ds.uri == @destinationPath
-        |    FOR e IN 2
-        |        INBOUND ds affects, progressOf
-        |        FILTER e.extra.appId == @applicationId
-        |        RETURN MERGE(
-        |            UNSET(e, "_rev", "_id", "_key", "_creationTimestamp"),
-        |            {
-        |                "creationTimestamp": e._creationTimestamp,
-        |                "id": e._key
-        |            }
-        |        )
-        |""".stripMargin,
-      Map("applicationId" -> applicationId, "destinationPath" -> destinationPath)
-    )
   }
 }

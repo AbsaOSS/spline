@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, Input, OnDestroy, ViewChild } from '@angular/core';
-import { Store } from '@ngrx/store';
+import {AfterViewInit, Component, Input, OnDestroy, ViewChild} from '@angular/core';
+import {Store} from '@ngrx/store';
 import * as _ from 'lodash';
-import { Subscription } from 'rxjs';
-import { AppState } from 'src/app/model/app-state';
-import { AttributeType } from 'src/app/model/types/attributeType';
-import { AttributeVM } from 'src/app/model/viewModels/attributeVM';
+import {Subscription} from 'rxjs';
+import {AppState} from 'src/app/model/app-state';
+import {AttributeType} from 'src/app/model/types/attributeType';
+import {AttributeVM} from 'src/app/model/viewModels/attributeVM';
 import * as AttributesAction from 'src/app/store/actions/attributes.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
 import * as attributeReducer from 'src/app/store/reducers/attribute.reducer';
@@ -67,8 +67,7 @@ export class SchemaTableComponent implements AfterViewInit, OnDestroy {
                 if (selectedRowIndex > -1) {
                   this.store.dispatch(new AttributesAction.Get(selectedRowContent))
                   paramsSubscriber.table.selected.push(selectedRowContent)
-                  const page = Math.floor(selectedRowIndex / paramsSubscriber.tablePageSize)
-                  paramsSubscriber.table.offset = page
+                  paramsSubscriber.table.offset = Math.floor(selectedRowIndex / paramsSubscriber.tablePageSize)
                   // TODO : Remove the setTimeout as soon as this issue is fixed :https://github.com/swimlane/ngx-datatable/issues/1204
                   setTimeout(function () {
                     if (

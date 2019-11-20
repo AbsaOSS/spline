@@ -40,72 +40,83 @@ class ExecutionPlansController @Autowired()(
     notes =
       """
         Saves an Execution Plan and returns its new UUID.
-        In most cases the method returns the same UUID that was passed in the request. However in the future Spline versions the server could
-        recognize duplicated execution plans, in which case the method will return UUID of already existing execution plan.
-        In all the future interactions with the Spline API, the client must use this UUID instead of the original UUID to refer the given
-        Execution Plan.
 
-        RequestBody format :
+        In most cases the method returns the same UUID that was passed in the request.
+        However in the future Spline versions the server could recognize duplicated
+        execution plans, in which case the method will return UUID of already existing
+        execution plan. In all the future interactions with the Spline API, the client
+        must use this UUID instead of the original UUID to refer the given Execution Plan.
+
+        Payload format:
 
         {
-          // Id of the execution plan to create
-          id: UUID
-          // List of operations of the execution plan
-          operations: Lists of operations
-          {
-                //Array of read operations of the execution plan
-                reads: Array[ReadOperation]
-                [
-                  // Array of input DataSources for this operation
-                  inputSources : Array[DataSource]
-                  // Id of this operation
-                  id : Int
-                  // List of references to the dataTypes
-                  schema: Array[String]
-                  // Other parameters containing for instance the name of the operation
-                  params: Map[String, Any]
-                ]
-                // Write operation of the execution plan
-                write: WriteOperation{
-                  // Id of the write operation
-                  id: Int
-                  // output DataSource uri
-                  outputSource: String
-                  // append mode - true if append, false if override
-                  append: Boolean
-                  // Array of the children operations id
-                  childIds: Array[Int]
-                  // List of references to the dataTypes
-                  schema: Option[Any]
-                  // Other parameters containing for instance the name of the operation
-                  params: Map[String, Any]
-                }
-                other: Array[DataOperation]
-                [
-                  // Id of the Data operation
-                  id: Int,
-                  // Array of the children operations id
-                  childIds: Array[Int],
-                  // List of references to the dataTypes
-                  schema: Option[Any] = None,
-                  // Other parameters containing for instance the name of the operation
-                  params: Map[String, Any]
-                ]
-          }
-          // Information about a data framework in use (e.g. Spark, StreamSets etc)
-          systemInfo: SystemInfo
-          {
-           name : String
-           version : String
-          }
-          // Spline agent information
-          agentInfo: Option[AgentInfo]
-          {
-            name: String
-            version: String
-          }
-          // Map containing any other extra info like the name of the application
-          extraInfo: Map[String, Any]
+          // Global unique identifier of the execution plan
+          id: <UUID>,
+
+          operations: {
+
+            // Write operation
+            write: {
+              // Write operation ID (a number, unique in the scope of the current execution plan)
+              id: <number>,
+              // Destination URI, where the data has been written to
+              outputSource: <URI>,
+              // Shows if the write operation appended or replaced the data in the target destination
+              append: <boolean>,
+              // Array of preceding operations IDs,
+              // i.e. operations that serves as an input for the current operation
+              childIds: [<number>],
+              // [Optional] Object that describes the schema of the operation output
+              schema: {...},
+              // [Optional] Custom info about the operation
+              params: {...}
+            },
+
+            // Array of read operations
+            reads: [
+              {
+                // Operation ID (see above)
+                id: <number>,
+                // Source URIs, where the data has been read from
+                inputSources: [<URI>],
+                // [Optional] Object that describes the schema of the operation output
+                schema: {...},
+                // [Optional] Custom info about the operation
+                params: {...}
+              },
+              ...
+            ],
+
+            // Other operations
+            other: [
+              {
+                // Operation ID (see above)
+                id: <number>,
+                // Array of preceding operations IDs (see above)
+                childIds: [<number>],
+                // [Optional] Object that describes the schema of the operation output
+                schema: {...},
+                // [Optional] Custom info about the operation
+                params: {...}
+              },
+              ...
+            ]
+          },
+
+          // Information about the data framework in use (e.g. Spark, StreamSets etc)
+          systemInfo: {
+            name: <string>,
+            version: <string>
+          },
+
+          // [Optional] Spline agent information
+          agentInfo: {
+            name: <string>,
+            version: <string>
+          },
+
+          // [Optional] Any other extra info associated with the current execution plan
+          extraInfo: {...}
         }
       """)
   @ApiResponses(Array(

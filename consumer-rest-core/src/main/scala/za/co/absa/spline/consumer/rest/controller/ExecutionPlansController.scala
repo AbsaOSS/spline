@@ -16,38 +16,29 @@
 
 package za.co.absa.spline.consumer.rest.controller
 
-import io.swagger.annotations.{ApiOperation, ApiParam}
+import io.swagger.annotations.{Api, ApiOperation, ApiParam}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
-import za.co.absa.spline.consumer.service.model.LineageOverview
-import za.co.absa.spline.consumer.service.repo.LineageRepository
+import za.co.absa.spline.consumer.service.model.{ExecutionInfo, LineageDetailed}
+import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepository
 
 import scala.concurrent.Future
 
 @RestController
-class LineageController @Autowired()(val repo: LineageRepository) {
+@Api(tags = Array("lineage", "execution-plans"))
+class ExecutionPlansController @Autowired()(
+  val repo: ExecutionPlanRepository) {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
-  @GetMapping(Array("/lineage"))
+  @GetMapping(Array("lineage-detailed"))
   @ApiOperation(
-    value = "GET /lineage",
-    notes = "Returns a lineage overview of executionEvent ID"
-  )
-  def lineage(
-    @ApiParam("Execution event ID")
-    @RequestParam("executionEventId")
-    executionEventId: String,
-
-    @ApiParam(
-      value = "Max depth of the graph. ([Source] -> [App] -> [Target]) is considered one level",
-      example = "5"
-    )
-    @RequestParam(
-      name = "maxDepth",
-      defaultValue = "5"
-    )
-    maxDepth: Int
-
-  ): Future[LineageOverview] = repo.findExecutionEventId(executionEventId, maxDepth)
+    value = "Get detailed execution plan (DAG)",
+    notes = "Returns a logical plan DAG by execution plan ID")
+  def lineageDetailed(
+    @ApiParam(value = "Execution plan ID")
+    @RequestParam("execId") execId: ExecutionInfo.Id
+  ): Future[LineageDetailed] = {
+    repo.findById(execId)
+  }
 }
