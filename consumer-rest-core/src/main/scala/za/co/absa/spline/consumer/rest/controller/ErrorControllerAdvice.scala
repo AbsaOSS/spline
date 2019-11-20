@@ -16,11 +16,12 @@
 
 package za.co.absa.spline.consumer.rest.controller
 
+import org.springframework.beans.TypeMismatchException
 import org.springframework.http.HttpStatus._
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageConversionException
 import org.springframework.web.bind.annotation.{ControllerAdvice, ExceptionHandler}
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import za.co.absa.spline.common.logging.{ErrorCode, ErrorMsg}
 import za.co.absa.spline.common.webmvc.NonStandardResponseEntity
 
@@ -33,9 +34,10 @@ class ErrorControllerAdvice {
   def handle_404 = new ResponseEntity(NOT_FOUND)
 
   @ExceptionHandler(Array(
-    classOf[MethodArgumentTypeMismatchException]
+    classOf[TypeMismatchException],
+    classOf[HttpMessageConversionException]
   ))
-  def handle_400(e: MethodArgumentTypeMismatchException) = new ResponseEntity(ErrorMsg(e.getMessage), BAD_REQUEST)
+  def handle_400(e: Exception) = new ResponseEntity(ErrorMsg(e.getMessage), BAD_REQUEST)
 
   @ExceptionHandler(Array(
     classOf[AsyncRequestTimeoutException]
