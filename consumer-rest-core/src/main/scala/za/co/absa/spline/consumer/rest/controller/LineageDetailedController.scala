@@ -16,10 +16,12 @@
 
 package za.co.absa.spline.consumer.rest.controller
 
+import java.util.UUID
+
 import io.swagger.annotations.{Api, ApiOperation, ApiParam}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
-import za.co.absa.spline.consumer.service.model.{ExecutionPlanInfo, LineageDetailed}
+import za.co.absa.spline.consumer.service.model.{AttributeDependencies, ExecutionPlanInfo, LineageDetailed}
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepository
 
 import scala.concurrent.Future
@@ -40,5 +42,17 @@ class LineageDetailedController @Autowired()(
     @RequestParam("execId") execId: ExecutionPlanInfo.Id
   ): Future[LineageDetailed] = {
     repo.findById(execId)
+  }
+
+  @GetMapping(Array("attribute-dependencies"))
+  @ApiOperation(
+  value = "Get ids of operations and attributes that depends on attribute with provided id")
+  def attributeDependencies(
+    @ApiParam(value = "Execution plan ID")
+    @RequestParam("execId") execId: ExecutionPlanInfo.Id,
+    @ApiParam(value = "Attribute ID")
+    @RequestParam("attributeId") attributeId: UUID
+  ): Future[AttributeDependencies] = {
+      repo.findAttributeDependencies(execId,attributeId)
   }
 }

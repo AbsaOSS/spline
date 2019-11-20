@@ -26,6 +26,7 @@ import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.slf4s.LoggerFactory
 import scalaz.Scalaz._
 import za.co.absa.spline.common.SplineBuildInfo
+import za.co.absa.spline.harvester.AttributeDependencySolver.resolveDependencies
 import za.co.absa.spline.harvester.LineageHarvester._
 import za.co.absa.spline.harvester.ModelConstants.{AppMetaInfo, ExecutionEventExtra, ExecutionPlanExtra}
 import za.co.absa.spline.harvester.builder.read.{ReadCommandExtractor, ReadNodeBuilder}
@@ -80,6 +81,8 @@ class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPl
           case ((accRead, accOther), opOther: DataOperation) => (accRead, accOther :+ opOther)
         }
 
+      val dependencies = resolveDependencies(opOthers, opReads :+ writeOp)
+
       val plan = ExecutionPlan(
         id = UUID.randomUUID,
         operations = Operations(writeOp, opReads, opOthers),
@@ -88,7 +91,9 @@ class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPl
         extraInfo = Map(
           ExecutionPlanExtra.AppName -> session.sparkContext.appName,
           ExecutionPlanExtra.DataTypes -> componentCreatorFactory.dataTypeConverter.values,
-          ExecutionPlanExtra.Attributes -> componentCreatorFactory.attributeConverter.values
+          ExecutionPlanExtra.Attributes -> componentCreatorFactory.attributeConverter.values,
+          ExecutionPlanExtra.AttributeDependencies -> dependencies.attributes.mapKeys(_.toString),
+          ExecutionPlanExtra.OperationDependencies -> dependencies.operations.mapKeys(_.toString)
         )
       )
 

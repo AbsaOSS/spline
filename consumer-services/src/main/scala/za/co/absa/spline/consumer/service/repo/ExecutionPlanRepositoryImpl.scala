@@ -20,7 +20,7 @@ import com.arangodb.ArangoDatabaseAsync
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
-import za.co.absa.spline.consumer.service.model.LineageDetailed
+import za.co.absa.spline.consumer.service.model.{AttributeDependencies, LineageDetailed}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -91,5 +91,18 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     ).filter(null.!=)
   }
 
+  override def findAttributeDependencies(execId: Id, attributeId: Id)(implicit ec: ExecutionContext): Future[AttributeDependencies] =
+    db.queryOne[AttributeDependencies](
+      """
+        LET plan = FIRST(FOR ex IN executionPlan FILTER ex._key == @execId RETURN ex)
+        LET attributeDependencies = plan.extra.attributeDependencies[@attributeId]
+        LET operationDependencies = plan.extra.attributeOperationDependencies[@attributeId]
 
+        RETURN {
+          "attributes": attributeDependencies,
+          "operations": operationDependencies
+        }
+      """,
+      Map("execId" -> execId, "attributeId" -> attributeId)
+    )
 }

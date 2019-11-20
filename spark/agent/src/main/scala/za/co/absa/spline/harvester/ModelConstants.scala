@@ -27,6 +27,9 @@ object ModelConstants {
     val AppName = "appName"
     val DataTypes = "dataTypes"
     val Attributes = "attributes"
+    val AttributeDependencies = "attributeDependencies"
+    val OperationDependencies = "attributeOperationDependencies"
+
   }
 
   object ExecutionEventExtra {

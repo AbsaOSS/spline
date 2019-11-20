@@ -14,17 +14,28 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.consumer.service.repo
+package za.co.absa.spline.consumer.service.model
 
 import java.util.UUID
 
-import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
-import za.co.absa.spline.consumer.service.model.{AttributeDependencies, LineageDetailed}
+import io.swagger.annotations.{ApiModel, ApiModelProperty}
 
-import scala.concurrent.{ExecutionContext, Future}
+@ApiModel(description = "Attribute Dependencies")
+case class AttributeDependencies
+(
+  @ApiModelProperty(value = "List of attribute ids on which the requested attribute depends")
+  attributes: Seq[UUID],
 
-trait ExecutionPlanRepository {
-  def findById(execId: Id)(implicit ec: ExecutionContext): Future[LineageDetailed]
-
-  def findAttributeDependencies(execId: Id, attributeId: UUID)(implicit ec: ExecutionContext): Future[AttributeDependencies]
+  @ApiModelProperty(value = "List of operation ids referencing provided attribute or dependent attributes")
+  operations: Seq[Int]
+) {
+  def this() = this(null, null)
 }
+
+
+
+
+
+
+
+
