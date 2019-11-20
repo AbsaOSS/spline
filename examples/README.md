@@ -63,7 +63,7 @@ The server exposes the following REST API:
 -   Consumer API (`/consumer/*`)
 
 ... and other useful URLs:
--   Running server version information: [/about/build](http://localhost:8080/about/build)
+-   Running server version information: [/about/version](http://localhost:8080/about/version)
 -   Producer API Swagger documentation: [/docs/producer.html](http://localhost:8080/docs/producer.html) 
 -   Consumer API Swagger documentation: [/docs/consumer.html](http://localhost:8080/docs/consumer.html) 
 

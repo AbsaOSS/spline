@@ -26,8 +26,8 @@ import za.co.absa.spline.common.SplineBuildInfo
 @RequestMapping(Array("/about"))
 class AboutController {
 
-  @GetMapping(path = Array("/build"), produces = Array(APPLICATION_JSON_VALUE))
-  @ApiOperation("Get application version and build information")
+  @GetMapping(path = Array("/version"), produces = Array(APPLICATION_JSON_VALUE))
+  @ApiOperation("Get application version info")
   def buildInfo: String =
     ConfigFactory
       .parseProperties(SplineBuildInfo.buildProps)
