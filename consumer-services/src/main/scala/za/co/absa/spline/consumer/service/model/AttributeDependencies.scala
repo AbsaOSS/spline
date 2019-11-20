@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,28 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.consumer.service.repo
+package za.co.absa.spline.consumer.service.model
 
-import za.co.absa.spline.consumer.service.internal.model.Operation
-import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
-import za.co.absa.spline.consumer.service.model.LineageDetailed
+import java.util.UUID
 
-import scala.concurrent.{ExecutionContext, Future}
+import io.swagger.annotations.{ApiModel, ApiModelProperty}
 
-trait ExecutionPlanRepository {
-  def findById(execId: Id)(implicit ec: ExecutionContext): Future[LineageDetailed]
+@ApiModel(description = "Attribute Dependencies")
+case class AttributeDependencies
+(
+  @ApiModelProperty(value = "List of attribute ids on which the requested attribute depends")
+  attributes: Seq[UUID],
 
-  def findOperations(execId: Id)(implicit ec: ExecutionContext): Future[Array[Operation]]
+  @ApiModelProperty(value = "List of operation ids referencing provided attribute or dependent attributes")
+  operations: Seq[String]
+) {
+  def this() = this(null, null)
 }
+
+
+
+
+
+
+
+

@@ -19,8 +19,9 @@ package za.co.absa.spline.consumer.service.repo
 import com.arangodb.ArangoDatabaseAsync
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
+import za.co.absa.spline.consumer.service.internal.model.Operation
 import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
-import za.co.absa.spline.consumer.service.model.LineageDetailed
+import za.co.absa.spline.consumer.service.model.{AttributeDependencies, LineageDetailed}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -91,5 +92,26 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     ).filter(null.!=)
   }
 
+  override def findOperations(execId: Id)(implicit ec: ExecutionContext): Future[Array[Operation]] =
+    db.queryOne[Array[Operation]](
+      """
+        LET exec = FIRST(FOR ex IN executionPlan FILTER ex._key == @execId RETURN ex)
+        LET writeOp = FIRST(FOR v IN 1 OUTBOUND exec executes RETURN v)
 
+        LET opsWithOutboundEdges = (
+          FOR vi IN 0..9999
+          OUTBOUND writeOp follows
+          COLLECT v = vi
+          LET children = (FOR child IN 1 OUTBOUND v follows RETURN child._key)
+          RETURN {
+            "_id": v._key,
+            "schema": v.outputSchema,
+            "extra": v.extra,
+            "params": v.params,
+            "childIds": children
+          }
+        )
+
+        RETURN opsWithOutboundEdges
+      """, Map("execId" -> execId))
 }
