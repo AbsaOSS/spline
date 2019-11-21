@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.{ControllerAdvice, ExceptionHandl
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException
 import za.co.absa.spline.common.logging.{ErrorCode, ErrorMsg}
 import za.co.absa.spline.common.webmvc.NonStandardResponseEntity
+import za.co.absa.spline.consumer.rest.controller.ErrorControllerAdvice._
 
 @ControllerAdvice(basePackageClasses = Array(classOf[_package]))
 class ErrorControllerAdvice {
@@ -31,19 +32,28 @@ class ErrorControllerAdvice {
   @ExceptionHandler(Array(
     classOf[NoSuchElementException]
   ))
-  def handle_404 = new ResponseEntity(NOT_FOUND)
+  def notFound: ResponseEntity[_] = new ResponseEntity(NOT_FOUND)
 
   @ExceptionHandler(Array(
     classOf[TypeMismatchException],
     classOf[HttpMessageConversionException]
   ))
-  def handle_400(e: Exception) = new ResponseEntity(ErrorMsg(e.getMessage), BAD_REQUEST)
+  def badRequest(e: Exception): ResponseEntity[_] = new ResponseEntity(ErrorMsg(e.getMessage), BAD_REQUEST)
 
   @ExceptionHandler(Array(
     classOf[AsyncRequestTimeoutException]
   ))
-  def handle_598(e: AsyncRequestTimeoutException) = NonStandardResponseEntity(598, ErrorCode(e))
+  def asyncTimeout(e: Exception): ResponseEntity[_] = NonStandardResponseEntity(ASYNC_TIMEOUT, ErrorCode(e))
 
   @ExceptionHandler
-  def handle_500(e: Throwable) = new ResponseEntity(ErrorCode(e), INTERNAL_SERVER_ERROR)
+  def serverError(e: Throwable): ResponseEntity[_] = new ResponseEntity(ErrorCode(e), INTERNAL_SERVER_ERROR)
+}
+
+object ErrorControllerAdvice {
+  /**
+    * This could probably be replaced by the standard 503 response code.
+    * See: https://github.com/AbsaOSS/spline/issues/474
+    */
+  private val ASYNC_TIMEOUT = 598
+
 }

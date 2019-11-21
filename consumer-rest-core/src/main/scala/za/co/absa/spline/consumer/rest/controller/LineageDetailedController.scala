@@ -25,8 +25,8 @@ import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepository
 import scala.concurrent.Future
 
 @RestController
-@Api(tags = Array("lineage", "execution-plans"))
-class ExecutionPlansController @Autowired()(
+@Api(tags = Array("lineage"))
+class LineageDetailedController @Autowired()(
   val repo: ExecutionPlanRepository) {
 
   import scala.concurrent.ExecutionContext.Implicits._

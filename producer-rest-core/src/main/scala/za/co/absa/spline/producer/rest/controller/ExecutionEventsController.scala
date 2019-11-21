@@ -44,7 +44,7 @@ class ExecutionEventsController @Autowired()(
 
         [
           {
-            // Reference to the Executionplan Id that was triggered
+            // Reference to the execution plan Id that was triggered
             planId: <UUID>,
             // Time (milliseconds since Epoch) when the execution finished
             timestamp: <number>,

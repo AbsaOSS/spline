@@ -60,7 +60,7 @@ export class LineageOverviewEffects {
       )
   }
 
-  private toLineageOverviewVM = (lineageOverview: LineageOverview, executionEventId: String): LineageOverviewVM => {
+  private toLineageOverviewVM = (lineageOverview: LineageOverview, executionEventId: string): LineageOverviewVM => {
     const cytoscapeGraphVM = {} as CytoscapeGraphVM
     cytoscapeGraphVM.nodes = []
     cytoscapeGraphVM.edges = []
