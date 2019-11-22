@@ -73,7 +73,7 @@ class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkS
   override lazy val lineageDispatcher: LineageDispatcher = {
     configuration.getString(LINEAGE_DISPATCHER_CLASS, LINEAGE_DISPATCHER_CLASS_DEFAULT) match {
       case LINEAGE_DISPATCHER_CLASS_DEFAULT => HttpLineageDispatcher(configuration)
-      case className =>
+      case className: String =>
         log debug s"Instantiating a lineage dispatcher for class name: $className"
         Class.forName(className.trim)
           .getConstructor(classOf[Configuration])
