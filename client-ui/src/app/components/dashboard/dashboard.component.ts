@@ -29,6 +29,7 @@ import { DateRange, Timestamp } from "../time-frame-picker/time-frame-picker.mod
 import { PageableExecutionEventsResponse } from "../../generated/models/pageable-execution-events-response";
 import { TablePage, TableSort } from "./dashboard.model";
 import { DashboardLoadingIndicator } from "./dashboard.loading-indicator";
+import { MatSlideToggleChange } from '@angular/material';
 
 const SEARCH_TERM_UPDATE_DELAY = 300 //millis
 
@@ -96,8 +97,8 @@ export class DashboardComponent implements OnDestroy {
     this.store.dispatch(new RouterAction.Go(params))
   }
 
-  public onFilterByDateSwitchToggle(switchOn: boolean): void {
-    const dateRange = switchOn
+  public onFilterByDateSwitchToggle(switchOn: MatSlideToggleChange): void {
+    const dateRange = switchOn.checked
       ? this.executionEvents.totalDateRange as DateRange
       : undefined;
     this.store.dispatch(new DashboardActions.SetDateRange(dateRange))

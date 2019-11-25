@@ -25,10 +25,10 @@
         value="{{dashboardState.filters.searchQuery}}" (keyup)="onSearchTermChange($event)" />
 
       <div class="dataMode float-left">
-        Filter by Date/Time
-        <ngx-switch [size]="'small'" [onColor]="'blue'" [offColor]="'gray'"
-          [status]="!!dashboardState.filters.dateRange" (statusChange)="onFilterByDateSwitchToggle($event)">
-        </ngx-switch>
+        Filter by Date/Time &nbsp;
+        <mat-slide-toggle [color]="'primary'" [checked]="dashboardState.filters.dateRange"
+          (change)="onFilterByDateSwitchToggle($event)">
+        </mat-slide-toggle>
       </div>
       <ngx-datatable #table class='table material expandable' [columnMode]="'force'" [headerHeight]="'auto'"
         [footerHeight]="'auto'" [rowHeight]="'auto'" [scrollbarV]="false" [selectionType]="'single'"

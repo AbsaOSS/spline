@@ -42,13 +42,6 @@ body {
     height: calc(100vh - 29px);
 }
 
-.bootstrap-switch.bootstrap-switch-mini .bootstrap-switch-handle-off,
-.bootstrap-switch.bootstrap-switch-mini .bootstrap-switch-handle-on,
-.bootstrap-switch.bootstrap-switch-mini .bootstrap-switch-label {
-    padding: 1px 2px !important;
-    //fix for EDGE and Safari
-    height: 21px !important;
-}
 
 .btn-primary {
     color           : #fff;
@@ -123,6 +116,10 @@ hr {
     width        : 100%;
 }
 
+.datatable-header-cell {
+    overflow: hidden;
+}
+
 /** Graph **/
 
 .graph {
@@ -195,4 +192,39 @@ pre span {
     font-family: 'Font Awesome 5 Free';
     content    : "\f005";
     font-weight: 900;
+}
+
+/** Material overides */
+.mat-slide-toggle.mat-checked:not(.mat-disabled) .mat-slide-toggle-bar {
+    width           : 60px !important;
+    background-color: white;
+}
+
+
+.mat-slide-toggle.mat-checked:not(.mat-disabled) .mat-slide-toggle-thumb {
+    width           : 30px;
+    background-color: #337ab7;
+    margin-left     : 12px;
+}
+
+.mat-slide-toggle-bar {
+    border          : 1px solid #ccc;
+    height          : 22px !important;
+    width           : 60px !important;
+    background-color: white;
+    border-radius   : 3px !important;
+}
+
+
+.mat-slide-toggle-thumb {
+    box-shadow      : none !important;
+    border-radius   : 0% !important;
+    background-color: #eee;
+    height          : 20px !important;
+    width           : 30px !important;
+    margin-top      : 3px;
+}
+
+.mat-slide-toggle-thumb-container {
+    cursor: pointer !important;
 }
