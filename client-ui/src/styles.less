@@ -202,9 +202,11 @@ pre span {
 
 
 .mat-slide-toggle.mat-checked:not(.mat-disabled) .mat-slide-toggle-thumb {
-    width           : 30px;
-    background-color: #337ab7;
-    margin-left     : 12px;
+    width                     : 30px;
+    background-color          : #428bca;
+    margin-left               : 12px;
+    border-top-right-radius   : 2px !important;
+    border-bottom-right-radius: 2px !important;
 }
 
 .mat-slide-toggle-bar {
@@ -223,6 +225,11 @@ pre span {
     height          : 20px !important;
     width           : 30px !important;
     margin-top      : 3px;
+}
+
+.mat-slide-toggle:not(.mat-checked) .mat-slide-toggle-thumb {
+    border-top-left-radius   : 2px !important;
+    border-bottom-left-radius: 2px !important;
 }
 
 .mat-slide-toggle-thumb-container {
