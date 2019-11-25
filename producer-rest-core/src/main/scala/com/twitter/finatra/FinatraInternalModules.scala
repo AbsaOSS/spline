@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.rest.model
+package com.twitter.finatra
 
-case class Operations(
-  write: WriteOperation,
-  reads: Seq[ReadOperation] = Nil,
-  other: Seq[DataOperation] = Nil) {
+import com.fasterxml.jackson.module.scala.JacksonModule
+import com.twitter.finatra.json.internal.caseclass.jackson.CaseClassModule
 
-  def all: Seq[OperationLike] = reads ++ other :+ write
+/**
+  * This object serves the only purpose - to make access to some of the com.twitter.finatra Jackson modules,
+  * that are declared private even though are perfectly reusable.
+  */
+object FinatraInternalModules {
+
+  def caseClassModule: JacksonModule = CaseClassModule
 }
-
-/**
-  * Information about a data framework in use (e.g. Spark, StreamSets etc)
-  */
-case class SystemInfo(name: String, version: String)
-
-/**
-  * Spline agent information
-  */
-case class AgentInfo(name: String, version: String)

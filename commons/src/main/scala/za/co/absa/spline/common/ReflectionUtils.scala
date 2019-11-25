@@ -121,4 +121,28 @@ object ReflectionUtils {
           && d.asMethod.isGetter
           && paramNames(d.name.toString))
     })
+
+  def caseClassCtorArgDefaultValue[A](t: Class[_], name: String): Option[A] = {
+    val classSymbol = mirror.classSymbol(t)
+    val companionMirror = {
+      val companionModule = classSymbol.companion.asModule
+      mirror.reflect(mirror.reflectModule(companionModule).instance)
+    }
+    val signature = companionMirror.symbol.typeSignature
+    val constructor = classSymbol.primaryConstructor.asMethod
+
+    constructor
+      .paramLists
+      .flatten
+      .view
+      .zipWithIndex
+      .collect({
+        case (arg, i) if arg.name.toString == name =>
+          signature.member(TermName(s"apply$$default$$${i + 1}"))
+      })
+      .collectFirst({
+        case member if member != NoSymbol =>
+          companionMirror.reflectMethod(member.asMethod)().asInstanceOf[A]
+      })
+  }
 }

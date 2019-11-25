@@ -20,12 +20,11 @@ import java.util.UUID
 import java.util.UUID.randomUUID
 
 import org.apache.spark.SPARK_VERSION
-import org.apache.spark.sql.functions._
 import org.scalatest.Inside._
 import org.scalatest.{Assertion, FlatSpec, Matchers}
 import za.co.absa.spline.common.ConditionalTestTags.ignoreIf
 import za.co.absa.spline.common.TempDirectory
-import za.co.absa.spline.common.Version.VersionOrdering.{max => _, min => _, _}
+import za.co.absa.spline.common.Version.VersionOrdering._
 import za.co.absa.spline.common.Version._
 import za.co.absa.spline.model.{Attribute, dt}
 import za.co.absa.spline.producer.rest.model._
@@ -47,7 +46,7 @@ class LineageHarvesterSpec extends FlatSpec
         import spark.implicits._
 
         inside(lineageOf(spark.emptyDataset[TestRow].write.save(tmpDest))) {
-          case (ExecutionPlan(_, Operations(Nil, _, Seq(op)), _, _, _), _) =>
+          case (ExecutionPlan(_, Operations(_, Nil, Seq(op)), _, _, _), _) =>
             op.id should be(1)
             op.childIds should be(empty)
             op.schema should not be empty
@@ -172,6 +171,7 @@ class LineageHarvesterSpec extends FlatSpec
     withNewSparkSession(spark => {
       withLineageTracking(spark) { lineageCaptor =>
         import lineageCaptor._
+        import org.apache.spark.sql.functions._
         import spark.implicits._
 
         val initialDF = spark.createDataset(Seq(TestRow(1, 2.3, "text")))
@@ -236,7 +236,7 @@ class LineageHarvesterSpec extends FlatSpec
         val databaseName = s"unitTestDatabase_${this.getClass.getSimpleName}"
         withHiveDatabase(spark)(databaseName) {
 
-          val (plan, _)= withLineageTracking(spark) { lineageCaptor => {
+          val (plan, _) = withLineageTracking(spark)(lineageCaptor => {
 
             import spark.implicits._
 
@@ -246,7 +246,7 @@ class LineageHarvesterSpec extends FlatSpec
               df.createOrReplaceTempView("tempView")
               spark.sql("create table users_sales as select i, d, s from tempView ")
             }
-          }}
+          })
 
           val writeOperation = plan.operations.write
           writeOperation.id shouldEqual 0

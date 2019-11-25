@@ -28,7 +28,7 @@ sealed trait OperationLike {
 case class DataOperation(
   override val id: Int,
   override val childIds: Seq[Int],
-  override val schema: Option[Any],
+  override val schema: Option[Any] = None,
   override val params: Map[String, Any] = Map.empty
 ) extends OperationLike
 

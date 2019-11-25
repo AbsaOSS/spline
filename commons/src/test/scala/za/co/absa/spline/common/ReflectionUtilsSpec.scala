@@ -36,7 +36,8 @@ class ReflectionUtilsSpec extends FlatSpec with Matchers {
   }
 
   "extractProductElementsWithNames()" should "for given Product return a map of element names to their values" in {
-    ReflectionUtils.extractProductElementsWithNames(Foo("bar", 42)) should be(Map("x" -> "bar", "y" -> 42))
+    ReflectionUtils.extractProductElementsWithNames(Foo("bar")) should be(Map("x" -> "bar", "y" -> 42))
+    ReflectionUtils.extractProductElementsWithNames(Foo("bar", 777)) should be(Map("x" -> "bar", "y" -> 777))
   }
 
   "extractFieldValue()" should "return a value of a private field" in {
@@ -63,6 +64,10 @@ class ReflectionUtilsSpec extends FlatSpec with Matchers {
     ReflectionUtils.objectForName[AnyRef](MyObject.getClass.getName) should be theSameInstanceAs MyObject
   }
 
+  "caseClassCtorArgDefaultValue()" should "return a case class constructor argument default value if declared" in {
+    ReflectionUtils.caseClassCtorArgDefaultValue[Int](classOf[Foo], "x") should be(None)
+    ReflectionUtils.caseClassCtorArgDefaultValue[Int](classOf[Foo], "y") should be(Some(42))
+  }
 }
 
 object ReflectionUtilsSpec {
@@ -73,7 +78,7 @@ object ReflectionUtilsSpec {
 
   object MyObject extends MyTrait
 
-  case class Foo(x: String, y: Int)
+  case class Foo(x: String, y: Int = 42)
 
   object Foo {
     //noinspection ScalaUnusedSymbol

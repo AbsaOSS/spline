@@ -16,20 +16,12 @@
 
 package za.co.absa.spline.producer.rest.model
 
-case class Operations(
-  write: WriteOperation,
-  reads: Seq[ReadOperation] = Nil,
-  other: Seq[DataOperation] = Nil) {
+import java.util.UUID
 
-  def all: Seq[OperationLike] = reads ++ other :+ write
-}
-
-/**
-  * Information about a data framework in use (e.g. Spark, StreamSets etc)
-  */
-case class SystemInfo(name: String, version: String)
-
-/**
-  * Spline agent information
-  */
-case class AgentInfo(name: String, version: String)
+case class ExecutionPlan(
+  id: UUID,
+  operations: Operations,
+  systemInfo: SystemInfo,
+  agentInfo: Option[AgentInfo] = None,
+  extraInfo: Map[String, Any] = Map.empty
+)
