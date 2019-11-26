@@ -45,7 +45,7 @@ case class DataSource(
   * Contains all static information about HOW data is transformed along the way
   * from the inputs to the output.
   */
-case class Execution(
+case class ExecutionPlan(
   extra: Map[String, Any],
   override val _key: String
 ) extends Vertex

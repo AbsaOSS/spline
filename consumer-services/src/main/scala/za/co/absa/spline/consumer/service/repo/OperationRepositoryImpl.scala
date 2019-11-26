@@ -57,7 +57,7 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
             LET pairAttributesDataTypes = FIRST(
                 FOR v IN 1..9999
                     INBOUND ope follows, executes
-                    FILTER IS_SAME_COLLECTION("execution", v)
+                    FILTER IS_SAME_COLLECTION("executionPlan", v)
                     RETURN { "attributes":  v.extra.attributes, "dataTypes" : v.extra.dataTypes }
             )
 

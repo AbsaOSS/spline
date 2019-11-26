@@ -19,7 +19,7 @@ package za.co.absa.spline.consumer.service.repo
 import com.arangodb.ArangoDatabaseAsync
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import za.co.absa.spline.consumer.service.model.ExecutionInfo.Id
+import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
 import za.co.absa.spline.consumer.service.model.LineageDetailed
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,7 +32,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
   override def findById(execId: Id)(implicit ec: ExecutionContext): Future[LineageDetailed] = {
     db.queryOne[LineageDetailed](
       """
-        LET exec = FIRST(FOR ex IN execution FILTER ex._key == @execId RETURN ex)
+        LET exec = FIRST(FOR ex IN executionPlan FILTER ex._key == @execId RETURN ex)
         LET writeOp = FIRST(FOR v IN 1 OUTBOUND exec executes RETURN v)
 
         LET opsWithInboundEdges = (
@@ -67,7 +67,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
             )
 
         RETURN {
-            "plan": {
+            "graph": {
                 "nodes": ops[* RETURN MERGE(
                         {"_id": CURRENT._key},
                         KEEP(CURRENT, "_type", "name")
@@ -77,7 +77,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
                         "target": PARSE_IDENTIFIER(CURRENT._from).key
                     }]
             },
-            "execution": {
+            "executionPlan": {
                 "_id": exec._key,
                 "extra" : MERGE(
                     exec.extra, {

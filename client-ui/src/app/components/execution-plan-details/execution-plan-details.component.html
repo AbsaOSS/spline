@@ -14,23 +14,23 @@
   ~ limitations under the License.
   -->
 <div *ngIf="(getExecutionPlanVM() | async )" class="execution-details">
-    <h3 class="text-center"> Execution Plan : {{ (getExecutionPlanVM() | async )?.execution.extra.appName }}</h3>
+    <h3 class="text-center"> Execution Plan : {{ (getExecutionPlanVM() | async )?.executionPlan.extra.appName }}</h3>
     <br />
     <div>
         <p>
             <strong>System Info:</strong>
-            {{ (getExecutionPlanVM() | async )?.execution.extra.systemInfo.name }}
-            {{ (getExecutionPlanVM() | async )?.execution.extra.systemInfo.version }}
+            {{ (getExecutionPlanVM() | async )?.executionPlan.extra.systemInfo.name }}
+            {{ (getExecutionPlanVM() | async )?.executionPlan.extra.systemInfo.version }}
         </p>
         <p>
             <strong>Agent Info:</strong>
-            {{ (getExecutionPlanVM() | async )?.execution.extra.agentInfo.name }}
-            {{ (getExecutionPlanVM() | async )?.execution.extra.agentInfo.version }}
+            {{ (getExecutionPlanVM() | async )?.executionPlan.extra.agentInfo.name }}
+            {{ (getExecutionPlanVM() | async )?.executionPlan.extra.agentInfo.version }}
         </p>
         <p>
             <strong>Input Sources:</strong>
         </p>
-        <ul *ngFor="let inputSource of (getExecutionPlanVM() | async )?.execution.extra.inputSources">
+        <ul *ngFor="let inputSource of (getExecutionPlanVM() | async )?.executionPlan.extra.inputSources">
             <p>
                 <strong>URI:</strong> {{ inputSource.source }}
                 <br />
@@ -42,10 +42,10 @@
         </p>
         <ul>
             <p>
-                <strong>URI:</strong> {{ (getExecutionPlanVM() | async )?.execution.extra.outputSource.source }}
+                <strong>URI:</strong> {{ (getExecutionPlanVM() | async )?.executionPlan.extra.outputSource.source }}
                 <br />
                 <strong> Type: </strong>
-                {{ (getExecutionPlanVM() | async )?.execution.extra.outputSource.sourceType }}
+                {{ (getExecutionPlanVM() | async )?.executionPlan.extra.outputSource.sourceType }}
             </p>
         </ul>
     </div>

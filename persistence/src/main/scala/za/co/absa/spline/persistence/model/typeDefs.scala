@@ -68,13 +68,13 @@ object EdgeDef {
 
   object ReadsFrom extends EdgeDef("readsFrom", Operation, DataSource) with CollectionDef
 
-  object Executes extends EdgeDef("executes", Execution, Operation) with CollectionDef
+  object Executes extends EdgeDef("executes", ExecutionPlan, Operation) with CollectionDef
 
-  object Depends extends EdgeDef("depends", Execution, DataSource) with CollectionDef
+  object Depends extends EdgeDef("depends", ExecutionPlan, DataSource) with CollectionDef
 
-  object Affects extends EdgeDef("affects", Execution, DataSource) with CollectionDef
+  object Affects extends EdgeDef("affects", ExecutionPlan, DataSource) with CollectionDef
 
-  object ProgressOf extends EdgeDef("progressOf", Progress, Execution) with CollectionDef
+  object ProgressOf extends EdgeDef("progressOf", Progress, ExecutionPlan) with CollectionDef
 
 }
 
@@ -85,7 +85,7 @@ object NodeDef {
       IndexDef(Seq("uri"), (new HashIndexOptions).unique(true)))
   }
 
-  object Execution extends NodeDef("execution") with CollectionDef
+  object ExecutionPlan extends NodeDef("executionPlan") with CollectionDef
 
   object Operation extends NodeDef("operation") with CollectionDef {
     override def indexDefs: Seq[IndexDef] = Seq(

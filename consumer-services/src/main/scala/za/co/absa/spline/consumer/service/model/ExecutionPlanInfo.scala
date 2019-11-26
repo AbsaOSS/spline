@@ -18,11 +18,11 @@ package za.co.absa.spline.consumer.service.model
 
 import java.util.UUID
 
-import ExecutionInfo.Id
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
+import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
 
-@ApiModel(description="Information of the retrieved execution")
-case class ExecutionInfo
+@ApiModel(description="Information of the retrieved execution plan")
+case class ExecutionPlanInfo
 (
   @ApiModelProperty(value = "Execution Id")
   _id: Id,
@@ -32,6 +32,6 @@ case class ExecutionInfo
   def this() = this(null, null)
 }
 
-object ExecutionInfo {
+object ExecutionPlanInfo {
   type Id = UUID
 }
