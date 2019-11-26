@@ -20,7 +20,7 @@ import com.arangodb.ArangoDatabaseAsync
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.model.ExecutionInfo.Id
-import za.co.absa.spline.consumer.service.model.{DataSourceInfo, ExecutedLogicalPlan}
+import za.co.absa.spline.consumer.service.model.LineageDetailed
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -29,8 +29,8 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
 
   import za.co.absa.spline.persistence.ArangoImplicits._
 
-  override def findById(execId: Id)(implicit ec: ExecutionContext): Future[ExecutedLogicalPlan] = {
-    db.queryOne[ExecutedLogicalPlan](
+  override def findById(execId: Id)(implicit ec: ExecutionContext): Future[LineageDetailed] = {
+    db.queryOne[LineageDetailed](
       """
         LET exec = FIRST(FOR ex IN execution FILTER ex._key == @execId RETURN ex)
         LET writeOp = FIRST(FOR v IN 1 OUTBOUND exec executes RETURN v)

@@ -27,8 +27,8 @@
       </div>
       <ngx-datatable #table class='table material expandable' [columnMode]="'force'" [headerHeight]="'auto'"
         [footerHeight]="'auto'" [rowHeight]="'auto'" [scrollbarV]="false" [selectionType]="'single'"
-        [loadingIndicator]="loadingIndicator.isActive" [rows]="executionEvents.elements"
-        [count]="executionEvents.totalCount" [externalPaging]="true" [offset]="dashboardState.pagination.page"
+        [loadingIndicator]="loadingIndicator.isActive" [rows]="executionEvents.items"
+        [count]="executionEvents.totalCount" [externalPaging]="true" [offset]="dashboardState.pagination.page - 1"
         [limit]="dashboardState.pagination.size" [externalSorting]="true" [sorts]="[sort]" (page)="onPageChange($event)"
         (sort)="onSortChange($event.sorts[0])" (select)="onSelect($event)">
 
@@ -58,10 +58,10 @@
             </div>
           </ng-template>
         </ngx-datatable-column>
-        <ngx-datatable-column name="Destination" prop="datasource" [width]="400">
-          <ng-template let-expanded="datasource" let-row="row" ngx-datatable-cell-template>
-            <div class="tooltipCell" title="{{row.datasource}}">
-              {{row.datasource}}
+        <ngx-datatable-column name="Destination" prop="dataSourceUri" [width]="400">
+          <ng-template let-expanded="dataSourceUri" let-row="row" ngx-datatable-cell-template>
+            <div class="tooltipCell" title="{{row.dataSourceUri}}">
+              {{row.dataSourceUri}}
             </div>
           </ng-template>
         </ngx-datatable-column>
@@ -84,7 +84,7 @@
               <strong>Total</strong>: {{ rowCount }}
               <datatable-pager [pagerLeftArrowIcon]="'datatable-icon-left'"
                 [pagerRightArrowIcon]="'datatable-icon-right'" [pagerPreviousIcon]="'datatable-icon-prev'"
-                [pagerNextIcon]="'datatable-icon-skip'" [page]="dashboardState.pagination.page + 1" [size]="pageSize"
+                [pagerNextIcon]="'datatable-icon-skip'" [page]="dashboardState.pagination.page" [size]="pageSize"
                 [count]="rowCount" (change)="table.onFooterPage($event)">
               </datatable-pager>
             </div>

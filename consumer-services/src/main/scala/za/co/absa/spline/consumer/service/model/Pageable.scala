@@ -17,8 +17,8 @@
 package za.co.absa.spline.consumer.service.model
 
 trait Pageable[T] {
-  val elements: Array[T]
+  val items: Array[T]
   val totalCount: Long
-  val offset: Int
-  val size: Int
+  val pageNum: Int
+  val pageSize: Int
 }

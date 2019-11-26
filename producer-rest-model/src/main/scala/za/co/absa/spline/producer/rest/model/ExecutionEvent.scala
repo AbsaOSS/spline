@@ -22,6 +22,6 @@ import java.util.UUID
 case class ExecutionEvent(
   planId: UUID,
   timestamp: Long,
-  error: Option[Any],
-  extra: Map[String, Any]
+  error: Option[Any] = None,
+  extra: Map[String, Any] = Map.empty
 )

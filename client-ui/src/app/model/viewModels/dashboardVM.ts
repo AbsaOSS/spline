@@ -20,15 +20,15 @@ export interface DashboardVM {
     searchQuery: string
   }
   pagination: Pagination
-  sort: SortOrder
+  sort: Sorting
 }
 
 export interface Pagination {
-  page: number // 0-based
+  page: number
   size: number
 }
 
-export interface SortOrder {
+export interface Sorting {
   field: string
-  direction: string
+  order: string
 }

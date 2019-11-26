@@ -16,17 +16,20 @@
 
 package za.co.absa.spline.client.web
 
-import org.springframework.beans.factory.annotation.Configurable
+import org.springframework.beans.factory.annotation.{Autowired, Configurable}
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.{Bean, ComponentScan}
 import org.springframework.web.servlet.config.annotation.{EnableWebMvc, ResourceHandlerRegistry, WebMvcConfigurer}
+import org.thymeleaf.{ITemplateEngine, TemplateEngine}
 import org.webjars.WebJarAssetLocator
+import za.co.absa.spline.client.web.thymeleaf.WebJarTemplateResolver
 
 @Configurable
 @EnableWebMvc
 @ComponentScan
-class WebConfig extends WebMvcConfigurer {
+class WebConfig @Autowired()(applicationContext: ApplicationContext) extends WebMvcConfigurer {
 
-  @Bean def webJarAssetLocator = new WebJarAssetLocator()
+  private val webJarAssetLocator = new WebJarAssetLocator
 
   override def addResourceHandlers(registry: ResourceHandlerRegistry) {
     registry
@@ -36,4 +39,9 @@ class WebConfig extends WebMvcConfigurer {
       .addResolver(new WebJarsResourceFuzzyResolver(webJarAssetLocator))
   }
 
+  @Bean def templateEngine: ITemplateEngine = new TemplateEngine {
+    setTemplateResolver(new WebJarTemplateResolver(webJarAssetLocator) {
+      setSuffix(".html")
+    })
+  }
 }

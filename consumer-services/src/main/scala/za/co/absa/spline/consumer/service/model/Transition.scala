@@ -16,8 +16,8 @@
 
 package za.co.absa.spline.consumer.service.model
 
-import ExecutedLogicalPlan.OperationID
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
+import za.co.absa.spline.consumer.service.model.LineageDetailed.OperationID
 
 @ApiModel(description="Link between operations")
 case class Transition

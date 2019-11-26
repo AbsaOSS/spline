@@ -16,39 +16,36 @@
 
 package za.co.absa.spline.producer.rest.controller
 
-import io.swagger.annotations.ApiOperation
+import io.swagger.annotations.{Api, ApiOperation, ApiResponse, ApiResponses}
 import javax.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
+import org.springframework.http.{HttpStatus, ResponseEntity}
 import org.springframework.web.bind.annotation._
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @RestController
-class ProducerStatusController @Autowired()(
+@Api(tags = Array("status"))
+class StatusController @Autowired()(
   val repo: ExecutionProducerRepository) {
 
   import ExecutionContext.Implicits.global
 
-  @RequestMapping(value = Array("/status"), method = Array(RequestMethod.HEAD))
+  @RequestMapping(
+    path = Array("/status"),
+    method = Array(RequestMethod.HEAD))
   @ApiOperation(
-    value = "/status",
-    notes =
-      """
-        Check that producer is running and that the database is accessible and initialized
-
-        Returned status code:
-
-        200 OK                    // when everything's working, or
-        503 Service Unavailable   // when there is a problem
-      """
-  )
-  def status(response: HttpServletResponse): Unit = {
-    repo.isDatabaseOk().foreach {
-      case true  => response.setStatus(HttpStatus.OK.value())
-      case false => response.setStatus(HttpStatus.SERVICE_UNAVAILABLE.value())
-    }
-  }
-
+    value = "Server health status",
+    notes = "Check that producer is running and that the database is accessible and initialized")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Everything's working"),
+    new ApiResponse(code = 503, message = "There is a problem")
+  ))
+  def status(response: HttpServletResponse): Future[_] = repo
+    .isDatabaseOk
+    .map({
+      if (_) new ResponseEntity(HttpStatus.OK)
+      else new ResponseEntity(HttpStatus.SERVICE_UNAVAILABLE)
+    })
 }

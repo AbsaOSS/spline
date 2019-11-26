@@ -17,7 +17,7 @@
 package za.co.absa.spline.consumer.service.model
 
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
-import za.co.absa.spline.consumer.service.model.ExecutedLogicalPlan.OperationID
+import za.co.absa.spline.consumer.service.model.LineageDetailed.OperationID
 
 @ApiModel(description = "Operation")
 case class Operation

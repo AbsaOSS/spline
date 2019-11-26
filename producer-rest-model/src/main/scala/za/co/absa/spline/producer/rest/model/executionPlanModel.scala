@@ -16,20 +16,10 @@
 
 package za.co.absa.spline.producer.rest.model
 
-import java.util.UUID
-
-case class ExecutionPlan(
-  id: UUID,
-  operations: Operations,
-  systemInfo: SystemInfo,
-  agentInfo: Option[AgentInfo],
-  extraInfo: Map[String, Any] = Map.empty
-)
-
 case class Operations(
-  reads: Seq[ReadOperation],
   write: WriteOperation,
-  other: Seq[DataOperation]) {
+  reads: Seq[ReadOperation] = Nil,
+  other: Seq[DataOperation] = Nil) {
 
   def all: Seq[OperationLike] = reads ++ other :+ write
 }

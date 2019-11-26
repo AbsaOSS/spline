@@ -55,7 +55,7 @@ export class DashboardComponent implements OnDestroy {
           this.dashboardState = dashboardState
           this.sort = {
             prop: dashboardState.sort.field,
-            dir: dashboardState.sort.direction
+            dir: dashboardState.sort.order
           }
           this.loadExecutionEvents(dashboardState)
           this.loadingIndicator.activate()
@@ -77,9 +77,9 @@ export class DashboardComponent implements OnDestroy {
         asAtTime: this.asAtTime,
         timestampStart: dateRange && dateRange[0],
         timestampEnd: dateRange && dateRange[1],
-        offset: dashboardState.pagination.page,
-        sortName: dashboardState.sort.field,
-        sortDirection: dashboardState.sort.direction,
+        pageNum: dashboardState.pagination.page,
+        sortField: dashboardState.sort.field,
+        sortOrder: dashboardState.sort.order,
         searchTerm: dashboardState.filters.searchQuery,
       }))
   }
@@ -108,7 +108,7 @@ export class DashboardComponent implements OnDestroy {
   }
 
   public onPageChange(page: TablePage): void {
-    this.store.dispatch(new DashboardActions.SetPageNumber(page.offset))
+    this.store.dispatch(new DashboardActions.SetPageNumber(page.offset+1))
   }
 
   public onSortChange(sort: TableSort): void {

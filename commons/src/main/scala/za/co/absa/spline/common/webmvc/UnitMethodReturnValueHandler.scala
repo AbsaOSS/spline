@@ -28,6 +28,9 @@ object UnitMethodReturnValueHandler {
     classOf[BoxedUnit])
 }
 
+/**
+  * To be used in combination with @Controller method without @ResponseBody
+  */
 class UnitMethodReturnValueHandler extends HandlerMethodReturnValueHandler {
 
   import UnitMethodReturnValueHandler.unitClasses

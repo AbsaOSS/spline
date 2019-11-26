@@ -17,10 +17,10 @@
 package za.co.absa.spline.consumer.service.repo
 
 import za.co.absa.spline.consumer.service.model.ExecutionInfo.Id
-import za.co.absa.spline.consumer.service.model.{DataSourceInfo, ExecutedLogicalPlan}
+import za.co.absa.spline.consumer.service.model.LineageDetailed
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ExecutionPlanRepository {
-  def findById(execId: Id)(implicit ec: ExecutionContext): Future[ExecutedLogicalPlan]
+  def findById(execId: Id)(implicit ec: ExecutionContext): Future[LineageDetailed]
 }

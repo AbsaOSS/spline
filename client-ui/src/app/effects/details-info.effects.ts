@@ -20,7 +20,7 @@ import * as _ from 'lodash';
 import {Observable} from 'rxjs';
 import {flatMap, map} from 'rxjs/operators';
 import {Attribute, OperationDetails} from '../generated/models';
-import {OperationDetailsControllerService} from '../generated/services';
+import {OperationsService} from '../generated/services';
 import {StrictHttpResponse} from '../generated/strict-http-response';
 import {AppState} from '../model/app-state';
 import {AttributeType} from '../model/types/attributeType';
@@ -35,83 +35,83 @@ import * as DetailsInfoAction from '../store/actions/details-info.actions';
 @Injectable()
 export class DetailsInfoEffects {
 
-    constructor(
-        private actions$: Actions,
-        private operationDetailsControllerService: OperationDetailsControllerService,
-        private store: Store<AppState>
-    ) {
-        this.store
-            .select('config', 'apiUrl')
-            .subscribe(apiUrl => this.operationDetailsControllerService.rootUrl = apiUrl)
-    }
+  constructor(
+    private actions$: Actions,
+    private operationsService: OperationsService,
+    private store: Store<AppState>
+  ) {
+    this.store
+      .select('config', 'apiUrl')
+      .subscribe(apiUrl => this.operationsService.rootUrl = apiUrl)
+  }
 
-    @Effect()
-    public getDetailsInfo$: Observable<Action> = this.actions$.pipe(
-        ofType(DetailsInfoAction.DetailsInfoActionTypes.DETAILS_INFOS_GET),
-        flatMap((action: any) => this.getDetailsInfo(action.payload)),
-        map(res => new DetailsInfoAction.GetSuccess(res))
+  @Effect()
+  public getDetailsInfo$: Observable<Action> = this.actions$.pipe(
+    ofType(DetailsInfoAction.DetailsInfoActionTypes.DETAILS_INFOS_GET),
+    flatMap((action: any) => this.getDetailsInfo(action.payload)),
+    map(res => new DetailsInfoAction.GetSuccess(res))
+  )
+
+
+  private getDetailsInfo = (nodeId: string): Observable<OperationDetailsVM> => {
+    return this.operationsService.operationUsingGETResponse(nodeId).pipe(
+      map(this.toOperationDetailsView),
+      handleException(this.store)
     )
+  }
 
+  private toOperationDetailsView = (operationDetailsVMHttpResponse: StrictHttpResponse<OperationDetails>): OperationDetailsVM => {
+    const operationDetailsVm = {} as OperationDetailsVM
+    operationDetailsVm.inputs = operationDetailsVMHttpResponse.body.inputs
+    operationDetailsVm.output = operationDetailsVMHttpResponse.body.output
+    operationDetailsVm.operation = operationDetailsVMHttpResponse.body.operation
 
-    private getDetailsInfo = (nodeId: string): Observable<OperationDetailsVM> => {
-        return this.operationDetailsControllerService.operationUsingGETResponse(nodeId).pipe(
-            map(this.toOperationDetailsView),
-            handleException(this.store)
-        )
-    }
+    const schemas: Array<Array<AttributeVM>> = []
+    _.each(operationDetailsVMHttpResponse.body.schemas, (attributeRefArray: Array<Attribute>) => {
+      const attributes = attributeRefArray.map(attRef =>
+        this.getAttribute(
+          attRef.dataTypeId,
+          operationDetailsVMHttpResponse.body.dataTypes as GenericDataTypeVM[],
+          attributeRefArray,
+          attRef.name))
+      schemas.push(attributes)
+    })
+    operationDetailsVm.schemas = schemas
+    return operationDetailsVm
+  }
 
-    private toOperationDetailsView = (operationDetailsVMHttpResponse: StrictHttpResponse<OperationDetails>): OperationDetailsVM => {
-        const operationDetailsVm = {} as OperationDetailsVM
-        operationDetailsVm.inputs = operationDetailsVMHttpResponse.body.inputs
-        operationDetailsVm.output = operationDetailsVMHttpResponse.body.output
-        operationDetailsVm.operation = operationDetailsVMHttpResponse.body.operation
+  private getAttribute = (attributeId: string, dataTypes: Array<GenericDataTypeVM>, attributeRefArray: Array<Attribute>, attributeName: string = null): AttributeVM => {
+    const dataType = this.getDataType(dataTypes, attributeId)
+    const attribute = {} as AttributeVM
+    const dataTypeVM = {} as DataTypeVM
+    dataTypeVM._type = dataType._type
+    dataTypeVM.name = dataType.name
 
-        const schemas: Array<Array<AttributeVM>> = []
-        _.each(operationDetailsVMHttpResponse.body.schemas, (attributeRefArray: Array<Attribute>) => {
-            const attributes = attributeRefArray.map(attRef =>
-              this.getAttribute(
-                attRef.dataTypeId,
-                operationDetailsVMHttpResponse.body.dataTypes as GenericDataTypeVM[],
-                attributeRefArray,
-                attRef.name))
-            schemas.push(attributes)
+    switch (dataType._type) {
+      case AttributeType.Simple:
+        attribute.name = attributeName ? attributeName : dataType._type
+        attribute.dataType = dataTypeVM
+        return attribute
+      case AttributeType.Array:
+        attribute.name = attributeName
+        dataTypeVM.elementDataType = this.getAttribute(dataType.elementDataTypeId, dataTypes, attributeRefArray, attributeName)
+        dataTypeVM.name = AttributeType.Array
+        attribute.dataType = dataTypeVM
+        return attribute
+      case AttributeType.Struct:
+        attribute.name = attributeName
+        dataTypeVM.children = [] as Array<AttributeVM>
+        _.each(dataType.fields, (attributeRef: Attribute) => {
+          dataTypeVM.children.push(this.getAttribute(attributeRef.dataTypeId, dataTypes, attributeRefArray, attributeRef.name))
         })
-        operationDetailsVm.schemas = schemas
-        return operationDetailsVm
+        dataTypeVM.name = AttributeType.Struct
+        attribute.dataType = dataTypeVM
+        return attribute
     }
+  }
 
-    private getAttribute = (attributeId: string, dataTypes: Array<GenericDataTypeVM>, attributeRefArray: Array<Attribute>, attributeName: string = null): AttributeVM => {
-        const dataType = this.getDataType(dataTypes, attributeId)
-        const attribute = {} as AttributeVM
-        const dataTypeVM = {} as DataTypeVM
-        dataTypeVM._type = dataType._type
-        dataTypeVM.name = dataType.name
-
-        switch (dataType._type) {
-            case AttributeType.Simple:
-                attribute.name = attributeName ? attributeName : dataType._type
-                attribute.dataType = dataTypeVM
-                return attribute
-            case AttributeType.Array:
-                attribute.name = attributeName
-                dataTypeVM.elementDataType = this.getAttribute(dataType.elementDataTypeId, dataTypes, attributeRefArray, attributeName)
-                dataTypeVM.name = AttributeType.Array
-                attribute.dataType = dataTypeVM
-                return attribute
-            case AttributeType.Struct:
-                attribute.name = attributeName
-                dataTypeVM.children = [] as Array<AttributeVM>
-                _.each(dataType.fields, (attributeRef: Attribute) => {
-                    dataTypeVM.children.push(this.getAttribute(attributeRef.dataTypeId, dataTypes, attributeRefArray, attributeRef.name))
-                })
-                dataTypeVM.name = AttributeType.Struct
-                attribute.dataType = dataTypeVM
-                return attribute
-        }
-    }
-
-    private getDataType = (dataTypes: GenericDataTypeVM[], dataTypeId: string): GenericDataTypeVM => {
-        return dataTypes.find((dt: GenericDataTypeVM) => dt.id == dataTypeId)
-    }
+  private getDataType = (dataTypes: GenericDataTypeVM[], dataTypeId: string): GenericDataTypeVM => {
+    return dataTypes.find((dt: GenericDataTypeVM) => dt.id == dataTypeId)
+  }
 
 }

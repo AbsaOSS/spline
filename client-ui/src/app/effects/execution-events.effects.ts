@@ -20,7 +20,7 @@ import {Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
 import {map, switchMap} from 'rxjs/operators';
 import {PageableExecutionEventsResponse} from '../generated/models/pageable-execution-events-response';
-import {ExecutionEventControllerService} from '../generated/services';
+import {ExecutionEventsService} from '../generated/services';
 import {AppState} from '../model/app-state';
 import {handleException} from '../rxjs/operators/handleException';
 import * as ExecutionEventsAction from '../store/actions/execution-events.actions';
@@ -32,12 +32,12 @@ export class ExecutionEventsEffects {
 
   constructor(
     private actions$: Actions,
-    private executionEventControllerService: ExecutionEventControllerService,
+    private executionEventService: ExecutionEventsService,
     private store: Store<AppState>
   ) {
     this.store
       .select('config', 'apiUrl')
-      .subscribe(apiUrl => this.executionEventControllerService.rootUrl = apiUrl)
+      .subscribe(apiUrl => this.executionEventService.rootUrl = apiUrl)
   }
 
   @Effect()
@@ -45,8 +45,8 @@ export class ExecutionEventsEffects {
     this.actions$.pipe(
       ofType(ExecutionEventsAction.ExecutionEventsActionTypes.GET),
       switchMap(({payload: params}) =>
-        this.executionEventControllerService
-          .executionEventUsingGET(params)
+        this.executionEventService
+          .executionEventsUsingGET(params)
           .pipe(handleException(this.store))),
       map((res: PageableExecutionEventsResponse) =>
         new ExecutionEventsAction.GetSuccess(res))

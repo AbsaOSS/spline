@@ -530,6 +530,12 @@
                 <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.twitter</groupId>
+                <artifactId>finatra-jackson_${scala.compat.version}</artifactId>
+                <version>19.9.0</version>
+            </dependency>
+
 
             <!-- Commons -->
 

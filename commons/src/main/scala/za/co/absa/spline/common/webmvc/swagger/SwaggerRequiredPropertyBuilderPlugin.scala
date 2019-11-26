@@ -24,6 +24,7 @@ import springfox.documentation.spi.schema.ModelPropertyBuilderPlugin
 import springfox.documentation.spi.schema.contexts.ModelPropertyContext
 import springfox.documentation.swagger.common.SwaggerPluginSupport.{SWAGGER_PLUGIN_ORDER, pluginDoesApply}
 import springfox.documentation.swagger.schema.ApiModelProperties._
+import za.co.absa.spline.common.ReflectionUtils
 
 import scala.language.implicitConversions
 
@@ -46,7 +47,10 @@ class SwaggerRequiredPropertyBuilderPlugin extends ModelPropertyBuilderPlugin {
         map(_.required())
 
     def maybeRequiredByType =
-      context.getBeanPropertyDefinition.map(d => !classOf[Option[_]].isAssignableFrom(d.getRawPrimaryType))
+      context.getBeanPropertyDefinition.map(d =>
+        !classOf[Option[_]].isAssignableFrom(d.getRawPrimaryType) &&
+          ReflectionUtils.caseClassCtorArgDefaultValue(d.getAccessor.getDeclaringClass, d.getName).isEmpty
+      )
 
     context.getBuilder.required(
       maybeRequiredByPropertyAnnotation.

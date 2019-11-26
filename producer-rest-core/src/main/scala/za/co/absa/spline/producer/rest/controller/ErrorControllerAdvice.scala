@@ -16,14 +16,22 @@
 
 package za.co.absa.spline.producer.rest.controller
 
-import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
+import org.springframework.beans.TypeMismatchException
+import org.springframework.http.HttpStatus.{BAD_REQUEST, INTERNAL_SERVER_ERROR}
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageConversionException
 import org.springframework.web.bind.annotation.{ControllerAdvice, ExceptionHandler}
 import za.co.absa.spline.common.logging.ErrorCode
 
 @ControllerAdvice(basePackageClasses = Array(classOf[_package]))
 class ErrorControllerAdvice {
 
+  @ExceptionHandler(Array(
+    classOf[TypeMismatchException],
+    classOf[HttpMessageConversionException]
+  ))
+  def badRequest(e: Exception): ResponseEntity[_] = new ResponseEntity(ErrorCode(e), BAD_REQUEST)
+
   @ExceptionHandler
-  def handle_500(e: Throwable) = new ResponseEntity(ErrorCode(e), INTERNAL_SERVER_ERROR)
+  def serverError(e: Throwable): ResponseEntity[_] = new ResponseEntity(ErrorCode(e), INTERNAL_SERVER_ERROR)
 }

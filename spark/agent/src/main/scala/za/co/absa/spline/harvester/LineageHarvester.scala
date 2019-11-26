@@ -82,7 +82,7 @@ class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPl
 
       val plan = ExecutionPlan(
         id = UUID.randomUUID,
-        operations = Operations(opReads, writeOp, opOthers),
+        operations = Operations(writeOp, opReads, opOthers),
         systemInfo = SystemInfo(AppMetaInfo.Spark, spark.SPARK_VERSION),
         agentInfo = Some(AgentInfo(AppMetaInfo.Spline, SplineBuildInfo.version)),
         extraInfo = Map(

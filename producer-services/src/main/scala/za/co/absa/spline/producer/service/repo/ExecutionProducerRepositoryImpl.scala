@@ -22,7 +22,6 @@ import java.{lang => jl}
 
 import com.arangodb.ArangoDatabaseAsync
 import org.apache.commons.lang3.StringUtils.wrap
-import org.slf4s.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.common.OptionImplicits._
@@ -122,19 +121,15 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
       .execute(db)
   }
 
-  /**
-   * Sanity check to find out whether the database is reachable and initialized
-   */
-  override def isDatabaseOk(): Future[Boolean] = {
+  override def isDatabaseOk: Future[Boolean] = {
     try {
-      val executionName = NodeDef.Execution.name
-      val futureIsDbOk = db.collection(executionName).exists().toScala.mapTo[Boolean]
-      futureIsDbOk.onSuccess{
+      val anySplineCollectionName = NodeDef.Execution.name
+      val futureIsDbOk = db.collection(anySplineCollectionName).exists.toScala.mapTo[Boolean]
+      futureIsDbOk.onSuccess {
         case false =>
-          log.error(
-            s"Collection '${executionName}' does not exist. Spline database is not initialized properly!")
+          log.error(s"Collection '${anySplineCollectionName}' does not exist. Spline database is not initialized properly!")
       }
-      futureIsDbOk.recover {case _ => false}
+      futureIsDbOk.recover { case _ => false }
     } catch {
       case NonFatal(_) => Future.successful(false)
     }

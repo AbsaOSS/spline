@@ -18,12 +18,14 @@ package za.co.absa.spline.producer.rest
 
 import java.util
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import com.twitter.finatra.FinatraInternalModules
 import org.springframework.context.annotation.{Bean, ComponentScan, Configuration}
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
 import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
-import za.co.absa.spline.common.webmvc.ScalaFutureMethodReturnValueHandler
 import za.co.absa.spline.common.webmvc.jackson.ObjectMapperBeanPostProcessor
+import za.co.absa.spline.common.webmvc.{ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
 
 @EnableWebMvc
 @Configuration
@@ -35,8 +37,12 @@ class ProducerRESTConfig extends WebMvcConfigurer {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   override def addReturnValueHandlers(returnValueHandlers: util.List[HandlerMethodReturnValueHandler]): Unit = {
+    returnValueHandlers.add(new UnitMethodReturnValueHandler)
     returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler)
   }
 
-  @Bean def jacksonConfigurer = new ObjectMapperBeanPostProcessor(_.registerModule(DefaultScalaModule))
+  @Bean def jacksonConfigurer = new ObjectMapperBeanPostProcessor(_
+    .registerModule(DefaultScalaModule)
+    .setPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CAMEL_CASE)
+    .registerModule(FinatraInternalModules.caseClassModule))
 }

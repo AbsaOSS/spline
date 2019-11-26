@@ -69,8 +69,8 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
+            <groupId>com.twitter</groupId>
+            <artifactId>finatra-jackson_${scala.compat.version}</artifactId>
         </dependency>
 
         <!-- test scope -->

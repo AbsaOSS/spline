@@ -44,16 +44,16 @@ object Spline04Actor {
 
 
   private object RESTResource {
-    val ExecutionPlan = "execution/plan"
-    val ExecutionEvent = "execution/event"
+    val ExecutionPlans = "execution-plans"
+    val ExecutionEvents = "execution-events"
   }
 
 }
 
 class Spline04Actor(restClient: RestClient) extends Actor with ActorLogging {
 
-  private val executionPlanEndpoint = restClient.createEndpoint(RESTResource.ExecutionPlan)
-  private val executionEventEndpoint = restClient.createEndpoint(RESTResource.ExecutionEvent)
+  private val executionPlansEndpoint = restClient.createEndpoint(RESTResource.ExecutionPlans)
+  private val executionEventsEndpoint = restClient.createEndpoint(RESTResource.ExecutionEvents)
 
   override def receive: Receive = {
     case Save(plan, maybeEvent) =>
@@ -72,12 +72,12 @@ class Spline04Actor(restClient: RestClient) extends Actor with ActorLogging {
   }
 
   private def save(plan: ExecutionPlan): Future[UUID] =
-    executionPlanEndpoint
+    executionPlansEndpoint
       .post(plan.toJson)
       .map(idAsJson => UUID.fromString(idAsJson.fromJson[String]))
 
   private def save(event: ExecutionEvent): Future[Unit] =
-    executionEventEndpoint
+    executionEventsEndpoint
       .post(Seq(event).toJson)
       .map(_ => Unit)
 
