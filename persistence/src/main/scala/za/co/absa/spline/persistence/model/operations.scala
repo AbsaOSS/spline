@@ -13,66 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package za.co.absa.spline.persistence.model
-
-case class Progress(
-  timestamp: Long,
-  error: Option[Any],
-  extra: Map[String, Any],
-  override val _key: String,
-  _creationTimestamp: Long = System.currentTimeMillis
-) extends Vertex
-
-case class Execution(
-  extra: Map[String, Any],
-  override val _key: String
-) extends Vertex
-
-trait DataType {
-  def id: String
-  def nullable: Boolean
-}
-
-case class SimpleDataType(
-  override val id: String,
-  override val nullable: Boolean,
-  name: String
-) extends DataType {
-  def this() = this(null, false, null)
-}
-
-case class StructDataType(
-  override val id: String,
-  override val nullable: Boolean,
-  fields: Array[Attribute]
-) extends DataType {
-  def this() = this(null, false, null)
-}
-
-case class ArrayDataType(
-  override val id: String,
-  override val nullable: Boolean,
-  elementDataTypeId: String
-) extends DataType {
-  def this() = this(null, false, null)
-}
-
-case class Schema(
-  attributes: Array[Attribute])
-
-trait ArangoDocument
-
-trait Vertex extends ArangoDocument {
-  def _key: String
-}
-
-case class Edge(
-  _from: String,
-  _to: String
-) extends ArangoDocument {
-  def this() = this(null, null)
-}
-
 
 trait Operation extends Vertex {
   def name: String
@@ -109,17 +51,4 @@ case class Transformation(
   override val _type: String = "Transformation"
 ) extends Operation {
   def this() = this(null, null, null, null)
-}
-
-case class DataSource(
-  uri: String,
-  override val _key: String
-) extends Vertex {
-  def this() = this(null, null)
-}
-
-case class Attribute(
-  name: String,
-  dataTypeId: String) {
-  def this() = this(null, null)
 }
