@@ -13,6 +13,11 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+<div *ngIf="dashboardState.filters.dateRange" class="filters mo-padding">
+  <time-frame-picker [range]="dashboardState.filters.dateRange" [rangeBoundaries]="executionEvents.totalDateRange"
+    (rangeChange)="onDateRangeSelected($event)">
+  </time-frame-picker>
+</div>
 <div class="container-fluid">
   <div class="row">
     <div class="col-md-12">
@@ -20,10 +25,10 @@
         value="{{dashboardState.filters.searchQuery}}" (keyup)="onSearchTermChange($event)" />
 
       <div class="dataMode float-left">
-        Filter by Date/Time
-        <ngx-switch [size]="'small'" [onColor]="'blue'" [offColor]="'gray'"
-          [status]="!!dashboardState.filters.dateRange" (statusChange)="onFilterByDateSwitchToggle($event)">
-        </ngx-switch>
+        Filter by Date/Time &nbsp;
+        <mat-slide-toggle [color]="'primary'" [checked]="dashboardState.filters.dateRange"
+          (change)="onFilterByDateSwitchToggle($event)">
+        </mat-slide-toggle>
       </div>
       <ngx-datatable #table class='table material expandable' [columnMode]="'force'" [headerHeight]="'auto'"
         [footerHeight]="'auto'" [rowHeight]="'auto'" [scrollbarV]="false" [selectionType]="'single'"
@@ -53,7 +58,7 @@
         </ngx-datatable-column>
         <ngx-datatable-column name="Execution Date" prop="timestamp" [width]="50">
           <ng-template let-expanded="timestamp" let-row="row" ngx-datatable-cell-template>
-            <div class="tooltipCell" title=" {{row.timestamp | date:'yyyy-MM-dd, h:mm:ss a'}}" placement="top">
+            <div class="tooltipCell" title=" {{row.timestamp | date:'yyyy-MM-dd, h:mm:ss a'}}" placement="bottom">
               {{row.timestamp | date:'yyyy-MM-dd, h:mm:ss a'}}
             </div>
           </ng-template>
@@ -95,9 +100,3 @@
     </div>
   </div>
 </div>
-
-<footer *ngIf="dashboardState.filters.dateRange" class="footer container-fluid">
-  <time-frame-picker [range]="dashboardState.filters.dateRange" [rangeBoundaries]="executionEvents.totalDateRange"
-    (rangeChange)="onDateRangeSelected($event)">
-  </time-frame-picker>
-</footer>

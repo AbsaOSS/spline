@@ -17,9 +17,12 @@
 import { HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatExpansionModule } from '@angular/material';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { EffectsModule } from '@ngrx/effects';
 import { routerReducer, RouterStateSerializer, StoreRouterConnectingModule } from '@ngrx/router-store';
 import { Store, StoreModule } from '@ngrx/store';
@@ -28,40 +31,49 @@ import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import { TreeModule } from 'angular-tree-component';
 import { PrettyJsonModule } from 'angular2-prettyjson';
 import { CytoscapeNgLibModule } from 'cytoscape-ng-lib';
-import { NgxBootstrapSwitchModule } from 'ngx-bootstrap-switch';
 import { BsDatepickerModule, DatepickerModule } from 'ngx-bootstrap/datepicker';
 import { ModalModule } from 'ngx-bootstrap/modal';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { ToastrModule } from 'ngx-toastr';
 import { filter } from 'rxjs/operators';
 import { environment } from '../environments/environment';
 import { AppComponent } from './app.component';
+import { AdaptiveComponent } from './components/adaptive/adaptive.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { ErrorComponent } from './components/error/error.component';
+import { ExecutionPlanDetailsComponent } from './components/execution-plan-details/execution-plan-details.component';
+import { FooterComponent } from './components/footer/footer.component';
+import { HeaderComponent } from './components/header/header.component';
 import { LineageOverviewDetailsComponent } from './components/lineage-overview/lineage-overview-details/lineage-overview-details.component';
 import { LineageOverviewGraphComponent } from './components/lineage-overview/lineage-overview-graph/lineage-overview-graph.component';
 import { LineageOverviewComponent } from './components/lineage-overview/lineage-overview.component';
 import { AttributeDetailsComponent } from './components/lineage/lineage-details/attribute-details/attribute-details.component';
 import { LineageDetailsComponent } from './components/lineage/lineage-details/lineage-details.component';
 import { AggregateComponent } from './components/lineage/lineage-details/operation-properties-details/aggregate/aggregate.component';
-import { PropertiesComponent } from './components/lineage/lineage-details/operation-properties-details/properties/properties.component';
 import { FilterComponent } from './components/lineage/lineage-details/operation-properties-details/filter/filter.component';
 import { GenericComponent } from './components/lineage/lineage-details/operation-properties-details/generic/generic.component';
 import { JoinComponent } from './components/lineage/lineage-details/operation-properties-details/join/join.component';
 import { LogicalRelationComponent } from './components/lineage/lineage-details/operation-properties-details/logical-relation/logical-relation.component';
-import { ProjectionComponent } from './components/lineage/lineage-details/operation-properties-details/projection/projection.component';
 import { OperationPropertiesDetailsComponent } from './components/lineage/lineage-details/operation-properties-details/operation-properties-details.component';
+import { ProjectionComponent } from './components/lineage/lineage-details/operation-properties-details/projection/projection.component';
+import { PropertiesComponent } from './components/lineage/lineage-details/operation-properties-details/properties/properties.component';
 import { SortComponent } from './components/lineage/lineage-details/operation-properties-details/sort/sort.component';
 import { SchemaTableComponent } from './components/lineage/lineage-details/schema-table/schema-table.component';
 import { SchemaComponent } from './components/lineage/lineage-details/schema/schema.component';
 import { LineageGraphComponent } from './components/lineage/lineage-graph/lineage-graph.component';
 import { LineageComponent } from './components/lineage/lineage.component';
 import { ModalExpressionComponent } from './components/modal/modal-expression/modal-expression.component';
+import { DatePickerComponent } from './components/time-frame-picker/date-picker/date-picker.component';
+import { DateRangePickerComponent } from './components/time-frame-picker/date-range-picker/date-range-picker.component';
+import { TimeFramePickerComponent } from './components/time-frame-picker/time-frame-picker.component';
+import { TimePickerComponent } from './components/time-frame-picker/time-picker/time-picker.component';
 import { ConfigEffects } from './effects/config.effects';
 import { DetailsInfoEffects } from './effects/details-info.effects';
 import { ExecutionEventsEffects } from './effects/execution-events.effects';
 import { ExecutionPlanEffects } from './effects/execution-plan.effects';
 import { LineageOverviewEffects } from './effects/lineage-overview.effects';
 import { ModalEffects } from './effects/modal.effects';
+import { NotificationsEffects } from './effects/notifications-effects';
 import { RouterEffects } from './effects/router.effects';
 import { AppState } from './model/app-state';
 import { RouterSerializer } from './serializers/routerSerializer';
@@ -76,18 +88,6 @@ import { executionEventReducer } from './store/reducers/execution-events.reducer
 import { executionPlanReducer } from './store/reducers/execution-plan.reducer';
 import { layoutReducer } from './store/reducers/layout.reducer';
 import { lineageOverviewReducer } from './store/reducers/lineage-overview.reducer';
-import { NotificationsEffects } from './effects/notifications-effects';
-import { ExecutionPlanDetailsComponent } from './components/execution-plan-details/execution-plan-details.component';
-import { TooltipModule } from 'ngx-bootstrap/tooltip';
-import { TimeFramePickerComponent } from './components/time-frame-picker/time-frame-picker.component';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { DatePickerComponent } from './components/time-frame-picker/date-picker/date-picker.component';
-import { DateRangePickerComponent } from './components/time-frame-picker/date-range-picker/date-range-picker.component';
-import { TimePickerComponent } from './components/time-frame-picker/time-picker/time-picker.component';
-import { HeaderComponent } from './components/header/header.component';
-import { MatExpansionModule } from '@angular/material';
-import { FooterComponent } from './components/footer/footer.component';
-import { AdaptiveComponent } from './components/adaptive/adaptive.component';
 
 
 export function initializeApp(store: Store<AppState>): () => Promise<any> {
@@ -151,6 +151,7 @@ const ROOT_ROUTING = "app/"
     GenericComponent
   ],
   imports: [
+    MatSlideToggleModule,
     BrowserAnimationsModule,
     NgbModule,
     PrettyJsonModule,
@@ -160,7 +161,6 @@ const ROOT_ROUTING = "app/"
     CytoscapeNgLibModule,
     HttpClientModule,
     NgxDatatableModule,
-    NgxBootstrapSwitchModule.forRoot(),
     FormsModule,
     BsDatepickerModule.forRoot(),
     DatepickerModule.forRoot(),

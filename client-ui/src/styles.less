@@ -42,6 +42,7 @@ body {
     height: calc(100vh - 29px);
 }
 
+
 .btn-primary {
     color           : #fff;
     background-color: #337ab7;
@@ -84,6 +85,10 @@ hr {
 
 /** DATATABLE **/
 
+.table td {
+    padding: 0 !important;
+}
+
 .ngx-datatable.material .datatable-footer .page-count {
     line-height: unset;
     height     : unset;
@@ -113,6 +118,10 @@ hr {
     overflow     : hidden;
     text-overflow: ellipsis;
     width        : 100%;
+}
+
+.datatable-header-cell {
+    overflow: hidden;
 }
 
 /** Graph **/
@@ -168,7 +177,6 @@ pre span {
 }
 
 /** scrollbar **/
-
 ::-webkit-scrollbar {
     width : 7px;
     height: 7px;
@@ -188,4 +196,72 @@ pre span {
     font-family: 'Font Awesome 5 Free';
     content    : "\f005";
     font-weight: 900;
+}
+
+/** Material overides */
+.mat-slide-toggle.mat-checked:not(.mat-disabled) .mat-slide-toggle-bar {
+    width           : 60px !important;
+    background-color: white;
+}
+
+
+.mat-slide-toggle.mat-checked:not(.mat-disabled) .mat-slide-toggle-thumb {
+    width                     : 30px;
+    background-color          : #428bca;
+    margin-left               : 12px;
+    border-top-right-radius   : 2px !important;
+    border-bottom-right-radius: 2px !important;
+}
+
+.mat-slide-toggle-bar {
+    border          : 1px solid #ccc;
+    height          : 22px !important;
+    width           : 60px !important;
+    background-color: white;
+    border-radius   : 3px !important;
+}
+
+
+.mat-slide-toggle-thumb {
+    box-shadow      : none !important;
+    border-radius   : 0% !important;
+    background-color: #eee;
+    height          : 20px !important;
+    width           : 30px !important;
+    margin-top      : 3px;
+}
+
+.mat-slide-toggle:not(.mat-checked) .mat-slide-toggle-thumb {
+    border-top-left-radius   : 2px !important;
+    border-bottom-left-radius: 2px !important;
+}
+
+.mat-slide-toggle-thumb-container {
+    cursor: pointer !important;
+}
+
+.mat-slide-toggle {
+    &.mat-checked {
+        .mat-slide-toggle-bar::after {
+            content  : 'On' !important;
+            font-size: 12px !important;
+            color    : white !important;
+            position : absolute !important;
+            left     : 35px !important;
+            top      : -2px !important;
+            z-index  : 1000;
+        }
+    }
+
+    &:not(.mat-checked) {
+        .mat-slide-toggle-bar::after {
+            content  : 'Off' !important;
+            font-size: 12px !important;
+            color    : gray !important;
+            position : absolute !important;
+            left     : 5px !important;
+            top      : -2px !important;
+            z-index  : 1000;
+        }
+    }
 }
