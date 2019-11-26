@@ -1,4 +1,4 @@
-# Ui2
+# Spline UI
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 7.0.5.
 
@@ -28,7 +28,7 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 
 ---
 
-    Copyright 2017 ABSA Group Limited
+    Copyright 2019 ABSA Group Limited
     
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
