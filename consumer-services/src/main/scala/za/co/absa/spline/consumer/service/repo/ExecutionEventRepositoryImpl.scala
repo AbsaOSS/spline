@@ -75,9 +75,9 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |                "applicationName" : exec.extra.appName,
         |                "applicationId" : ee.extra.appId,
         |                "timestamp" : ee.timestamp,
-        |                "dataSourceUri" : ope.properties.outputSource,
+        |                "dataSourceUri" : ope.outputSource,
         |                "dataSourceType" : ope.properties.destinationType,
-        |                "append" : ope.properties.append
+        |                "append" : ope.append
         |            }
         |    )
         |

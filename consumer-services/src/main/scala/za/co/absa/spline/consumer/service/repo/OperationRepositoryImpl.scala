@@ -34,18 +34,6 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
         FOR ope IN operation
             FILTER ope._key == @operationId
 
-            LET readsFrom = (
-                FOR v IN 1..1
-                OUTBOUND ope readsFrom
-                RETURN { "source" : v.uri, "sourceType" : ope.properties.sourceType }
-            )
-
-            LET writesTo = FIRST(
-                FOR v IN 1..1
-                    OUTBOUND ope writesTo
-                    RETURN { "source" : v.uri, "sourceType" : ope.properties.destinationType }
-            )
-
             LET inputs = (
                 FOR v IN 1..1
                     OUTBOUND ope follows
@@ -78,7 +66,7 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
                         KEEP(d,  "id", "name", "fields", "nullable", "elementDataTypeId"),
                         {
                             "_class": d._typeHint == "dt.Simple" ? "za.co.absa.spline.persistence.model.SimpleDataType"
-                                    : d._typeHint == "dt.Array" ? "za.co.absa.spline.persistence.model.ArrayDataType"
+                                    : d._typeHint == "dt.Array"  ? "za.co.absa.spline.persistence.model.ArrayDataType"
                                     : "za.co.absa.spline.persistence.model.StructDataType"
                         }
                     )
@@ -86,11 +74,23 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
 
 
             RETURN {
-                "operation" : MERGE(KEEP(ope, "_type", "name", "properties"), {"_id": ope._key }, {"readsFrom" : readsFrom}, {"writesTo" : writesTo}),
+                "operation": {
+                                 "_id"       : ope._key,
+                                 "_type"     : ope._type,
+                                 "name"      : ope.properties.name,
+                                 "properties": MERGE(
+                                     {
+                                         "inputSources": ope.inputSources,
+                                         "outputSource": ope.outputSource,
+                                         "append"      : ope.append
+                                     },
+                                     ope.properties
+                                 )
+                             },
                 "dataTypes": dataTypesFormatted,
-                "schemas" : schemas,
-                "inputs": LENGTH(inputs) > 0 ? RANGE(0, LENGTH(inputs)-1) : [],
-                "output": LENGTH(schemas)-1
+                "schemas"  : schemas,
+                "inputs"   : LENGTH(inputs) > 0 ? RANGE(0, LENGTH(inputs) - 1) : [],
+                "output"   : LENGTH(schemas) - 1
             }
       """,
       Map("operationId" -> operationId)

@@ -24,23 +24,26 @@ trait Operation extends Vertex {
 }
 
 case class Read(
+  inputSources: Seq[String],
   override val name: String,
   override val properties: Map[String, Any],
   override val outputSchema: Option[Any],
   override val _key: String,
   override val _type: String = "Read"
 ) extends Operation {
-  def this() = this(null, null, null, null)
+  def this() = this(null, null, null, null, null)
 }
 
 case class Write(
+  outputSource: String,
+  append: Boolean,
   override val name: String,
   override val properties: Map[String, Any],
   override val outputSchema: Option[Any],
   override val _key: String,
   override val _type: String = "Write"
 ) extends Operation {
-  def this() = this(null, null, null, null)
+  def this() = this(null, false, null, null, null, null)
 }
 
 case class Transformation(

@@ -183,17 +183,18 @@ object ExecutionProducerRepositoryImpl {
   private def createOperations(executionPlan: restModel.ExecutionPlan): Seq[dbModel.Operation] = executionPlan.operations.all.map {
     case r: restModel.ReadOperation =>
       dbModel.Read(
-        name = r.params.get("name").map(n => n.toString).orNull,
-        properties = r.params + ("inputSources" -> r.inputSources),
+        name = r.params.get("name").map(_.toString).orNull,
+        inputSources = r.inputSources,
+        properties = r.params,
         outputSchema = r.schema,
         _key = s"${executionPlan.id}:${r.id.toString}"
       )
     case w: restModel.WriteOperation =>
       dbModel.Write(
-        name = w.params.get("name").map(n => n.toString).orNull,
-        properties = w.params
-          + ("outputSource" -> w.outputSource)
-          + ("append" -> w.append),
+        outputSource = w.outputSource,
+        append = w.append,
+        name = w.params.get("name").map(_.toString).orNull,
+        properties = w.params,
         outputSchema = w.schema,
         _key = s"${executionPlan.id}:${w.id.toString}"
       )

@@ -90,8 +90,8 @@ object NodeDef {
   object Operation extends NodeDef("operation") with CollectionDef {
     override def indexDefs: Seq[IndexDef] = Seq(
       IndexDef(Seq("_type"), new HashIndexOptions),
-      IndexDef(Seq("properties.outputSource"), new HashIndexOptions().sparse(true)),
-      IndexDef(Seq("properties.append"), new HashIndexOptions().sparse(true))
+      IndexDef(Seq("outputSource"), new HashIndexOptions().sparse(true)),
+      IndexDef(Seq("append"), new HashIndexOptions().sparse(true))
     )
   }
 

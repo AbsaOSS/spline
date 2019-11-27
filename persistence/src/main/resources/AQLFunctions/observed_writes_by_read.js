@@ -22,7 +22,7 @@
         FOR rds IN 2 OUTBOUND ${readEvent} progressOf, depends
             LET maybeObservedOverwrite = SLICE(
                 (FOR wo IN 1 INBOUND rds writesTo
-                    FILTER !wo.properties.append
+                    FILTER !wo.append
                     FOR e IN 2 INBOUND wo executes, progressOf
                         FILTER e.timestamp < readTime
                         SORT e.timestamp DESC
@@ -31,7 +31,7 @@
                 ), 0, 1)
             LET observedAppends = (
                 FOR wo IN 1 INBOUND rds writesTo
-                    FILTER wo.properties.append
+                    FILTER wo.append
                     FOR e IN 2 INBOUND wo executes, progressOf
                         FILTER e.timestamp > maybeObservedOverwrite[0].timestamp
                            AND e.timestamp < readTime

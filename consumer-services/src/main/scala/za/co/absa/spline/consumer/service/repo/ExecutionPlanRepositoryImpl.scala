@@ -51,7 +51,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         LET inputs = FLATTEN(
             FOR op IN ops
                 FILTER op._type == "Read"
-                RETURN op.properties.inputSources[* RETURN {
+                RETURN op.inputSources[* RETURN {
                     "source"    : CURRENT,
                     "sourceType": op.properties.sourceType
                 }]
@@ -61,7 +61,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
             ops[*
                 FILTER CURRENT._type == "Write"
                 RETURN {
-                    "source"    : CURRENT.properties.outputSource,
+                    "source"    : CURRENT.outputSource,
                     "sourceType": CURRENT.properties.destinationType
                 }]
             )
