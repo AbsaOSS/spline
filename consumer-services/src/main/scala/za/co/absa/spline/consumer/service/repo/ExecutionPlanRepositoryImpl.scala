@@ -79,6 +79,8 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
             },
             "executionPlan": {
                 "_id": exec._key,
+                "systemInfo" : exec.systemInfo,
+                "agentInfo" : exec.agentInfo,
                 "extra" : MERGE(
                     exec.extra, {
                     "inputSources" : inputSources,

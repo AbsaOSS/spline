@@ -21,15 +21,19 @@ import java.util.UUID
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
 import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
 
-@ApiModel(description="Information of the retrieved execution plan")
+@ApiModel(description = "Execution plan information")
 case class ExecutionPlanInfo
 (
-  @ApiModelProperty(value = "Execution Id")
+  @ApiModelProperty(value = "Execution plan Id")
   _id: Id,
-  @ApiModelProperty(value = "Information Map related to the execution containing for instance the list of attributes, the data types and extra info of the agent and the framework used")
+  @ApiModelProperty(value = "Name and version of the system or framework that created this execution plan")
+  systemInfo: Map[String, Any],
+  @ApiModelProperty(value = "Name and version of the Spline agent that collected this execution plan")
+  agentInfo: Map[String, Any],
+  @ApiModelProperty(value = "Other extra info")
   extra: Map[String, Any]
 ) {
-  def this() = this(null, null)
+  def this() = this(null, null, null, null)
 }
 
 object ExecutionPlanInfo {

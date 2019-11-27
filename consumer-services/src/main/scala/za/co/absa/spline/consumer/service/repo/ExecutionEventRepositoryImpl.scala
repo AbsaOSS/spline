@@ -71,7 +71,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |            RETURN {
         |                "executionEventId" : ee._key,
         |                "executionPlanId" : exec._key,
-        |                "frameworkName" : CONCAT(exec.extra.systemInfo.name, " ", exec.extra.systemInfo.version),
+        |                "frameworkName" : CONCAT(exec.systemInfo.name, " ", exec.systemInfo.version),
         |                "applicationName" : exec.extra.appName,
         |                "applicationId" : ee.extra.appId,
         |                "timestamp" : ee.timestamp,

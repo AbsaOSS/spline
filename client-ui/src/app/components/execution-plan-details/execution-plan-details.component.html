@@ -19,13 +19,13 @@
     <div>
         <p>
             <strong>System Info:</strong>
-            {{ (getExecutionPlanVM() | async )?.executionPlan.extra.systemInfo.name }}
-            {{ (getExecutionPlanVM() | async )?.executionPlan.extra.systemInfo.version }}
+            {{ (getExecutionPlanVM() | async )?.executionPlan.systemInfo.name }}
+            {{ (getExecutionPlanVM() | async )?.executionPlan.systemInfo.version }}
         </p>
         <p>
             <strong>Agent Info:</strong>
-            {{ (getExecutionPlanVM() | async )?.executionPlan.extra.agentInfo.name }}
-            {{ (getExecutionPlanVM() | async )?.executionPlan.extra.agentInfo.version }}
+            {{ (getExecutionPlanVM() | async )?.executionPlan.agentInfo.name }}
+            {{ (getExecutionPlanVM() | async )?.executionPlan.agentInfo.version }}
         </p>
         <p>
             <strong>Input Sources:</strong>

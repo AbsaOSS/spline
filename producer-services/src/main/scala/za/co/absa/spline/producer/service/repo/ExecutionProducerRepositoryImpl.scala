@@ -24,12 +24,11 @@ import com.arangodb.ArangoDatabaseAsync
 import org.apache.commons.lang3.StringUtils.wrap
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import za.co.absa.spline.common.OptionImplicits._
+import za.co.absa.spline.common.json.SimpleJsonSerDe
 import za.co.absa.spline.common.logging.Logging
 import za.co.absa.spline.persistence.model._
 import za.co.absa.spline.persistence.tx.{InsertQuery, TxBuilder}
 import za.co.absa.spline.persistence.{ArangoImplicits, Persister, model => dbModel}
-import za.co.absa.spline.producer.rest.model.AgentInfo
 import za.co.absa.spline.producer.rest.{model => restModel}
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepositoryImpl._
 
@@ -138,6 +137,9 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 }
 
 object ExecutionProducerRepositoryImpl {
+
+  import SimpleJsonSerDe._
+
   private[repo] def createEventKey(e: restModel.ExecutionEvent) =
     s"${e.planId}:${jl.Long.toString(e.timestamp, 36)}"
 
@@ -145,16 +147,12 @@ object ExecutionProducerRepositoryImpl {
     executionPlan.id,
     s"${executionPlan.id}:${executionPlan.operations.write.id}")
 
-  private def createExecution(executionPlan: restModel.ExecutionPlan): dbModel.ExecutionPlan = {
-    val extras = executionPlan
-      .extraInfo
-      .updated("systemInfo", executionPlan.systemInfo)
-      .optionally[AgentInfo](_.updated("agentInfo", _), executionPlan.agentInfo)
-
+  private def createExecution(executionPlan: restModel.ExecutionPlan): dbModel.ExecutionPlan =
     dbModel.ExecutionPlan(
-      extra = extras,
+      systemInfo = executionPlan.systemInfo.toJsonAs[Map[String, Any]],
+      agentInfo = executionPlan.agentInfo.map(_.toJsonAs[Map[String, Any]]).orNull,
+      extra = executionPlan.extraInfo,
       _key = executionPlan.id.toString)
-  }
 
   private def createReadsFrom(plan: restModel.ExecutionPlan, dsUriToKey: String => String): Seq[Edge] = for {
     ro <- plan.operations.reads

@@ -46,6 +46,8 @@ case class DataSource(
   * from the inputs to the output.
   */
 case class ExecutionPlan(
+  systemInfo: Map[String, Any],
+  agentInfo: Map[String, Any],
   extra: Map[String, Any],
   override val _key: String
 ) extends Vertex
