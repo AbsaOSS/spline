@@ -31,9 +31,13 @@ case class ExecutionPlanInfo
   @ApiModelProperty(value = "Name and version of the Spline agent that collected this execution plan")
   agentInfo: Map[String, Any],
   @ApiModelProperty(value = "Other extra info")
-  extra: Map[String, Any]
+  extra: Map[String, Any],
+  @ApiModelProperty(value = "List of all input sources referenced by the read operations in the execution plan")
+  inputs: Array[DataSourceInfo],
+  @ApiModelProperty(value = "Write destination")
+  output: DataSourceInfo
 ) {
-  def this() = this(null, null, null, null)
+  def this() = this(null, null, null, null, null, null)
 }
 
 object ExecutionPlanInfo {

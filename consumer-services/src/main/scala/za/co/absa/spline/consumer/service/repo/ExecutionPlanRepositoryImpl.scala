@@ -38,7 +38,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         LET opsWithInboundEdges = (
             FOR vi, ei IN 0..99999
                 OUTBOUND writeOp follows
-                COLLECT v=vi INTO edgesByVertex
+                COLLECT v = vi INTO edgesByVertex
                 RETURN {
                     "op": v,
                     "es": UNIQUE(edgesByVertex[* FILTER NOT_NULL(CURRENT.ei)].ei)
@@ -48,20 +48,20 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         LET ops = opsWithInboundEdges[*].op
         LET edges = opsWithInboundEdges[*].es[**]
 
-        LET inputSources = FLATTEN(
+        LET inputs = FLATTEN(
             FOR op IN ops
                 FILTER op._type == "Read"
                 RETURN op.properties.inputSources[* RETURN {
-                    "source": CURRENT,
+                    "source"    : CURRENT,
                     "sourceType": op.properties.sourceType
                 }]
             )
 
-        LET outputSource = FIRST(
+        LET output = FIRST(
             ops[*
                 FILTER CURRENT._type == "Write"
                 RETURN {
-                    "source": CURRENT.properties.outputSource,
+                    "source"    : CURRENT.properties.outputSource,
                     "sourceType": CURRENT.properties.destinationType
                 }]
             )
@@ -79,13 +79,11 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
             },
             "executionPlan": {
                 "_id": exec._key,
-                "systemInfo" : exec.systemInfo,
+                "systemInfo": exec.systemInfo,
                 "agentInfo" : exec.agentInfo,
-                "extra" : MERGE(
-                    exec.extra, {
-                    "inputSources" : inputSources,
-                    "outputSource": outputSource
-                })
+                "extra"     : exec.extra,
+                "inputs"    : inputs,
+                "output"    : output
             }
         }""",
       Map("execId" -> execId)

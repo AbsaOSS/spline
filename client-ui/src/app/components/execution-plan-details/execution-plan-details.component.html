@@ -30,11 +30,11 @@
         <p>
             <strong>Input Sources:</strong>
         </p>
-        <ul *ngFor="let inputSource of (getExecutionPlanVM() | async )?.executionPlan.extra.inputSources">
+        <ul *ngFor="let input of (getExecutionPlanVM() | async )?.executionPlan.inputs">
             <p>
-                <strong>URI:</strong> {{ inputSource.source }}
+                <strong>URI:</strong> {{ input.source }}
                 <br />
-                <strong>Type:</strong> {{ inputSource.sourceType }}
+                <strong>Type:</strong> {{ input.sourceType }}
             </p>
         </ul>
         <p>
@@ -42,10 +42,10 @@
         </p>
         <ul>
             <p>
-                <strong>URI:</strong> {{ (getExecutionPlanVM() | async )?.executionPlan.extra.outputSource.source }}
+                <strong>URI:</strong> {{ (getExecutionPlanVM() | async )?.executionPlan.output.source }}
                 <br />
                 <strong> Type: </strong>
-                {{ (getExecutionPlanVM() | async )?.executionPlan.extra.outputSource.sourceType }}
+                {{ (getExecutionPlanVM() | async )?.executionPlan.output.sourceType }}
             </p>
         </ul>
     </div>

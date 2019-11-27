@@ -22,5 +22,5 @@ case class ExecutionNode
 ) extends LineageOverviewNode {
   override type Id = String
 
-  def this() = this("", "")
+  def this() = this(null, null)
 }

@@ -25,5 +25,5 @@ case class DataSourceInfo
   @ApiModelProperty(value = "Uri of the dataSource")
   source: String
 ) {
-  def this() = this("", "")
+  def this() = this(null, null)
 }

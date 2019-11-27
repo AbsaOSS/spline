@@ -22,5 +22,5 @@ case class DataSourceNode
 ) extends LineageOverviewNode {
   override type Id = String
 
-  def this() = this("", "")
+  def this() = this(null, null)
 }
