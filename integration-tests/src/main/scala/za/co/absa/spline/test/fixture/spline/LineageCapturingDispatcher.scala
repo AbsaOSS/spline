@@ -17,7 +17,7 @@ package za.co.absa.spline.test.fixture.spline
 
 import za.co.absa.spline.harvester.dispatcher.LineageDispatcher
 import za.co.absa.spline.harvester.json.HarvesterJsonSerDe
-import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
+import za.co.absa.spline.producer.model.{ExecutionEvent, ExecutionPlan}
 
 class LineageCapturingDispatcher(lineageCaptor: LineageCaptor.Setter) extends LineageDispatcher {
 

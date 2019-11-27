@@ -20,7 +20,7 @@ import java.util.UUID
 
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import za.co.absa.spline.harvester.ComponentCreatorFactory
-import za.co.absa.spline.producer.rest.model.OperationLike
+import za.co.absa.spline.producer.model.OperationLike
 
 trait OperationNodeBuilder {
 

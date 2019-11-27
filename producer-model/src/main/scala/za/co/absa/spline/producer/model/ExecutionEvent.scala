@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.rest.model
+package za.co.absa.spline.producer.model
 
 import java.util.UUID
 
-case class ExecutionPlan(
-  id: UUID,
-  operations: Operations,
-  systemInfo: SystemInfo,
-  agentInfo: Option[AgentInfo] = None,
-  extraInfo: Map[String, Any] = Map.empty
+case class ExecutionEvent(
+  planId: UUID,
+  timestamp: Long,
+  error: Option[Any] = None,
+  extra: Map[String, Any] = Map.empty
 )

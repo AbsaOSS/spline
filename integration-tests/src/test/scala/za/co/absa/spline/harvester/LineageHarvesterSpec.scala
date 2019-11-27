@@ -27,7 +27,7 @@ import za.co.absa.spline.common.TempDirectory
 import za.co.absa.spline.common.Version.VersionOrdering._
 import za.co.absa.spline.common.Version._
 import za.co.absa.spline.model.{Attribute, dt}
-import za.co.absa.spline.producer.rest.model._
+import za.co.absa.spline.producer.model._
 import za.co.absa.spline.test.fixture.spline.SplineFixture
 import za.co.absa.spline.test.fixture.{SparkDatabaseFixture, SparkFixture}
 

@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2019 ABSA Group Limited
  *
@@ -15,13 +14,10 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.rest.model
+package za.co.absa.spline.producer.model
 
-import java.util.UUID
+package object model {
 
-case class ExecutionEvent(
-  planId: UUID,
-  timestamp: Long,
-  error: Option[Any] = None,
-  extra: Map[String, Any] = Map.empty
-)
+  trait _package
+
+}
