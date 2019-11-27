@@ -14,6 +14,11 @@ To run a selected example job (e.g. `Example1Job`):
 mvn test -P examples -D exampleClass=za.co.absa.spline.example.batch.Example1Job
 ``` 
 
+The different examples are located here:
+
+[batch](https://github.com/AbsaOSS/spline/tree/develop/examples/src/main/scala/za/co/absa/spline/example/batch)
+[batchWithDependencies](https://github.com/AbsaOSS/spline/tree/develop/examples/src/main/scala/za/co/absa/spline/example/batchWithDependencies)
+
 To change the Spline Producer URL (default is http://localhost:8080/producer):
 ```shell script
 mvn test -P examples -D spline.producer.url=http://localhost:8888/producer

@@ -101,6 +101,8 @@ Or you can deploy it as a WAR-file into any Java compatible Web-Container, e.g. 
 You can find a WAR-file in the Maven repo here:
 [```za.co.absa.spline:rest-gateway:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/rest-gateway/0.4.0/)
 
+Add the argument for the arango connection string -Dspline.database.connectionUrl=arangodb://localhost/spline
+
 The server exposes the following REST API:
 -   Producer API (`/producer/*`) 
 -   Consumer API (`/consumer/*`)
@@ -119,7 +121,7 @@ Spline web client can be started using 3 diffrent ways:
 
 ```shell script
 docker container run \
-      -e -e spline.consumer.url=http://172.17.0.1:8080/consumer \
+      -e spline.consumer.url=http://172.17.0.1:8080/consumer \
       -p 9090:8080 \
       absaoss//spline-web-client
 ```
@@ -129,9 +131,14 @@ docker container run \
 You can find the WAR-file of the Web Client in the repo here:
 [```za.co.absa.spline:client-web:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/client-web/0.4.0/)
 
+Add the argument for the consumer url ``-Dpline.consumer.url=http://localhost:8080/consumer``
+
 - Node JS application : 
 
 Download [```node.js```](https://nodejs.org/en/) then install [```@angular/cli```](https://www.npmjs.com/package/@angular/cli) to run `ng serve` or `ng-build` command.
+
+To specify the consumer url please edit the [config.json](https://github.com/AbsaOSS/spline/blob/develop/client-ui/src/assets/config.json) file
+
 
 You can find the documentation of this module in [ClientUI](client-ui/README.md).
 
