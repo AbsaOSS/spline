@@ -17,7 +17,6 @@
 package za.co.absa.spline.persistence.model
 
 trait Operation extends Vertex {
-  def name: String
   def properties: Map[String, Any]
   def outputSchema: Option[Any]
   def _type: String
@@ -25,7 +24,6 @@ trait Operation extends Vertex {
 
 case class Read(
   inputSources: Seq[String],
-  override val name: String,
   override val properties: Map[String, Any],
   override val outputSchema: Option[Any],
   override val _key: String,
@@ -37,7 +35,6 @@ case class Read(
 case class Write(
   outputSource: String,
   append: Boolean,
-  override val name: String,
   override val properties: Map[String, Any],
   override val outputSchema: Option[Any],
   override val _key: String,
@@ -47,7 +44,6 @@ case class Write(
 }
 
 case class Transformation(
-  override val name: String,
   override val properties: Map[String, Any],
   override val outputSchema: Option[Any],
   override val _key: String,

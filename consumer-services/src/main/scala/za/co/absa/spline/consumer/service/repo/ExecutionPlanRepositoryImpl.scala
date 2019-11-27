@@ -68,17 +68,18 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
 
         RETURN {
             "graph": {
-                "nodes": ops[* RETURN MERGE(
-                        {"_id": CURRENT._key},
-                        KEEP(CURRENT, "_type", "name")
-                    )],
+                "nodes": ops[* RETURN {
+                        "_id"  : CURRENT._key,
+                        "_type": CURRENT._type,
+                        "name" : CURRENT.properties.name
+                    }],
                 "edges": edges[* RETURN {
                         "source": PARSE_IDENTIFIER(CURRENT._to).key,
                         "target": PARSE_IDENTIFIER(CURRENT._from).key
                     }]
             },
             "executionPlan": {
-                "_id": exec._key,
+                "_id"       : exec._key,
                 "systemInfo": exec.systemInfo,
                 "agentInfo" : exec.agentInfo,
                 "extra"     : exec.extra,
