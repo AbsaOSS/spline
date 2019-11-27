@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
+import {AfterViewInit, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Store} from '@ngrx/store';
+import {CytoscapeNgLibComponent} from 'cytoscape-ng-lib';
 import * as _ from 'lodash';
-import { Subscription } from 'rxjs';
-import { filter, map, switchMap } from 'rxjs/operators';
-import { AppState } from 'src/app/model/app-state';
-import { RouterStateUrl } from 'src/app/model/routerStateUrl';
-import { LineageOverviewNodeType } from 'src/app/model/types/lineageOverviewNodeType';
+import {Subscription} from 'rxjs';
+import {filter, map, switchMap} from 'rxjs/operators';
+import {AppState} from 'src/app/model/app-state';
+import {RouterStateUrl} from 'src/app/model/routerStateUrl';
+import {LineageOverviewNodeType} from 'src/app/model/types/lineageOverviewNodeType';
 import * as ContextMenuAction from 'src/app/store/actions/context-menu.actions';
 import * as DetailsInfosAction from 'src/app/store/actions/details-info.actions';
 import * as ExecutionPlanAction from 'src/app/store/actions/execution-plan.actions';
 import * as LayoutAction from 'src/app/store/actions/layout.actions';
 import * as LineageOverviewAction from 'src/app/store/actions/lineage-overview.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
-import { getWriteOperationIdFromExecutionId } from 'src/app/util/execution-plan';
-import { AdaptiveComponent } from '../../adaptive/adaptive.component';
+import {getWriteOperationIdFromExecutionId} from 'src/app/util/execution-plan';
+import {AdaptiveComponent} from '../../adaptive/adaptive.component';
 
 
 @Component({
@@ -128,7 +128,7 @@ export class LineageOverviewGraphComponent extends AdaptiveComponent implements 
         const nodeId = (clikedTarget != this.cytograph.cy && clikedTarget.isNode()) ? clikedTarget.id() : null
         if (nodeId && clikedTarget.data()._type == LineageOverviewNodeType.Execution) {
           const params: RouterStateUrl = {
-            url: `/app/partial-lineage/${nodeId}`
+            url: `/app/lineage-detailed/${nodeId}`
           }
           this.store.dispatch(new RouterAction.Go(params))
         }
