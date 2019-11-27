@@ -15,7 +15,9 @@
  */
 package za.co.absa.spline.persistence.model
 
-trait ArangoDocument
+trait ArangoDocument {
+  val _created: Long = System.currentTimeMillis
+}
 
 trait Vertex extends ArangoDocument {
   def _key: String
@@ -61,6 +63,5 @@ case class Progress(
   timestamp: Long,
   error: Option[Any],
   extra: Map[String, Any],
-  override val _key: String,
-  _creationTimestamp: Long = System.currentTimeMillis
+  override val _key: String
 ) extends Vertex

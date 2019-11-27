@@ -98,7 +98,7 @@ object NodeDef {
   object Progress extends NodeDef("progress") with CollectionDef {
     override def indexDefs: Seq[IndexDef] = Seq(
       IndexDef(Seq("timestamp"), new SkiplistIndexOptions),
-      IndexDef(Seq("_creationTimestamp"), new SkiplistIndexOptions),
+      IndexDef(Seq("_created"), new SkiplistIndexOptions),
       IndexDef(Seq("extra.appId"), new HashIndexOptions().sparse(true)))
   }
 
