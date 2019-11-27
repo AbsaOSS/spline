@@ -123,7 +123,7 @@ Spline web client can be started using 3 diffrent ways:
 docker container run \
       -e spline.consumer.url=http://172.17.0.1:8080/consumer \
       -p 9090:8080 \
-      absaoss//spline-web-client
+      absaoss/spline-web-client
 ```
 
 - Java compatible Web-Container:
