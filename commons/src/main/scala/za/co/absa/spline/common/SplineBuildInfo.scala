@@ -16,18 +16,12 @@
 
 package za.co.absa.spline.common
 
-import java.util.Properties
-
 import za.co.absa.spline.common.ARM._
 
 object SplineBuildInfo {
-  val buildProps: Properties =
-    using(this.getClass getResourceAsStream "/build.properties") { stream =>
-      new Properties() {
-        load(stream)
-      }
-    }
+  val BuildProps: ImmutableProperties =
+    using(this.getClass.getResourceAsStream("/za/co/absa/spline/common/build.properties"))(ImmutableProperties.fromStream)
 
-  val version: String = buildProps getProperty "build.version"
-  val timestamp: String = buildProps getProperty "build.timestamp"
+  val Version: String = BuildProps.getProperty("build.version")
+  val Timestamp: String = BuildProps.getProperty("build.timestamp")
 }
