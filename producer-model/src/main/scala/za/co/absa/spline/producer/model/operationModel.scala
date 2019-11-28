@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2019 ABSA Group Limited
  *
@@ -15,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.rest.model
+package za.co.absa.spline.producer.model
 
 sealed trait OperationLike {
   val id: Int

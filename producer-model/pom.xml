@@ -27,7 +27,7 @@
         <version>0.4.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>producer-rest-model</artifactId>
+    <artifactId>producer-model</artifactId>
 
     
 </project>

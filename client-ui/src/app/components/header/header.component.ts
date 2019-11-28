@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { combineLatest, Observable, of } from 'rxjs';
-import { filter, first, map } from 'rxjs/operators';
-import { AppState } from 'src/app/model/app-state';
-import { RouterStateUrl } from 'src/app/model/routerStateUrl';
+import {Component} from '@angular/core';
+import {Store} from '@ngrx/store';
+import {combineLatest, Observable, of} from 'rxjs';
+import {filter, first, map} from 'rxjs/operators';
+import {AppState} from 'src/app/model/app-state';
+import {RouterStateUrl} from 'src/app/model/routerStateUrl';
 import * as RouterAction from 'src/app/store/actions/router.actions';
 
 @Component({
@@ -45,10 +45,10 @@ export class HeaderComponent {
       case 'lineage-overview':
         return combineLatest(
           this.isSelectedMenuItem(name),
-          this.isSelectedMenuItem('partial-lineage'),
+          this.isSelectedMenuItem('lineage-detailed'),
           (item1, item2) => (item1 || item2)
         )
-      case 'partial-lineage':
+      case 'lineage-detailed':
         return this.isSelectedMenuItem(name)
       default: return of(false)
     }

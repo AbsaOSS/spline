@@ -44,7 +44,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
     val eventualTotalDateRange = db.queryOne[Array[Long]](
       """
         |FOR ee IN progress
-        |    FILTER ee._creationTimestamp <= @asAtTime
+        |    FILTER ee._created <= @asAtTime
         |    COLLECT AGGREGATE
         |        minTimestamp = MIN(ee.timestamp),
         |        maxTimestamp = MAX(ee.timestamp)
@@ -60,7 +60,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
     val eventualArangoCursorAsync = db.queryAs[ExecutionEventInfo](
       """
         |FOR ee IN progress
-        |    FILTER ee._creationTimestamp <= @asAtTime
+        |    FILTER ee._created <= @asAtTime
         |        && ee.timestamp >= @timestampStart
         |        && ee.timestamp <= @timestampEnd
         |
@@ -71,13 +71,13 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |            RETURN {
         |                "executionEventId" : ee._key,
         |                "executionPlanId" : exec._key,
-        |                "frameworkName" : CONCAT(exec.extra.systemInfo.name, " ", exec.extra.systemInfo.version),
+        |                "frameworkName" : CONCAT(exec.systemInfo.name, " ", exec.systemInfo.version),
         |                "applicationName" : exec.extra.appName,
         |                "applicationId" : ee.extra.appId,
         |                "timestamp" : ee.timestamp,
-        |                "dataSourceUri" : ope.properties.outputSource,
+        |                "dataSourceUri" : ope.outputSource,
         |                "dataSourceType" : ope.properties.destinationType,
-        |                "append" : ope.properties.append
+        |                "append" : ope.append
         |            }
         |    )
         |

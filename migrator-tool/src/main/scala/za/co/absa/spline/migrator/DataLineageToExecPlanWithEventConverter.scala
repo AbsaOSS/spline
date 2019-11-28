@@ -21,7 +21,8 @@ import java.util.UUID
 import za.co.absa.spline.common.OptionImplicits._
 import za.co.absa.spline.harvester.ModelConstants._
 import za.co.absa.spline.model._
-import za.co.absa.spline.producer.rest.model._
+import za.co.absa.spline.producer.model
+import za.co.absa.spline.producer.model._
 
 class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
 
@@ -52,7 +53,7 @@ class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
       reads = opReads.map(convertReadOperation),
       other = opOther.map(convertOtherOperation))
 
-    val executionPlan = ExecutionPlan(
+    val executionPlan = model.ExecutionPlan(
       id = executionId,
       operations = operations,
       systemInfo = SystemInfo(AppMetaInfo.Spark, lineage.sparkVer),
@@ -66,7 +67,7 @@ class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
     val maybeExecutionEvent =
       if (lineage.writeIgnored) None
       else Some(
-        ExecutionEvent(
+        model.ExecutionEvent(
           planId = executionId,
           timestamp = lineage.timestamp,
           error = None,

@@ -22,7 +22,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import za.co.absa.spline.migrator.DataLineageToExecPlanWithEventConverterSpec._
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.op.{OperationProps, SortOrder}
-import za.co.absa.spline.producer.rest.model._
+import za.co.absa.spline.producer.model._
 
 class DataLineageToExecPlanWithEventConverterSpec extends FlatSpec with Matchers {
 

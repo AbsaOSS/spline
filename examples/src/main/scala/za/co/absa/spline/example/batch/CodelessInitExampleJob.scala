@@ -25,7 +25,7 @@ import za.co.absa.spline.example.SparkApp
 object CodelessInitExampleJob extends SparkApp(
   name ="Codeless Init Example Job",
   // Spark configuration used to register Spline listener for codeless init.
-  conf = Seq(("spark.sql.queryExecutionListeners", "za.co.absa.spline.core.listener.QueryExecutionEventHandler"))) {
+  conf = Seq(("spark.sql.queryExecutionListeners", "za.co.absa.spline.harvester.listener.SplineQueryExecutionListener"))) {
 
   // A business logic of a spark job ...
   spark.read

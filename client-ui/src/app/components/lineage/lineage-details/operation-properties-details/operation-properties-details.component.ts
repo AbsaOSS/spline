@@ -13,18 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, ChangeDetectorRef, Component, ComponentFactoryResolver, OnDestroy, QueryList, ViewChildren, ViewContainerRef } from '@angular/core';
-import { Store } from '@ngrx/store';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  ComponentFactoryResolver,
+  OnDestroy,
+  QueryList,
+  ViewChildren,
+  ViewContainerRef
+} from '@angular/core';
+import {Store} from '@ngrx/store';
 import * as _ from 'lodash';
-import { Observable, Subscription } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
-import { AppState } from 'src/app/model/app-state';
-import { Property, PropertyType } from 'src/app/model/property';
-import { PropertiesComponents, OperationType } from 'src/app/model/types/operationType';
-import { AttributeVM } from 'src/app/model/viewModels/attributeVM';
-import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM';
-import { getText } from 'src/app/util/expressions';
-import { operationIconCodes, operationColorCodes } from 'src/app/util/execution-plan';
+import {Observable, Subscription} from 'rxjs';
+import {map, switchMap} from 'rxjs/operators';
+import {AppState} from 'src/app/model/app-state';
+import {Property, PropertyType} from 'src/app/model/property';
+import {OperationType, PropertiesComponents} from 'src/app/model/types/operationType';
+import {AttributeVM} from 'src/app/model/viewModels/attributeVM';
+import {OperationDetailsVM} from 'src/app/model/viewModels/operationDetailsVM';
+import {getText} from 'src/app/util/expressions';
+import {operationColorCodes, operationIconCodes} from 'src/app/util/execution-plan';
 
 
 @Component({
@@ -52,7 +61,7 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
           this.store.select('detailsInfos')
             .pipe(
               switchMap(detailsInfos => {
-                return this.store.select('executedLogicalPlan', 'execution', 'extra', 'attributes')
+                return this.store.select('executedLogicalPlan', 'executionPlan', 'extra', 'attributes')
                   .pipe(
                     map(attributes => {
                       return { detailsInfos: detailsInfos, attributes: attributes }

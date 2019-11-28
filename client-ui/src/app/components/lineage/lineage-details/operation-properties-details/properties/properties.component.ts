@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnDestroy } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { Subscription } from 'rxjs';
-import { ModalExpressionComponent } from 'src/app/components/modal/modal-expression/modal-expression.component';
-import { AppState } from 'src/app/model/app-state';
-import { Property } from 'src/app/model/property';
-import { OperationType } from 'src/app/model/types/operationType';
+import {Component, Input, OnDestroy} from '@angular/core';
+import {Store} from '@ngrx/store';
+import {Subscription} from 'rxjs';
+import {ModalExpressionComponent} from 'src/app/components/modal/modal-expression/modal-expression.component';
+import {AppState} from 'src/app/model/app-state';
+import {Property} from 'src/app/model/property';
+import {OperationType} from 'src/app/model/types/operationType';
 import * as ModalAction from 'src/app/store/actions/modal.actions';
-import { operationColorCodes, operationIconCodes } from 'src/app/util/execution-plan';
+import {operationColorCodes, operationIconCodes} from 'src/app/util/execution-plan';
 
 @Component({
   selector: 'properties',
@@ -51,7 +51,7 @@ export class PropertiesComponent implements OnDestroy {
     event.preventDefault()
     this.subscriptions.push(
       this.store
-        .select('executedLogicalPlan', 'execution', 'extra', 'attributes')
+        .select('executedLogicalPlan', 'executionPlan', 'extra', 'attributes')
         .subscribe(attributes => {
           const initialState = {
             data: expression,

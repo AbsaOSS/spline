@@ -15,7 +15,7 @@
 
 package za.co.absa.spline.test.fixture.spline
 
-import za.co.absa.spline.producer.rest.model.{ExecutionEvent, ExecutionPlan}
+import za.co.absa.spline.producer.model.{ExecutionEvent, ExecutionPlan}
 import za.co.absa.spline.test.fixture.spline.LineageCaptor._
 
 class LineageCaptor extends LineageCaptor.Getter with LineageCaptor.Setter {

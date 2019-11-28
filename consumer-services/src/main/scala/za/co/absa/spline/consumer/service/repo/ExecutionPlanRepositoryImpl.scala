@@ -19,7 +19,7 @@ package za.co.absa.spline.consumer.service.repo
 import com.arangodb.ArangoDatabaseAsync
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import za.co.absa.spline.consumer.service.model.ExecutionInfo.Id
+import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
 import za.co.absa.spline.consumer.service.model.LineageDetailed
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,13 +32,13 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
   override def findById(execId: Id)(implicit ec: ExecutionContext): Future[LineageDetailed] = {
     db.queryOne[LineageDetailed](
       """
-        LET exec = FIRST(FOR ex IN execution FILTER ex._key == @execId RETURN ex)
+        LET exec = FIRST(FOR ex IN executionPlan FILTER ex._key == @execId RETURN ex)
         LET writeOp = FIRST(FOR v IN 1 OUTBOUND exec executes RETURN v)
 
         LET opsWithInboundEdges = (
             FOR vi, ei IN 0..99999
                 OUTBOUND writeOp follows
-                COLLECT v=vi INTO edgesByVertex
+                COLLECT v = vi INTO edgesByVertex
                 RETURN {
                     "op": v,
                     "es": UNIQUE(edgesByVertex[* FILTER NOT_NULL(CURRENT.ei)].ei)
@@ -48,42 +48,43 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         LET ops = opsWithInboundEdges[*].op
         LET edges = opsWithInboundEdges[*].es[**]
 
-        LET inputSources = FLATTEN(
+        LET inputs = FLATTEN(
             FOR op IN ops
                 FILTER op._type == "Read"
-                RETURN op.properties.inputSources[* RETURN {
-                    "source": CURRENT,
+                RETURN op.inputSources[* RETURN {
+                    "source"    : CURRENT,
                     "sourceType": op.properties.sourceType
                 }]
             )
 
-        LET outputSource = FIRST(
+        LET output = FIRST(
             ops[*
                 FILTER CURRENT._type == "Write"
                 RETURN {
-                    "source": CURRENT.properties.outputSource,
+                    "source"    : CURRENT.outputSource,
                     "sourceType": CURRENT.properties.destinationType
                 }]
             )
 
         RETURN {
-            "plan": {
-                "nodes": ops[* RETURN MERGE(
-                        {"_id": CURRENT._key},
-                        KEEP(CURRENT, "_type", "name")
-                    )],
+            "graph": {
+                "nodes": ops[* RETURN {
+                        "_id"  : CURRENT._key,
+                        "_type": CURRENT._type,
+                        "name" : CURRENT.properties.name
+                    }],
                 "edges": edges[* RETURN {
                         "source": PARSE_IDENTIFIER(CURRENT._to).key,
                         "target": PARSE_IDENTIFIER(CURRENT._from).key
                     }]
             },
-            "execution": {
-                "_id": exec._key,
-                "extra" : MERGE(
-                    exec.extra, {
-                    "inputSources" : inputSources,
-                    "outputSource": outputSource
-                })
+            "executionPlan": {
+                "_id"       : exec._key,
+                "systemInfo": exec.systemInfo,
+                "agentInfo" : exec.agentInfo,
+                "extra"     : exec.extra,
+                "inputs"    : inputs,
+                "output"    : output
             }
         }""",
       Map("execId" -> execId)

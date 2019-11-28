@@ -19,7 +19,7 @@ package za.co.absa.spline.consumer.rest.controller
 import io.swagger.annotations.{Api, ApiOperation, ApiParam}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
-import za.co.absa.spline.consumer.service.model.{ExecutionInfo, LineageDetailed}
+import za.co.absa.spline.consumer.service.model.{ExecutionPlanInfo, LineageDetailed}
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepository
 
 import scala.concurrent.Future
@@ -37,7 +37,7 @@ class LineageDetailedController @Autowired()(
     notes = "Returns a logical plan DAG by execution plan ID")
   def lineageDetailed(
     @ApiParam(value = "Execution plan ID")
-    @RequestParam("execId") execId: ExecutionInfo.Id
+    @RequestParam("execId") execId: ExecutionPlanInfo.Id
   ): Future[LineageDetailed] = {
     repo.findById(execId)
   }

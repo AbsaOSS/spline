@@ -65,7 +65,7 @@ export class ExecutionPlanEffects {
     const cytoscapeGraphVM = {} as CytoscapeGraphVM
     cytoscapeGraphVM.nodes = []
     cytoscapeGraphVM.edges = []
-    _.each(lineage.plan.nodes, (node: Operation) => {
+    _.each(lineage.graph.nodes, (node: Operation) => {
       const cytoscapeOperation = {} as CytoscapeOperationVM
       cytoscapeOperation._type = node._type
       cytoscapeOperation.id = node._id
@@ -75,12 +75,12 @@ export class ExecutionPlanEffects {
       cytoscapeOperation.icon = operationIconCodes.get(node.name) || operationIconCodes.get(OperationType.Generic)
       cytoscapeGraphVM.nodes.push({data: cytoscapeOperation})
     })
-    _.each(lineage.plan.edges, (edge: Transition) => {
+    _.each(lineage.graph.edges, (edge: Transition) => {
       cytoscapeGraphVM.edges.push({data: edge})
     })
     const executedLogicalPlanVM = {} as ExecutedLogicalPlanVM
-    executedLogicalPlanVM.execution = lineage.execution
-    executedLogicalPlanVM.plan = cytoscapeGraphVM
+    executedLogicalPlanVM.executionPlan = lineage.executionPlan
+    executedLogicalPlanVM.graph = cytoscapeGraphVM
     return executedLogicalPlanVM
   }
 }

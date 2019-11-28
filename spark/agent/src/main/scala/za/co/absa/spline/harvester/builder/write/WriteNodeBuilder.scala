@@ -21,7 +21,7 @@ import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import za.co.absa.spline.harvester.ComponentCreatorFactory
 import za.co.absa.spline.harvester.ModelConstants.OperationParams
 import za.co.absa.spline.harvester.builder.OperationNodeBuilder
-import za.co.absa.spline.producer.rest.model.WriteOperation
+import za.co.absa.spline.producer.model.WriteOperation
 
 class WriteNodeBuilder(command: WriteCommand)
   (implicit val componentCreatorFactory: ComponentCreatorFactory)
