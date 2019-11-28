@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {AfterViewInit, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {CytoscapeNgLibComponent} from 'cytoscape-ng-lib';
-import {Subscription} from 'rxjs';
-import {filter, first, map, switchMap} from 'rxjs/operators';
-import {AppState} from 'src/app/model/app-state';
-import {RouterStateUrl} from 'src/app/model/routerStateUrl';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
+import { Subscription } from 'rxjs';
+import { filter, first, map, switchMap } from 'rxjs/operators';
+import { AppState } from 'src/app/model/app-state';
+import { RouterStateUrl } from 'src/app/model/routerStateUrl';
 import * as AttributesAction from 'src/app/store/actions/attributes.actions';
 import * as DetailsInfosAction from 'src/app/store/actions/details-info.actions';
 import * as ExecutionPlanAction from 'src/app/store/actions/execution-plan.actions';
 import * as LayoutAction from 'src/app/store/actions/layout.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
-import {AdaptiveComponent} from '../../adaptive/adaptive.component';
+import { AdaptiveComponent } from '../../adaptive/adaptive.component';
+import { operationIconCodes, operationColorCodes } from 'src/app/util/execution-plan';
+import { OperationType } from 'src/app/model/types/operationType';
 
 
 @Component({
@@ -65,6 +67,13 @@ export class LineageGraphComponent extends AdaptiveComponent implements OnInit, 
         )
         .subscribe(state => {
           if (state && this.cytograph.cy) {
+            state.graph.nodes.map(n => {
+              if (n.data._type == 'Write') {
+                n.data.icon = operationIconCodes.get(OperationType.Write)
+                n.data.color = operationColorCodes.get(OperationType.Write)
+              }
+              return n
+            })
             this.cytograph.cy.add(state.graph)
             this.cytograph.cy.nodeHtmlLabel([{
               tpl: function (data) {

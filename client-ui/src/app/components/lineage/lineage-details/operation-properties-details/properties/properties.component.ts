@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input, OnDestroy} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {Subscription} from 'rxjs';
-import {ModalExpressionComponent} from 'src/app/components/modal/modal-expression/modal-expression.component';
-import {AppState} from 'src/app/model/app-state';
-import {Property} from 'src/app/model/property';
-import {OperationType} from 'src/app/model/types/operationType';
+import { Component, Input, OnDestroy } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { Subscription } from 'rxjs';
+import { ModalExpressionComponent } from 'src/app/components/modal/modal-expression/modal-expression.component';
+import { AppState } from 'src/app/model/app-state';
+import { Property } from 'src/app/model/property';
 import * as ModalAction from 'src/app/store/actions/modal.actions';
-import {operationColorCodes, operationIconCodes} from 'src/app/util/execution-plan';
+import { getOperationColor, getOperationIcon } from 'src/app/util/execution-plan';
 
 @Component({
   selector: 'properties',
@@ -37,14 +36,17 @@ export class PropertiesComponent implements OnDestroy {
   propertyType: string
 
   @Input()
+  propertyName: string
+
+  @Input()
   properties: Property[]
 
-  public getIcon(): string {
-    return String.fromCharCode(operationIconCodes.get(this.propertyType) || operationIconCodes.get(OperationType.Generic))
+  public getOperationIcon(): string {
+    return getOperationIcon(this.propertyType, this.propertyName)
   }
 
   public getOperationColor(): string {
-    return operationColorCodes.get(this.propertyType) || operationColorCodes.get(OperationType.Generic)
+    return getOperationColor(this.propertyType, this.propertyName)
   }
 
   public openExprViewDialog(event: Event, expression: Property): void {
@@ -56,7 +58,7 @@ export class PropertiesComponent implements OnDestroy {
           const initialState = {
             data: expression,
             attributes: attributes,
-            type: this.propertyType
+            type: this.propertyName
           }
           this.store.dispatch(new ModalAction.Open(ModalExpressionComponent, { initialState }))
         })

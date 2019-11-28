@@ -17,7 +17,8 @@
   <mat-accordion>
     <mat-expansion-panel [expanded]="true">
       <mat-expansion-panel-header>
-        <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i> &nbsp;<b> {{property.type}} </b>
+        <i class="fa fa-xs" [style.color]=getOperationColor()>{{getOperationIcon()}}</i> &nbsp;<b> {{property.type}}
+        </b>
       </mat-expansion-panel-header>
       <div>
         <a href="" (click)="openExprViewDialog($event, property)"><code>{{property.value}}</code></a>
