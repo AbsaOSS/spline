@@ -57,7 +57,7 @@ class WebController @Autowired()(templateEngine: ITemplateEngine) {
 
   @RequestMapping(path = Array("/build-info"), produces = Array("text/x-java-properties"))
   def buildInfo(res: HttpServletResponse): Unit =
-    SplineBuildInfo.buildProps.store(res.getWriter, "Spline Web Client")
+    SplineBuildInfo.BuildProps.store(res.getWriter, "Spline Web Client")
 }
 
 object WebController {

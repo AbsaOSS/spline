@@ -30,7 +30,7 @@ class AboutController {
   @ApiOperation("Get application version info")
   def buildInfo: String =
     ConfigFactory
-      .parseProperties(SplineBuildInfo.buildProps)
+      .parseProperties(SplineBuildInfo.BuildProps)
       .root()
       .render(ConfigRenderOptions.concise)
 }

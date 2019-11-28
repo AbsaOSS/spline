@@ -29,7 +29,7 @@ class SwaggerDocGenCLI(gen: SwaggerDocGen) {
   def exec(args: Array[String]): Unit = {
 
     val cliParser = new scopt.OptionParser[SwaggerDocGenConfig]("rest-doc-gen-tool") {
-      head("Spline REST OpenAPI v2 spec generation tool", SplineBuildInfo.version)
+      head("Spline REST OpenAPI v2 spec generation tool", SplineBuildInfo.Version)
 
       (opt[String]('o', "output")
         valueName "<file>"
