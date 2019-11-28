@@ -101,7 +101,7 @@ Or you can deploy it as a WAR-file into any Java compatible Web-Container, e.g. 
 You can find a WAR-file in the Maven repo here:
 [```za.co.absa.spline:rest-gateway:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/rest-gateway/0.4.0/)
 
-Add the argument for the arango connection string -Dspline.database.connectionUrl=arangodb://localhost/spline
+Add the argument for the arango connection string `-Dspline.database.connectionUrl=arangodb://localhost/spline`
 
 The server exposes the following REST API:
 -   Producer API (`/producer/*`) 
@@ -131,7 +131,7 @@ docker container run \
 You can find the WAR-file of the Web Client in the repo here:
 [```za.co.absa.spline:client-web:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/client-web/0.4.0/)
 
-Add the argument for the consumer url ``-Dpline.consumer.url=http://localhost:8080/consumer``
+Add the argument for the consumer url `-Dpline.consumer.url=http://localhost:8080/consumer`
 
 - Node JS application : 
 
