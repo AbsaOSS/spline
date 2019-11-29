@@ -33,7 +33,7 @@ object ImmutableProperties {
   }
 }
 
-class ImmutableProperties private(props: Properties) extends Properties {
+class ImmutableProperties private(props: Properties) extends Properties(props) {
   override def setProperty(key: String, value: String): Nothing = throw new UnsupportedOperationException
 
   override def save(out: OutputStream, comments: String): Nothing = throw new UnsupportedOperationException
