@@ -26,18 +26,17 @@ Spline currently supports Spark 2.2+, but in older versions (especially 2.2) lin
 
 Spline aims to fill a big gap within the Apache Hadoop ecosystem. Spark jobs shouldn’t be treated only as magic black boxes; people should be able to understand what happens with their data. Our main focus is to solve the following particular problems:
 
-- Regulatory requirement for SA banks (BCBS 239)
+-  Regulatory requirement for SA banks (BCBS 239)
 
     By 2020, all South African banks will have to be able to prove how numbers are calculated in their reports to the regulatory authority.
 
-- Documentation of business logic
+-  Documentation of business logic
 
     Business analysts should get a chance to verify whether Spark jobs were written according to the rules they provided. Moreover, it would be beneficial for them to have up-to-date documentation where they can refresh their knowledge of a project.
 
-- Identification of performance bottlenecks
+-  Identification of performance bottlenecks
 
     Our focus is not only business-oriented; we also see Spline as a development tool that should be able to help developers with the performance optimization of their Spark jobs.
-
 
 ---
 
@@ -59,16 +58,18 @@ There are two ways how to do it:
 #### Build Spline from the source code
 1.  Make sure you have JDK 8, Maven and NodeJS installed.
 
-1.  Get and unzip the Spline source code:
+2.  Get and unzip the Spline source code:
     ```shell script
     wget https://github.com/AbsaOSS/spline/archive/release/0.4.0.zip
     unzip 0.4.0.zip
     ```
-1.  Change the directory:
+
+3.  Change the directory:
     ```shell script
     cd spline-release-0.4.0
     ```
-1.  Run the Maven build:
+
+4.  Run the Maven build:
     ```shell script
     mvn install -DskipTests
     ```
@@ -112,12 +113,11 @@ The server exposes the following REST API:
 -   Producer API Swagger documentation: [/docs/producer.html](http://localhost:8080/docs/producer.html) 
 -   Consumer API Swagger documentation: [/docs/consumer.html](http://localhost:8080/docs/consumer.html) 
 
-
 ## Start Spline UI
 
 Spline web client can be started using 3 diffrent ways:
 
-- Docker: 
+-  Docker: 
 
 ```shell script
 docker container run \
@@ -126,25 +126,23 @@ docker container run \
       absaoss/spline-web-client
 ```
 
-- Java compatible Web-Container:
+-  Java compatible Web-Container:
 
 You can find the WAR-file of the Web Client in the repo here:
 [```za.co.absa.spline:client-web:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/client-web/0.4.0/)
 
 Add the argument for the consumer url `-Dpline.consumer.url=http://localhost:8080/consumer`
 
-- Node JS application : 
+-  Node JS application: 
 
 Download [```node.js```](https://nodejs.org/en/) then install [```@angular/cli```](https://www.npmjs.com/package/@angular/cli) to run `ng serve` or `ng-build` command.
 
 To specify the consumer url please edit the [config.json](https://github.com/AbsaOSS/spline/blob/develop/client-ui/src/assets/config.json) file
 
-
 You can find the documentation of this module in [ClientUI](client-ui/README.md).
 
 ## Check the result in the browser
-http://localhost:9090
-
+<http://localhost:9090>
 
 ## Use spline in your application
 Add a dependency on Spark Agent.
@@ -172,18 +170,21 @@ sparkSession.enableLineageTracking()
 
 You also need to set some configuration properties. Spline combine these properties from several sources:
 1. Hadoop config (`core-site.xml`)
+
 2. JVM system properties
+
 3. `spline.properties` file in the classpath
 
 #### `spline.mode`
-- **DISABLED** Lineage tracking is completely disabled and Spline is unhooked from Spark.
-- **REQUIRED** If Spline fails to initialize itself (e.g. wrong configuration, no db connection etc) 
+-  **DISABLED** Lineage tracking is completely disabled and Spline is unhooked from Spark.
+
+-  **REQUIRED** If Spline fails to initialize itself (e.g. wrong configuration, no db connection etc)
+
     the Spark application aborts with an error.
-- **BEST_EFFORT** (default) Spline will try to initialize itself, but if fails it switches to DISABLED mode allowing 
-    the Spark application to proceed normally without Lineage tracking.
+-  **BEST_EFFORT** (default) Spline will try to initialize itself, but if fails it switches to DISABLED mode allowing the Spark application to proceed normally without Lineage tracking.
 
 #### `spline.producer.url`
-- url of spline producer (part of rest gateway responsible for storing lineages in database)
+-  url of spline producer (part of rest gateway responsible for storing lineages in database)
 
 Example:
 ```properties
