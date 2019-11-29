@@ -17,7 +17,7 @@
 <mat-accordion>
   <mat-expansion-panel [expanded]="true">
     <mat-expansion-panel-header>
-      <i class="fa fa-xs" [style.color]=getOperationColor()>{{getOperationIcon()}}</i>&nbsp; <b> Transformations </b>
+      <i class="fa fa-xs" [style.color]=getColor()>{{getColor()}}</i>&nbsp; <b> Transformations </b>
     </mat-expansion-panel-header>
     <div>
       <div *ngFor="let property of properties ;let i=index">
@@ -32,7 +32,7 @@
   <mat-accordion>
     <mat-expansion-panel [expanded]="true">
       <mat-expansion-panel-header>
-        <i class="fa fa-xs" [style.color]=getOperationColor()>{{getOperationIcon()}}</i>&nbsp; <b> Dropped
+        <i class="fa fa-xs" [style.color]=getColor()>{{getColor()}}</i>&nbsp; <b> Dropped
           Attributes</b>
       </mat-expansion-panel-header>
       <div>

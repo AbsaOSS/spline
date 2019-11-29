@@ -88,11 +88,11 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
     return this.store.select('detailsInfos')
   }
 
-  public getOperationIcon(operationType: string, operationName: string): string {
+  public getIcon(operationType: string, operationName: string): string {
     return getOperationIcon(operationType, operationName)
   }
 
-  public getOperationColor(operationType: string, operationName: string): string {
+  public getColor(operationType: string, operationName: string): string {
     return getOperationColor(operationType, operationName)
   }
 

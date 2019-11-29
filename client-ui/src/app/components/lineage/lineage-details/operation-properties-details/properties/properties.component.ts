@@ -41,11 +41,11 @@ export class PropertiesComponent implements OnDestroy {
   @Input()
   properties: Property[]
 
-  public getOperationIcon(): string {
+  public getIcon(): string {
     return getOperationIcon(this.propertyType, this.propertyName)
   }
 
-  public getOperationColor(): string {
+  public getColor(): string {
     return getOperationColor(this.propertyType, this.propertyName)
   }
 
