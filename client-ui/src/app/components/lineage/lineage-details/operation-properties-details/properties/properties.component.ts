@@ -33,13 +33,13 @@ export class PropertiesComponent implements OnDestroy {
   private subscriptions: Subscription[] = []
 
   @Input()
-  propertyType: string
+  public propertyType: string
 
   @Input()
-  propertyName: string
+  public propertyName: string
 
   @Input()
-  properties: Property[]
+  public properties: Property[]
 
   public getIcon(): string {
     return getOperationIcon(this.propertyType, this.propertyName)
