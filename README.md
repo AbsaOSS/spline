@@ -26,15 +26,15 @@ Spline currently supports Spark 2.2+, but in older versions (especially 2.2) lin
 
 Spline aims to fill a big gap within the Apache Hadoop ecosystem. Spark jobs shouldn’t be treated only as magic black boxes; people should be able to understand what happens with their data. Our main focus is to solve the following particular problems:
 
--  Regulatory requirement for SA banks (BCBS 239)
+  - Regulatory requirement for SA banks (BCBS 239)
 
     By 2020, all South African banks will have to be able to prove how numbers are calculated in their reports to the regulatory authority.
 
--  Documentation of business logic
+  - Documentation of business logic
 
     Business analysts should get a chance to verify whether Spark jobs were written according to the rules they provided. Moreover, it would be beneficial for them to have up-to-date documentation where they can refresh their knowledge of a project.
 
--  Identification of performance bottlenecks
+  - Identification of performance bottlenecks
 
     Our focus is not only business-oriented; we also see Spline as a development tool that should be able to help developers with the performance optimization of their Spark jobs.
 
@@ -47,9 +47,11 @@ a server, an admin tool and a client Web UI to see the captured lineage.
 There are two ways how to do it:
 
 #### Download prebuild Spline artifacts from the Maven repo
--   [```za.co.absa.spline:admin:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/admin/0.4.0/)
--   [```za.co.absa.spline:rest-gateway:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/rest-gateway/0.4.0/) 
--   [```za.co.absa.spline:client-web:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/client-web/0.4.0/) (optional)
+  -  [```za.co.absa.spline:admin:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/admin/0.4.0/)
+
+  -  [```za.co.absa.spline:rest-gateway:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/rest-gateway/0.4.0/) 
+
+  -  [```za.co.absa.spline:client-web:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/client-web/0.4.0/) (optional)
 
 (REST Server and Web Client modules are also available as [Docker containers](https://hub.docker.com/u/absaoss))
 
@@ -105,19 +107,21 @@ You can find a WAR-file in the Maven repo here:
 Add the argument for the arango connection string `-Dspline.database.connectionUrl=arangodb://localhost/spline`
 
 The server exposes the following REST API:
--   Producer API (`/producer/*`) 
--   Consumer API (`/consumer/*`)
+  -  Producer API (`/producer/*`) 
+  -  Consumer API (`/consumer/*`)
 
 ... and other useful URLs:
--   Running server version information: [/about/version](http://localhost:8080/about/version)
--   Producer API Swagger documentation: [/docs/producer.html](http://localhost:8080/docs/producer.html) 
--   Consumer API Swagger documentation: [/docs/consumer.html](http://localhost:8080/docs/consumer.html) 
+  -  Running server version information: [/about/version](http://localhost:8080/about/version)
+
+  -  Producer API Swagger documentation: [/docs/producer.html](http://localhost:8080/docs/producer.html) 
+  
+  -  Consumer API Swagger documentation: [/docs/consumer.html](http://localhost:8080/docs/consumer.html) 
 
 ## Start Spline UI
 
 Spline web client can be started using 3 diffrent ways:
 
--  Docker: 
+  - Docker: 
 
 ```shell script
 docker container run \
@@ -126,14 +130,14 @@ docker container run \
       absaoss/spline-web-client
 ```
 
--  Java compatible Web-Container:
+  - Java compatible Web-Container:
 
 You can find the WAR-file of the Web Client in the repo here:
 [```za.co.absa.spline:client-web:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/client-web/0.4.0/)
 
 Add the argument for the consumer url `-Dpline.consumer.url=http://localhost:8080/consumer`
 
--  Node JS application: 
+  - Node JS application: 
 
 Download [```node.js```](https://nodejs.org/en/) then install [```@angular/cli```](https://www.npmjs.com/package/@angular/cli) to run `ng serve` or `ng-build` command.
 
@@ -176,15 +180,15 @@ You also need to set some configuration properties. Spline combine these propert
 3. `spline.properties` file in the classpath
 
 #### `spline.mode`
--  **DISABLED** Lineage tracking is completely disabled and Spline is unhooked from Spark.
+  - **DISABLED** Lineage tracking is completely disabled and Spline is unhooked from Spark.
 
--  **REQUIRED** If Spline fails to initialize itself (e.g. wrong configuration, no db connection etc)
+  - **REQUIRED** If Spline fails to initialize itself (e.g. wrong configuration, no db connection etc)
 
     the Spark application aborts with an error.
--  **BEST_EFFORT** (default) Spline will try to initialize itself, but if fails it switches to DISABLED mode allowing the Spark application to proceed normally without Lineage tracking.
+  - **BEST_EFFORT** (default) Spline will try to initialize itself, but if fails it switches to DISABLED mode allowing the Spark application to proceed normally without Lineage tracking.
 
 #### `spline.producer.url`
--  url of spline producer (part of rest gateway responsible for storing lineages in database)
+  - url of spline producer (part of rest gateway responsible for storing lineages in database)
 
 Example:
 ```properties
