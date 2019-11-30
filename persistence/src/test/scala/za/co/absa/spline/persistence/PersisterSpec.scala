@@ -50,9 +50,9 @@ class PersisterSpec
     it("Persister should be able to insert an example lineage to an empty database") {
       for {
         _ <- ArangoInit.initialize(connectionURL, dropIfExists = true)
-        saved <- Persister.save(createDataSources(), attemptSave)
+        saved <- Persister.execute(attemptSave(createDataSources()))
         thrown: ArangoDBException <- recoverToExceptionIf[ArangoDBException] {
-          Persister.save(createDataSources(), attemptSave)
+          Persister.execute(attemptSave(createDataSources()))
         }
       } yield {
         saved.get("_id") should be("dataSource/92242e53-eaea-4c5b-bc90-5e174ab3e898")

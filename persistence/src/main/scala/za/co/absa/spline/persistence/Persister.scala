@@ -33,14 +33,14 @@ object Persister extends Logging {
     .registerModule(new VPackScalaModule)
     .build
 
-  def save[T, R](entity: T, attemptSave: T => Future[R]): Future[R] = {
-    saveWithRetry(entity, attemptSave, None)
+  def execute[R](fn: => Future[R]): Future[R] = {
+    executeWithRetry(fn, None)
   }
 
   @throws(classOf[IllegalArgumentException])
   @throws(classOf[ArangoDBException])
-  private def saveWithRetry[T, R](entity: T, attemptSave: T => Future[R], lastFailure: Option[FailedAttempt]): Future[R] = {
-    val eventualResult = attemptSave(entity)
+  private def executeWithRetry[R](fn: => Future[R], lastFailure: Option[FailedAttempt]): Future[R] = {
+    val eventualResult = fn
     val attemptsUsed = lastFailure.map(_.count).getOrElse(0)
 
     for (failure <- lastFailure) {
@@ -52,8 +52,8 @@ object Persister extends Logging {
       eventualResult
     else
       eventualResult.recoverWith {
-      case RetryableException(e) => saveWithRetry(entity, attemptSave, Some(FailedAttempt(attemptsUsed + 1, e)))
-    }
+        case RetryableException(e) => executeWithRetry(fn, Some(FailedAttempt(attemptsUsed + 1, e)))
+      }
   }
 
   case class FailedAttempt(count: Int, error: Exception)

@@ -46,16 +46,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 
   import scala.concurrent.ExecutionContext.Implicits._
 
-  override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = {
-    Persister.save(executionPlan, attemptSaveExecutionPlan)
-  }
-
-  override def insertExecutionEvents(executionEvents: Array[ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = {
-    Persister.save(executionEvents, attemptSaveExecutionEvents)
-  }
-
-  private def attemptSaveExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = {
-
+  override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
     val eventuallyExists = db.queryOne[Boolean](
       s"""
          |FOR ex IN ${NodeDef.ExecutionPlan.name}
@@ -86,25 +77,9 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
         if (alreadyExists) Future.successful(Unit)
         else createInsertTransaction(executionPlan, referencedDSURIs, persistedDSes).execute(db).map(_ => true)
     } yield Unit
-  }
+  })
 
-  private def createInsertTransaction(executionPlan: apiModel.ExecutionPlan, referencedDSURIs: Set[String], persistedDSes: Map[String, String]) = {
-    val transientDSes: Map[String, String] = (referencedDSURIs -- persistedDSes.keys).map(_ -> randomUUID.toString).toMap
-    val referencedDSes = transientDSes ++ persistedDSes
-    new TxBuilder()
-      .addQuery(InsertQuery(NodeDef.Operation, createOperations(executionPlan): _*))
-      .addQuery(InsertQuery(EdgeDef.Follows, createFollows(executionPlan): _*))
-      .addQuery(InsertQuery(NodeDef.DataSource, createDataSources(transientDSes): _*))
-      .addQuery(InsertQuery(EdgeDef.WritesTo, createWriteTo(executionPlan, referencedDSes)))
-      .addQuery(InsertQuery(EdgeDef.ReadsFrom, createReadsFrom(executionPlan, referencedDSes): _*))
-      .addQuery(InsertQuery(EdgeDef.Executes, createExecutes(executionPlan)))
-      .addQuery(InsertQuery(NodeDef.ExecutionPlan, createExecution(executionPlan)))
-      .addQuery(InsertQuery(EdgeDef.Depends, createExecutionDepends(executionPlan, referencedDSes): _*))
-      .addQuery(InsertQuery(EdgeDef.Affects, createExecutionAffects(executionPlan, referencedDSes)))
-      .buildTx
-  }
-
-  private def attemptSaveExecutionEvents(events: Array[ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = {
+  override def insertExecutionEvents(events: Array[ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
     val progresses = events.map(e => Progress(
       e.timestamp,
       e.error,
@@ -120,6 +95,26 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
       .addQuery(InsertQuery(EdgeDef.ProgressOf, progressesOf: _*).copy(ignoreExisting = true))
       .buildTx
       .execute(db)
+  })
+
+  private def createInsertTransaction(
+    executionPlan: apiModel.ExecutionPlan,
+    referencedDSURIs: Set[String],
+    persistedDSes: Map[String, String]
+  ) = {
+    val transientDSes: Map[String, String] = (referencedDSURIs -- persistedDSes.keys).map(_ -> randomUUID.toString).toMap
+    val referencedDSes = transientDSes ++ persistedDSes
+    new TxBuilder()
+      .addQuery(InsertQuery(NodeDef.Operation, createOperations(executionPlan): _*))
+      .addQuery(InsertQuery(EdgeDef.Follows, createFollows(executionPlan): _*))
+      .addQuery(InsertQuery(NodeDef.DataSource, createDataSources(transientDSes): _*))
+      .addQuery(InsertQuery(EdgeDef.WritesTo, createWriteTo(executionPlan, referencedDSes)))
+      .addQuery(InsertQuery(EdgeDef.ReadsFrom, createReadsFrom(executionPlan, referencedDSes): _*))
+      .addQuery(InsertQuery(EdgeDef.Executes, createExecutes(executionPlan)))
+      .addQuery(InsertQuery(NodeDef.ExecutionPlan, createExecution(executionPlan)))
+      .addQuery(InsertQuery(EdgeDef.Depends, createExecutionDepends(executionPlan, referencedDSes): _*))
+      .addQuery(InsertQuery(EdgeDef.Affects, createExecutionAffects(executionPlan, referencedDSes)))
+      .buildTx
   }
 
   override def isDatabaseOk: Future[Boolean] = {
