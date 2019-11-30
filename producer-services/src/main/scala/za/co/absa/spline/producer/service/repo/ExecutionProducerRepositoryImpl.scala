@@ -80,21 +80,39 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
   })
 
   override def insertExecutionEvents(events: Array[ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
-    val progresses = events.map(e => Progress(
+    val allReferencesConsistentFuture = db.queryOne[Boolean](
+      """
+        |LET cnt = FIRST(
+        |    FOR ep IN executionPlan
+        |        FILTER ep._key IN @keys
+        |        COLLECT WITH COUNT INTO cnt
+        |        RETURN cnt
+        |    )
+        |RETURN cnt == LENGTH(@keys)
+        |""".stripMargin,
+      Map("keys" -> events.map(_.planId))
+    )
+
+    val progressNodes = events.map(e => Progress(
       e.timestamp,
       e.error,
       e.extra,
       createEventKey(e)))
 
-    val progressesOf = progresses
+    val progressEdges = progressNodes
       .zip(events)
       .map({ case (p, e) => EdgeDef.ProgressOf.edge(p._key, e.planId) })
 
-    new TxBuilder()
-      .addQuery(InsertQuery(NodeDef.Progress, progresses: _*).copy(ignoreExisting = true))
-      .addQuery(InsertQuery(EdgeDef.ProgressOf, progressesOf: _*).copy(ignoreExisting = true))
+    val tx = new TxBuilder()
+      .addQuery(InsertQuery(NodeDef.Progress, progressNodes: _*).copy(ignoreExisting = true))
+      .addQuery(InsertQuery(EdgeDef.ProgressOf, progressEdges: _*).copy(ignoreExisting = true))
       .buildTx
-      .execute(db)
+
+    for {
+      refConsistent <- allReferencesConsistentFuture
+      if refConsistent
+      res <- tx.execute(db)
+    } yield res
   })
 
   private def createInsertTransaction(
