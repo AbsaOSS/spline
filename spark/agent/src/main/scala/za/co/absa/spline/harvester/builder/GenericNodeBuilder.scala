@@ -30,7 +30,7 @@ class GenericNodeBuilder
   override def build(): DataOperation = DataOperation(
     id = id,
     childIds = childIds,
-    schema = Some(outputSchema),
+    schema = if (!isTerminal && childOutputSchemas.forall(outputSchema.==)) None else Some(outputSchema),
     params = Map(OperationParams.Name -> operation.nodeName) ++ componentCreatorFactory.operationParamsConverter.convert(operation)
   )
 }

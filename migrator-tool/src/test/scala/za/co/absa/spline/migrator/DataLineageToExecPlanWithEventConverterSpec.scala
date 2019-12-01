@@ -187,9 +187,9 @@ object DataLineageToExecPlanWithEventConverterSpec {
       MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000000"), Schema(attrs = Seq(UUID.fromString("00000001-9999-9999-9999-999999999999")))),
       MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000001"), Schema(attrs = Seq(UUID.fromString("00000001-9999-9999-9999-999999999999")))),
       MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000002"), Schema(attrs = Seq(UUID.fromString("00000002-9999-9999-9999-999999999999")))),
-      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000003"), Schema(attrs = Seq(UUID.fromString("00000005-9999-9999-9999-999999999999")))),
-      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000004"), Schema(attrs = Seq(UUID.fromString("00000004-9999-9999-9999-999999999999")))),
-      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000005"), Schema(attrs = Seq(UUID.fromString("00000005-9999-9999-9999-999999999999")))),
+      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000003"), Schema(attrs = Seq(UUID.fromString("00000002-9999-9999-9999-999999999999")))),
+      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000004"), Schema(attrs = Seq(UUID.fromString("00000002-9999-9999-9999-999999999999")))),
+      MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000005"), Schema(attrs = Seq(UUID.fromString("00000002-9999-9999-9999-999999999999")))),
       MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000006"), Schema(attrs = Seq(UUID.fromString("00000007-9999-9999-9999-999999999999")))),
       MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000007"), Schema(attrs = Seq(UUID.fromString("00000007-9999-9999-9999-999999999999")))),
       MetaDataset(id = UUID.fromString("00000000-0000-0000-0000-000000000008"), Schema(attrs = Seq(UUID.fromString("00000008-9999-9999-9999-999999999999")))),
@@ -223,7 +223,7 @@ object DataLineageToExecPlanWithEventConverterSpec {
           inputSources = Seq(
             "some://test/read/source-1",
             "some://test/read/source-2"),
-          schema = Some(Seq(UUID.fromString("00000005-9999-9999-9999-999999999999"))),
+          schema = Some(Seq(UUID.fromString("00000002-9999-9999-9999-999999999999"))),
           params = Map(
             "name" -> "read-A",
             "sourceType" -> "bar"
@@ -242,7 +242,6 @@ object DataLineageToExecPlanWithEventConverterSpec {
         childIds = Seq(1),
         outputSource = "some://test/write/data/source/url?with=parameters&more=parameters",
         append = true,
-        schema = Some(Seq(UUID.fromString("00000001-9999-9999-9999-999999999999"))),
         params = Map(
           "name" -> "write",
           "destinationType" -> "foo")),
@@ -265,7 +264,7 @@ object DataLineageToExecPlanWithEventConverterSpec {
         DataOperation(
           id = 2,
           childIds = Seq(3, 4),
-          schema = Some(Seq(UUID.fromString("00000002-9999-9999-9999-999999999999"))),
+          schema = None,
           params = Map(
             "name" -> "union")),
 
@@ -285,7 +284,7 @@ object DataLineageToExecPlanWithEventConverterSpec {
         DataOperation(
           id = 4,
           childIds = Seq(5),
-          schema = Some(Seq(UUID.fromString("00000004-9999-9999-9999-999999999999"))),
+          schema = None,
           params = Map(
             "name" -> "sort",
             "orders" -> Seq(SortOrder(

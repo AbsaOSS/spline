@@ -29,7 +29,7 @@ import za.co.absa.spline.common.logging.Logging
 import za.co.absa.spline.persistence.model._
 import za.co.absa.spline.persistence.tx.{InsertQuery, TxBuilder}
 import za.co.absa.spline.persistence.{ArangoImplicits, Persister, model => dbModel}
-import za.co.absa.spline.producer.model.{DataOperation, ExecutionEvent, ReadOperation, WriteOperation}
+import za.co.absa.spline.producer.model._
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepositoryImpl._
 import za.co.absa.spline.producer.{model => apiModel}
 
@@ -194,28 +194,32 @@ object ExecutionProducerRepositoryImpl {
     .map({ case (uri, key) => DataSource(uri, key) })
     .toVector
 
-  private def createOperations(executionPlan: apiModel.ExecutionPlan): Seq[dbModel.Operation] = executionPlan.operations.all.map {
-    case r: ReadOperation =>
-      dbModel.Read(
-        inputSources = r.inputSources,
-        properties = r.params,
-        outputSchema = r.schema,
-        _key = s"${executionPlan.id}:${r.id.toString}"
-      )
-    case w: WriteOperation =>
-      dbModel.Write(
-        outputSource = w.outputSource,
-        append = w.append,
-        properties = w.params,
-        outputSchema = w.schema,
-        _key = s"${executionPlan.id}:${w.id.toString}"
-      )
-    case t: DataOperation =>
-      dbModel.Transformation(
-        properties = t.params,
-        outputSchema = t.schema,
-        _key = s"${executionPlan.id}:${t.id.toString}"
-      )
+  private def createOperations(executionPlan: apiModel.ExecutionPlan): Seq[dbModel.Operation] = {
+    val allOperations = executionPlan.operations.all
+    val schemaFinder = new RecursiveSchemaFinder(allOperations)
+    allOperations.map {
+      case r: ReadOperation =>
+        dbModel.Read(
+          inputSources = r.inputSources,
+          properties = r.params,
+          outputSchema = r.schema,
+          _key = s"${executionPlan.id}:${r.id.toString}"
+        )
+      case w: WriteOperation =>
+        dbModel.Write(
+          outputSource = w.outputSource,
+          append = w.append,
+          properties = w.params,
+          outputSchema = schemaFinder.findSchemaOf(w),
+          _key = s"${executionPlan.id}:${w.id.toString}"
+        )
+      case t: DataOperation =>
+        dbModel.Transformation(
+          properties = t.params,
+          outputSchema = schemaFinder.findSchemaOf(t),
+          _key = s"${executionPlan.id}:${t.id.toString}"
+        )
+    }
   }
 
   private def createFollows(executionPlan: apiModel.ExecutionPlan): Seq[Edge] =

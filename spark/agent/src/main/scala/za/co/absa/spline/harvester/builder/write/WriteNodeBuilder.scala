@@ -37,7 +37,6 @@ class WriteNodeBuilder(command: WriteCommand)
       append = command.mode == SaveMode.Append,
       id = id,
       childIds = childIds,
-      schema = Some(outputSchema),
       params = Map(
         OperationParams.Name -> command.name,
         OperationParams.DestinationType -> command.sourceIdentifier.format

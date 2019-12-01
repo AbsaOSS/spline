@@ -27,7 +27,7 @@ sealed trait OperationLike {
 case class DataOperation(
   override val id: Int,
   override val childIds: Seq[Int],
-  override val schema: Option[Any] = None,
+  override val schema: Option[Any] = None, // None means that that the schema is either the same as in the child operation, or unknown.
   override val params: Map[String, Any] = Map.empty
 ) extends OperationLike
 
@@ -37,7 +37,7 @@ case class ReadOperation(
   override val schema: Option[Any] = None,
   override val params: Map[String, Any] = Map.empty
 ) extends OperationLike {
-  override val childIds: Seq[Int] = Seq.empty
+  override val childIds: Seq[Int] = Seq.empty // Read operation is always a terminal node in a DAG
 }
 
 case class WriteOperation(
@@ -45,7 +45,8 @@ case class WriteOperation(
   append: Boolean,
   override val id: Int,
   override val childIds: Seq[Int],
-  override val schema: Option[Any] = None,
   override val params: Map[String, Any] = Map.empty
-) extends OperationLike
+) extends OperationLike {
+  override val schema: Option[Any] = None // Being a side-effect only, Write operation never changes the schema
+}
 

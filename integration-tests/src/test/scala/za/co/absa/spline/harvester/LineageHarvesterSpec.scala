@@ -26,6 +26,7 @@ import za.co.absa.spline.common.ConditionalTestTags.ignoreIf
 import za.co.absa.spline.common.TempDirectory
 import za.co.absa.spline.common.Version.VersionOrdering._
 import za.co.absa.spline.common.Version._
+import za.co.absa.spline.harvester.builder.OperationNodeBuilder.Schema
 import za.co.absa.spline.model.{Attribute, dt}
 import za.co.absa.spline.producer.model._
 import za.co.absa.spline.test.fixture.spline.SplineFixture
@@ -73,8 +74,7 @@ class LineageHarvesterSpec extends FlatSpec
             id = 0,
             childIds = Seq(1),
             outputSource = s"file:$tmpDest",
-            append = false,
-            schema = Some(expectedAttributes.map(_.id))
+            append = false
           ),
           DataOperation(
             id = 1,
@@ -99,27 +99,26 @@ class LineageHarvesterSpec extends FlatSpec
           .filter($"A".notEqual(5))
 
         val expectedAttributes = Seq(
-          Attribute(randomUUID, "A", integerType.id),
+          Attribute(randomUUID, "i", integerType.id),
           Attribute(randomUUID, "d", doubleType.id),
           Attribute(randomUUID, "s", stringType.id),
-          Attribute(randomUUID, "i", integerType.id))
+          Attribute(randomUUID, "A", integerType.id))
 
         val expectedOperations = Seq(
           WriteOperation(
             id = 0,
             childIds = Seq(1),
             outputSource = s"file:$tmpDest",
-            append = false,
-            schema = Some(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id))
+            append = false
           ),
           DataOperation(
-            1, Seq(2), Some(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id)),
+            1, Seq(2), None,
             Map("name" -> "Filter")),
           DataOperation(
-            2, Seq(3), Some(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id)),
+            2, Seq(3), Some(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id)),
             Map("name" -> "Project")),
           DataOperation(
-            3, Nil, Some(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id)),
+            3, Nil, Some(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id)),
             Map("name" -> "LocalRelation")))
 
         val (plan, _) = lineageOf(df.write.save(tmpDest))
@@ -153,12 +152,11 @@ class LineageHarvesterSpec extends FlatSpec
             id = 0,
             childIds = Seq(1),
             outputSource = s"file:$tmpDest",
-            append = false,
-            schema = Some(schema)
+            append = false
           ),
-          DataOperation(1, Seq(2, 4), Some(schema), Map("name" -> "Union")),
-          DataOperation(2, Seq(3), Some(schema), Map("name" -> "Filter")),
-          DataOperation(4, Seq(3), Some(schema), Map("name" -> "Filter")),
+          DataOperation(1, Seq(2, 4), None, Map("name" -> "Union")),
+          DataOperation(2, Seq(3), None, Map("name" -> "Filter")),
+          DataOperation(4, Seq(3), None, Map("name" -> "Filter")),
           DataOperation(3, Nil, Some(schema), Map("name" -> "LocalRelation")))
 
         val (plan, _) = lineageOf(df.write.save(tmpDest))
@@ -200,8 +198,7 @@ class LineageHarvesterSpec extends FlatSpec
             id = 0,
             childIds = Seq(1),
             outputSource = s"file:$tmpDest",
-            append = false,
-            schema = Some(expectedAttributes.map(_.id))
+            append = false
           ),
           DataOperation(
             1, Seq(2, 4), Some(expectedAttributes.map(_.id)),
@@ -209,7 +206,7 @@ class LineageHarvesterSpec extends FlatSpec
               "name" -> "Join",
               "joinType" -> Some("INNER"))),
           DataOperation(
-            2, Seq(3), Some(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id)),
+            2, Seq(3), None,
             Map("name" -> "Filter")),
           DataOperation(
             3, Nil, Some(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id)),
@@ -292,7 +289,7 @@ object LineageHarvesterSpec extends Matchers {
     stringType)
     .map(t => t.id -> t).toMap
 
-  implicit class ReferenceMatchers(schema: Seq[UUID]) {
+  implicit class ReferenceMatchers(schema: Schema) {
 
     import ReferenceMatchers._
 
@@ -308,7 +305,7 @@ object LineageHarvesterSpec extends Matchers {
     type ID = UUID
     type Refs = Seq[ID]
 
-    class ReferenceMatcher[A <: {def id : ID}](val refs: Refs, val attributes: Seq[A]) {
+    class ReferenceMatcher[A <: {def id: ID}](val refs: Refs, val attributes: Seq[A]) {
       private lazy val targets = attributes.map(_.id)
 
       private def referencePositions = refs.map(targets.indexOf)
@@ -338,10 +335,14 @@ object LineageHarvesterSpec extends Matchers {
       opActual.childIds should contain theSameElementsInOrderAs opExpected.childIds
       opActual.params should contain allElementsOf opExpected.params
 
-      opActual.schema shouldBe defined
-      val Some(actualSchema: Seq[UUID]) = opActual.schema
-      val Some(expectedSchema: Seq[UUID]) = opExpected.schema
-      actualSchema shouldReference actualAttributes as (expectedSchema references expectedAttributes)
+      for {
+        actualSchema <- opActual.schema.asInstanceOf[Option[Schema]]
+        expectedSchema <- opExpected.schema.asInstanceOf[Option[Schema]]
+      } {
+        actualSchema shouldReference actualAttributes as (expectedSchema references expectedAttributes)
+      }
+
+      opActual.schema.isDefined shouldBe opExpected.schema.isDefined
     }
 
     for ((attrActual: Attribute, attrExpected: Attribute) <- actualAttributes.zip(expectedAttributes)) {
