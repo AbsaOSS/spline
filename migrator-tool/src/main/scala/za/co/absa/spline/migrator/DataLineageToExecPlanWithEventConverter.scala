@@ -105,7 +105,6 @@ class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
       append = opWrite.append,
       id = operationIdByDatasetUUID(opWrite.mainProps.output),
       childIds = opWrite.mainProps.inputs.map(operationIdByDatasetUUID),
-      schema = schemaByDatasetUUID.get(opWrite.mainProps.output),
       params = Map(
         OperationParams.Name -> opWrite.mainProps.name,
         OperationParams.DestinationType -> opWrite.destinationType
@@ -150,13 +149,12 @@ class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
       case _ => Map.empty
     }
 
-    val maybeSchema: Option[Schema] = opOther.mainProps.inputs match {
-      case Seq(singleInput) =>
-        val inputSchema = schemaByDatasetUUID(singleInput)
-        val outputSchema = schemaByDatasetUUID(opOther.mainProps.output)
-        if (inputSchema != outputSchema) Some(outputSchema)
-        else None
-      case _ => schemaByDatasetUUID.get(opOther.mainProps.output)
+    val maybeSchema: Option[Schema] = {
+      val outputSchema = schemaByDatasetUUID(opOther.mainProps.output)
+      val inputSchemas = opOther.mainProps.inputs.map(schemaByDatasetUUID)
+      val isSchemaUntouched = inputSchemas.nonEmpty && inputSchemas.forall(outputSchema.==)
+      if (isSchemaUntouched) None
+      else Some(outputSchema)
     }
 
     DataOperation(

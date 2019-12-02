@@ -20,6 +20,7 @@ import java.util.UUID
 
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import za.co.absa.spline.harvester.ComponentCreatorFactory
+import za.co.absa.spline.harvester.builder.OperationNodeBuilder.Schema
 import za.co.absa.spline.producer.model.OperationLike
 
 trait OperationNodeBuilder {
@@ -27,6 +28,7 @@ trait OperationNodeBuilder {
   protected type R <: OperationLike
 
   val id: Int = componentCreatorFactory.nextId
+
   private var childBuilders: Seq[OperationNodeBuilder] = Nil
 
   def operation: LogicalPlan
@@ -34,6 +36,13 @@ trait OperationNodeBuilder {
   def +=(childBuilder: OperationNodeBuilder): Unit = childBuilders :+= childBuilder
 
   protected def componentCreatorFactory: ComponentCreatorFactory
-  protected def outputSchema: Seq[UUID] = operation.output.map(componentCreatorFactory.attributeConverter.convert(_).id)
+  protected lazy val outputSchema: Schema = operation.output.map(componentCreatorFactory.attributeConverter.convert(_).id)
+
   protected def childIds: Seq[Int] = childBuilders.map(_.id)
+  protected def childOutputSchemas: Seq[Schema] = childBuilders.map(_.outputSchema)
+  protected def isTerminal: Boolean = childBuilders.isEmpty
+}
+
+object OperationNodeBuilder {
+  type Schema = Seq[UUID]
 }
