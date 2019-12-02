@@ -287,7 +287,7 @@ object DataLineageToExecPlanWithEventConverterSpec {
           schema = None,
           params = Map(
             "name" -> "sort",
-            "orders" -> Seq(SortOrder(
+            "order" -> Seq(SortOrder(
               expression = expr.AttrRef(UUID.fromString("00000001-9999-9999-9999-999999999999")),
               direction = "DESC",
               nullOrder = "NULLS LAST"
@@ -307,12 +307,12 @@ object DataLineageToExecPlanWithEventConverterSpec {
           schema = Some(Seq(UUID.fromString("00000007-9999-9999-9999-999999999999"))),
           params = Map(
             "name" -> "aggregate",
-            "groupings" -> Seq(
+            "groupingExpressions" -> Seq(
               expr.AttrRef(UUID.fromString("00000002-9999-9999-9999-999999999999")),
               expr.AttrRef(UUID.fromString("00000005-9999-9999-9999-999999999999"))),
-            "aggregations" -> Map(
-              "avg" -> expr.AttrRef(UUID.fromString("00000004-9999-9999-9999-999999999999")),
-              "sum" -> expr.AttrRef(UUID.fromString("00000005-9999-9999-9999-999999999999"))))),
+            "aggregateExpressions" -> Seq(
+              expr.AttrRef(UUID.fromString("00000004-9999-9999-9999-999999999999")),
+              expr.AttrRef(UUID.fromString("00000005-9999-9999-9999-999999999999"))))),
 
         DataOperation(
           id = 8,
@@ -320,7 +320,7 @@ object DataLineageToExecPlanWithEventConverterSpec {
           schema = Some(Seq(UUID.fromString("00000008-9999-9999-9999-999999999999"))),
           params = Map(
             "name" -> "project",
-            "transformations" -> Seq(
+            "projectList" -> Seq(
               expr.Literal(
                 value = 777,
                 dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999"))))),

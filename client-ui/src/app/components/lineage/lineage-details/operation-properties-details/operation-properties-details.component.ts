@@ -13,19 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, ChangeDetectorRef, Component, ComponentFactoryResolver, OnDestroy, QueryList, Type, ViewChildren, ViewContainerRef } from '@angular/core';
-import { Store } from '@ngrx/store';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  ComponentFactoryResolver,
+  OnDestroy,
+  QueryList,
+  Type,
+  ViewChildren,
+  ViewContainerRef
+} from '@angular/core';
+import {Store} from '@ngrx/store';
 import * as _ from 'lodash';
-import { Observable, Subscription } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
-import { AppState } from 'src/app/model/app-state';
-import { Property, PropertyType } from 'src/app/model/property';
-import { OperationType, PropertiesComponents } from 'src/app/model/types/operationType';
-import { AttributeVM } from 'src/app/model/viewModels/attributeVM';
-import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM';
-import { getOperationColor, getOperationIcon } from 'src/app/util/execution-plan';
-import { getText } from 'src/app/util/expressions';
-import { PropertiesComponent } from './properties/properties.component';
+import {Observable, Subscription} from 'rxjs';
+import {map, switchMap} from 'rxjs/operators';
+import {AppState} from 'src/app/model/app-state';
+import {Property, PropertyType} from 'src/app/model/property';
+import {OperationType, PropertiesComponents} from 'src/app/model/types/operationType';
+import {AttributeVM} from 'src/app/model/viewModels/attributeVM';
+import {OperationDetailsVM} from 'src/app/model/viewModels/operationDetailsVM';
+import {getOperationColor, getOperationIcon} from 'src/app/util/execution-plan';
+import {getText} from 'src/app/util/expressions';
+import {PropertiesComponent} from './properties/properties.component';
 
 
 @Component({
@@ -125,7 +135,7 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
         if (opInfoProperties.projectList) {
           (opInfoProperties.projectList as any).forEach(
             projection => properties.push(
-              new Property(PropertyType.Transformations, getText(projection[1], attributeList), projection[1])
+              new Property(PropertyType.Transformations, getText(projection, attributeList), projection)
             )
           )
         }
@@ -144,14 +154,14 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
         aggregateExpressions.forEach(
           aggregate => {
             properties.push(
-              new Property(PropertyType.Aggregate, getText(aggregate[1], attributeList), aggregate[1])
+              new Property(PropertyType.Aggregate, getText(aggregate, attributeList), aggregate)
             )
           }
         )
         const groupingExpressions = (opInfoProperties.groupingExpressions as any)
         groupingExpressions.forEach(
           grouping => properties.push(
-            new Property(PropertyType.Grouping, getText(grouping[1], attributeList), grouping[1])
+            new Property(PropertyType.Grouping, getText(grouping, attributeList), grouping)
           )
         )
         break

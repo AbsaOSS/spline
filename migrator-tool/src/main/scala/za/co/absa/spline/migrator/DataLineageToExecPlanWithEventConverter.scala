@@ -135,7 +135,7 @@ class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
       case op.Aggregate(_, groupings, aggregations) =>
         Map[String, Any](
           OperationParams.Groupings -> groupings,
-          OperationParams.Aggregations -> aggregations)
+          OperationParams.Aggregations -> aggregations.values.toSeq)
 
       case op.Sort(_, orders) =>
         Map[String, Any](OperationParams.SortOrders -> orders)
