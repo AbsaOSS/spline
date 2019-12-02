@@ -17,7 +17,7 @@
 package za.co.absa.spline.harvester.converter
 
 import org.apache.spark.sql.catalyst.InternalRow
-import org.apache.spark.sql.catalyst.expressions.{Expression, NamedExpression, SortOrder}
+import org.apache.spark.sql.catalyst.expressions.{Expression, SortOrder}
 import org.apache.spark.sql.catalyst.plans.JoinType
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.types.DataType
@@ -39,7 +39,6 @@ class OperationParamsConverter(
       "expression" -> expressionConverter.convert(so.child),
       "direction" -> so.direction.sql,
       "nullOrdering" -> so.nullOrdering.sql))
-    case (exp: NamedExpression, _) => Some(Seq(exp.name, expressionConverter.convert(exp)))
     case (exp: Expression, _) => Some(expressionConverter.convert(exp))
   })
 
