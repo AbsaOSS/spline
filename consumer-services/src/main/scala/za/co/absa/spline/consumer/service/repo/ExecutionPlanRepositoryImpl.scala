@@ -66,7 +66,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
                 }]
             )
 
-        RETURN {
+        RETURN exec && {
             "graph": {
                 "nodes": ops[* RETURN {
                         "_id"  : CURRENT._key,
@@ -88,7 +88,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
             }
         }""",
       Map("execId" -> execId)
-    )
+    ).filter(null.!=)
   }
 
 
