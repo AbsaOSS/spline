@@ -15,11 +15,12 @@
   -->
 <mat-expansion-panel [expanded]="true">
     <mat-expansion-panel-header>
-        <i class="fa fa-xs" [style.color]=getColor()>{{getIcon()}}</i>&nbsp; <b> Filter On </b>
+        <i class="fa fa-xs" [style.color]=getColor()>{{getIcon()}}</i>&nbsp; <b> Alias </b>
     </mat-expansion-panel-header>
     <div *ngFor="let property of properties ;let i=index">
-        <a href="" (click)="openExprViewDialog($event, property)">
-            <code>{{property.value}}</code>
-        </a>
+        <li style="list-style-type:none;">
+            <span> {{property.type}}: </span>
+            <span style="color:#337ab7;">{{property.value}}</span>
+        </li>
     </div>
 </mat-expansion-panel>

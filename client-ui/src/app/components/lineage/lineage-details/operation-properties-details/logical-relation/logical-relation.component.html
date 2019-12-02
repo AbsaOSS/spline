@@ -15,7 +15,7 @@
   -->
 <mat-expansion-panel [expanded]="true">
     <mat-expansion-panel-header>
-        <i class="fa fa-xs" [style.color]=getOperationColor()>{{getIcon()}}</i>&nbsp; <b> LogicalRelation</b>
+        <i class="fa fa-xs" [style.color]=getColor()>{{getIcon()}}</i>&nbsp; <b> LogicalRelation</b>
     </mat-expansion-panel-header>
     <div *ngFor="let property of properties ;let i=index">
         <li style="list-style-type:none;">
