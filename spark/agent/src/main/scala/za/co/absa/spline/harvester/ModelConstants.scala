@@ -39,30 +39,30 @@ object ModelConstants {
     val Name = "name"
 
     // op.Read
-    val SourceType = "sourceType"
+    val SourceType = "sourceType" //todo: find better attribute name. See: https://github.com/AbsaOSS/spline/issues/496
 
     // op.Write
-    val DestinationType = "destinationType"
+    val DestinationType = "destinationType" //todo: find better attribute name. See: https://github.com/AbsaOSS/spline/issues/496
 
     // op.Join
     val JoinType = "joinType"
     val Condition = "condition"
 
     // op.Sort
-    val SortOrders = "orders"
+    val SortOrders = "order"
 
     // op.Aggregation
-    val Groupings = "groupings"
-    val Aggregations = "aggregations"
+    val Groupings = "groupingExpressions"
+    val Aggregations = "aggregateExpressions"
 
     // op.Projection
-    val Transformations = "transformations"
+    val Transformations = "projectList"
 
     // op.Alias
-    val Alias = "alias"
+    val Alias = "name" //todo: https://github.com/AbsaOSS/spline/issues/496
 
     // op.Generic
-    val RawString = "rawString"
+    val RawString = "rawString" //todo: find better attribute name. See: https://github.com/AbsaOSS/spline/issues/496
   }
 
 }
