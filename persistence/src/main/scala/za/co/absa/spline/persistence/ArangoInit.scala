@@ -64,9 +64,8 @@ object ArangoInit extends ArangoInit {
 
   private def execute[A](connectionURL: ArangoConnectionURL)(fn: ArangoDatabaseAsync => Future[A]): Future[A] = {
     val arangoFacade = new ArangoDatabaseFacade(connectionURL)
-    import arangoFacade.db
 
-    (Try(fn(db)) match {
+    (Try(fn(arangoFacade.db)) match {
       case Failure(e) => Future.failed(e)
       case Success(v) => v
     }) andThen {
