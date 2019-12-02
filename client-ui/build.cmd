@@ -20,6 +20,8 @@ set NODE_OPTIONS="--max_old_space_size=8192"
 echo "Building Spline UI v%SPLINE_VERSION%"
 
 :: Install required Node version
+
+:: TODO: Implement `install-node` script for Windows. See: https://github.com/AbsaOSS/spline/issues/499
 :: . ./install-node.cmd
 
 :: Install NPM dependencies
