@@ -20,11 +20,11 @@ import { Observable, Subscription } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { AppState } from 'src/app/model/app-state';
 import { Property, PropertyType } from 'src/app/model/property';
-import { PropertiesComponents, OperationType } from 'src/app/model/types/operationType';
+import { OperationType, PropertiesComponents } from 'src/app/model/types/operationType';
 import { AttributeVM } from 'src/app/model/viewModels/attributeVM';
 import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM';
+import { getOperationIcon, getOperationColor } from 'src/app/util/execution-plan';
 import { getText } from 'src/app/util/expressions';
-import { operationIconCodes, operationColorCodes } from 'src/app/util/execution-plan';
 
 
 @Component({
@@ -52,7 +52,7 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
           this.store.select('detailsInfos')
             .pipe(
               switchMap(detailsInfos => {
-                return this.store.select('executedLogicalPlan', 'execution', 'extra', 'attributes')
+                return this.store.select('executedLogicalPlan', 'executionPlan', 'extra', 'attributes')
                   .pipe(
                     map(attributes => {
                       return { detailsInfos: detailsInfos, attributes: attributes }
@@ -66,14 +66,17 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
           const container = this.propertiesPanel.first
           if (container && store.detailsInfos) {
             container.clear()
-            let type = store.detailsInfos.operation.name
-            if (!PropertiesComponents.has(type)) {
-              type = OperationType.Generic
+            let name = store.detailsInfos.operation.name
+            const type = store.detailsInfos.operation._type
+            if (!PropertiesComponents.has(name)) {
+              name = OperationType.Generic
             }
             const properties = this.getProperties(store.detailsInfos, store.attributes)
-            const factory = this.componentFactoryResolver.resolveComponentFactory(PropertiesComponents.get(type))
+            const component = type == OperationType.Write ? PropertiesComponents.get(OperationType.Write) : PropertiesComponents.get(name)
+            const factory = this.componentFactoryResolver.resolveComponentFactory(component)
             const instance = container.createComponent(factory).instance
             instance.properties = properties
+            instance.propertyName = name
             instance.propertyType = type
             if (!this.changedetectorRef['destroyed']) this.changedetectorRef.detectChanges()
           }
@@ -85,18 +88,26 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
     return this.store.select('detailsInfos')
   }
 
-  public getIcon(operationName: string): string {
-    return String.fromCharCode(operationIconCodes.get(operationName) || operationIconCodes.get(OperationType.Generic))
+  public getIcon(operationType: string, operationName: string): string {
+    return getOperationIcon(operationType, operationName)
   }
 
-  public getOperationColor(operationName: string): string {
-    return operationColorCodes.get(operationName) || operationColorCodes.get(OperationType.Generic)
+  public getColor(operationType: string, operationName: string): string {
+    return getOperationColor(operationType, operationName)
   }
 
 
   private getProperties(operationDetails: OperationDetailsVM, attributeList: any): Property[] {
     const opInfoProperties = operationDetails.operation.properties
     let properties = []
+
+    if (operationDetails.operation._type == OperationType.Write) {
+      properties.push(new Property(PropertyType.OutputSource, opInfoProperties.outputSource, null))
+      properties.push(new Property(PropertyType.SourceType, opInfoProperties.destinationType, null))
+      return properties
+    }
+
+
     switch (opInfoProperties.name) {
       case OperationType.Join:
         const joinExpression = new Property(PropertyType.Join, `${opInfoProperties.joinType} JOIN ON ${getText(opInfoProperties.condition, attributeList)}`, opInfoProperties.condition)
@@ -155,6 +166,9 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
       case OperationType.Filter:
         const filterExpression = new Property(PropertyType.Filter, getText(opInfoProperties.condition, attributeList), opInfoProperties.condition)
         properties.push(filterExpression)
+        break
+      case OperationType.Alias:
+        properties.push(new Property(PropertyType.Alias, opInfoProperties.alias, null))
         break
       default:
         const genericExpression = new Property(PropertyType.Properties, opInfoProperties, null)

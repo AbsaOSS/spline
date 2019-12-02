@@ -19,7 +19,7 @@ package za.co.absa.spline.harvester.builder
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import za.co.absa.spline.harvester.ComponentCreatorFactory
 import za.co.absa.spline.harvester.ModelConstants.OperationParams
-import za.co.absa.spline.producer.rest.model.DataOperation
+import za.co.absa.spline.producer.model.DataOperation
 
 class GenericNodeBuilder
 (val operation: LogicalPlan)
@@ -30,7 +30,7 @@ class GenericNodeBuilder
   override def build(): DataOperation = DataOperation(
     id = id,
     childIds = childIds,
-    schema = Some(outputSchema),
+    schema = if (!isTerminal && childOutputSchemas.forall(outputSchema.==)) None else Some(outputSchema),
     params = Map(OperationParams.Name -> operation.nodeName) ++ componentCreatorFactory.operationParamsConverter.convert(operation)
   )
 }

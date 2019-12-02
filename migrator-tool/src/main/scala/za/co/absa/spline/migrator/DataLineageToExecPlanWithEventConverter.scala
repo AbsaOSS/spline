@@ -21,7 +21,8 @@ import java.util.UUID
 import za.co.absa.spline.common.OptionImplicits._
 import za.co.absa.spline.harvester.ModelConstants._
 import za.co.absa.spline.model._
-import za.co.absa.spline.producer.rest.model._
+import za.co.absa.spline.producer.model
+import za.co.absa.spline.producer.model._
 
 class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
 
@@ -52,7 +53,7 @@ class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
       reads = opReads.map(convertReadOperation),
       other = opOther.map(convertOtherOperation))
 
-    val executionPlan = ExecutionPlan(
+    val executionPlan = model.ExecutionPlan(
       id = executionId,
       operations = operations,
       systemInfo = SystemInfo(AppMetaInfo.Spark, lineage.sparkVer),
@@ -66,7 +67,7 @@ class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
     val maybeExecutionEvent =
       if (lineage.writeIgnored) None
       else Some(
-        ExecutionEvent(
+        model.ExecutionEvent(
           planId = executionId,
           timestamp = lineage.timestamp,
           error = None,
@@ -104,7 +105,6 @@ class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
       append = opWrite.append,
       id = operationIdByDatasetUUID(opWrite.mainProps.output),
       childIds = opWrite.mainProps.inputs.map(operationIdByDatasetUUID),
-      schema = schemaByDatasetUUID.get(opWrite.mainProps.output),
       params = Map(
         OperationParams.Name -> opWrite.mainProps.name,
         OperationParams.DestinationType -> opWrite.destinationType
@@ -149,13 +149,12 @@ class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
       case _ => Map.empty
     }
 
-    val maybeSchema: Option[Schema] = opOther.mainProps.inputs match {
-      case Seq(singleInput) =>
-        val inputSchema = schemaByDatasetUUID(singleInput)
-        val outputSchema = schemaByDatasetUUID(opOther.mainProps.output)
-        if (inputSchema != outputSchema) Some(outputSchema)
-        else None
-      case _ => schemaByDatasetUUID.get(opOther.mainProps.output)
+    val maybeSchema: Option[Schema] = {
+      val outputSchema = schemaByDatasetUUID(opOther.mainProps.output)
+      val inputSchemas = opOther.mainProps.inputs.map(schemaByDatasetUUID)
+      val isSchemaUntouched = inputSchemas.nonEmpty && inputSchemas.forall(outputSchema.==)
+      if (isSchemaUntouched) None
+      else Some(outputSchema)
     }
 
     DataOperation(

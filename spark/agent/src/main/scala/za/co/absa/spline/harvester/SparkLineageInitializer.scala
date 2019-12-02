@@ -20,12 +20,9 @@ import org.apache.commons.configuration._
 import org.apache.spark
 import org.apache.spark.sql.SparkSession
 import org.slf4s.Logging
-import scalaj.http.Http
-import za.co.absa.spline.common.ConfigurationImplicits._
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
 import za.co.absa.spline.harvester.conf.{DefaultSplineConfigurer, HadoopConfiguration, SparkConfiguration, SplineConfigurer}
-import za.co.absa.spline.harvester.exception.SplineNotInitializedException
 import za.co.absa.spline.harvester.listener.SplineQueryExecutionListener
 
 import scala.collection.JavaConverters._
@@ -108,7 +105,7 @@ object SparkLineageInitializer extends Logging {
     private def createEventHandler(configurer: SplineConfigurer): Option[QueryExecutionEventHandler] = {
       if (configurer.splineMode != DISABLED) {
         if (!getOrSetIsInitialized()) {
-          log.info(s"Spline v${SplineBuildInfo.version} is initializing...")
+          log.info(s"Spline v${SplineBuildInfo.Version} is initializing...")
           try {
             val eventHandler = configurer.queryExecutionEventHandler
             log.info(s"Spline successfully initialized. Spark Lineage tracking is ENABLED.")

@@ -59,7 +59,7 @@
         <module>consumer-services</module>
         <module>persistence</module>
 
-        <module>producer-rest-model</module>
+        <module>producer-model</module>
         <module>producer-rest-core</module>
         <module>consumer-rest-core</module>
         <module>rest-gateway</module>

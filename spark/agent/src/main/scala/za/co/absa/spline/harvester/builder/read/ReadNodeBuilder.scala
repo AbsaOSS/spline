@@ -20,7 +20,7 @@ import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import za.co.absa.spline.harvester.ComponentCreatorFactory
 import za.co.absa.spline.harvester.ModelConstants.OperationParams
 import za.co.absa.spline.harvester.builder.OperationNodeBuilder
-import za.co.absa.spline.producer.rest.model.ReadOperation
+import za.co.absa.spline.producer.model.ReadOperation
 
 class ReadNodeBuilder
 (val command: ReadCommand)

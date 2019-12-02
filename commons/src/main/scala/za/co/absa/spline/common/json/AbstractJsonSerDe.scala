@@ -31,6 +31,8 @@ trait AbstractJsonSerDe {
 
   implicit class EntityToJson[A <: AnyRef](entity: A) {
     def toJson: String = compact(render(decompose(entity)))
+
+    def toJsonAs[B: Manifest]: B = render(decompose(entity)).extract[B]
   }
 
   implicit class JsonToEntity(json: String) {

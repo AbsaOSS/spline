@@ -27,8 +27,7 @@ export const operationIconCodes: Map<string, number> = new Map([
     [OperationType.Filter, 0xf0b0],
     [OperationType.Sort, 0xf161],
     [OperationType.Aggregate, 0xf1ec],
-    [OperationType.WriteCommand, 0xf0c7],
-    [OperationType.SaveIntoDataSourceCommand, 0xf0c7],
+    [OperationType.Write, 0xf0c7],
     [OperationType.Alias, 0xf02b],
     [OperationType.Generic, 0xf111]
 ])
@@ -42,8 +41,20 @@ export const operationColorCodes: Map<string, string> = new Map([
     [OperationType.Filter, "#F04100"],
     [OperationType.Sort, "#E0E719"],
     [OperationType.Aggregate, "#008000"],
-    [OperationType.SaveIntoDataSourceCommand, "#333333"],
-    [OperationType.WriteCommand, "#e39255"],
+    [OperationType.Write, "#333333"],
     [OperationType.Alias, "#337AB7"],
     [OperationType.Generic, "#337AB7"]
 ])
+
+
+export function getOperationIcon(operationType: string, operationName: string): string {
+    return operationType == OperationType.Write ?
+        String.fromCharCode(operationIconCodes.get(OperationType.Write)) :
+        String.fromCharCode(operationIconCodes.get(operationName) || operationIconCodes.get(OperationType.Generic))
+}
+
+export function getOperationColor(operationType: string, operationName: string): string {
+    return operationType == OperationType.Write ?
+        operationColorCodes.get(OperationType.Write) :
+        operationColorCodes.get(operationName) || operationColorCodes.get(OperationType.Generic)
+}

@@ -38,8 +38,8 @@
             <a (click)="onLineageOverviewClick()"> Lineage Overview </a>
         </li>
         <li class="breadcrumb-item"
-            [ngClass]="{ 'active': (isActive('partial-lineage') | async), 'display-none': !(isVisible('partial-lineage') | async)}">
-            <a>Partial Lineage</a>
+            [ngClass]="{ 'active': (isActive('lineage-detailed') | async), 'display-none': !(isVisible('lineage-detailed') | async)}">
+            <a>Detailed Lineage</a>
         </li>
     </ol>
 </div>

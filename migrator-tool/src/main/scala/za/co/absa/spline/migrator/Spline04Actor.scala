@@ -23,7 +23,7 @@ import akka.pattern.pipe
 import za.co.absa.spline.harvester.json.HarvesterJsonSerDe._
 import za.co.absa.spline.migrator.Spline04Actor._
 import za.co.absa.spline.migrator.rest.RestClient
-import za.co.absa.spline.producer.rest.model._
+import za.co.absa.spline.producer.model.{ExecutionEvent, ExecutionPlan}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

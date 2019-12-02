@@ -88,31 +88,13 @@
             </goals>
             <configuration>
               <target>
-                <echo message="preparing client build"/>
-                <exec executable="cmd" osfamily="windows" failonerror="true">
-                  <arg line="/c npm install --no-color"/>
-                </exec>
-                <exec executable="npm" osfamily="unix" failonerror="true">
-                  <arg line="install --no-color"/>
-                </exec>
-
-                <echo message="generate code from swagger"/>
-                <exec executable="cmd" osfamily="windows" failonerror="true">
-                  <arg line="/c npm run swagger-gen --no-color"/>
-                </exec>
-                <exec executable="npm" osfamily="unix" failonerror="true">
-                  <arg line="run swagger-gen --no-color"/>
-                </exec>
-
-                <echo message="building client application"/>
                 <exec executable="cmd" osfamily="windows" failonerror="true">
                   <env key="SPLINE_VERSION" value="${project.version}"/>
-                  <arg line="/c npm run build-prod --no-color"/>
+                  <arg line="/c build.cmd"/>
                 </exec>
-
                 <exec dir="." executable="bash" osfamily="unix" failonerror="true">
                   <env key="SPLINE_VERSION" value="${project.version}"/>
-                  <arg line="buildAppWithUpdatedNodeJS.sh"/>
+                  <arg line="build.sh"/>
                 </exec>
               </target>
             </configuration>

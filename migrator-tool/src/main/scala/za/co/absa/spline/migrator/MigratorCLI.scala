@@ -32,7 +32,7 @@ object MigratorCLI extends App {
 class MigratorCLI(migratorTool: MigratorTool) {
   def exec(args: Array[String]): Unit = {
     val cliParser = new scopt.OptionParser[MigratorConfig]("migrator-tool") {
-      head("Spline Migration Tool", SplineBuildInfo.version)
+      head("Spline Migration Tool", SplineBuildInfo.Version)
 
       (opt[String]('s', "source")
         valueName "<url>"

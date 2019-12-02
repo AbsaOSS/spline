@@ -23,6 +23,8 @@ import { SortComponent } from 'src/app/components/lineage/lineage-details/operat
 import { LogicalRelationComponent } from 'src/app/components/lineage/lineage-details/operation-properties-details/logical-relation/logical-relation.component';
 import { GenericComponent } from 'src/app/components/lineage/lineage-details/operation-properties-details/generic/generic.component';
 import { AggregateComponent } from 'src/app/components/lineage/lineage-details/operation-properties-details/aggregate/aggregate.component';
+import { WriteComponent } from 'src/app/components/lineage/lineage-details/operation-properties-details/write/write.component';
+import { AliasComponent } from 'src/app/components/lineage/lineage-details/operation-properties-details/alias/alias.component';
 
 
 export const enum OperationType {
@@ -34,8 +36,7 @@ export const enum OperationType {
     Filter = 'Filter',
     Sort = 'Sort',
     Aggregate = 'Aggregate',
-    WriteCommand = 'WriteCommand',
-    SaveIntoDataSourceCommand = 'SaveIntoDataSourceCommand',
+    Write = 'Write',
     Alias = 'SubqueryAlias'
 }
 
@@ -49,7 +50,6 @@ export const PropertiesComponents: Map<string, Type<PropertiesComponent>> = new 
     [OperationType.Filter, FilterComponent],
     [OperationType.Sort, SortComponent],
     [OperationType.Aggregate, AggregateComponent],
-    [OperationType.WriteCommand, PropertiesComponent],
-    [OperationType.SaveIntoDataSourceCommand, PropertiesComponent],
-    [OperationType.Alias, PropertiesComponent]
+    [OperationType.Write, WriteComponent],
+    [OperationType.Alias, AliasComponent]
 ])

@@ -14,24 +14,14 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.consumer.service.model
+package za.co.absa.spline.producer.model
 
 import java.util.UUID
 
-import ExecutionInfo.Id
-import io.swagger.annotations.{ApiModel, ApiModelProperty}
-
-@ApiModel(description="Information of the retrieved execution")
-case class ExecutionInfo
-(
-  @ApiModelProperty(value = "Execution Id")
-  _id: Id,
-  @ApiModelProperty(value = "Information Map related to the execution containing for instance the list of attributes, the data types and extra info of the agent and the framework used")
-  extra: Map[String, Any]
-) {
-  def this() = this(null, null)
-}
-
-object ExecutionInfo {
-  type Id = UUID
-}
+case class ExecutionPlan(
+  id: UUID,
+  operations: Operations,
+  systemInfo: SystemInfo,
+  agentInfo: Option[AgentInfo] = None,
+  extraInfo: Map[String, Any] = Map.empty
+)

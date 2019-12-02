@@ -26,6 +26,8 @@ import * as ExecutionPlanAction from 'src/app/store/actions/execution-plan.actio
 import * as LayoutAction from 'src/app/store/actions/layout.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
 import { AdaptiveComponent } from '../../adaptive/adaptive.component';
+import { operationIconCodes, operationColorCodes } from 'src/app/util/execution-plan';
+import { OperationType } from 'src/app/model/types/operationType';
 
 
 @Component({
@@ -58,14 +60,21 @@ export class LineageGraphComponent extends AdaptiveComponent implements OnInit, 
               .pipe(
                 filter(state => state != null),
                 map(state => {
-                  return { plan: state.plan, layout: layout }
+                  return { graph: state.graph, layout: layout }
                 })
               )
           })
         )
         .subscribe(state => {
           if (state && this.cytograph.cy) {
-            this.cytograph.cy.add(state.plan)
+            state.graph.nodes.map(n => {
+              if (n.data._type == 'Write') {
+                n.data.icon = operationIconCodes.get(OperationType.Write)
+                n.data.color = operationColorCodes.get(OperationType.Write)
+              }
+              return n
+            })
+            this.cytograph.cy.add(state.graph)
             this.cytograph.cy.nodeHtmlLabel([{
               tpl: function (data) {
                 if (data.icon) return '<i class="fa fa-4x" style="color:' + data.color + '">' + String.fromCharCode(data.icon) + '</i>'

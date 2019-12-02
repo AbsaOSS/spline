@@ -27,29 +27,35 @@ object Persister extends Logging {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
-  private val TotalRetriesOnConflictingKey = 5
+  private val MaxRetries = 5
 
   val vpack: VPack = new VPack.Builder()
     .registerModule(new VPackScalaModule)
     .build
 
-  def save[T, R](entity: T, attemptSave: T => Future[R]): Future[R] = {
-    saveWithRetry(entity, attemptSave, TotalRetriesOnConflictingKey)
+  def execute[R](fn: => Future[R]): Future[R] = {
+    executeWithRetry(fn, None)
   }
 
   @throws(classOf[IllegalArgumentException])
   @throws(classOf[ArangoDBException])
-  private def saveWithRetry[T, R](entity: T, attemptSave: T => Future[R], retries: Int): Future[R] = {
-    val left = retries - 1
-    for {
-      res <- attemptSave(entity).recoverWith {
-        case RetryableException(e) =>
-          if (left == 0) throw e
-          else {
-            log.warn(s"Got an error, retrying... ($left attempts left): {}", e.getMessage)
-            saveWithRetry(entity, attemptSave, left)
-          }
+  private def executeWithRetry[R](fn: => Future[R], lastFailure: Option[FailedAttempt]): Future[R] = {
+    val eventualResult = fn
+    val attemptsUsed = lastFailure.map(_.count).getOrElse(0)
+
+    for (failure <- lastFailure) {
+      eventualResult.onSuccess(PartialFunction(_ =>
+        log.warn(s"Succeeded after ${failure.count + 1} attempts. Previous message was: {}", failure.error.getMessage)))
+    }
+
+    if (attemptsUsed >= MaxRetries)
+      eventualResult
+    else
+      eventualResult.recoverWith {
+        case RetryableException(e) => executeWithRetry(fn, Some(FailedAttempt(attemptsUsed + 1, e)))
       }
-    } yield res
   }
+
+  case class FailedAttempt(count: Int, error: Exception)
+
 }

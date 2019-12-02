@@ -34,7 +34,7 @@ import za.co.absa.spline.harvester.builder.{GenericNodeBuilder, _}
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode.SplineMode
 import za.co.absa.spline.harvester.qualifier.HDFSPathQualifier
-import za.co.absa.spline.producer.rest.model._
+import za.co.absa.spline.producer.model._
 
 import scala.util.{Failure, Success, Try}
 
@@ -84,7 +84,7 @@ class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPl
         id = UUID.randomUUID,
         operations = Operations(writeOp, opReads, opOthers),
         systemInfo = SystemInfo(AppMetaInfo.Spark, spark.SPARK_VERSION),
-        agentInfo = Some(AgentInfo(AppMetaInfo.Spline, SplineBuildInfo.version)),
+        agentInfo = Some(AgentInfo(AppMetaInfo.Spline, SplineBuildInfo.Version)),
         extraInfo = Map(
           ExecutionPlanExtra.AppName -> session.sparkContext.appName,
           ExecutionPlanExtra.DataTypes -> componentCreatorFactory.dataTypeConverter.values,

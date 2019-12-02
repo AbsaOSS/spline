@@ -26,10 +26,10 @@ This is simplest example of how to track a lineage with Spline.
 3. Build Spline Examples:
   mvn package
 
-4. Execute `pyspark` with a Spline spark-bundle corresponding to the Spark version in use:
+4. Execute `pyspark` with a Spline spark-agent-bundle corresponding to the Spark version in use:
   pyspark \
     --jars target/spline-examples-0.4.0.jar \
-    --packages za.co.absa.spline:spark-bundle-2.4:0.4.0 \
+    --packages za.co.absa.spline:spark-agent-bundle-2.4:0.4.0 \
     --conf spline.producer.url=http://localhost:8888/producer
 
 5. Execute the rest of this file inside PySpark.

@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2019 ABSA Group Limited
  *
@@ -14,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component } from '@angular/core';
+import { PropertiesComponent } from '../properties/properties.component';
 
-package za.co.absa.spline.producer.rest.model
-
-import java.util.UUID
-
-case class ExecutionEvent(
-  planId: UUID,
-  timestamp: Long,
-  error: Option[Any] = None,
-  extra: Map[String, Any] = Map.empty
-)
+@Component({
+  selector: 'app-alias',
+  templateUrl: './alias.component.html'
+})
+export class AliasComponent extends PropertiesComponent { }

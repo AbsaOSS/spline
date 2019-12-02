@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component } from '@angular/core';
+import { PropertiesComponent } from '../properties/properties.component';
 
-package za.co.absa.spline.producer.rest.model
+@Component({
+  selector: 'app-write',
+  templateUrl: './write.component.html'
+})
+export class WriteComponent extends PropertiesComponent {
 
-import java.util.UUID
-
-case class ExecutionPlan(
-  id: UUID,
-  operations: Operations,
-  systemInfo: SystemInfo,
-  agentInfo: Option[AgentInfo] = None,
-  extraInfo: Map[String, Any] = Map.empty
-)
+}

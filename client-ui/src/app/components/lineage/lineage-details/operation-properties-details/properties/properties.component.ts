@@ -19,9 +19,8 @@ import { Subscription } from 'rxjs';
 import { ModalExpressionComponent } from 'src/app/components/modal/modal-expression/modal-expression.component';
 import { AppState } from 'src/app/model/app-state';
 import { Property } from 'src/app/model/property';
-import { OperationType } from 'src/app/model/types/operationType';
 import * as ModalAction from 'src/app/store/actions/modal.actions';
-import { operationColorCodes, operationIconCodes } from 'src/app/util/execution-plan';
+import { getOperationColor, getOperationIcon } from 'src/app/util/execution-plan';
 
 @Component({
   selector: 'properties',
@@ -34,29 +33,32 @@ export class PropertiesComponent implements OnDestroy {
   private subscriptions: Subscription[] = []
 
   @Input()
-  propertyType: string
+  public propertyType: string
 
   @Input()
-  properties: Property[]
+  public propertyName: string
+
+  @Input()
+  public properties: Property[]
 
   public getIcon(): string {
-    return String.fromCharCode(operationIconCodes.get(this.propertyType) || operationIconCodes.get(OperationType.Generic))
+    return getOperationIcon(this.propertyType, this.propertyName)
   }
 
-  public getOperationColor(): string {
-    return operationColorCodes.get(this.propertyType) || operationColorCodes.get(OperationType.Generic)
+  public getColor(): string {
+    return getOperationColor(this.propertyType, this.propertyName)
   }
 
   public openExprViewDialog(event: Event, expression: Property): void {
     event.preventDefault()
     this.subscriptions.push(
       this.store
-        .select('executedLogicalPlan', 'execution', 'extra', 'attributes')
+        .select('executedLogicalPlan', 'executionPlan', 'extra', 'attributes')
         .subscribe(attributes => {
           const initialState = {
             data: expression,
             attributes: attributes,
-            type: this.propertyType
+            type: this.propertyName
           }
           this.store.dispatch(new ModalAction.Open(ModalExpressionComponent, { initialState }))
         })

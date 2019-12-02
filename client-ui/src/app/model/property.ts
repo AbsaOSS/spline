@@ -28,11 +28,13 @@ export class Property {
 
 export const enum PropertyType {
     Join = "Join",
+    Alias = "Alias",
     Transformations = "Transformations",
     DroppedAttributes = "Dropped Attributes",
     Aggregate = "Aggregate",
     Grouping = "Grouping",
-    InputSource = "Input Source",
+    InputSource = "InputSource",
+    OutputSource = "OutpuSource",
     SourceType = "Source Type",
     Sort = "Sort",
     Filter = "Filter",

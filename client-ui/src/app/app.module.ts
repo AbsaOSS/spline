@@ -88,6 +88,8 @@ import { executionEventReducer } from './store/reducers/execution-events.reducer
 import { executionPlanReducer } from './store/reducers/execution-plan.reducer';
 import { layoutReducer } from './store/reducers/layout.reducer';
 import { lineageOverviewReducer } from './store/reducers/lineage-overview.reducer';
+import { WriteComponent } from './components/lineage/lineage-details/operation-properties-details/write/write.component';
+import { AliasComponent } from './components/lineage/lineage-details/operation-properties-details/alias/alias.component';
 
 
 export function initializeApp(store: Store<AppState>): () => Promise<any> {
@@ -136,12 +138,16 @@ const ROOT_ROUTING = "app/"
     TimePickerComponent,
     HeaderComponent,
     FooterComponent,
-    AdaptiveComponent
+    AdaptiveComponent,
+    WriteComponent,
+    AliasComponent
   ],
   entryComponents: [
     ModalExpressionComponent,
     SchemaTableComponent,
     PropertiesComponent,
+    WriteComponent,
+    AliasComponent,
     JoinComponent,
     ProjectionComponent,
     AggregateComponent,
@@ -195,7 +201,7 @@ const ROOT_ROUTING = "app/"
     RouterModule.forRoot([
       { path: ROOT_ROUTING + 'dashboard', component: DashboardComponent },
       { path: ROOT_ROUTING + 'lineage-overview', component: LineageOverviewComponent },
-      { path: ROOT_ROUTING + 'partial-lineage/:uid', component: LineageComponent },
+      { path: ROOT_ROUTING + 'lineage-detailed/:uid', component: LineageComponent },
       { path: ROOT_ROUTING + 'error/:httpCode', component: ErrorComponent },
       { path: '**', redirectTo: ROOT_ROUTING + 'dashboard' }
     ]),
