@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, ChangeDetectorRef, Component, ComponentFactoryResolver, OnDestroy, QueryList, ViewChildren, ViewContainerRef } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ComponentFactoryResolver, OnDestroy, QueryList, Type, ViewChildren, ViewContainerRef } from '@angular/core';
 import { Store } from '@ngrx/store';
 import * as _ from 'lodash';
 import { Observable, Subscription } from 'rxjs';
@@ -23,8 +23,9 @@ import { Property, PropertyType } from 'src/app/model/property';
 import { OperationType, PropertiesComponents } from 'src/app/model/types/operationType';
 import { AttributeVM } from 'src/app/model/viewModels/attributeVM';
 import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM';
-import { getOperationIcon, getOperationColor } from 'src/app/util/execution-plan';
+import { getOperationColor, getOperationIcon } from 'src/app/util/execution-plan';
 import { getText } from 'src/app/util/expressions';
+import { PropertiesComponent } from './properties/properties.component';
 
 
 @Component({
@@ -71,14 +72,22 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
             if (!PropertiesComponents.has(name)) {
               name = OperationType.Generic
             }
-            const properties = this.getProperties(store.detailsInfos, store.attributes)
-            const component = type == OperationType.Write ? PropertiesComponents.get(OperationType.Write) : PropertiesComponents.get(name)
-            const factory = this.componentFactoryResolver.resolveComponentFactory(component)
-            const instance = container.createComponent(factory).instance
-            instance.properties = properties
-            instance.propertyName = name
-            instance.propertyType = type
-            if (!this.changedetectorRef['destroyed']) this.changedetectorRef.detectChanges()
+            let properties: Property[] = []
+            let component: Type<PropertiesComponent>
+            try {
+              properties = this.getProperties(store.detailsInfos, store.attributes)
+              component = type == OperationType.Write ? PropertiesComponents.get(OperationType.Write) : PropertiesComponents.get(name)
+            } catch (error) {
+              console.error(error)
+              component = PropertiesComponents.get(OperationType.Error)
+            } finally {
+              const factory = this.componentFactoryResolver.resolveComponentFactory(component)
+              const instance = container.createComponent(factory).instance
+              instance.properties = properties
+              instance.propertyName = name
+              instance.propertyType = type
+            }
+            if (!this.changedetectorRef["destroyed"]) this.changedetectorRef.detectChanges()
           }
         })
     )
@@ -102,11 +111,10 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
     let properties = []
 
     if (operationDetails.operation._type == OperationType.Write) {
-      properties.push(new Property(PropertyType.OutputSource, opInfoProperties.outputSource, null))
-      properties.push(new Property(PropertyType.SourceType, opInfoProperties.destinationType, null))
+      properties.push(new Property(PropertyType.OutputSource, opInfoProperties.outputSource))
+      properties.push(new Property(PropertyType.SourceType, opInfoProperties.destinationType))
       return properties
     }
-
 
     switch (opInfoProperties.name) {
       case OperationType.Join:
@@ -127,7 +135,7 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
         const diff = _.differenceBy(inputs, output, 'name')
         diff.forEach(
           item => properties.push(
-            new Property(PropertyType.DroppedAttributes, item.name, null)
+            new Property(PropertyType.DroppedAttributes, item.name)
           )
         )
         break
@@ -150,10 +158,10 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
       case OperationType.LogicalRelation:
         (opInfoProperties.inputSources as any).forEach(
           inputSource => properties.push(
-            new Property(PropertyType.InputSource, inputSource, null)
+            new Property(PropertyType.InputSource, inputSource)
           )
         )
-        const inputSourceTypeExpression = new Property(PropertyType.SourceType, opInfoProperties.sourceType, null)
+        const inputSourceTypeExpression = new Property(PropertyType.SourceType, opInfoProperties.sourceType)
         properties.push(inputSourceTypeExpression)
         break
       case OperationType.Sort:
@@ -168,10 +176,10 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
         properties.push(filterExpression)
         break
       case OperationType.Alias:
-        properties.push(new Property(PropertyType.Alias, opInfoProperties.alias, null))
+        properties.push(new Property(PropertyType.Alias, opInfoProperties.alias))
         break
       default:
-        const genericExpression = new Property(PropertyType.Properties, opInfoProperties, null)
+        const genericExpression = new Property(PropertyType.Properties, opInfoProperties)
         properties.push(genericExpression)
         break
     }

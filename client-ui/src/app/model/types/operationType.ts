@@ -25,19 +25,21 @@ import { GenericComponent } from 'src/app/components/lineage/lineage-details/ope
 import { AggregateComponent } from 'src/app/components/lineage/lineage-details/operation-properties-details/aggregate/aggregate.component';
 import { WriteComponent } from 'src/app/components/lineage/lineage-details/operation-properties-details/write/write.component';
 import { AliasComponent } from 'src/app/components/lineage/lineage-details/operation-properties-details/alias/alias.component';
+import { PropertyErrorComponent } from 'src/app/components/lineage/lineage-details/operation-properties-details/property-error/property-error.component';
 
 
 export const enum OperationType {
-    Projection = 'Project',
-    LogicalRelation = 'LogicalRelation',
-    Join = 'Join',
-    Union = 'Union',
-    Generic = 'Generic',
-    Filter = 'Filter',
-    Sort = 'Sort',
-    Aggregate = 'Aggregate',
-    Write = 'Write',
-    Alias = 'SubqueryAlias'
+    Projection = "Project",
+    LogicalRelation = "LogicalRelation",
+    Join = "Join",
+    Union = "Union",
+    Generic = "Generic",
+    Filter = "Filter",
+    Sort = "Sort",
+    Aggregate = "Aggregate",
+    Write = "Write",
+    Alias = "SubqueryAlias",
+    Error = "Error"
 }
 
 
@@ -51,5 +53,6 @@ export const PropertiesComponents: Map<string, Type<PropertiesComponent>> = new 
     [OperationType.Sort, SortComponent],
     [OperationType.Aggregate, AggregateComponent],
     [OperationType.Write, WriteComponent],
-    [OperationType.Alias, AliasComponent]
+    [OperationType.Alias, AliasComponent],
+    [OperationType.Error, PropertyErrorComponent]
 ])
