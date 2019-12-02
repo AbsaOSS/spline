@@ -7,9 +7,9 @@
 The project consists of three main parts:
 - Spark Agent that sits on drivers, capturing the data lineage from Spark jobs being executed by analyzing the execution plans
 
--  Rest Gateway, that receive the lineage data from agent and stores it in the database
+-   Rest Gateway, that receive the lineage data from agent and stores it in the database
 
--  Web UI application that visualizes the stored data lineages
+-   Web UI application that visualizes the stored data lineages
 
 ![Spline diagram](https://user-images.githubusercontent.com/5530211/69061052-c4795400-0a18-11ea-9990-91836e2d648a.png)
 
@@ -17,13 +17,13 @@ The project consists of three main parts:
 There are several other tools. Check the examples to get a better idea how to use Spline.
 
 Other docs/readme files can be found at:
--  [ClientUI](client-ui/README.md)
+-   [ClientUI](client-ui/README.md)
 
--  [Examples](examples/README.md)
+-   [Examples](examples/README.md)
 
--  [Spark Agent](spark/agent/README.md)
+-   [Spark Agent](spark/agent/README.md)
 
--  [Spline Paper](https://github.com/AbsaOSS/spline/releases/download/release%2F0.2.7/Spline_paper_IEEE_2018.pdf)
+-   [Spline Paper](https://github.com/AbsaOSS/spline/releases/download/release%2F0.2.7/Spline_paper_IEEE_2018.pdf)
 
 Spline currently supports Spark 2.2+, but in older versions (especially 2.2) lineage information provided by spark is limited.
 
@@ -31,15 +31,15 @@ Spline currently supports Spark 2.2+, but in older versions (especially 2.2) lin
 
 Spline aims to fill a big gap within the Apache Hadoop ecosystem. Spark jobs shouldn’t be treated only as magic black boxes; people should be able to understand what happens with their data. Our main focus is to solve the following particular problems:
 
--  Regulatory requirement for SA banks (BCBS 239)
+-   Regulatory requirement for SA banks (BCBS 239)
 
     By 2020, all South African banks will have to be able to prove how numbers are calculated in their reports to the regulatory authority.
 
--  Documentation of business logic
+-   Documentation of business logic
 
     Business analysts should get a chance to verify whether Spark jobs were written according to the rules they provided. Moreover, it would be beneficial for them to have up-to-date documentation where they can refresh their knowledge of a project.
 
--  Identification of performance bottlenecks
+-   Identification of performance bottlenecks
 
     Our focus is not only business-oriented; we also see Spline as a development tool that should be able to help developers with the performance optimization of their Spark jobs.
 
@@ -124,7 +124,7 @@ The server exposes the following REST API:
 
 Spline web client can be started using 3 diffrent ways:
 
--  Docker: 
+-   Docker: 
 
 ```shell script
 docker container run \
@@ -133,14 +133,14 @@ docker container run \
       absaoss/spline-web-client
 ```
 
--  Java compatible Web-Container:
+-   Java compatible Web-Container:
 
 You can find the WAR-file of the Web Client in the repo here:
 [```za.co.absa.spline:client-web:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/client-web/0.4.0/)
 
-Add the argument for the consumer url `-Dpline.consumer.url=http://localhost:8080/consumer`
+Add the argument for the consumer url `-Dspline.consumer.url=http://localhost:8080/consumer`
 
--  Node JS application: 
+-   Node JS application: 
 
 Download [```node.js```](https://nodejs.org/en/) then install [```@angular/cli```](https://www.npmjs.com/package/@angular/cli) to run `ng serve` or `ng-build` command.
 
@@ -176,22 +176,21 @@ sparkSession.enableLineageTracking()
 ### Properties
 
 You also need to set some configuration properties. Spline combine these properties from several sources:
-1. Hadoop config (`core-site.xml`)
+1.  Hadoop config (`core-site.xml`)
 
-2. JVM system properties
+2.  JVM system properties
 
-3. `spline.properties` file in the classpath
+3.  `spline.properties` file in the classpath
 
 #### `spline.mode`
--  **DISABLED** Lineage tracking is completely disabled and Spline is unhooked from Spark.
+-   **DISABLED** Lineage tracking is completely disabled and Spline is unhooked from Spark.
 
--  **REQUIRED** If Spline fails to initialize itself (e.g. wrong configuration, no db connection etc)
+-   **REQUIRED** If Spline fails to initialize itself (e.g. wrong configuration, no db connection etc) the Spark application aborts with an error.
 
-    the Spark application aborts with an error.
--  **BEST_EFFORT** (default) Spline will try to initialize itself, but if fails it switches to DISABLED mode allowing the Spark application to proceed normally without Lineage tracking.
+-   **BEST_EFFORT** (default) Spline will try to initialize itself, but if fails it switches to DISABLED mode allowing the Spark application to proceed normally without Lineage tracking.
 
 #### `spline.producer.url`
--  url of spline producer (part of rest gateway responsible for storing lineages in database)
+-   url of spline producer (part of rest gateway responsible for storing lineages in database)
 
 Example:
 ```properties
