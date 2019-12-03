@@ -224,7 +224,7 @@ object DataLineageToExecPlanWithEventConverterSpec {
             "some://test/read/source-1",
             "some://test/read/source-2"),
           schema = Some(Seq(UUID.fromString("00000002-9999-9999-9999-999999999999"))),
-          params = Map(
+          extra = Map(
             "name" -> "read-A",
             "sourceType" -> "bar"
           )),
@@ -232,7 +232,7 @@ object DataLineageToExecPlanWithEventConverterSpec {
           id = 10,
           inputSources = Seq("some://test/read/source-3"),
           schema = Some(Seq(UUID.fromString("00000010-9999-9999-9999-999999999999"))),
-          params = Map(
+          extra = Map(
             "name" -> "read-B",
             "sourceType" -> "bar"
           ))),
@@ -242,7 +242,7 @@ object DataLineageToExecPlanWithEventConverterSpec {
         childIds = Seq(1),
         outputSource = "some://test/write/data/source/url?with=parameters&more=parameters",
         append = true,
-        params = Map(
+        extra = Map(
           "name" -> "write",
           "destinationType" -> "foo")),
 
@@ -252,20 +252,21 @@ object DataLineageToExecPlanWithEventConverterSpec {
           childIds = Seq(2, 6),
           schema = Some(Seq(UUID.fromString("00000001-9999-9999-9999-999999999999"))),
           params = Map(
-            "name" -> "join",
             "joinType" -> "INNER",
             "condition" -> expr.Generic(
               name = "expr1",
               dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999"),
               children = Seq(expr.Literal(value = 42, dataTypeId = UUID.fromString("00000000-0000-0000-0002-999999999999"))),
               exprType = "exprType1",
-              params = Some(Map("aa" -> 1, "bb" -> "two"))))),
+              params = Some(Map("aa" -> 1, "bb" -> "two")))),
+          extra = Map(
+            "name" -> "join")),
 
         DataOperation(
           id = 2,
           childIds = Seq(3, 4),
           schema = None,
-          params = Map(
+          extra = Map(
             "name" -> "union")),
 
         DataOperation(
@@ -273,63 +274,69 @@ object DataLineageToExecPlanWithEventConverterSpec {
           childIds = Seq(5),
           schema = None,
           params = Map(
-            "name" -> "filter",
             "condition" -> expr.Binary(
               symbol = "++",
               dataTypeId = UUID.fromString("00000000-0000-0000-0003-999999999999"),
               children = Seq(
                 expr.Literal(value = 111, dataTypeId = UUID.fromString("00000000-0000-0000-0003-999999999999")),
-                expr.Literal(value = 222, dataTypeId = UUID.fromString("00000000-0000-0000-0003-999999999999")))))),
+                expr.Literal(value = 222, dataTypeId = UUID.fromString("00000000-0000-0000-0003-999999999999"))))),
+          extra = Map(
+            "name" -> "filter")),
 
         DataOperation(
           id = 4,
           childIds = Seq(5),
           schema = None,
           params = Map(
-            "name" -> "sort",
             "order" -> Seq(SortOrder(
               expression = expr.AttrRef(UUID.fromString("00000001-9999-9999-9999-999999999999")),
               direction = "DESC",
               nullOrder = "NULLS LAST"
-            )))),
+            ))),
+          extra = Map(
+            "name" -> "sort")),
 
         DataOperation(
           id = 6,
           childIds = Seq(7),
           schema = None,
           params = Map(
-            "name" -> "alias",
-            "alias" -> "my-df")),
+            "alias" -> "my-df"),
+          extra = Map(
+            "name" -> "alias")),
 
         DataOperation(
           id = 7,
           childIds = Seq(8),
           schema = Some(Seq(UUID.fromString("00000007-9999-9999-9999-999999999999"))),
           params = Map(
-            "name" -> "aggregate",
             "groupingExpressions" -> Seq(
               expr.AttrRef(UUID.fromString("00000002-9999-9999-9999-999999999999")),
               expr.AttrRef(UUID.fromString("00000005-9999-9999-9999-999999999999"))),
             "aggregateExpressions" -> Seq(
               expr.AttrRef(UUID.fromString("00000004-9999-9999-9999-999999999999")),
-              expr.AttrRef(UUID.fromString("00000005-9999-9999-9999-999999999999"))))),
+              expr.AttrRef(UUID.fromString("00000005-9999-9999-9999-999999999999")))),
+          extra = Map(
+            "name" -> "aggregate")),
 
         DataOperation(
           id = 8,
           childIds = Seq(9),
           schema = Some(Seq(UUID.fromString("00000008-9999-9999-9999-999999999999"))),
           params = Map(
-            "name" -> "project",
             "projectList" -> Seq(
               expr.Literal(
                 value = 777,
-                dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999"))))),
+                dataTypeId = UUID.fromString("00000000-0000-0000-0001-999999999999")))),
+          extra = Map(
+            "name" -> "project")),
 
         DataOperation(
           id = 9,
           childIds = Seq(10),
           schema = Some(Seq(UUID.fromString("00000009-9999-9999-9999-999999999999"))),
-          params = Map(
+          params = Map.empty,
+          extra = Map(
             "name" -> "custom",
             "rawString" -> "CUSTOM_OPERATION_RAW_STRING")))),
 

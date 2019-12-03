@@ -105,9 +105,9 @@ class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
       append = opWrite.append,
       id = operationIdByDatasetUUID(opWrite.mainProps.output),
       childIds = opWrite.mainProps.inputs.map(operationIdByDatasetUUID),
-      params = Map(
-        OperationParams.Name -> opWrite.mainProps.name,
-        OperationParams.DestinationType -> opWrite.destinationType
+      extra = Map(
+        OperationExtras.Name -> opWrite.mainProps.name,
+        OperationExtras.DestinationType -> opWrite.destinationType
       ))
 
   private def convertReadOperation(opRead: op.Read): ReadOperation =
@@ -115,38 +115,52 @@ class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
       inputSources = opRead.sources.map(_.path),
       id = operationIdByDatasetUUID(opRead.mainProps.output),
       schema = schemaByDatasetUUID.get(opRead.mainProps.output),
-      params = Map(
-        OperationParams.Name -> opRead.mainProps.name,
-        OperationParams.SourceType -> opRead.sourceType
+      extra = Map(
+        OperationExtras.Name -> opRead.mainProps.name,
+        OperationExtras.SourceType -> opRead.sourceType
       ))
 
   private def convertOtherOperation(opOther: op.Operation): DataOperation = {
-    val params: Map[String, _] = opOther match {
-      case op.Generic(_, rawString) =>
-        Map(OperationParams.RawString -> rawString)
+    val (params: Map[String, _], extra: Map[String, _]) = opOther match {
+      case op.Generic(_, rawString) => (
+        Map.empty, // No generic operation params were collected in Spline 0.3
+        Map(OperationExtras.RawString -> rawString)
+      )
 
-      case op.Join(_, maybeCondition, joinType) =>
+      case op.Join(_, maybeCondition, joinType) => (
         Map[String, Any](OperationParams.JoinType -> joinType)
-          .optionally(_.updated(OperationParams.Condition, _: Any), maybeCondition)
+          .optionally(_.updated(OperationParams.Condition, _: Any), maybeCondition),
+        Map.empty
+      )
 
-      case op.Filter(_, condition) =>
-        Map[String, Any](OperationParams.Condition -> condition)
+      case op.Filter(_, condition) => (
+        Map[String, Any](OperationParams.Condition -> condition),
+        Map.empty
+      )
 
-      case op.Aggregate(_, groupings, aggregations) =>
+      case op.Aggregate(_, groupings, aggregations) => (
         Map[String, Any](
           OperationParams.Groupings -> groupings,
-          OperationParams.Aggregations -> aggregations.values.toSeq)
+          OperationParams.Aggregations -> aggregations.values.toSeq),
+        Map.empty
+      )
 
-      case op.Sort(_, orders) =>
-        Map[String, Any](OperationParams.SortOrders -> orders)
+      case op.Sort(_, orders) => (
+        Map[String, Any](OperationParams.SortOrders -> orders),
+        Map.empty
+      )
 
-      case op.Projection(_, transformations) =>
-        Map[String, Any](OperationParams.Transformations -> transformations)
+      case op.Projection(_, transformations) => (
+        Map[String, Any](OperationParams.Transformations -> transformations),
+        Map.empty
+      )
 
-      case op.Alias(_, alias) =>
-        Map[String, Any](OperationParams.Alias -> alias)
+      case op.Alias(_, alias) => (
+        Map[String, Any](OperationParams.Alias -> alias),
+        Map.empty
+      )
 
-      case _ => Map.empty
+      case _ => (Map.empty, Map.empty)
     }
 
     val maybeSchema: Option[Schema] = {
@@ -161,6 +175,9 @@ class DataLineageToExecPlanWithEventConverter(lineage: DataLineage) {
       id = operationIdByDatasetUUID(opOther.mainProps.output),
       childIds = opOther.mainProps.inputs.map(operationIdByDatasetUUID),
       schema = maybeSchema,
-      params = params + (OperationParams.Name -> opOther.mainProps.name))
+      params = params,
+      extra = extra + (
+        OperationExtras.Name -> opOther.mainProps.name
+        ))
   }
 }

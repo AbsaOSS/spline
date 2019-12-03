@@ -43,9 +43,9 @@ class BuilderSpec extends FlatSpec with Matchers with MockitoSugar {
     val readNode = new ReadNodeBuilder(command).build()
 
     readNode.params.keySet should contain("caseSensitiveKey")
-    readNode.params.keySet should contain("sourceType")
+    readNode.extra.keySet should contain("sourceType")
     readNode.params.keySet shouldNot contain("casesensitivekey")
-    readNode.params.keySet shouldNot contain("sourcetype")
+    readNode.extra.keySet shouldNot contain("sourcetype")
   }
 
 }

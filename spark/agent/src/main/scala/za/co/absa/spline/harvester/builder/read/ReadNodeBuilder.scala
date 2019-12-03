@@ -18,13 +18,13 @@ package za.co.absa.spline.harvester.builder.read
 
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import za.co.absa.spline.harvester.ComponentCreatorFactory
-import za.co.absa.spline.harvester.ModelConstants.OperationParams
+import za.co.absa.spline.harvester.ModelConstants.OperationExtras
 import za.co.absa.spline.harvester.builder.OperationNodeBuilder
 import za.co.absa.spline.producer.model.ReadOperation
 
 class ReadNodeBuilder
 (val command: ReadCommand)
-(implicit val componentCreatorFactory: ComponentCreatorFactory)
+  (implicit val componentCreatorFactory: ComponentCreatorFactory)
   extends OperationNodeBuilder {
 
   override protected type R = ReadOperation
@@ -34,8 +34,9 @@ class ReadNodeBuilder
     inputSources = command.sourceIdentifier.uris,
     id = id,
     schema = Some(outputSchema),
-    params = Map(
-      OperationParams.Name -> operation.nodeName,
-      OperationParams.SourceType -> command.sourceIdentifier.format
-    ) ++ command.params)
+    params = Map(command.params.toSeq: _*),
+    extra = Map(
+      OperationExtras.Name -> operation.nodeName,
+      OperationExtras.SourceType -> command.sourceIdentifier.format
+    ))
 }

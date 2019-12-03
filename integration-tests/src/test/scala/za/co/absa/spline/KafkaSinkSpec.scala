@@ -73,18 +73,18 @@ class KafkaSinkSpec
             .write.mode(Overwrite).saveAsTable("somewhere"))
 
           plan1.operations.write.append shouldBe false
-          plan1.operations.write.params("destinationType") shouldBe Some("kafka")
+          plan1.operations.write.extra("destinationType") shouldBe Some("kafka")
           plan1.operations.write.outputSource shouldBe s"kafka:$topicName"
 
-          plan2.operations.reads.head.params("sourceType") shouldBe Some("kafka")
+          plan2.operations.reads.head.extra("sourceType") shouldBe Some("kafka")
           plan2.operations.reads.head.inputSources should contain(s"kafka:$topicName")
           plan2.operations.reads.head.params should contain key "subscribe"
 
-          plan3.operations.reads.head.params("sourceType") shouldBe Some("kafka")
+          plan3.operations.reads.head.extra("sourceType") shouldBe Some("kafka")
           plan3.operations.reads.head.inputSources should contain(s"kafka:$topicName")
           plan3.operations.reads.head.params should contain key "subscribepattern"
 
-          plan4.operations.reads.head.params("sourceType") shouldBe Some("kafka")
+          plan4.operations.reads.head.extra("sourceType") shouldBe Some("kafka")
           plan4.operations.reads.head.inputSources should contain(s"kafka:$topicName")
           plan4.operations.reads.head.params should contain key "assign"
         })

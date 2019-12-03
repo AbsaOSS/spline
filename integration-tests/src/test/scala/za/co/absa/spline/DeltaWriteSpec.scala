@@ -54,10 +54,10 @@ class DeltaWriteSpec extends FlatSpec
         )
 
         plan1.operations.write.append shouldBe false
-        plan1.operations.write.params("destinationType") shouldBe Some("delta")
+        plan1.operations.write.extra("destinationType") shouldBe Some("delta")
         plan1.operations.write.outputSource shouldBe s"file:$deltaPath"
         plan2.operations.reads.head.inputSources.head shouldBe plan1.operations.write.outputSource
-        plan2.operations.reads.head.params("sourceType") shouldBe Some("Parquet")
+        plan2.operations.reads.head.extra("sourceType") shouldBe Some("Parquet")
       })
     })
 }

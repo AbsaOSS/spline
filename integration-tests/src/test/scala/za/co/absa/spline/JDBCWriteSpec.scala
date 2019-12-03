@@ -55,11 +55,11 @@ class JDBCWriteSpec extends FlatSpec
         )
 
         plan1.operations.write.append shouldBe false
-        plan1.operations.write.params("destinationType") shouldBe Some("jdbc")
+        plan1.operations.write.extra("destinationType") shouldBe Some("jdbc")
         plan1.operations.write.outputSource shouldBe s"$jdbcConnectionString:$tableName"
 
         plan2.operations.reads.head.inputSources.head shouldBe plan1.operations.write.outputSource
-        plan2.operations.reads.head.params("sourceType") shouldBe Some("jdbc")
+        plan2.operations.reads.head.extra("sourceType") shouldBe Some("jdbc")
       })
     })
 }
