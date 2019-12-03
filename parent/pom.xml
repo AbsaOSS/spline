@@ -53,20 +53,39 @@
 
     <developers>
         <developer>
-            <id>mn-mikke</id>
-            <name>Marek Novotny</name>
-            <timezone>Europe/Prague</timezone>
-            <url>https://github.com/mn-mikke</url>
-        </developer>
-        <developer>
             <id>wajda</id>
             <name>Oleksandr Vayda</name>
+            <roles>
+                <role>Tech Lead</role>
+                <role>Full-stack developer</role>
+            </roles>
             <timezone>Europe/Prague</timezone>
             <url>https://github.com/wajda</url>
         </developer>
         <developer>
+            <id>leborgneromain</id>
+            <name>Romain Leborgne</name>
+            <roles>
+                <role>Front-end developer</role>
+            </roles>
+            <timezone>Europe/Prague</timezone>
+            <url>https://github.com/leborgneromain</url>
+        </developer>
+        <developer>
+            <id>cerveada</id>
+            <name>Adam Červenka</name>
+            <roles>
+                <role>Back-end developer</role>
+            </roles>
+            <timezone>Europe/Prague</timezone>
+            <url>https://github.com/cerveada</url>
+        </developer>
+        <developer>
             <id>vackosar</id>
             <name>Vaclav Kosar</name>
+            <roles>
+                <role>Back-end developer</role>
+            </roles>
             <timezone>Europe/Prague</timezone>
             <url>https://github.com/vackosar</url>
         </developer>
