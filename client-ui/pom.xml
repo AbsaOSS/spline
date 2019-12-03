@@ -15,16 +15,14 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>za.co.absa.spline</groupId>
     <artifactId>parent</artifactId>
     <relativePath>../parent/pom.xml</relativePath>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.5.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>client-ui</artifactId>
@@ -89,12 +87,12 @@
             <configuration>
               <target>
                 <exec executable="cmd" osfamily="windows" failonerror="true">
-                  <env key="SPLINE_VERSION" value="${project.version}"/>
-                  <arg line="/c build.cmd"/>
+                  <env key="SPLINE_VERSION" value="${project.version}" />
+                  <arg line="/c build.cmd" />
                 </exec>
                 <exec dir="." executable="bash" osfamily="unix" failonerror="true">
-                  <env key="SPLINE_VERSION" value="${project.version}"/>
-                  <arg line="build.sh"/>
+                  <env key="SPLINE_VERSION" value="${project.version}" />
+                  <arg line="build.sh" />
                 </exec>
               </target>
             </configuration>
