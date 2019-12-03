@@ -198,7 +198,7 @@ You also need to set some configuration properties. Spline combine these propert
 Example:
 ```properties
 spline.mode=REQUIRED
-spline.producer.url=http://localhost:8080/spline/rest/producer
+spline.producer.url=http://localhost:8080/producer
 ```
 
 ---
