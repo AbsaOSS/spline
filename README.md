@@ -11,7 +11,7 @@ The project consists of three main parts:
 
 -   Web UI application that visualizes the stored data lineages
 
-![Spline diagram](https://user-images.githubusercontent.com/5530211/69061052-c4795400-0a18-11ea-9990-91836e2d648a.png)
+![Spline diagram](https://user-images.githubusercontent.com/5530211/70050339-fd93f580-15ce-11ea-88b2-4d79ee30d494.png)
 
 
 There are several other tools. Check the examples to get a better idea how to use Spline.
@@ -25,7 +25,7 @@ Other docs/readme files can be found at:
 
 -   [Spline Paper](https://github.com/AbsaOSS/spline/releases/download/release%2F0.2.7/Spline_paper_IEEE_2018.pdf)
 
-Spline currently supports Spark 2.2+, but in older versions (especially 2.2) lineage information provided by spark is limited.
+Spline is aimed to be used with Spark 2.3+ but also provides limited support for Spark 2.2.
 
 ## Motivation
 
@@ -96,7 +96,9 @@ java -jar admin/target/admin-0.4.0.jar db-init arangodb://localhost/spline
 ```
 
 ## Start Spline Server
-The easiest way to spin up the Spline server is to use Docker:
+Spline server can be started using 2 diffrent ways:
+
+-   Docker: 
 
 ```shell script
 docker container run \
@@ -105,7 +107,8 @@ docker container run \
       absaoss/spline-rest-server
 ```
 
-Or you can deploy it as a WAR-file into any Java compatible Web-Container, e.g. Tomcat.
+-   Java compatible Web-Container (e.g. Tomcat):
+
 You can find a WAR-file in the Maven repo here:
 [```za.co.absa.spline:rest-gateway:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/rest-gateway/0.4.0/)
 
@@ -133,14 +136,14 @@ docker container run \
       absaoss/spline-web-client
 ```
 
--   Java compatible Web-Container:
+-   Java compatible Web-Container (e.g. Tomcat):
 
 You can find the WAR-file of the Web Client in the repo here:
 [```za.co.absa.spline:client-web:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/client-web/0.4.0/)
 
 Add the argument for the consumer url `-Dspline.consumer.url=http://localhost:8080/consumer`
 
--   Node JS application: 
+-   Node JS application (For development purposes): 
 
 Download [```node.js```](https://nodejs.org/en/) then install [```@angular/cli```](https://www.npmjs.com/package/@angular/cli) to run `ng serve` or `ng-build` command.
 
@@ -148,7 +151,7 @@ To specify the consumer url please edit the [config.json](https://github.com/Abs
 
 You can find the documentation of this module in [ClientUI](client-ui/README.md).
 
-## Check the result in the browser
+### Check the result in the browser
 <http://localhost:9090>
 
 ## Use spline in your application
@@ -183,11 +186,11 @@ You also need to set some configuration properties. Spline combine these propert
 3.  `spline.properties` file in the classpath
 
 #### `spline.mode`
--   **DISABLED** Lineage tracking is completely disabled and Spline is unhooked from Spark.
+-   *`DISABLED`* Lineage tracking is completely disabled and Spline is unhooked from Spark.
 
--   **REQUIRED** If Spline fails to initialize itself (e.g. wrong configuration, no db connection etc) the Spark application aborts with an error.
+-   *`REQUIRED`* If Spline fails to initialize itself (e.g. wrong configuration, no db connection etc) the Spark application aborts with an error.
 
--   **BEST_EFFORT** (default) Spline will try to initialize itself, but if fails it switches to DISABLED mode allowing the Spark application to proceed normally without Lineage tracking.
+-   *`BEST_EFFORT`* (default) Spline will try to initialize itself, but if fails it switches to DISABLED mode allowing the Spark application to proceed normally without Lineage tracking.
 
 #### `spline.producer.url`
 -   url of spline producer (part of rest gateway responsible for storing lineages in database)
@@ -195,7 +198,7 @@ You also need to set some configuration properties. Spline combine these propert
 Example:
 ```properties
 spline.mode=REQUIRED
-spline.producer.url=http://localhost:8080/spline
+spline.producer.url=http://localhost:8080/producer
 ```
 
 ---
