@@ -16,9 +16,9 @@
 export class Property {
     public type: string
     public value: any
-    public metadata: any
+    public metadata?: any
 
-    constructor(type: PropertyType, value: any, metadata: any) {
+    constructor(type: PropertyType, value: any, metadata?: any) {
         this.type = type
         this.value = value
         this.metadata = metadata
@@ -38,5 +38,6 @@ export const enum PropertyType {
     SourceType = "Source Type",
     Sort = "Sort",
     Filter = "Filter",
-    Properties = "Properties"
+    Properties = "Properties",
+    Error = "Error"
 }

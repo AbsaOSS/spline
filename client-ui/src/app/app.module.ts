@@ -90,6 +90,7 @@ import { layoutReducer } from './store/reducers/layout.reducer';
 import { lineageOverviewReducer } from './store/reducers/lineage-overview.reducer';
 import { WriteComponent } from './components/lineage/lineage-details/operation-properties-details/write/write.component';
 import { AliasComponent } from './components/lineage/lineage-details/operation-properties-details/alias/alias.component';
+import { PropertyErrorComponent } from './components/lineage/lineage-details/operation-properties-details/property-error/property-error.component';
 
 
 export function initializeApp(store: Store<AppState>): () => Promise<any> {
@@ -140,12 +141,14 @@ const ROOT_ROUTING = "app/"
     FooterComponent,
     AdaptiveComponent,
     WriteComponent,
-    AliasComponent
+    AliasComponent,
+    PropertyErrorComponent
   ],
   entryComponents: [
     ModalExpressionComponent,
     SchemaTableComponent,
     PropertiesComponent,
+    PropertyErrorComponent,
     WriteComponent,
     AliasComponent,
     JoinComponent,
