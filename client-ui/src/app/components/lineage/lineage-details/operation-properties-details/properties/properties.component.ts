@@ -18,7 +18,7 @@ import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
 import { ModalExpressionComponent } from 'src/app/components/modal/modal-expression/modal-expression.component';
 import { AppState } from 'src/app/model/app-state';
-import { Property } from 'src/app/model/property';
+import { Property, PropertyType, PropertyTypeAware } from 'src/app/model/property';
 import * as ModalAction from 'src/app/store/actions/modal.actions';
 import { getOperationColor, getOperationIcon } from 'src/app/util/execution-plan';
 
@@ -26,6 +26,8 @@ import { getOperationColor, getOperationIcon } from 'src/app/util/execution-plan
   selector: 'properties',
   template: ''
 })
+
+@PropertyTypeAware
 export class PropertiesComponent implements OnDestroy {
 
   constructor(private store: Store<AppState>) { }
@@ -47,6 +49,10 @@ export class PropertiesComponent implements OnDestroy {
 
   public getColor(): string {
     return getOperationColor(this.propertyType, this.propertyName)
+  }
+
+  public propertiesContain(propertyType: PropertyType): boolean {
+    return this.properties.filter(p => p.type == propertyType).length > 0
   }
 
   public openExprViewDialog(event: Event, expression: Property): void {

@@ -15,17 +15,11 @@
  */
 import { Component } from '@angular/core';
 import { PropertiesComponent } from '../properties/properties.component';
-import { Property, PropertyType } from 'src/app/model/property';
 
 @Component({
   selector: 'projection',
   templateUrl: './projection.component.html',
   styleUrls: ['./projection.component.less']
 })
-export class ProjectionComponent extends PropertiesComponent {
 
-  public hasDroppedAttribute(properties: Property[]): boolean {
-    return properties.filter(p => p.type == PropertyType.DroppedAttributes).length > 0
-  }
-
-}
+export class ProjectionComponent extends PropertiesComponent { }
