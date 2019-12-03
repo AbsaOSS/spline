@@ -22,13 +22,13 @@ import springfox.documentation.schema.Annotations._
 import springfox.documentation.spi.DocumentationType
 import springfox.documentation.spi.schema.ModelPropertyBuilderPlugin
 import springfox.documentation.spi.schema.contexts.ModelPropertyContext
-import springfox.documentation.swagger.common.SwaggerPluginSupport.{SWAGGER_PLUGIN_ORDER, pluginDoesApply}
+import springfox.documentation.swagger.common.SwaggerPluginSupport.pluginDoesApply
 import springfox.documentation.swagger.schema.ApiModelProperties._
 import za.co.absa.spline.common.ReflectionUtils
 
 import scala.language.implicitConversions
 
-@Order(SWAGGER_PLUGIN_ORDER + 1)
+@Order(-2147482647) // == springfox.documentation.swagger.common.SwaggerPluginSupport.SWAGGER_PLUGIN_ORDER + 1
 class SwaggerRequiredPropertyBuilderPlugin extends ModelPropertyBuilderPlugin {
 
   import SwaggerRequiredPropertyBuilderPlugin._
