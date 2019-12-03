@@ -51,7 +51,7 @@ export class PropertiesComponent implements OnDestroy {
     return getOperationColor(this.propertyType, this.propertyName)
   }
 
-  public propertiesContain(propertyType: PropertyType) {
+  public propertiesContain(propertyType: PropertyType): boolean {
     return this.properties.filter(p => p.type == propertyType).length > 0
   }
 

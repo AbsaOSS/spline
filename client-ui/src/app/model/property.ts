@@ -42,6 +42,6 @@ export enum PropertyType {
     Error = "Error"
 }
 
-export function PropertyTypeAware(constructor: Function) {
+export function PropertyTypeAware(constructor: Function): void {
     constructor.prototype.PropertyType = PropertyType
 }
