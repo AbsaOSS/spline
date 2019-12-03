@@ -26,7 +26,7 @@ export class Property {
 
 }
 
-export const enum PropertyType {
+export enum PropertyType {
     Join = "Join",
     Alias = "Alias",
     Transformations = "Transformations",
@@ -40,4 +40,8 @@ export const enum PropertyType {
     Filter = "Filter",
     Properties = "Properties",
     Error = "Error"
+}
+
+export function PropertyTypeAware(constructor: Function) {
+    constructor.prototype.PropertyType = PropertyType
 }
