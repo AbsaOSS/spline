@@ -15,16 +15,14 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>za.co.absa.spline</groupId>
         <artifactId>parent</artifactId>
         <relativePath>../parent/pom.xml</relativePath>
-        <version>0.4.0-SNAPSHOT</version>
+        <version>0.4.0</version>
     </parent>
 
     <groupId>org.webjars</groupId>
@@ -87,12 +85,11 @@
                         </goals>
                         <configuration>
                             <target>
-                                <echo message="unzip archive"/>
-                                <unzip src="${project.build.directory}/dependency/${zip.artifactId}-${project.version}-${zip.classifier}.zip"
-                                       dest="${project.build.directory}/${project.artifactId}-${project.version}"/>
-                                <echo message="moving resources"/>
+                                <echo message="unzip archive" />
+                                <unzip src="${project.build.directory}/dependency/${zip.artifactId}-${project.version}-${zip.classifier}.zip" dest="${project.build.directory}/${project.artifactId}-${project.version}" />
+                                <echo message="moving resources" />
                                 <move todir="${project.build.outputDirectory}/META-INF/resources/webjars/${project.artifactId}/${project.version}">
-                                    <fileset dir="${project.build.directory}/${project.artifactId}-${project.version}"/>
+                                    <fileset dir="${project.build.directory}/${project.artifactId}-${project.version}" />
                                 </move>
                             </target>
                         </configuration>
