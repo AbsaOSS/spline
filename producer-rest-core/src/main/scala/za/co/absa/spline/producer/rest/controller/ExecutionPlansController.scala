@@ -68,8 +68,10 @@ class ExecutionPlansController @Autowired()(
               childIds: [<number>],
               // [Optional] Object that describes the schema of the operation output
               schema: {...},
+              // [Optional] Operation parameters
+              params: {...},
               // [Optional] Custom info about the operation
-              params: {...}
+              extra: {...}
             },
 
             // Array of read operations

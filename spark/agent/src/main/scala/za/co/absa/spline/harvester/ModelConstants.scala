@@ -36,14 +36,6 @@ object ModelConstants {
   }
 
   object OperationParams {
-    val Name = "name"
-
-    // op.Read
-    val SourceType = "sourceType" //todo: find better attribute name. See: https://github.com/AbsaOSS/spline/issues/496
-
-    // op.Write
-    val DestinationType = "destinationType" //todo: find better attribute name. See: https://github.com/AbsaOSS/spline/issues/496
-
     // op.Join
     val JoinType = "joinType"
     val Condition = "condition"
@@ -60,9 +52,19 @@ object ModelConstants {
 
     // op.Alias
     val Alias = "alias"
+  }
+
+  object OperationExtras {
+    val Name = "name"
+
+    // op.Read
+    val SourceType = "sourceType"
+
+    // op.Write
+    val DestinationType = "destinationType"
 
     // op.Generic
-    val RawString = "rawString" //todo: find better attribute name. See: https://github.com/AbsaOSS/spline/issues/496
+    val RawString = "rawString"
   }
 
 }

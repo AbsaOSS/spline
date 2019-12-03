@@ -51,7 +51,7 @@ class LineageHarvesterSpec extends FlatSpec
             op.id should be(1)
             op.childIds should be(empty)
             op.schema should not be empty
-            op.params should contain("name" -> "LocalRelation")
+            op.extra should contain("name" -> "LocalRelation")
         }
       }
     })
@@ -80,7 +80,7 @@ class LineageHarvesterSpec extends FlatSpec
             id = 1,
             childIds = Nil,
             schema = Some(expectedAttributes.map(_.id)),
-            params = Map("name" -> "LocalRelation")))
+            extra = Map("name" -> "LocalRelation")))
 
         val (plan, _) = lineageOf(df.write.save(tmpDest))
 
@@ -113,12 +113,15 @@ class LineageHarvesterSpec extends FlatSpec
           ),
           DataOperation(
             1, Seq(2), None,
+            Map.empty,
             Map("name" -> "Filter")),
           DataOperation(
             2, Seq(3), Some(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id)),
+            Map.empty,
             Map("name" -> "Project")),
           DataOperation(
             3, Nil, Some(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id)),
+            Map.empty,
             Map("name" -> "LocalRelation")))
 
         val (plan, _) = lineageOf(df.write.save(tmpDest))
@@ -154,10 +157,10 @@ class LineageHarvesterSpec extends FlatSpec
             outputSource = s"file:$tmpDest",
             append = false
           ),
-          DataOperation(1, Seq(2, 4), None, Map("name" -> "Union")),
-          DataOperation(2, Seq(3), None, Map("name" -> "Filter")),
-          DataOperation(4, Seq(3), None, Map("name" -> "Filter")),
-          DataOperation(3, Nil, Some(schema), Map("name" -> "LocalRelation")))
+          DataOperation(1, Seq(2, 4), None, Map.empty, Map("name" -> "Union")),
+          DataOperation(2, Seq(3), None, Map.empty, Map("name" -> "Filter")),
+          DataOperation(4, Seq(3), None, Map.empty, Map("name" -> "Filter")),
+          DataOperation(3, Nil, Some(schema), Map.empty, Map("name" -> "LocalRelation")))
 
         val (plan, _) = lineageOf(df.write.save(tmpDest))
 
@@ -202,20 +205,23 @@ class LineageHarvesterSpec extends FlatSpec
           ),
           DataOperation(
             1, Seq(2, 4), Some(expectedAttributes.map(_.id)),
-            Map(
-              "name" -> "Join",
-              "joinType" -> Some("INNER"))),
+            Map("joinType" -> Some("INNER")),
+            Map("name" -> "Join")),
           DataOperation(
             2, Seq(3), None,
+            Map.empty,
             Map("name" -> "Filter")),
           DataOperation(
             3, Nil, Some(Seq(expectedAttributes(0).id, expectedAttributes(1).id, expectedAttributes(2).id)),
+            Map.empty,
             Map("name" -> "LocalRelation")),
           DataOperation(
             4, Seq(5), Some(Seq(expectedAttributes(3).id, expectedAttributes(4).id, expectedAttributes(5).id)),
+            Map.empty,
             Map("name" -> "Aggregate")),
           DataOperation(
             5, Seq(3), Some(Seq(expectedAttributes(3).id, expectedAttributes(1).id, expectedAttributes(2).id)),
+            Map.empty,
             Map("name" -> "Project")))
 
         val (plan, _) = lineageOf(df.write.save(tmpDest))
@@ -249,24 +255,24 @@ class LineageHarvesterSpec extends FlatSpec
           writeOperation.id shouldEqual 0
           writeOperation.append shouldEqual false
           writeOperation.childIds shouldEqual Seq(1)
-          writeOperation.params("destinationType") shouldEqual Some("hive")
+          writeOperation.extra("destinationType") shouldEqual Some("hive")
 
           val otherOperations = plan.operations.other.sortBy(_.id)
 
           val firstOperation = otherOperations(0)
           firstOperation.id shouldEqual 1
           firstOperation.childIds shouldEqual Seq(2)
-          firstOperation.params("name") shouldEqual "Project"
+          firstOperation.extra("name") shouldEqual "Project"
 
           val secondOperation = otherOperations(1)
           secondOperation.id shouldEqual 2
           secondOperation.childIds shouldEqual Seq(3)
-          secondOperation.params("name") should (equal("SubqueryAlias") or equal(Some("`tempview`"))) // Spark 2.3/2.4
+          secondOperation.extra("name") should (equal("SubqueryAlias") or equal(Some("`tempview`"))) // Spark 2.3/2.4
 
           val thirdOperation = otherOperations(2)
           thirdOperation.id shouldEqual 3
           thirdOperation.childIds shouldEqual Nil
-          thirdOperation.params("name") shouldEqual "LocalRelation"
+          thirdOperation.extra("name") shouldEqual "LocalRelation"
         }
       }
     }
@@ -334,6 +340,7 @@ object LineageHarvesterSpec extends Matchers {
       opActual.id should be(opExpected.id)
       opActual.childIds should contain theSameElementsInOrderAs opExpected.childIds
       opActual.params should contain allElementsOf opExpected.params
+      opActual.extra should contain allElementsOf opExpected.extra
 
       for {
         actualSchema <- opActual.schema.asInstanceOf[Option[Schema]]

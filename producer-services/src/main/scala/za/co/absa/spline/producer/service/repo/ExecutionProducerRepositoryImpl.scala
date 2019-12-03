@@ -201,7 +201,8 @@ object ExecutionProducerRepositoryImpl {
       case r: ReadOperation =>
         dbModel.Read(
           inputSources = r.inputSources,
-          properties = r.params,
+          params = r.params,
+          extra = r.extra,
           outputSchema = r.schema,
           _key = s"${executionPlan.id}:${r.id.toString}"
         )
@@ -209,13 +210,15 @@ object ExecutionProducerRepositoryImpl {
         dbModel.Write(
           outputSource = w.outputSource,
           append = w.append,
-          properties = w.params,
+          params = w.params,
+          extra = w.extra,
           outputSchema = schemaFinder.findSchemaOf(w),
           _key = s"${executionPlan.id}:${w.id.toString}"
         )
       case t: DataOperation =>
         dbModel.Transformation(
-          properties = t.params,
+          params = t.params,
+          extra = t.extra,
           outputSchema = schemaFinder.findSchemaOf(t),
           _key = s"${executionPlan.id}:${t.id.toString}"
         )

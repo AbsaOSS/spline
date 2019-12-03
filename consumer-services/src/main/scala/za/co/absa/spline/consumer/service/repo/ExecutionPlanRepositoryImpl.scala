@@ -53,7 +53,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
                 FILTER op._type == "Read"
                 RETURN op.inputSources[* RETURN {
                     "source"    : CURRENT,
-                    "sourceType": op.properties.sourceType
+                    "sourceType": op.extra.sourceType
                 }]
             )
 
@@ -62,7 +62,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
                 FILTER CURRENT._type == "Write"
                 RETURN {
                     "source"    : CURRENT.outputSource,
-                    "sourceType": CURRENT.properties.destinationType
+                    "sourceType": CURRENT.extra.destinationType
                 }]
             )
 
@@ -71,7 +71,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
                 "nodes": ops[* RETURN {
                         "_id"  : CURRENT._key,
                         "_type": CURRENT._type,
-                        "name" : CURRENT.properties.name
+                        "name" : CURRENT.extra.name
                     }],
                 "edges": edges[* RETURN {
                         "source": PARSE_IDENTIFIER(CURRENT._to).key,
