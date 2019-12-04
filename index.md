@@ -10,10 +10,8 @@ title: v 0.4.0
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/za.co.absa.spline/spline-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/za.co.absa.spline/spline-core)	[![Maven Central](https://maven-badges.herokuapp.com/maven-central/za.co.absa.spline/parent/badge.svg)](https://search.maven.org/search?q=g:za.co.absa.spline)
 
 
-The project consists of three main parts:	The project consists of three main parts:
-- Spark Agent that sits on drivers, capturing the data lineage from Spark jobs being executed by analyzing the execution plans	- Spark Agent that sits on drivers, capturing the data lineage from Spark jobs being executed by analyzing the execution plans
-
 The project consists of three main parts:
+
 - Spark Agent that sits on drivers, capturing the data lineage from Spark jobs being executed by analyzing the execution plans
 
 -   Rest Gateway, that receive the lineage data from agent and stores it in the database
