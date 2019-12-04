@@ -17,7 +17,7 @@
   <!-- HEADER -->
   <div id="header_wrap" class="outer">
     <header class="inner">
-      <img src="/assets/images/spline-logo-dark.png" width="400" />
+      <img src="./assets/images/spline-logo-dark.png" width="400" />
       {% if site.github.is_project_page %}
       <a id="forkme_banner" href="{{ site.github.repository_url }}">View on GitHub</a>
       {% endif %}
@@ -39,9 +39,12 @@
             {% assign docVersion = docVersionSplited[0] | replace_first: "/", "" | replace_first: "blog", "" %}
             {% if link.sublinks %}
             <li class="dropdown {{ class }}">
-              <a class="no-decoration" href="{{ site.url }}{{ site.baseurl }}{{ link.url }}" class="dropdown-toggle"
+              {% if link.title == 'Documentation' %}
+              <a class="no-decoration inactiveLink" href="{{ site.url }}{{ site.baseurl }}{{ link.url }}" class="dropdown-toggle"
                 data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ link.title }} - v
-                {{ docVersion | default: defaultVersion}} <span class="caret"></span></a>
+                {{ docVersion | default: defaultVersion}} <span class="caret"></span>
+              </a>
+              {% endif %}
               <ul class="dropdown-menu">
                 {% for sublink in link.sublinks %}
                 {% if sublink.title == 'separator' %}
@@ -67,8 +70,14 @@
 
       {% if site.show_downloads %}
       <section id="downloads">
-        <a class="zip_download_link" href="{{ site.github.zip_url }}">Download this project as a .zip file</a>
-        <a class="tar_download_link" href="{{ site.github.tar_url }}">Download this project as a tar.gz file</a>
+        <a class="zip_download_link"
+          href="https://github.com/AbsaOSS/spline/archive/release/{{ docVersion | default: defaultVersion}}.zip">Download
+          this
+          project as a .zip file</a>
+        <a class="tar_download_link"
+          href="https://github.com/AbsaOSS/spline/archive/release/{{ docVersion | default: defaultVersion}}.tar.gz">Download
+          this
+          project as a tar.gz file</a>
       </section>
       {% endif %}
 

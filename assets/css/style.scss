@@ -99,4 +99,7 @@ nav li.active a {
     margin-top: 0;
 }
 
-
+.inactiveLink{
+    pointer-events: none;
+    cursor: default;
+}
