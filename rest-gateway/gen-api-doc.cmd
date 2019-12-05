@@ -15,9 +15,7 @@
 ::  limitations under the License.
 
 
-set NODE_OPTIONS="--max_old_space_size=8192"
-
-echo "Building Spline UI v%SPLINE_VERSION%"
+echo "Generating REST API documentation"
 
 :: Install required Node version
 
@@ -27,7 +25,8 @@ echo "Building Spline UI v%SPLINE_VERSION%"
 :: Install NPM dependencies
 npm ci --no-color
 
-:: Run Spline UI Build
-npm run swagger-gen --no-color
-npm run ng version
-npm run ng build --prod
+:: Generate consumer documentation
+npm run gen-api-doc --no-color -- -o $DOCS_DIR/consumer.html $DOCS_DIR/consumer.swagger.json
+
+:: Generate producer documentation
+npm run gen-api-doc --no-color -- -o $DOCS_DIR/producer.html $DOCS_DIR/producer.swagger.json
