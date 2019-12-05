@@ -2,7 +2,7 @@
 
 In order to migrate the date from mongodb to arangodb you can use Spline Migrator Tool. 
 
--   To list the options you can run the command:  `java -jar migrator-tool-0.4.0-SNAPSHOT.jar --help` 
+-   To list the options you can run the command:  `java -jar migrator-tool.jar --help` 
 
 ```
 Usage: migrator-tool [options]
@@ -21,7 +21,7 @@ Running migrator with the option '-r' will repeat attempt to migrate lineages fr
 
 ```
 
--   Example: `java -jar migrator-tool/target/migrator-tool-0.4.0-SNAPSHOT.jar --source=mongodb://localhost:27017/splinedb --target=http://localhost:8080/spline/producer`
+-   Example: `java -jar migrator-tool/target/migrator-tool.jar --source=mongodb://localhost:27017/splinedb --target=http://localhost:8080/spline/producer`
 
 
 ---

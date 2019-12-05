@@ -195,6 +195,12 @@ You also need to set some configuration properties. Spline combine these propert
 #### `spline.producer.url`
 -   url of spline producer (part of rest gateway responsible for storing lineages in database)
 
+##Run Spline Migration from 0.3 to 0.4+
+
+Spline 0.3 was running with mongoDB. In Spline 0.4 ArangoDB was introduced. To migrate the data from mongoDB to ArangoDB, Simply run: `java -jar migrator-tool/target/migrator-tool.jar --source=mongodb://localhost:27017/splinedb --target=http://localhost:8080/spline/producer`
+
+For more information about this migrator tool please find the documentation [here](migrator-tool/README.md)
+
 Example:
 ```properties
 spline.mode=REQUIRED
