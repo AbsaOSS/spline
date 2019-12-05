@@ -90,7 +90,7 @@
                   <env key="SPLINE_VERSION" value="${project.version}" />
                   <arg line="/c build.cmd" />
                 </exec>
-                <exec dir="." executable="bash" osfamily="unix" failonerror="true">
+                <exec executable="bash" osfamily="unix" failonerror="true">
                   <env key="SPLINE_VERSION" value="${project.version}" />
                   <arg line="build.sh" />
                 </exec>
