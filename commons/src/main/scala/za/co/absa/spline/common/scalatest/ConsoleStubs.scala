@@ -18,8 +18,8 @@ package za.co.absa.spline.common.scalatest
 
 import java.io.{ByteArrayOutputStream, PrintStream, StringReader}
 
-import org.scalatest.Matchers._
 import org.scalatest.matchers.Matcher
+import org.scalatest.matchers.should.Matchers._
 import za.co.absa.spline.common.ARM._
 
 trait ConsoleStubs {

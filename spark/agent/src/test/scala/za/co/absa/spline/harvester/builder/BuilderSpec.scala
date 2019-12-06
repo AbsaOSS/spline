@@ -18,12 +18,13 @@ package za.co.absa.spline.harvester.builder
 
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.mockito.Mockito.when
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.spline.harvester.ComponentCreatorFactory
 import za.co.absa.spline.harvester.builder.read.{ReadCommand, ReadNodeBuilder}
 
-class BuilderSpec extends FlatSpec with Matchers with MockitoSugar {
+class BuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
 
   implicit private val componentCreatorFactory: ComponentCreatorFactory = new ComponentCreatorFactory
 

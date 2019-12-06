@@ -16,11 +16,12 @@
 
 package za.co.absa.spline.persistence.tx
 
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.spline.persistence.model.NodeDef
 
-class TxBuilderSpec extends FlatSpec with Matchers with MockitoSugar {
+class TxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
 
   "generateJs" should "generate INSERT statements" in {
     val generatedJS = new TxBuilder()

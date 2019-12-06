@@ -20,13 +20,14 @@ import org.apache.spark.sql.Row
 import org.apache.spark.sql.SaveMode._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{IntegerType, StructField, StructType}
-import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import org.slf4s.Logging
 import za.co.absa.spline.common.TempDirectory
 import za.co.absa.spline.test.fixture.SparkFixture
 import za.co.absa.spline.test.fixture.spline.SplineFixture
 
-class BasicIntegrationTests extends FlatSpec
+class BasicIntegrationTests extends AnyFlatSpec
   with Matchers
   with SparkFixture
   with SplineFixture

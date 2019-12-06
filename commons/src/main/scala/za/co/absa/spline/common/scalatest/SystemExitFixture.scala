@@ -18,8 +18,8 @@ package za.co.absa.spline.common.scalatest
 
 import java.security.Permission
 
-import org.scalatest.Matchers._
 import org.scalatest.matchers.Matcher
+import org.scalatest.matchers.should.Matchers._
 import org.scalatest.{Assertion, Suite}
 
 import scala.util.Try

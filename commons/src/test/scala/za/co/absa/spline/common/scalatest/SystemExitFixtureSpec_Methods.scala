@@ -16,11 +16,12 @@
 
 package za.co.absa.spline.common.scalatest
 
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 
 class SystemExitFixtureSpec_Methods
-  extends FlatSpec
+  extends AnyFlatSpec
     with Matchers
     with MockitoSugar
     with SystemExitFixture.Methods {

@@ -17,11 +17,12 @@ package za.co.absa.spline
 
 import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.functions._
-import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import za.co.absa.spline.test.fixture.spline.SplineFixture
 import za.co.absa.spline.test.fixture.{SparkDatabaseFixture, SparkFixture}
 
-class InsertIntoTest extends FlatSpec with Matchers with SparkFixture with SparkDatabaseFixture with SplineFixture {
+class InsertIntoTest extends AnyFlatSpec with Matchers with SparkFixture with SparkDatabaseFixture with SplineFixture {
 
   "InsertInto" should "not fail when inserting to partitioned table created as Spark tables" in
     withNewSparkSession(spark =>

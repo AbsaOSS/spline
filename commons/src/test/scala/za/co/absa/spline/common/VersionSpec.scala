@@ -16,12 +16,13 @@
 
 package za.co.absa.spline.common
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import za.co.absa.spline.common.Version._
 
 import scala.Ordering.Implicits._
 
-class VersionSpec extends FlatSpec with Matchers {
+class VersionSpec extends AnyFlatSpec with Matchers {
 
   behavior of "Version"
 

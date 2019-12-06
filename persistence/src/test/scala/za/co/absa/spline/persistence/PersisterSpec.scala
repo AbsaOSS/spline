@@ -22,8 +22,10 @@ import java.util
 import com.arangodb.ArangoDBException
 import com.arangodb.model.TransactionOptions
 import com.arangodb.velocypack.VPackSlice
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{AsyncFunSpec, BeforeAndAfterAll, Matchers}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.funspec.AsyncFunSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.spline.persistence.model.DataSource
 
 import scala.collection.JavaConverters._
