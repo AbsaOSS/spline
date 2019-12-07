@@ -61,11 +61,13 @@ class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)
   override def ensureProducerReady(): Unit = {
     val tryStatusOk = Try(Http(statusUrl)
       .method("HEAD")
-      .asString)
+      .asString.
+       isSuccess)
 
     tryStatusOk match {
       case Success(false) => throw new SplineNotInitializedException("Spline is not initialized properly!")
       case Failure(e) if NonFatal(e) => throw new SplineNotInitializedException("Producer is not accessible!", e)
+      case _ => Unit
     }
   }
 }
