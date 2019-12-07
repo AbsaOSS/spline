@@ -67,6 +67,7 @@ class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)
     tryStatusOk match {
       case Success(false) => throw new SplineNotInitializedException("Spline is not initialized properly!")
       case Failure(e) if NonFatal(e) => throw new SplineNotInitializedException("Producer is not accessible!", e)
+      case _ => Unit
     }
   }
 }
