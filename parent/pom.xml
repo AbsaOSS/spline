@@ -497,11 +497,6 @@
                 <artifactId>spark-xml_${scala.compat.version}</artifactId>
                 <version>0.4.1</version>
             </dependency>
-            <dependency>
-                <groupId>io.delta</groupId>
-                <artifactId>delta-core_${scala.compat.version}</artifactId>
-                <version>0.3.0</version>
-            </dependency>
 
             <!-- Json4s -->
 

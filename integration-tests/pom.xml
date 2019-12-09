@@ -15,7 +15,8 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -115,11 +116,17 @@
     <profiles>
         <profile>
             <id>spark-2.4</id>
+            <properties>
+                <delta.version>0.3.0</delta.version>
+                <!-- delta:0.3.0 requires jackson:2.9.9 -->
+                <jackson.version>2.9.9</jackson.version>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>io.delta</groupId>
                     <artifactId>delta-core_${scala.compat.version}</artifactId>
                     <scope>runtime</scope>
+                    <version>${delta.version}</version>
                 </dependency>
             </dependencies>
         </profile>
