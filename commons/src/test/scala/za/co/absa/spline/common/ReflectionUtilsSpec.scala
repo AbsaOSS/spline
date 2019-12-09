@@ -16,12 +16,13 @@
 
 package za.co.absa.spline.common
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import za.co.absa.spline.common.ReflectionUtilsSpec._
 
 import scala.reflect.runtime.universe._
 
-class ReflectionUtilsSpec extends FlatSpec with Matchers {
+class ReflectionUtilsSpec extends AnyFlatSpec with Matchers {
 
   behavior of "ReflectionUtils"
 

@@ -15,7 +15,8 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -75,9 +76,7 @@
       </plugin>
 
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.8</version>
         <executions>
           <execution>
             <phase>prepare-package</phase>
@@ -87,12 +86,12 @@
             <configuration>
               <target>
                 <exec executable="cmd" osfamily="windows" failonerror="true">
-                  <env key="SPLINE_VERSION" value="${project.version}" />
-                  <arg line="/c build.cmd" />
+                  <env key="SPLINE_VERSION" value="${project.version}"/>
+                  <arg line="/c build.cmd"/>
                 </exec>
                 <exec executable="bash" osfamily="unix" failonerror="true">
-                  <env key="SPLINE_VERSION" value="${project.version}" />
-                  <arg line="build.sh" />
+                  <env key="SPLINE_VERSION" value="${project.version}"/>
+                  <arg line="build.sh"/>
                 </exec>
               </target>
             </configuration>
@@ -102,9 +101,10 @@
 
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.5.3</version>
         <configuration>
-          <descriptor>assembly.xml</descriptor>
+          <descriptors>
+            <descriptor>assembly.xml</descriptor>
+          </descriptors>
         </configuration>
         <executions>
           <execution>

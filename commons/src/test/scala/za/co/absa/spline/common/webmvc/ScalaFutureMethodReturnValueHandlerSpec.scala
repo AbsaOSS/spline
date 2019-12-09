@@ -19,8 +19,9 @@ package za.co.absa.spline.common.webmvc
 import java.util.concurrent.CompletionStage
 
 import org.mockito.Mockito._
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 import org.springframework.core.MethodParameter
 import org.springframework.util.concurrent.ListenableFuture
 import org.springframework.web.context.request.async.DeferredResult
@@ -29,7 +30,7 @@ import za.co.absa.spline.common.webmvc.ScalaFutureMethodReturnValueHandlerSpec.{
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 
-class ScalaFutureMethodReturnValueHandlerSpec extends FlatSpec with MockitoSugar with Matchers {
+class ScalaFutureMethodReturnValueHandlerSpec extends AnyFlatSpec with MockitoSugar with Matchers {
 
   private implicit val ec: ExecutionContext = mock[ExecutionContext]
   private val handler = new ScalaFutureMethodReturnValueHandler

@@ -16,9 +16,10 @@
 
 package za.co.absa.spline.harvester.json
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class ShortTypeHintForSpline03ModelSupportSpec extends FlatSpec with Matchers {
+class ShortTypeHintForSpline03ModelSupportSpec extends AnyFlatSpec with Matchers {
 
   behavior of "ShortTypeHintForSpline03ModelSupport"
 

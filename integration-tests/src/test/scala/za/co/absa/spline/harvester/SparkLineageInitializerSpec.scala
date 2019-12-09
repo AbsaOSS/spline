@@ -20,9 +20,11 @@ import org.apache.commons.configuration.BaseConfiguration
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.util.QueryExecutionListener
 import org.apache.spark.{SPARK_VERSION, SparkConf, SparkContext}
-import org.scalatest.Matchers._
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{BeforeAndAfterEach, FunSpec, Matchers}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.matchers.should.Matchers._
+import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.spline.common.ConditionalTestTags._
 import za.co.absa.spline.common.ReflectionUtils.extractFieldValue
 import za.co.absa.spline.common.Version.VersionOrdering._
@@ -53,7 +55,7 @@ object SparkLineageInitializerSpec {
     getSparkQueryExecutionListenerClasses(session).count(_ == classOf[SplineQueryExecutionListener])
 }
 
-class SparkLineageInitializerSpec extends FunSpec with BeforeAndAfterEach with Matchers with MockitoSugar with SparkFixture {
+class SparkLineageInitializerSpec extends AnyFunSpec with BeforeAndAfterEach with Matchers with MockitoSugar with SparkFixture {
   private val configuration = new BaseConfiguration
   configuration.setProperty("spark.master", "local")
   // needed for codeless init tests

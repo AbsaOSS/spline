@@ -22,12 +22,13 @@ import java.util.Properties
 import org.apache.spark.sql.SaveMode.Overwrite
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row}
-import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import za.co.absa.spline.test.fixture.spline.SplineFixture
 import za.co.absa.spline.test.fixture.{JDBCFixture, SparkFixture}
 
 
-class JDBCWriteSpec extends FlatSpec
+class JDBCWriteSpec extends AnyFlatSpec
   with Matchers
   with SparkFixture
   with SplineFixture

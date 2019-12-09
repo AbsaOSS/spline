@@ -16,9 +16,10 @@
 
 package za.co.absa.spline.migrator
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class StatsSpec extends FlatSpec with Matchers {
+class StatsSpec extends AnyFlatSpec with Matchers {
 
   behavior of "SimpleStats"
 

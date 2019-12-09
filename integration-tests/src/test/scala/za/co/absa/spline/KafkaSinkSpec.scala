@@ -20,12 +20,13 @@ import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
 import org.apache.spark.sql.SaveMode.Overwrite
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import za.co.absa.spline.test.fixture.SparkFixture
 import za.co.absa.spline.test.fixture.spline.SplineFixture
 
 class KafkaSinkSpec
-  extends FlatSpec
+  extends AnyFlatSpec
     with Matchers
     with SparkFixture
     with SplineFixture

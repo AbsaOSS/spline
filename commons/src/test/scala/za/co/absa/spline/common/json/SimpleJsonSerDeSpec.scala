@@ -19,10 +19,11 @@ package za.co.absa.spline.common.json
 import java.util
 import java.util.UUID
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import za.co.absa.spline.common.json.SimpleJsonSerDeSpec._
 
-class SimpleJsonSerDeSpec extends FlatSpec with Matchers with SimpleJsonSerDe {
+class SimpleJsonSerDeSpec extends AnyFlatSpec with Matchers with SimpleJsonSerDe {
 
   behavior of "serializer"
 

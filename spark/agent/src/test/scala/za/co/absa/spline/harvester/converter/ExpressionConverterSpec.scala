@@ -22,11 +22,13 @@ import org.apache.spark.sql.catalyst.expressions.{CaseWhen, Expression, Literal}
 import org.apache.spark.sql.types.DataTypes.NullType
 import org.apache.spark.sql.types._
 import org.mockito.Mockito._
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{FlatSpec, Inside, Matchers, OneInstancePerTest}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.{Inside, OneInstancePerTest}
+import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.spline.model.{dt, expr}
 
-class ExpressionConverterSpec extends FlatSpec with OneInstancePerTest with MockitoSugar with Matchers with Inside {
+class ExpressionConverterSpec extends AnyFlatSpec with OneInstancePerTest with MockitoSugar with Matchers with Inside {
 
   import ExpressionConverterSpec._
 

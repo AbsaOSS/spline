@@ -16,12 +16,13 @@
 
 package za.co.absa.spline.common
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class InstanceInspectorSpec extends FlatSpec with Matchers {
+class InstanceInspectorSpec extends AnyFlatSpec with Matchers {
 
   class DummyClass(a: String, b : Int){
-    def methodUsingFields = a + b.toString
+    def methodUsingFields: String = a + b.toString
   }
 
   "getFieldValue" should "return correct values of DummyClass" in

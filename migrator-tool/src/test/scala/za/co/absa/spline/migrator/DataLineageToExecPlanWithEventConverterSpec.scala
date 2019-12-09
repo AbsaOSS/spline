@@ -18,13 +18,14 @@ package za.co.absa.spline.migrator
 
 import java.util.UUID
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import za.co.absa.spline.migrator.DataLineageToExecPlanWithEventConverterSpec._
 import za.co.absa.spline.model._
 import za.co.absa.spline.model.op.{OperationProps, SortOrder}
 import za.co.absa.spline.producer.model._
 
-class DataLineageToExecPlanWithEventConverterSpec extends FlatSpec with Matchers {
+class DataLineageToExecPlanWithEventConverterSpec extends AnyFlatSpec with Matchers {
 
   it should "convert DataLineage object to an (ExecutionPlan, Some(ExecutionEvent)) pair" in {
     converted(testLineage) shouldEqual ((expectedExecutionPlan, Some(expectedExecutionEvent)))

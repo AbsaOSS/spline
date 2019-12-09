@@ -21,7 +21,9 @@ import java.util.Properties
 import org.apache.commons.io.FileUtils
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row}
-import org.scalatest.{FlatSpec, Ignore, Matchers}
+import org.scalatest.Ignore
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import za.co.absa.spline.common.TempDirectory
 import za.co.absa.spline.common.Version.VersionOrdering.{max => _, min => _}
 import za.co.absa.spline.test.fixture.spline.SplineFixture
@@ -37,7 +39,7 @@ import scala.collection.JavaConverters._
  *
  */
 @Ignore
-class SparkUnimplementedCommandsSpec extends FlatSpec
+class SparkUnimplementedCommandsSpec extends AnyFlatSpec
   with Matchers
   with SparkFixture
   with SplineFixture
@@ -187,7 +189,7 @@ class SparkUnimplementedCommandsSpec extends FlatSpec
       }
     }
 
-  val tempDirPath = TempDirectory(prefix = "test").deleteOnExit().path
+  private val tempDirPath = TempDirectory(prefix = "test").deleteOnExit().path
 
   "Lineage for load data" should "be caught" in
     withCustomSparkSession(_

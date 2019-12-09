@@ -19,13 +19,14 @@ import java.util
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.mockito.Mockito
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 import org.springframework.http.converter.HttpMessageConverter
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter
 
-class ObjectMapperBeanPostProcessorSpec extends FlatSpec with Matchers with MockitoSugar {
+class ObjectMapperBeanPostProcessorSpec extends AnyFlatSpec with Matchers with MockitoSugar {
 
   "post process function" should "be called on every ObjectMapper instance in the message converters" in {
     val postProcessSpy = mock[ObjectMapper => Unit]

@@ -19,7 +19,8 @@ package za.co.absa.spline
 
 import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.SaveMode.Overwrite
-import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import za.co.absa.spline.common.ConditionalTestTags.ignoreIf
 import za.co.absa.spline.common.TempDirectory
 import za.co.absa.spline.common.Version.VersionOrdering._
@@ -27,7 +28,7 @@ import za.co.absa.spline.common.Version._
 import za.co.absa.spline.test.fixture.SparkFixture
 import za.co.absa.spline.test.fixture.spline.SplineFixture
 
-class SQLCommandsSpec extends FlatSpec
+class SQLCommandsSpec extends AnyFlatSpec
   with Matchers
   with SparkFixture
   with SplineFixture {

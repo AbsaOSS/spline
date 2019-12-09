@@ -16,10 +16,11 @@
 
 package za.co.absa.spline.common.webmvc
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import org.springframework.http.HttpHeaders
 
-class NonStandardResponseEntitySpec extends FlatSpec with Matchers {
+class NonStandardResponseEntitySpec extends AnyFlatSpec with Matchers {
 
   it should "support non-standard HTTP response statuses" in {
     NonStandardResponseEntity(42).getStatusCodeValue shouldEqual 42
