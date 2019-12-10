@@ -16,10 +16,11 @@
 
 package za.co.absa.spline.common.scalatest
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 class ConsoleStubsSpec
-  extends FlatSpec
+  extends AnyFlatSpec
     with Matchers
     with ConsoleStubs {
 

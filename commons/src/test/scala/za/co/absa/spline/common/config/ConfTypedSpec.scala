@@ -16,9 +16,10 @@
 
 package za.co.absa.spline.common.config
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class ConfTypedSpec extends FlatSpec with Matchers {
+class ConfTypedSpec extends AnyFlatSpec with Matchers {
 
   it should "support simple property" in new ConfTyped {
     Prop("x") shouldEqual "x"

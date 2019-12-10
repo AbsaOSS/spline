@@ -17,13 +17,14 @@
 package za.co.absa.spline.swagger
 
 import io.swagger.annotations.ApiOperation
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import org.springframework.context.annotation.{Bean, Configuration}
 import org.springframework.web.bind.annotation.{GetMapping, RestController}
 import org.springframework.web.servlet.config.annotation.EnableWebMvc
 import za.co.absa.spline.swagger.SwaggerDocGenSpec.FooRESTConfig
 
-class SwaggerDocGenSpec extends FlatSpec with Matchers {
+class SwaggerDocGenSpec extends AnyFlatSpec with Matchers {
 
   it should "generate a valid Swagger definition" in {
     val output = SwaggerDocGen.generate(classOf[FooRESTConfig])

@@ -20,14 +20,16 @@ import java.io.File
 
 import org.apache.commons.io.FileUtils
 import org.mockito.Mockito._
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{FlatSpec, Matchers, OneInstancePerTest}
+import org.scalatest.OneInstancePerTest
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.spline.common.TempDirectory
 import za.co.absa.spline.common.scalatest.SystemExitFixture.ExitException
 import za.co.absa.spline.common.scalatest.{ConsoleStubs, MatcherImplicits, SystemExitFixture}
 
 class SwaggerDocGenCLISpec
-  extends FlatSpec
+  extends AnyFlatSpec
     with OneInstancePerTest
     with MockitoSugar
     with Matchers

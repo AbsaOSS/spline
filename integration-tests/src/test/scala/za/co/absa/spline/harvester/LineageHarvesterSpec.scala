@@ -20,8 +20,10 @@ import java.util.UUID
 import java.util.UUID.randomUUID
 
 import org.apache.spark.SPARK_VERSION
+import org.scalatest.Assertion
 import org.scalatest.Inside._
-import org.scalatest.{Assertion, FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import za.co.absa.spline.common.ConditionalTestTags.ignoreIf
 import za.co.absa.spline.common.TempDirectory
 import za.co.absa.spline.common.Version.VersionOrdering._
@@ -32,7 +34,7 @@ import za.co.absa.spline.producer.model._
 import za.co.absa.spline.test.fixture.spline.SplineFixture
 import za.co.absa.spline.test.fixture.{SparkDatabaseFixture, SparkFixture}
 
-class LineageHarvesterSpec extends FlatSpec
+class LineageHarvesterSpec extends AnyFlatSpec
   with Matchers
   with SparkFixture
   with SplineFixture

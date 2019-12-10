@@ -16,7 +16,8 @@
 
 package za.co.absa.spline.harvester.conf
 
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.FunSuite
+import org.scalatest.matchers.should.Matchers
 
 trait ReadOnlyConfigurationTest extends FunSuite with Matchers {
   protected val givenConf: ReadOnlyConfiguration

@@ -18,9 +18,10 @@ package za.co.absa.spline.persistence
 
 import java.net.MalformedURLException
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class ArangoConnectionURLSpec extends FlatSpec with Matchers {
+class ArangoConnectionURLSpec extends AnyFlatSpec with Matchers {
 
   behavior of "URL parser"
 

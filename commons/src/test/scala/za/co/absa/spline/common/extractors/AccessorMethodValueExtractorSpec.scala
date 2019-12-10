@@ -16,11 +16,12 @@
 
 package za.co.absa.spline.common.extractors
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import scala.language.existentials
 
-class AccessorMethodValueExtractorSpec extends FlatSpec with Matchers {
+class AccessorMethodValueExtractorSpec extends AnyFlatSpec with Matchers {
 
   import za.co.absa.spline.common.extractors.AccessorMethodValueExtractorSpec._
 

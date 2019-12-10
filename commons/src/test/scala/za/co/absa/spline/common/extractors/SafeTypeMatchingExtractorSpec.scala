@@ -16,9 +16,10 @@
 
 package za.co.absa.spline.common.extractors
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class SafeTypeMatchingExtractorSpec extends FlatSpec with Matchers {
+class SafeTypeMatchingExtractorSpec extends AnyFlatSpec with Matchers {
 
   behavior of "SafeTypeMatchingExtractor"
 
