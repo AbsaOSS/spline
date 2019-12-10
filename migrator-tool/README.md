@@ -21,6 +21,10 @@ Running migrator with the option '-r' will repeat attempt to migrate lineages fr
 
 ```
 
+The old data will be transformed and send to the Producer Service. Thus the first step is to startup the rest-gateway. 
+Please find the documentation [here](https://github.com/AbsaOSS/spline#start-spline-server) for this step.
+Once it is done, you can run the migration using this example below:
+
 -   Example: `java -jar migrator-tool/target/migrator-tool.jar --source=mongodb://localhost:27017/splinedb --target=http://localhost:8080/spline/producer`
 
 
