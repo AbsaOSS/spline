@@ -26,11 +26,11 @@ class HttpLineageDispatcherSpec extends AnyFlatSpec with MockitoSugar {
 
   behavior of "HttpLineageDispatcher"
 
-  val dummyUrl = "http://dummyUrl"
+  private val dummyUrl = "http://dummyUrl"
 
-  val httpMock = mock[BaseHttp]
-  val httpRequestMock = mock[HttpRequest]
-  val httpResponseMock = mock[HttpResponse[String]]
+  private val httpMock = mock[BaseHttp]
+  private val httpRequestMock = mock[HttpRequest]
+  private val httpResponseMock = mock[HttpResponse[String]]
 
   when(httpMock.apply(s"$dummyUrl/status")) thenReturn httpRequestMock
   when(httpRequestMock.method("HEAD")) thenReturn httpRequestMock
