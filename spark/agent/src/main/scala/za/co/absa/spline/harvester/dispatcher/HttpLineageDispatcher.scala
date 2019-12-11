@@ -17,7 +17,7 @@ package za.co.absa.spline.harvester.dispatcher
 
 
 import org.apache.commons.configuration.Configuration
-import scalaj.http.Http
+import scalaj.http.{BaseHttp, Http}
 import za.co.absa.spline.common.ConfigurationImplicits._
 import za.co.absa.spline.common.logging.Logging
 import za.co.absa.spline.harvester.exception.SplineNotInitializedException
@@ -27,7 +27,7 @@ import za.co.absa.spline.producer.model.{ExecutionEvent, ExecutionPlan}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
-class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)
+class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String, http: BaseHttp)
   extends LineageDispatcher
     with Logging {
 
@@ -46,7 +46,7 @@ class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)
 
   private def sendJson(json: String, url: String) = {
     log.debug(s"sendJson $url : $json")
-    try Http(url)
+    try http(url)
       .postData(json)
       .compress(true)
       .header("content-type", "application/json")
@@ -59,7 +59,7 @@ class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)
   }
 
   override def ensureProducerReady(): Unit = {
-    val tryStatusOk = Try(Http(statusUrl)
+    val tryStatusOk = Try(http(statusUrl)
       .method("HEAD")
       .asString
       .isSuccess)
@@ -67,6 +67,7 @@ class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String)
     tryStatusOk match {
       case Success(false) => throw new SplineNotInitializedException("Spline is not initialized properly!")
       case Failure(e) if NonFatal(e) => throw new SplineNotInitializedException("Producer is not accessible!", e)
+      case _ => Unit
     }
   }
 }
@@ -76,6 +77,6 @@ object HttpLineageDispatcher {
   val producerUrlProperty = "spline.producer.url"
 
   def apply(configuration: Configuration): LineageDispatcher = {
-    new HttpLineageDispatcher(configuration.getRequiredString(producerUrlProperty))
+    new HttpLineageDispatcher(configuration.getRequiredString(producerUrlProperty), Http)
   }
 }

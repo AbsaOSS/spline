@@ -67,7 +67,6 @@
         <module>admin</module>
 
         <module>client-ui</module>
-        <module>client-webjar</module>
         <module>client-web</module>
 
         <module>spark/agent</module>
