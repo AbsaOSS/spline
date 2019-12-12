@@ -41,8 +41,8 @@
               {% if link.title == 'Documentation' %}
               <a class="no-decoration inactiveLink" href="{{ site.url }}{{ site.baseurl }}{{ link.url }}"
                 class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                aria-expanded="false">{{ link.title }} - v
-                {{ docVersion | default: defaultVersion}} <span class="caret"></span>
+                aria-expanded="false">{{ link.title }}: 
+                {{ docVersion | default: site.version_series}} <span class="caret"></span>
               </a>
               {% endif %}
               <ul class="dropdown-menu">

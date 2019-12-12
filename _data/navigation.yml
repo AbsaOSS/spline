@@ -1,9 +1,9 @@
 - title: Documentation
   url: /
   sublinks:
-    - title: v 0.4.0
-      url: /0.4.0.html
-    - title: v 0.3.9
-      url: /0.3.9.html
+    - title: 0.4
+      url: /0.4.html
+    - title: 0.3
+      url: /0.3.html
 - title: Blog
   url: /blog.html

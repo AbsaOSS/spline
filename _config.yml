@@ -1,6 +1,7 @@
 title: 
 description: Data Lineage Tracking And Visualization Solution
+version_series: 0.4
 version: 0.4.0
-show_downloads: true
+show_downloads: false
 google_analytics:
 theme: jekyll-theme-slate
