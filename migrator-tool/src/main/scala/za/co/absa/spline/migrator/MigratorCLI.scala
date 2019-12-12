@@ -20,7 +20,9 @@ import java.io.File
 
 import ch.qos.logback.classic.Level
 import org.backuity.ansi.AnsiFormatter.FormattedHelper
+import scalaj.http.Http
 import za.co.absa.spline.common.SplineBuildInfo
+import za.co.absa.spline.harvester.dispatcher.HttpLineageDispatcher
 
 import scala.concurrent.duration._
 
@@ -81,6 +83,7 @@ class MigratorCLI(migratorTool: MigratorTool) {
 
     cliParser.parse(args, MigratorConfig.empty) match {
       case Some(config) =>
+        new HttpLineageDispatcher(config.producerRESTEndpointUrl, Http).ensureProducerReady
         val stats = migratorTool.migrate(config)
         Thread.sleep(1.second.toMillis) // give a chance to async logs to print out before the final message.
         println() // to make sure there is a new line before the final message.
