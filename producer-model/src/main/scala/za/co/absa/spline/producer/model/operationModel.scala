@@ -27,7 +27,7 @@ sealed trait OperationLike {
 
 case class DataOperation(
   override val id: Int,
-  override val childIds: Seq[Int],
+  override val childIds: Seq[Int] = Seq.empty,
   override val schema: Option[Any] = None, // None means that that the schema is either the same as in the child operation, or unknown.
   override val params: Map[String, Any] = Map.empty,
   override val extra: Map[String, Any] = Map.empty
