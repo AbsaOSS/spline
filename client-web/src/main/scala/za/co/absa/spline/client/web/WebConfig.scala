@@ -34,7 +34,7 @@ class WebConfig @Autowired()(applicationContext: ApplicationContext) extends Web
   override def addResourceHandlers(registry: ResourceHandlerRegistry) {
     registry
       .addResourceHandler("/**")
-      .addResourceLocations("/webjars/absaoss-spline-client/")
+      .addResourceLocations("/webjars/spline/")
       .resourceChain(true)
       .addResolver(new WebJarsResourceFuzzyResolver(webJarAssetLocator))
   }
