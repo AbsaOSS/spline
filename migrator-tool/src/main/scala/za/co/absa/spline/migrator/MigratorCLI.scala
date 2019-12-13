@@ -21,12 +21,17 @@ import java.io.File
 import ch.qos.logback.classic.Level
 import org.backuity.ansi.AnsiFormatter.FormattedHelper
 import za.co.absa.spline.common.SplineBuildInfo
+import za.co.absa.spline.migrator.rest.{RestClientFactory, RestClientFactoryPlayWsImpl}
 
 import scala.concurrent.duration._
+import scala.util.Try
 
 object MigratorCLI extends App {
 
-  new MigratorCLI(MigratorTool).exec(args)
+  private val rcf: RestClientFactory = new RestClientFactoryPlayWsImpl
+  private val migrator: MigratorTool = new MigratorToolImpl(rcf)
+
+  new MigratorCLI(migrator).exec(args)
 }
 
 class MigratorCLI(migratorTool: MigratorTool) {
@@ -79,28 +84,38 @@ class MigratorCLI(migratorTool: MigratorTool) {
       help("help").text("prints this usage text")
     }
 
-    cliParser.parse(args, MigratorConfig.empty) match {
-      case Some(config) =>
-        val stats = migratorTool.migrate(config)
-        Thread.sleep(1.second.toMillis) // give a chance to async logs to print out before the final message.
-        println() // to make sure there is a new line before the final message.
-        stats match {
-          case Stats(succ, 0) if succ > 0 =>
-            println(ansi"%green{SUCCESS}. All records migrated: ${stats.processed}")
-            sys.exit(ExitStatus.OK)
-          case Stats(0, fails) if fails > 0 =>
-            println(ansi"%red{FAILURE}. All records failed: ${stats.processed}")
-            sys.exit(ExitStatus.ERROR)
-          case Stats(succ, fails) if succ > 0 && fails > 0 =>
-            println(ansi"%yellow{WARNING}. Totally processed: ${stats.processed} (of which successfully migrated: $succ, failed: $fails)")
-            sys.exit(ExitStatus.WARN)
-          case Stats(0, 0) =>
-            println(ansi"%yellow{WARNING}. No records found.")
-            sys.exit(ExitStatus.WARN)
-        }
+    for {
+      config <- cliParser.parse(args, MigratorConfig.empty)
+      status <- executeMigration(config)
+    } sys.exit(status)
 
-      case None =>
-        cliParser.terminate(Left(""))
-    }
+    sys.exit(ExitStatus.ERROR)
+  }
+
+  private def executeMigration(config: MigratorConfig): Try[Int] = {
+    val tryStats = Try(migratorTool.migrate(config))
+    Thread.sleep(1.second.toMillis) // give a chance to async logs to print out before the final message.
+    println() // to make sure there is a new line before the final message.
+
+    tryStats
+      .map({
+        case stats@Stats(succ, 0) if succ > 0 =>
+          println(ansi"%green{SUCCESS}. All records migrated: ${stats.processed}")
+          ExitStatus.OK
+        case stats@Stats(0, fails) if fails > 0 =>
+          println(ansi"%red{FAILURE}. All records failed: ${stats.processed}")
+          ExitStatus.ERROR
+        case stats@Stats(succ, fails) if succ > 0 && fails > 0 =>
+          println(ansi"%yellow{WARNING}. Totally processed: ${stats.processed} (of which successfully migrated: $succ, failed: $fails)")
+          ExitStatus.WARN
+        case Stats(0, 0) =>
+          println(ansi"%yellow{WARNING}. No records found.")
+          ExitStatus.WARN
+      })
+      .recover({
+        case e =>
+          e.printStackTrace()
+          ExitStatus.ERROR
+      })
   }
 }

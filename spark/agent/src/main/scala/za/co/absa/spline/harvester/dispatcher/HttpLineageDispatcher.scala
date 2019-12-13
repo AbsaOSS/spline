@@ -20,6 +20,7 @@ import org.apache.commons.configuration.Configuration
 import scalaj.http.{BaseHttp, Http}
 import za.co.absa.spline.common.ConfigurationImplicits._
 import za.co.absa.spline.common.logging.Logging
+import za.co.absa.spline.harvester.dispatcher.HttpLineageDispatcher.RESTResource
 import za.co.absa.spline.harvester.exception.SplineNotInitializedException
 import za.co.absa.spline.harvester.json.HarvesterJsonSerDe._
 import za.co.absa.spline.producer.model.{ExecutionEvent, ExecutionPlan}
@@ -31,17 +32,17 @@ class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String, http: BaseH
   extends LineageDispatcher
     with Logging {
 
-  val dataLineagePublishUrl = s"$splineServerRESTEndpointBaseURL/execution-plans"
-  val progressEventPublishUrl = s"$splineServerRESTEndpointBaseURL/execution-events"
-  val statusUrl = s"$splineServerRESTEndpointBaseURL/status"
+  val executionPlansUrl = s"$splineServerRESTEndpointBaseURL/${RESTResource.ExecutionPlans}"
+  val executionEventsUrl = s"$splineServerRESTEndpointBaseURL/${RESTResource.ExecutionEvents}"
+  val statusUrl = s"$splineServerRESTEndpointBaseURL/${RESTResource.Status}"
 
 
   override def send(executionPlan: ExecutionPlan): String = {
-    sendJson(executionPlan.toJson, dataLineagePublishUrl)
+    sendJson(executionPlan.toJson, executionPlansUrl)
   }
 
   override def send(event: ExecutionEvent): Unit = {
-    sendJson(Seq(event).toJson, progressEventPublishUrl)
+    sendJson(Seq(event).toJson, executionEventsUrl)
   }
 
   private def sendJson(json: String, url: String) = {
@@ -75,6 +76,12 @@ class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String, http: BaseH
 
 object HttpLineageDispatcher {
   val producerUrlProperty = "spline.producer.url"
+
+  object RESTResource {
+    val ExecutionPlans = "execution-plans"
+    val ExecutionEvents = "execution-events"
+    val Status = "status"
+  }
 
   def apply(configuration: Configuration): LineageDispatcher = {
     new HttpLineageDispatcher(configuration.getRequiredString(producerUrlProperty), Http)
