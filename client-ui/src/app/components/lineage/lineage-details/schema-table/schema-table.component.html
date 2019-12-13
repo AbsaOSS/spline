@@ -30,12 +30,15 @@
   <!-- Column Templates -->
   <ngx-datatable-column name="Name">
     <ng-template let-expanded="expanded" let-row="row" ngx-datatable-cell-template>
-      <div *ngIf="row.dataType._type != 'SimpleDataType'">
+      <div
+        *ngIf="row.dataType._type == 'StructDataType' || (row.dataType._type == 'ArrayDataType' && row.dataType.elementDataType.dataType.children)">
         <a href="javascript:void(0)" style="text-decoration:none; margin-left: -10px;"
           [class.datatable-icon-right]="!expanded" [class.datatable-icon-down]="expanded"
           title="Expand/Collapse Row">{{row.name}}</a>
       </div>
-      <div *ngIf="row.dataType._type == 'SimpleDataType'">&nbsp;{{row.name}}</div>
+      <div
+        *ngIf="row.dataType._type == 'SimpleDataType' || (row.dataType._type == 'ArrayDataType' && !row.dataType.elementDataType.dataType.children)">
+        &nbsp;{{row.name}}</div>
     </ng-template>
   </ngx-datatable-column>
   <ngx-datatable-column name="Type">
