@@ -30,11 +30,11 @@ object ActorSystemFacade {
        |}
        |""".stripMargin
 
-  private val _actorSystem = ActorSystem("system", ConfigFactory.parseString(akkaConf))
+  private val actorSystem = ActorSystem("system", ConfigFactory.parseString(akkaConf))
 
-  def actorSystem: ActorRefFactory = _actorSystem
+  def actorFactory: ActorRefFactory = actorSystem
 
-  def registerOnTermination[T](code: => T): Unit = _actorSystem.registerOnTermination(code)
+  def registerOnTermination[T](code: => T): Unit = actorSystem.registerOnTermination(code)
 
-  def terminate(): Future[Terminated] = _actorSystem.terminate()
+  def terminate(): Future[Terminated] = actorSystem.terminate()
 }

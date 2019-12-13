@@ -40,13 +40,13 @@ class MigratorToolImpl(rcf: RestClientFactory) extends MigratorTool {
       .setLevel(migratorConf.logLevel)
 
     import scala.concurrent.ExecutionContext.Implicits.global
-    implicit val actorSystem: ActorRefFactory = ActorSystemFacade.actorSystem
+    implicit val actorFactory: ActorRefFactory = ActorSystemFacade.actorFactory
 
     val restClient = rcf.createRestClient(migratorConf.producerRESTEndpointUrl)
 
-    val monitorActor = actorSystem.actorOf(Props(classOf[MonitorActor], migratorConf), "monitor")
-    val batchMigratorActor = actorSystem.actorOf(Props(classOf[BatchMigratorActor], migratorConf, monitorActor, restClient), "batch-migrator")
-    lazy val continuousMigratorActor = actorSystem.actorOf(Props(classOf[ContinuousMigratorActor], migratorConf, restClient), "continuous-migrator")
+    val monitorActor = actorFactory.actorOf(Props(classOf[MonitorActor], migratorConf), "monitor")
+    val batchMigratorActor = actorFactory.actorOf(Props(classOf[BatchMigratorActor], migratorConf, monitorActor, restClient), "batch-migrator")
+    lazy val continuousMigratorActor = actorFactory.actorOf(Props(classOf[ContinuousMigratorActor], migratorConf, restClient), "continuous-migrator")
 
     implicit val timeout: Timeout = Timeout(42, TimeUnit.DAYS)
 

@@ -113,7 +113,7 @@ class MigratorCLI(migratorTool: MigratorTool) {
           ExitStatus.WARN
       })
       .recover({
-        case e =>
+        case e: Exception =>
           e.printStackTrace()
           ExitStatus.ERROR
       })

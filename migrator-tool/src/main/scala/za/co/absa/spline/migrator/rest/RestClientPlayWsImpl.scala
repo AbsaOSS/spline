@@ -28,7 +28,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class RestClientPlayWsImpl(baseUrl: String) extends RestClient with AutoCloseable {
 
-  private implicit val system: ActorRefFactory = ActorSystemFacade.actorSystem
+  private implicit val actorFactory: ActorRefFactory = ActorSystemFacade.actorFactory
   private implicit val materializer: ActorMaterializer = ActorMaterializer()
   private val ws = StandaloneAhcWSClient()
 
