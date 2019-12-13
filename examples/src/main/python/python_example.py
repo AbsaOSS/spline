@@ -36,7 +36,7 @@ This is simplest example of how to track a lineage with Spline.
 """
 
 # Enable Spline tracking:
-sc._jvm.za.co.absa.spline.core\
+sc._jvm.za.co.absa.spline.harvester\
     .SparkLineageInitializer.enableLineageTracking(spark._jsparkSession)
 
 # Execute a job:
