@@ -16,7 +16,10 @@
 
 package za.co.absa.spline.migrator.rest
 
+import scala.concurrent.{ExecutionContext, Future}
+
 trait RestClient {
+
   def createEndpoint(resource: String): RestEndpoint
 }
 

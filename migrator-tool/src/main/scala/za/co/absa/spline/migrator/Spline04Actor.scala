@@ -20,13 +20,18 @@ import java.util.UUID
 
 import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
+import scalaj.http.Http
+import za.co.absa.spline.harvester.dispatcher.HttpLineageDispatcher
+import za.co.absa.spline.harvester.exception.SplineNotInitializedException
 import za.co.absa.spline.harvester.json.HarvesterJsonSerDe._
 import za.co.absa.spline.migrator.Spline04Actor._
 import za.co.absa.spline.migrator.rest.RestClient
 import za.co.absa.spline.producer.model.{ExecutionEvent, ExecutionPlan}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
+import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
 object Spline04Actor {
@@ -44,6 +49,7 @@ object Spline04Actor {
 
 
   private object RESTResource {
+    val HeartBeat = "status"
     val ExecutionPlans = "execution-plans"
     val ExecutionEvents = "execution-events"
   }
@@ -52,8 +58,16 @@ object Spline04Actor {
 
 class Spline04Actor(restClient: RestClient) extends Actor with ActorLogging {
 
+  private val heartBeatEndpoint = restClient.createEndpoint(RESTResource.HeartBeat)
   private val executionPlansEndpoint = restClient.createEndpoint(RESTResource.ExecutionPlans)
   private val executionEventsEndpoint = restClient.createEndpoint(RESTResource.ExecutionEvents)
+
+  val status =  Await.result(heartBeatEndpoint.head(), Duration.Inf)
+
+  println(status)
+ if (! (200 until  300).contains(status) ){
+   throw new SplineNotInitializedException("Producer is not ready")
+ }
 
   override def receive: Receive = {
     case Save(plan, maybeEvent) =>

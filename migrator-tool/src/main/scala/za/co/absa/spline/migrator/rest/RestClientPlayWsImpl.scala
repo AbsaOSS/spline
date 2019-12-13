@@ -16,6 +16,8 @@
 
 package za.co.absa.spline.migrator.rest
 
+import java.net.ConnectException
+
 import akka.actor.ActorRefFactory
 import akka.stream.ActorMaterializer
 import play.api.libs.ws.DefaultBodyWritables._
@@ -24,6 +26,7 @@ import za.co.absa.spline.migrator.rest.HttpConstants._
 import za.co.absa.spline.migrator.rest.RestClient.HttpException
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 
 class RestClientPlayWsImpl(baseUrl: String)(implicit context: ActorRefFactory) extends RestClient with AutoCloseable {
 
@@ -43,6 +46,17 @@ class RestClientPlayWsImpl(baseUrl: String)(implicit context: ActorRefFactory) e
           case resp =>
             Future.successful(resp.body)
         })
+
+      override def head()(implicit ec: ExecutionContext): Future[Int] = {
+        val eventualResponse: Future[request.Response] = request.head()
+        eventualResponse.map(resp => resp.status)
+          .recover({
+            case e => {
+              println(e)
+             -1
+            }
+          })
+      }
     }
   }
 

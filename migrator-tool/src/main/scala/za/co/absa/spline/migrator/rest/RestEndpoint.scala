@@ -20,4 +20,5 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait RestEndpoint {
   def post(data: String)(implicit ec: ExecutionContext): Future[String]
+  def head()(implicit ec: ExecutionContext): Future[Int]
 }

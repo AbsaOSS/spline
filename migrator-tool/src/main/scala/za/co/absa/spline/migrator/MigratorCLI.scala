@@ -83,7 +83,7 @@ class MigratorCLI(migratorTool: MigratorTool) {
 
     cliParser.parse(args, MigratorConfig.empty) match {
       case Some(config) =>
-        new HttpLineageDispatcher(config.producerRESTEndpointUrl, Http).ensureProducerReady
+        //new HttpLineageDispatcher(config.producerRESTEndpointUrl, Http).ensureProducerReady
         val stats = migratorTool.migrate(config)
         Thread.sleep(1.second.toMillis) // give a chance to async logs to print out before the final message.
         println() // to make sure there is a new line before the final message.
