@@ -24,6 +24,7 @@ import akka.util.Timeout
 import ch.qos.logback.classic.Logger
 import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
+import scalaz.std.boolean
 import za.co.absa.spline.harvester.dispatcher.HttpLineageDispatcher.RESTResource
 import za.co.absa.spline.migrator.rest.RestClientFactory
 
@@ -46,9 +47,10 @@ class MigratorToolImpl(rcf: RestClientFactory) extends MigratorTool {
 
     val monitorActor = actorFactory.actorOf(Props(classOf[MonitorActor], migratorConf), "monitor")
     val batchMigratorActor = actorFactory.actorOf(Props(classOf[BatchMigratorActor], migratorConf, monitorActor, restClient), "batch-migrator")
-    lazy val continuousMigratorActor = actorFactory.actorOf(Props(classOf[ContinuousMigratorActor], migratorConf, restClient), "continuous-migrator")
-
-    implicit val timeout: Timeout = Timeout(42, TimeUnit.DAYS)
+    val maybeContMigratorActor = boolean.option(
+      migratorConf.continuousMode,
+      actorFactory.actorOf(Props(classOf[ContinuousMigratorActor], migratorConf, restClient), "continuous-migrator")
+    )
 
     val eventualBatchMigrationResult = restClient
       .createEndpoint(RESTResource.Status).head()
@@ -56,11 +58,12 @@ class MigratorToolImpl(rcf: RestClientFactory) extends MigratorTool {
         case NonFatal(e) => Future.failed(new Exception("Spline Producer is not ready", e))
       })
       .flatMap(_ => {
-        if (migratorConf.continuousMode)
-          continuousMigratorActor ! ContinuousMigratorActor.Start
-
-        (batchMigratorActor ? BatchMigratorActor.Start).
-          map({ case BatchMigratorActor.Result(stats) => stats })
+        implicit val timeout: Timeout = Timeout(42, TimeUnit.DAYS)
+        maybeContMigratorActor.foreach(_ ! ContinuousMigratorActor.Start)
+        batchMigratorActor ? BatchMigratorActor.Start
+      })
+      .map({
+        case BatchMigratorActor.Result(stats) => stats
       })
 
     eventualBatchMigrationResult.onComplete(_ => ActorSystemFacade.terminate())
