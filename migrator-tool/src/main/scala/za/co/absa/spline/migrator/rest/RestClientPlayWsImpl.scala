@@ -20,14 +20,17 @@ import akka.actor.ActorRefFactory
 import akka.stream.ActorMaterializer
 import play.api.libs.ws.DefaultBodyWritables._
 import play.api.libs.ws.ahc.StandaloneAhcWSClient
+import za.co.absa.spline.migrator.ActorSystemFacade
 import za.co.absa.spline.migrator.rest.HttpConstants._
 import za.co.absa.spline.migrator.rest.RestClient.HttpException
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class RestClientPlayWsImpl(baseUrl: String)(implicit context: ActorRefFactory) extends RestClient with AutoCloseable {
+class RestClientPlayWsImpl(baseUrl: String) extends RestClient with AutoCloseable {
 
-  private val ws = StandaloneAhcWSClient()(ActorMaterializer())
+  private implicit val actorFactory: ActorRefFactory = ActorSystemFacade.actorFactory
+  private implicit val materializer: ActorMaterializer = ActorMaterializer()
+  private val ws = StandaloneAhcWSClient()
 
   override def createEndpoint(resourceName: String): RestEndpoint = {
     val request = ws
@@ -35,6 +38,15 @@ class RestClientPlayWsImpl(baseUrl: String)(implicit context: ActorRefFactory) e
       .addHttpHeaders((Header.ContentType, MimeType.Json))
 
     new RestEndpoint {
+      override def head()(implicit ec: ExecutionContext): Future[Unit] = request
+        .head()
+        .flatMap({
+          case resp if resp.status >= 400 =>
+            Future.failed(HttpException(s"${resp.status} ${resp.statusText}"))
+          case _ =>
+            Future.successful(Unit)
+        })
+
       override def post(data: String)(implicit ec: ExecutionContext): Future[String] = request
         .post(data)
         .flatMap({

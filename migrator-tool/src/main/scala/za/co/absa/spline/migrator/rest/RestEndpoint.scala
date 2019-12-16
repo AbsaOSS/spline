@@ -19,5 +19,6 @@ package za.co.absa.spline.migrator.rest
 import scala.concurrent.{ExecutionContext, Future}
 
 trait RestEndpoint {
+  def head()(implicit ec: ExecutionContext): Future[Unit]
   def post(data: String)(implicit ec: ExecutionContext): Future[String]
 }
