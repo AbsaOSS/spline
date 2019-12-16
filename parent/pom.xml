@@ -363,6 +363,7 @@
                             <serverId>ossrh</serverId>
                             <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                             <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                            <autoDropAfterRelease>true</autoDropAfterRelease>
                         </configuration>
                     </plugin>
                     <plugin>
