@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 ABSA Group Limited
+ * Copyright 2019 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,8 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.migrator
+package za.co.absa.spline.migrator.rest
 
-import java.io.File
-
-import ch.qos.logback.classic.Level
-
-case class MigratorConfig(
-  mongoConnectionUrl: String = "",
-  producerRESTEndpointUrl: String = "",
-  batchSize: Int = 100,
-  batchesMax: Int = -1,
-  continuousMode: Boolean = false,
-  failRecFileIn: Option[File] = None,
-  failRecFileOut: Option[File] = None,
-  logLevel: Level = Level.ERROR
-)
-
-object MigratorConfig {
-  val empty: MigratorConfig = MigratorConfig()
+trait RestClientFactory {
+  def createRestClient(baseUrl: String): RestClient
 }

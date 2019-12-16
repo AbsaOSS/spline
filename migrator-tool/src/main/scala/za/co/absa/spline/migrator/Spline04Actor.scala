@@ -20,6 +20,7 @@ import java.util.UUID
 
 import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
+import za.co.absa.spline.harvester.dispatcher.HttpLineageDispatcher.RESTResource
 import za.co.absa.spline.harvester.json.HarvesterJsonSerDe._
 import za.co.absa.spline.migrator.Spline04Actor._
 import za.co.absa.spline.migrator.rest.RestClient
@@ -41,12 +42,6 @@ object Spline04Actor {
   case class SaveSuccess(dsId: UUID) extends ResponseMessage
 
   case class SaveFailure(dsId: UUID, e: Throwable) extends ResponseMessage
-
-
-  private object RESTResource {
-    val ExecutionPlans = "execution-plans"
-    val ExecutionEvents = "execution-events"
-  }
 
 }
 
