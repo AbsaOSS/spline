@@ -92,9 +92,9 @@
                   <arg line="build.sh"/>
                 </exec>
 
-                <echo message="Build Spline Webjar"/>
+                <echo message="Build Spline Webjar" />
                 <copy todir="${project.build.outputDirectory}/META-INF/resources/webjars/spline/${project.version}">
-                  <fileset dir="${project.basedir}/dist/ui2"/>
+                  <fileset dir="${project.basedir}/dist/ui2" />
                 </copy>
               </target>
             </configuration>
