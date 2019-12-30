@@ -15,7 +15,7 @@
   limitations under the License.
 '
 
-export NODE_OPTIONS="--max_old_space_size=8192"
+export NODE_OPTIONS="--max_old_space_size=2048"
 
 echo "Building Spline UI v$SPLINE_VERSION"
 

@@ -15,7 +15,7 @@
   limitations under the License.
 '
 
-export NODE_VERSION=12.13.1
+export NODE_VERSION=13.5.0
 
 # Install NVM
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.1/install.sh | bash
