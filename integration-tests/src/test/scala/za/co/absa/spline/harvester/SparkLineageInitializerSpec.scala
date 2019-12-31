@@ -31,9 +31,9 @@ import za.co.absa.spline.common.Version.VersionOrdering._
 import za.co.absa.spline.common.Version._
 import za.co.absa.spline.harvester.SparkLineageInitializer._
 import za.co.absa.spline.harvester.SparkLineageInitializerSpec._
-import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer
 import za.co.absa.spline.harvester.conf.DefaultSplineConfigurer.ConfProperty._
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
+import za.co.absa.spline.harvester.conf.{DefaultSplineConfiguration, DefaultSplineConfigurer}
 import za.co.absa.spline.harvester.dispatcher.HttpLineageDispatcher.producerUrlProperty
 import za.co.absa.spline.harvester.dispatcher.LineageDispatcher
 import za.co.absa.spline.harvester.listener.SplineQueryExecutionListener
@@ -108,7 +108,7 @@ class SparkLineageInitializerSpec extends AnyFunSpec with BeforeAndAfterEach wit
           // skip setting spline prop as it's already hardcoded in spline.properties
         }
 
-        val splineConfiguration = sparkSession.defaultSplineConfiguration
+        val splineConfiguration = new DefaultSplineConfiguration(sparkSession)
 
         splineConfiguration getString keyDefinedEverywhere shouldEqual valueFromHadoop
         splineConfiguration getString keyDefinedInJVMAndSpline shouldEqual valueFromJVM

@@ -28,9 +28,21 @@ import za.co.absa.spline.producer.model.{ExecutionEvent, ExecutionPlan}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
+object HttpLineageDispatcher {
+  val producerUrlProperty = "spline.producer.url"
+
+  object RESTResource {
+    val ExecutionPlans = "execution-plans"
+    val ExecutionEvents = "execution-events"
+    val Status = "status"
+  }
+}
+
 class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String, http: BaseHttp)
   extends LineageDispatcher
     with Logging {
+
+  def this(configuration: Configuration) = this(configuration.getRequiredString(HttpLineageDispatcher.producerUrlProperty), Http)
 
   val executionPlansUrl = s"$splineServerRESTEndpointBaseURL/${RESTResource.ExecutionPlans}"
   val executionEventsUrl = s"$splineServerRESTEndpointBaseURL/${RESTResource.ExecutionEvents}"
@@ -70,20 +82,5 @@ class HttpLineageDispatcher(splineServerRESTEndpointBaseURL: String, http: BaseH
       case Failure(e) if NonFatal(e) => throw new SplineNotInitializedException("Producer is not accessible!", e)
       case _ => Unit
     }
-  }
-}
-
-
-object HttpLineageDispatcher {
-  val producerUrlProperty = "spline.producer.url"
-
-  object RESTResource {
-    val ExecutionPlans = "execution-plans"
-    val ExecutionEvents = "execution-events"
-    val Status = "status"
-  }
-
-  def apply(configuration: Configuration): LineageDispatcher = {
-    new HttpLineageDispatcher(configuration.getRequiredString(producerUrlProperty), Http)
   }
 }

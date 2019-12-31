@@ -16,22 +16,17 @@
 
 package za.co.absa.spline.harvester.conf
 
-import org.apache.commons.configuration.Configuration
+import org.apache.commons.configuration.{CompositeConfiguration, Configuration, PropertiesConfiguration}
 import org.apache.spark.sql.SparkSession
 import org.slf4s.Logging
+import za.co.absa.spline.common.ConfigurationImplicits
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode
-import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
-import za.co.absa.spline.harvester.dispatcher.{HttpLineageDispatcher, LineageDispatcher}
+import za.co.absa.spline.harvester.dispatcher.LineageDispatcher
 import za.co.absa.spline.harvester.{LineageHarvesterFactory, QueryExecutionEventHandler}
 
-import scala.concurrent.ExecutionContext
-
-/**
-  * The object contains static information about default settings needed for initialization of the library.
-  */
 object DefaultSplineConfigurer {
+  private val defaultPropertiesFileName = "spline.default.properties"
 
-  //noinspection TypeAnnotation
   object ConfProperty {
 
     /**
@@ -40,29 +35,30 @@ object DefaultSplineConfigurer {
       * @see [[SplineMode]]
       */
     val MODE = "spline.mode"
-    val MODE_DEFAULT = BEST_EFFORT.toString
 
     /**
-     * Which lineage dispatcher should be used to report lineages (to Spline or elsewhere)
-     */
+      * Which lineage dispatcher should be used to report lineages
+      */
     val LINEAGE_DISPATCHER_CLASS = "spline.lineage_dispatcher.className"
-    val LINEAGE_DISPATCHER_CLASS_DEFAULT = classOf[HttpLineageDispatcher].getCanonicalName
   }
 }
 
-/**
-  * The class represents default settings needed for initialization of the library.
-  *
-  * @param configuration A source of settings
-  */
-class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkSession) extends SplineConfigurer with Logging {
+class DefaultSplineConfigurer(userConfiguration: Configuration, sparkSession: SparkSession) extends SplineConfigurer with Logging {
 
+  import ConfigurationImplicits._
   import DefaultSplineConfigurer.ConfProperty._
+  import DefaultSplineConfigurer._
+  import SplineMode._
 
-  private implicit val executionContext: ExecutionContext = ExecutionContext.global
+  import collection.JavaConverters._
+
+  private lazy val configuration = new CompositeConfiguration(Seq(
+    userConfiguration,
+    new PropertiesConfiguration(defaultPropertiesFileName)
+  ).asJava)
 
   lazy val splineMode: SplineMode = {
-    val modeName = configuration.getString(MODE, MODE_DEFAULT)
+    val modeName = configuration.getRequiredString(MODE)
     try SplineMode withName modeName
     catch {
       case _: NoSuchElementException => throw new IllegalArgumentException(
@@ -71,15 +67,12 @@ class DefaultSplineConfigurer(configuration: Configuration, sparkSession: SparkS
   }
 
   override lazy val lineageDispatcher: LineageDispatcher = {
-    configuration.getString(LINEAGE_DISPATCHER_CLASS, LINEAGE_DISPATCHER_CLASS_DEFAULT) match {
-      case LINEAGE_DISPATCHER_CLASS_DEFAULT => HttpLineageDispatcher(configuration)
-      case className: String =>
-        log debug s"Instantiating a lineage dispatcher for class name: $className"
-        Class.forName(className.trim)
-          .getConstructor(classOf[Configuration])
-          .newInstance(configuration)
-          .asInstanceOf[LineageDispatcher]
-    }
+    val className = configuration.getRequiredString(LINEAGE_DISPATCHER_CLASS)
+    log debug s"Instantiating a lineage dispatcher for class name: $className"
+    Class.forName(className.trim)
+      .getConstructor(classOf[Configuration])
+      .newInstance(configuration)
+      .asInstanceOf[LineageDispatcher]
   }
 
   private lazy val harvesterFactory = new LineageHarvesterFactory(
