@@ -16,18 +16,15 @@
 
 package za.co.absa.spline.harvester
 
-import org.apache.commons.configuration._
 import org.apache.spark
 import org.apache.spark.sql.SparkSession
 import org.slf4s.Logging
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
-import za.co.absa.spline.harvester.conf.{DefaultSplineConfigurer, HadoopConfiguration, SparkConfiguration, SplineConfigurer}
+import za.co.absa.spline.harvester.conf.{StandardSplineConfigurationStack, DefaultSplineConfigurer, SplineConfigurer}
 import za.co.absa.spline.harvester.listener.SplineQueryExecutionListener
 
-import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
-import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
@@ -44,16 +41,11 @@ object SparkLineageInitializer extends Logging {
   def createEventHandler(sparkSession: SparkSession): Option[QueryExecutionEventHandler] =
     SparkSessionWrapper(sparkSession).createEventHandler()
 
-  /**
-    * The class is a wrapper around Spark session and performs all necessary registrations and procedures for initialization of the library.
-    *
-    * @param sparkSession A Spark session
-    */
   implicit class SparkSessionWrapper(sparkSession: SparkSession) {
 
     private implicit val executionContext: ExecutionContext = ExecutionContext.global
 
-    private def defaultSplineConfigurer = new DefaultSplineConfigurer(defaultSplineConfiguration, sparkSession)
+    private def defaultSplineConfigurer = new DefaultSplineConfigurer(StandardSplineConfigurationStack(sparkSession), sparkSession)
 
     /**
       * The method performs all necessary registrations and procedures for initialization of the library.
@@ -94,7 +86,7 @@ object SparkLineageInitializer extends Logging {
     }
 
     def createEventHandler(): Option[QueryExecutionEventHandler] = {
-      val configurer = new DefaultSplineConfigurer(defaultSplineConfiguration, sparkSession)
+      val configurer = defaultSplineConfigurer
       if (configurer.splineMode != DISABLED) {
         createEventHandler(configurer)
       } else {
@@ -122,23 +114,6 @@ object SparkLineageInitializer extends Logging {
       } else {
         None
       }
-    }
-
-    private[harvester] val defaultSplineConfiguration = {
-      val splinePropertiesFileName = "spline.properties"
-
-      val systemConfOpt = Some(new SystemConfiguration)
-      val propFileConfOpt = Try(new PropertiesConfiguration(splinePropertiesFileName)).toOption
-      val hadoopConfOpt = Some(new HadoopConfiguration(sparkSession.sparkContext.hadoopConfiguration))
-      val sparkConfOpt = Some(new SparkConfiguration(sparkSession.sparkContext.getConf))
-
-      new CompositeConfiguration(Seq(
-        hadoopConfOpt,
-        sparkConfOpt,
-        systemConfOpt,
-        propFileConfOpt
-      ).flatten.asJava)
-
     }
 
     private def getOrSetIsInitialized(): Boolean = sparkSession.synchronized {

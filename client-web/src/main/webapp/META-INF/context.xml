@@ -16,7 +16,7 @@
 <Context>
 
     <!--
-        Spline REST Client API URL.
+        Spline Consumer REST API endpoint URL.
     -->
     <Environment name="spline/consumer/url" type="java.lang.String" override="false"/>
 
