@@ -21,7 +21,7 @@ import org.apache.spark.sql.SparkSession
 import org.slf4s.Logging
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.harvester.conf.SplineConfigurer.SplineMode._
-import za.co.absa.spline.harvester.conf.{DefaultSplineConfiguration, DefaultSplineConfigurer, SplineConfigurer}
+import za.co.absa.spline.harvester.conf.{StandardSplineConfigurationStack, DefaultSplineConfigurer, SplineConfigurer}
 import za.co.absa.spline.harvester.listener.SplineQueryExecutionListener
 
 import scala.concurrent.ExecutionContext
@@ -45,7 +45,7 @@ object SparkLineageInitializer extends Logging {
 
     private implicit val executionContext: ExecutionContext = ExecutionContext.global
 
-    private def defaultSplineConfigurer = new DefaultSplineConfigurer(new DefaultSplineConfiguration(sparkSession), sparkSession)
+    private def defaultSplineConfigurer = new DefaultSplineConfigurer(StandardSplineConfigurationStack(sparkSession), sparkSession)
 
     /**
       * The method performs all necessary registrations and procedures for initialization of the library.

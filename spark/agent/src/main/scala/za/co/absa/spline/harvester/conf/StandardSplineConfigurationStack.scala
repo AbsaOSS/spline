@@ -16,21 +16,19 @@
 
 package za.co.absa.spline.harvester.conf
 
-import org.apache.commons.configuration.{CompositeConfiguration, PropertiesConfiguration, SystemConfiguration}
+import org.apache.commons.configuration.{CompositeConfiguration, Configuration, PropertiesConfiguration, SystemConfiguration}
 import org.apache.spark.sql.SparkSession
-import za.co.absa.spline.harvester.conf.DefaultSplineConfiguration._
 
 import scala.collection.JavaConverters._
 import scala.util.Try
 
-object DefaultSplineConfiguration {
+object StandardSplineConfigurationStack {
   private val propertiesFileName = "spline.properties"
-}
 
-class DefaultSplineConfiguration(sparkSession: SparkSession)
-  extends CompositeConfiguration(Seq(
+  def apply(sparkSession: SparkSession): Configuration = new CompositeConfiguration(Seq(
     Some(new HadoopConfiguration(sparkSession.sparkContext.hadoopConfiguration)),
     Some(new SparkConfiguration(sparkSession.sparkContext.getConf)),
     Some(new SystemConfiguration),
     Try(new PropertiesConfiguration(propertiesFileName)).toOption
   ).flatten.asJava)
+}
