@@ -47,7 +47,7 @@
         <dependency>
             <groupId>za.co.absa.spline</groupId>
             <artifactId>spark-agent</artifactId>
-            <version>${project.version}</version>
+            <version>0.4.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.spark</groupId>

@@ -45,6 +45,13 @@ class ReflectionUtilsSpec extends AnyFlatSpec with Matchers {
     ReflectionUtils.extractFieldValue[Int](Foo, "privateVal") should be(42)
   }
 
+  "extractFieldValue" should "return values of compiler generated private fields" in {
+    val bar = new Bar("Pi", 3.14)
+    ReflectionUtils.extractFieldValue[String](bar, "a") shouldEqual "Pi"
+    ReflectionUtils.extractFieldValue[Double](bar, "b") shouldEqual 3.14
+  }
+
+
   "directSubClassesOf()" should "return direct subclasses of a sealed class/trait" in {
     ReflectionUtils.directSubClassesOf[MyTrait] should be(Seq(classOf[MyClass], MyObject.getClass))
   }
@@ -84,6 +91,10 @@ object ReflectionUtilsSpec {
   object Foo {
     //noinspection ScalaUnusedSymbol
     private[this] val privateVal = 42
+  }
+
+  class Bar(a: String, b: Double) {
+    def methodUsingFields: String = a + b.toString
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 ABSA Group Limited
+ * Copyright 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.common
+package za.co.absa.spline.common.scalatest
 
-import java.util.UUID
+import org.scalatest.{Ignore, Tag}
 
-object UUIDExtractors {
+object ConditionalTestTags {
 
-  object UUIDExtractor {
-    def unapply(str: String): Option[UUID] =
-      try Some(UUID fromString str)
-      catch {
-        case _: IllegalArgumentException => None
-      }
-  }
+  def ignoreIf(condition: => Boolean): Tag = Tag(if (condition) classOf[Ignore].getName else "")
 
 }

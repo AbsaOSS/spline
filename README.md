@@ -21,7 +21,7 @@ Other docs/readme files can be found at:
 
 -   [Examples](examples/README.md)
 
--   [Spark Agent](spark/agent/README.md)
+-   [Spark Agent](https://github.com/AbsaOSS/spline-spark-agent)
 
 -   [Spline Paper](https://github.com/AbsaOSS/spline/releases/download/release%2F0.2.7/Spline_paper_IEEE_2018.pdf)
 
@@ -52,11 +52,11 @@ a server, an admin tool and a client Web UI to see the captured lineage.
 There are two ways how to do it:
 
 #### Download prebuild Spline artifacts from the Maven repo
--   [```za.co.absa.spline:admin:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/admin/0.4.0/)
+-   [```za.co.absa.spline:admin:0.5.0```](https://repo1.maven.org/maven2/za/co/absa/spline/admin/0.5.0/)
 
--   [```za.co.absa.spline:rest-gateway:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/rest-gateway/0.4.0/) 
+-   [```za.co.absa.spline:rest-gateway:0.5.0```](https://repo1.maven.org/maven2/za/co/absa/spline/rest-gateway/0.5.0/) 
 
--   [```za.co.absa.spline:client-web:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/client-web/0.4.0/) (optional)
+-   [```za.co.absa.spline:client-web:0.5.0```](https://repo1.maven.org/maven2/za/co/absa/spline/client-web/0.5.0/) (optional)
 
 (REST Server and Web Client modules are also available as [Docker containers](https://hub.docker.com/u/absaoss))
 
@@ -67,13 +67,13 @@ There are two ways how to do it:
 
 2.  Get and unzip the Spline source code:
     ```shell script
-    wget https://github.com/AbsaOSS/spline/archive/release/0.4.0.zip
-    unzip 0.4.0.zip
+    wget https://github.com/AbsaOSS/spline/archive/release/0.5.0.zip
+    unzip 0.5.0.zip
     ```
 
 3.  Change the directory:
     ```shell script
-    cd spline-release-0.4.0
+    cd spline-release-0.5.0
     ```
 
 4.  Run the Maven build:
@@ -92,7 +92,7 @@ docker pull arangodb:3.5.1
 
 ## Create Spline Database
 ```shell script
-java -jar admin/target/admin-0.4.0.jar db-init arangodb://localhost/spline
+java -jar admin/target/admin-0.5.0.jar db-init arangodb://localhost/spline
 ```
 
 ## Start Spline Server
@@ -110,7 +110,7 @@ docker container run \
 -   Java compatible Web-Container (e.g. Tomcat):
 
 You can find a WAR-file in the Maven repo here:
-[```za.co.absa.spline:rest-gateway:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/rest-gateway/0.4.0/)
+[```za.co.absa.spline:rest-gateway:0.5.0```](https://repo1.maven.org/maven2/za/co/absa/spline/rest-gateway/0.5.0/)
 
 Add the argument for the arango connection string `-Dspline.database.connectionUrl=arangodb://localhost/spline`
 
@@ -139,7 +139,7 @@ docker container run \
 -   Java compatible Web-Container (e.g. Tomcat):
 
 You can find the WAR-file of the Web Client in the repo here:
-[```za.co.absa.spline:client-web:0.4.0```](https://repo1.maven.org/maven2/za/co/absa/spline/client-web/0.4.0/)
+[```za.co.absa.spline:client-web:0.5.0```](https://repo1.maven.org/maven2/za/co/absa/spline/client-web/0.5.0/)
 
 Add the argument for the consumer url `-Dspline.consumer.url=http://localhost:8080/consumer`
 
@@ -158,9 +158,9 @@ You can find the documentation of this module in [ClientUI](client-ui/README.md)
 Add a dependency on Spark Agent.
 ```xml
 <dependency>
-    <groupId>za.co.absa.spline</groupId>
-    <artifactId>spark-agent</artifactId>
-    <version>0.4.0</version>
+    <groupId>za.co.absa.spline.agent.spark</groupId>
+    <artifactId>agent-core</artifactId>
+    <version>0.5.0</version>
 </dependency>
 ```
 In your spark job you have to enable spline.
