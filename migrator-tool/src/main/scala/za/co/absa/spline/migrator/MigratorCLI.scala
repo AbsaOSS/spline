@@ -35,6 +35,11 @@ object MigratorCLI extends App {
 }
 
 class MigratorCLI(migratorTool: MigratorTool) {
+
+  private val logLevels = Seq("ALL", "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "OFF")
+  private val logLevelsString = logLevels.map(x => s"`$x`").reduce((x, y) => s"$x, $y")
+  private val logLevelInvalidMsg = s"<log-level> should be one of: $logLevelsString"
+
   def exec(args: Array[String]): Unit = {
     val cliParser = new scopt.OptionParser[MigratorConfig]("migrator-tool") {
       head("Spline Migration Tool", SplineBuildInfo.Version)
@@ -57,11 +62,13 @@ class MigratorCLI(migratorTool: MigratorTool) {
         """|A file where a list of failed lineage IDs will be written to.
            |Running migrator with the option '-r' will repeat attempt to migrate lineages from this file."""
           .stripMargin
+        validate (f => if (!f.exists()) success else failure("<failrec> file should not yet exist"))
         action ((file, conf) => conf.copy(failRecFileOut = Some(file))))
 
       (opt[File]('r', "retry-from")
         valueName "<file>"
         text "A failrec file (see option '-e') to retry from."
+        validate (f => if (f.exists()) success else failure("<retry-from> file must exist"))
         action ((file, conf) => conf.copy(failRecFileIn = Some(file))))
 
       (opt[Int]('b', "batch-size")
@@ -78,7 +85,8 @@ class MigratorCLI(migratorTool: MigratorTool) {
         action ((_, conf) => conf.copy(continuousMode = true)))
 
       (opt[String]('l', "log-level")
-        text s"Log level (`ALL`, `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`, `OFF`). Default is `ERROR`"
+        text s"Log level ($logLevelsString). Default is `ERROR`"
+        validate (l => if (logLevels.contains(l)) success else failure(logLevelInvalidMsg))
         action ((str, conf) => conf.copy(logLevel = Level.valueOf(str))))
 
       help("help").text("prints this usage text")
