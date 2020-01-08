@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.consumer.service.internal.model
+package za.co.absa.spline.consumer.service.internal
 
 import java.util.UUID
 
@@ -23,6 +23,7 @@ import org.scalatest.matchers.should.Matchers
 
 import collection.JavaConverters._
 import za.co.absa.spline.consumer.service.internal.AttributeDependencySolver.resolveDependencies
+import za.co.absa.spline.consumer.service.internal.model.OperationWithSchema
 
 class AttributeDependencySolverSpec extends AnyFlatSpec with Matchers{
 
@@ -42,10 +43,11 @@ class AttributeDependencySolverSpec extends AnyFlatSpec with Matchers{
   }
 
   private def assertResolvedEquals(
-      operations: Seq[Operation],
-      forAttribute: UUID,
-      attributeDependencies: Set[UUID],
-      operationDependencies: Set[Int]): Unit = {
+    operations: Seq[OperationWithSchema],
+    forAttribute: UUID,
+    attributeDependencies: Set[UUID],
+    operationDependencies: Set[Int]
+  ): Unit = {
 
     val dependencies = resolveDependencies(operations, forAttribute)
 
@@ -64,37 +66,37 @@ class AttributeDependencySolverSpec extends AnyFlatSpec with Matchers{
     .asJava
 
   private def toInput(id: Int, schema: Seq[UUID]) =
-    Operation(id.toString, schema.toArray, Map("name" -> "Read"), Map.empty,Seq.empty)
+    OperationWithSchema(id.toString, schema.toArray, Map("name" -> "Read"), Map.empty,Seq.empty)
 
   private def toOutput(id: Int, childIds: Seq[Int], schema: Seq[UUID]) =
-    Operation(id.toString, schema.toArray, Map("name" -> "Write"), Map.empty, childIds.map(_.toString))
+    OperationWithSchema(id.toString, schema.toArray, Map("name" -> "Write"), Map.empty, childIds.map(_.toString))
 
   private def toSelect(id: Int, childIds: Seq[Int], expressions: Seq[Map[String, Any]], schema: Seq[UUID]) =
-    Operation(id.toString, schema.toArray,
+    OperationWithSchema(id.toString, schema.toArray,
       Map("name" -> "Project"),
       Map("projectList" -> exprAsJava(expressions)),
       childIds.map(_.toString))
 
   private def toAggregate(id: Int, childIds: Seq[Int], expressions: Seq[Map[String, Any]], schema: Seq[UUID]) =
-    Operation(id.toString, schema.toArray,
+    OperationWithSchema(id.toString, schema.toArray,
       Map("name" -> "Aggregate"),
       Map("aggregateExpressions" -> exprAsJava(expressions)),
       childIds.map(_.toString))
 
   private def toGenerate(id: Int, childIds: Seq[Int], generator: Map[String, Any], outputId: UUID) =
-    Operation(id.toString, Array(outputId),
+    OperationWithSchema(id.toString, Array(outputId),
       Map("name"-> "Generate"),
       Map("generator" -> exprAsJava(generator), "generatorOutput" -> exprAsJava(Seq(attrRef(outputId)))),
       childIds.map(_.toString))
 
   private def toFilter(id: Int, childIds: Seq[Int], schema: Seq[UUID]) =
-    Operation(id.toString, schema.toArray, Map("name" -> "Filter"), Map.empty, childIds.map(_.toString))
+    OperationWithSchema(id.toString, schema.toArray, Map("name" -> "Filter"), Map.empty, childIds.map(_.toString))
 
   private def toJoin(id: Int, childIds: Seq[Int], schema: Seq[UUID]) =
-    Operation(id.toString, schema.toArray, Map("name" -> "Join"), Map.empty, childIds.map(_.toString))
+    OperationWithSchema(id.toString, schema.toArray, Map("name" -> "Join"), Map.empty, childIds.map(_.toString))
 
   private def toSubqueryAlias(id: Int, childIds: Seq[Int], schema: Seq[UUID]) =
-    Operation(id.toString, schema.toArray, Map("name" -> "SubqueryAlias"), Map.empty, childIds.map(_.toString))
+    OperationWithSchema(id.toString, schema.toArray, Map("name" -> "SubqueryAlias"), Map.empty, childIds.map(_.toString))
 
   private def attrRef(attr: UUID) =
     Map("_typeHint" -> "expr.AttrRef", "refId" -> attr.toString)
@@ -449,7 +451,51 @@ class AttributeDependencySolverSpec extends AnyFlatSpec with Matchers{
     assertResolvedEquals(operations, F, Set(A, B, E, D), asIdSet(inA, opD, inB, opE, joinDE, opF, joinFG, out))
     assertResolvedEquals(operations, G, Set(C), asIdSet(inC, opG, joinFG, out))
 
-    def asIdSet(operations: Operation*) = operations.map(_._id.toInt).toSet
+    def asIdSet(operations: OperationWithSchema*) = operations.map(_._id.toInt).toSet
+  }
+
+  /**
+   *     (A)
+   *    /  \
+   *  (A)  (B)
+   *    \  /
+   *   (A,B)
+   *     |
+   *   (A,B)
+   */
+  it should "resolve diamond correctly" in {
+
+    val in = toInput(
+      0,
+      Seq(A))
+
+    val op1 = toFilter(
+      1,
+      Seq(0),
+      Seq(A)
+    )
+
+    val op2 = toSelect(
+      2,
+      Seq(0),
+      Seq(attrRef(A)),
+      Seq(B))
+
+    val join = toJoin(
+      3,
+      Seq(0, 1),
+      Seq(A, B))
+
+    val out = toOutput(
+      4,
+      Seq(3),
+      Seq(A, B))
+
+
+    val operations = Seq(op1, op2, join, in, out)
+
+    assertResolvedEquals(operations, A, Set.empty, Set(0, 1, 3, 4))
+    assertResolvedEquals(operations, B, Set(A), Set(0, 1, 2, 3, 4))
   }
 
 }

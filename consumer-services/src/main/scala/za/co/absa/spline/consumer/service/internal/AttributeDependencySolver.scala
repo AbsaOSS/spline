@@ -18,7 +18,7 @@ package za.co.absa.spline.consumer.service.internal
 
 import java.util.UUID
 
-import za.co.absa.spline.consumer.service.internal.model.Operation
+import za.co.absa.spline.consumer.service.internal.model.OperationWithSchema
 import za.co.absa.spline.consumer.service.model.AttributeDependencies
 
 import scala.collection.JavaConverters._
@@ -26,8 +26,7 @@ import scala.collection.mutable
 
 object AttributeDependencySolver {
 
-  def resolveDependencies(operations: Seq[Operation], attributeID: UUID):
-      AttributeDependencies = {
+  def resolveDependencies(operations: Seq[OperationWithSchema], attributeID: UUID): AttributeDependencies = {
 
     val inputSchemaResolver = createInputSchemaResolver(operations)
 
@@ -42,7 +41,7 @@ object AttributeDependencySolver {
     AttributeDependencies(attributeDependencies.toSeq, operationDependencies)
   }
 
-  private def resolveDependencies(op: Operation, inputSchemaOf: Operation => Array[UUID]): Map[UUID, Set[UUID]] =
+  private def resolveDependencies(op: OperationWithSchema, inputSchemaOf: OperationWithSchema => Array[UUID]): Map[UUID, Set[UUID]] =
     op.extra("name") match {
       case "Project" => resolveExpressionList(op.params("projectList"), op.schema)
       case "Aggregate" => resolveExpressionList(op.params("aggregateExpressions"), op.schema)
@@ -54,16 +53,16 @@ object AttributeDependencySolver {
   private def resolveExpressionList(exprList: Any, schema: Seq[UUID]): Map[UUID, Set[UUID]] =
     asScalaListOfMaps[String, Any](exprList)
       .zip(schema)
-      .map{ case (expr, attrId) => attrId -> toAttrDependencies(expr) }
+      .map { case (expr, attrId) => attrId -> toAttrDependencies(expr) }
       .toMap
 
   private def resolveSubqueryAlias(inputSchema: Seq[UUID], outputSchema: Seq[UUID]): Map[UUID, Set[UUID]] =
     inputSchema
       .zip(outputSchema)
-      .map{ case (inAtt, outAtt) => outAtt -> Set(inAtt)}
+      .map { case (inAtt, outAtt) => outAtt -> Set(inAtt) }
       .toMap
 
-  private def resolveGenerator(op: Operation): Map[UUID, Set[UUID]] = {
+  private def resolveGenerator(op: OperationWithSchema): Map[UUID, Set[UUID]] = {
 
     val expression = asScalaMap[String, Any](op.params("generator"))
     val dependencies = toAttrDependencies(expression)
@@ -75,20 +74,20 @@ object AttributeDependencySolver {
   }
 
   private def toAttrDependencies(expr: mutable.Map[String, Any]): Set[UUID] = expr("_typeHint") match {
-    case "expr.AttrRef"                        => Set(UUID.fromString(expr("refId").asInstanceOf[String]))
-    case "expr.Alias"                          => toAttrDependencies(asScalaMap[String, Any](expr("child")))
-    case _ if expr.contains("children")        => asScalaListOfMaps[String, Any](expr("children"))
-                                                      .map(toAttrDependencies).reduce(_ union _)
-    case _                                     => Set.empty
+    case "expr.AttrRef" => Set(UUID.fromString(expr("refId").asInstanceOf[String]))
+    case "expr.Alias" => toAttrDependencies(asScalaMap[String, Any](expr("child")))
+    case _ if expr.contains("children") => asScalaListOfMaps[String, Any](expr("children"))
+      .map(toAttrDependencies).reduce(_ union _)
+    case _ => Set.empty
   }
 
-  private def mergeDependencies(acc: Map[UUID, Set[UUID]], newDependencies:  Map[UUID, Set[UUID]]) =
+  private def mergeDependencies(acc: Map[UUID, Set[UUID]], newDependencies: Map[UUID, Set[UUID]]) =
     newDependencies.foldLeft(acc) { case (acc, (newKey, newValue)) =>
 
       // add old dependencies to the new dependencies when they contain one of old keys
       val addToNewValue = acc.flatMap {
-        case (k, v)  if newValue(k) => v
-        case _                      => Nil
+        case (k, v) if newValue(k) => v
+        case _ => Nil
       }
 
       val updatedNewValue = newValue.union(addToNewValue.toSet)
@@ -96,17 +95,17 @@ object AttributeDependencySolver {
       // add new dependencies to all dependencies that contains the new key
       val updatedAcc = acc.map {
         case (k, v) if v(newKey) => k -> v.union(updatedNewValue)
-        case (k, v)              => k -> v
+        case (k, v) => k -> v
       }
 
       updatedAcc + (newKey -> updatedNewValue)
     }
 
-  private def createInputSchemaResolver(operations: Seq[Operation]): Operation => Array[UUID] = {
+  private def createInputSchemaResolver(operations: Seq[OperationWithSchema]): OperationWithSchema => Array[UUID] = {
 
     val operationMap = operations.map(op => op._id -> op).toMap
 
-    (op: Operation) => {
+    (op: OperationWithSchema) => {
       if (op.childIds.isEmpty) {
         Array.empty
       } else {
@@ -116,7 +115,7 @@ object AttributeDependencySolver {
     }
   }
 
-  private def resolveOperationDependencies(operations: Seq[Operation], attributes: Set[UUID]): Seq[String] =
+  private def resolveOperationDependencies(operations: Seq[OperationWithSchema], attributes: Set[UUID]): Seq[String] =
     operations
       .filter(_.schema.exists(attributes(_)))
       .map(_._id)

@@ -28,14 +28,4 @@ case class AttributeDependencies
 
   @ApiModelProperty(value = "List of operation ids referencing provided attribute or dependent attributes")
   operations: Seq[String]
-) {
-  def this() = this(null, null)
-}
-
-
-
-
-
-
-
-
+)

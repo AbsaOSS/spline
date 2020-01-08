@@ -18,7 +18,7 @@ package za.co.absa.spline.consumer.service.internal.model
 
 import java.util.UUID
 
-case class Operation (
+case class OperationWithSchema(
   _id: String,
   schema: Array[UUID],
   extra: Map[String, Any],

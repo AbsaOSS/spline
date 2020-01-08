@@ -55,7 +55,7 @@ class LineageDetailedController @Autowired()(
     @RequestParam("attributeId") attributeId: UUID
   ): Future[AttributeDependencies] = {
       repo
-        .findOperations(execId)
+        .findOperationsWithSchema(execId)
         .map(AttributeDependencySolver.resolveDependencies(_, attributeId))
   }
 }

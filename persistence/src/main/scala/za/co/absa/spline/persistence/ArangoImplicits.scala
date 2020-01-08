@@ -36,6 +36,14 @@ object ArangoImplicits {
         ) yield res.next
       }
 
+      def queryAll[T: Manifest](queryString: String,
+                                bindVars: Map[String, AnyRef] = Map.empty,
+                                options: AqlQueryOptions = null)
+                               (implicit ec: ExecutionContext): Future[Stream[T]] = {
+        queryAs[T](queryString, bindVars, options)
+          .map(_.iterator().asScala.toStream)
+      }
+
       def queryAs[T: Manifest](queryString: String,
                              bindVars: Map[String, AnyRef] = Map.empty,
                              options: AqlQueryOptions = null
