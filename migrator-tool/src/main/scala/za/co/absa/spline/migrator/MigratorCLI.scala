@@ -79,13 +79,15 @@ class MigratorCLI(migratorTool: MigratorTool) {
         text s"Watch the source database and migrate the incoming data on the fly"
         action ((_, conf) => conf.copy(continuousMode = true)))
 
-      val logLevels = classOf[Level].getFields.collect { case f if f.getType == f.getDeclaringClass => f.getName }
-      val logLevelsString = logLevels.reduce((x, y) => s"$x, $y")
+      {
+        val logLevels = classOf[Level].getFields.collect { case f if f.getType == f.getDeclaringClass => f.getName }
+        val logLevelsString = logLevels.reduce((x, y) => s"$x, $y")
 
-      (opt[String]('l', "log-level")
-        text s"Log level ($logLevelsString). Default is ERROR"
-        validate (l => if (logLevels.contains(l)) success else failure(s"<log-level> should be one of: $logLevelsString"))
-        action ((str, conf) => conf.copy(logLevel = Level.valueOf(str))))
+        (opt[String]('l', "log-level")
+          text s"Log level ($logLevelsString). Default is ERROR"
+          validate (l => if (logLevels.contains(l)) success else failure(s"<log-level> should be one of: $logLevelsString"))
+          action ((str, conf) => conf.copy(logLevel = Level.valueOf(str))))
+      }
 
       help("help").text("prints this usage text")
     }
