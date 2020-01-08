@@ -57,11 +57,13 @@ class MigratorCLI(migratorTool: MigratorTool) {
         """|A file where a list of failed lineage IDs will be written to.
            |Running migrator with the option '-r' will repeat attempt to migrate lineages from this file."""
           .stripMargin
+        validate (f => if (!f.exists()) success else failure("<failrec> file already exists"))
         action ((file, conf) => conf.copy(failRecFileOut = Some(file))))
 
       (opt[File]('r', "retry-from")
         valueName "<file>"
         text "A failrec file (see option '-e') to retry from."
+        validate (f => if (f.exists()) success else failure("<retry-from> file must exist"))
         action ((file, conf) => conf.copy(failRecFileIn = Some(file))))
 
       (opt[Int]('b', "batch-size")
@@ -77,9 +79,15 @@ class MigratorCLI(migratorTool: MigratorTool) {
         text s"Watch the source database and migrate the incoming data on the fly"
         action ((_, conf) => conf.copy(continuousMode = true)))
 
-      (opt[String]('l', "log-level")
-        text s"Log level (`ALL`, `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`, `OFF`). Default is `ERROR`"
-        action ((str, conf) => conf.copy(logLevel = Level.valueOf(str))))
+      {
+        val logLevels = classOf[Level].getFields.collect { case f if f.getType == f.getDeclaringClass => f.getName }
+        val logLevelsString = logLevels.mkString(", ")
+
+        (opt[String]('l', "log-level")
+          text s"Log level ($logLevelsString). Default is ERROR"
+          validate (l => if (logLevels.contains(l)) success else failure(s"<log-level> should be one of: $logLevelsString"))
+          action ((str, conf) => conf.copy(logLevel = Level.valueOf(str))))
+      }
 
       help("help").text("prints this usage text")
     }
