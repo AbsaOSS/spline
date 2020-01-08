@@ -81,7 +81,7 @@ class MigratorCLI(migratorTool: MigratorTool) {
 
       {
         val logLevels = classOf[Level].getFields.collect { case f if f.getType == f.getDeclaringClass => f.getName }
-        val logLevelsString = logLevels.reduce((x, y) => s"$x, $y")
+        val logLevelsString = logLevels.mkString(", ")
 
         (opt[String]('l', "log-level")
           text s"Log level ($logLevelsString). Default is ERROR"
