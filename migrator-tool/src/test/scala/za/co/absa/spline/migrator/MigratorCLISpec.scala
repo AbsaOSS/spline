@@ -20,20 +20,17 @@ import java.util.concurrent.Executors
 
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import org.scalatest.OneInstancePerTest
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+import org.scalatest.{FlatSpec, Matchers, OneInstancePerTest}
 import org.scalatestplus.mockito.MockitoSugar
-import za.co.absa.spline.common.scalatest.{ConsoleStubs, MatcherImplicits, SystemExitFixture}
+import za.co.absa.spline.common.scalatest.{ConsoleStubs, SystemExitFixture}
 
 import scala.concurrent.ExecutionContext
 
 class MigratorCLISpec
-  extends AnyFlatSpec
+  extends FlatSpec
     with OneInstancePerTest
     with MockitoSugar
     with Matchers
-    with MatcherImplicits
     with SystemExitFixture.SuiteHook
     with SystemExitFixture.Methods
     with ConsoleStubs {

@@ -22,10 +22,9 @@ import java.{lang => jl}
 
 import com.arangodb.async.ArangoDatabaseAsync
 import org.apache.commons.lang3.StringUtils.wrap
+import org.slf4s.Logging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import za.co.absa.spline.common.json.SimpleJsonSerDe
-import za.co.absa.spline.common.logging.Logging
 import za.co.absa.spline.persistence.model._
 import za.co.absa.spline.persistence.tx.{InsertQuery, TxBuilder}
 import za.co.absa.spline.persistence.{ArangoImplicits, Persister, model => dbModel}
@@ -152,7 +151,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 
 object ExecutionProducerRepositoryImpl {
 
-  import SimpleJsonSerDe._
+  import za.co.absa.commons.json.DefaultJacksonJsonSerDe._
 
   private[repo] def createEventKey(e: ExecutionEvent) =
     s"${e.planId}:${jl.Long.toString(e.timestamp, 36)}"

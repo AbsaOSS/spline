@@ -25,8 +25,8 @@ import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMapping
 import org.thymeleaf.ITemplateEngine
 import org.thymeleaf.context.WebContext
+import za.co.absa.commons.BuildInfo
 import za.co.absa.spline.client.web.WebController.{IndexPageConf, IndexPageTemplateName}
-import za.co.absa.spline.common.SplineBuildInfo
 
 import scala.collection.JavaConverters._
 
@@ -57,7 +57,7 @@ class WebController @Autowired()(templateEngine: ITemplateEngine) {
 
   @RequestMapping(path = Array("/build-info"), produces = Array("text/x-java-properties"))
   def buildInfo(res: HttpServletResponse): Unit =
-    SplineBuildInfo.BuildProps.store(res.getWriter, "Spline Web Client")
+    BuildInfo.BuildProps.store(res.getWriter, "Spline Web Client")
 }
 
 object WebController {

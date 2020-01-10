@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,10 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.common.extractors
+package za.co.absa.spline.migrator
 
-class SafeTypeMatchingExtractor[T](lazyClass: => Class[T]) {
-  def this(className: String) = this(Class.forName(className).asInstanceOf[Class[T]])
-
-  private val classIfAvailable: Option[Class[_]] =
-    try Some(lazyClass)
-    catch {
-      case _: NoClassDefFoundError | _: ClassNotFoundException => None
-    }
-
-  def unapply(arg: Any): Option[T] =
-    for {
-      clazz <- classIfAvailable
-      if arg != null && clazz.isAssignableFrom(arg.getClass)
-    } yield arg.asInstanceOf[T]
+object RESTResource {
+  val ExecutionPlans = "execution-plans"
+  val ExecutionEvents = "execution-events"
+  val Status = "status"
 }

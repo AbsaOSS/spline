@@ -22,7 +22,8 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.springframework.context.annotation.{Bean, ComponentScan, Configuration}
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
 import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
-import za.co.absa.spline.common.config.{ConfTyped, DefaultConfigurationStack}
+import za.co.absa.commons.config.ConfTyped
+import za.co.absa.spline.common.config.DefaultConfigurationStack
 import za.co.absa.spline.common.webmvc.jackson.ObjectMapperBeanPostProcessor
 import za.co.absa.spline.common.webmvc.{EstimableFutureReturnValueHandlerSupport, ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
 

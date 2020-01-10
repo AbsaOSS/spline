@@ -20,7 +20,7 @@ import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import io.swagger.annotations._
 import org.springframework.http.MediaType._
 import org.springframework.web.bind.annotation.{GetMapping, RequestMapping, RestController}
-import za.co.absa.spline.common.SplineBuildInfo
+import za.co.absa.commons.BuildInfo
 
 @RestController
 @RequestMapping(Array("/about"))
@@ -30,7 +30,7 @@ class AboutController {
   @ApiOperation("Get application version info")
   def buildInfo: String =
     ConfigFactory
-      .parseProperties(SplineBuildInfo.BuildProps)
+      .parseProperties(BuildInfo.BuildProps)
       .root()
       .render(ConfigRenderOptions.concise)
 }
