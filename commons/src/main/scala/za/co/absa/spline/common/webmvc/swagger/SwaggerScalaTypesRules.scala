@@ -22,7 +22,7 @@ import com.fasterxml.classmate.TypeResolver
 import org.springframework.core.Ordered.HIGHEST_PRECEDENCE
 import springfox.documentation.schema.AlternateTypeRules.{GENERIC_SUBSTITUTION_RULE_ORDER, newRule}
 import springfox.documentation.schema.{AlternateTypeRule, AlternateTypeRuleConvention, WildcardType}
-import za.co.absa.spline.common.TypeConstraints.not
+import za.co.absa.commons.lang.TypeConstraints.not
 
 import scala.concurrent.Future
 

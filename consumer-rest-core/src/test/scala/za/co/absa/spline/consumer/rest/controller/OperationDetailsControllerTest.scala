@@ -17,7 +17,7 @@ package za.co.absa.spline.consumer.rest.controller
 
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
-import org.scalatest.AsyncFunSuite
+import org.scalatest.funsuite.AsyncFunSuite
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.spline.consumer.service.model._

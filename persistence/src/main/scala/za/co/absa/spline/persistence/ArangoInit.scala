@@ -21,7 +21,8 @@ import com.arangodb.entity.{EdgeDefinition, IndexType}
 import com.arangodb.model._
 import org.apache.commons.io.FilenameUtils
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
-import za.co.absa.spline.common.{ARM, ReflectionUtils}
+import za.co.absa.commons.lang.ARM
+import za.co.absa.commons.reflect.ReflectionUtils
 import za.co.absa.spline.persistence.model.{CollectionDef, GraphDef}
 
 import scala.collection.JavaConverters._

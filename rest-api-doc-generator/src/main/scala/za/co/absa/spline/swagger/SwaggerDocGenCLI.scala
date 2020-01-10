@@ -18,8 +18,8 @@ package za.co.absa.spline.swagger
 
 import java.io.{File, FileWriter, OutputStreamWriter}
 
-import za.co.absa.spline.common.ARM._
-import za.co.absa.spline.common.SplineBuildInfo
+import za.co.absa.commons.BuildInfo
+import za.co.absa.commons.lang.ARM._
 
 object SwaggerDocGenCLI extends App {
   new SwaggerDocGenCLI(SwaggerDocGen).exec(args)
@@ -29,7 +29,7 @@ class SwaggerDocGenCLI(gen: SwaggerDocGen) {
   def exec(args: Array[String]): Unit = {
 
     val cliParser = new scopt.OptionParser[SwaggerDocGenConfig]("rest-doc-gen-tool") {
-      head("Spline REST OpenAPI v2 spec generation tool", SplineBuildInfo.Version)
+      head("Spline REST OpenAPI v2 spec generation tool", BuildInfo.Version)
 
       (opt[String]('o', "output")
         valueName "<file>"

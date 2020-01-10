@@ -19,7 +19,7 @@ package za.co.absa.spline.persistence
 import java.net.{MalformedURLException, URI}
 
 import org.apache.commons.lang3.StringUtils.trimToNull
-import za.co.absa.spline.common.OptionImplicits.StringWrapper
+import za.co.absa.commons.lang.OptionImplicits.StringWrapper
 import za.co.absa.spline.persistence.ArangoConnectionURL.ArangoDbScheme
 
 import scala.util.matching.Regex

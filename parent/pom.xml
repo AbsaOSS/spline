@@ -525,8 +525,15 @@
                 <version>19.11.0</version>
             </dependency>
 
+            <!-- ABSA Commons -->
 
-            <!-- Commons -->
+            <dependency>
+                <groupId>za.co.absa.commons</groupId>
+                <artifactId>commons_${scala.compat.version}</artifactId>
+                <version>0.0.6-SNAPSHOT</version>
+            </dependency>
+
+            <!-- Apache Commons -->
 
             <dependency>
                 <groupId>commons-codec</groupId>

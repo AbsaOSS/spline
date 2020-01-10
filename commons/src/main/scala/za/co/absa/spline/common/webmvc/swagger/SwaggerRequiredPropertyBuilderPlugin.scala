@@ -24,7 +24,7 @@ import springfox.documentation.spi.schema.ModelPropertyBuilderPlugin
 import springfox.documentation.spi.schema.contexts.ModelPropertyContext
 import springfox.documentation.swagger.common.SwaggerPluginSupport.pluginDoesApply
 import springfox.documentation.swagger.schema.ApiModelProperties._
-import za.co.absa.spline.common.ReflectionUtils
+import za.co.absa.commons.reflect.ReflectionUtils
 
 import scala.language.implicitConversions
 

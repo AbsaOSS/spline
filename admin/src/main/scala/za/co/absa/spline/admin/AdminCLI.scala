@@ -18,8 +18,8 @@ package za.co.absa.spline.admin
 
 import org.backuity.ansi.AnsiFormatter.FormattedHelper
 import scopt.{OptionDef, OptionParser}
+import za.co.absa.commons.BuildInfo
 import za.co.absa.spline.admin.AdminCLI.AdminCLIConfig
-import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoInit}
 
 import scala.concurrent.Await
@@ -37,7 +37,7 @@ class AdminCLI(arangoInit: ArangoInit) {
   def exec(args: Array[String]): Unit = {
 
     val cliParser: OptionParser[AdminCLIConfig] = new OptionParser[AdminCLIConfig]("Spline Admin CLI") {
-      head("Spline Admin Command Line Interface", SplineBuildInfo.Version)
+      head("Spline Admin Command Line Interface", BuildInfo.Version)
 
       help("help").text("prints this usage text")
 
