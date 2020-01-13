@@ -205,9 +205,13 @@ class AttributeDependencySolverSpec extends AnyFlatSpec with Matchers{
 
   it should "resolve chain of several operations including an expression" in {
 
+    val in = toInput(
+      0,
+      Seq(A, B))
+
     val op1 = toSelect(
       1,
-      Seq.empty,
+      Seq(0),
       Seq(attrRef(A), attrRef(B)),
       Seq(C, D))
 
@@ -223,12 +227,18 @@ class AttributeDependencySolverSpec extends AnyFlatSpec with Matchers{
       Seq(attrRef(E)),
       Seq(F))
 
-    val operations = Seq(op1, op2, op3)
+    val out = toOutput(
+      4,
+      Seq(3),
+      Seq(F)
+    )
 
-    assertResolvedEquals(operations, C, Set(A), Set(1))
-    assertResolvedEquals(operations, D, Set(B), Set(1))
-    assertResolvedEquals(operations, E, Set(A, B, C, D), Set(1, 2))
-    assertResolvedEquals(operations, F, Set(A, B, C, D, E), Set(1, 2, 3))
+    val operations = Seq(in, op1, op2, op3, out)
+
+    assertResolvedEquals(operations, C, Set(A), Set(0, 1))
+    assertResolvedEquals(operations, D, Set(B), Set(0, 1))
+    assertResolvedEquals(operations, E, Set(A, B, C, D), Set(0, 1, 2))
+    assertResolvedEquals(operations, F, Set(A, B, C, D, E), Set(0, 1, 2, 3, 4))
   }
 
   it should "resolve aggregation" in {
@@ -483,7 +493,7 @@ class AttributeDependencySolverSpec extends AnyFlatSpec with Matchers{
 
     val join = toJoin(
       3,
-      Seq(0, 1),
+      Seq(1, 2),
       Seq(A, B))
 
     val out = toOutput(
@@ -495,7 +505,7 @@ class AttributeDependencySolverSpec extends AnyFlatSpec with Matchers{
     val operations = Seq(op1, op2, join, in, out)
 
     assertResolvedEquals(operations, A, Set.empty, Set(0, 1, 3, 4))
-    assertResolvedEquals(operations, B, Set(A), Set(0, 1, 2, 3, 4))
+    assertResolvedEquals(operations, B, Set(A), Set(0, 2, 3, 4))
   }
 
 }

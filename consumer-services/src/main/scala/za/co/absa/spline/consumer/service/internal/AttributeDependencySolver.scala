@@ -28,17 +28,56 @@ object AttributeDependencySolver {
 
   def resolveDependencies(operations: Seq[OperationWithSchema], attributeID: UUID): AttributeDependencies = {
 
+    val operationsMap = operations.map(op => op._id -> op).toMap
     val inputSchemaResolver = createInputSchemaResolver(operations)
 
-    val attributeDependencies = operations
-      .map(resolveDependencies(_, inputSchemaResolver))
-      .reduceOption(mergeDependencies)
-      .getOrElse(Map.empty)
-      .getOrElse(attributeID, Set.empty)
+    def findDependenciesStart(
+      operation: OperationWithSchema,
+      attributeID: UUID
+    ): (Set[UUID], Set[String]) = {
 
-    val operationDependencies = resolveOperationDependencies(operations, attributeDependencies + attributeID)
+      if (operation.schema.contains(attributeID))
+        findTransitiveDependencies(operation, Set(attributeID))
+      else if (operation.childIds.isEmpty)
+        (Set.empty, Set.empty)
+      else
+        operation
+          .childIds
+          .map(operationsMap)
+          .map(findDependenciesStart(_, attributeID))
+          .reduce(elementwiseUnion(_, _))
+    }
 
-    AttributeDependencies(attributeDependencies.toSeq, operationDependencies)
+    def findTransitiveDependencies(
+      operation: OperationWithSchema,
+      attributeDependencies: Set[UUID]
+    ): (Set[UUID], Set[String]) = {
+
+      val dependencyMap = resolveDependencies(operation, inputSchemaResolver)
+      val updatedAttributeDependencies = attributeDependencies
+        .flatMap(dependencyMap.get(_))
+        .flatten
+        .union(attributeDependencies)
+
+      val (attrDep, opDep) = operation
+        .childIds
+        .map(operationsMap)
+        .filter(_.schema.exists(updatedAttributeDependencies))
+        .map(findTransitiveDependencies(_, updatedAttributeDependencies))
+        .reduceOption(elementwiseUnion(_, _))
+        .getOrElse((updatedAttributeDependencies, Set.empty[String]))
+
+      (attrDep, opDep + operation._id)
+    }
+
+    def elementwiseUnion[A, B](x: (Set[A], Set[B]), y: (Set[A], Set[B])): (Set[A], Set[B]) =
+      (x._1 union y._1, x._2 union y._2)
+
+
+    val writeOp = operations.find(_.extra("name") == "Write").get
+    val (attributeDependencies, operationDependencies) = findDependenciesStart(writeOp, attributeID)
+
+    new AttributeDependencies(attributeDependencies - attributeID, operationDependencies)
   }
 
   private def resolveDependencies(op: OperationWithSchema, inputSchemaOf: OperationWithSchema => Array[UUID]): Map[UUID, Set[UUID]] =
@@ -81,26 +120,6 @@ object AttributeDependencySolver {
     case _ => Set.empty
   }
 
-  private def mergeDependencies(acc: Map[UUID, Set[UUID]], newDependencies: Map[UUID, Set[UUID]]) =
-    newDependencies.foldLeft(acc) { case (acc, (newKey, newValue)) =>
-
-      // add old dependencies to the new dependencies when they contain one of old keys
-      val addToNewValue = acc.flatMap {
-        case (k, v) if newValue(k) => v
-        case _ => Nil
-      }
-
-      val updatedNewValue = newValue.union(addToNewValue.toSet)
-
-      // add new dependencies to all dependencies that contains the new key
-      val updatedAcc = acc.map {
-        case (k, v) if v(newKey) => k -> v.union(updatedNewValue)
-        case (k, v) => k -> v
-      }
-
-      updatedAcc + (newKey -> updatedNewValue)
-    }
-
   private def createInputSchemaResolver(operations: Seq[OperationWithSchema]): OperationWithSchema => Array[UUID] = {
 
     val operationMap = operations.map(op => op._id -> op).toMap
@@ -114,11 +133,6 @@ object AttributeDependencySolver {
       }
     }
   }
-
-  private def resolveOperationDependencies(operations: Seq[OperationWithSchema], attributes: Set[UUID]): Seq[String] =
-    operations
-      .filter(_.schema.exists(attributes(_)))
-      .map(_._id)
 
   private def asScalaMap[K, V](javaMap: Any) =
     javaMap.asInstanceOf[java.util.Map[K, V]].asScala
