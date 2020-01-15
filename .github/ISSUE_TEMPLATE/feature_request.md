@@ -1,7 +1,9 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-labels: 'feature'
+title: ''
+labels: feature
+assignees: ''
 
 ---
 
@@ -18,4 +20,4 @@ A simple example if applicable.
 Solution Ideas 
 1. 
 2. 
-3. 
+3.
