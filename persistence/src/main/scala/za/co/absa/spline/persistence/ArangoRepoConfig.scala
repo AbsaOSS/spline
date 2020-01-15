@@ -39,12 +39,15 @@ class ArangoRepoConfig extends InitializingBean with Logging {
 
 object ArangoRepoConfig extends DefaultConfigurationStack with ConfTyped {
 
+  import za.co.absa.spline.common.ConfigurationImplicits._
+
   setThrowExceptionOnMissing(true)
 
   override val rootPrefix: String = "spline"
 
   object Database extends Conf("database") {
-    val connectionURL: ArangoConnectionURL = ArangoConnectionURL(getString(Prop("connectionUrl")))
+    val connectionURL: ArangoConnectionURL = ArangoConnectionURL(
+      ArangoRepoConfig.this.getRequiredString(Prop("connectionUrl")))
   }
 
 }
