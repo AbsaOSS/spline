@@ -36,7 +36,7 @@ object ArangoImplicits {
         ) yield res.next
       }
 
-      def queryAll[T: Manifest](queryString: String,
+      def queryStream[T: Manifest](queryString: String,
                                 bindVars: Map[String, AnyRef] = Map.empty,
                                 options: AqlQueryOptions = null)
                                (implicit ec: ExecutionContext): Future[Stream[T]] = {

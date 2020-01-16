@@ -93,7 +93,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
   }
 
   override def findOperationsWithSchema(execId: Id)(implicit ec: ExecutionContext): Future[Array[OperationWithSchema]] = {
-    db.queryAll[OperationWithSchema](
+    db.queryStream[OperationWithSchema](
       """
         LET exec = FIRST(FOR ex IN executionPlan FILTER ex._key == @execId RETURN ex)
         LET writeOp = FIRST(FOR v IN 1 OUTBOUND exec executes RETURN v)
