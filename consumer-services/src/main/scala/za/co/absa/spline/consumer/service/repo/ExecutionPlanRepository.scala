@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.consumer.service.repo
 
+import za.co.absa.spline.consumer.service.internal.model.OperationWithSchema
 import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
 import za.co.absa.spline.consumer.service.model.LineageDetailed
 
@@ -23,4 +24,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait ExecutionPlanRepository {
   def findById(execId: Id)(implicit ec: ExecutionContext): Future[LineageDetailed]
+
+  def findOperationsWithSchema(execId: Id)(implicit ec: ExecutionContext): Future[Array[OperationWithSchema]]
 }
