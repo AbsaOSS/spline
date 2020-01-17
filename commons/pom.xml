@@ -40,12 +40,6 @@
             <artifactId>commons_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-compiler</artifactId>
-            <version>${scala.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>commons-configuration</groupId>
             <artifactId>commons-configuration</artifactId>
         </dependency>
@@ -54,26 +48,13 @@
             <artifactId>commons-io</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-reflect</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.slf4s</groupId>
             <artifactId>slf4s-api_${scala.compat.version}</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-ext_${scala.compat.version}</artifactId>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
             <scope>provided</scope>
         </dependency>
 
@@ -92,14 +73,6 @@
         <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger2</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- only for za.co.absa.spline.common.scalatest package -->
-
-        <dependency>
-            <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_${scala.compat.version}</artifactId>
             <scope>provided</scope>
         </dependency>
 
