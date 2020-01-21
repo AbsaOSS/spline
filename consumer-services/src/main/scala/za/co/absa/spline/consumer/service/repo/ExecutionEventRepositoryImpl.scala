@@ -15,7 +15,7 @@
  */
 package za.co.absa.spline.consumer.service.repo
 
-import com.arangodb.ArangoDatabaseAsync
+import com.arangodb.async.ArangoDatabaseAsync
 import com.arangodb.model.AqlQueryOptions
 import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired

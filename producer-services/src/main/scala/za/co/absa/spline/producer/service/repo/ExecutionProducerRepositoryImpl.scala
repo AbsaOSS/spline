@@ -20,7 +20,7 @@ package za.co.absa.spline.producer.service.repo
 import java.util.UUID.randomUUID
 import java.{lang => jl}
 
-import com.arangodb.ArangoDatabaseAsync
+import com.arangodb.async.ArangoDatabaseAsync
 import org.apache.commons.lang3.StringUtils.wrap
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository

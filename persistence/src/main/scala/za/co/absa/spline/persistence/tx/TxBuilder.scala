@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.persistence.tx
 
-import com.arangodb.ArangoDatabaseAsync
+import com.arangodb.async.ArangoDatabaseAsync
 import com.arangodb.model.TransactionOptions
 import za.co.absa.spline.persistence.model.{ArangoDocument, CollectionDef}
 import za.co.absa.spline.persistence.tx.TxBuilder.{ArangoTxImpl, condStmt}
