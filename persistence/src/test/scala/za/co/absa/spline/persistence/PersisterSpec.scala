@@ -18,8 +18,8 @@ package za.co.absa.spline.persistence
 
 import java.lang.Iterable
 import java.util
+import java.util.concurrent.CompletionException
 
-import com.arangodb.ArangoDBException
 import com.arangodb.model.TransactionOptions
 import com.arangodb.velocypack.VPackSlice
 import org.scalatest.BeforeAndAfterAll
@@ -53,12 +53,12 @@ class PersisterSpec
       for {
         _ <- ArangoInit.initialize(connectionURL, dropIfExists = true)
         saved <- Persister.execute(attemptSave(createDataSources()))
-        thrown: ArangoDBException <- recoverToExceptionIf[ArangoDBException] {
+        thrown <- recoverToExceptionIf[CompletionException] {
           Persister.execute(attemptSave(createDataSources()))
         }
       } yield {
         saved.get("_id") should be("dataSource/92242e53-eaea-4c5b-bc90-5e174ab3e898")
-        thrown.getErrorMessage should include("unique constraint violated")
+        thrown.getMessage should include("unique constraint violated")
       }
     }
   }
