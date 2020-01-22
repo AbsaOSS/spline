@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.persistence
 
-import com.arangodb.{ArangoCursorAsync, ArangoDatabaseAsync}
+import com.arangodb.async.{ArangoCursorAsync, ArangoDatabaseAsync}
 import com.arangodb.model.AqlQueryOptions
 
 import scala.concurrent.{ExecutionContext, Future}

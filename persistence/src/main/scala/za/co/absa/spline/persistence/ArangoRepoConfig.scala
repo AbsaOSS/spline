@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.persistence
 
-import com.arangodb.ArangoDatabaseAsync
+import com.arangodb.async.ArangoDatabaseAsync
 import org.slf4s.Logging
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.context.annotation.{Bean, Configuration}

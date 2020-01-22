@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.persistence.tx
 
-import com.arangodb.ArangoDatabaseAsync
+import com.arangodb.async.ArangoDatabaseAsync
 
 import scala.concurrent.Future
 

@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.persistence
 
-import com.arangodb.ArangoDatabaseAsync
+import com.arangodb.async.ArangoDatabaseAsync
 import com.arangodb.entity.{EdgeDefinition, IndexType}
 import com.arangodb.model._
 import org.apache.commons.io.FilenameUtils

@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.consumer.service.repo
 
-import com.arangodb.ArangoDatabaseAsync
+import com.arangodb.async.ArangoDatabaseAsync
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.model.{Operation, OperationDetails}

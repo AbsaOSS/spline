@@ -16,10 +16,10 @@
 
 package za.co.absa.spline.persistence
 
+import java.util.concurrent.CompletionException
+
 import com.arangodb.ArangoDBException
 import za.co.absa.spline.persistence.ArangoCode._
-
-import scala.PartialFunction.condOpt
 
 object RetryableException {
 
@@ -33,8 +33,10 @@ object RetryableException {
     ClusterTimeout)
     .map(_.code)
 
-  def unapply(exception: Exception): Option[ArangoDBException] = condOpt(exception) {
-    case e: ArangoDBException if retryableCodes(e.getErrorNum) => e
+  def unapply(exception: Throwable): Option[RuntimeException] = exception match {
+    case e: ArangoDBException if retryableCodes(e.getErrorNum) => Some(e)
+    case e: CompletionException => Option(e.getCause).flatMap(unapply).map(_ => e)
+    case _ => None
   }
 
 }
