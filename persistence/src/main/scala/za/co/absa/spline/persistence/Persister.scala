@@ -16,6 +16,8 @@
 
 package za.co.absa.spline.persistence
 
+import java.util.concurrent.CompletionException
+
 import com.arangodb.ArangoDBException
 import com.arangodb.velocypack.VPack
 import com.arangodb.velocypack.module.scala.VPackScalaModule
@@ -39,6 +41,7 @@ object Persister extends Logging {
 
   @throws(classOf[IllegalArgumentException])
   @throws(classOf[ArangoDBException])
+  @throws(classOf[CompletionException])
   private def executeWithRetry[R](fn: => Future[R], lastFailure: Option[FailedAttempt]): Future[R] = {
     val eventualResult = fn
     val attemptsUsed = lastFailure.map(_.count).getOrElse(0)
