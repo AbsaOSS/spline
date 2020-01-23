@@ -27,7 +27,7 @@ Other docs/readme files can be found at:
 
 Spline is aimed to be used with Spark 2.3+ but also provides limited support for Spark 2.2.
 
-## Motivation
+# Motivation
 
 Spline aims to fill a big gap within the Apache Hadoop ecosystem. Spark jobs shouldn’t be treated only as magic black boxes; people should be able to understand what happens with their data. Our main focus is to solve the following particular problems:
 
@@ -45,8 +45,33 @@ Spline aims to fill a big gap within the Apache Hadoop ecosystem. Spark jobs sho
 
 ---
 
-## Get Spline
-To get started, you need to get a minimal set of Spline's moving parts - 
+# Getting started
+
+## TL;DR
+If you have a Docker you can just download [docker-compose.yml](https://raw.githubusercontent.com/AbsaOSS/spline/master/docker-compose.yml) file,
+run `docker-compose up` and you are all set for the demo.
+```shell script
+wget https://raw.githubusercontent.com/AbsaOSS/spline/master/docker-compose.yml
+docker-compose up
+```
+
+Run you Spark-shell or PySpark as below to enable lineage tracking:\
+_(NOTE: we use `spark-2.4-agent-bundle` for Spark 2.4. For Spark 2.3 and 2.2 use corresponding Spline Agent bundles)_
+   
+```shell script
+pyspark \
+  --packages za.co.absa.spline.agent.spark:spark-2.4-agent-bundle:0.5.0 \
+  --conf "spark.sql.queryExecutionListeners=za.co.absa.spline.harvester.listener.SplineQueryExecutionListener" \
+  --conf "spark.spline.producer.url=http://localhost:9090/producer"
+```
+
+Execute any of your Spark Job that writes to a persistent storage (like file, Hive table or a database).
+The lineage should be captured automatically.
+
+Open [http://localhost:8080](http://localhost:8080) in your browser to see the captured lineage.
+
+## Doing it step-by-step
+First, you need to get a minimal set of Spline's moving parts - 
 a server, an admin tool and a client Web UI to see the captured lineage.
 
 There are two ways how to do it:
@@ -195,7 +220,7 @@ You also need to set some configuration properties. Spline combine these propert
 #### `spline.producer.url`
 -   url of spline producer (part of rest gateway responsible for storing lineages in database)
 
-## Run Spline Migration from 0.3 to 0.4+
+# Run Spline Migration from 0.3 to 0.4+
 
 Spline 0.3 was running with mongoDB. In Spline 0.4 ArangoDB was introduced. To migrate the data from mongoDB to ArangoDB, Simply run: `java -jar migrator-tool/target/migrator-tool.jar --source=mongodb://localhost:27017/splinedb --target=http://localhost:8080/spline/producer`
 

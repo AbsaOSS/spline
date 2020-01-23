@@ -41,7 +41,8 @@ object DBCommand {
 case class DBInit(
   override val dbUrl: String = null,
   override val timeout: Duration = DBCommand.defaultTimeout,
-  force: Boolean = false
+  force: Boolean = false,
+  skip: Boolean = false
 ) extends DBCommand {
   protected override type Self = DBInit
   protected override val selfCopy: (String, Duration) => DBInit = copy(_, _)
