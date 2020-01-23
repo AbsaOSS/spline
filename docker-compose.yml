@@ -5,13 +5,16 @@ services:
     image: arangodb:3.5.1
     environment:
       ARANGO_NO_AUTH: 1
-    ports:
-      - 8529:8529
 
   spline:
     image: absaoss/spline-rest-server
     ports:
-      - 8080:8080
+      - 9090:8080
+    command: >
+      bash -c "echo 'Initializing Spline DB...'
+      && curl -O -s https://repo1.maven.org/maven2/za/co/absa/spline/admin/0.5.0/admin-0.5.0.jar
+      && java -jar ./admin-0.5.0.jar db-init arangodb://arangodb/spline -s
+      && catalina.sh run"
     environment:
       spline.database.connectionUrl: 'arangodb://arangodb/spline'
     links:
@@ -21,8 +24,8 @@ services:
     image:  absaoss/spline-web-client
     environment:
       # The consumer URL is used by the web browser
-      spline.consumer.url: 'http://localhost:8080/consumer'
+      spline.consumer.url: 'http://localhost:9090/consumer'
     ports:
-      - 9080:8080
+      - 8080:8080
     links:
       - spline
