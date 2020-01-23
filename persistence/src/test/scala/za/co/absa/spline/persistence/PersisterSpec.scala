@@ -26,6 +26,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funspec.AsyncFunSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
+import za.co.absa.spline.persistence.OnDBExistsAction.Drop
 import za.co.absa.spline.persistence.model.DataSource
 
 import scala.collection.JavaConverters._
@@ -51,12 +52,13 @@ class PersisterSpec
 
     it("Persister should be able to insert an example lineage to an empty database") {
       for {
-        _ <- ArangoInit.initialize(connectionURL, dropIfExists = true)
+        wasInitialized <- ArangoInit.initialize(connectionURL, Drop)
         saved <- Persister.execute(attemptSave(createDataSources()))
         thrown <- recoverToExceptionIf[CompletionException] {
           Persister.execute(attemptSave(createDataSources()))
         }
       } yield {
+        wasInitialized should be(true)
         saved.get("_id") should be("dataSource/92242e53-eaea-4c5b-bc90-5e174ab3e898")
         thrown.getMessage should include("unique constraint violated")
       }

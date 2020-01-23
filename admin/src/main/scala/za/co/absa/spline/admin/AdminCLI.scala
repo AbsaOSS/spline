@@ -20,6 +20,7 @@ import org.backuity.ansi.AnsiFormatter.FormattedHelper
 import scopt.{OptionDef, OptionParser}
 import za.co.absa.spline.admin.AdminCLI.AdminCLIConfig
 import za.co.absa.spline.common.SplineBuildInfo
+import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoInit}
 
 import scala.concurrent.Await
@@ -54,11 +55,14 @@ class AdminCLI(arangoInit: ArangoInit) {
         action ((_, c) => c.copy(cmd = DBInit()))
         text "Initialize Spline database"
         children (dbCommandOptions: _*)
-        children (
+        children(
         opt[Unit]('f', "force")
           text "Re-create the database if one already exists"
-          action { case (_, c@AdminCLIConfig(cmd: DBInit)) => c.copy(cmd.copy(force = true)) }
-        ))
+          action { case (_, c@AdminCLIConfig(cmd: DBInit)) => c.copy(cmd.copy(force = true)) },
+        opt[Unit]('s', "skip")
+          text "Skip existing database. Don't throw error, just end"
+          action { case (_, c@AdminCLIConfig(cmd: DBInit)) => c.copy(cmd.copy(skip = true)) }
+      ))
 
       (cmd("db-upgrade")
         action ((_, c) => c.copy(cmd = DBUpgrade()))
@@ -70,6 +74,8 @@ class AdminCLI(arangoInit: ArangoInit) {
           failure("No command given")
         case AdminCLIConfig(cmd: DBCommand) if cmd.dbUrl == null =>
           failure("DB connection string is required")
+        case AdminCLIConfig(cmd: DBInit) if cmd.force && cmd.skip =>
+          failure("Options '--force' and '--skip' cannot be used together")
         case _ =>
           success
       }
@@ -81,8 +87,15 @@ class AdminCLI(arangoInit: ArangoInit) {
       .cmd
 
     command match {
-      case DBInit(url, timeout, force) =>
-        Await.result(arangoInit.initialize(ArangoConnectionURL(url), dropIfExists = force), timeout)
+      case DBInit(url, timeout, force, skip) =>
+        val onExistsAction = (force, skip) match {
+          case (true, false) => Drop
+          case (false, true) => Skip
+          case (false, false) => Fail
+        }
+        val wasInitialized = Await.result(arangoInit.initialize(ArangoConnectionURL(url), onExistsAction), timeout)
+        if (!wasInitialized) println(ansi"%yellow{Skipped. DB is already initialized}")
+
       case DBUpgrade(url, timeout) =>
         Await.result(arangoInit.upgrade(ArangoConnectionURL(url)), timeout)
     }

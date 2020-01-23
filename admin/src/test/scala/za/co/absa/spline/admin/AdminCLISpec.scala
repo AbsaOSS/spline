@@ -24,7 +24,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.spline.common.scalatest.{ConsoleStubs, SystemExitFixture}
-import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoInit}
+import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
+import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoInit, OnDBExistsAction}
 
 import scala.concurrent.Future
 
@@ -55,11 +56,11 @@ class AdminCLISpec
 
   {
     val connUrlCaptor: ArgumentCaptor[ArangoConnectionURL] = ArgumentCaptor.forClass(classOf[ArangoConnectionURL])
-    val dropFlgCaptor: ArgumentCaptor[Boolean] = ArgumentCaptor.forClass(classOf[Boolean])
+    val actionFlgCaptor: ArgumentCaptor[OnDBExistsAction] = ArgumentCaptor.forClass(classOf[OnDBExistsAction])
 
     (when(
-      arangoInitMock.initialize(connUrlCaptor.capture, dropFlgCaptor.capture))
-      thenReturn Future.successful({}))
+      arangoInitMock.initialize(connUrlCaptor.capture, actionFlgCaptor.capture))
+      thenReturn Future.successful(true))
 
     (when(
       arangoInitMock.upgrade(connUrlCaptor.capture))
@@ -75,17 +76,33 @@ class AdminCLISpec
       } should include("--help")
     }
 
+    behavior of "DB-Init"
+
     it should "initialize database" in assertingStdOut(include("DONE")) {
       cli.exec(Array("db-init", "arangodb://foo/bar"))
       connUrlCaptor.getValue should be(ArangoConnectionURL("arangodb://foo/bar"))
-      dropFlgCaptor.getValue should be(false)
+      actionFlgCaptor.getValue should be(Fail)
     }
 
-    it should "initialize database forcedly" in assertingStdOut(include("DONE")) {
+    it should "initialize database eagerly" in assertingStdOut(include("DONE")) {
       cli.exec(Array("db-init", "arangodb://foo/bar", "-f"))
       connUrlCaptor.getValue should be(ArangoConnectionURL("arangodb://foo/bar"))
-      dropFlgCaptor.getValue should be(true)
+      actionFlgCaptor.getValue should be(Drop)
     }
+
+    it should "initialize database lazily" in assertingStdOut(include("DONE")) {
+      cli.exec(Array("db-init", "arangodb://foo/bar", "-s"))
+      connUrlCaptor.getValue should be(ArangoConnectionURL("arangodb://foo/bar"))
+      actionFlgCaptor.getValue should be(Skip)
+    }
+
+    it should "not allow for -s and -f to be use simultaneously" in {
+      assertingStdErr(include("--force") and include("--skip") and include("cannot be used together")) {
+        captureExitStatus(cli.exec(Array("db-init", "arangodb://foo/bar", "-s", "-f"))) should be(1)
+      }
+    }
+
+    behavior of "DB-Upgrade"
 
     it should "upgrade database" in assertingStdOut(include("DONE")) {
       cli.exec(Array("db-upgrade", "arangodb://foo/bar"))

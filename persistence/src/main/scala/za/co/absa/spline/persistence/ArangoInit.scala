@@ -22,6 +22,7 @@ import com.arangodb.model._
 import org.apache.commons.io.FilenameUtils
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import za.co.absa.spline.common.{ARM, ReflectionUtils}
+import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Skip}
 import za.co.absa.spline.persistence.model.{CollectionDef, GraphDef}
 
 import scala.collection.JavaConverters._
@@ -31,7 +32,11 @@ import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
 trait ArangoInit {
-  def initialize(connectionURL: ArangoConnectionURL, dropIfExists: Boolean): Future[Unit]
+
+  /**
+   * @return `true` if actual initialization was performed.
+   */
+  def initialize(connectionURL: ArangoConnectionURL, onExistsAction: OnDBExistsAction): Future[Boolean]
   def upgrade(connectionURL: ArangoConnectionURL): Future[Unit]
 }
 
@@ -39,16 +44,21 @@ object ArangoInit extends ArangoInit {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
-  def initialize(connectionURL: ArangoConnectionURL, dropIfExists: Boolean): Future[Unit] = execute(connectionURL) { db =>
-    for {
-      _ <- deleteDbIfRequested(db, dropIfExists)
-      _ <- db.create().toScala
-      _ <- createCollections(db)
-      _ <- createAQLUserFunctions(db)
-      _ <- createIndices(db)
-      _ <- createGraphs(db)
-    } yield Unit
-  }
+  def initialize(connectionURL: ArangoConnectionURL, onExistsAction: OnDBExistsAction): Future[Boolean] =
+    execute(connectionURL) { db =>
+      db.exists.toScala.flatMap { exists =>
+        if (exists && onExistsAction == Skip)
+          Future.successful(false)
+        else for {
+          _ <- deleteDbIfRequested(db, onExistsAction == Drop)
+          _ <- db.create().toScala
+          _ <- createCollections(db)
+          _ <- createAQLUserFunctions(db)
+          _ <- createIndices(db)
+          _ <- createGraphs(db)
+        } yield true
+      }
+    }
 
   override def upgrade(connectionURL: ArangoConnectionURL): Future[Unit] = execute(connectionURL) { db =>
     for {
