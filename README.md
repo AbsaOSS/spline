@@ -48,7 +48,7 @@ Spline aims to fill a big gap within the Apache Hadoop ecosystem. Spark jobs sho
 # Getting started
 
 ## TL;DR
-If you have a Docker you can just download [docker-compose.yml](https://raw.githubusercontent.com/AbsaOSS/spline/master/docker-compose.yml) file,
+If you have a Docker you can just download [docker-compose.yml](https://github.com/AbsaOSS/spline/blob/develop/docker-compose.yml) file,
 run `docker-compose up` and you are all set for the demo.
 ```shell script
 wget https://raw.githubusercontent.com/AbsaOSS/spline/master/docker-compose.yml
