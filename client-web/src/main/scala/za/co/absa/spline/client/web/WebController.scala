@@ -25,7 +25,7 @@ import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMapping
 import org.thymeleaf.ITemplateEngine
 import org.thymeleaf.context.WebContext
-import za.co.absa.commons.BuildInfo
+import za.co.absa.commons.buildinfo.BuildInfo
 import za.co.absa.spline.client.web.WebController.{IndexPageConf, IndexPageTemplateName}
 
 import scala.collection.JavaConverters._

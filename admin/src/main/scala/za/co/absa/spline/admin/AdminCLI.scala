@@ -18,7 +18,7 @@ package za.co.absa.spline.admin
 
 import org.backuity.ansi.AnsiFormatter.FormattedHelper
 import scopt.{OptionDef, OptionParser}
-import za.co.absa.commons.BuildInfo
+import za.co.absa.commons.buildinfo.BuildInfo
 import za.co.absa.spline.admin.AdminCLI.AdminCLIConfig
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoInit}

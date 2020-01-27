@@ -18,7 +18,7 @@ package za.co.absa.spline.swagger
 
 import java.io.{File, FileWriter, OutputStreamWriter}
 
-import za.co.absa.commons.BuildInfo
+import za.co.absa.commons.buildinfo.BuildInfo
 import za.co.absa.commons.lang.ARM._
 
 object SwaggerDocGenCLI extends App {

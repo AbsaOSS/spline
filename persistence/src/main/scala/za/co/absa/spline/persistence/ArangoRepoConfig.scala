@@ -40,7 +40,7 @@ class ArangoRepoConfig extends InitializingBean with Logging {
 
 object ArangoRepoConfig extends DefaultConfigurationStack with ConfTyped {
 
-  import za.co.absa.spline.common.ConfigurationImplicits._
+  import za.co.absa.commons.config.ConfigurationImplicits._
 
   setThrowExceptionOnMissing(true)
 

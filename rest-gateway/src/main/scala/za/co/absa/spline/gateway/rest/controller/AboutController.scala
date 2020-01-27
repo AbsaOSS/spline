@@ -20,7 +20,7 @@ import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import io.swagger.annotations._
 import org.springframework.http.MediaType._
 import org.springframework.web.bind.annotation.{GetMapping, RequestMapping, RestController}
-import za.co.absa.commons.BuildInfo
+import za.co.absa.commons.buildinfo.BuildInfo
 
 @RestController
 @RequestMapping(Array("/about"))
