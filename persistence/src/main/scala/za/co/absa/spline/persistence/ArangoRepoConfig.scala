@@ -20,7 +20,8 @@ import com.arangodb.async.ArangoDatabaseAsync
 import org.slf4s.Logging
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.context.annotation.{Bean, Configuration}
-import za.co.absa.spline.common.config.{ConfTyped, DefaultConfigurationStack}
+import za.co.absa.commons.config.ConfTyped
+import za.co.absa.spline.common.config.DefaultConfigurationStack
 
 @Configuration
 class ArangoRepoConfig extends InitializingBean with Logging {
@@ -39,7 +40,7 @@ class ArangoRepoConfig extends InitializingBean with Logging {
 
 object ArangoRepoConfig extends DefaultConfigurationStack with ConfTyped {
 
-  import za.co.absa.spline.common.ConfigurationImplicits._
+  import za.co.absa.commons.config.ConfigurationImplicits._
 
   setThrowExceptionOnMissing(true)
 

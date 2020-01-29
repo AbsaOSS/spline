@@ -19,7 +19,7 @@ package za.co.absa.spline.persistence
 import com.arangodb.velocypack.module.scala.VPackScalaModule
 import com.arangodb.async.{ArangoDBAsync, ArangoDatabaseAsync}
 import org.springframework.beans.factory.DisposableBean
-import za.co.absa.spline.common.OptionImplicits.AnyWrapper
+import za.co.absa.commons.lang.OptionImplicits.AnyWrapper
 
 class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL) extends DisposableBean {
 

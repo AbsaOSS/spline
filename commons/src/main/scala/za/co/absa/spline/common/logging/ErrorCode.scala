@@ -19,6 +19,8 @@ package za.co.absa.spline.common.logging
 import java.util.UUID
 import java.util.UUID.randomUUID
 
+import org.slf4s.Logging
+
 /**
   * <p>
   * An unexpected exception wrapper that is aimed for being sent to a client as a result of a failed operation.

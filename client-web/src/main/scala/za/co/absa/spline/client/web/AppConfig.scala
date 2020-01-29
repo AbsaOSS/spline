@@ -18,8 +18,9 @@ package za.co.absa.spline.client.web
 
 import java.net.URL
 
-import za.co.absa.spline.common.ConfigurationImplicits._
-import za.co.absa.spline.common.config.{ConfTyped, DefaultConfigurationStack}
+import za.co.absa.commons.config.ConfTyped
+import za.co.absa.commons.config.ConfigurationImplicits._
+import za.co.absa.spline.common.config.DefaultConfigurationStack
 
 object AppConfig extends DefaultConfigurationStack with ConfTyped {
 

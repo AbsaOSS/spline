@@ -18,14 +18,13 @@ package za.co.absa.spline.migrator
 
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+import org.scalatest.{FlatSpec, Matchers}
 import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.spline.migrator.rest.{RestClient, RestClientFactory, RestEndpoint}
 
 import scala.concurrent.Future
 
-class MigratorToolImplSpec extends AnyFlatSpec with Matchers with MockitoSugar {
+class MigratorToolImplSpec extends FlatSpec with Matchers with MockitoSugar {
 
   private val restClientFactoryMock = mock[RestClientFactory]
   private val restClientMock = mock[RestClient]

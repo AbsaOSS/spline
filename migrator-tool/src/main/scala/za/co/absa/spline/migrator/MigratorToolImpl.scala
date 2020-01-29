@@ -25,7 +25,6 @@ import ch.qos.logback.classic.Logger
 import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
 import scalaz.std.boolean
-import za.co.absa.spline.harvester.dispatcher.HttpLineageDispatcher.RESTResource
 import za.co.absa.spline.migrator.rest.RestClientFactory
 
 import scala.concurrent.duration.Duration

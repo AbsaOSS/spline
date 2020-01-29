@@ -16,10 +16,9 @@
 
 package za.co.absa.spline.migrator
 
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+import org.scalatest.{FlatSpec, Matchers}
 
-class StatsSpec extends AnyFlatSpec with Matchers {
+class StatsSpec extends FlatSpec with Matchers {
 
   behavior of "SimpleStats"
 
@@ -35,10 +34,10 @@ class StatsSpec extends AnyFlatSpec with Matchers {
     val statsAfterFailure = statsAfterSuccess
       .incFailure
 
-    statsWithAllZeros should have('success (0), 'failures (0), 'queued (0))
-    statsWithQueueCnt should have('success (0), 'failures (0), 'queued (3))
-    statsAfterSuccess should have('success (2), 'failures (0), 'queued (1))
-    statsAfterFailure should have('success (2), 'failures (1), 'queued (0))
+    statsWithAllZeros should have('success(0), 'failures(0), 'queued(0))
+    statsWithQueueCnt should have('success(0), 'failures(0), 'queued(3))
+    statsAfterSuccess should have('success(2), 'failures(0), 'queued(1))
+    statsAfterFailure should have('success(2), 'failures(1), 'queued(0))
   }
 
   behavior of "TreeStats"
@@ -56,24 +55,24 @@ class StatsSpec extends AnyFlatSpec with Matchers {
       .incFailure
 
     statsWithInitialState should have(
-      'success (1), 'failures (2), 'queued (3))
+      'success(1), 'failures(2), 'queued(3))
     statsWithInitialState.parentStats should have(
-      'success (5), 'failures (5), 'queued (5))
+      'success(5), 'failures(5), 'queued(5))
 
     statsWithQueueCnt should have(
-      'success (1), 'failures (2), 'queued (6))
+      'success(1), 'failures(2), 'queued(6))
     statsWithQueueCnt.parentStats should have(
-      'success (5), 'failures (5), 'queued (8))
+      'success(5), 'failures(5), 'queued(8))
 
     statsAfterSuccess should have(
-      'success (3), 'failures (2), 'queued (4))
+      'success(3), 'failures(2), 'queued(4))
     statsAfterSuccess.parentStats should have(
-      'success (7), 'failures (5), 'queued (6))
+      'success(7), 'failures(5), 'queued(6))
 
     statsAfterFailure should have(
-      'success (3), 'failures (3), 'queued (3))
+      'success(3), 'failures(3), 'queued(3))
     statsAfterFailure.parentStats should have(
-      'success (7), 'failures (6), 'queued (5))
+      'success(7), 'failures(6), 'queued(5))
   }
 
 }
