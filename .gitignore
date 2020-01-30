@@ -96,8 +96,5 @@ project/boot/
 .settings/
 .extract
 
-spark-warehouse/
-metastore_db/
-
 #MacOS
 .DS_Store

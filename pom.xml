@@ -53,7 +53,6 @@
         <module>parent</module>
         <module>commons</module>
 
-        <module>migrator-tool</module>
         <module>rest-api-doc-generator</module>
 
         <module>producer-services</module>
