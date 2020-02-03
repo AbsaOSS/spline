@@ -16,74 +16,74 @@
 
 package za.co.absa.spline.persistence
 
-import java.lang.Iterable
-import java.util
 import java.util.concurrent.CompletionException
 
-import com.arangodb.model.TransactionOptions
-import com.arangodb.velocypack.VPackSlice
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.funspec.AsyncFunSpec
+import com.arangodb.ArangoDBException
+import org.mockito.Mockito._
+import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
-import za.co.absa.spline.persistence.OnDBExistsAction.Drop
-import za.co.absa.spline.persistence.model.DataSource
+import za.co.absa.spline.persistence.PersisterSpec.ARecoverableArangoErrorCode
 
-import scala.collection.JavaConverters._
-import scala.compat.java8.FutureConverters._
+import scala.concurrent.Future
+import scala.concurrent.Future._
 import scala.language.implicitConversions
 
+object PersisterSpec {
+  private val ARecoverableArangoErrorCode = ArangoCode.ClusterTimeout.code
+}
+
 class PersisterSpec
-  extends AsyncFunSpec
+  extends AsyncFlatSpec
     with Matchers
-    with MockitoSugar
-    with BeforeAndAfterAll {
+    with MockitoSugar {
 
-  private val connectionURL = ArangoConnectionURL(System.getProperty("test.spline.arangodb.url"))
-  private val arangoFacade = new ArangoDatabaseFacade(connectionURL)
+  behavior of "Persister"
 
-  import arangoFacade.db
-
-  override protected def afterAll(): Unit =
-    try db.arango.shutdown()
-    finally super.afterAll()
-
-  describe("Persister") {
-
-    it("Persister should be able to insert an example lineage to an empty database") {
-      for {
-        wasInitialized <- ArangoInit.initialize(connectionURL, Drop)
-        saved <- Persister.execute(attemptSave(createDataSources()))
-        thrown <- recoverToExceptionIf[CompletionException] {
-          Persister.execute(attemptSave(createDataSources()))
-        }
-      } yield {
-        wasInitialized should be(true)
-        saved.get("_id") should be("dataSource/92242e53-eaea-4c5b-bc90-5e174ab3e898")
-        thrown.getMessage should include("unique constraint violated")
+  it should "call an underlying method and return a result" in {
+    val spy = mock[() => Future[String]]
+    when(spy()) thenReturn successful("result")
+    for (result <- Persister.execute(spy()))
+      yield {
+        verify(spy, times(1))()
+        result should equal("result")
       }
-    }
   }
 
-  private def attemptSave(params: Any) = {
-    val insertScript: String =
-      s"""
-         |function (params) {
-         |  const db = require('internal').db;
-         |  return db.dataSource.insert(params[0]);
-         |}
-         |""".stripMargin
-    val transactionOptions = new TransactionOptions()
-      .params(params) // Serialized hash map with json string values.
-      .writeCollections("dataSource")
-      .allowImplicit(false)
-    db.transaction(insertScript, classOf[util.HashMap[String, String]], transactionOptions).toScala
+  it should "retry after a recoverable failure" in {
+    Future.traverse(RetryableException.RetryableCodes) {
+      errorCode => {
+        val spy = mock[() => Future[String]]
+        (when(spy())
+          thenReturn failed(new ArangoDBException("1st call failed", errorCode))
+          thenReturn failed(new CompletionException(new ArangoDBException("2st call failed", errorCode)))
+          thenReturn successful("3rd call succeeded"))
+        for (result <- Persister.execute(spy()))
+          yield {
+            verify(spy, times(3))()
+            result should equal("3rd call succeeded")
+          }
+      }
+    }.map(_.head)
   }
 
-  private def createDataSources(): Iterable[VPackSlice] = {
-    Seq(
-      DataSource("hdfs//blabla", "92242e53-eaea-4c5b-bc90-5e174ab3e898")
-    ).map(Persister.vpack.serialize).asJava
+  it should "only retry up to the maximum number of retries" in {
+    val spy = mock[() => Future[String]]
+    when(spy()) thenReturn failed(new ArangoDBException("oops", ARecoverableArangoErrorCode))
+    for (thrown <- recoverToExceptionIf[ArangoDBException](Persister.execute(spy())))
+      yield {
+        verify(spy, times(Persister.MaxRetries + 1))()
+        thrown.getMessage should equal("oops")
+      }
   }
 
+  it should "not retry on a non-recoverable error" in {
+    val spy = mock[() => Future[String]]
+    when(spy()) thenReturn failed(new RuntimeException("boom"))
+    for (thrown <- recoverToExceptionIf[Exception](Persister.execute(spy())))
+      yield {
+        verify(spy, times(1))()
+        thrown.getMessage should equal("boom")
+      }
+  }
 }

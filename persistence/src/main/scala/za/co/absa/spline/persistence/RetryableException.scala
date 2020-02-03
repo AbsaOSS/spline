@@ -23,7 +23,7 @@ import za.co.absa.spline.persistence.ArangoCode._
 
 object RetryableException {
 
-  private val retryableCodes = Set(
+  private[persistence] val RetryableCodes = Set(
     ArangoConflict,
     ArangoUniqueConstraintViolated,
     Deadlock,
@@ -34,7 +34,7 @@ object RetryableException {
     .map(_.code)
 
   def unapply(exception: Throwable): Option[RuntimeException] = exception match {
-    case e: ArangoDBException if retryableCodes(e.getErrorNum) => Some(e)
+    case e: ArangoDBException if RetryableCodes(e.getResponseCode) => Some(e)
     case e: CompletionException => Option(e.getCause).flatMap(unapply).map(_ => e)
     case _ => None
   }
