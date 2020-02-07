@@ -96,11 +96,18 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     db.queryStream[OperationWithSchema](
       """
         LET exec = FIRST(FOR ex IN executionPlan FILTER ex._key == @execId RETURN ex)
-        LET writeOp = FIRST(FOR v IN 1 OUTBOUND exec executes RETURN v)
 
-        FOR vi IN 0..9999
-        OUTBOUND writeOp follows
-        COLLECT v = vi
+        LET writeOp = FIRST(FOR v IN 1 OUTBOUND exec executes RETURN v)
+        LET otherOps = (
+            FOR vi IN 1..9999
+            OUTBOUND writeOp follows
+            COLLECT v = vi
+            RETURN v
+        )
+
+        LET allOps = APPEND(otherOps, writeOp)
+
+        FOR v IN allOps
         LET children = (FOR child IN 1 OUTBOUND v follows RETURN child._key)
         RETURN {
           "_id": v._key,

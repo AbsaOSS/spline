@@ -74,7 +74,7 @@ object AttributeDependencySolver {
       (x._1 union y._1, x._2 union y._2)
 
 
-    val writeOp = operations.find(_.extra("name") == "Write").get
+    val writeOp = operations.last
     val (attributeDependencies, operationDependencies) = findDependenciesStart(writeOp, attributeID)
 
     new AttributeDependencies(attributeDependencies - attributeID, operationDependencies)
