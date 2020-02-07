@@ -18,13 +18,22 @@ package za.co.absa.spline.migrator
 
 import java.util.concurrent.Executors
 
+import ch.qos.logback.classic.{Level, Logger}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers, OneInstancePerTest}
+import org.slf4j.Logger.ROOT_LOGGER_NAME
+import org.slf4j.LoggerFactory
+import za.co.absa.spline.common.TempFile
 import za.co.absa.spline.common.scalatest.{ConsoleStubs, MatcherImplicits, SystemExitFixture}
+import za.co.absa.spline.migrator.MigratorCLISpec.SuccessStats
 
 import scala.concurrent.ExecutionContext
+
+object MigratorCLISpec {
+  private val SuccessStats = SimpleStats(42, 0, 0)
+}
 
 class MigratorCLISpec
   extends FlatSpec
@@ -61,8 +70,57 @@ class MigratorCLISpec
     }
   }
 
+  behavior of "--log-level"
+
+  it should "set the root log level" in {
+    val rootLogger = LoggerFactory.getLogger(ROOT_LOGGER_NAME).asInstanceOf[Logger]
+
+    when(migratorToolMock.migrate(any())) thenReturn SuccessStats
+
+    Seq("OFF", "ERROR", "WARN", "INFO", "DEBUG", "TRACE", "ALL") foreach { level =>
+      assertingExitStatus(be(0)) {
+        assertingStdOut(startWith("SUCCESS. All records migrated: 42")) {
+          cli.exec(dummyArgs ++ Seq("--log-level", level))
+        }
+        rootLogger.getLevel should be(Level.valueOf(level))
+      }
+    }
+  }
+
+  it should "fail on an incorrect log level name" in {
+    assertingExitStatus(be(1)) {
+      assertingStdOut(include("OFF, ERROR, WARN, INFO, DEBUG, TRACE, ALL") and include("--help")) {
+        cli.exec(dummyArgs ++ Seq("--log-level", "WRONG"))
+      }
+    }
+  }
+
+  behavior of "--failrec"
+
+  it should "fail when file already exist" in {
+    val existingFile = TempFile().deleteOnExit().file
+    assertingExitStatus(be(1)) {
+      assertingStdOut(include("file already exists")) {
+        cli.exec(dummyArgs ++ Seq("--failrec", existingFile.getPath))
+      }
+    }
+  }
+
+  behavior of "--retry-from"
+
+  it should "fail when file does not exist" in {
+    val missingFile = TempFile(pathOnly = true).file
+    assertingExitStatus(be(1)) {
+      assertingStdOut(include("file must exist")) {
+        cli.exec(dummyArgs ++ Seq("--retry-from", missingFile.getPath))
+      }
+    }
+  }
+
+  behavior of "result status reporting"
+
   it should "be SUCCESS when all docs succeeded" in {
-    when(migratorToolMock.migrate(any())) thenReturn SimpleStats(42, 0, 0)
+    when(migratorToolMock.migrate(any())) thenReturn SuccessStats
     assertingExitStatus(be(0)) {
       assertingStdOut(startWith("SUCCESS. All records migrated: 42")) {
         cli.exec(dummyArgs)
