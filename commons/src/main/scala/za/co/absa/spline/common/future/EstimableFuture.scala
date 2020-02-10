@@ -22,21 +22,25 @@ import scala.concurrent.{CanAwait, ExecutionContext, Future}
 import scala.language.implicitConversions
 import scala.util.Try
 
-class EstimableFuture[+T](underlyingFuture: Future[T], avgDuration: () => Long) extends Future[T] {
-  override def onComplete[U](f: Try[T] => U)(implicit executor: ExecutionContext): Unit = underlyingFuture.onComplete(f)
+class EstimableFuture[+T](underlying: Future[T], avgDuration: () => Long) extends Future[T] {
+  override def onComplete[U](f: Try[T] => U)(implicit executor: ExecutionContext): Unit = underlying.onComplete(f)
 
-  override def isCompleted: Boolean = underlyingFuture.isCompleted
+  override def isCompleted: Boolean = underlying.isCompleted
 
-  override def value: Option[Try[T]] = underlyingFuture.value
+  override def value: Option[Try[T]] = underlying.value
 
   override def ready(atMost: Duration)(implicit permit: CanAwait): EstimableFuture.this.type = {
-    underlyingFuture.ready(atMost)
+    underlying.ready(atMost)
     this
   }
 
-  override def result(atMost: Duration)(implicit permit: CanAwait): T = underlyingFuture.result(atMost)
+  override def result(atMost: Duration)(implicit permit: CanAwait): T = underlying.result(atMost)
 
   lazy val estimatedDuration: Long = avgDuration()
+
+  override def transform[S](f: Try[T] => Try[S])(implicit executor: ExecutionContext): Future[S] = underlying.transform(f)
+
+  override def transformWith[S](f: Try[T] => Future[S])(implicit executor: ExecutionContext): Future[S] = underlying.transformWith(f)
 }
 
 object EstimableFuture {
@@ -57,7 +61,7 @@ object EstimableFuture {
         new MovingAverageCalculator(10.seconds.toMillis, 0.05)
       })
       val startTime = System.currentTimeMillis
-      future.onSuccess { case _ => durationMeasurer.addMeasurement(System.currentTimeMillis - startTime) }
+      future.foreach { case _ => durationMeasurer.addMeasurement(System.currentTimeMillis - startTime) }
       new EstimableFuture(future, durationMeasurer.currentAverage _)
     }
   }

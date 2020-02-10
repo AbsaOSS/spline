@@ -53,7 +53,6 @@
         <module>parent</module>
         <module>commons</module>
 
-        <module>migrator-tool</module>
         <module>rest-api-doc-generator</module>
 
         <module>producer-services</module>
@@ -76,7 +75,6 @@
             <id>release</id>
             <properties>
                 <project.scm.id>spline-scm-server</project.scm.id>
-                <test.spline.arangodb.url><!-- passed from mvn command line --></test.spline.arangodb.url>
             </properties>
             <build>
                 <plugins>
@@ -85,9 +83,6 @@
                         <version>2.5.3</version>
                         <configuration>
                             <tagNameFormat>release/@{project.version}</tagNameFormat>
-                            <arguments>
-                                -Dtest.spline.arangodb.url=${test.spline.arangodb.url}
-                            </arguments>
                             <providerImplementations>
                                 <git>jgit</git>
                             </providerImplementations>

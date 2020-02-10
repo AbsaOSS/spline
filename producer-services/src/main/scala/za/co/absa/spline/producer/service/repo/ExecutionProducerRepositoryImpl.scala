@@ -43,8 +43,6 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 
   import ArangoImplicits._
 
-  import scala.concurrent.ExecutionContext.Implicits._
-
   override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
     val eventuallyExists = db.queryOne[Boolean](
       s"""
@@ -134,12 +132,12 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
       .buildTx
   }
 
-  override def isDatabaseOk: Future[Boolean] = {
+  override def isDatabaseOk()(implicit ec: ExecutionContext): Future[Boolean] = {
     try {
       val anySplineCollectionName = NodeDef.ExecutionPlan.name
       val futureIsDbOk = db.collection(anySplineCollectionName).exists.toScala.mapTo[Boolean]
-      futureIsDbOk.onSuccess {
-        case false =>
+      futureIsDbOk.foreach { isDbOk =>
+        if (!isDbOk)
           log.error(s"Collection '$anySplineCollectionName' does not exist. Spline database is not initialized properly!")
       }
       futureIsDbOk.recover { case _ => false }

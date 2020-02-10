@@ -63,8 +63,8 @@
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
-            <artifactId>velocypack-module-scala</artifactId>
-            <version>1.1.0</version>
+            <artifactId>velocypack-module-scala_${scala.compat.version}</artifactId>
+            <version>1.2.0</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang.modules</groupId>
@@ -86,19 +86,5 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.scalatest</groupId>
-                <artifactId>scalatest-maven-plugin</artifactId>
-                <configuration>
-                    <systemProperties>
-                        <test.spline.arangodb.url>${test.spline.arangodb.url}</test.spline.arangodb.url>
-                    </systemProperties>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

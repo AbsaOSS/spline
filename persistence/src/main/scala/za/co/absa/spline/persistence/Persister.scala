@@ -19,8 +19,6 @@ package za.co.absa.spline.persistence
 import java.util.concurrent.CompletionException
 
 import com.arangodb.ArangoDBException
-import com.arangodb.velocypack.VPack
-import com.arangodb.velocypack.module.scala.VPackScalaModule
 import org.slf4s.Logging
 
 import scala.concurrent.Future
@@ -29,11 +27,7 @@ object Persister extends Logging {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
-  private val MaxRetries = 5
-
-  val vpack: VPack = new VPack.Builder()
-    .registerModule(new VPackScalaModule)
-    .build
+  private[persistence] val MaxRetries = 5
 
   def execute[R](fn: => Future[R]): Future[R] = {
     executeWithRetry(fn, None)
@@ -46,9 +40,8 @@ object Persister extends Logging {
     val eventualResult = fn
     val attemptsUsed = lastFailure.map(_.count).getOrElse(0)
 
-    for (failure <- lastFailure) {
-      eventualResult.onSuccess(PartialFunction(_ =>
-        log.warn(s"Succeeded after ${failure.count + 1} attempts. Previous message was: ${failure.error.getMessage}")))
+    for (failure <- lastFailure) eventualResult.foreach { _ =>
+      log.warn(s"Succeeded after ${failure.count + 1} attempts. Previous message was: ${failure.error.getMessage}")
     }
 
     if (attemptsUsed >= MaxRetries)
