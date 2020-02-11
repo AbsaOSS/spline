@@ -21,7 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.internal.model.OperationWithSchema
 import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
-import za.co.absa.spline.consumer.service.model.{AttributeDependencies, LineageDetailed}
+import za.co.absa.spline.consumer.service.model.LineageDetailed
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -98,16 +98,10 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         LET exec = FIRST(FOR ex IN executionPlan FILTER ex._key == @execId RETURN ex)
 
         LET writeOp = FIRST(FOR v IN 1 OUTBOUND exec executes RETURN v)
-        LET otherOps = (
-            FOR vi IN 1..9999
-            OUTBOUND writeOp follows
-            COLLECT v = vi
-            RETURN v
-        )
 
-        LET allOps = APPEND(otherOps, writeOp)
-
-        FOR v IN allOps
+        FOR vi IN 0..9999
+        OUTBOUND writeOp follows
+        COLLECT v = vi
         LET children = (FOR child IN 1 OUTBOUND v follows RETURN child._key)
         RETURN {
           "_id": v._key,

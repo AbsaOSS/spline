@@ -22,7 +22,7 @@ import io.swagger.annotations.{Api, ApiOperation, ApiParam}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.service.internal.AttributeDependencySolver
-import za.co.absa.spline.consumer.service.model.{AttributeDependencies, ExecutionPlanInfo, LineageDetailed}
+import za.co.absa.spline.consumer.service.model.{AttributeGraph, ExecutionPlanInfo, LineageDetailed}
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepository
 
 import scala.concurrent.Future
@@ -47,15 +47,15 @@ class LineageDetailedController @Autowired()(
 
   @GetMapping(Array("attribute-dependencies"))
   @ApiOperation(
-    value = "Get ids of operations and attributes that depends on attribute with provided id")
+    value = "Get graph of attributes that depends on attribute with provided id")
   def attributeDependencies(
     @ApiParam(value = "Execution plan ID")
     @RequestParam("execId") execId: ExecutionPlanInfo.Id,
     @ApiParam(value = "Attribute ID")
     @RequestParam("attributeId") attributeId: UUID
-  ): Future[AttributeDependencies] = {
-      repo
-        .findOperationsWithSchema(execId)
-        .map(AttributeDependencySolver.resolveDependencies(_, attributeId))
+  ): Future[AttributeGraph] = {
+    repo
+      .findOperationsWithSchema(execId)
+      .map(AttributeDependencySolver.resolveDependencies(_, attributeId))
   }
 }
