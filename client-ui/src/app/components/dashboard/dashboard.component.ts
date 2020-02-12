@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, ViewEncapsulation } from '@angular/core';
-import { Store } from '@ngrx/store';
+import {Component, OnDestroy, ViewEncapsulation} from '@angular/core';
+import {Store} from '@ngrx/store';
 import * as _ from 'lodash';
 import * as moment from 'moment';
-import { Subscription } from 'rxjs';
-import { filter } from 'rxjs/operators';
-import { AppState } from 'src/app/model/app-state';
-import { RouterStateUrl } from 'src/app/model/routerStateUrl';
+import {Subscription} from 'rxjs';
+import {filter} from 'rxjs/operators';
+import {AppState} from 'src/app/model/app-state';
+import {RouterStateUrl} from 'src/app/model/routerStateUrl';
 import * as DashboardActions from 'src/app/store/actions/dashboard.actions';
 import * as ExecutionEventsActions from 'src/app/store/actions/execution-events.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
-import { DashboardVM } from "../../model/viewModels/dashboardVM";
-import { DateRange, Timestamp } from "../time-frame-picker/time-frame-picker.model";
-import { PageableExecutionEventsResponse } from "../../generated/models/pageable-execution-events-response";
-import { TablePage, TableSort } from "./dashboard.model";
-import { DashboardLoadingIndicator } from "./dashboard.loading-indicator";
-import { MatSlideToggleChange } from '@angular/material';
+import {DashboardVM} from "../../model/viewModels/dashboardVM";
+import {DateRange, Timestamp} from "../time-frame-picker/time-frame-picker.model";
+import {PageableExecutionEventsResponse} from "../../generated/models/pageable-execution-events-response";
+import {TablePage, TableSort} from "./dashboard.model";
+import {DashboardLoadingIndicator} from "./dashboard.loading-indicator";
+import {MatSlideToggleChange} from '@angular/material';
 
 const SEARCH_TERM_UPDATE_DELAY = 300 //millis
 
@@ -121,11 +121,7 @@ export class DashboardComponent implements OnDestroy {
       this.store.dispatch(new DashboardActions.SetSearchQuery((input.target as HTMLInputElement).value)),
     SEARCH_TERM_UPDATE_DELAY)
 
-  public getFrameworkImg(frameworkName: string): string {
-    if (frameworkName.toLowerCase().includes('spark')) {
-      return "spark"
-    } else {
-      return ""
-    }
+  public getFrameworkIconClass(frameworkName: string): string {
+    return /^spark\b/i.test(frameworkName) ? "spark" : "other"
   }
 }
