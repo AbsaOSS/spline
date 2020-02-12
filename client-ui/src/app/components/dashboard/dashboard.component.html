@@ -39,7 +39,7 @@
 
         <ngx-datatable-column name="Framework" [width]="10">
           <ng-template let-expanded="frameworkName" let-row="row" ngx-datatable-cell-template>
-            <td class="{{getFrameworkImg(row.frameworkName)}}"></td>
+            <td class="frmw-icon frmw-icon-{{getFrameworkIconClass(row.frameworkName)}}"></td>
           </ng-template>
         </ngx-datatable-column>
         <ngx-datatable-column name="Application Name" prop="applicationName" [width]="50">
