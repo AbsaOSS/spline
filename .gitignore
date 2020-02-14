@@ -1,5 +1,3 @@
-_site
-.sass-cache
-.jekyll-cache
-Gemfile.lock
-*.gem
+/.idea
+/.jekyll-cache
+/_site
