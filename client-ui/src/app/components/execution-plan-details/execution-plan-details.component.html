@@ -22,10 +22,10 @@
             {{ (getExecutionPlanVM() | async )?.executionPlan.systemInfo.name }}
             {{ (getExecutionPlanVM() | async )?.executionPlan.systemInfo.version }}
         </p>
-        <p>
+        <p *ngIf="(getExecutionPlanVM() | async )?.executionPlan.agentInfo; let agentInfo">
             <strong>Agent Info:</strong>
-            {{ (getExecutionPlanVM() | async )?.executionPlan.agentInfo.name }}
-            {{ (getExecutionPlanVM() | async )?.executionPlan.agentInfo.version }}
+            {{ agentInfo.name }}
+            {{ agentInfo.version }}
         </p>
         <p>
             <strong>Input Sources:</strong>
