@@ -478,6 +478,11 @@
                 <version>0.4.1</version>
             </dependency>
             <dependency>
+                <groupId>com.crealytics</groupId>
+                <artifactId>spark-excel_${scala.compat.version}</artifactId>
+                <version>0.12.5</version>
+            </dependency>
+            <dependency>
                 <groupId>io.delta</groupId>
                 <artifactId>delta-core_${scala.compat.version}</artifactId>
                 <version>0.3.0</version>

@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.harvester.builder.write
 
+import com.crealytics.spark.excel.DefaultSource
 import org.apache.spark.sql.SaveMode._
 import org.apache.spark.sql.catalyst.catalog.{CatalogStorageFormat, CatalogTable}
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
@@ -46,6 +47,11 @@ class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession)
             val jdbcConnectionString = cmd.options("url")
             val tableName = cmd.options("dbtable")
             WriteCommand(cmd.nodeName, SourceIdentifier.forJDBC(jdbcConnectionString, tableName), cmd.mode, cmd.query)
+
+          case Some(ExcelSource(_)) =>
+            val path = pathQualifier.qualify(cmd.options("path"))
+            WriteCommand(cmd.nodeName, SourceIdentifier.forExcel(path), cmd.mode, cmd.query)
+
           case _ =>
             val maybeFormat = maybeSourceType.map {
               case dsr: DataSourceRegister => dsr.shortName
@@ -134,6 +140,8 @@ object WriteCommandExtractor {
   private object `_: InsertIntoHiveDirCommand` extends SafeTypeMatchingExtractor[InsertIntoHiveDirCommand]("org.apache.spark.sql.hive.execution.InsertIntoHiveDirCommand")
 
   private object `_: InsertIntoDataSourceDirCommand` extends SafeTypeMatchingExtractor[InsertIntoDataSourceDirCommand]("org.apache.spark.sql.execution.command.InsertIntoDataSourceDirCommand")
+
+  private object ExcelSource extends SafeTypeMatchingExtractor(classOf[DefaultSource])
 
   private object DataSourceTypeExtractor extends AccessorMethodValueExtractor[AnyRef]("provider", "dataSource")
 

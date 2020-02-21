@@ -36,4 +36,8 @@ object SourceIdentifier {
       .getOrElse(SourceUri.forTable(table.identifier)(session))
     SourceIdentifier(table.provider, pathQualifier.qualify(uri))
   }
+
+  def forExcel(filePath: String): SourceIdentifier =
+    SourceIdentifier(Some("excel"), filePath)
+
 }
