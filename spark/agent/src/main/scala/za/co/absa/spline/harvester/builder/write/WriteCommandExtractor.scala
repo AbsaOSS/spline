@@ -48,7 +48,7 @@ class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession)
             val tableName = cmd.options("dbtable")
             WriteCommand(cmd.nodeName, SourceIdentifier.forJDBC(jdbcConnectionString, tableName), cmd.mode, cmd.query)
 
-          case Some(ExcelSource(_)) =>
+          case Some(source) if source == "com.crealytics.spark.excel" || ExcelSource.unapply(source).isDefined =>
             val path = pathQualifier.qualify(cmd.options("path"))
             WriteCommand(cmd.nodeName, SourceIdentifier.forExcel(path), cmd.mode, cmd.query)
 

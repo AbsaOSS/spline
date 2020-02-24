@@ -25,7 +25,7 @@ import org.apache.spark.sql.execution.{LeafExecNode, SparkPlan}
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.slf4s.LoggerFactory
 import scalaz.Scalaz._
-import za.co.absa.spline.common.SplineBuildInfo
+import za.co.absa.spline.common.{ReflectionUtils, SplineBuildInfo}
 import za.co.absa.spline.harvester.LineageHarvester._
 import za.co.absa.spline.harvester.ModelConstants.{AppMetaInfo, ExecutionEventExtra, ExecutionPlanExtra}
 import za.co.absa.spline.harvester.builder.read.{ReadCommandExtractor, ReadNodeBuilder}
@@ -122,7 +122,7 @@ class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPl
 
           if (maybeExistingBuilder.isEmpty) {
 
-            val newNodesToProcess = curOpNode.children
+            val newNodesToProcess = extractChildren(curOpNode)
 
             traverseAndCollect(
               curBuilder +: accBuilders,
@@ -142,6 +142,14 @@ class LineageHarvester(logicalPlan: LogicalPlan, executedPlanOpt: Option[SparkPl
     readCommandExtractor.asReadCommand(op)
       .map(new ReadNodeBuilder(_))
       .getOrElse(new GenericNodeBuilder(op))
+
+  private def extractChildren(plan: LogicalPlan) =
+    if (plan.getClass.getCanonicalName == "org.apache.spark.sql.catalyst.plans.logical.AnalysisBarrier") {
+      val child = ReflectionUtils.extractFieldValue[LogicalPlan](plan, "child")
+      Seq(child)
+    } else {
+      plan.children
+    }
 }
 
 object LineageHarvester {
