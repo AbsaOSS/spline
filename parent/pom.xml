@@ -281,6 +281,7 @@
                                 <exclude>**/*.json</exclude>
                                 <exclude>**/*.log</exclude>
                                 <exclude>dependency-reduced-pom.xml</exclude>
+                                <exclude>.sonarcloud.properties</exclude>
                             </excludes>
                         </configuration>
                     </plugin>
