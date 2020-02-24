@@ -19,61 +19,78 @@ package za.co.absa.spline.consumer.service.internal
 import java.util.UUID
 
 import za.co.absa.spline.consumer.service.internal.model.OperationWithSchema
-import za.co.absa.spline.consumer.service.model.{AttributeGraph, AttributeTransition, AttributeNode}
+import za.co.absa.spline.consumer.service.model.{AttributeGraph, AttributeNode, AttributeTransition}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 object AttributeDependencySolver {
 
-  def resolveDependencies(operations: Seq[OperationWithSchema], attributeID: UUID): AttributeGraph = {
+  private type AttributeId = UUID
+  private type OperationId = String
+
+  private case class Node(id: AttributeId, operationId: OperationId)
+  private case class Edge(from: AttributeId, to: AttributeId)
+
+  def resolveDependencies(operations: Seq[OperationWithSchema], attributeID: UUID): Option[AttributeGraph] = {
 
     val operationsMap = operations.map(op => op._id -> op).toMap
     val inputSchemaResolver = createInputSchemaResolver(operations)
 
     def findDependencies(
       operation: OperationWithSchema,
-      lookingFor: Set[UUID]
-    ): (Set[(UUID, UUID)], Map[UUID, String]) = {
+      lookingFor: Set[AttributeId]
+    ): (Set[Edge], Set[Node]) = {
 
-      val (found, stillLookingFor) = {
+      val (attrsOriginInThisOp, otherAttributes) = {
         val inputSchemas = inputSchemaResolver(operation)
         val outputSchema = operation.schema
 
         lookingFor.partition(id => outputSchema.contains(id) && !inputSchemas.exists(_.contains(id)))
       }
 
-      val newNodes = found.map(_ -> operation._id).toMap
+      val newNodes = attrsOriginInThisOp.map(attId => Node(attId, operation._id))
 
       val dependencyMap = resolveDependencies(operation, inputSchemaResolver)
-      val newEdges = found
-        .flatMap(x => dependencyMap.get(x).map(x -> _))
-        .flatMap { case (k, v) => v.map(inv => (k, inv)) }
+      val newEdges = dependencyMap
+        .filterKeys(attrsOriginInThisOp).toSet[(AttributeId, Set[AttributeId])]
+        .flatMap { case (k, v) => v.map(inv => Edge(k, inv)) }
 
-      val newLookingFor = stillLookingFor union newEdges.map(_._2)
+      val newLookingFor: Set[AttributeId] = otherAttributes union newEdges.map(_.to)
 
-      val (childEdges, childNodes) : (Set[(UUID, UUID)], Map[UUID, String]) = operation
-        .childIds
-        .map(operationsMap)
-        .filter(_.schema.exists(newLookingFor))
+      val childResults = filterChildrenForAttributes(operation, newLookingFor)
         .map(findDependencies(_, newLookingFor))
-        .reduceOption(mergeResults(_, _))
-        .getOrElse((Set.empty, Map.empty))
 
-      (childEdges union newEdges, childNodes ++ newNodes)
+      val allResults = childResults :+ (newEdges, newNodes)
+
+      allResults
+        .reduceOption(mergeResults)
+        .getOrElse((Set.empty[Edge], Set.empty[Node]))
     }
 
-    def mergeResults[A, B, C](x: (Set[A], Map[B,C]), y: (Set[A], Map[B,C])): (Set[A], Map[B,C]) =
-      (x._1 union y._1, x._2 ++ y._2)
+    def filterChildrenForAttributes(operation: OperationWithSchema, attributes: Set[AttributeId]) =
+      operation
+        .childIds
+        .map(operationsMap)
+        .filter(_.schema.exists(attributes))
 
-    val startOperation = operations.find(_.schema.contains(attributeID)).get
+    def mergeResults(x: (Set[Edge], Set[Node]), y: (Set[Edge], Set[Node])): (Set[Edge], Set[Node]) = {
+      val (x1, x2) = x
+      val (y1, y2) = y
 
-    val (edges, nodes) = findDependencies(startOperation, Set(attributeID))
+      (x1 union y1, x2 union y2)
+    }
 
-    val attEdges = edges.map { case (s,t) => AttributeTransition(s.toString, t.toString) }
-    val attNodes = nodes.map { case (aId,opId) => AttributeNode(aId.toString, opId) }
+    val maybeStartOperation = operations.find(_.schema.contains(attributeID))
 
-    AttributeGraph(attNodes.toArray, attEdges.toArray)
+    maybeStartOperation.map { startOperation =>
+      val (edges, nodes) = findDependencies(startOperation, Set(attributeID))
+
+      val attEdges = edges.map(e => AttributeTransition(e.from.toString, e.to.toString))
+      val attNodes = nodes.map(n => AttributeNode(n.id.toString, n.operationId))
+
+      AttributeGraph(attNodes.toArray, attEdges.toArray)
+    }
   }
 
   private def resolveDependencies(op: OperationWithSchema, inputSchemasOf: OperationWithSchema => Seq[Array[UUID]]):
@@ -122,7 +139,7 @@ object AttributeDependencySolver {
 
     val operationMap = operations.map(op => op._id -> op).toMap
 
-    (op: OperationWithSchema) => {
+    op: OperationWithSchema => {
       if (op.childIds.isEmpty) {
         Seq(Array.empty)
       } else {

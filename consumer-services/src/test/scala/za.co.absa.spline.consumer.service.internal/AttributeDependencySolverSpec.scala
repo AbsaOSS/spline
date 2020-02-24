@@ -424,7 +424,8 @@ object AttributeDependencySolverSpec extends Matchers {
     nodes: Set[(UUID, Int)]
   ): Unit = {
 
-    val graph = AttributeDependencySolver.resolveDependencies(operations, forAttribute)
+    val maybeGraph = AttributeDependencySolver.resolveDependencies(operations, forAttribute)
+    val graph = maybeGraph.getOrElse(fail())
 
     assertEqualEdges(graph.edges, edges)
     assertEqualNodes(graph.nodes, nodes)

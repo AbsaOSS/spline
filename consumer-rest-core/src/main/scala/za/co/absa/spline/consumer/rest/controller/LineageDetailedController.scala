@@ -57,5 +57,6 @@ class LineageDetailedController @Autowired()(
     repo
       .findOperationsWithSchema(execId)
       .map(AttributeDependencySolver.resolveDependencies(_, attributeId))
+      .map(_.getOrElse(throw new NoSuchElementException()))
   }
 }
