@@ -16,18 +16,24 @@
 
 package za.co.absa.spline.consumer.service.model
 
-import java.util.UUID
-
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
+import za.co.absa.spline.consumer.service.model.AttributeGraph.AttributeId
 
-@ApiModel(description = "Attribute Dependencies")
-case class AttributeDependencies
+@ApiModel(description = "Attribute Dependency Node")
+case class AttributeNode
 (
-  @ApiModelProperty(value = "List of attribute ids on which the requested attribute depends")
-  attributes: Seq[UUID],
+  @ApiModelProperty(value = "Attribute Id")
+  _id: AttributeId,
 
-  @ApiModelProperty(value = "List of operation ids referencing provided attribute or dependent attributes")
-  operations: Seq[String]
-) {
-  def this(attributes: Set[UUID], operations: Set[String]) = this(attributes.toSeq, operations.toSeq)
+  @ApiModelProperty(value = "Operation Id")
+  operationID: String
+
+) extends Graph.Node {
+  def this() = this(null, null)
+
+  override type Id = AttributeId
+}
+
+object AttributeNode {
+  type Id = String
 }

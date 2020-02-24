@@ -21,7 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.internal.model.OperationWithSchema
 import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
-import za.co.absa.spline.consumer.service.model.{AttributeDependencies, LineageDetailed}
+import za.co.absa.spline.consumer.service.model.LineageDetailed
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -96,6 +96,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     db.queryStream[OperationWithSchema](
       """
         LET exec = FIRST(FOR ex IN executionPlan FILTER ex._key == @execId RETURN ex)
+
         LET writeOp = FIRST(FOR v IN 1 OUTBOUND exec executes RETURN v)
 
         FOR vi IN 0..9999
