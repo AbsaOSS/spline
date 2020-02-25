@@ -72,12 +72,11 @@ class ReadCommandExtractor(pathQualifier: PathQualifier, session: SparkSession) 
           ))
 
         case `_: ExcelRelation`(exr) => {
-          val inputStreamLazy = extractFieldValue[AnyRef]( exr.asInstanceOf[ExcelRelation].workbookReader,
-            "com$crealytics$spark$excel$DefaultWorkbookReader$$inputStreamProvider")
-
-          val inputStream = inputStreamLazy.asInstanceOf[() => InputStream].apply()
+          val reader = exr.asInstanceOf[ExcelRelation].workbookReader
+          val inputStreamLazy = extractFieldValue[() => InputStream](reader, excelInputStreamProviderClass)
+          val inputStream = inputStreamLazy.apply()
           val path = extractFieldValue[org.apache.hadoop.fs.Path](inputStream, "file")
-          val qualifiedPath = pathQualifier.qualify(path.toString)
+          val qualifiedPath = pathQualifier.qualify(path.toString())
           ReadCommand(SourceIdentifier.forExcel(qualifiedPath), operation)
         }
 
@@ -101,6 +100,8 @@ object ReadCommandExtractor {
   object `_: ExcelRelation` extends SafeTypeMatchingExtractor[AnyRef]("com.crealytics.spark.excel.ExcelRelation")
 
   object TableOrQueryFromJDBCOptionsExtractor extends AccessorMethodValueExtractor[String]("table", "tableOrQuery")
+
+  private val excelInputStreamProviderClass = "com$crealytics$spark$excel$DefaultWorkbookReader$$inputStreamProvider"
 
   private def kafkaTopics(bootstrapServers: String): Seq[String] = {
     val kc = new KafkaConsumer(new Properties {
