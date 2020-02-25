@@ -48,6 +48,10 @@
             <artifactId>spark-agent</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.crealytics</groupId>
+            <artifactId>spark-excel_${scala.compat.version}</artifactId>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>

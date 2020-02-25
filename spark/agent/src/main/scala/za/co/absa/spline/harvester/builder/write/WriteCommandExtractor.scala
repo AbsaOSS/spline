@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.harvester.builder.write
 
+import com.crealytics.spark.excel.DefaultSource
 import org.apache.spark.sql.SaveMode._
 import org.apache.spark.sql.catalyst.catalog.{CatalogStorageFormat, CatalogTable}
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
@@ -46,6 +47,10 @@ class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession)
             val jdbcConnectionString = cmd.options("url")
             val tableName = cmd.options("dbtable")
             WriteCommand(cmd.nodeName, SourceIdentifier.forJDBC(jdbcConnectionString, tableName), cmd.mode, cmd.query)
+
+          case Some(ExcelSourceExtractor(_)) => asExcelWriteCommand(cmd)
+          case Some("com.crealytics.spark.excel") => asExcelWriteCommand(cmd)
+
           case _ =>
             val maybeFormat = maybeSourceType.map {
               case dsr: DataSourceRegister => dsr.shortName
@@ -96,6 +101,11 @@ class WriteCommandExtractor(pathQualifier: PathQualifier, session: SparkSession)
     maybeWriteCommand
   }
 
+  private def asExcelWriteCommand(cmd: SaveIntoDataSourceCommand) = {
+    val path = pathQualifier.qualify(cmd.options("path"))
+    WriteCommand(cmd.nodeName, SourceIdentifier.forExcel(path), cmd.mode, cmd.query)
+  }
+
   private def asDirWriteCommand(name: String, storage: CatalogStorageFormat, provider: String, overwrite: Boolean, query: LogicalPlan) = {
     val uri = storage.locationUri.getOrElse(sys.error(s"Cannot determine the data source location: $storage"))
     val mode = if (overwrite) Overwrite else Append
@@ -134,6 +144,8 @@ object WriteCommandExtractor {
   private object `_: InsertIntoHiveDirCommand` extends SafeTypeMatchingExtractor[InsertIntoHiveDirCommand]("org.apache.spark.sql.hive.execution.InsertIntoHiveDirCommand")
 
   private object `_: InsertIntoDataSourceDirCommand` extends SafeTypeMatchingExtractor[InsertIntoDataSourceDirCommand]("org.apache.spark.sql.execution.command.InsertIntoDataSourceDirCommand")
+
+  private object ExcelSourceExtractor extends SafeTypeMatchingExtractor(classOf[DefaultSource])
 
   private object DataSourceTypeExtractor extends AccessorMethodValueExtractor[AnyRef]("provider", "dataSource")
 

@@ -16,8 +16,10 @@
 
 package za.co.absa.spline.harvester.builder.read
 
+import java.io.InputStream
 import java.util.Properties
 
+import com.crealytics.spark.excel.{DefaultWorkbookReader, ExcelRelation, StreamingWorkbookReader}
 import com.databricks.spark.xml.XmlRelation
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.spark.sql.SparkSession
@@ -69,6 +71,15 @@ class ReadCommandExtractor(pathQualifier: PathQualifier, session: SparkSession) 
             "endingOffsets" -> extractFieldValue[AnyRef](kr, "endingOffsets")
           ))
 
+        case `_: ExcelRelation`(exr) => {
+          val reader = exr.asInstanceOf[ExcelRelation].workbookReader
+          val inputStreamLazy = extractFieldValue[() => InputStream](reader, excelInputStreamProviderClass)
+          val inputStream = inputStreamLazy.apply()
+          val path = extractFieldValue[org.apache.hadoop.fs.Path](inputStream, "file")
+          val qualifiedPath = pathQualifier.qualify(path.toString())
+          ReadCommand(SourceIdentifier.forExcel(qualifiedPath), operation)
+        }
+
         case br: BaseRelation =>
           sys.error(s"Relation is not supported: $br")
       }
@@ -86,7 +97,11 @@ object ReadCommandExtractor {
 
   object `_: KafkaRelation` extends SafeTypeMatchingExtractor[AnyRef]("org.apache.spark.sql.kafka010.KafkaRelation")
 
+  object `_: ExcelRelation` extends SafeTypeMatchingExtractor[AnyRef]("com.crealytics.spark.excel.ExcelRelation")
+
   object TableOrQueryFromJDBCOptionsExtractor extends AccessorMethodValueExtractor[String]("table", "tableOrQuery")
+
+  private val excelInputStreamProviderClass = "com$crealytics$spark$excel$DefaultWorkbookReader$$inputStreamProvider"
 
   private def kafkaTopics(bootstrapServers: String): Seq[String] = {
     val kc = new KafkaConsumer(new Properties {
