@@ -21,36 +21,8 @@ case class Schema(
 )
 
 case class Attribute(
+  id: String,
   name: String,
   dataTypeId: String) {
-  def this() = this(null, null)
-}
-
-trait DataType {
-  def id: String
-  def nullable: Boolean
-}
-
-case class SimpleDataType(
-  override val id: String,
-  override val nullable: Boolean,
-  name: String
-) extends DataType {
-  def this() = this(null, false, null)
-}
-
-case class StructDataType(
-  override val id: String,
-  override val nullable: Boolean,
-  fields: Array[Attribute]
-) extends DataType {
-  def this() = this(null, false, null)
-}
-
-case class ArrayDataType(
-  override val id: String,
-  override val nullable: Boolean,
-  elementDataTypeId: String
-) extends DataType {
-  def this() = this(null, false, null)
+  def this() = this(null, null, null)
 }

@@ -33,9 +33,9 @@
     <hr>
     <execution-plan-details></execution-plan-details>
 
-    <div *ngIf="(getDetailsInfo() | async)">
+    <div *ngIf="(getDetailsInfo() | async); let detailsInfo">
       <div>
-        <schema [schemaId]="'output_schema'" [schemaType]=2 [schema]="getOutputSchema((getDetailsInfo() | async))">
+        <schema [schemaId]="'output_schema'" [schemaType]=2 [schema]="getOutputSchema(detailsInfo)">
         </schema>
       </div>
     </div>

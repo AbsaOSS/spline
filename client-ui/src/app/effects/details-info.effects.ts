@@ -23,13 +23,13 @@ import {Attribute, OperationDetails} from '../generated/models';
 import {OperationsService} from '../generated/services';
 import {StrictHttpResponse} from '../generated/strict-http-response';
 import {AppState} from '../model/app-state';
-import {AttributeType} from '../model/types/attributeType';
-import {AttributeVM} from '../model/viewModels/attributeVM';
-import {DataTypeVM} from '../model/viewModels/dataTypeVM';
+import {DataTypeType} from '../model/types/dataTypeType';
+import {AttributeVM, StructFieldVM} from '../model/viewModels/attributeVM';
 import {GenericDataTypeVM} from '../model/viewModels/GenericDataTypeVM';
 import {OperationDetailsVM} from '../model/viewModels/operationDetailsVM';
 import {handleException} from '../rxjs/operators/handleException';
 import * as DetailsInfoAction from '../store/actions/details-info.actions';
+import {DataTypeVM} from "../model/viewModels/dataTypeVM";
 
 
 @Injectable()
@@ -61,57 +61,59 @@ export class DetailsInfoEffects {
   }
 
   private toOperationDetailsView = (operationDetailsVMHttpResponse: StrictHttpResponse<OperationDetails>): OperationDetailsVM => {
-    const operationDetailsVm = {} as OperationDetailsVM
-    operationDetailsVm.inputs = operationDetailsVMHttpResponse.body.inputs
-    operationDetailsVm.output = operationDetailsVMHttpResponse.body.output
-    operationDetailsVm.operation = operationDetailsVMHttpResponse.body.operation
+    const operationDetails = operationDetailsVMHttpResponse.body
+    const schemas: Array<Array<AttributeVM>> = operationDetails.schemas.map((attributeRefArray: Array<Attribute>) => {
+      const dataTypes = _.keyBy(operationDetails.dataTypes as GenericDataTypeVM[], dt => dt.id)
+      return attributeRefArray.map(attRef => {
+          const structField = this.getFieldVM(
+            attRef.dataTypeId,
+            dataTypes,
+            attRef.name)
 
-    const schemas: Array<Array<AttributeVM>> = []
-    _.each(operationDetailsVMHttpResponse.body.schemas, (attributeRefArray: Array<Attribute>) => {
-      const attributes = attributeRefArray.map(attRef =>
-        this.getAttribute(
-          attRef.dataTypeId,
-          operationDetailsVMHttpResponse.body.dataTypes as GenericDataTypeVM[],
-          attributeRefArray,
-          attRef.name))
-      schemas.push(attributes)
+          return {
+            id: attRef.id,
+            ...structField
+          } as AttributeVM
+        }
+      )
     })
-    operationDetailsVm.schemas = schemas
-    return operationDetailsVm
-  }
-
-  private getAttribute = (attributeId: string, dataTypes: Array<GenericDataTypeVM>, attributeRefArray: Array<Attribute>, attributeName: string = null): AttributeVM => {
-    const dataType = this.getDataType(dataTypes, attributeId)
-    const attribute = {} as AttributeVM
-    const dataTypeVM = {} as DataTypeVM
-    dataTypeVM._type = dataType._type
-    dataTypeVM.name = dataType.name
-
-    switch (dataType._type) {
-      case AttributeType.Simple:
-        attribute.name = attributeName ? attributeName : dataType._type
-        attribute.dataType = dataTypeVM
-        return attribute
-      case AttributeType.Array:
-        attribute.name = attributeName
-        dataTypeVM.elementDataType = this.getAttribute(dataType.elementDataTypeId, dataTypes, attributeRefArray, attributeName)
-        dataTypeVM.name = AttributeType.Array
-        attribute.dataType = dataTypeVM
-        return attribute
-      case AttributeType.Struct:
-        attribute.name = attributeName
-        dataTypeVM.children = [] as Array<AttributeVM>
-        _.each(dataType.fields, (attributeRef: Attribute) => {
-          dataTypeVM.children.push(this.getAttribute(attributeRef.dataTypeId, dataTypes, attributeRefArray, attributeRef.name))
-        })
-        dataTypeVM.name = AttributeType.Struct
-        attribute.dataType = dataTypeVM
-        return attribute
+    return {
+      inputs: operationDetails.inputs,
+      output: operationDetails.output,
+      operation: operationDetails.operation,
+      schemas: schemas
     }
   }
 
-  private getDataType = (dataTypes: GenericDataTypeVM[], dataTypeId: string): GenericDataTypeVM => {
-    return dataTypes.find((dt: GenericDataTypeVM) => dt.id == dataTypeId)
+  private getFieldVM = (dataTypeId: string, dataTypes: { [id: string]: GenericDataTypeVM }, name: string): StructFieldVM => {
+    const dataType = dataTypes[dataTypeId]
+    switch (dataType._type) {
+      case DataTypeType.Simple:
+        return {
+          name: name ? name : dataType._type,
+          dataType: {
+            _type: dataType._type,
+            name: dataType.name
+          } as DataTypeVM
+        }
+      case DataTypeType.Array:
+        return {
+          name: name,
+          dataType: {
+            _type: dataType._type,
+            name: DataTypeType.Array,
+            elementDataType: this.getFieldVM(dataType.elementDataTypeId, dataTypes, name)
+          } as DataTypeVM
+        }
+      case DataTypeType.Struct:
+        return {
+          name: name,
+          dataType: {
+            _type: dataType._type,
+            name: DataTypeType.Struct,
+            children: dataType.fields.map(field => this.getFieldVM(field.dataTypeId, dataTypes, field.name))
+          } as DataTypeVM
+        }
+    }
   }
-
 }

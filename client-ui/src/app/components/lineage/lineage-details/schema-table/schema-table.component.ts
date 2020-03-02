@@ -18,11 +18,9 @@ import {Store} from '@ngrx/store';
 import * as _ from 'lodash';
 import {Subscription} from 'rxjs';
 import {AppState} from 'src/app/model/app-state';
-import {AttributeType} from 'src/app/model/types/attributeType';
+import {DataTypeType} from 'src/app/model/types/dataTypeType';
 import {AttributeVM} from 'src/app/model/viewModels/attributeVM';
-import * as AttributesAction from 'src/app/store/actions/attributes.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
-import * as attributeReducer from 'src/app/store/reducers/attribute.reducer';
 
 @Component({
   selector: 'schema-table',
@@ -30,7 +28,7 @@ import * as attributeReducer from 'src/app/store/reducers/attribute.reducer';
 })
 export class SchemaTableComponent implements AfterViewInit, OnDestroy {
 
-  @ViewChild('table', { static: true })
+  @ViewChild('table', {static: true})
   public table: any
 
   @Input()
@@ -45,7 +43,8 @@ export class SchemaTableComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private store: Store<AppState>
-  ) { }
+  ) {
+  }
 
   public ngAfterViewInit(): void {
     this.subscriptions.push(
@@ -65,14 +64,13 @@ export class SchemaTableComponent implements AfterViewInit, OnDestroy {
                 const selectedRowContent = selectedRow[1]
 
                 if (selectedRowIndex > -1) {
-                  this.store.dispatch(new AttributesAction.Get(selectedRowContent))
                   paramsSubscriber.table.selected.push(selectedRowContent)
                   paramsSubscriber.table.offset = Math.floor(selectedRowIndex / paramsSubscriber.tablePageSize)
                   // TODO : Remove the setTimeout as soon as this issue is fixed :https://github.com/swimlane/ngx-datatable/issues/1204
                   setTimeout(function () {
                     if (
-                      selectedRowContent.dataType._type != AttributeType.Simple
-                      && !(AttributeType.Array && selectedRowContent.dataType.elementDataType && selectedRowContent.dataType.elementDataType.dataType._type == AttributeType.Simple)
+                      selectedRowContent.dataType._type != DataTypeType.Simple
+                      && !(DataTypeType.Array && selectedRowContent.dataType.elementDataType && selectedRowContent.dataType.elementDataType.dataType._type == DataTypeType.Simple)
                     ) {
                       paramsSubscriber.table.rowDetail.toggleExpandRow(selectedRowContent)
                     }
@@ -91,7 +89,7 @@ export class SchemaTableComponent implements AfterViewInit, OnDestroy {
    * @returns a tuple containing the AttributeVM of the row and its index in case the table is pageable
    */
   private getSelectedRowFromName = (name: string): [number, AttributeVM] => {
-    const index = _.findIndex(this.table.rows, { name: name })
+    const index = _.findIndex(this.table.rows, {name: name})
     return [index, this.table.rows[index]]
   }
 
@@ -100,20 +98,30 @@ export class SchemaTableComponent implements AfterViewInit, OnDestroy {
     return parentSchemaId + "." + rowName
   }
 
-  public onSelect = ({ selected }): void => {
+  public onSelect = ({selected}): void => {
     const selectedAttribute = selected[0]
-    this.store.dispatch(new RouterAction.ReplaceUrlState({ schemaId: this.schemaId, attribute: selectedAttribute.name }))
-    this.store.dispatch(new AttributesAction.Get(selectedAttribute))
+    this.store.dispatch(new RouterAction.ReplaceUrlState({schemaId: this.schemaId, attribute: selectedAttribute.name}))
     if (
-      selectedAttribute.dataType._type != AttributeType.Simple &&
-      !(AttributeType.Array && selectedAttribute.dataType.elementDataType && selectedAttribute.dataType.elementDataType.dataType._type == AttributeType.Simple)
+      selectedAttribute.dataType._type != DataTypeType.Simple &&
+      !(DataTypeType.Array && selectedAttribute.dataType.elementDataType && selectedAttribute.dataType.elementDataType.dataType._type == DataTypeType.Simple)
     ) {
       this.table.rowDetail.toggleExpandRow(selectedAttribute)
     }
   }
 
-  public getAttributeType = (AttributeType: AttributeVM): string => {
-    return attributeReducer.getAttributeType(AttributeType)
+  public getAttributeType = (attribute: AttributeVM): string => {
+    switch (attribute.dataType._type) {
+      case DataTypeType.Struct:
+        return '{ ... }'
+      case DataTypeType.Array:
+        return attribute.dataType.elementDataType.dataType.children
+          ? '[{ ... }]'
+          : `[${attribute.dataType.elementDataType.dataType.name}]`
+      case DataTypeType.Simple:
+        return attribute.dataType.name
+      default:
+        return ''
+    }
   }
 
   ngOnDestroy(): void {

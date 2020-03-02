@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-import { Attribute, DataType } from "../../generated/models";
+import {DataType} from "../../generated/models";
 
 export interface GenericDataTypeVM extends DataType {
-    id: string;
-    _type: string;
-    elementDataTypeId: string;
-    fields: Array<Attribute>;
-    name: string;
-    nullable: boolean;
+  id: string;
+  _type: string;
+  elementDataTypeId: string;
+  fields: Array<StructField>;
+  name: string;
+  nullable: boolean;
+}
+
+export type StructField = {
+  dataTypeId: string;
+  name: string;
 }

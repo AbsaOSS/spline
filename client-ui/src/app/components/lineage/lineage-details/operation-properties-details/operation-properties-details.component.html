@@ -29,16 +29,6 @@
       [schema]="getOutputSchema(detailsInfos)">
     </schema>
   </div>
-  <mat-accordion>
-    <mat-expansion-panel>
-      <mat-expansion-panel-header>
-        <i class="fas fa-project-diagram" [style.color]="'#E39256'"></i> &nbsp;Attribute Schema Diagram
-      </mat-expansion-panel-header>
-      <div>
-        <attribute-details></attribute-details>
-      </div>
-    </mat-expansion-panel>
-  </mat-accordion>
 </div>
 <div *ngIf="! (getDetailsInfo() | async)">
   <br />

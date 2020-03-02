@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
-import { Subscription } from 'rxjs';
-import { filter, first, map, switchMap } from 'rxjs/operators';
-import { AppState } from 'src/app/model/app-state';
-import { RouterStateUrl } from 'src/app/model/routerStateUrl';
-import * as AttributesAction from 'src/app/store/actions/attributes.actions';
+import {AfterViewInit, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Store} from '@ngrx/store';
+import {CytoscapeNgLibComponent} from 'cytoscape-ng-lib';
+import {Subscription} from 'rxjs';
+import {filter, first, map, switchMap} from 'rxjs/operators';
+import {AppState} from 'src/app/model/app-state';
+import {RouterStateUrl} from 'src/app/model/routerStateUrl';
 import * as DetailsInfosAction from 'src/app/store/actions/details-info.actions';
 import * as ExecutionPlanAction from 'src/app/store/actions/execution-plan.actions';
 import * as LayoutAction from 'src/app/store/actions/layout.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
-import { AdaptiveComponent } from '../../adaptive/adaptive.component';
-import { operationIconCodes, operationColorCodes } from 'src/app/util/execution-plan';
-import { OperationType } from 'src/app/model/types/operationType';
+import {AdaptiveComponent} from '../../adaptive/adaptive.component';
+import {operationColorCodes, operationIconCodes} from 'src/app/util/execution-plan';
+import {OperationType} from 'src/app/model/types/operationType';
 
 
 @Component({
@@ -97,7 +96,6 @@ export class LineageGraphComponent extends AdaptiveComponent implements OnInit, 
         const clikedTarget = event.target
         const nodeId = (clikedTarget != this.cytograph.cy && clikedTarget.isNode()) ? clikedTarget.id() : null
         this.getDetailsInfo(nodeId)
-        this.store.dispatch(new AttributesAction.Reset())
         const params = {} as RouterStateUrl
         params.queryParams = { selectedNode: nodeId, schemaId: null, attribute: null }
         this.store.dispatch(new RouterAction.Go(params))
