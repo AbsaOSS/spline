@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {AfterViewInit, Component, Input, OnDestroy, ViewChild} from '@angular/core';
-import {Store} from '@ngrx/store';
+import {AfterViewInit, Component, EventEmitter, Input, OnDestroy, Output, ViewChild} from '@angular/core';
 import * as _ from 'lodash';
 import {Subscription} from 'rxjs';
-import {AppState} from 'src/app/model/app-state';
 import {DataTypeType} from 'src/app/model/types/dataTypeType';
-import {AttributeVM} from 'src/app/model/viewModels/attributeVM';
-import * as RouterAction from 'src/app/store/actions/router.actions';
+import {AttributeVM, StructFieldVM} from 'src/app/model/viewModels/attributeVM';
+import {DataTypeVM} from "../../../../model/viewModels/dataTypeVM";
 
 @Component({
   selector: 'schema-table',
@@ -32,55 +30,55 @@ export class SchemaTableComponent implements AfterViewInit, OnDestroy {
   public table: any
 
   @Input()
-  public schema: AttributeVM[]
+  public schema: StructFieldVM[]
 
   @Input()
   public schemaId: string
+
+  @Output()
+  public fieldSelected = new EventEmitter<StructFieldVM>()
 
   public tablePageSize: number = 5
 
   private subscriptions: Subscription[] = []
 
-  constructor(
-    private store: Store<AppState>
-  ) {
-  }
-
   public ngAfterViewInit(): void {
-    this.subscriptions.push(
-      this.store
-        .select('router', 'state', 'queryParams')
-        .subscribe((queryParams: any) => {
-          if (queryParams) {
-            const paramsSubscriber = this
-            const schemaIdParam = queryParams.schemaId
-            const tablesWithSelection = schemaIdParam ? schemaIdParam.split(".") : []
-            if (paramsSubscriber.table.rows && paramsSubscriber.schemaId.includes(tablesWithSelection[0])) {
-              for (let i = 0; i < tablesWithSelection.length + 1; i++) {
-                //The attribute ID can be nested to several data structures, the last one is the selected attribute itself
-                const attributeIdParam = (i < tablesWithSelection.length) ? tablesWithSelection[i + 1] : queryParams.attribute
-                const selectedRow = paramsSubscriber.getSelectedRowFromName(attributeIdParam)
-                const selectedRowIndex = selectedRow[0]
-                const selectedRowContent = selectedRow[1]
+    /*
+        this.subscriptions.push(
+          this.store
+            .select('router', 'state', 'queryParams')
+            .subscribe((queryParams: any) => {
+              if (queryParams) {
+                const paramsSubscriber = this
+                const schemaIdParam = queryParams.schemaId
+                const tablesWithSelection = schemaIdParam ? schemaIdParam.split(".") : []
+                if (paramsSubscriber.table.rows && paramsSubscriber.schemaId.includes(tablesWithSelection[0])) {
+                  for (let i = 0; i < tablesWithSelection.length + 1; i++) {
+                    //The attribute ID can be nested to several data structures, the last one is the selected attribute itself
+                    const attributeIdParam = (i < tablesWithSelection.length) ? tablesWithSelection[i + 1] : queryParams.attribute
+                    const selectedRow = paramsSubscriber.getSelectedRowFromName(attributeIdParam)
+                    const selectedRowIndex = selectedRow[0]
+                    const selectedRowContent = selectedRow[1]
 
-                if (selectedRowIndex > -1) {
-                  paramsSubscriber.table.selected.push(selectedRowContent)
-                  paramsSubscriber.table.offset = Math.floor(selectedRowIndex / paramsSubscriber.tablePageSize)
-                  // TODO : Remove the setTimeout as soon as this issue is fixed :https://github.com/swimlane/ngx-datatable/issues/1204
-                  setTimeout(function () {
-                    if (
-                      selectedRowContent.dataType._type != DataTypeType.Simple
-                      && !(DataTypeType.Array && selectedRowContent.dataType.elementDataType && selectedRowContent.dataType.elementDataType.dataType._type == DataTypeType.Simple)
-                    ) {
-                      paramsSubscriber.table.rowDetail.toggleExpandRow(selectedRowContent)
+                    if (selectedRowIndex > -1) {
+                      paramsSubscriber.table.selected.push(selectedRowContent)
+                      paramsSubscriber.table.offset = Math.floor(selectedRowIndex / paramsSubscriber.tablePageSize)
+                      // TODO : Remove the setTimeout as soon as this issue is fixed :https://github.com/swimlane/ngx-datatable/issues/1204
+                      setTimeout(function () {
+                        if (
+                          selectedRowContent.dataType._type != DataTypeType.Simple
+                          && !(DataTypeType.Array && selectedRowContent.dataType.elementDataType && selectedRowContent.dataType.elementDataType.dataType._type == DataTypeType.Simple)
+                        ) {
+                          paramsSubscriber.table.rowDetail.toggleExpandRow(selectedRowContent)
+                        }
+                      })
                     }
-                  })
+                  }
                 }
               }
-            }
-          }
-        })
-    )
+            })
+        )
+    */
   }
 
   /**
@@ -98,30 +96,20 @@ export class SchemaTableComponent implements AfterViewInit, OnDestroy {
     return parentSchemaId + "." + rowName
   }
 
-  public onSelect = ({selected}): void => {
-    const selectedAttribute = selected[0]
-    this.store.dispatch(new RouterAction.ReplaceUrlState({schemaId: this.schemaId, attribute: selectedAttribute.name}))
-    if (
-      selectedAttribute.dataType._type != DataTypeType.Simple &&
-      !(DataTypeType.Array && selectedAttribute.dataType.elementDataType && selectedAttribute.dataType.elementDataType.dataType._type == DataTypeType.Simple)
-    ) {
-      this.table.rowDetail.toggleExpandRow(selectedAttribute)
-    }
+  public getArrayInnermostElementTypeWithNestingLevel = (dt: DataTypeVM, level = 1): [DataTypeVM, number] => {
+    return dt.elementDataType.dataType._type == DataTypeType.Array
+      ? this.getArrayInnermostElementTypeWithNestingLevel(dt.elementDataType.dataType, level + 1)
+      : [dt.elementDataType.dataType, level]
   }
 
-  public getAttributeType = (attribute: AttributeVM): string => {
-    switch (attribute.dataType._type) {
-      case DataTypeType.Struct:
-        return '{ ... }'
-      case DataTypeType.Array:
-        return attribute.dataType.elementDataType.dataType.children
-          ? '[{ ... }]'
-          : `[${attribute.dataType.elementDataType.dataType.name}]`
-      case DataTypeType.Simple:
-        return attribute.dataType.name
-      default:
-        return ''
-    }
+  public onStructTypeClick(e, row) {
+    e.stopPropagation()
+    this.table.rowDetail.toggleExpandRow(row)
+  }
+
+  public onSelect = ({selected}): void => {
+    const selectedAttribute = selected[0]
+    this.fieldSelected.emit(selectedAttribute)
   }
 
   ngOnDestroy(): void {

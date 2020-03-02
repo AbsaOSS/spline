@@ -30,7 +30,11 @@
         </mat-panel-title>
       </mat-expansion-panel-header>
       <div id="schema{{schemaId}}">
-        <schema-table [schema]="schema" [schemaId]=schemaId></schema-table>
+        <schema-table
+          [schema]="schema"
+          [schemaId]=schemaId
+          (fieldSelected)="onAttributeSelected($event)"
+        ></schema-table>
       </div>
     </mat-expansion-panel>
   </mat-accordion>

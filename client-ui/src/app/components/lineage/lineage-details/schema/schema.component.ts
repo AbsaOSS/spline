@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
-import { SchemaType } from 'src/app/model/types/schemaType';
+import {Component, Input} from '@angular/core';
+import {SchemaType} from 'src/app/model/types/schemaType';
+import {StructFieldVM} from "../../../../model/viewModels/attributeVM";
 
 @Component({
   selector: 'schema',
@@ -30,5 +31,10 @@ export class SchemaComponent {
 
   @Input()
   schema: any
+
+  public onAttributeSelected(attr: StructFieldVM) {
+    console.log("SELECTED", attr)
+    // this.store.dispatch(new RouterAction.ReplaceUrlState({schemaId: this.schemaId, attribute: selectedAttribute.name}))
+  }
 
 }
