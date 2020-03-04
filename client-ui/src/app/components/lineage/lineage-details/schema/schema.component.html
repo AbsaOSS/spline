@@ -18,15 +18,15 @@
     <mat-expansion-panel [expanded]="true">
       <mat-expansion-panel-header>
         <mat-panel-title>
-          <div *ngIf="schemaType == 0">
-            <i class='fa fa-lg fa-arrow-circle-right text-success'></i> Input
-          </div>
-          <div *ngIf="schemaType == 1">
-            <i class='fa fa-lg fa-arrow-circle-left text-danger'></i> Output
-          </div>
-          <div *ngIf="schemaType != 0 && schemaType != 1">
-            <i class='fa fa-arrow-circle-right'></i> Schema
-          </div>
+          <ng-container *ngIf="schemaType == 0">
+            <i class='fa fa-xs fa-arrow-circle-right text-success'></i> <strong> Input </strong>
+          </ng-container>
+          <ng-container *ngIf="schemaType == 1">
+            <i class='fa fa-xs fa-arrow-circle-left text-danger'></i> <strong> Output </strong>
+          </ng-container>
+          <ng-container *ngIf="schemaType != 0 && schemaType != 1">
+            <i class='fa fa-xs fa-arrow-circle-right'></i> <strong> Schema </strong>
+          </ng-container>
         </mat-panel-title>
       </mat-expansion-panel-header>
       <div id="schema{{schemaId}}">
