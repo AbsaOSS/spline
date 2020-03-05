@@ -16,7 +16,7 @@
 import {ExecutionPlanInfo} from 'src/app/generated/models/execution-plan-info';
 import {CytoscapeGraphVM} from './cytoscape/cytoscapeGraphVM';
 
-export interface ExecutedLogicalPlanVM {
+export type ExecutedLogicalPlanVM = {
     executionPlan: ExecutionPlanInfo
     graph: CytoscapeGraphVM
 }

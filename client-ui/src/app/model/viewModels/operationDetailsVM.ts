@@ -16,7 +16,7 @@
 import {Operation} from 'src/app/generated/models';
 import {AttributeVM} from './attributeVM';
 
-export interface OperationDetailsVM {
+export type OperationDetailsVM = {
     operation: Operation
     schemas: Array<Array<AttributeVM>>
     output: number

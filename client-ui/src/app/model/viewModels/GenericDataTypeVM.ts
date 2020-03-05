@@ -16,7 +16,7 @@
 
 import {DataType} from "../../generated/models";
 
-export interface GenericDataTypeVM extends DataType {
+export type GenericDataTypeVM = DataType & {
   id: string;
   _type: string;
   elementDataTypeId: string;

@@ -15,11 +15,11 @@
  */
 import {DataTypeVM} from './dataTypeVM';
 
-export interface AttributeVM extends StructFieldVM {
+export type AttributeVM = StructFieldVM & {
   id: string
 }
 
-export interface StructFieldVM {
+export type StructFieldVM = {
   name: string
   dataType: DataTypeVM
 }

@@ -15,7 +15,7 @@
  */
 import {AttributeVM} from './attributeVM';
 
-export interface DataTypeVM {
+export type DataTypeVM = {
     _type: string
     name: string
     children: Array<AttributeVM>
