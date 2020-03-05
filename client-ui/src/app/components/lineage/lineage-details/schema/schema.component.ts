@@ -15,7 +15,10 @@
  */
 import {Component, Input} from '@angular/core';
 import {SchemaType} from 'src/app/model/types/schemaType';
-import {StructFieldVM} from "../../../../model/viewModels/attributeVM";
+import {AttributeVM, StructFieldVM} from "../../../../model/viewModels/attributeVM";
+import {Observable} from "rxjs";
+import {map} from "rxjs/operators";
+import {ActivatedRoute, Params, Router} from "@angular/router";
 
 @Component({
   selector: 'schema',
@@ -24,17 +27,31 @@ import {StructFieldVM} from "../../../../model/viewModels/attributeVM";
 export class SchemaComponent {
 
   @Input()
-  schemaId: string
+  public schemaType: SchemaType
 
   @Input()
-  schemaType: SchemaType
+  public schema: AttributeVM[]
 
-  @Input()
-  schema: any
+  public selectedAttribute$: Observable<AttributeVM>
 
-  public onAttributeSelected(attr: StructFieldVM) {
-    console.log("SELECTED", attr)
-    // this.store.dispatch(new RouterAction.ReplaceUrlState({schemaId: this.schemaId, attribute: selectedAttribute.name}))
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute) {
+
+    this.selectedAttribute$ =
+      route.queryParams.pipe(
+        map((params: Params) =>
+          this.schema.find(a => a.id === params.attribute)))
   }
 
+  public onAttributeSelected(attr: StructFieldVM) {
+    const attrId = (attr as AttributeVM).id
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParamsHandling: "merge",
+      queryParams: {
+        attribute: attrId
+      }
+    })
+  }
 }

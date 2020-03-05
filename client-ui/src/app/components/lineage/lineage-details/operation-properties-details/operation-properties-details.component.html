@@ -22,15 +22,17 @@
   <div #propertiesPanel>
   </div>
   <div class="details">
-    <div *ngFor="let inputSchema of getInputSchemas(detailsInfos) ;index as i">
-      <schema [schemaId]="'input_schema'+i" [schemaType]=0 [schema]="inputSchema"></schema>
+    <div *ngFor="let inputSchema of getInputSchemas(detailsInfos)">
+      <schema [schemaType]=0
+              [schema]="inputSchema"></schema>
     </div>
-    <schema *ngIf="detailsInfos.operation._type != 'Write'" [schemaId]="'output_schema'" [schemaType]=1
-      [schema]="getOutputSchema(detailsInfos)">
+    <schema *ngIf="detailsInfos.operation._type != 'Write'"
+            [schemaType]=1
+            [schema]="getOutputSchema(detailsInfos)">
     </schema>
   </div>
 </div>
 <div *ngIf="! (getDetailsInfo() | async)">
-  <br />
+  <br/>
   <execution-plan-details></execution-plan-details>
 </div>

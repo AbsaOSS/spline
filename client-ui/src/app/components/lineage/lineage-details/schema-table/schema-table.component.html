@@ -15,15 +15,16 @@
   -->
 
 <ngx-datatable #table
-               [id]=schemaId
                [rows]='schema'
                [columnMode]="'force'"
                [selectionType]="'single'"
+               [selectCheck]="selectCheck"
                [headerHeight]="0"
                [footerHeight]="'auto'"
                [rowHeight]="'auto'"
                [scrollbarV]="false"
-               (select)='onSelect($event)'
+               [ngClass]="{'non-selectable': !selectable}"
+               (select)="onSelect($event)"
                class='material expandable'>
 
   <!-- Row Detail Template -->
@@ -32,14 +33,14 @@
     <ng-template let-row="row" let-expanded="expanded" ngx-datatable-row-detail-template>
       <schema-table *ngIf="row.dataType._type == 'StructDataType'"
                     [schema]="row.dataType.children"
-                    [schemaId]=getChildSchemaId(schemaId,row.name)>
+                    [selectable]="false">
       </schema-table>
 
       <ng-container
         *ngIf="row.dataType._type == 'ArrayDataType' && getArrayInnermostElementTypeWithNestingLevel(row.dataType); let innerDtWithLevel">
         <schema-table *ngIf="innerDtWithLevel[0]._type == 'StructDataType'"
                       [schema]="innerDtWithLevel[0].children"
-                      [schemaId]=getChildSchemaId(schemaId,row.name)>
+                      [selectable]="false">
         </schema-table>
       </ng-container>
     </ng-template>
@@ -53,7 +54,7 @@
     </ng-template>
   </ngx-datatable-column>
 
-  <ngx-datatable-column name="Type">
+  <ngx-datatable-column name="Type" cellClass="type">
     <ng-template let-expanded="expanded" let-type="type" let-row="row" let-dt="row.dataType"
                  ngx-datatable-cell-template>
       <ng-container [ngSwitch]="dt._type">

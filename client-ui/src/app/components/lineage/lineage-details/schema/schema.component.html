@@ -25,17 +25,15 @@
             <i class='fa fa-xs fa-arrow-circle-left text-danger'></i> <strong> Output </strong>
           </ng-container>
           <ng-container *ngIf="schemaType != 0 && schemaType != 1">
-            <i class='fa fa-xs fa-arrow-circle-right'></i> <strong> Schema </strong>
+            <strong> Schema </strong>
           </ng-container>
         </mat-panel-title>
       </mat-expansion-panel-header>
-      <div id="schema{{schemaId}}">
-        <schema-table
-          [schema]="schema"
-          [schemaId]=schemaId
-          (fieldSelected)="onAttributeSelected($event)"
-        ></schema-table>
-      </div>
+      <schema-table
+        [schema]="schema"
+        [selectedField]="selectedAttribute$ | async"
+        (selectedFieldChanged)="onAttributeSelected($event)">
+      </schema-table>
     </mat-expansion-panel>
   </mat-accordion>
 </div>

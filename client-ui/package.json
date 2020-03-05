@@ -29,7 +29,7 @@
     "@ngrx/effects": "^8.2.0",
     "@ngrx/router-store": "^8.2.0",
     "@ngrx/store": "^8.2.0",
-    "@swimlane/ngx-datatable": "^15.0.2",
+    "@swimlane/ngx-datatable": "^16.0.3",
     "angular-material-expansion-panel": "^0.7.2",
     "angular-tree-component": "^8.4.0",
     "angular2-prettyjson": "^3.0.1",
