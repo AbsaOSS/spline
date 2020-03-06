@@ -35,7 +35,7 @@ import {OperationType} from 'src/app/model/types/operationType';
 })
 export class LineageGraphComponent extends AdaptiveComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  @ViewChild(CytoscapeNgLibComponent, { static: true })
+  @ViewChild(CytoscapeNgLibComponent, {static: true})
   private cytograph: CytoscapeNgLibComponent
 
   private subscriptions: Subscription[] = []
@@ -59,7 +59,7 @@ export class LineageGraphComponent extends AdaptiveComponent implements OnInit, 
               .pipe(
                 filter(state => state != null),
                 map(state => {
-                  return { graph: state.graph, layout: layout }
+                  return {graph: state.graph, layout: layout}
                 })
               )
           })
@@ -89,15 +89,16 @@ export class LineageGraphComponent extends AdaptiveComponent implements OnInit, 
 
   public ngAfterViewInit(): void {
     this.cytograph.cy.ready(() => {
-      this.cytograph.cy.style().selector('edge').css({
-        'width': '7'
-      })
-      this.cytograph.cy.on('click', (event) => {
-        const clikedTarget = event.target
-        const nodeId = (clikedTarget != this.cytograph.cy && clikedTarget.isNode()) ? clikedTarget.id() : null
+      this.cytograph.cy.style().selector('core').css({'active-bg-size': 0})
+      this.cytograph.cy.style().selector('edge').css({'width': 7})
+      this.cytograph.cy.on('mouseover', 'node', e => e.originalEvent.target.style.cursor = 'pointer')
+      this.cytograph.cy.on('mouseout', 'node', e => e.originalEvent.target.style.cursor = '')
+      this.cytograph.cy.on('click', event => {
+        const target = event.target
+        const nodeId = (target != this.cytograph.cy && target.isNode()) ? target.id() : null
         this.getDetailsInfo(nodeId)
         const params = {} as RouterStateUrl
-        params.queryParams = { selectedNode: nodeId, schemaId: null, attribute: null }
+        params.queryParams = {selectedNode: nodeId, schemaId: null, attribute: null}
         this.store.dispatch(new RouterAction.Go(params))
       })
     })
@@ -105,8 +106,8 @@ export class LineageGraphComponent extends AdaptiveComponent implements OnInit, 
 
     this.cytograph.cy.on('layoutstop', () => {
       this.subscriptions.push(
-        this.store
-          .select('router', 'state', 'queryParams', 'selectedNode').pipe(
+        this.store.select('router', 'state', 'queryParams', 'selectedNode')
+          .pipe(
             first(),
             filter(state => state != null)
           )
@@ -127,8 +128,8 @@ export class LineageGraphComponent extends AdaptiveComponent implements OnInit, 
     this.subscriptions.push(
       this.store
         .select('router', 'state', 'params', 'uid').pipe(
-          filter(state => state != null)
-        )
+        filter(state => state != null)
+      )
         .subscribe(
           uid => {
             this.store.dispatch(new ExecutionPlanAction.Get(uid))

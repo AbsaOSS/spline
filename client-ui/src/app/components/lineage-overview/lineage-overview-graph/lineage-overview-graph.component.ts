@@ -102,9 +102,10 @@ export class LineageOverviewGraphComponent extends AdaptiveComponent implements 
 
   public ngAfterViewInit(): void {
     this.cytograph.cy.ready(() => {
-      this.cytograph.cy.style().selector('edge').css({
-        'width': '7'
-      })
+      this.cytograph.cy.style().selector('core').css({'active-bg-size': 0})
+      this.cytograph.cy.style().selector('edge').css({'width': 7})
+      this.cytograph.cy.on('mouseover', 'node', e => e.originalEvent.target.style.cursor = 'pointer')
+      this.cytograph.cy.on('mouseout', 'node', e => e.originalEvent.target.style.cursor = '')
       const doubleClickDelayMs = 350
       let previousTimeStamp
 
