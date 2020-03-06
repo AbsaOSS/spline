@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <div class="detail-container"
-  [ngClass]="(getDetailsInfo() | async) && showAttributeGraph ? 'container-50h' : getContainerClass() | async">
+     [ngClass]="embeddedMode ? 'embeddedHeight' : 'fullHeight'">
   <div class="details container-fluid">
     <div class="row">
       <div class="col-sm-12 no-padding">

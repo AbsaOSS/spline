@@ -13,7 +13,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<div class="lineage-overview-container" [ngClass]="getContainerClass() | async">
+<div class="lineage-overview-container"
+     [ngClass]="embeddedMode ? 'embeddedHeight' : 'fullHeight'">
   <div *ngIf="(getLineageOverviewInfo() | async)" class="lineage-overview-details ">
     <br/>
     <h3 class="text-center"> Job Lineage </h3>

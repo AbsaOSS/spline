@@ -13,77 +13,60 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {AfterViewInit, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {CytoscapeNgLibComponent} from 'cytoscape-ng-lib';
-import {Subscription} from 'rxjs';
-import {filter, first, map, switchMap} from 'rxjs/operators';
+import {combineLatest, Subscription} from 'rxjs';
+import {filter, first} from 'rxjs/operators';
 import {AppState} from 'src/app/model/app-state';
-import {RouterStateUrl} from 'src/app/model/routerStateUrl';
 import * as DetailsInfosAction from 'src/app/store/actions/details-info.actions';
 import * as ExecutionPlanAction from 'src/app/store/actions/execution-plan.actions';
 import * as LayoutAction from 'src/app/store/actions/layout.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
-import {AdaptiveComponent} from '../../adaptive/adaptive.component';
 import {operationColorCodes, operationIconCodes} from 'src/app/util/execution-plan';
 import {OperationType} from 'src/app/model/types/operationType';
+import * as _ from 'lodash';
 
 
 @Component({
   selector: 'lineage-graph',
   templateUrl: './lineage-graph.component.html'
 })
-export class LineageGraphComponent extends AdaptiveComponent implements OnInit, AfterViewInit, OnDestroy {
+export class LineageGraphComponent implements OnInit, AfterViewInit, OnDestroy {
+
+  @Input()
+  public embeddedMode: boolean
 
   @ViewChild(CytoscapeNgLibComponent, {static: true})
   private cytograph: CytoscapeNgLibComponent
 
   private subscriptions: Subscription[] = []
 
-  constructor(
-    private store: Store<AppState>
-  ) {
-    super(store)
+  constructor(private store: Store<AppState>) {
     this.getExecutedLogicalPlan()
     this.getLayoutConfiguration()
   }
 
   public ngOnInit(): void {
     this.subscriptions.push(
-      this.store
-        .select('layout')
-        .pipe(
-          switchMap(layout => {
-            return this.store
-              .select('executedLogicalPlan')
-              .pipe(
-                filter(state => state != null),
-                map(state => {
-                  return {graph: state.graph, layout: layout}
-                })
-              )
-          })
-        )
-        .subscribe(state => {
-          if (state && this.cytograph.cy) {
-            state.graph.nodes.map(n => {
-              if (n.data._type == 'Write') {
-                n.data.icon = operationIconCodes.get(OperationType.Write)
-                n.data.color = operationColorCodes.get(OperationType.Write)
-              }
-              return n
-            })
-            this.cytograph.cy.add(state.graph)
-            this.cytograph.cy.nodeHtmlLabel([{
-              tpl: function (data) {
-                if (data.icon) return '<i class="fa fa-4x" style="color:' + data.color + '">' + String.fromCharCode(data.icon) + '</i>'
-                return null
-              }
-            }])
-            this.cytograph.cy.panzoom()
-            this.cytograph.cy.layout(state.layout).run()
+      combineLatest([
+        this.store.select('layout'),
+        this.store.select('executedLogicalPlan').pipe(filter(_.identity))
+      ]).subscribe(([layout, execPlan]) => {
+        execPlan.graph.nodes.map(n => {
+          if (n.data._type == 'Write') {
+            n.data.icon = operationIconCodes.get(OperationType.Write)
+            n.data.color = operationColorCodes.get(OperationType.Write)
           }
+          return n
         })
+        this.cytograph.cy.add(execPlan.graph)
+        this.cytograph.cy.nodeHtmlLabel([{
+          tpl: d => d.icon && `<i class="fa fa-4x" style="color:${d.color}">${String.fromCharCode(d.icon)}</i>`
+        }])
+        this.cytograph.cy.panzoom()
+        this.cytograph.cy.layout(layout).run()
+      })
     )
   }
 
@@ -97,9 +80,10 @@ export class LineageGraphComponent extends AdaptiveComponent implements OnInit, 
         const target = event.target
         const nodeId = (target != this.cytograph.cy && target.isNode()) ? target.id() : null
         this.getDetailsInfo(nodeId)
-        const params = {} as RouterStateUrl
-        params.queryParams = {selectedNode: nodeId, schemaId: null, attribute: null}
-        this.store.dispatch(new RouterAction.Go(params))
+        this.store.dispatch(new RouterAction.Go({
+          url: null,
+          queryParams: {selectedNode: nodeId, schemaId: null, attribute: null}
+        }))
       })
     })
 
@@ -109,9 +93,9 @@ export class LineageGraphComponent extends AdaptiveComponent implements OnInit, 
         this.store.select('router', 'state', 'queryParams', 'selectedNode')
           .pipe(
             first(),
-            filter(state => state != null)
-          )
+            filter(_.identity))
           .subscribe((selectedNode: string) => {
+            console.log(selectedNode)
             this.cytograph.cy.nodes().unselect()
             this.cytograph.cy.nodes().filter("[id='" + selectedNode + "']").select()
             this.getDetailsInfo(selectedNode)
@@ -127,15 +111,9 @@ export class LineageGraphComponent extends AdaptiveComponent implements OnInit, 
   private getExecutedLogicalPlan = (): void => {
     this.subscriptions.push(
       this.store
-        .select('router', 'state', 'params', 'uid').pipe(
-        filter(state => state != null)
-      )
-        .subscribe(
-          uid => {
-            this.store.dispatch(new ExecutionPlanAction.Get(uid))
-          }
-        )
-    )
+        .select('router', 'state', 'params', 'uid')
+        .pipe(filter(_.identity))
+        .subscribe(uid => this.store.dispatch(new ExecutionPlanAction.Get(uid))))
   }
 
   private getDetailsInfo = (nodeId: string): void => {

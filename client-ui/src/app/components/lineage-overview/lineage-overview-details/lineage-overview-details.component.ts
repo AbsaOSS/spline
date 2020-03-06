@@ -13,25 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component} from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {AppState} from 'src/app/model/app-state';
 import {Observable} from 'rxjs';
 import {OperationDetailsVM} from 'src/app/model/viewModels/operationDetailsVM';
 import {AttributeVM} from 'src/app/model/viewModels/attributeVM';
-import {AdaptiveComponent} from '../../adaptive/adaptive.component';
 
 @Component({
   selector: 'lineage-overview-details',
   templateUrl: './lineage-overview-details.component.html',
   styleUrls: ['./lineage-overview-details.component.less']
 })
-export class LineageOverviewDetailsComponent extends AdaptiveComponent {
+export class LineageOverviewDetailsComponent {
 
-  constructor(
-    private store: Store<AppState>
-  ) {
-    super(store)
+  @Input()
+  public embeddedMode: boolean
+
+  constructor(private store: Store<AppState>) {
   }
 
   public getLineageOverviewInfo = (): Observable<{ [key: string]: {} }> => {
@@ -43,16 +42,10 @@ export class LineageOverviewDetailsComponent extends AdaptiveComponent {
   }
 
   public getOutputSchema = (operationDetails: OperationDetailsVM): AttributeVM[] => {
-    // console.log(operationDetails.schemas[operationDetails.output])
     return operationDetails.schemas[operationDetails.output]
   }
 
   public getTargetName = (): Observable<any> => {
     return this.store.select("lineageOverview", "lineageInfo", "targetNodeName")
   }
-
-  public getFormatedTimestamp = (): Observable<any> => {
-    return this.store.select("lineageOverview", "lineageInfo", "timestamp")
-  }
-
 }

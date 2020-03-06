@@ -13,33 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { AppState } from 'src/app/model/app-state';
-import { Observable } from 'rxjs';
-import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM';
-import { AdaptiveComponent } from '../../adaptive/adaptive.component';
+import {Component, Input} from '@angular/core';
 
 @Component({
   selector: 'lineage-details',
   templateUrl: './lineage-details.component.html',
   styleUrls: ['./lineage-details.component.less']
 })
-export class LineageDetailsComponent extends AdaptiveComponent {
+export class LineageDetailsComponent {
 
-  constructor(
-    private store: Store<AppState>
-  ) {
-    super(store)
-  }
-
-  public showAttributeGraph = false
-
-  public getDetailsInfo = (): Observable<OperationDetailsVM> => {
-    return this.store.select('detailsInfos')
-  }
-
-  public onShowAttributesGraph(value: boolean): void {
-    this.showAttributeGraph = value
-  }
+  @Input()
+  public embeddedMode: boolean
 }

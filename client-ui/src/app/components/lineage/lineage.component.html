@@ -16,12 +16,11 @@
 <div class="container-fluid">
   <div class="row">
     <div class="col-sm-8 no-padding">
-      <lineage-graph></lineage-graph>
+      <lineage-graph [embeddedMode]="embeddedMode$ | async"></lineage-graph>
     </div>
 
     <div class="col-sm-4 ">
-      <lineage-details></lineage-details>
+      <lineage-details [embeddedMode]="embeddedMode$ | async"></lineage-details>
     </div>
-
   </div>
 </div>

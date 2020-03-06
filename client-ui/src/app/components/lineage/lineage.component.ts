@@ -15,8 +15,18 @@
  */
 
 import {Component} from '@angular/core';
+import {Store} from "@ngrx/store";
+import {AppState} from "../../model/app-state";
+import {Observable} from "rxjs";
 
 @Component({
   templateUrl: './lineage.component.html'
 })
-export class LineageComponent { }
+export class LineageComponent {
+
+  public embeddedMode$: Observable<boolean>
+
+  constructor(private store: Store<AppState>) {
+    this.embeddedMode$ = this.store.select('config', 'embeddedMode')
+  }
+}

@@ -13,7 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+
+import {Component} from '@angular/core';
+import {Observable} from "rxjs";
+import {Store} from "@ngrx/store";
+import {AppState} from "../../model/app-state";
 
 @Component({
   selector: 'lineage-overview',
@@ -21,7 +25,9 @@ import { Component } from '@angular/core';
 })
 export class LineageOverviewComponent {
 
-  constructor() { }
+  public embeddedMode$: Observable<boolean>
 
-
+  constructor(private store: Store<AppState>) {
+    this.embeddedMode$ = this.store.select('config', 'embeddedMode')
+  }
 }

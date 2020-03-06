@@ -38,7 +38,6 @@ import {ToastrModule} from 'ngx-toastr';
 import {filter} from 'rxjs/operators';
 import {environment} from '../environments/environment';
 import {AppComponent} from './app.component';
-import {AdaptiveComponent} from './components/adaptive/adaptive.component';
 import {DashboardComponent} from './components/dashboard/dashboard.component';
 import {ErrorComponent} from './components/error/error.component';
 import {ExecutionPlanDetailsComponent} from './components/execution-plan-details/execution-plan-details.component';
@@ -136,7 +135,6 @@ const ROOT_ROUTING = "app/"
     TimePickerComponent,
     HeaderComponent,
     FooterComponent,
-    AdaptiveComponent,
     WriteComponent,
     AliasComponent,
     PropertyErrorComponent
