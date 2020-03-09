@@ -90,7 +90,7 @@ export class LineageComponent implements OnDestroy {
   public onNodeSelected(nodeId: string) {
     this.store.dispatch(new RouterAction.Go({
       url: null,
-      queryParams: {selectedNode: nodeId, schemaId: null, attribute: null}
+      queryParams: {selectedNode: nodeId}
     }))
   }
 }
