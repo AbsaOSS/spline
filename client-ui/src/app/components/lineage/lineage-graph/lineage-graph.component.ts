@@ -28,6 +28,7 @@ import {CytoscapeNgLibComponent} from 'cytoscape-ng-lib';
 import {operationColorCodes, operationIconCodes} from 'src/app/util/execution-plan';
 import {OperationType} from 'src/app/model/types/operationType';
 import {CytoscapeGraphVM} from "../../../model/viewModels/cytoscape/cytoscapeGraphVM";
+import {AttributeGraph} from "../../../generated/models/attribute-graph";
 
 
 @Component({
@@ -47,6 +48,9 @@ export class LineageGraphComponent implements OnInit, OnChanges, AfterViewInit {
   @Input()
   public selectedNode: string
 
+  @Input()
+  public attributeGraph: AttributeGraph
+
   @Output()
   public selectedNodeChange = new EventEmitter<string>()
 
@@ -61,6 +65,7 @@ export class LineageGraphComponent implements OnInit, OnChanges, AfterViewInit {
 
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes['selectedNode']) this.refreshSelectedNode()
+    if (changes['attributeGraph']) this.refreshAttributeGraph()
   }
 
   public ngAfterViewInit(): void {
@@ -83,12 +88,19 @@ export class LineageGraphComponent implements OnInit, OnChanges, AfterViewInit {
       })
     })
     this.refreshSelectedNode()
+    this.refreshAttributeGraph()
   }
 
   private refreshSelectedNode() {
     this.cytograph && this.cytograph.cy && this.cytograph.cy.ready(() => {
       this.cytograph.cy.nodes().unselect()
       this.cytograph.cy.nodes().filter(`[id='${this.selectedNode}']`).select()
+    })
+  }
+
+  private refreshAttributeGraph() {
+    this.cytograph && this.cytograph.cy && this.cytograph.cy.ready(() => {
+      console.log("[ATTRIBUTE GRAPH]", this.attributeGraph)
     })
   }
 }

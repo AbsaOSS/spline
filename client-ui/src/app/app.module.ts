@@ -88,6 +88,8 @@ import {lineageOverviewReducer} from './store/reducers/lineage-overview.reducer'
 import {WriteComponent} from './components/lineage/lineage-details/operation-properties-details/write/write.component';
 import {AliasComponent} from './components/lineage/lineage-details/operation-properties-details/alias/alias.component';
 import {PropertyErrorComponent} from './components/lineage/lineage-details/operation-properties-details/property-error/property-error.component';
+import {attributeLineageGraphReducer} from "./store/reducers/attribute-lineage-graph.reducer";
+import {AttributeLineageGraphEffects} from "./effects/attribute-lineage-graph.effects";
 
 
 export function initializeApp(store: Store<AppState>): () => Promise<any> {
@@ -176,6 +178,7 @@ const ROOT_ROUTING = "app/"
       config: configReducer,
       dashboard: dashboardReducer,
       executedLogicalPlan: executionPlanReducer,
+      attributeLineageGraph: attributeLineageGraphReducer,
       lineageOverview: lineageOverviewReducer,
       detailsInfos: detailsInfoReducer,
       executionEvents: executionEventReducer,
@@ -189,6 +192,7 @@ const ROOT_ROUTING = "app/"
       NotificationsEffects,
       ExecutionEventsEffects,
       ExecutionPlanEffects,
+      AttributeLineageGraphEffects,
       LineageOverviewEffects,
       DetailsInfoEffects,
       RouterEffects,
@@ -196,13 +200,13 @@ const ROOT_ROUTING = "app/"
     ]),
     StoreRouterConnectingModule.forRoot(),
     RouterModule.forRoot([
-      { path: ROOT_ROUTING + 'dashboard', component: DashboardComponent },
-      { path: ROOT_ROUTING + 'lineage-overview', component: LineageOverviewComponent },
-      { path: ROOT_ROUTING + 'lineage-detailed/:uid', component: LineageComponent },
-      { path: ROOT_ROUTING + 'error/:httpCode', component: ErrorComponent },
-      { path: '**', redirectTo: ROOT_ROUTING + 'dashboard' }
+      {path: ROOT_ROUTING + 'dashboard', component: DashboardComponent},
+      {path: ROOT_ROUTING + 'lineage-overview', component: LineageOverviewComponent},
+      {path: ROOT_ROUTING + 'lineage-detailed/:uid', component: LineageComponent},
+      {path: ROOT_ROUTING + 'error/:httpCode', component: ErrorComponent},
+      {path: '**', redirectTo: ROOT_ROUTING + 'dashboard'}
     ]),
-    !environment.production ? StoreDevtoolsModule.instrument({ maxAge: 25 }) : [],
+    !environment.production ? StoreDevtoolsModule.instrument({maxAge: 25}) : [],
   ],
   providers: [
     {

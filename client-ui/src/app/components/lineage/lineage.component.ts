@@ -17,7 +17,7 @@
 import {Component, OnDestroy} from '@angular/core';
 import {Store} from "@ngrx/store";
 import {AppState} from "../../model/app-state";
-import {combineLatest, Observable, Subscription} from "rxjs";
+import {combineLatest, Observable, ObservedValueOf, Subscription} from "rxjs";
 import * as LayoutAction from "../../store/actions/layout.actions";
 import * as _ from "lodash";
 import * as ExecutionPlanAction from "../../store/actions/execution-plan.actions";
@@ -25,7 +25,7 @@ import {distinct, filter, map, startWith} from "rxjs/operators";
 import {CytoscapeGraphVM} from "../../model/viewModels/cytoscape/cytoscapeGraphVM";
 import * as RouterAction from "../../store/actions/router.actions";
 import * as DetailsInfosAction from "../../store/actions/details-info.actions";
-import {ObservedValueOf} from "rxjs/src/internal/types";
+import {AttributeGraph} from "../../generated/models/attribute-graph";
 
 @Component({
   templateUrl: './lineage.component.html'
@@ -35,7 +35,8 @@ export class LineageComponent implements OnDestroy {
   public data$: Observable<{
     embeddedMode: boolean,
     layout: object,
-    graph: CytoscapeGraphVM
+    graph: CytoscapeGraphVM,
+    attributeGraph: AttributeGraph
   }>
 
   public selectedNodeId: string
@@ -68,10 +69,12 @@ export class LineageComponent implements OnDestroy {
     this.data$ = this.combineLatestValues([
       this.store.select('config', 'embeddedMode'),
       this.store.select('layout'),
-      this.store.select('executedLogicalPlan').pipe(filter(_.identity))
+      this.store.select('executedLogicalPlan').pipe(filter(_.identity)),
+      this.store.select('attributeLineageGraph')
     ]).pipe(
       distinct(),
-      map(([embeddedMode, layout, plan]) => ({embeddedMode, layout, graph: plan.graph}))
+      map(([embeddedMode, layout, plan, attributeGraph]) =>
+        ({embeddedMode, layout, graph: plan.graph, attributeGraph}))
     )
   }
 
