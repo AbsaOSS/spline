@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {AfterViewInit, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {CytoscapeNgLibComponent} from 'cytoscape-ng-lib';
 import * as _ from 'lodash';
@@ -29,14 +29,16 @@ import * as LayoutAction from 'src/app/store/actions/layout.actions';
 import * as LineageOverviewAction from 'src/app/store/actions/lineage-overview.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
 import {getWriteOperationIdFromExecutionId} from 'src/app/util/execution-plan';
-import {AdaptiveComponent} from '../../adaptive/adaptive.component';
 
 
 @Component({
   selector: 'lineage-overview-graph',
   templateUrl: './lineage-overview-graph.component.html'
 })
-export class LineageOverviewGraphComponent extends AdaptiveComponent implements OnInit, AfterViewInit, OnDestroy {
+export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnDestroy {
+
+  @Input()
+  public embeddedMode: boolean
 
   @ViewChild(CytoscapeNgLibComponent, { static: true })
   private cytograph: CytoscapeNgLibComponent
@@ -44,10 +46,7 @@ export class LineageOverviewGraphComponent extends AdaptiveComponent implements 
   private subscriptions: Subscription[] = []
 
 
-  constructor(
-    private store: Store<AppState>
-  ) {
-    super(store)
+  constructor(private store: Store<AppState>) {
     this.getContextMenuConfiguration()
     this.getLayoutConfiguration()
     this.getOverviewLineage()
@@ -102,9 +101,10 @@ export class LineageOverviewGraphComponent extends AdaptiveComponent implements 
 
   public ngAfterViewInit(): void {
     this.cytograph.cy.ready(() => {
-      this.cytograph.cy.style().selector('edge').css({
-        'width': '7'
-      })
+      this.cytograph.cy.style().selector('core').css({'active-bg-size': 0})
+      this.cytograph.cy.style().selector('edge').css({'width': 7})
+      this.cytograph.cy.on('mouseover', 'node', e => e.originalEvent.target.style.cursor = 'pointer')
+      this.cytograph.cy.on('mouseout', 'node', e => e.originalEvent.target.style.cursor = '')
       const doubleClickDelayMs = 350
       let previousTimeStamp
 

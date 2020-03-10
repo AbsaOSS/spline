@@ -36,6 +36,7 @@ import {OperationDetailsVM} from 'src/app/model/viewModels/operationDetailsVM';
 import {getOperationColor, getOperationIcon} from 'src/app/util/execution-plan';
 import {getText} from 'src/app/util/expressions';
 import {PropertiesComponent} from './properties/properties.component';
+import {ActivatedRoute, Router} from "@angular/router";
 
 
 @Component({
@@ -45,14 +46,29 @@ import {PropertiesComponent} from './properties/properties.component';
 })
 export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDestroy {
 
-  @ViewChildren('propertiesPanel', { read: ViewContainerRef })
+  @ViewChildren('propertiesPanel', {read: ViewContainerRef})
   propertiesPanel: QueryList<ViewContainerRef>
 
   constructor(
     private componentFactoryResolver: ComponentFactoryResolver,
-    private changedetectorRef: ChangeDetectorRef,
-    private store: Store<AppState>
-  ) { }
+    private changeDetectorRef: ChangeDetectorRef,
+    private store: Store<AppState>,
+    private router: Router,
+    private route: ActivatedRoute) {
+  }
+
+  public selectedAttributeId$ =
+    this.route.queryParams.pipe(map(({attribute}) => attribute))
+
+  public onSelectedAttributeIdChange(attrId: string) {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParamsHandling: "merge",
+      queryParams: {
+        attribute: attrId
+      }
+    })
+  }
 
   private subscriptions: Subscription[] = []
 
@@ -66,40 +82,39 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
                 return this.store.select('executedLogicalPlan', 'executionPlan', 'extra', 'attributes')
                   .pipe(
                     map(attributes => {
-                      return { detailsInfos: detailsInfos, attributes: attributes }
+                      return {detailsInfos: detailsInfos, attributes: attributes}
                     })
                   )
               })
             )
         )
-      ).
-        subscribe(store => {
-          const container = this.propertiesPanel.first
-          if (container && store.detailsInfos) {
-            container.clear()
-            let name = store.detailsInfos.operation.name
-            const type = store.detailsInfos.operation._type
-            if (!PropertiesComponents.has(name)) {
-              name = OperationType.Generic
-            }
-            let properties: Property[] = []
-            let component: Type<PropertiesComponent>
-            try {
-              properties = this.getProperties(store.detailsInfos, store.attributes)
-              component = type == OperationType.Write ? PropertiesComponents.get(OperationType.Write) : PropertiesComponents.get(name)
-            } catch (error) {
-              console.error(error)
-              component = PropertiesComponents.get(OperationType.Error)
-            } finally {
-              const factory = this.componentFactoryResolver.resolveComponentFactory(component)
-              const instance = container.createComponent(factory).instance
-              instance.properties = properties
-              instance.propertyName = name
-              instance.propertyType = type
-            }
-            if (!this.changedetectorRef["destroyed"]) this.changedetectorRef.detectChanges()
+      ).subscribe(store => {
+        const container = this.propertiesPanel.first
+        if (container && store.detailsInfos) {
+          container.clear()
+          let name = store.detailsInfos.operation.name
+          const type = store.detailsInfos.operation._type
+          if (!PropertiesComponents.has(name)) {
+            name = OperationType.Generic
           }
-        })
+          let properties: Property[] = []
+          let component: Type<PropertiesComponent>
+          try {
+            properties = this.getProperties(store.detailsInfos, store.attributes)
+            component = type == OperationType.Write ? PropertiesComponents.get(OperationType.Write) : PropertiesComponents.get(name)
+          } catch (error) {
+            console.error(error)
+            component = PropertiesComponents.get(OperationType.Error)
+          } finally {
+            const factory = this.componentFactoryResolver.resolveComponentFactory(component)
+            const instance = container.createComponent(factory).instance
+            instance.properties = properties
+            instance.propertyName = name
+            instance.propertyType = type
+          }
+          if (!this.changeDetectorRef["destroyed"]) this.changeDetectorRef.detectChanges()
+        }
+      })
     )
   }
 
@@ -210,7 +225,7 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
   }
 
   public getOutputSchema = (operationDetails: OperationDetailsVM): AttributeVM[] => {
-    return operationDetails ? operationDetails.schemas[operationDetails.output] : null
+    return operationDetails && operationDetails.schemas[operationDetails.output]
   }
 
   ngOnDestroy(): void {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {PageableExecutionEventsResponse} from "../generated/models";
+import {AttributeGraph, PageableExecutionEventsResponse} from "../generated/models";
 import {RouterStateUrl} from "./routerStateUrl";
 import {CytoscapeGraphVM} from "./viewModels/cytoscape/cytoscapeGraphVM";
 import {ExecutedLogicalPlanVM} from "./viewModels/executedLogicalPlanVM";
@@ -30,6 +30,7 @@ export interface AppState {
     dashboard: DashboardVM,
     lineageOverview: LineageOverviewVM,
     executedLogicalPlan: ExecutedLogicalPlanVM,
+    attributeLineageGraph: AttributeGraph,
     detailsInfos: OperationDetailsVM,
     attributes: CytoscapeGraphVM,
     router: RouterStateUrl,

@@ -16,7 +16,7 @@
 import {GraphNode} from './graphNodeVM';
 import {GraphEdge} from './graphEdgeVM';
 
-export interface CytoscapeGraphVM {
+export type CytoscapeGraphVM = {
     nodes: Array<GraphNode>
     edges: Array<GraphEdge>
 }

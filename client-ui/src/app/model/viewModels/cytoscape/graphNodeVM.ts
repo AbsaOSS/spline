@@ -15,6 +15,6 @@
  */
 import {CytoscapeOperationVM} from './cytoscapeOperationVM';
 
-export interface GraphNode {
+export type GraphNode = {
     data: CytoscapeOperationVM
 }

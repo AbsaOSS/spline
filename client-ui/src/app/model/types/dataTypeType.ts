@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export const enum AttributeType {
+export const enum DataTypeType {
     Struct = "StructDataType",
     Array = "ArrayDataType",
     Simple = "SimpleDataType"

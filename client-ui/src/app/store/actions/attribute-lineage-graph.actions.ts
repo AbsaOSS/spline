@@ -13,25 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import {Action} from '@ngrx/store';
-import {AttributeVM} from '../../model/viewModels/attributeVM';
+import {AttributeGraph} from "../../generated/models/attribute-graph";
 
-export enum AttributesActionTypes {
-    ATTRIBUTES_GET = '[Attribute] Get',
-    ATTRIBUTES_RESET = '[Attribute] Reset'
+export enum AttributeLineageGraphActionTypes {
+  ATTRIBUTE_LINEAGE_GRAPH_SET = '[Attribute Lineage] Set',
 }
 
-export class Get implements Action {
-    public readonly type = AttributesActionTypes.ATTRIBUTES_GET
-    constructor(public payload: AttributeVM) { }
+export class Set implements Action {
+  public readonly type = AttributeLineageGraphActionTypes.ATTRIBUTE_LINEAGE_GRAPH_SET
+
+  constructor(public graph: AttributeGraph) {
+  }
 }
 
-export class Reset implements Action {
-    public readonly type = AttributesActionTypes.ATTRIBUTES_RESET
-    constructor() { }
-}
-
-export type AttributeActions
-    = Get
-    | Reset
+export type AttributeLineageGraphActions = Set

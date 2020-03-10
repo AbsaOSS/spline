@@ -54,7 +54,7 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
         |            LET attributeList = (
         |                FOR a IN pairAttributesDataTypes.attributes
         |                    FILTER CONTAINS(s, a.id)
-        |                    RETURN KEEP(a, "dataTypeId", "name")
+        |                    RETURN a
         |            )
         |            RETURN attributeList
         |    )

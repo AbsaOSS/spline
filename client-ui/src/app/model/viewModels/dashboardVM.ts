@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export interface DashboardVM {
+export type DashboardVM = {
   filters: {
     dateRange: [number, number]
     searchQuery: string
@@ -23,12 +23,12 @@ export interface DashboardVM {
   sort: Sorting
 }
 
-export interface Pagination {
+export type Pagination = {
   page: number
   size: number
 }
 
-export interface Sorting {
+export type Sorting = {
   field: string
   order: string
 }

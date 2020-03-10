@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-@import "../node_modules/font-awesome/less/font-awesome.less";
 @import "../node_modules/@fortawesome/fontawesome-free/css/all.min.css";
 @import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 @import "../node_modules/cytoscape-panzoom/cytoscape.js-panzoom.css";
-@import '~@swimlane/ngx-datatable/release/index.css';
-@import '~@swimlane/ngx-datatable/release/themes/material.css';
-@import '~@swimlane/ngx-datatable/release/assets/icons.css';
+@import '~@swimlane/ngx-datatable/index.css';
+@import '~@swimlane/ngx-datatable/themes/material.css';
+@import '~@swimlane/ngx-datatable/assets/icons.css';
 
 html,
 body {
@@ -105,12 +104,8 @@ hr {
     color           : #fff;
 }
 
-.ngx-datatable.material:not(.cell-selection) .datatable-body-row:hover .datatable-row-group {
-    cursor: pointer;
-}
-
 .ngx-datatable.material .datatable-body .datatable-row-detail {
-    background: #f2f2f2;
+    background: unset;
 }
 
 .tooltipCell {

@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
-import { SchemaType } from 'src/app/model/types/schemaType';
+
+import * as _ from 'lodash';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {SchemaType} from 'src/app/model/types/schemaType';
+import {AttributeVM, StructFieldVM} from "../../../../model/viewModels/attributeVM";
 
 @Component({
   selector: 'schema',
@@ -23,12 +26,32 @@ import { SchemaType } from 'src/app/model/types/schemaType';
 export class SchemaComponent {
 
   @Input()
-  schemaId: string
+  public schemaType: SchemaType
 
   @Input()
-  schemaType: SchemaType
+  public set schema(schema: AttributeVM[]) {
+    this._schema = schema
+    this.attrById = _.keyBy(schema, attr => attr.id)
+  }
+
+  public get schema(): AttributeVM[] {
+    return this._schema
+  }
+
+  private _schema: AttributeVM[]
+  private attrById: { [key: string]: AttributeVM } = {}
 
   @Input()
-  schema: any
+  public selectedAttributeId: string
 
+  @Output()
+  public selectedAttributeIdChanged = new EventEmitter<string>()
+
+  public selectedAttribute(): AttributeVM {
+    return this.attrById[this.selectedAttributeId]
+  }
+
+  public onAttributeSelected(attr: StructFieldVM) {
+    this.selectedAttributeIdChanged.emit((attr as AttributeVM).id)
+  }
 }

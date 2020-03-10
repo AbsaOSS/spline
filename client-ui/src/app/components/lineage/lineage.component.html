@@ -14,14 +14,19 @@
   ~ limitations under the License.
   -->
 <div class="container-fluid">
-  <div class="row">
+  <div class="row" *ngIf="data$ | async; let d">
     <div class="col-sm-8 no-padding">
-      <lineage-graph></lineage-graph>
+      <lineage-graph [embeddedMode]="d.embeddedMode"
+                     [layout]="d.layout"
+                     [graph]="d.graph"
+                     [attributeGraph]="d.attributeGraph"
+                     [selectedNode]="selectedNodeId"
+                     (selectedNodeChange)="onNodeSelected($event)">
+      </lineage-graph>
     </div>
 
     <div class="col-sm-4 ">
-      <lineage-details></lineage-details>
+      <lineage-details [embeddedMode]="d.embeddedMode"></lineage-details>
     </div>
-
   </div>
 </div>

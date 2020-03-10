@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { LineageOverviewNode } from "src/app/generated/models";
+import {LineageOverviewNode} from "src/app/generated/models";
 
-export interface LineageOverviewNodeVM extends LineageOverviewNode {
+export type LineageOverviewNodeVM = LineageOverviewNode & {
     _id: string
     name: string
     _type: string

@@ -13,111 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {AfterViewInit, Component, Input, OnDestroy, ViewChild} from '@angular/core';
-import {Store} from '@ngrx/store';
-import * as _ from 'lodash';
-import {Subscription} from 'rxjs';
-import {AppState} from 'src/app/model/app-state';
-import {AttributeType} from 'src/app/model/types/attributeType';
-import {AttributeVM} from 'src/app/model/viewModels/attributeVM';
-import * as AttributesAction from 'src/app/store/actions/attributes.actions';
-import * as RouterAction from 'src/app/store/actions/router.actions';
-import * as attributeReducer from 'src/app/store/reducers/attribute.reducer';
+import {Component, EventEmitter, Input, OnChanges, Output, ViewChild} from '@angular/core';
+import {DataTypeType} from 'src/app/model/types/dataTypeType';
+import {StructFieldVM} from 'src/app/model/viewModels/attributeVM';
+import {DataTypeVM} from "../../../../model/viewModels/dataTypeVM";
 
 @Component({
   selector: 'schema-table',
-  templateUrl: './schema-table.component.html'
+  templateUrl: './schema-table.component.html',
+  styleUrls: ['./schema-table.component.less']
 })
-export class SchemaTableComponent implements AfterViewInit, OnDestroy {
+export class SchemaTableComponent implements OnChanges {
 
-  @ViewChild('table', { static: true })
+  @ViewChild('table', {static: true})
   public table: any
 
   @Input()
-  public schema: AttributeVM[]
+  public schema: StructFieldVM[]
 
   @Input()
-  public schemaId: string
+  public selectable: boolean = true
 
-  public tablePageSize: number = 5
+  @Input()
+  public selectedField: StructFieldVM
 
-  private subscriptions: Subscription[] = []
-
-  constructor(
-    private store: Store<AppState>
-  ) { }
-
-  public ngAfterViewInit(): void {
-    this.subscriptions.push(
-      this.store
-        .select('router', 'state', 'queryParams')
-        .subscribe((queryParams: any) => {
-          if (queryParams) {
-            const paramsSubscriber = this
-            const schemaIdParam = queryParams.schemaId
-            const tablesWithSelection = schemaIdParam ? schemaIdParam.split(".") : []
-            if (paramsSubscriber.table.rows && paramsSubscriber.schemaId.includes(tablesWithSelection[0])) {
-              for (let i = 0; i < tablesWithSelection.length + 1; i++) {
-                //The attribute ID can be nested to several data structures, the last one is the selected attribute itself
-                const attributeIdParam = (i < tablesWithSelection.length) ? tablesWithSelection[i + 1] : queryParams.attribute
-                const selectedRow = paramsSubscriber.getSelectedRowFromName(attributeIdParam)
-                const selectedRowIndex = selectedRow[0]
-                const selectedRowContent = selectedRow[1]
-
-                if (selectedRowIndex > -1) {
-                  this.store.dispatch(new AttributesAction.Get(selectedRowContent))
-                  paramsSubscriber.table.selected.push(selectedRowContent)
-                  paramsSubscriber.table.offset = Math.floor(selectedRowIndex / paramsSubscriber.tablePageSize)
-                  // TODO : Remove the setTimeout as soon as this issue is fixed :https://github.com/swimlane/ngx-datatable/issues/1204
-                  setTimeout(function () {
-                    if (
-                      selectedRowContent.dataType._type != AttributeType.Simple
-                      && !(AttributeType.Array && selectedRowContent.dataType.elementDataType && selectedRowContent.dataType.elementDataType.dataType._type == AttributeType.Simple)
-                    ) {
-                      paramsSubscriber.table.rowDetail.toggleExpandRow(selectedRowContent)
-                    }
-                  })
-                }
-              }
-            }
-          }
-        })
-    )
+  ngOnChanges(): void {
+    this.table.selected = this.selectedField ? [this.selectedField] : []
+    this.table.cd.markForCheck()
   }
 
-  /**
-   * Gets selected row from name
-   * @param name the name of the attribute
-   * @returns a tuple containing the AttributeVM of the row and its index in case the table is pageable
-   */
-  private getSelectedRowFromName = (name: string): [number, AttributeVM] => {
-    const index = _.findIndex(this.table.rows, { name: name })
-    return [index, this.table.rows[index]]
+  @Output()
+  public selectedFieldChanged = new EventEmitter<StructFieldVM>()
+
+  public getArrayInnermostElementTypeWithNestingLevel = (dt: DataTypeVM, level = 1): [DataTypeVM, number] => {
+    return dt.elementDataType.dataType._type == DataTypeType.Array
+      ? this.getArrayInnermostElementTypeWithNestingLevel(dt.elementDataType.dataType, level + 1)
+      : [dt.elementDataType.dataType, level]
   }
 
+  public selectCheck = (): boolean => this.selectable
 
-  public getChildSchemaId = (parentSchemaId: string, rowName: string): string => {
-    return parentSchemaId + "." + rowName
+  public onSelect = ({selected}): void => {
+    this.selectedFieldChanged.emit(selected[0])
   }
 
-  public onSelect = ({ selected }): void => {
-    const selectedAttribute = selected[0]
-    this.store.dispatch(new RouterAction.ReplaceUrlState({ schemaId: this.schemaId, attribute: selectedAttribute.name }))
-    this.store.dispatch(new AttributesAction.Get(selectedAttribute))
-    if (
-      selectedAttribute.dataType._type != AttributeType.Simple &&
-      !(AttributeType.Array && selectedAttribute.dataType.elementDataType && selectedAttribute.dataType.elementDataType.dataType._type == AttributeType.Simple)
-    ) {
-      this.table.rowDetail.toggleExpandRow(selectedAttribute)
-    }
-  }
-
-  public getAttributeType = (AttributeType: AttributeVM): string => {
-    return attributeReducer.getAttributeType(AttributeType)
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(s => s.unsubscribe())
+  public onStructTypeClick = (e: Event, row: any) => {
+    e.stopPropagation()
+    this.table.rowDetail.toggleExpandRow(row)
   }
 
 }

@@ -15,6 +15,6 @@
  */
 import {Transition} from 'src/app/generated/models/transition';
 
-export interface GraphEdge {
+export type GraphEdge = {
     data: Transition
 }

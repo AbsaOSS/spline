@@ -13,145 +13,94 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib';
-import { Subscription } from 'rxjs';
-import { filter, first, map, switchMap } from 'rxjs/operators';
-import { AppState } from 'src/app/model/app-state';
-import { RouterStateUrl } from 'src/app/model/routerStateUrl';
-import * as AttributesAction from 'src/app/store/actions/attributes.actions';
-import * as DetailsInfosAction from 'src/app/store/actions/details-info.actions';
-import * as ExecutionPlanAction from 'src/app/store/actions/execution-plan.actions';
-import * as LayoutAction from 'src/app/store/actions/layout.actions';
-import * as RouterAction from 'src/app/store/actions/router.actions';
-import { AdaptiveComponent } from '../../adaptive/adaptive.component';
-import { operationIconCodes, operationColorCodes } from 'src/app/util/execution-plan';
-import { OperationType } from 'src/app/model/types/operationType';
+import {
+  AfterViewInit,
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
+import {CytoscapeNgLibComponent} from 'cytoscape-ng-lib';
+import {operationColorCodes, operationIconCodes} from 'src/app/util/execution-plan';
+import {OperationType} from 'src/app/model/types/operationType';
+import {CytoscapeGraphVM} from "../../../model/viewModels/cytoscape/cytoscapeGraphVM";
+import {AttributeGraph} from "../../../generated/models/attribute-graph";
 
 
 @Component({
   selector: 'lineage-graph',
   templateUrl: './lineage-graph.component.html'
 })
-export class LineageGraphComponent extends AdaptiveComponent implements OnInit, AfterViewInit, OnDestroy {
+export class LineageGraphComponent implements OnInit, OnChanges, AfterViewInit {
+  @Input()
+  public embeddedMode: boolean
 
-  @ViewChild(CytoscapeNgLibComponent, { static: true })
+  @Input()
+  public layout: object
+
+  @Input()
+  public graph: CytoscapeGraphVM
+
+  @Input()
+  public selectedNode: string
+
+  @Input()
+  public attributeGraph: AttributeGraph
+
+  @Output()
+  public selectedNodeChange = new EventEmitter<string>()
+
+  @ViewChild(CytoscapeNgLibComponent, {static: true})
   private cytograph: CytoscapeNgLibComponent
 
-  private subscriptions: Subscription[] = []
-
-  constructor(
-    private store: Store<AppState>
-  ) {
-    super(store)
-    this.getExecutedLogicalPlan()
-    this.getLayoutConfiguration()
+  public ngOnInit(): void {
+    const writeNode = this.graph.nodes.find(n => n.data._type == 'Write')
+    writeNode.data.icon = operationIconCodes.get(OperationType.Write)
+    writeNode.data.color = operationColorCodes.get(OperationType.Write)
   }
 
-  public ngOnInit(): void {
-    this.subscriptions.push(
-      this.store
-        .select('layout')
-        .pipe(
-          switchMap(layout => {
-            return this.store
-              .select('executedLogicalPlan')
-              .pipe(
-                filter(state => state != null),
-                map(state => {
-                  return { graph: state.graph, layout: layout }
-                })
-              )
-          })
-        )
-        .subscribe(state => {
-          if (state && this.cytograph.cy) {
-            state.graph.nodes.map(n => {
-              if (n.data._type == 'Write') {
-                n.data.icon = operationIconCodes.get(OperationType.Write)
-                n.data.color = operationColorCodes.get(OperationType.Write)
-              }
-              return n
-            })
-            this.cytograph.cy.add(state.graph)
-            this.cytograph.cy.nodeHtmlLabel([{
-              tpl: function (data) {
-                if (data.icon) return '<i class="fa fa-4x" style="color:' + data.color + '">' + String.fromCharCode(data.icon) + '</i>'
-                return null
-              }
-            }])
-            this.cytograph.cy.panzoom()
-            this.cytograph.cy.layout(state.layout).run()
-          }
-        })
-    )
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes['selectedNode']) this.refreshSelectedNode()
+    if (changes['attributeGraph']) this.refreshAttributeGraph()
   }
 
   public ngAfterViewInit(): void {
+    this.cytograph.cy.add(this.graph)
+    this.cytograph.cy.nodeHtmlLabel([{
+      tpl: d => d.icon && `<i class="fa fa-4x" style="color:${d.color}">${String.fromCharCode(d.icon)}</i>`
+    }])
+    this.cytograph.cy.panzoom()
+    this.cytograph.cy.layout(this.layout).run()
+
     this.cytograph.cy.ready(() => {
-      this.cytograph.cy.style().selector('edge').css({
-        'width': '7'
-      })
-      this.cytograph.cy.on('click', (event) => {
-        const clikedTarget = event.target
-        const nodeId = (clikedTarget != this.cytograph.cy && clikedTarget.isNode()) ? clikedTarget.id() : null
-        this.getDetailsInfo(nodeId)
-        this.store.dispatch(new AttributesAction.Reset())
-        const params = {} as RouterStateUrl
-        params.queryParams = { selectedNode: nodeId, schemaId: null, attribute: null }
-        this.store.dispatch(new RouterAction.Go(params))
+      this.cytograph.cy.style().selector('core').css({'active-bg-size': 0})
+      this.cytograph.cy.style().selector('edge').css({'width': 7})
+      this.cytograph.cy.on('mouseover', 'node', e => e.originalEvent.target.style.cursor = 'pointer')
+      this.cytograph.cy.on('mouseout', 'node', e => e.originalEvent.target.style.cursor = '')
+      this.cytograph.cy.on('click', event => {
+        const target = event.target
+        const nodeId = (target != this.cytograph.cy && target.isNode()) ? target.id() : null
+        this.selectedNodeChange.emit(nodeId)
       })
     })
+    this.refreshSelectedNode()
+    this.refreshAttributeGraph()
+  }
 
-
-    this.cytograph.cy.on('layoutstop', () => {
-      this.subscriptions.push(
-        this.store
-          .select('router', 'state', 'queryParams', 'selectedNode').pipe(
-            first(),
-            filter(state => state != null)
-          )
-          .subscribe((selectedNode: string) => {
-            this.cytograph.cy.nodes().unselect()
-            this.cytograph.cy.nodes().filter("[id='" + selectedNode + "']").select()
-            this.getDetailsInfo(selectedNode)
-          })
-      )
+  private refreshSelectedNode() {
+    this.cytograph && this.cytograph.cy && this.cytograph.cy.ready(() => {
+      this.cytograph.cy.nodes().unselect()
+      this.cytograph.cy.nodes().filter(`[id='${this.selectedNode}']`).select()
     })
   }
 
-  private getLayoutConfiguration = (): void => {
-    this.store.dispatch(new LayoutAction.Get())
+  private refreshAttributeGraph() {
+    this.cytograph && this.cytograph.cy && this.cytograph.cy.ready(() => {
+      console.log("[ATTRIBUTE GRAPH]", this.attributeGraph)
+    })
   }
-
-  private getExecutedLogicalPlan = (): void => {
-    this.subscriptions.push(
-      this.store
-        .select('router', 'state', 'params', 'uid').pipe(
-          filter(state => state != null)
-        )
-        .subscribe(
-          uid => {
-            this.store.dispatch(new ExecutionPlanAction.Get(uid))
-          }
-        )
-    )
-  }
-
-  private getDetailsInfo = (nodeId: string): void => {
-    if (nodeId) {
-      this.store.dispatch(new DetailsInfosAction.Get(nodeId))
-    } else {
-      this.store.dispatch(new DetailsInfosAction.Reset())
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(s => s.unsubscribe())
-  }
-
 }
-
-
-

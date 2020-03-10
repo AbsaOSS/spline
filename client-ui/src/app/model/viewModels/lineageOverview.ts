@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CytoscapeGraphVM } from './cytoscape/cytoscapeGraphVM';
+import {CytoscapeGraphVM} from './cytoscape/cytoscapeGraphVM';
 
-export interface LineageOverviewVM {
+export type LineageOverviewVM = {
     lineageInfo: { [key: string]: {} }
     lineage: CytoscapeGraphVM
     path: string

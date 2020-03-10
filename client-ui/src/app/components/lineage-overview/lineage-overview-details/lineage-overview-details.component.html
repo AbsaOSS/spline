@@ -13,29 +13,31 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<div class="lineage-overview-container" [ngClass]="getContainerClass() | async">
+<div class="lineage-overview-container"
+     [ngClass]="embeddedMode ? 'embeddedHeight' : 'fullHeight'">
   <div *ngIf="(getLineageOverviewInfo() | async)" class="lineage-overview-details ">
-    <br />
+    <br/>
     <h3 class="text-center"> Job Lineage </h3>
-    <br />
+    <br/>
     <p>
       <span class="lineage-overview-details-title">DataSource URI:</span>
       {{ getTargetName() | async}}
     </p>
     <p>
       <span class="lineage-overview-details-title">Timestamp : </span>
-      {{ (getLineageOverviewInfo() | async )?.timestamp | date: 'yyyy-MM-dd hh:mm' }}
+      {{ (getLineageOverviewInfo() | async)?.timestamp | date: 'yyyy-MM-dd hh:mm' }}
     </p>
     <p>
       <span class="lineage-overview-details-title">Application ID:</span>
-      {{ (getLineageOverviewInfo() | async )?.applicationId }}
+      {{ (getLineageOverviewInfo() | async)?.applicationId }}
     </p>
     <hr>
     <execution-plan-details></execution-plan-details>
 
-    <div *ngIf="(getDetailsInfo() | async)">
+    <div *ngIf="(getDetailsInfo() | async); let detailsInfo">
       <div>
-        <schema [schemaId]="'output_schema'" [schemaType]=2 [schema]="getOutputSchema((getDetailsInfo() | async))">
+        <schema [schemaType]=2
+                [schema]="getOutputSchema(detailsInfo)">
         </schema>
       </div>
     </div>
