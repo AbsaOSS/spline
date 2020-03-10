@@ -17,8 +17,10 @@
 package za.co.absa.spline.persistence
 
 import com.arangodb.async.ArangoDatabaseAsync
+import com.arangodb.entity.arangosearch.{CollectionLink, FieldLink}
 import com.arangodb.entity.{EdgeDefinition, IndexType}
 import com.arangodb.model._
+import com.arangodb.model.arangosearch.{ArangoSearchCreateOptions, ArangoSearchPropertiesOptions}
 import org.apache.commons.io.FilenameUtils
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import za.co.absa.commons.lang.ARM
@@ -57,6 +59,7 @@ object ArangoInit extends ArangoInit {
           _ <- createAQLUserFunctions(db)
           _ <- createIndices(db)
           _ <- createGraphs(db)
+          _ <- createViews(db)
         } yield true
       }
     }
@@ -67,6 +70,8 @@ object ArangoInit extends ArangoInit {
       _ <- createAQLUserFunctions(db)
       _ <- deleteIndices(db)
       _ <- createIndices(db)
+      _ <- deleteViews(db)
+      _ <- createViews(db)
       // fixme: Current version of Arango driver doesn't seem to support graph deletion. Try after https://github.com/AbsaOSS/spline/issues/396
       // _ <- deleteGraphs(db)
       // _ <- createGraphs(db)
@@ -140,4 +145,35 @@ object ArangoInit extends ArangoInit {
         val functionBody = ARM.using(Source.fromURL(res.getURL))(_.getLines.mkString)
         db.createAqlFunction(functionName, functionBody, new AqlFunctionCreateOptions()).toScala
       }))
+
+  private val searchViewName = "attributeSearchView"
+
+  private def deleteViews(db: ArangoDatabaseAsync) = {
+    val view = db.view(searchViewName)
+
+    view.exists().toScala.flatMap{ exists =>
+      if (exists)
+        view.drop().toScala
+      else
+        Future.successful[Void](null)
+    }
+  }
+
+  private def createViews(db: ArangoDatabaseAsync) = {
+
+    db.createArangoSearch(searchViewName, null)
+
+    db.arangoSearch(searchViewName).updateProperties(
+      (new ArangoSearchPropertiesOptions)
+        .link(CollectionLink.on("executionPlan")
+          .analyzers("text_en", "identity")
+          .includeAllFields(false)
+          .fields(FieldLink.on("extra")
+            .fields(FieldLink.on("attributes")
+              .fields(FieldLink.on("name"))
+            )
+          )
+        )
+    ).toScala
+  }
 }
