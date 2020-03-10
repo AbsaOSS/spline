@@ -31,7 +31,7 @@
       </mat-expansion-panel-header>
       <schema-table
         [schema]="schema"
-        [selectedField]="selectedAttribute$ | async"
+        [selectedField]="selectedAttribute()"
         (selectedFieldChanged)="onAttributeSelected($event)">
       </schema-table>
     </mat-expansion-panel>

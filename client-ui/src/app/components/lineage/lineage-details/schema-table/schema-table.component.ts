@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, EventEmitter, Input, Output, ViewChild} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, Output, ViewChild} from '@angular/core';
 import {DataTypeType} from 'src/app/model/types/dataTypeType';
 import {StructFieldVM} from 'src/app/model/viewModels/attributeVM';
 import {DataTypeVM} from "../../../../model/viewModels/dataTypeVM";
@@ -23,7 +23,7 @@ import {DataTypeVM} from "../../../../model/viewModels/dataTypeVM";
   templateUrl: './schema-table.component.html',
   styleUrls: ['./schema-table.component.less']
 })
-export class SchemaTableComponent {
+export class SchemaTableComponent implements OnChanges {
 
   @ViewChild('table', {static: true})
   public table: any
@@ -35,8 +35,10 @@ export class SchemaTableComponent {
   public selectable: boolean = true
 
   @Input()
-  public set selectedField(field: StructFieldVM) {
-    this.table.selected = field ? [field] : []
+  public selectedField: StructFieldVM
+
+  ngOnChanges(): void {
+    this.table.selected = this.selectedField ? [this.selectedField] : []
     this.table.cd.markForCheck()
   }
 
@@ -52,8 +54,7 @@ export class SchemaTableComponent {
   public selectCheck = (): boolean => this.selectable
 
   public onSelect = ({selected}): void => {
-    const selectedAttribute = selected[0]
-    this.selectedFieldChanged.emit(selectedAttribute)
+    this.selectedFieldChanged.emit(selected[0])
   }
 
   public onStructTypeClick = (e: Event, row: any) => {

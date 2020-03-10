@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input} from '@angular/core';
+
+import * as _ from 'lodash';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {SchemaType} from 'src/app/model/types/schemaType';
 import {AttributeVM, StructFieldVM} from "../../../../model/viewModels/attributeVM";
-import {Observable} from "rxjs";
-import {map} from "rxjs/operators";
-import {ActivatedRoute, Params, Router} from "@angular/router";
 
 @Component({
   selector: 'schema',
@@ -30,28 +29,29 @@ export class SchemaComponent {
   public schemaType: SchemaType
 
   @Input()
-  public schema: AttributeVM[]
+  public set schema(schema: AttributeVM[]) {
+    this._schema = schema
+    this.attrById = _.keyBy(schema, attr => attr.id)
+  }
 
-  public selectedAttribute$: Observable<AttributeVM>
+  public get schema(): AttributeVM[] {
+    return this._schema
+  }
 
-  constructor(
-    private router: Router,
-    private route: ActivatedRoute) {
+  private _schema: AttributeVM[]
+  private attrById: { [key: string]: AttributeVM } = {}
 
-    this.selectedAttribute$ =
-      route.queryParams.pipe(
-        map((params: Params) =>
-          this.schema.find(a => a.id === params.attribute)))
+  @Input()
+  public selectedAttributeId: string
+
+  @Output()
+  public selectedAttributeIdChanged = new EventEmitter<string>()
+
+  public selectedAttribute(): AttributeVM {
+    return this.attrById[this.selectedAttributeId]
   }
 
   public onAttributeSelected(attr: StructFieldVM) {
-    const attrId = (attr as AttributeVM).id
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParamsHandling: "merge",
-      queryParams: {
-        attribute: attrId
-      }
-    })
+    this.selectedAttributeIdChanged.emit((attr as AttributeVM).id)
   }
 }

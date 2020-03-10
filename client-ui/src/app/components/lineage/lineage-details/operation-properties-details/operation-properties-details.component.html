@@ -24,11 +24,16 @@
   <div class="details">
     <div *ngFor="let inputSchema of getInputSchemas(detailsInfos)">
       <schema [schemaType]=0
-              [schema]="inputSchema"></schema>
+              [schema]="inputSchema"
+              [selectedAttributeId]="selectedAttributeId$ | async"
+              (selectedAttributeIdChanged)="onSelectedAttributeIdChange($event)">
+      </schema>
     </div>
     <schema *ngIf="detailsInfos.operation._type != 'Write'"
             [schemaType]=1
-            [schema]="getOutputSchema(detailsInfos)">
+            [schema]="getOutputSchema(detailsInfos)"
+            [selectedAttributeId]="selectedAttributeId$ | async"
+            (selectedAttributeIdChanged)="onSelectedAttributeIdChange($event)">
     </schema>
   </div>
 </div>
