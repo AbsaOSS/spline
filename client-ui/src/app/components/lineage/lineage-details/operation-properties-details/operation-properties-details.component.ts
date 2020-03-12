@@ -36,7 +36,7 @@ import {OperationDetailsVM} from 'src/app/model/viewModels/operationDetailsVM';
 import {getOperationColor, getOperationIcon} from 'src/app/util/execution-plan';
 import {getText} from 'src/app/util/expressions';
 import {PropertiesComponent} from './properties/properties.component';
-import {ActivatedRoute, Router} from "@angular/router";
+import * as RouterAction from "../../../../store/actions/router.actions";
 
 
 @Component({
@@ -52,22 +52,14 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
   constructor(
     private componentFactoryResolver: ComponentFactoryResolver,
     private changeDetectorRef: ChangeDetectorRef,
-    private store: Store<AppState>,
-    private router: Router,
-    private route: ActivatedRoute) {
+    private store: Store<AppState>) {
   }
 
   public selectedAttributeId$ =
-    this.route.queryParams.pipe(map(({attribute}) => attribute))
+    this.store.select('router', 'state', 'queryParams', 'attribute')
 
   public onSelectedAttributeIdChange(attrId: string) {
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParamsHandling: "merge",
-      queryParams: {
-        attribute: attrId
-      }
-    })
+    this.store.dispatch(new RouterAction.Go({queryParams: {'attribute': attrId}, url: null}))
   }
 
   private subscriptions: Subscription[] = []

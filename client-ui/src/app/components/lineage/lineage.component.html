@@ -23,6 +23,16 @@
                      [selectedNode]="selectedNodeId"
                      (selectedNodeChange)="onNodeSelected($event)">
       </lineage-graph>
+
+      <mat-chip-list *ngIf="selectedAttribute$ | async; let attr" class="graph-toolbar top right">
+        Highlighted attribute:
+        <mat-chip>
+          <strong>{{attr.name}}</strong>
+          <mat-icon matChipRemove
+                    fontSet="fa" fontIcon="fa-times"
+                    (click)="onRemoveSelectedAttrClick()"></mat-icon>
+        </mat-chip>
+      </mat-chip-list>
     </div>
 
     <div class="col-sm-4 ">
