@@ -19,10 +19,10 @@
       <mat-expansion-panel-header>
         <mat-panel-title>
           <ng-container *ngIf="schemaType == 0">
-            <i class='fa fa-xs fa-arrow-circle-right text-success'></i> <strong> Input </strong>
+            <i class='fa fa-xs fa-arrow-circle-right text-success' aria-hidden="true"></i> <strong> Input </strong>
           </ng-container>
           <ng-container *ngIf="schemaType == 1">
-            <i class='fa fa-xs fa-arrow-circle-left text-danger'></i> <strong> Output </strong>
+            <i class='fa fa-xs fa-arrow-circle-left text-danger' aria-hidden="true"></i> <strong> Output </strong>
           </ng-container>
           <ng-container *ngIf="schemaType != 0 && schemaType != 1">
             <strong> Schema </strong>
