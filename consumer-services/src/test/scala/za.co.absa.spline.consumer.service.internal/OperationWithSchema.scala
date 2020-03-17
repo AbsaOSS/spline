@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.consumer.service.repo
+package za.co.absa.spline.consumer.service.internal
 
-import za.co.absa.spline.consumer.service.internal.model.ExecutionPlanDAG
-import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
-import za.co.absa.spline.consumer.service.model.LineageDetailed
+import java.util.UUID
 
-import scala.concurrent.{ExecutionContext, Future}
-
-trait ExecutionPlanRepository {
-  def findById(execId: Id)(implicit ec: ExecutionContext): Future[LineageDetailed]
-
-  def loadExecutionPlanAsDAG(execId: Id)(implicit ec: ExecutionContext): Future[ExecutionPlanDAG]
-}
+case class OperationWithSchema(
+  id: String,
+  schema: Array[UUID],
+  extra: Map[String, Any],
+  params: Map[String, Any],
+  childIds: Seq[String]
+)

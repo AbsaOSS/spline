@@ -16,142 +16,171 @@
 
 package za.co.absa.spline.consumer.service.internal
 
-import java.util.UUID
-
-import za.co.absa.spline.consumer.service.internal.model.OperationWithSchema
+import scalaz.Scalaz._
+import scalaz.Semigroup
+import za.co.absa.spline.common.graph.DAGTraversals
+import za.co.absa.spline.consumer.service.attrresolver.AttributeDependencyResolver
+import za.co.absa.spline.consumer.service.internal.AttributeDependencySolver._
+import za.co.absa.spline.consumer.service.internal.model.ExecutionPlanDAG
 import za.co.absa.spline.consumer.service.model.{AttributeGraph, AttributeNode, AttributeTransition}
+import za.co.absa.spline.persistence.model.Operation
 
-import scala.collection.JavaConverters._
-import scala.collection.mutable
+class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyResolver: AttributeDependencyResolver) {
+
+  def impact(attributeId: AttributeId): Option[AttributeGraph] =
+    findOriginOperationForAttr(attributeId).map(originOp => asGraph(getAttributeImpact(originOp, attributeId)))
+
+  def lineage(attributeId: AttributeId): Option[AttributeGraph] =
+    findOriginOperationForAttr(attributeId).map(originOp => asGraph(getAttributeLineage(originOp, attributeId)))
+
+  private def findOriginOperationForAttr(attributeId: AttributeId): Option[Operation] =
+    execPlan.operations.find(op =>
+      execPlan.outputSchema(op._key).contains(attributeId) &&
+        !execPlan.inputSchema(op._key).contains(attributeId)
+    )
+
+  private def asGraph(tuple: (Nodes, Edges)): AttributeGraph = {
+    val (nodes, edges) = tuple
+    val attEdges = edges.map(e => AttributeTransition(e.from, e.to))
+    val attNodes = nodes.map { case (aId, n) => AttributeNode(aId, n.originOpId, n.transOpIds) }
+    AttributeGraph(attNodes.toArray, attEdges.toArray)
+  }
+
+  private def getAttributeImpact(targetOp: Operation, targetAttrId: AttributeId) = {
+    val Acc(nodesRes, edgesRes, _, _) = DAGTraversals.dfs[Operation, Acc](
+      vertex = targetOp,
+      acc = Acc(attrsToProcessByOpId = Map(targetOp._key -> Set(targetAttrId))),
+      next = execPlan.followingOps,
+      prune = (_, acc, _) => acc.attrsToProcessByOpId.isEmpty,
+      collect = {
+        case (Acc(nodes, edges, attrsToProcessByOpId, _), op: Operation) =>
+          val inputSchema: Set[AttributeId] = execPlan.inputSchema(op._key)
+          val myAttrsToProcess = attrsToProcessByOpId(op._key)
+          val (transitiveAttrIds, originAttrIds) = myAttrsToProcess.partition(inputSchema)
+
+          val newNodes = originAttrIds.map(attId => {
+            attId -> NodeValue(op._key, Set.empty)
+          }).toMap
+
+          val updatedNodes = transitiveAttrIds.map(attrId => {
+            val oldVal = nodes(attrId)
+            attrId -> oldVal.copy(transOpIds = oldVal.transOpIds + op._key)
+          }).toMap
+
+          val followingOps = execPlan.followingOps(op)
+
+          val newEdges =
+            for {
+              fo <- followingOps
+              inSchema = execPlan.inputSchema(fo._key)
+              outSchema = execPlan.outputSchema(fo._key)
+              (toAttrId, fromAttrIds) <- dependencyResolver.resolve(fo, inSchema, outSchema)
+              fromAttrId <- fromAttrIds
+              if toAttrId != fromAttrId
+              if myAttrsToProcess(fromAttrId)
+            } yield {
+              Edge(toAttrId, fromAttrId)
+            }
+
+          val nextAttrsByChild: Map[OperationId, Set[AttributeId]] = followingOps.map(fo => {
+            val foAttrDeps: Map[AttributeId, Set[AttributeId]] = dependencyResolver
+              .resolve(fo, execPlan.inputSchema(fo._key), execPlan.outputSchema(fo._key))
+              .filter({ case (k, v) => v.intersect(myAttrsToProcess).nonEmpty })
+            val hisOriginAttrs: Set[AttributeId] = foAttrDeps.keySet
+            val hisTransAttrs: Set[AttributeId] = myAttrsToProcess.intersect(execPlan.outputSchema(fo._key))
+            fo._key -> (hisOriginAttrs ++ hisTransAttrs)
+          }).toMap
+
+          Acc(
+            (nodes ++ updatedNodes) |+| newNodes,
+            edges ++ newEdges,
+            attrsToProcessByOpId - op._key ++ nextAttrsByChild
+          )
+      }
+    )
+    (nodesRes, edgesRes)
+  }
+
+  private def getAttributeLineage(targetOp: Operation, targetAttrId: AttributeId) = {
+    val Acc(nodesRes, edgesRes, _, _) = DAGTraversals.dfs[Operation, Acc](
+      vertex = targetOp,
+      acc = Acc(attrsToProcessByOpId = Map(targetOp._key -> Set(targetAttrId))),
+      next = execPlan.precedingOps,
+      prune = (_, acc, _) => acc.attrsToProcessByOpId.isEmpty,
+      collect = {
+        case (Acc(nodes, edges, attrsToProcessByOpId, transOpsByAttrId), op: Operation) =>
+          val outputSchema: Set[AttributeId] = execPlan.outputSchema(op._key)
+          val inputSchema: Set[AttributeId] = execPlan.inputSchema(op._key)
+          val (transitiveAttrIds, originAttrIds) = attrsToProcessByOpId(op._key).partition(inputSchema)
+
+          val newNodes = originAttrIds.map(attId => {
+            val transOpIds = transOpsByAttrId.getOrElse(attId, Set.empty)
+            attId -> NodeValue(op._key, transOpIds)
+          }).toMap
+
+          val newEdges = dependencyResolver
+            .resolve(op, inputSchema, outputSchema)
+            .filterKeys(originAttrIds)
+            .flatMap {
+              case (origAttrId, depAttrIds) =>
+                depAttrIds.map(depAttrId => Edge(origAttrId, depAttrId))
+            }
+
+          val newTransitiveOpsByAttrId: Map[AttributeId, Set[OperationId]] = transitiveAttrIds
+            .map(id => id -> (transOpsByAttrId.getOrElse(id, Set.empty) + op._key))
+            .toMap
+
+          val nextAttrIds = transitiveAttrIds ++ newEdges.map(_.to)
+          val nextAttrsByChild: Map[OperationId, Set[AttributeId]] =
+            execPlan.operationById
+              .filterKeys(execPlan.precedingOps(op).map(_._key))
+              .mapValues(o => execPlan.outputSchema(o._key).intersect(nextAttrIds))
+              .filter { case (_, nextAttrs) => nextAttrs.nonEmpty }
+
+          val updatedAttrsToProcessByOpId = attrsToProcessByOpId - op._key ++ nextAttrsByChild
+          val updatedTransOpsByAttrId = transOpsByAttrId -- originAttrIds ++ newTransitiveOpsByAttrId
+
+          Acc(
+            nodes |+| newNodes,
+            edges ++ newEdges,
+            updatedAttrsToProcessByOpId,
+            updatedTransOpsByAttrId
+          )
+      }
+    )
+    (nodesRes, edgesRes)
+  }
+
+}
 
 object AttributeDependencySolver {
 
-  private type AttributeId = UUID
+  private type AttributeId = String
   private type OperationId = String
+  private type Node = (AttributeId, NodeValue)
 
-  private case class Node(id: AttributeId, operationId: OperationId)
+  private type Nodes = Map[AttributeId, NodeValue]
+  private type Edges = Set[Edge]
+
+  private case class NodeValue(originOpId: OperationId, transOpIds: Set[OperationId])
+
+  private object NodeValue {
+    implicit val semigroup: Semigroup[NodeValue] =
+      Semigroup.instance((a, b) => {
+        assume(a.originOpId == b.originOpId, s"can only merge nodes with the same origin ID: ${a.originOpId} <> ${b.originOpId}")
+        a.copy(transOpIds = a.transOpIds ++ b.transOpIds)
+      })
+  }
+
   private case class Edge(from: AttributeId, to: AttributeId)
 
-  def resolveDependencies(operations: Seq[OperationWithSchema], attributeID: UUID): Option[AttributeGraph] = {
+  private case class Acc(
+    nodes: Nodes = Map.empty,
+    edges: Edges = Set.empty,
+    attrsToProcessByOpId: Map[OperationId, Set[AttributeId]] = Map.empty,
+    transOpsByAttrId: Map[AttributeId, Set[OperationId]] = Map.empty)
 
-    val operationsMap = operations.map(op => op._id -> op).toMap
-    val inputSchemaResolver = createInputSchemaResolver(operations)
-
-    def findDependencies(
-      operation: OperationWithSchema,
-      lookingFor: Set[AttributeId]
-    ): (Set[Edge], Set[Node]) = {
-
-      val (attrsOriginInThisOp, otherAttributes) = {
-        val inputSchemas = inputSchemaResolver(operation)
-        val outputSchema = operation.schema
-
-        lookingFor.partition(id => outputSchema.contains(id) && !inputSchemas.exists(_.contains(id)))
-      }
-
-      val newNodes = attrsOriginInThisOp.map(attId => Node(attId, operation._id))
-
-      val dependencyMap = resolveDependencies(operation, inputSchemaResolver)
-      val newEdges = dependencyMap
-        .filterKeys(attrsOriginInThisOp).toSet[(AttributeId, Set[AttributeId])]
-        .flatMap { case (k, v) => v.map(inv => Edge(k, inv)) }
-
-      val newLookingFor: Set[AttributeId] = otherAttributes union newEdges.map(_.to)
-
-      val childResults = filterChildrenForAttributes(operation, newLookingFor)
-        .map(findDependencies(_, newLookingFor))
-
-      val allResults = childResults :+ (newEdges, newNodes)
-
-      allResults
-        .reduceOption(mergeResults)
-        .getOrElse((Set.empty[Edge], Set.empty[Node]))
-    }
-
-    def filterChildrenForAttributes(operation: OperationWithSchema, attributes: Set[AttributeId]) =
-      operation
-        .childIds
-        .map(operationsMap)
-        .filter(_.schema.exists(attributes))
-
-    def mergeResults(x: (Set[Edge], Set[Node]), y: (Set[Edge], Set[Node])): (Set[Edge], Set[Node]) = {
-      val (x1, x2) = x
-      val (y1, y2) = y
-
-      (x1 union y1, x2 union y2)
-    }
-
-    val maybeStartOperation = operations.find(_.schema.contains(attributeID))
-
-    maybeStartOperation.map { startOperation =>
-      val (edges, nodes) = findDependencies(startOperation, Set(attributeID))
-
-      val attEdges = edges.map(e => AttributeTransition(e.from.toString, e.to.toString))
-      val attNodes = nodes.map(n => AttributeNode(n.id.toString, n.operationId))
-
-      AttributeGraph(attNodes.toArray, attEdges.toArray)
-    }
-  }
-
-  private def resolveDependencies(op: OperationWithSchema, inputSchemasOf: OperationWithSchema => Seq[Array[UUID]]):
-    Map[UUID, Set[UUID]] =
-    op.extra("name") match {
-      case "Project" => resolveExpressionList(op.params("projectList"), op.schema)
-      case "Aggregate" => resolveExpressionList(op.params("aggregateExpressions"), op.schema)
-      case "SubqueryAlias" => resolveSubqueryAlias(inputSchemasOf(op).head, op.schema)
-      case "Generate" => resolveGenerator(op)
-      case _ => Map.empty
-    }
-
-  private def resolveExpressionList(exprList: Any, schema: Seq[UUID]): Map[UUID, Set[UUID]] =
-    asScalaListOfMaps[String, Any](exprList)
-      .zip(schema)
-      .map { case (expr, attrId) => attrId -> toAttrDependencies(expr) }
-      .toMap
-
-  private def resolveSubqueryAlias(inputSchema: Seq[UUID], outputSchema: Seq[UUID]): Map[UUID, Set[UUID]] =
-    inputSchema
-      .zip(outputSchema)
-      .map { case (inAtt, outAtt) => outAtt -> Set(inAtt) }
-      .toMap
-
-  private def resolveGenerator(op: OperationWithSchema): Map[UUID, Set[UUID]] = {
-
-    val expression = asScalaMap[String, Any](op.params("generator"))
-    val dependencies = toAttrDependencies(expression)
-
-    val keyId = asScalaListOfMaps[String, String](op.params("generatorOutput"))
-      .head("refId")
-
-    Map(UUID.fromString(keyId) -> dependencies)
-  }
-
-  private def toAttrDependencies(expr: mutable.Map[String, Any]): Set[UUID] = expr("_typeHint") match {
-    case "expr.AttrRef" => Set(UUID.fromString(expr("refId").asInstanceOf[String]))
-    case "expr.Alias" => toAttrDependencies(asScalaMap[String, Any](expr("child")))
-    case _ if expr.contains("children") => asScalaListOfMaps[String, Any](expr("children"))
-      .map(toAttrDependencies).reduce(_ union _)
-    case _ => Set.empty
-  }
-
-  private def createInputSchemaResolver(operations: Seq[OperationWithSchema]):
-    OperationWithSchema => Seq[Array[UUID]] = {
-
-    val operationMap = operations.map(op => op._id -> op).toMap
-
-    op: OperationWithSchema => {
-      if (op.childIds.isEmpty) {
-        Seq(Array.empty)
-      } else {
-        op.childIds.map(operationMap(_).schema)
-      }
-    }
-  }
-
-  private def asScalaMap[K, V](javaMap: Any) =
-    javaMap.asInstanceOf[java.util.Map[K, V]].asScala
-
-  private def asScalaListOfMaps[K, V](javaList: Any) =
-    javaList.asInstanceOf[java.util.List[java.util.Map[K, V]]].asScala.map(_.asScala)
-
+  def apply(execPlan: ExecutionPlanDAG, attrDependencyResolver: AttributeDependencyResolver) =
+    new AttributeDependencySolver(execPlan, attrDependencyResolver)
 }
+

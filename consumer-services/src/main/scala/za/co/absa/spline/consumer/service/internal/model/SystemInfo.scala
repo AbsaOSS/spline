@@ -16,16 +16,6 @@
 
 package za.co.absa.spline.consumer.service.internal.model
 
-import java.util.UUID
+import za.co.absa.commons.version.Version
 
-case class OperationWithSchema(
-  _id: String,
-  schema: Array[UUID],
-  extra: Map[String, Any],
-  params: Map[String, Any],
-  childIds: Seq[String]
-) {
-  def this() = this(null, null, null, null, null)
-}
-
-
+case class SystemInfo(name: String, version: Version)

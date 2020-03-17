@@ -18,9 +18,11 @@ package za.co.absa.spline.consumer.rest.controller
 
 import java.util.UUID
 
-import io.swagger.annotations.{Api, ApiOperation, ApiParam}
+import io.swagger.annotations._
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
+import za.co.absa.spline.consumer.rest.controller.LineageDetailedController.AttributeLineageAndImpact
+import za.co.absa.spline.consumer.service.attrresolver.AttributeDependencyResolver
 import za.co.absa.spline.consumer.service.internal.AttributeDependencySolver
 import za.co.absa.spline.consumer.service.model.{AttributeGraph, ExecutionPlanInfo, LineageDetailed}
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepository
@@ -53,10 +55,42 @@ class LineageDetailedController @Autowired()(
     @RequestParam("execId") execId: ExecutionPlanInfo.Id,
     @ApiParam(value = "Attribute ID")
     @RequestParam("attributeId") attributeId: UUID
-  ): Future[AttributeGraph] = {
-    repo
-      .findOperationsWithSchema(execId)
-      .map(AttributeDependencySolver.resolveDependencies(_, attributeId))
-      .map(_.getOrElse(throw new NoSuchElementException()))
-  }
+  ): Future[AttributeGraph] = repo
+    .loadExecutionPlanAsDAG(execId)
+    .map(execPlan => {
+      val dependencyResolver = AttributeDependencyResolver.forSystem(execPlan.sysInfo)
+      AttributeDependencySolver(execPlan, dependencyResolver).lineage(attributeId.toString)
+    })
+    .map(_.getOrElse(throw new NoSuchElementException()))
+
+  @GetMapping(Array("attribute-lineage-and-impact"))
+  @ApiOperation(
+    value = "Get graph of attributes that depends on attribute with provided id")
+  def attributeLineageAndImpact(
+    @ApiParam(value = "Execution plan ID")
+    @RequestParam("execId") execId: ExecutionPlanInfo.Id,
+    @ApiParam(value = "Attribute ID")
+    @RequestParam("attributeId") attributeId: UUID
+  ): Future[AttributeLineageAndImpact] = repo
+    .loadExecutionPlanAsDAG(execId)
+    .map(execPlan => {
+      val dependencyResolver = AttributeDependencyResolver.forSystem(execPlan.sysInfo)
+      val solver = AttributeDependencySolver(execPlan, dependencyResolver)
+      val maybeAttrLineage = solver.lineage(attributeId.toString)
+      val maybeAttrImpact = solver.impact(attributeId.toString)
+      val Seq((lineage: AttributeGraph, impact: AttributeGraph)) = maybeAttrLineage.zip(maybeAttrImpact)
+      AttributeLineageAndImpact(lineage, impact)
+    })
+}
+
+object LineageDetailedController {
+
+  @ApiModel(description = "Attribute Lineage And Impact")
+  case class AttributeLineageAndImpact(
+    @ApiModelProperty("Attribute Lineage")
+    lineage: AttributeGraph,
+    @ApiModelProperty("Attribute Impact")
+    impact: AttributeGraph
+  )
+
 }

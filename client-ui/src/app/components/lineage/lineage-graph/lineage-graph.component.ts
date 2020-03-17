@@ -29,7 +29,8 @@ import {operationColorCodes, operationIconCodes} from 'src/app/util/execution-pl
 import {OperationType} from 'src/app/model/types/operationType';
 import {CytoscapeGraphVM} from "../../../model/viewModels/cytoscape/cytoscapeGraphVM";
 import {AttributeGraph} from "../../../generated/models/attribute-graph";
-
+import * as _ from 'lodash'
+import {cyStyles} from './graph.stylesheet'
 
 @Component({
   selector: 'lineage-graph',
@@ -77,8 +78,7 @@ export class LineageGraphComponent implements OnInit, OnChanges, AfterViewInit {
     this.cytograph.cy.layout(this.layout).run()
 
     this.cytograph.cy.ready(() => {
-      this.cytograph.cy.style().selector('core').css({'active-bg-size': 0})
-      this.cytograph.cy.style().selector('edge').css({'width': 7})
+      this.cytograph.cy.style(cyStyles)
       this.cytograph.cy.on('mouseover', 'node', e => e.originalEvent.target.style.cursor = 'pointer')
       this.cytograph.cy.on('mouseout', 'node', e => e.originalEvent.target.style.cursor = '')
       this.cytograph.cy.on('click', event => {
@@ -100,7 +100,22 @@ export class LineageGraphComponent implements OnInit, OnChanges, AfterViewInit {
 
   private refreshAttributeGraph() {
     this.cytograph && this.cytograph.cy && this.cytograph.cy.ready(() => {
-      console.log("[ATTRIBUTE GRAPH]", this.attributeGraph)
+      const hltedNodeIds = this.attributeGraph
+        ? new Set(_.flatMap(this.attributeGraph.nodes, v => [v.originOpId].concat(v.transOpIds)))
+        : new Set()
+
+      this.cytograph.cy.edges().forEach(e => {
+        const ed = e.data()
+        const hlt = hltedNodeIds.has(ed.source) && hltedNodeIds.has(ed.target)
+        if (hlt) e.addClass('hlt')
+        else e.removeClass('hlt')
+      })
+      this.cytograph.cy.nodes().forEach(v => {
+        const vd = v.data()
+        const hlt = hltedNodeIds.has(vd.id)
+        if (hlt) v.addClass('hlt')
+        else v.removeClass('hlt')
+      })
     })
   }
 }

@@ -36,7 +36,7 @@
     "boostrap": "^2.0.0",
     "bootstrap": "^4.3.1",
     "core-js": "^2.5.4",
-    "cytoscape": "^3.3.0",
+    "cytoscape": "^3.14.1",
     "cytoscape-cxtmenu": "^3.0.2",
     "cytoscape-klay": "^3.1.2",
     "cytoscape-ng-lib": "^2.0.1",

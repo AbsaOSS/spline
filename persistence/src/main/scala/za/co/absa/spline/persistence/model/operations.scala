@@ -29,9 +29,9 @@ case class Read(
   override val extra: Map[String, Any],
   override val outputSchema: Option[Any],
   override val _key: String,
-  override val _type: String = "Read"
 ) extends Operation {
   def this() = this(null, null, null, null, null)
+  override val _type: String = "Read"
 }
 
 case class Write(
@@ -41,9 +41,9 @@ case class Write(
   override val extra: Map[String, Any],
   override val outputSchema: Option[Any],
   override val _key: String,
-  override val _type: String = "Write"
 ) extends Operation {
   def this() = this(null, false, null, null, null, null)
+  override val _type: String = "Write"
 }
 
 case class Transformation(
@@ -51,7 +51,7 @@ case class Transformation(
   override val extra: Map[String, Any],
   override val outputSchema: Option[Any],
   override val _key: String,
-  override val _type: String = "Transformation"
 ) extends Operation {
   def this() = this(null, null, null, null)
+  override val _type: String = "Transformation"
 }
