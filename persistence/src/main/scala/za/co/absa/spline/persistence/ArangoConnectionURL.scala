@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.persistence
 
-import java.net.{MalformedURLException, URI}
+import java.net.MalformedURLException
 
 import org.apache.commons.lang3.StringUtils.trimToNull
 import za.co.absa.commons.lang.OptionImplicits.StringWrapper
@@ -24,12 +24,22 @@ import za.co.absa.spline.persistence.ArangoConnectionURL.ArangoDbScheme
 
 import scala.util.matching.Regex
 
-case class ArangoConnectionURL(user: Option[String], password: Option[String], host: String, port: Int, dbName: String) {
+case class ArangoConnectionURL(user: Option[String], password: Option[String], hosts: Seq[(String, Int)], dbName: String) {
+
+  import za.co.absa.commons.lang.OptionImplicits._
+
   require(user.isDefined || password.isEmpty, "user cannot be blank if password is specified")
 
-  def toURI: URI = {
+  def asString: String = {
     val userInfo = trimToNull(Seq(user, password.map(_ => "*****")).flatten.mkString(":"))
-    new URI(ArangoDbScheme, userInfo, host, port, s"/$dbName", null, null)
+    val commaSeparatedHostsString = hosts.map { case (host, port) => s"$host:$port" }.mkString(",")
+
+    new StringBuilder()
+      .append(s"$ArangoDbScheme://")
+      .optionally(_.append(_: String).append("@"), userInfo.nonBlankOption)
+      .append(commaSeparatedHostsString)
+      .append(s"/$dbName")
+      .result()
   }
 }
 
@@ -38,22 +48,31 @@ object ArangoConnectionURL {
   private val ArangoDbScheme = "arangodb"
   private val DefaultPort = 8529
 
-  private val arangoConnectionUrlRegex = {
+  private val ArangoConnectionUrlRegex = {
     val user = "([^@:]+)"
     val password = "(.+)"
-    val host = "([^@:]+)"
-    val port = "(\\d+)"
     val dbName = "(\\S+)"
-    new Regex(s"$ArangoDbScheme://(?:$user(?::$password)?@)?$host(?::$port)?/$dbName")
+    val hostList = {
+      val hostWithPort = "[^@:]+(?::\\d+)?"
+      s"($hostWithPort(?:,$hostWithPort)*)"
+    }
+    new Regex(s"$ArangoDbScheme://(?:$user(?::$password)?@)?$hostList/$dbName")
   }
 
   def apply(url: String): ArangoConnectionURL = try {
-    val arangoConnectionUrlRegex(user, password, host, port, dbName) = url
+    val ArangoConnectionUrlRegex(user, password, commaSeparatedHostWithPortList, dbName) = url
+
+    val hosts: Array[(String, Int)] = commaSeparatedHostWithPortList
+      .split(",")
+      .map(hostPortString => {
+        val Array(host, port) = hostPortString.split(":").padTo(2, DefaultPort.toString)
+        (host, port.toInt)
+      })
+
     ArangoConnectionURL(
       user = user.nonBlankOption,
       password = password.nonBlankOption,
-      host = host,
-      port = port.nonBlankOption.map(_.toInt) getOrElse DefaultPort,
+      hosts = hosts,
       dbName = dbName
     )
   } catch {

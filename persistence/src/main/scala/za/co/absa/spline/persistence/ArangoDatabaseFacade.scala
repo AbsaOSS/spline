@@ -16,21 +16,27 @@
 
 package za.co.absa.spline.persistence
 
-import com.arangodb.velocypack.module.scala.VPackScalaModule
 import com.arangodb.async.{ArangoDBAsync, ArangoDatabaseAsync}
+import com.arangodb.velocypack.module.scala.VPackScalaModule
 import org.springframework.beans.factory.DisposableBean
 import za.co.absa.commons.lang.OptionImplicits.AnyWrapper
 
 class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL) extends DisposableBean {
 
-  private val ArangoConnectionURL(maybeUser, maybePassword, host, port, dbName) = connectionURL
+  private val ArangoConnectionURL(maybeUser, maybePassword, hostsWithPorts, dbName) = connectionURL
 
-  private val arango: ArangoDBAsync = new ArangoDBAsync.Builder()
-    .registerModule(new VPackScalaModule)
-    .host(host, port)
-    .optionally(_.user(_: String), maybeUser)
-    .optionally(_.password(_: String), maybePassword)
-    .build
+  private val arango: ArangoDBAsync = {
+    val arangoBuilder = new ArangoDBAsync.Builder()
+      .registerModule(new VPackScalaModule)
+      .optionally(_.user(_: String), maybeUser)
+      .optionally(_.password(_: String), maybePassword)
+
+    // enable active failover
+    arangoBuilder.acquireHostList(true)
+    for ((host, port) <- hostsWithPorts) arangoBuilder.host(host, port)
+
+    arangoBuilder.build
+  }
 
   val db: ArangoDatabaseAsync = arango.db(dbName)
 
