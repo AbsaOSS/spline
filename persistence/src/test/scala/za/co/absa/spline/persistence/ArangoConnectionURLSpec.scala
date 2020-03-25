@@ -27,28 +27,31 @@ class ArangoConnectionURLSpec extends AnyFlatSpec with Matchers {
 
   it should "parse ArangoDB connection URL without port number" in {
     val url = ArangoConnectionURL("arangodb://my.host.com/foo-bar_db")
-    url.host shouldEqual "my.host.com"
-    url.port shouldEqual 8529
+    url.hosts shouldEqual Seq("my.host.com" -> 8529)
     url.dbName shouldEqual "foo-bar_db"
   }
 
   it should "parse ArangoDB connection URL with port number" in {
     val url = ArangoConnectionURL("arangodb://my.host.com:1234/foo-bar_db")
-    url.host shouldEqual "my.host.com"
-    url.port shouldEqual 1234
+    url.hosts shouldEqual Seq("my.host.com" -> 1234)
     url.dbName shouldEqual "foo-bar_db"
+  }
+
+  it should "parse 'MongoDB Connection String' style comma separated 'host:port' list" in {
+    val url = ArangoConnectionURL("arangodb://user-123@my.host1:123,my.host2:456/foo-bar_db")
+    url.hosts shouldEqual Seq("my.host1" -> 123, "my.host2" -> 456)
   }
 
   it should "parse ArangoDB connection URL with user and empty password" in {
     val url = ArangoConnectionURL("arangodb://user-123@my.host.com/foo-bar_db")
-    url.host shouldEqual "my.host.com"
+    url.hosts shouldEqual Seq("my.host.com" -> 8529)
     url.dbName shouldEqual "foo-bar_db"
     url.user shouldEqual Some("user-123")
   }
 
   it should "parse ArangoDB connection URL with user and password" in {
     val url = ArangoConnectionURL("arangodb://user-123:this:is@my_sup&r~5a$$w)rd@my.host.com/foo-bar_db")
-    url.host shouldEqual "my.host.com"
+    url.hosts shouldEqual Seq("my.host.com" -> 8529)
     url.dbName shouldEqual "foo-bar_db"
     url.user shouldEqual Some("user-123")
     url.password shouldEqual Some("this:is@my_sup&r~5a$$w)rd")
@@ -63,15 +66,15 @@ class ArangoConnectionURLSpec extends AnyFlatSpec with Matchers {
     a[MalformedURLException] should be thrownBy ArangoConnectionURL("arangodb://my.host.com:1234")
   }
 
-  behavior of "toURI()"
+  behavior of "asString()"
 
   it should "compose equivalent representation of the input" in {
-    ArangoConnectionURL(None, None, "host", 42, "test").toURI.toString shouldEqual "arangodb://host:42/test"
-    ArangoConnectionURL(Some("alice"), None, "host", 42, "test").toURI.toString shouldEqual "arangodb://alice@host:42/test"
+    ArangoConnectionURL(None, None, Seq("ip1" -> 11, "ip2" -> 22), "test").asString shouldEqual "arangodb://ip1:11,ip2:22/test"
+    ArangoConnectionURL(Some("alice"), None, Seq("host" -> 42), "test").asString shouldEqual "arangodb://alice@host:42/test"
   }
 
   it should "hide user password" in {
-    ArangoConnectionURL(Some("bob"), Some("secret"), "host", 42, "test").toURI.toString shouldEqual "arangodb://bob:*****@host:42/test"
+    ArangoConnectionURL(Some("bob"), Some("secret"), Seq("host" -> 42), "test").asString shouldEqual "arangodb://bob:*****@host:42/test"
   }
 
 }
