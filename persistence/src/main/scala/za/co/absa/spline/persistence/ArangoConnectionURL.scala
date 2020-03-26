@@ -37,8 +37,8 @@ case class ArangoConnectionURL(scheme: String, user: Option[String], password: O
 
 object ArangoConnectionURL {
 
-  private val ArangoDbScheme = "arangodb"
-  private val ArangoSecureDbScheme = "arangodbs"
+  val ArangoDbScheme = "arangodb"
+  val ArangoSecureDbScheme = "arangodbs"
   private val DefaultPort = 8529
 
   private val arangoConnectionUrlRegex = {

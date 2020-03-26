@@ -25,33 +25,40 @@ sealed trait DBCommand extends Command {
 
   def timeout: Duration
 
-  def timeout_=(t: Duration): Self = selfCopy(dbUrl, t)
+  def insecure: Boolean
 
-  def dbUrl_=(url: String): Self = selfCopy(url, timeout)
+  def timeout_=(t: Duration): Self = selfCopy(dbUrl, t, insecure)
+
+  def dbUrl_=(url: String): Self = selfCopy(url, timeout, insecure)
+
+  def insecure_=(b: Boolean): Self = selfCopy(dbUrl, timeout, b)
 
   protected type Self <: DBCommand
 
-  protected def selfCopy: (String, Duration) => Self
+  protected def selfCopy: (String, Duration, Boolean) => Self
 }
 
 object DBCommand {
   val defaultTimeout: Duration = 1.minute
+  val defaultInsecure: Boolean = false
 }
 
 case class DBInit(
   override val dbUrl: String = null,
   override val timeout: Duration = DBCommand.defaultTimeout,
+  override val insecure: Boolean = DBCommand.defaultInsecure,
   force: Boolean = false,
   skip: Boolean = false
 ) extends DBCommand {
   protected override type Self = DBInit
-  protected override val selfCopy: (String, Duration) => DBInit = copy(_, _)
+  protected override val selfCopy: (String, Duration, Boolean) => DBInit = copy(_, _, _)
 }
 
 case class DBUpgrade(
   override val dbUrl: String = null,
-  override val timeout: Duration = DBCommand.defaultTimeout
+  override val timeout: Duration = DBCommand.defaultTimeout,
+  override val insecure: Boolean = DBCommand.defaultInsecure
 ) extends DBCommand {
   protected override type Self = DBUpgrade
-  protected override val selfCopy: (String, Duration) => DBUpgrade = copy
+  protected override val selfCopy: (String, Duration, Boolean) => DBUpgrade = copy
 }
