@@ -20,36 +20,41 @@ import java.net.{MalformedURLException, URI}
 
 import org.apache.commons.lang3.StringUtils.trimToNull
 import za.co.absa.commons.lang.OptionImplicits.StringWrapper
-import za.co.absa.spline.persistence.ArangoConnectionURL.ArangoDbScheme
+import za.co.absa.spline.persistence.ArangoConnectionURL.{ArangoDbScheme, ArangoSecureDbScheme}
 
 import scala.util.matching.Regex
 
-case class ArangoConnectionURL(user: Option[String], password: Option[String], host: String, port: Int, dbName: String) {
+case class ArangoConnectionURL(scheme: String, user: Option[String], password: Option[String], host: String, port: Int, dbName: String) {
   require(user.isDefined || password.isEmpty, "user cannot be blank if password is specified")
 
   def toURI: URI = {
     val userInfo = trimToNull(Seq(user, password.map(_ => "*****")).flatten.mkString(":"))
-    new URI(ArangoDbScheme, userInfo, host, port, s"/$dbName", null, null)
+    new URI(scheme, userInfo, host, port, s"/$dbName", null, null)
   }
+
+  def isSecure: Boolean = scheme == ArangoSecureDbScheme
 }
 
 object ArangoConnectionURL {
 
   private val ArangoDbScheme = "arangodb"
+  private val ArangoSecureDbScheme = "arangodb+ssl"
   private val DefaultPort = 8529
 
   private val arangoConnectionUrlRegex = {
+    val scheme = s"$ArangoDbScheme|$ArangoSecureDbScheme"
     val user = "([^@:]+)"
     val password = "(.+)"
     val host = "([^@:]+)"
     val port = "(\\d+)"
     val dbName = "(\\S+)"
-    new Regex(s"$ArangoDbScheme://(?:$user(?::$password)?@)?$host(?::$port)?/$dbName")
+    new Regex(s"$scheme://(?:$user(?::$password)?@)?$host(?::$port)?/$dbName")
   }
 
   def apply(url: String): ArangoConnectionURL = try {
-    val arangoConnectionUrlRegex(user, password, host, port, dbName) = url
+    val arangoConnectionUrlRegex(scheme, user, password, host, port, dbName) = url
     ArangoConnectionURL(
+      scheme = scheme,
       user = user.nonBlankOption,
       password = password.nonBlankOption,
       host = host,
