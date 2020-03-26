@@ -16,30 +16,64 @@
 
 package za.co.absa.spline.persistence
 
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+
 import com.arangodb.async.{ArangoDBAsync, ArangoDatabaseAsync}
 import com.arangodb.velocypack.module.scala.VPackScalaModule
+import javax.net.ssl._
 import org.springframework.beans.factory.DisposableBean
 import za.co.absa.commons.lang.OptionImplicits.AnyWrapper
+import za.co.absa.spline.persistence.ArangoDatabaseFacade.createSslContext
 
 class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL) extends DisposableBean {
 
-  private val ArangoConnectionURL(maybeUser, maybePassword, hostsWithPorts, dbName) = connectionURL
+  private val ArangoConnectionURL(_, maybeUser, maybePassword, hostsWithPorts, dbName) = connectionURL
+
+  private val isSecure = connectionURL.isSecure
 
   private val arango: ArangoDBAsync = {
     val arangoBuilder = new ArangoDBAsync.Builder()
       .registerModule(new VPackScalaModule)
+      .useSsl(isSecure)
       .optionally(_.user(_: String), maybeUser)
       .optionally(_.password(_: String), maybePassword)
+
+    // set SSL Context
+    if (isSecure) arangoBuilder.sslContext(createSslContext())
 
     // enable active failover
     arangoBuilder.acquireHostList(true)
     for ((host, port) <- hostsWithPorts) arangoBuilder.host(host, port)
 
+    // build ArangoDB Client
     arangoBuilder.build
   }
 
   val db: ArangoDatabaseAsync = arango.db(dbName)
 
   override def destroy(): Unit = arango.shutdown()
+}
+
+object ArangoDatabaseFacade {
+  private def createSslContext(): SSLContext = {
+    val sslContext = SSLContext.getInstance("SSL")
+    sslContext.init(null, Array(TrustAll), new SecureRandom())
+    sslContext
+  }
+
+  // Bypasses both client and server validation.
+  private object TrustAll extends X509TrustManager {
+    override val getAcceptedIssuers: Array[X509Certificate] = Array.empty
+
+    override def checkClientTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {
+      // do nothing
+    }
+
+    override def checkServerTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {
+      // do nothing
+    }
+  }
+
 }
 

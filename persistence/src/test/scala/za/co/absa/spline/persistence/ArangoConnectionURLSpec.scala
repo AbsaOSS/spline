@@ -16,6 +16,8 @@
 
 package za.co.absa.spline.persistence
 
+import ArangoConnectionURL.{ArangoDbScheme, ArangoSecureDbScheme}
+
 import java.net.MalformedURLException
 
 import org.scalatest.flatspec.AnyFlatSpec
@@ -29,6 +31,11 @@ class ArangoConnectionURLSpec extends AnyFlatSpec with Matchers {
     val url = ArangoConnectionURL("arangodb://my.host.com/foo-bar_db")
     url.hosts shouldEqual Seq("my.host.com" -> 8529)
     url.dbName shouldEqual "foo-bar_db"
+  }
+
+  it should "parse ArangoDB secure connection URL" in {
+    val url = ArangoConnectionURL("arangodbs://my.host.com/foo-bar_db")
+    url.scheme shouldEqual ArangoSecureDbScheme
   }
 
   it should "parse ArangoDB connection URL with port number" in {
@@ -69,12 +76,12 @@ class ArangoConnectionURLSpec extends AnyFlatSpec with Matchers {
   behavior of "asString()"
 
   it should "compose equivalent representation of the input" in {
-    ArangoConnectionURL(None, None, Seq("ip1" -> 11, "ip2" -> 22), "test").asString shouldEqual "arangodb://ip1:11,ip2:22/test"
-    ArangoConnectionURL(Some("alice"), None, Seq("host" -> 42), "test").asString shouldEqual "arangodb://alice@host:42/test"
+    ArangoConnectionURL(ArangoDbScheme, None, None, Seq("ip1" -> 11, "ip2" -> 22), "test").asString shouldEqual "arangodb://ip1:11,ip2:22/test"
+    ArangoConnectionURL(ArangoDbScheme, Some("alice"), None, Seq("host" -> 42), "test").asString shouldEqual "arangodb://alice@host:42/test"
   }
 
   it should "hide user password" in {
-    ArangoConnectionURL(Some("bob"), Some("secret"), Seq("host" -> 42), "test").asString shouldEqual "arangodb://bob:*****@host:42/test"
+    ArangoConnectionURL(ArangoDbScheme, Some("bob"), Some("secret"), Seq("host" -> 42), "test").asString shouldEqual "arangodb://bob:*****@host:42/test"
   }
 
 }
