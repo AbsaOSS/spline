@@ -21,6 +21,8 @@ import javax.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.{HttpStatus, ResponseEntity}
 import org.springframework.web.bind.annotation._
+import za.co.absa.spline.common.SplineBuildInfo
+import za.co.absa.spline.producer.service.model.ServerStatus
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -42,10 +44,24 @@ class StatusController @Autowired()(
     new ApiResponse(code = 200, message = "Everything's working"),
     new ApiResponse(code = 503, message = "There is a problem")
   ))
-  def status(response: HttpServletResponse): Future[_] = repo
+  def statusHead(response: HttpServletResponse): Future[_] = repo
     .isDatabaseOk
     .map({
       if (_) new ResponseEntity(HttpStatus.OK)
       else new ResponseEntity(HttpStatus.SERVICE_UNAVAILABLE)
     })
+
+  @RequestMapping(
+    path = Array("/status"),
+    method = Array(RequestMethod.GET))
+  @ApiOperation(
+    value = "Server status",
+    notes = "Returns server status, version and abilities")
+  def statusGet(response: `HttpServletResponse`): Future[ServerStatus] = repo
+    .isDatabaseOk
+    .map({
+      if (_) "OK"
+      else "DB unreachable"
+    })
+    .map(ServerStatus(_, SplineBuildInfo.Version, true))
 }
