@@ -16,6 +16,8 @@
 
 package za.co.absa.spline.persistence
 
+import java.util.concurrent.ExecutionException
+
 import com.arangodb.async.ArangoDatabaseAsync
 import org.slf4s.Logging
 import org.springframework.beans.factory.InitializingBean
@@ -29,8 +31,15 @@ class ArangoRepoConfig extends InitializingBean with Logging {
   import za.co.absa.spline.persistence.ArangoRepoConfig._
 
   override def afterPropertiesSet(): Unit = {
-    log.info(s"Connecting to ${Database.connectionURL.toURI}")
-    arangoDatabase.getInfo.get()
+    log.info(s"Connecting to ${Database.connectionURL.asString}")
+    try {
+      arangoDatabase.getInfo.get()
+    } catch {
+      // The first call sometime fails with a CCE due to a bug in ArangoDB Java Driver
+      // see: https://github.com/arangodb/arangodb-java-driver-async/issues/21
+      case ee: ExecutionException if ee.getCause.isInstanceOf[ClassCastException] =>
+        arangoDatabase.getInfo.get()
+    }
   }
 
   @Bean def arangoDatabaseFacade: ArangoDatabaseFacade = new ArangoDatabaseFacade(Database.connectionURL)
@@ -42,13 +51,11 @@ object ArangoRepoConfig extends DefaultConfigurationStack with ConfTyped {
 
   import za.co.absa.commons.config.ConfigurationImplicits._
 
-  setThrowExceptionOnMissing(true)
-
   override val rootPrefix: String = "spline"
 
   object Database extends Conf("database") {
     val connectionURL: ArangoConnectionURL = ArangoConnectionURL(
-      ArangoRepoConfig.this.getRequiredString(Prop("connectionUrl")))
+      ArangoRepoConfig.this.getRequiredStringArray(Prop("connectionUrl")).mkString(","))
   }
 
 }
