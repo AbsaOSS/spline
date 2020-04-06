@@ -18,6 +18,8 @@ package za.co.absa.spline.gateway.rest.filter
 
 import javax.servlet._
 import javax.servlet.http.HttpServletRequest
+import org.springframework.http.HttpHeaders
+import za.co.absa.spline.producer.rest.HttpConstants.Encoding
 
 /**
  * Filter for decompressing gziped Http requests
@@ -36,9 +38,8 @@ class GzipFilter extends Filter {
   }
 
   private def isCompressed(request: HttpServletRequest): Boolean = {
-    val contentEncoding = request.getHeader("Content-Encoding")
-
-    contentEncoding != null && contentEncoding.toLowerCase.contains("gzip")
+    val maybeContentEncoding = Option(request.getHeader(HttpHeaders.CONTENT_ENCODING))
+    maybeContentEncoding.exists(_.toLowerCase == Encoding.GZIP)
   }
 
   override def init(config: FilterConfig): Unit = {
