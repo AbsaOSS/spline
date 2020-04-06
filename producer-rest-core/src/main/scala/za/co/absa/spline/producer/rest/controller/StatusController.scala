@@ -21,6 +21,8 @@ import javax.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.{HttpStatus, ResponseEntity}
 import org.springframework.web.bind.annotation._
+import za.co.absa.spline.producer.rest.HttpConstants.{Encoding, SplineHeaders}
+import za.co.absa.spline.producer.rest.ProducerAPI
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -29,8 +31,6 @@ import scala.concurrent.{ExecutionContext, Future}
 @Api(tags = Array("status"))
 class StatusController @Autowired()(
   val repo: ExecutionProducerRepository) {
-
-  val ApiVersion = 1
 
   import ExecutionContext.Implicits.global
 
@@ -53,8 +53,8 @@ class StatusController @Autowired()(
     .map {
       ResponseEntity
         .status(_)
-        .header("api-version", ApiVersion.toString)
-        .header("supports-request-decompression", "true")
+        .header(SplineHeaders.ApiVersion, ProducerAPI.VersionNumber.toString)
+        .header(SplineHeaders.AcceptRequestEncoding, Encoding.GZIP)
         .build()
     }
 }
