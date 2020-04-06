@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-import { ChangeDetectionStrategy, Component, ViewEncapsulation } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { Observable, of } from 'rxjs';
-import { debounceTime, switchMap } from 'rxjs/operators';
-import { FoundAttribute } from '../../../generated/models/found-attribute';
-import { AppState } from '../../../model/app-state';
-import { AttributeSearchService } from '../../../service/attribute-search.service';
-import * as RouterAction from '../../../store/actions/router.actions';
+import { ChangeDetectionStrategy, Component, ViewEncapsulation } from '@angular/core'
+import { Store } from '@ngrx/store'
+import { of, Observable } from 'rxjs'
+import { debounceTime, switchMap } from 'rxjs/operators'
+
+import { FoundAttribute } from '../../../generated/models/found-attribute'
+import { AppState } from '../../../model/app-state'
+import { AttributeSearchService } from '../../../service/attribute-search.service'
+import * as RouterAction from '../../../store/actions/router.actions'
 
 
 @Component({
   selector: 'app-attribute-search-bar',
   templateUrl: './attribute-search-bar.component.html',
-  styleUrls: ['./attribute-search-bar.component.less'],
+  styleUrls: ['./attribute-search-bar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None
 })
@@ -36,9 +37,10 @@ export class AttributeSearchBarComponent {
   constructor(
     private store: Store<AppState>,
     private attributeService: AttributeSearchService
-  ) { }
+  ) {
+  }
 
-  public search = (text$: Observable<string>): Observable<FoundAttribute[]> =>
+  search = (text$: Observable<string>): Observable<FoundAttribute[]> =>
     text$.pipe(
       debounceTime(200),
       switchMap(term => term === ''
@@ -46,20 +48,23 @@ export class AttributeSearchBarComponent {
         : this.attributeService.search(term))
     )
 
-  public onItemSelected = (selectedAttribute: FoundAttribute) => {
+  onItemSelected = (selectedAttribute: FoundAttribute) => {
     this.store.dispatch(new RouterAction.Go({
-      url: "/app/lineage-detailed/" + selectedAttribute.executionEventId,
-      queryParams: {'attribute': selectedAttribute.id}
+      url: '/app/lineage-detailed/' + selectedAttribute.executionEventId,
+      queryParams: { attribute: selectedAttribute.id }
     }))
 
-    return ""
+    return ''
   }
 
-  public getTypeString(attribute: FoundAttribute) {
-    switch (attribute.attributeType["_typeHint"]) {
-      case 'dt.Struct': return 'struct {...}'
-      case 'dt.Array': return 'array [...]'
-      default: return attribute.attributeType.name
+  getTypeString(attribute: FoundAttribute) {
+    switch (attribute.attributeType['_typeHint']) {
+      case 'dt.Struct':
+        return 'struct {...}'
+      case 'dt.Array':
+        return 'array [...]'
+      default:
+        return attribute.attributeType.name
     }
   }
 }

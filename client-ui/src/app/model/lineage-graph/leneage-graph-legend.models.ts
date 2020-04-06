@@ -15,19 +15,19 @@
  */
 
 
-import {LINE_COLOR_HLT_IMPACT, LINE_COLOR_HLT_LINEAGE, LINE_COLOR_HLT_PRIMARY} from './leneage-graph.models';
+import { LINE_COLOR_HLT_IMPACT, LINE_COLOR_HLT_LINEAGE, LINE_COLOR_HLT_PRIMARY } from './leneage-graph.models'
 
 
 export type LineageGraphLegend = {
-  title: string;
-  color: string;
-  description: string;
+  title: string
+  color: string
+  description: string
 }
 
 export type LineageGraphLegendKeys =
-  "Usage" |
-  "Lineage" |
-  "Impact"
+  'Usage' |
+  'Lineage' |
+  'Impact'
 
 export const LineageGraphLegends: { [key in LineageGraphLegendKeys]: LineageGraphLegend } =
   Object.freeze({

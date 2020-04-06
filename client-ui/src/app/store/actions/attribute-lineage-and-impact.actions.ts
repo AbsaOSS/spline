@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Action} from '@ngrx/store';
-import {AttributeLineageAndImpact} from "../../generated/models/attribute-lineage-and-impact";
+import { Action } from '@ngrx/store'
+
+import { AttributeLineageAndImpact } from '../../generated/models/attribute-lineage-and-impact'
+
 
 export enum AttributeLineageAndImpactActionTypes {
   ATTRIBUTE_LINEAGE_AND_IMPACT_SET = '[Attribute Lineage And Impact] Set',
 }
 
 export class Set implements Action {
-  public readonly type = AttributeLineageAndImpactActionTypes.ATTRIBUTE_LINEAGE_AND_IMPACT_SET
+  readonly type = AttributeLineageAndImpactActionTypes.ATTRIBUTE_LINEAGE_AND_IMPACT_SET
 
   constructor(public linAndImp: AttributeLineageAndImpact) {
   }

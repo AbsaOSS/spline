@@ -13,41 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnDestroy, ViewEncapsulation} from '@angular/core';
-import {Store} from '@ngrx/store';
-import * as _ from 'lodash';
-import * as moment from 'moment';
-import {Subscription} from 'rxjs';
-import {filter} from 'rxjs/operators';
-import {AppState} from 'src/app/model/app-state';
-import {RouterStateUrl} from 'src/app/model/routerStateUrl';
-import * as DashboardActions from 'src/app/store/actions/dashboard.actions';
-import * as ExecutionEventsActions from 'src/app/store/actions/execution-events.actions';
-import * as RouterAction from 'src/app/store/actions/router.actions';
-import {DashboardVM} from "../../model/viewModels/dashboardVM";
-import {DateRange, Timestamp} from "../time-frame-picker/time-frame-picker.model";
-import {PageableExecutionEventsResponse} from "../../generated/models/pageable-execution-events-response";
-import {TablePage, TableSort} from "./dashboard.model";
-import {DashboardLoadingIndicator} from "./dashboard.loading-indicator";
-import {MatSlideToggleChange} from '@angular/material';
+import { Component, OnDestroy, ViewEncapsulation } from '@angular/core'
+import { MatSlideToggleChange } from '@angular/material/slide-toggle'
+import { Store } from '@ngrx/store'
+import * as _ from 'lodash'
+import moment from 'moment'
+import { Subscription } from 'rxjs'
+import { filter } from 'rxjs/operators'
+import { AppState } from 'src/app/model/app-state'
+import { RouterStateUrl } from 'src/app/model/routerStateUrl'
+import * as DashboardActions from 'src/app/store/actions/dashboard.actions'
+import * as ExecutionEventsActions from 'src/app/store/actions/execution-events.actions'
+import * as RouterAction from 'src/app/store/actions/router.actions'
 
-const SEARCH_TERM_UPDATE_DELAY = 300 //millis
+import { PageableExecutionEventsResponse } from '../../generated/models/pageable-execution-events-response'
+import { DashboardVM } from '../../model/viewModels/dashboardVM'
+import { DateRange, Timestamp } from '../time-frame-picker/time-frame-picker.model'
+
+import { DashboardLoadingIndicator } from './dashboard.loading-indicator'
+import { TablePage, TableSort } from './dashboard.model'
+
+
+const SEARCH_TERM_UPDATE_DELAY = 300 // millis
 
 @Component({
   selector: 'dashboard',
   templateUrl: './dashboard.component.html',
-  styleUrls: ['dashboard.component.less'],
+  styleUrls: ['dashboard.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
 export class DashboardComponent implements OnDestroy {
+  readonly loadingIndicator = new DashboardLoadingIndicator
+  executionEvents: PageableExecutionEventsResponse = {}
+  dashboardState: DashboardVM
+  sort: TableSort
+  readonly onSearchTermChange: (_: KeyboardEvent) => void = _.debounce(
+    (input: KeyboardEvent) =>
+      this.store.dispatch(new DashboardActions.SetSearchQuery((input.target as HTMLInputElement).value)),
+    SEARCH_TERM_UPDATE_DELAY)
   private readonly subscriptions: Subscription[] = []
   private readonly asAtTime: Timestamp = +moment()
-
-  public readonly loadingIndicator = new DashboardLoadingIndicator
-
-  public executionEvents: PageableExecutionEventsResponse = {}
-  public dashboardState: DashboardVM
-  public sort: TableSort
 
   constructor(private store: Store<AppState>) {
     this.subscriptions.push(
@@ -71,6 +76,41 @@ export class DashboardComponent implements OnDestroy {
     )
   }
 
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(s => s.unsubscribe())
+  }
+
+  onSelect(event): void {
+    const executionEventId = event.selected[0].executionEventId
+    const params = {} as RouterStateUrl
+    params.queryParams = { executionEventId: executionEventId }
+    params.url = '/app/lineage-overview/'
+    this.store.dispatch(new RouterAction.Go(params))
+  }
+
+  onFilterByDateSwitchToggle(switchOn: MatSlideToggleChange): void {
+    const dateRange = switchOn.checked
+      ? this.executionEvents.totalDateRange as DateRange
+      : undefined
+    this.store.dispatch(new DashboardActions.SetDateRange(dateRange))
+  }
+
+  onDateRangeSelected(range: DateRange): void {
+    this.store.dispatch(new DashboardActions.SetDateRange(range))
+  }
+
+  onPageChange(page: TablePage): void {
+    this.store.dispatch(new DashboardActions.SetPageNumber(page.offset + 1))
+  }
+
+  onSortChange(sort: TableSort): void {
+    this.store.dispatch(new DashboardActions.SetSortOrder(sort.prop, sort.dir))
+  }
+
+  getFrameworkIconClass(frameworkName: string): string {
+    return /^spark\b/i.test(frameworkName) ? 'spark' : 'other'
+  }
+
   private loadExecutionEvents(dashboardState: DashboardVM): void {
     const dateRange = dashboardState.filters.dateRange
     this.store.dispatch(new ExecutionEventsActions.Get(
@@ -83,45 +123,5 @@ export class DashboardComponent implements OnDestroy {
         sortOrder: dashboardState.sort.order,
         searchTerm: dashboardState.filters.searchQuery,
       }))
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(s => s.unsubscribe())
-  }
-
-  public onSelect(event): void {
-    const executionEventId = event.selected[0].executionEventId
-    const params = {} as RouterStateUrl
-    params.queryParams = { "executionEventId": executionEventId }
-    params.url = "/app/lineage-overview/"
-    this.store.dispatch(new RouterAction.Go(params))
-  }
-
-  public onFilterByDateSwitchToggle(switchOn: MatSlideToggleChange): void {
-    const dateRange = switchOn.checked
-      ? this.executionEvents.totalDateRange as DateRange
-      : undefined;
-    this.store.dispatch(new DashboardActions.SetDateRange(dateRange))
-  }
-
-  public onDateRangeSelected(range: DateRange): void {
-    this.store.dispatch(new DashboardActions.SetDateRange(range))
-  }
-
-  public onPageChange(page: TablePage): void {
-    this.store.dispatch(new DashboardActions.SetPageNumber(page.offset+1))
-  }
-
-  public onSortChange(sort: TableSort): void {
-    this.store.dispatch(new DashboardActions.SetSortOrder(sort.prop, sort.dir))
-  }
-
-  public readonly onSearchTermChange: (_: KeyboardEvent) => void = _.debounce(
-    (input: KeyboardEvent) =>
-      this.store.dispatch(new DashboardActions.SetSearchQuery((input.target as HTMLInputElement).value)),
-    SEARCH_TERM_UPDATE_DELAY)
-
-  public getFrameworkIconClass(frameworkName: string): string {
-    return /^spark\b/i.test(frameworkName) ? "spark" : "other"
   }
 }

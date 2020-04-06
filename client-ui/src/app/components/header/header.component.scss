@@ -1,0 +1,71 @@
+/*
+ * Copyright 2019 ABSA Group Limited
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.spline-icon-menu {
+  cursor: pointer;
+  height: 40px;
+  width: 130px;
+}
+
+.navbar {
+  background: #303a40;
+  font-size: 25px;
+}
+
+.navbar-dark .navbar-nav .active > .nav-link,
+.navbar-dark .navbar-nav .nav-link.active,
+.navbar-dark .navbar-nav .nav-link.show,
+.navbar-dark .navbar-nav .show > .nav-link {
+  color: #d9d2c7;
+}
+
+.nav-link {
+  padding-top: 1.2rem !important;
+}
+
+ol {
+  margin-bottom: 0 !important;
+  padding: 2px 40px !important;
+}
+
+.breadcrum {
+  margin-bottom: 0 !important;
+  padding: 0 !important;
+}
+
+.breadcrumb > li + li::before {
+  content: '> ';
+}
+
+.display-flex {
+  display: flex;
+}
+
+.display-none {
+  display: none;
+}
+
+.title {
+  color: #d9d2c7;
+  font-size: 15px;
+  font-weight: lighter;
+  padding-top: 1rem !important;
+}
+
+.active {
+  color: #e39256;
+  font-weight: bold;
+}

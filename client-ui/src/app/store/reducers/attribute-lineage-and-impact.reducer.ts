@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as ExecutionPlanAction from '../actions/execution-plan.actions';
-import {AttributeLineageAndImpactActionTypes, Set} from '../actions/attribute-lineage-and-impact.actions';
-import {Action} from "@ngrx/store";
-import {AttributeLineageAndImpact} from "../../generated/models/attribute-lineage-and-impact";
+import { Action } from '@ngrx/store'
+
+import { AttributeLineageAndImpact } from '../../generated/models/attribute-lineage-and-impact'
+import { AttributeLineageAndImpactActionTypes, Set } from '../actions/attribute-lineage-and-impact.actions'
+import * as ExecutionPlanAction from '../actions/execution-plan.actions'
 
 
 export function attributeLineageAndImpactReducer(state: AttributeLineageAndImpact, action: Action): AttributeLineageAndImpact {

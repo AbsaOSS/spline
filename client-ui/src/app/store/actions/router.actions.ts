@@ -13,26 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Params } from "@angular/router";
-import { Action } from "@ngrx/store";
-import { RouterStateUrl } from 'src/app/model/routerStateUrl';
+import { Params } from '@angular/router'
+import { Action } from '@ngrx/store'
+import { RouterStateUrl } from 'src/app/model/routerStateUrl'
+
 
 export enum RouterActionTypes {
-    GO = "[Router] Go",
-    NAVIGATES = "[Router] Navigates",
-    REPLACE_URL_STATE = "[Router] Replace url state"
+  GO = '[Router] Go',
+  NAVIGATES = '[Router] Navigates',
+  REPLACE_URL_STATE = '[Router] Replace url state'
 }
 
 export class Go implements Action {
-    public readonly type = RouterActionTypes.GO
-    constructor(public payload: RouterStateUrl) { }
+  readonly type = RouterActionTypes.GO
+  constructor(public payload: RouterStateUrl) { }
 }
 
 export class ReplaceUrlState implements Action {
-    public readonly type = RouterActionTypes.REPLACE_URL_STATE
-    constructor(public payload: Params) { }
+  readonly type = RouterActionTypes.REPLACE_URL_STATE
+  constructor(public payload: Params) { }
 }
 
 export type RouterActions
-    = Go
-    | ReplaceUrlState
+  = Go
+  | ReplaceUrlState

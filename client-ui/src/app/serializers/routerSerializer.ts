@@ -14,26 +14,28 @@
  * limitations under the License.
  */
 
-import {RouterStateSnapshot} from "@angular/router";
-import {Injectable} from "@angular/core";
-import {RouterStateSerializer} from "@ngrx/router-store";
-import {RouterStateUrl} from "../model/routerStateUrl";
+import { Injectable } from '@angular/core'
+import { RouterStateSnapshot } from '@angular/router'
+import { RouterStateSerializer } from '@ngrx/router-store'
+
+import { RouterStateUrl } from '../model/routerStateUrl'
+
 
 @Injectable()
 export class RouterSerializer implements RouterStateSerializer<RouterStateUrl> {
-    public serialize(routerState: RouterStateSnapshot): RouterStateUrl {
-        let route = routerState.root;
+  serialize(routerState: RouterStateSnapshot): RouterStateUrl {
+    let route = routerState.root
 
-        while (route.firstChild) {
-            route = route.firstChild;
-        }
-
-        const {
-            url,
-            root: { queryParams }
-        } = routerState;
-        const { params } = route;
-
-        return { url, params, queryParams };
+    while (route.firstChild) {
+      route = route.firstChild
     }
+
+    const {
+      url,
+      root: { queryParams }
+    } = routerState
+    const { params } = route
+
+    return { url, params, queryParams }
+  }
 }

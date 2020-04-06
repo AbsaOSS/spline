@@ -17,13 +17,13 @@
   <mat-accordion>
     <mat-expansion-panel [expanded]="true">
       <mat-expansion-panel-header>
-        <i class="fa fa-xs" aria-hidden="true" [style.color]=getColor()>{{getIcon()}}</i> <strong> Transformations </strong>
+        <i [style.color]=getColor() aria-hidden="true" class="fa fa-xs">{{getIcon()}}</i> <strong> Transformations </strong>
       </mat-expansion-panel-header>
       <div>
         <div *ngFor="let property of properties ;let i=index">
-          <div *ngIf="property.type===PropertyType.Transformations"><a href=""
-              (click)="openExprViewDialog($event, property)">
-              <i class='transformation-prexif'>λ = </i><code>{{property.value}}</code></a></div>
+          <div *ngIf="property.type===PropertyType.Transformations"><a (click)="openExprViewDialog($event, property)"
+                                                                       href="">
+            <i class='transformation-prexif'>λ = </i><code>{{property.value}}</code></a></div>
         </div>
       </div>
     </mat-expansion-panel>
@@ -34,12 +34,14 @@
   <mat-accordion>
     <mat-expansion-panel [expanded]="true">
       <mat-expansion-panel-header>
-        <i class="fa fa-xs" aria-hidden="true" [style.color]=getColor()>{{getIcon()}}</i> <strong> Dropped Attributes</strong>
+        <i [style.color]=getColor() aria-hidden="true" class="fa fa-xs">{{getIcon()}}</i> <strong> Dropped Attributes</strong>
       </mat-expansion-panel-header>
       <div>
         <div *ngFor="let property of properties ;let i=index">
           <div *ngIf="property.type===PropertyType.DroppedAttributes"><i class='dropped-attribute-prexif'>a =
-            </i><del><code>{{property.value}}</code></del></div>
+          </i>
+            <del><code>{{property.value}}</code></del>
+          </div>
         </div>
       </div>
     </mat-expansion-panel>

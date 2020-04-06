@@ -14,29 +14,34 @@
  * limitations under the License.
  */
 
-import { Action } from '@ngrx/store';
+import { Action } from '@ngrx/store'
+
 
 export enum ErrorActionTypes {
-    APPLICATION_ERROR_GET = '[Application Error] Get',
-    SERVICE_ERROR_GET = '[Service Error] Get',
-    SERVICE_ERROR_RESET = '[Service Error] Reset'
+  APPLICATION_ERROR_GET = '[Application Error] Get',
+  SERVICE_ERROR_GET = '[Service Error] Get',
+  SERVICE_ERROR_RESET = '[Service Error] Reset'
 }
 
 export class ApplicationErrorGet implements Action {
-    public readonly type = ErrorActionTypes.APPLICATION_ERROR_GET
-    constructor(public payload: string) { }
+  readonly type = ErrorActionTypes.APPLICATION_ERROR_GET
+
+  constructor(public payload: string) {
+  }
 }
 
 export class ServiceErrorGet implements Action {
-    public readonly type = ErrorActionTypes.SERVICE_ERROR_GET
-    constructor(public payload: string) { }
+  readonly type = ErrorActionTypes.SERVICE_ERROR_GET
+
+  constructor(public payload: string) {
+  }
 }
 
 export class ServiceErrorReset implements Action {
-    public readonly type = ErrorActionTypes.SERVICE_ERROR_RESET
+  readonly type = ErrorActionTypes.SERVICE_ERROR_RESET
 }
 
 export type ErrorActions
-    = ApplicationErrorGet
-    | ServiceErrorGet
-    | ServiceErrorReset
+  = ApplicationErrorGet
+  | ServiceErrorGet
+  | ServiceErrorReset

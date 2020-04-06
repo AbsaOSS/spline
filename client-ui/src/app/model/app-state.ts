@@ -14,27 +14,33 @@
  * limitations under the License.
  */
 
-import {AttributeLineageAndImpact, PageableExecutionEventsResponse} from "../generated/models";
-import {RouterStateUrl} from "./routerStateUrl";
-import {CytoscapeGraphVM} from "./viewModels/cytoscape/cytoscapeGraphVM";
-import {ExecutedLogicalPlanVM} from "./viewModels/executedLogicalPlanVM";
-import {OperationDetailsVM} from "./viewModels/operationDetailsVM";
-import {LineageOverviewVM} from './viewModels/lineageOverview';
-import {DashboardVM} from "./viewModels/dashboardVM";
+import { AttributeLineageAndImpact, PageableExecutionEventsResponse } from '../generated/models'
+
+import { RouterStateUrl } from './routerStateUrl'
+import { CytoscapeGraphVM } from './viewModels/cytoscape/cytoscapeGraphVM'
+import { DashboardVM } from './viewModels/dashboardVM'
+import { ExecutedLogicalPlanVM } from './viewModels/executedLogicalPlanVM'
+import { LineageOverviewVM } from './viewModels/lineageOverview'
+import { OperationDetailsVM } from './viewModels/operationDetailsVM'
+
 
 export interface AppState {
-    config: {
-        apiUrl: string
-    },
-    executionEvents: PageableExecutionEventsResponse,
-    dashboard: DashboardVM,
-    lineageOverview: LineageOverviewVM,
-    executedLogicalPlan: ExecutedLogicalPlanVM,
-    attributeLineageAndImpact: AttributeLineageAndImpact,
-    detailsInfos: OperationDetailsVM,
-    attributes: CytoscapeGraphVM,
-    router: RouterStateUrl,
-    layout: any,
-    contextMenu: any,
-    error: string
+  config: {
+    apiUrl: string
+    embeddedMode: boolean
+  }
+  executionEvents: PageableExecutionEventsResponse
+  dashboard: DashboardVM
+  lineageOverview: LineageOverviewVM
+  executedLogicalPlan: ExecutedLogicalPlanVM
+  attributeLineageAndImpact: AttributeLineageAndImpact
+  detailsInfos: OperationDetailsVM
+  attributes: CytoscapeGraphVM
+  router: {
+    state: RouterStateUrl
+    navigationId: number
+  }
+  layout: any
+  contextMenu: any
+  error: string
 }

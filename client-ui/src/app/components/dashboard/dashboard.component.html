@@ -14,56 +14,56 @@
   ~ limitations under the License.
   -->
 <div *ngIf="dashboardState.filters.dateRange" class="filters mo-padding">
-  <time-frame-picker [range]="dashboardState.filters.dateRange" [rangeBoundaries]="executionEvents.totalDateRange"
-    (rangeChange)="onDateRangeSelected($event)">
+  <time-frame-picker (rangeChange)="onDateRangeSelected($event)" [rangeBoundaries]="executionEvents.totalDateRange"
+                     [range]="dashboardState.filters.dateRange">
   </time-frame-picker>
 </div>
 <div class="container-fluid">
   <div class="row">
     <div class="col-md-12">
-      <input type="text" class="search float-right" #searchInput placeholder="Search..."
-        value="{{dashboardState.filters.searchQuery}}" (keyup)="onSearchTermChange($event)" />
+      <input #searchInput (keyup)="onSearchTermChange($event)" class="search float-right" placeholder="Search..."
+             type="text" value="{{dashboardState.filters.searchQuery}}"/>
 
       <div class="dataMode float-left">
         Filter by Date/Time &nbsp;
-        <mat-slide-toggle [color]="'primary'" [checked]="dashboardState.filters.dateRange"
-          (change)="onFilterByDateSwitchToggle($event)">
+        <mat-slide-toggle (change)="onFilterByDateSwitchToggle($event)" [checked]="dashboardState.filters.dateRange"
+                          [color]="'primary'">
         </mat-slide-toggle>
       </div>
-      <ngx-datatable #table class='table material expandable' [columnMode]="'force'" [headerHeight]="'auto'"
-        [footerHeight]="'auto'" [rowHeight]="'auto'" [scrollbarV]="false" [selectionType]="'single'"
-        [loadingIndicator]="loadingIndicator.isActive" [rows]="executionEvents.items"
-        [count]="executionEvents.totalCount" [externalPaging]="true" [offset]="dashboardState.pagination.page - 1"
-        [limit]="dashboardState.pagination.size" [externalSorting]="true" [sorts]="[sort]" (page)="onPageChange($event)"
-        (sort)="onSortChange($event.sorts[0])" (select)="onSelect($event)">
+      <ngx-datatable #table (page)="onPageChange($event)" (select)="onSelect($event)" (sort)="onSortChange($event.sorts[0])"
+                     [columnMode]="'force'" [count]="executionEvents.totalCount" [externalPaging]="true" [externalSorting]="true"
+                     [footerHeight]="'auto'" [headerHeight]="'auto'"
+                     [limit]="dashboardState.pagination.size" [loadingIndicator]="loadingIndicator.isActive" [offset]="dashboardState.pagination.page - 1"
+                     [rowHeight]="'auto'" [rows]="executionEvents.items" [scrollbarV]="false" [selectionType]="'single'"
+                     [sorts]="[sort]" class='table material expandable'>
 
-        <ngx-datatable-column name="Framework" [width]="10">
+        <ngx-datatable-column [width]="10" name="Framework">
           <ng-template let-expanded="frameworkName" let-row="row" ngx-datatable-cell-template>
             <td class="frmw-icon frmw-icon-{{getFrameworkIconClass(row.frameworkName)}}"></td>
           </ng-template>
         </ngx-datatable-column>
-        <ngx-datatable-column name="Application Name" prop="applicationName" [width]="50">
+        <ngx-datatable-column [width]="50" name="Application Name" prop="applicationName">
           <ng-template let-expanded="applicationName" let-row="row" ngx-datatable-cell-template>
             <div class="tooltipCell" title="{{row.applicationName}}">
               {{row.applicationName}}
             </div>
           </ng-template>
         </ngx-datatable-column>
-        <ngx-datatable-column name="Application Id" prop="applicationId" [width]="50">
+        <ngx-datatable-column [width]="50" name="Application Id" prop="applicationId">
           <ng-template let-expanded="applicationId" let-row="row" ngx-datatable-cell-template>
             <div class="tooltipCell" title="{{row.applicationId}}">
               {{row.applicationId}}
             </div>
           </ng-template>
         </ngx-datatable-column>
-        <ngx-datatable-column name="Execution Date" prop="timestamp" [width]="50">
+        <ngx-datatable-column [width]="50" name="Execution Date" prop="timestamp">
           <ng-template let-expanded="timestamp" let-row="row" ngx-datatable-cell-template>
-            <div class="tooltipCell" title=" {{row.timestamp | date:'yyyy-MM-dd, HH:mm:ss'}}" placement="bottom">
+            <div class="tooltipCell" placement="bottom" title=" {{row.timestamp | date:'yyyy-MM-dd, HH:mm:ss'}}">
               {{row.timestamp | date:'yyyy-MM-dd, HH:mm:ss'}}
             </div>
           </ng-template>
         </ngx-datatable-column>
-        <ngx-datatable-column name="Destination" prop="dataSourceUri" [width]="400">
+        <ngx-datatable-column [width]="400" name="Destination" prop="dataSourceUri">
           <ng-template let-expanded="dataSourceUri" let-row="row" ngx-datatable-cell-template>
             <div class="tooltipCell" title="{{row.dataSourceUri}}">
               {{row.dataSourceUri}}
@@ -71,26 +71,26 @@
           </ng-template>
         </ngx-datatable-column>
 
-        <ngx-datatable-column name="DataSource Type" prop="dataSourceType" [width]="10">
+        <ngx-datatable-column [width]="10" name="DataSource Type" prop="dataSourceType">
           <ng-template let-expanded="dataSourceType" let-row="row" ngx-datatable-cell-template>
             {{row.dataSourceType}}
           </ng-template>
         </ngx-datatable-column>
-        <ngx-datatable-column name="Write Mode" prop="append" [width]="10">
+        <ngx-datatable-column [width]="10" name="Write Mode" prop="append">
           <ng-template let-expanded="append" let-row="row" ngx-datatable-cell-template>
             {{row.append && 'Append' || 'Override'}}
           </ng-template>
         </ngx-datatable-column>
         <!--Footer -->
         <ngx-datatable-footer>
-          <ng-template ngx-datatable-footer-template let-rowCount="rowCount" let-pageSize="pageSize"
-            let-selectedCount="selectedCount" let-isVisible="isVisible">
+          <ng-template let-isVisible="isVisible" let-pageSize="pageSize" let-rowCount="rowCount"
+                       let-selectedCount="selectedCount" ngx-datatable-footer-template>
             <div *ngIf="(rowCount / pageSize) > 1" class="pager-bar-inner">
               <strong>Total</strong>: {{ rowCount }}
-              <datatable-pager [pagerLeftArrowIcon]="'datatable-icon-left'"
-                [pagerRightArrowIcon]="'datatable-icon-right'" [pagerPreviousIcon]="'datatable-icon-prev'"
-                [pagerNextIcon]="'datatable-icon-skip'" [page]="dashboardState.pagination.page" [size]="pageSize"
-                [count]="rowCount" (change)="table.onFooterPage($event)">
+              <datatable-pager (change)="table.onFooterPage($event)"
+                               [count]="rowCount" [page]="dashboardState.pagination.page"
+                               [pagerLeftArrowIcon]="'datatable-icon-left'" [pagerNextIcon]="'datatable-icon-skip'" [pagerPreviousIcon]="'datatable-icon-prev'"
+                               [pagerRightArrowIcon]="'datatable-icon-right'" [size]="pageSize">
               </datatable-pager>
             </div>
           </ng-template>

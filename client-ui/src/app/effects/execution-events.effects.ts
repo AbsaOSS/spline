@@ -14,21 +14,37 @@
  * limitations under the License.
  */
 
-import {Injectable} from '@angular/core';
-import {Actions, Effect, ofType} from '@ngrx/effects';
-import {Store} from '@ngrx/store';
-import {Observable} from 'rxjs';
-import {map, switchMap} from 'rxjs/operators';
-import {PageableExecutionEventsResponse} from '../generated/models/pageable-execution-events-response';
-import {ExecutionEventsService} from '../generated/services';
-import {AppState} from '../model/app-state';
-import {handleException} from '../rxjs/operators/handleException';
-import * as ExecutionEventsAction from '../store/actions/execution-events.actions';
+import { Injectable } from '@angular/core'
+import { ofType, Actions, Effect } from '@ngrx/effects'
+import { Store } from '@ngrx/store'
+import { Observable } from 'rxjs'
+import { map, switchMap } from 'rxjs/operators'
+
+import { PageableExecutionEventsResponse } from '../generated/models/pageable-execution-events-response'
+import { ExecutionEventsService } from '../generated/services'
+import { AppState } from '../model/app-state'
+import { handleException } from '../rxjs/operators/handleException'
+import * as ExecutionEventsAction from '../store/actions/execution-events.actions'
+
 
 export type Action = ExecutionEventsAction.ExecutionEventsActions
 
 @Injectable()
 export class ExecutionEventsEffects {
+
+  @Effect()
+  getDefaultPageableExecutionEvents$: Observable<ExecutionEventsAction.GetSuccess> =
+    this.actions$.pipe(
+      ofType(ExecutionEventsAction.ExecutionEventsActionTypes.GET),
+      switchMap(({payload: params}) =>
+        this.executionEventService.executionEventsUsingGET(params)
+          .pipe(
+            handleException(this.store)
+          )
+      ),
+      map((res: PageableExecutionEventsResponse) =>
+        new ExecutionEventsAction.GetSuccess(res))
+    )
 
   constructor(
     private actions$: Actions,
@@ -39,17 +55,5 @@ export class ExecutionEventsEffects {
       .select('config', 'apiUrl')
       .subscribe(apiUrl => this.executionEventService.rootUrl = apiUrl)
   }
-
-  @Effect()
-  public getDefaultPageableExecutionEvents$: Observable<ExecutionEventsAction.GetSuccess> =
-    this.actions$.pipe(
-      ofType(ExecutionEventsAction.ExecutionEventsActionTypes.GET),
-      switchMap(({payload: params}) =>
-        this.executionEventService
-          .executionEventsUsingGET(params)
-          .pipe(handleException(this.store))),
-      map((res: PageableExecutionEventsResponse) =>
-        new ExecutionEventsAction.GetSuccess(res))
-    )
 
 }

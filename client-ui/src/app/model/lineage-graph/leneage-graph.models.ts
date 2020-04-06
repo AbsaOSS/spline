@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-import { Stylesheet } from 'cytoscape';
+import { Stylesheet } from 'cytoscape'
 
 
-export const LINE_WIDTH_PLANE = 10;
-export const LINE_WIDTH_HIGHLIGHTED = 10;
-export const LINE_WIDTH_SELECTED = 16;
-export const LINE_COLOR_PLANE = '#f0f0f0';
-export const LINE_COLOR_SELECTED = 'orange';
-export const LINE_COLOR_HLT_PRIMARY = 'black';
-export const LINE_COLOR_HLT_LINEAGE = 'magenta';
-export const LINE_COLOR_HLT_IMPACT = 'green';
-export const LINE_COLOR_HLT_NONE = '#f5f5f5';
+export const LINE_WIDTH_PLANE = 10
+export const LINE_WIDTH_HIGHLIGHTED = 10
+export const LINE_WIDTH_SELECTED = 16
+export const LINE_COLOR_PLANE = '#f0f0f0'
+export const LINE_COLOR_SELECTED = 'orange'
+export const LINE_COLOR_HLT_PRIMARY = 'black'
+export const LINE_COLOR_HLT_LINEAGE = 'magenta'
+export const LINE_COLOR_HLT_IMPACT = 'green'
+export const LINE_COLOR_HLT_NONE = '#f5f5f5'
 
 export const selectedNodeStyles = {
   'border-color': LINE_COLOR_SELECTED,
   'border-width': LINE_WIDTH_SELECTED,
-  'padding': 70,
-};
+  padding: 70,
+}
 
 export const cyStyles: Partial<Stylesheet>[] = [
   {
@@ -40,8 +40,8 @@ export const cyStyles: Partial<Stylesheet>[] = [
       'background-color': '#fff',
       'border-color': LINE_COLOR_HLT_NONE,
       'border-width': LINE_WIDTH_HIGHLIGHTED,
-      'padding': 50, // that settings is not a part of the Stylesheet for now (it is a bug and it will be fixed in the future).
-      'content': 'data(name)',
+      padding: 50, // that settings is not a part of the Stylesheet for now (it is a bug and it will be fixed in the future).
+      content: 'data(name)',
       'text-valign': 'bottom',
       'text-margin-y': 12,
     },
@@ -109,12 +109,12 @@ export const cyStyles: Partial<Stylesheet>[] = [
     style: {
       'line-color': LINE_COLOR_PLANE,
       'target-arrow-color': LINE_COLOR_PLANE,
-      'width': LINE_WIDTH_PLANE,
+      width: LINE_WIDTH_PLANE,
       'curve-style': 'bezier',
       'target-arrow-shape': 'triangle',
     },
     css: {
-      'label': (el) => el.data('label') || '',
+      label: (el) => el.data('label') || '',
       'curve-style': 'bezier',
     }
   },
@@ -123,7 +123,7 @@ export const cyStyles: Partial<Stylesheet>[] = [
     style: {
       'line-color': LINE_COLOR_HLT_PRIMARY,
       'target-arrow-color': LINE_COLOR_HLT_PRIMARY,
-      'width': LINE_WIDTH_HIGHLIGHTED,
+      width: LINE_WIDTH_HIGHLIGHTED,
     }
   },
   {
@@ -131,7 +131,7 @@ export const cyStyles: Partial<Stylesheet>[] = [
     style: {
       'line-color': LINE_COLOR_HLT_LINEAGE,
       'target-arrow-color': LINE_COLOR_HLT_LINEAGE,
-      'width': LINE_WIDTH_HIGHLIGHTED,
+      width: LINE_WIDTH_HIGHLIGHTED,
     }
   },
   {
@@ -139,7 +139,7 @@ export const cyStyles: Partial<Stylesheet>[] = [
     style: {
       'line-color': LINE_COLOR_HLT_IMPACT,
       'target-arrow-color': LINE_COLOR_HLT_IMPACT,
-      'width': LINE_WIDTH_HIGHLIGHTED,
+      width: LINE_WIDTH_HIGHLIGHTED,
     }
   },
   {
@@ -147,7 +147,7 @@ export const cyStyles: Partial<Stylesheet>[] = [
     style: {
       'line-color': LINE_COLOR_HLT_NONE,
       'target-arrow-color': LINE_COLOR_HLT_NONE,
-      'width': LINE_WIDTH_HIGHLIGHTED,
+      width: LINE_WIDTH_HIGHLIGHTED,
     }
   },
 ]

@@ -13,54 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {combineLatest, Observable, of} from 'rxjs';
-import {filter, first, map} from 'rxjs/operators';
-import {AppState} from 'src/app/model/app-state';
-import {RouterStateUrl} from 'src/app/model/routerStateUrl';
-import * as RouterAction from 'src/app/store/actions/router.actions';
+import { Component } from '@angular/core'
+import { Store } from '@ngrx/store'
+import { combineLatest, of, Observable } from 'rxjs'
+import { filter, first, map } from 'rxjs/operators'
+import { AppState } from 'src/app/model/app-state'
+import { RouterStateUrl } from 'src/app/model/routerStateUrl'
+import * as RouterAction from 'src/app/store/actions/router.actions'
+
 
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
-  styleUrls: ['./header.component.less']
+  styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent {
 
-  constructor(
-    private store: Store<AppState>
-  ) { }
+  constructor(private store: Store<AppState>) {
+  }
 
-  public isActive = (name: string): Observable<boolean> => {
+  isActive(name: string): Observable<boolean> {
     return this.isSelectedMenuItem(name)
   }
 
-  public isVisible = (name: string): Observable<boolean> => {
+  isVisible(name: string): Observable<boolean> {
     switch (name) {
       case 'lineage-overview':
-        return combineLatest(
+        return combineLatest([
           this.isSelectedMenuItem(name),
-          this.isSelectedMenuItem('lineage-detailed'),
-          (item1, item2) => (item1 || item2)
-        )
+          this.isSelectedMenuItem('lineage-detailed')
+        ])
+          .pipe(
+            map(([item1, item2]) => item1 || item2)
+          )
       case 'lineage-detailed':
         return this.isSelectedMenuItem(name)
-      default: return of(false)
+      default:
+        return of(false)
     }
   }
 
-  private isSelectedMenuItem = (name: string): Observable<boolean> => {
-    return this.store.select('router', 'state', 'url')
-      .pipe(
-        filter(state => state != null),
-        map(url => {
-          return url.indexOf(name) !== -1
-        })
-      )
-  }
-
-  public onLineageOverviewClick = (): void => {
+  onLineageOverviewClick(): void {
     this.store
       .select('lineageOverview')
       .pipe(
@@ -68,7 +61,7 @@ export class HeaderComponent {
       )
       .subscribe(lineage => {
         const params: RouterStateUrl = {
-          url: "/app/lineage-overview",
+          url: '/app/lineage-overview',
           queryParams: { executionEventId: lineage.lineageInfo.executionEventId }
         }
         this.store.dispatch(new RouterAction.Go(params))
@@ -76,10 +69,20 @@ export class HeaderComponent {
   }
 
 
-  public onHomeClick = (): void => {
+  onHomeClick(): void {
     this.store.dispatch(
-      new RouterAction.Go({ url: "/app/dashboard" })
+      new RouterAction.Go({ url: '/app/dashboard' })
     )
+  }
+
+  private isSelectedMenuItem = (name: string): Observable<boolean> => {
+    return this.store.select('router', 'state', 'url')
+      .pipe(
+        filter(state => state !== null),
+        map(url => {
+          return url?.includes(name)
+        })
+      )
   }
 
 }

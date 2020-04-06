@@ -13,68 +13,65 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterContentInit, Component } from '@angular/core';
-import { IActionMapping, ITreeOptions } from 'angular-tree-component';
-import { ITreeNode } from 'angular-tree-component/dist/defs/api';
-import { IExpression } from 'src/app/model/expression-model';
-import { Store } from '@ngrx/store';
-import { AppState } from 'src/app/model/app-state';
-import * as ModalAction from 'src/app/store/actions/modal.actions';
-import { getName } from 'src/app/util/expressions';
+
+import { AfterContentInit, Component } from '@angular/core'
+import { Store } from '@ngrx/store'
+import { ITreeOptions } from 'angular-tree-component'
+import { AppState } from 'src/app/model/app-state'
+import { IExpression } from 'src/app/model/expression-model'
+import * as ModalAction from 'src/app/store/actions/modal.actions'
+import { getName } from 'src/app/util/expressions'
+
 
 @Component({
   selector: 'app-modal-expression',
   templateUrl: './modal-expression.component.html',
-  styleUrls: ['./modal-expression.component.less']
+  styleUrls: ['./modal-expression.component.scss']
 })
 export class ModalExpressionComponent implements AfterContentInit {
+
+  title: any
+  exprTree: any[]
+
+  readonly treeOptions: ITreeOptions = {
+    actionMapping: {
+      click: (_, node): void => node.toggleExpanded()
+    },
+    allowDrag: false,
+    allowDrop: false,
+  }
+
+  private data: any
+  private attributes: any
+
+  constructor(private store: Store<AppState>) {
+  }
 
   ngAfterContentInit(): void {
     this.exprTree = this.buildExprTree()
   }
 
-  private data: any
-  private attributes: any
-  public title: any
-  public exprTree: any[]
-
-  constructor(private store: Store<AppState>) { }
+  close(): void {
+    this.store.dispatch(new ModalAction.Close())
+  }
 
 
   private buildExprTree(): any[] {
     let seq = 0
+
     const buildNode = (expr: IExpression) => ({
       id: seq++,
       name: getName(expr, this.attributes),
       children: buildChildrenNodes(expr)
     })
 
+    // TODO: remove inline function definition.
     function buildChildrenNodes(ex: IExpression): (any[] | undefined) {
       const children = ex['children'] || (ex['child'] && [ex['child']])
       return children && children.map(buildNode)
     }
+
     return [buildNode(this.data.metadata)]
-  }
-
-
-  private readonly actionMapping: IActionMapping = {
-    mouse: {
-      click: (_, node) => ModalExpressionComponent.onNodeClicked(node)
-    }
-  }
-
-  private static onNodeClicked(node: ITreeNode): void {
-    node.toggleExpanded()
-  }
-
-  public readonly treeOptions: ITreeOptions = {
-    actionMapping: this.actionMapping,
-    allowDrag: false,
-    allowDrop: false,
-  }
-
-  public close(): void {
-    this.store.dispatch(new ModalAction.Close())
   }
 
 }

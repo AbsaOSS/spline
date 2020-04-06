@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-const LOADING_INDICATOR_DELAY = 300 //millis
+const LOADING_INDICATOR_DELAY = 300 // millis
 
 export class DashboardLoadingIndicator {
   private loading: boolean
   private timeoutId: number
 
-  public get isActive(): boolean {
+  get isActive(): boolean {
     return this.loading
   }
 
-  public activate(): void {
+  activate(): void {
     this.timeoutId = setTimeout(
       () => this.loading = true,
       LOADING_INDICATOR_DELAY)
   }
 
-  public deactivate(): void {
+  deactivate(): void {
     this.loading = false
     clearTimeout(this.timeoutId)
   }

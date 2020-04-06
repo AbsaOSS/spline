@@ -14,30 +14,26 @@
  * limitations under the License.
  */
 
-import * as _ from "lodash";
-import {Injectable} from '@angular/core';
-import {Actions, Effect, ofType} from '@ngrx/effects';
-import {Action, Store} from '@ngrx/store';
-import {Observable, of} from 'rxjs';
-import {distinctUntilChanged, map, switchMap} from 'rxjs/operators';
-import {AttributeLineageAndImpact} from '../generated/models';
-import {LineageService} from '../generated/services';
-import {AppState} from '../model/app-state';
-import {handleException} from '../rxjs/operators/handleException';
-import * as AttributeLineageAndImpactActions from '../store/actions/attribute-lineage-and-impact.actions';
-import {ROUTER_NAVIGATED} from "@ngrx/router-store";
+import { Injectable } from '@angular/core'
+import { ofType, Actions, Effect } from '@ngrx/effects'
+import { ROUTER_NAVIGATED } from '@ngrx/router-store'
+import { Action, Store } from '@ngrx/store'
+import * as _ from 'lodash'
+import { of, Observable } from 'rxjs'
+import { distinctUntilChanged, map, switchMap } from 'rxjs/operators'
+
+import { AttributeLineageAndImpact } from '../generated/models'
+import { LineageService } from '../generated/services'
+import { AppState } from '../model/app-state'
+import { handleException } from '../rxjs/operators/handleException'
+import * as AttributeLineageAndImpactActions from '../store/actions/attribute-lineage-and-impact.actions'
+
 
 @Injectable()
 export class AttributeLineageAndImpactEffects {
 
-  constructor(
-    private lineageService: LineageService,
-    private store: Store<AppState>,
-    private actions$: Actions) {
-  }
-
   @Effect()
-  public getAttributeLineageAndImpact$: Observable<Action> =
+  getAttributeLineageAndImpact$: Observable<Action> =
     this.actions$.pipe(
       ofType(ROUTER_NAVIGATED),
       map(({payload: {routerState: {params: {uid: execPlanId}, queryParams: {attribute: attrId}}}}) => [execPlanId, attrId]),
@@ -48,6 +44,12 @@ export class AttributeLineageAndImpactEffects {
       map(linAndImp =>
         new AttributeLineageAndImpactActions.Set(linAndImp))
     )
+
+  constructor(
+    private lineageService: LineageService,
+    private store: Store<AppState>,
+    private actions$: Actions) {
+  }
 
   private getAttributeLineageAndImpact = (execId: string, attributeId: string): Observable<AttributeLineageAndImpact> => {
     return this.lineageService.attributeLineageAndImpactUsingGET({execId, attributeId}).pipe(

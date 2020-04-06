@@ -13,35 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Action} from '@ngrx/store';
+import { Action } from '@ngrx/store'
+
 
 export enum ConfigActionTypes {
-    START_APP_INITIALIZER = '[App] Start Initialization',
-    FINISH_APP_INITIALIZER = '[App] Finish Initialization',
-    CONFIG_GET = '[Config] Get',
-    CONFIG_GET_SUCCESS = '[Config] Get Success'
+  START_APP_INITIALIZER = '[App] Start Initialization',
+  FINISH_APP_INITIALIZER = '[App] Finish Initialization',
+  CONFIG_GET = '[Config] Get',
+  CONFIG_GET_SUCCESS = '[Config] Get Success'
 }
 
 export class StartAppInitializer implements Action {
-    public readonly type = ConfigActionTypes.START_APP_INITIALIZER
+  readonly type = ConfigActionTypes.START_APP_INITIALIZER
 }
 
 export class FinishAppInitializer implements Action {
-    public readonly type = ConfigActionTypes.FINISH_APP_INITIALIZER
+  readonly type = ConfigActionTypes.FINISH_APP_INITIALIZER
 }
 
 export class Get implements Action {
-    public readonly type = ConfigActionTypes.CONFIG_GET
-    constructor(public payload: any) { }
+  readonly type = ConfigActionTypes.CONFIG_GET
+
+  constructor(public payload: any) {
+  }
 }
 
 export class GetSuccess implements Action {
-    public readonly type = ConfigActionTypes.CONFIG_GET_SUCCESS
-    constructor(public payload: any) { }
+  readonly type = ConfigActionTypes.CONFIG_GET_SUCCESS
+
+  constructor(public payload: any) {
+  }
 }
 
 export type ConfigActions
-    = StartAppInitializer
-    | FinishAppInitializer
-    | Get
-    | GetSuccess
+  = StartAppInitializer
+  | FinishAppInitializer
+  | Get
+  | GetSuccess

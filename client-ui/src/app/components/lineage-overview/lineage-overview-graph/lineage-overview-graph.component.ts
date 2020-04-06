@@ -29,6 +29,7 @@ import * as LayoutAction from 'src/app/store/actions/layout.actions'
 import * as LineageOverviewAction from 'src/app/store/actions/lineage-overview.actions'
 import * as RouterAction from 'src/app/store/actions/router.actions'
 import { getWriteOperationIdFromExecutionId } from 'src/app/util/execution-plan'
+
 import { cyStyles } from '../../../model/lineage-graph'
 
 
@@ -39,12 +40,13 @@ import { cyStyles } from '../../../model/lineage-graph'
 export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @Input()
-  public embeddedMode: boolean
+  embeddedMode: boolean
 
   @ViewChild(CytoscapeNgLibComponent, { static: true })
   private cytograph: CytoscapeNgLibComponent
 
   private subscriptions: Subscription[] = []
+  private executionEventId: string
 
 
   constructor(private store: Store<AppState>) {
@@ -54,6 +56,77 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
   }
 
   ngOnInit(): void {
+
+  }
+
+  ngAfterViewInit(): void {
+    const domInitDelayInMs = 200 // in us;
+    setTimeout(
+      () => this.initGraph(),
+      domInitDelayInMs
+    )
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(s => s.unsubscribe())
+  }
+
+  private initGraph(): void {
+    this.cytograph.cy.ready(() => {
+      this.cytograph.cy.style(cyStyles)
+      this.cytograph.cy.on('mouseover', 'node', e => e.originalEvent.target.style.cursor = 'pointer')
+      this.cytograph.cy.on('mouseout', 'node', e => e.originalEvent.target.style.cursor = '')
+      const doubleClickDelayMs = 350
+      let previousTimeStamp
+
+      this.cytograph.cy.on('tap', (event) => {
+        const currentTimeStamp = event.timeStamp
+        const msFromLastTap = currentTimeStamp - previousTimeStamp
+
+        if (msFromLastTap < doubleClickDelayMs) {
+          event.target.trigger('doubleTap', event)
+        }
+        else {
+          previousTimeStamp = currentTimeStamp
+          const clikedTarget = event.target
+          const nodeId = (clikedTarget !== this.cytograph.cy && clikedTarget.isNode()) ? clikedTarget.id() : null
+          const params: RouterStateUrl = {
+            url: '/app/lineage-overview/',
+            queryParams: {
+              selectedNodeId: nodeId,
+              executionEventId: this.executionEventId
+            }
+          }
+          this.store.dispatch(
+            new RouterAction.Go(params)
+          )
+        }
+      })
+      this.cytograph.cy.on('doubleTap', (event) => {
+        const clikedTarget = event.target
+        const nodeId = (clikedTarget !== this.cytograph.cy && clikedTarget.isNode()) ? clikedTarget.id() : null
+        if (nodeId && clikedTarget.data()._type === LineageOverviewNodeType.Execution) {
+          const params: RouterStateUrl = {
+            url: `/app/lineage-detailed/${nodeId}`
+          }
+          this.store.dispatch(new RouterAction.Go(params))
+        }
+      })
+    })
+
+    this.cytograph.cy.on('layoutstop', () => {
+      this.subscriptions.push(
+        this.store
+          .select('router', 'state', 'queryParams', 'selectedNodeId')
+          .subscribe((selectedNodeId) => {
+            this.cytograph.cy.nodes().unselect()
+            const selectedNode = this.cytograph.cy.nodes().filter(`[id='${selectedNodeId}']`)
+            selectedNode.select()
+            this.getNodeInfo(selectedNode.data())
+          })
+      )
+    })
+
     this.subscriptions.push(this.store
       .select('layout')
       .pipe(
@@ -80,7 +153,8 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
       .subscribe(state => {
         if (state && this.cytograph.cy) {
           this.cytograph.cy.elements().remove()
-          this.cytograph.cy.add(state.graph.lineage)
+          const lineageData = _.cloneDeep(state.graph.lineage)
+          this.cytograph.cy.add(lineageData)
           this.cytograph.cy.nodeHtmlLabel([{
             tpl: function (data) {
               if (data.icon) {
@@ -89,59 +163,9 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
               return null
             }
           }])
-          this.cytograph.cy.panzoom()
           this.cytograph.cy.layout(state.layout).run()
         }
       }))
-  }
-
-  public ngAfterViewInit(): void {
-    this.cytograph.cy.ready(() => {
-      this.cytograph.cy.style(cyStyles)
-      this.cytograph.cy.on('mouseover', 'node', e => e.originalEvent.target.style.cursor = 'pointer')
-      this.cytograph.cy.on('mouseout', 'node', e => e.originalEvent.target.style.cursor = '')
-      const doubleClickDelayMs = 350
-      let previousTimeStamp
-
-      this.cytograph.cy.on('tap', (event) => {
-        const currentTimeStamp = event.timeStamp
-        const msFromLastTap = currentTimeStamp - previousTimeStamp
-
-        if (msFromLastTap < doubleClickDelayMs) {
-          event.target.trigger('doubleTap', event)
-        } else {
-          previousTimeStamp = currentTimeStamp
-          const clikedTarget = event.target
-          const nodeId = (clikedTarget != this.cytograph.cy && clikedTarget.isNode()) ? clikedTarget.id() : null
-          const params = {} as RouterStateUrl
-          params.queryParams = { selectedNodeId: nodeId }
-          this.store.dispatch(new RouterAction.Go(params))
-        }
-      })
-      this.cytograph.cy.on('doubleTap', (event) => {
-        const clikedTarget = event.target
-        const nodeId = (clikedTarget != this.cytograph.cy && clikedTarget.isNode()) ? clikedTarget.id() : null
-        if (nodeId && clikedTarget.data()._type == LineageOverviewNodeType.Execution) {
-          const params: RouterStateUrl = {
-            url: `/app/lineage-detailed/${nodeId}`
-          }
-          this.store.dispatch(new RouterAction.Go(params))
-        }
-      })
-    })
-
-    this.cytograph.cy.on('layoutstop', () => {
-      this.subscriptions.push(
-        this.store
-          .select('router', 'state', 'queryParams', 'selectedNodeId')
-          .subscribe((selectedNodeId) => {
-            this.cytograph.cy.nodes().unselect()
-            const selectedNode = this.cytograph.cy.nodes().filter(`[id='${selectedNodeId}']`)
-            selectedNode.select()
-            this.getNodeInfo(selectedNode.data())
-          })
-      )
-    })
   }
 
   private getOverviewLineage = (): void => {
@@ -149,10 +173,13 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
       this.store
         .select('router', 'state', 'queryParams', 'executionEventId')
         .pipe(
-          filter(state => state != null)
+          filter(state => state !== null)
         )
         .subscribe(
-          executionEventId => this.store.dispatch(new LineageOverviewAction.Get({ executionEventId }))
+          executionEventId => {
+            this.executionEventId = executionEventId
+            this.store.dispatch(new LineageOverviewAction.Get({ executionEventId }))
+          }
         )
     )
   }
@@ -170,7 +197,7 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
           this.subscriptions.push(
             this.store.select('lineageOverview')
               .subscribe(lineageOverview => {
-                const edge = lineageOverview.lineage.edges.find(e => e.data.target == node.id)
+                const edge = lineageOverview.lineage.edges.find(e => e.data.target === node.id)
                 if (edge) {
                   const executionPlanId = edge.data.source
                   this.store.dispatch(new DetailsInfosAction.Get(getWriteOperationIdFromExecutionId(executionPlanId)))
@@ -180,7 +207,8 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
           break
         }
       }
-    } else {
+    }
+    else {
       this.store.dispatch(new DetailsInfosAction.Reset())
       this.store.dispatch(new ExecutionPlanAction.Reset())
     }
@@ -192,10 +220,6 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
 
   private getLayoutConfiguration = (): void => {
     this.store.dispatch(new LayoutAction.Get())
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(s => s.unsubscribe())
   }
 
 }

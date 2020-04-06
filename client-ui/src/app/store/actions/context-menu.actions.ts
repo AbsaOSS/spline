@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-import {Action} from '@ngrx/store';
+import { Action } from '@ngrx/store'
+
 
 export enum ContextMenuActionTypes {
-    CONTEXT_MENU_GET = '[Context Menu] Get',
+  CONTEXT_MENU_GET = '[Context Menu] Get',
 }
 
 export class Get implements Action {
-    public readonly type = ContextMenuActionTypes.CONTEXT_MENU_GET
+  readonly type = ContextMenuActionTypes.CONTEXT_MENU_GET
 }
+
 export type ContextMenuActions
-    = Get
+  = Get

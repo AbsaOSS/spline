@@ -14,22 +14,22 @@
   ~ limitations under the License.
   -->
 <div class="container-fluid">
-  <div class="row" *ngIf="data$ | async; let d">
+  <div *ngIf="data$ | async; let d" class="row">
     <div class="col-sm-8 no-padding">
-      <lineage-graph [embeddedMode]="d.embeddedMode"
-                     [layout]="d.layout"
-                     [graph]="d.plan.graph"
+      <lineage-graph (selectedNodeChange)="onNodeSelected($event)"
                      [attributeLineageAndImpactGraph]="d.attributeLinAndImp"
-                     [selectedNode]="selectedNodeId"
-                     (selectedNodeChange)="onNodeSelected($event)">
+                     [embeddedMode]="d.embeddedMode"
+                     [graph]="d.plan.graph"
+                     [layout]="d.layout"
+                     [selectedNode]="selectedNodeId">
       </lineage-graph>
 
       <lineage-highlights-toolbar
-              *ngIf="selectedAttribute$ | async as selectedAttributes"
-              [lineageGraphLegends]="lineageGraphLegendsToShow$ | async"
-              [attributes]="[selectedAttributes]"
-              [showOldSplineWarning]="isExecPlanFromOldSpline(d.plan.executionPlan)"
-              (removeAttribute$)="onRemoveSelectedAttrClick()">
+          (removeAttribute$)="onRemoveSelectedAttrClick()"
+          *ngIf="selectedAttribute$ | async as selectedAttributes"
+          [attributes]="[selectedAttributes]"
+          [lineageGraphLegends]="lineageGraphLegendsToShow$ | async"
+          [showOldSplineWarning]="isExecPlanFromOldSpline(d.plan.executionPlan)">
       </lineage-highlights-toolbar>
 
     </div>

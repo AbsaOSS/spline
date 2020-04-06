@@ -12,12 +12,15 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "target": "es2015",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "typeRoots": [
       "node_modules/@types"
     ],
     "lib": [
       "es2019",
-      "dom"
+      "dom",
+      "esnext.asynciterable"
     ]
   }
 }

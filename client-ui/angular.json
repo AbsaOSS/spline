@@ -9,8 +9,15 @@
       "projectType": "application",
       "prefix": "app",
       "schematics": {
+        "@schematics/angular:service": {
+          "skipTests": true
+        },
         "@schematics/angular:component": {
-          "styleext": "less"
+          "style": "scss",
+          "skipTests": true
+        },
+        "@schematics/angular:module": {
+          "skipTests": true
         }
       },
       "architect": {
@@ -27,23 +34,21 @@
             "polyfills": "src/polyfills.ts",
             "tsConfig": "src/tsconfig.app.json",
             "assets": [
-              "src/logo.png",
-              "src/favicon.ico",
-              "src/assets"
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "/assets"
+              }
             ],
             "styles": [
               "./node_modules/bootstrap/dist/css/bootstrap.min.css",
               "./node_modules/ngx-bootstrap/datepicker/bs-datepicker.css",
               "./node_modules/ngx-toastr/toastr.css",
-              "src/styles.less"
+              "src/styles/styles.scss"
             ],
             "scripts": [
-              "./node_modules/jquery/dist/jquery.js",
               "./node_modules/cytoscape/dist/cytoscape.min.js",
-              "./node_modules/cytoscape-cxtmenu/cytoscape-cxtmenu.js",
-              "./node_modules/cytoscape-panzoom/cytoscape-panzoom.js",
               "./node_modules/cytoscape-node-html-label/dist/cytoscape-node-html-label.js",
-              "./node_modules/bootstrap/dist/js/bootstrap.min.js",
               "./node_modules/klayjs/klay.js",
               "./node_modules/cytoscape-klay/cytoscape-klay.js"
             ]
@@ -93,26 +98,28 @@
           }
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular-builders/jest:run",
           "options": {
-            "main": "src/test.ts",
-            "polyfills": "src/polyfills.ts",
-            "tsConfig": "src/tsconfig.spec.json",
-            "karmaConfig": "src/karma.conf.js",
+            "no-cache": true,
+            "bail": true,
+            "scripts": [],
             "styles": [
               "src/styles.css"
             ],
-            "scripts": [],
             "assets": [
-              "src/logo.png",
-              "src/favicon.ico",
-              "src/assets"
-            ]
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "/assets"
+              }
+            ],
+            "tsConfig": "src/tsconfig.spec.json"
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@angular-eslint/builder:lint",
           "options": {
+            "eslintConfig": "src/.eslintrc.js",
             "tsConfig": [
               "src/tsconfig.app.json",
               "src/tsconfig.spec.json"

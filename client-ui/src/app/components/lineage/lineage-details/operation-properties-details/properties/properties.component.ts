@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnDestroy } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { Subscription } from 'rxjs';
-import { ModalExpressionComponent } from 'src/app/components/modal/modal-expression/modal-expression.component';
-import { AppState } from 'src/app/model/app-state';
-import { Property, PropertyType, PropertyTypeAware } from 'src/app/model/property';
-import * as ModalAction from 'src/app/store/actions/modal.actions';
-import { getOperationColor, getOperationIcon } from 'src/app/util/execution-plan';
+import { Component, Input, OnDestroy } from '@angular/core'
+import { Store } from '@ngrx/store'
+import { Subscription } from 'rxjs'
+import { ModalExpressionComponent } from 'src/app/components/modal/modal-expression/modal-expression.component'
+import { AppState } from 'src/app/model/app-state'
+import { Property, PropertyType, PropertyTypeAware } from 'src/app/model/property'
+import * as ModalAction from 'src/app/store/actions/modal.actions'
+import { getOperationColor, getOperationIcon } from 'src/app/util/execution-plan'
+
 
 @Component({
   selector: 'properties',
@@ -30,37 +31,31 @@ import { getOperationColor, getOperationIcon } from 'src/app/util/execution-plan
 @PropertyTypeAware
 export class PropertiesComponent implements OnDestroy {
 
-  constructor(private store: Store<AppState>) { }
-
-  private subscriptions: Subscription[] = []
-
-  @Input()
-  public propertyType: string
-
-  @Input()
-  public nativeProperties: Record<string, any>
-
-  @Input()
-  public propertyName: string
-
-  @Input()
-  public properties: Property[]
+  @Input() propertyType: string
+  @Input() propertyName: string
+  @Input() properties: Property[]
+  @Input() nativeProperties: Record<string, any>
 
   PropertyType = PropertyType
 
-  public getIcon(): string {
+  private subscriptions: Subscription[] = []
+
+  constructor(private store: Store<AppState>) {
+  }
+
+  getIcon(): string {
     return getOperationIcon(this.propertyType, this.propertyName)
   }
 
-  public getColor(): string {
+  getColor(): string {
     return getOperationColor(this.propertyType, this.propertyName)
   }
 
-  public propertiesContain(propertyType: PropertyType): boolean {
-    return this.properties.filter(p => p.type == propertyType).length > 0
+  propertiesContain(propertyType: PropertyType): boolean {
+    return this.properties.filter(p => p.type === propertyType).length > 0
   }
 
-  public openExprViewDialog(event: Event, expression: Property): void {
+  openExprViewDialog(event: Event, expression: Property): void {
     event.preventDefault()
     this.subscriptions.push(
       this.store

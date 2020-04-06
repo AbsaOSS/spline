@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as ExecutionPlanAction from '../actions/execution-plan.actions';
-import { ExecutedLogicalPlanVM } from '../../model/viewModels/executedLogicalPlanVM';
+import { ExecutedLogicalPlanVM } from '../../model/viewModels/executedLogicalPlanVM'
+import * as ExecutionPlanAction from '../actions/execution-plan.actions'
+
 
 export type Action = ExecutionPlanAction.ExecutionPlanActions
 
 export function executionPlanReducer(state: ExecutedLogicalPlanVM, action: Action): ExecutedLogicalPlanVM {
-    switch (action.type) {
-        case ExecutionPlanAction.ExecutionPlanActionTypes.EXECUTION_PLAN_GET_SUCCESS: return { ...state, ...action.payload }
-        case ExecutionPlanAction.ExecutionPlanActionTypes.EXECUTION_PLAN_RESET: return null
-        default: return state
-    }
+  switch (action.type) {
+    case ExecutionPlanAction.ExecutionPlanActionTypes.EXECUTION_PLAN_GET_SUCCESS: return { ...state, ...action.payload }
+    case ExecutionPlanAction.ExecutionPlanActionTypes.EXECUTION_PLAN_RESET: return null
+    default: return state
+  }
 }

@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-import {ChangeDetectionStrategy, Component, EventEmitter, Input, Output} from '@angular/core'
-import {AttributeVM} from '../../../model/viewModels/attributeVM'
-import {LineageGraphLegend} from '../../../model/lineage-graph'
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core'
+
+import { LineageGraphLegend } from '../../../model/lineage-graph'
+import { AttributeVM } from '../../../model/viewModels/attributeVM'
 
 
 @Component({
   selector: 'lineage-highlights-toolbar',
   templateUrl: './lineage-highlights-toolbar.component.html',
-  styleUrls: ['./lineage-highlights-toolbar.component.less'],
+  styleUrls: ['./lineage-highlights-toolbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LineageHighlightsToolbarComponent {
@@ -35,7 +36,7 @@ export class LineageHighlightsToolbarComponent {
 
   @Output() removeAttribute$ = new EventEmitter<AttributeVM>()
 
-  public onAttributeRemoveIconClicked(attribute: AttributeVM): void {
+  onAttributeRemoveIconClicked(attribute: AttributeVM): void {
     this.removeAttribute$.emit(attribute)
   }
 }

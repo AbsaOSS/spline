@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import {Action} from '@ngrx/store';
-import {PageableExecutionEventsResponse} from 'src/app/generated/models';
-import {Params} from '@angular/router';
+import { Params } from '@angular/router'
+import { Action } from '@ngrx/store'
+import { PageableExecutionEventsResponse } from 'src/app/generated/models'
+
 
 export enum ExecutionEventsActionTypes {
   GET = '[Execution Events] Get',
@@ -24,14 +25,14 @@ export enum ExecutionEventsActionTypes {
 }
 
 export class Get implements Action {
-  public readonly type = ExecutionEventsActionTypes.GET
+  readonly type = ExecutionEventsActionTypes.GET
 
   constructor(public payload: Params) {
   }
 }
 
 export class GetSuccess implements Action {
-  public readonly type = ExecutionEventsActionTypes.GET_SUCCESS
+  readonly type = ExecutionEventsActionTypes.GET_SUCCESS
 
   constructor(public payload: PageableExecutionEventsResponse) {
   }

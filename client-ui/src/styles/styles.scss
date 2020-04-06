@@ -1,0 +1,284 @@
+/*
+ * Copyright 2019 ABSA Group Limited
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import '~@fortawesome/fontawesome-free/css/all.min.css';
+@import '~bootstrap/dist/css/bootstrap.min.css';
+@import '~@swimlane/ngx-datatable/index.css';
+@import '~@swimlane/ngx-datatable/themes/material.css';
+@import '~@swimlane/ngx-datatable/assets/icons.css';
+@import '~@angular/material/prebuilt-themes/deeppurple-amber.css';
+
+html,
+body {
+  color: #555;
+  font-family: 'Roboto', 'Trebuchet MS', Arial, Helvetica, sans-serif;
+  height: 100%;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  max-width: 100%;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.fullHeight {
+  height: calc(100vh - 103px);
+}
+
+.embeddedHeight {
+  height: calc(100vh - 29px);
+}
+
+
+.btn-primary {
+  background-color: #337ab7;
+  border-color: #337ab7;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: #3787c8;
+  border-color: #3787c8;
+}
+
+.btn-link {
+  color: #337ab7;
+}
+
+.btn-link:hover {
+  color: #3787c8;
+}
+
+a {
+  color: #303a40;
+  cursor: pointer;
+}
+
+hr {
+  background-color: #303a40;
+}
+
+.display-none {
+  display: none;
+}
+
+.display-inline {
+  display: inline;
+}
+
+.no-padding {
+  padding: 0 !important;
+}
+
+/** DATATABLE **/
+
+.table td {
+  padding: 0 !important;
+}
+
+.ngx-datatable.material .datatable-footer .page-count {
+  height: unset;
+  line-height: unset;
+  padding: 0 1.2rem;
+}
+
+.ngx-datatable.material.single-selection .datatable-body-row.active,
+.ngx-datatable.material.single-selection .datatable-body-row.active .datatable-row-group,
+.ngx-datatable.material.multi-selection .datatable-body-row.active,
+.ngx-datatable.material.multi-selection .datatable-body-row.active .datatable-row-group,
+.ngx-datatable.material.multi-click-selection .datatable-body-row.active,
+.ngx-datatable.material.multi-click-selection .datatable-body-row.active .datatable-row-group {
+  background-color: #f2f2f2 !important;
+  color: #fff;
+}
+
+.ngx-datatable.material .datatable-body .datatable-row-detail {
+  background: unset;
+}
+
+.tooltipCell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.datatable-header-cell {
+  overflow: hidden;
+}
+
+/** Graph **/
+
+.graph {
+  background: #fff;
+  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2), 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12);
+  float: left;
+  width: 100%;
+}
+
+.cxtmenu-disabled {
+  opacity: 0.35;
+}
+
+/** Expressions **/
+
+.expression {
+  font-size: 90%;
+}
+
+code {
+  background-color: #fff;
+  border-radius: 3px;
+  color: #337ab7;
+  font-family: courier, monospace;
+  font-size: 80%;
+  padding: 0 3px;
+}
+
+pre span {
+  white-space: normal;
+}
+
+.string {
+  color: #337ab7;
+}
+
+.number {
+  color: #ff8c00;
+}
+
+.boolean {
+  color: #00f;
+}
+
+.null {
+  color: #f0f;
+}
+
+.key {
+  color: #303a40;
+}
+
+/** scrollbar **/
+::-webkit-scrollbar {
+  height: 7px;
+  width: 7px;
+}
+
+::-webkit-scrollbar-thumb {
+  box-shadow: inset 0 0 5px rgba(48, 58, 44, 0.4);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #303a40;
+}
+
+
+.star-s::before {
+  content: '\f005';
+  font-family: 'Font Awesome 5 Free', serif;
+  font-weight: 900;
+}
+
+/** Material overides */
+.mat-slide-toggle.mat-checked:not(.mat-disabled) .mat-slide-toggle-bar {
+  background-color: #fff;
+  width: 60px !important;
+}
+
+
+.mat-slide-toggle.mat-checked:not(.mat-disabled) .mat-slide-toggle-thumb {
+  background-color: #428bca;
+  border-bottom-right-radius: 2px !important;
+  border-top-right-radius: 2px !important;
+  margin-left: 12px;
+  width: 30px;
+}
+
+.mat-slide-toggle-bar {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 3px !important;
+  height: 22px !important;
+  width: 60px !important;
+}
+
+
+.mat-slide-toggle-thumb {
+  background-color: #eee;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  height: 20px !important;
+  margin-top: 3px;
+  width: 30px !important;
+}
+
+.mat-slide-toggle:not(.mat-checked) .mat-slide-toggle-thumb {
+  border-bottom-left-radius: 2px !important;
+  border-top-left-radius: 2px !important;
+}
+
+.mat-slide-toggle-thumb-container {
+  cursor: pointer !important;
+}
+
+.mat-slide-toggle {
+  &.mat-checked {
+    .mat-slide-toggle-bar::after {
+      color: #fff !important;
+      content: 'On' !important;
+      font-size: 12px !important;
+      left: 35px !important;
+      position: absolute !important;
+      top: -2px !important;
+      z-index: 1000;
+    }
+  }
+
+  &:not(.mat-checked) {
+    .mat-slide-toggle-bar::after {
+      color: #808080 !important;
+      content: 'Off' !important;
+      font-size: 12px !important;
+      left: 5px !important;
+      position: absolute !important;
+      top: -2px !important;
+      z-index: 1000;
+    }
+  }
+}
+
+.operation-property {
+  margin-bottom: 8px;
+
+  &__value {
+    color: #337ab7;
+  }
+}
+
+.operation-info-section {
+  font-family: "Roboto", "Trebuchet MS", Arial, Helvetica, sans-serif;
+  padding: 0 24px;
+  margin-bottom: 24px;
+
+  &__title {
+    font-size: 15px;
+    line-height: 64px;
+  }
+
+  &__body {
+    font-size: 14px;
+  }
+}

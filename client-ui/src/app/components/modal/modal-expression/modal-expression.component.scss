@@ -1,0 +1,90 @@
+/*
+ * Copyright 2017 ABSA Group Limited
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+:host {
+  ::ng-deep .node-wrapper {
+    display: inline-block;
+    position: relative;
+
+    ::before {
+      content: '';
+      height: 13px;
+      position: absolute;
+      width: 7px;
+    }
+  }
+
+  ::ng-deep .tree-children {
+    padding-left: 5px;
+  }
+
+  ::ng-deep .tree-node-children {
+    padding-left: 15px;
+  }
+
+  ::ng-deep .tree-node {
+    border-left: 1px dotted #23527c;
+
+    padding-left: 10px;
+
+  }
+
+  ::ng-deep .node-content-wrapper {
+    box-shadow: none;
+    cursor: pointer;
+    display: inline-block;
+    opacity: 1 !important;
+    padding-left: 20px;
+
+    padding-top: 10px;
+
+    ::before {
+      border-bottom: 1px dotted #23527c;
+      left: -10px;
+      width: 10px;
+    }
+  }
+
+  ::ng-deep .toggle-children-wrapper.toggle-children-wrapper-collapsed::after {
+    content: '\f0fe';
+    // Awesome plus-square
+    display: inline-block;
+    font: normal normal normal 15px/1 FontAwesome;
+    font-size: inherit;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    position: absolute;
+    text-rendering: auto;
+    top: 15px;
+  }
+
+  ::ng-deep .toggle-children-wrapper.toggle-children-wrapper-expanded::after {
+    content: '\f146';
+    // Awesome minus-square
+    display: inline-block;
+    font: normal normal normal 15px/1 FontAwesome;
+    font-size: inherit;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    position: absolute;
+    text-rendering: auto;
+    top: 15px;
+  }
+
+  ::ng-deep tree-viewport {
+    overflow: hidden;
+  }
+}

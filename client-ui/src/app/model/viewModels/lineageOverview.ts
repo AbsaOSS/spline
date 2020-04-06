@@ -18,7 +18,7 @@ import { CytoscapeGraphVM } from './cytoscape/cytoscapeGraphVM'
 
 export type LineageOverviewVM = {
   lineageInfo: {
-    targetNodeName: string;
+    targetNodeName: string
     executionEventId: string
     [key: string]: any
   }

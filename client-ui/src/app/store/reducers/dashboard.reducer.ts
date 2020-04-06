@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Action} from '@ngrx/store';
-import {DashboardActionTypes, SetDateRange, SetPageNumber, SetSearchQuery, SetSortOrder, SetState} from '../actions/dashboard.actions';
-import {DashboardVM} from "../../model/viewModels/dashboardVM";
+import { Action } from '@ngrx/store'
+
+import { DashboardVM } from '../../model/viewModels/dashboardVM'
+import { DashboardActionTypes, SetDateRange, SetPageNumber, SetSearchQuery, SetSortOrder, SetState } from '../actions/dashboard.actions'
+
 
 const initialState: DashboardVM = {
   filters: {
@@ -27,8 +29,8 @@ const initialState: DashboardVM = {
     size: 10
   },
   sort: {
-    field: "timestamp",
-    order: "desc",
+    field: 'timestamp',
+    order: 'desc',
   }
 }
 

@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Operation} from 'src/app/generated/models';
-import {AttributeVM} from './attributeVM';
+import { Operation } from 'src/app/generated/models'
+
+import { AttributeVM } from './attributeVM'
+
 
 export type OperationDetailsVM = {
     operation: Operation

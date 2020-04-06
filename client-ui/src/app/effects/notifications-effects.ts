@@ -14,31 +14,33 @@
  * limitations under the License.
  */
 
-import { Injectable } from '@angular/core';
-import { Actions, Effect, ofType } from '@ngrx/effects';
-import { Action, Store } from '@ngrx/store';
-import { ToastrService } from 'ngx-toastr';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import * as ErrorAction from '../store/actions/error.actions';
-import { AppState } from '../model/app-state';
+import { Injectable } from '@angular/core'
+import { ofType, Actions, Effect } from '@ngrx/effects'
+import { Action, Store } from '@ngrx/store'
+import { ToastrService } from 'ngx-toastr'
+import { Observable } from 'rxjs'
+import { tap } from 'rxjs/operators'
+
+import { AppState } from '../model/app-state'
+import * as ErrorAction from '../store/actions/error.actions'
+
 
 @Injectable()
 export class NotificationsEffects {
+
+
+    @Effect({ dispatch: false })
+    sendNotification$: Observable<Action> = this.actions$.pipe(
+      ofType(ErrorAction.ErrorActionTypes.SERVICE_ERROR_GET),
+      tap((action: any) => {
+        this.toastrService.error(action.payload, 'ERROR', { progressBar: true, positionClass: 'toast-bottom-full-width' })
+        this.store.dispatch(new ErrorAction.ServiceErrorReset())
+      })
+    )
 
     constructor(
         private actions$: Actions,
         private toastrService: ToastrService,
         private store: Store<AppState>
     ) { }
-
-
-    @Effect({ dispatch: false })
-    public sendNotification$: Observable<Action> = this.actions$.pipe(
-        ofType(ErrorAction.ErrorActionTypes.SERVICE_ERROR_GET),
-        tap((action: any) => {
-            this.toastrService.error(action.payload, 'ERROR', { progressBar: true, positionClass: "toast-bottom-full-width" })
-            this.store.dispatch(new ErrorAction.ServiceErrorReset())
-        })
-    )
 }

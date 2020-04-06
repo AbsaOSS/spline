@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-import {DataType} from "../../generated/models";
+import { DataType } from '../../generated/models'
+
 
 export type GenericDataTypeVM = DataType & {
-  id: string;
-  _type: string;
-  elementDataTypeId: string;
-  fields: Array<StructField>;
-  name: string;
-  nullable: boolean;
+  id: string
+  _type: string
+  elementDataTypeId: string
+  fields: Array<StructField>
+  name: string
+  nullable: boolean
 }
 
 export type StructField = {
-  dataTypeId: string;
-  name: string;
+  dataTypeId: string
+  name: string
 }

@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-import {Action} from '@ngrx/store';
+import { Action } from '@ngrx/store'
+
 
 export enum DashboardFilterActionTypes {
   SET_DATE_RANGE = '[Dashboard] Set date range',
 }
 
 export class SetDateRange implements Action {
-  public readonly type = DashboardFilterActionTypes.SET_DATE_RANGE
+  readonly type = DashboardFilterActionTypes.SET_DATE_RANGE
 
   constructor(public range: [number, number]) {
   }

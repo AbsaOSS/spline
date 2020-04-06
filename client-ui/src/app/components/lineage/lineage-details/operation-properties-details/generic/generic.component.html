@@ -15,36 +15,36 @@
   -->
 
 <!-- EXTRA PROPS :: PRIMITIVE -->
-<div class="operation-info-section" *ngIf="extraProperties?.primitive?.length">
+<div *ngIf="extraProperties?.primitive?.length" class="operation-info-section">
 
-  <!-- TITLE -->
-  <div class="operation-info-section__title">
-    <i [style.color]=getColor() aria-hidden="true" class="fa fa-xs">{{getIcon()}}</i>
-    Properties
-  </div>
-  <!-- ./TITLE -->
+    <!-- TITLE -->
+    <div class="operation-info-section__title">
+        <i [style.color]=getColor() aria-hidden="true" class="fa fa-xs">{{getIcon()}}</i>
+        Properties
+    </div>
+    <!-- ./TITLE -->
 
-  <!-- BODY -->
-  <div class="operation-info-section__body">
+    <!-- BODY -->
+    <div class="operation-info-section__body">
 
-    <ng-container>
-      <div *ngFor="let property of extraProperties.primitive" class="operation-property">
-        <span class="operation-property__label">{{property.label}}</span>:
-        <span class="operation-property__value">{{property.value}}</span>
-      </div>
-    </ng-container>
+        <ng-container>
+            <div *ngFor="let property of extraProperties.primitive" class="operation-property">
+                <span class="operation-property__label">{{property.label}}</span>:
+                <span class="operation-property__value">{{property.value}}</span>
+            </div>
+        </ng-container>
 
-  </div>
-  <!-- ./BODY -->
+    </div>
+    <!-- ./BODY -->
 
 </div>
 <!-- ./EXTRA PROPS :: PRIMITIVE -->
 
 <!-- EXTRA PROPS :: JSON -->
 <ng-container *ngIf="extraProperties?.json?.length">
-  <app-operation-property-json *ngFor="let property of extraProperties.json"
-                               [label]="property.label"
-                               [value]="property.value">
-  </app-operation-property-json>
+    <app-operation-property-json *ngFor="let property of extraProperties.json"
+                                 [label]="property.label"
+                                 [value]="property.value">
+    </app-operation-property-json>
 </ng-container>
 <!-- EXTRA PROPS :: JSON -->

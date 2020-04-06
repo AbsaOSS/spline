@@ -20,8 +20,8 @@
 
 export const environment = {
   production: false,
-  configFile: "./assets/config.json"
-};
+  configFile: './assets/config.json'
+}
 
 /*
  * For easier debugging in development mode, you can import the following file

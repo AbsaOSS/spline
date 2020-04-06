@@ -19,10 +19,10 @@
       <mat-expansion-panel-header>
         <mat-panel-title>
           <ng-container *ngIf="schemaType == 0">
-            <i class='fa fa-xs fa-arrow-circle-right text-success' aria-hidden="true"></i> <strong> Input </strong>
+            <i aria-hidden="true" class='fa fa-xs fa-arrow-circle-right text-success'></i> <strong> Input </strong>
           </ng-container>
           <ng-container *ngIf="schemaType == 1">
-            <i class='fa fa-xs fa-arrow-circle-left text-danger' aria-hidden="true"></i> <strong> Output </strong>
+            <i aria-hidden="true" class='fa fa-xs fa-arrow-circle-left text-danger'></i> <strong> Output </strong>
           </ng-container>
           <ng-container *ngIf="schemaType != 0 && schemaType != 1">
             <strong> Schema </strong>
@@ -30,9 +30,9 @@
         </mat-panel-title>
       </mat-expansion-panel-header>
       <schema-table
-        [schema]="schema"
-        [selectedField]="selectedAttribute()"
-        (selectedFieldChanged)="onAttributeSelected($event)">
+          (selectedFieldChanged)="onAttributeSelected($event)"
+          [schema]="schema"
+          [selectedField]="selectedAttribute()">
       </schema-table>
     </mat-expansion-panel>
   </mat-accordion>

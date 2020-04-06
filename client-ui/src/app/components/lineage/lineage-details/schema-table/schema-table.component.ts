@@ -13,51 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, EventEmitter, Input, OnChanges, Output, ViewChild} from '@angular/core';
-import {DataTypeType} from 'src/app/model/types/dataTypeType';
-import {StructFieldVM} from 'src/app/model/viewModels/attributeVM';
-import {DataTypeVM} from "../../../../model/viewModels/dataTypeVM";
+import { Component, EventEmitter, Input, OnChanges, Output, ViewChild } from '@angular/core'
+import { DataTypeType } from 'src/app/model/types/dataTypeType'
+import { StructFieldVM } from 'src/app/model/viewModels/attributeVM'
+
+import { DataTypeVM } from '../../../../model/viewModels/dataTypeVM'
+
 
 @Component({
   selector: 'schema-table',
   templateUrl: './schema-table.component.html',
-  styleUrls: ['./schema-table.component.less']
+  styleUrls: ['./schema-table.component.scss']
 })
 export class SchemaTableComponent implements OnChanges {
 
-  @ViewChild('table', {static: true})
-  public table: any
+  @ViewChild('table', { static: true })
+  table: any
 
   @Input()
-  public schema: StructFieldVM[]
+  schema: StructFieldVM[]
 
   @Input()
-  public selectable: boolean = true
+  selectable = true
 
   @Input()
-  public selectedField: StructFieldVM
+  selectedField: StructFieldVM
+  @Output()
+  selectedFieldChanged = new EventEmitter<StructFieldVM>()
 
   ngOnChanges(): void {
     this.table.selected = this.selectedField ? [this.selectedField] : []
     this.table.cd.markForCheck()
   }
 
-  @Output()
-  public selectedFieldChanged = new EventEmitter<StructFieldVM>()
-
-  public getArrayInnermostElementTypeWithNestingLevel = (dt: DataTypeVM, level = 1): [DataTypeVM, number] => {
-    return dt.elementDataType.dataType._type == DataTypeType.Array
+  getArrayInnermostElementTypeWithNestingLevel = (dt: DataTypeVM, level = 1): [DataTypeVM, number] => {
+    return dt.elementDataType.dataType._type === DataTypeType.Array
       ? this.getArrayInnermostElementTypeWithNestingLevel(dt.elementDataType.dataType, level + 1)
       : [dt.elementDataType.dataType, level]
   }
 
-  public selectCheck = (): boolean => this.selectable
+  selectCheck = (): boolean => this.selectable
 
-  public onSelect = ({selected}): void => {
+  onSelect = ({ selected }): void => {
     this.selectedFieldChanged.emit(selected[0])
   }
 
-  public onStructTypeClick = (e: Event, row: any) => {
+  onStructTypeClick = (e: Event, row: any) => {
     e.stopPropagation()
     this.table.rowDetail.toggleExpandRow(row)
   }

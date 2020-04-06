@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-import {Component, EventEmitter, Input, Output} from '@angular/core';
-import * as moment from 'moment';
-import {NgbDateStruct, NgbTimeStruct} from "@ng-bootstrap/ng-bootstrap";
-import {DateRange, Timestamp} from "./time-frame-picker.model";
+import { Component, EventEmitter, Input, Output } from '@angular/core'
+import { NgbDateStruct, NgbTimeStruct } from '@ng-bootstrap/ng-bootstrap'
+import moment from 'moment'
+
+import { DateRange, Timestamp } from './time-frame-picker.model'
+
 
 type ViewModel = [LocalDateTimeModel, LocalDateTimeModel]
 
@@ -35,44 +37,21 @@ interface NgbTimeStructWithMillis extends NgbTimeStruct {
   templateUrl: './time-frame-picker.component.html'
 })
 export class TimeFramePickerComponent {
-  public model: ViewModel
-  public modelBoundaries: ViewModel
+  model: ViewModel
+  modelBoundaries: ViewModel
+  @Output()
+  rangeChange = new EventEmitter<DateRange>()
 
   @Input()
-  public set range(range: DateRange) {
+  set range(range: DateRange) {
     this.model = <ViewModel>range.map(TimeFramePickerComponent.timestampToLdt)
   }
 
   @Input()
-  public set rangeBoundaries(boundaries: DateRange | undefined) {
+  set rangeBoundaries(boundaries: DateRange | undefined) {
     this.modelBoundaries = boundaries
       ? <ViewModel>boundaries.map(TimeFramePickerComponent.timestampToLdt)
       : this.model
-  }
-
-  @Output()
-  public rangeChange = new EventEmitter<DateRange>()
-
-  public onTimeFromChange(time: NgbTimeStruct): void {
-    const [from, till] = this.model
-    this.onModelChange([{...from, time: {...time, second: 0, millis: 0}}, till])
-  }
-
-  public onTimeTillChange(time: NgbTimeStruct): void {
-    const [from, till] = this.model
-    this.onModelChange([from, {...till, time: {...time, second: 59, millis: 999}}])
-  }
-
-  public onSelectedDatesChange([dateFrom, dateTill]: NgbDateStruct[]): void {
-    this.onModelChange([
-      {date: dateFrom, time: {hour: 0, minute: 0, second: 0, millis: 0}},
-      {date: dateTill, time: {hour: 23, minute: 59, second: 59, millis: 999}}
-    ])
-  }
-
-  private onModelChange(model: ViewModel): void {
-    this.rangeChange.emit(
-      model.map(TimeFramePickerComponent.ldtToTimestamp) as DateRange)
   }
 
   private static timestampToLdt(t: Timestamp): LocalDateTimeModel {
@@ -102,6 +81,28 @@ export class TimeFramePickerComponent {
       wt.time.second,
       wt.time.millis
     ])
+  }
+
+  onTimeFromChange(time: NgbTimeStruct): void {
+    const [from, till] = this.model
+    this.onModelChange([{ ...from, time: { ...time, second: 0, millis: 0 } }, till])
+  }
+
+  onTimeTillChange(time: NgbTimeStruct): void {
+    const [from, till] = this.model
+    this.onModelChange([from, { ...till, time: { ...time, second: 59, millis: 999 } }])
+  }
+
+  onSelectedDatesChange([dateFrom, dateTill]: NgbDateStruct[]): void {
+    this.onModelChange([
+      { date: dateFrom, time: { hour: 0, minute: 0, second: 0, millis: 0 } },
+      { date: dateTill, time: { hour: 23, minute: 59, second: 59, millis: 999 } }
+    ])
+  }
+
+  private onModelChange(model: ViewModel): void {
+    this.rangeChange.emit(
+      model.map(TimeFramePickerComponent.ldtToTimestamp) as DateRange)
   }
 }
 

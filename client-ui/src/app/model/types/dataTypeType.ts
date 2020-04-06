@@ -15,7 +15,7 @@
  */
 
 export const enum DataTypeType {
-    Struct = "StructDataType",
-    Array = "ArrayDataType",
-    Simple = "SimpleDataType"
+    Struct = 'StructDataType',
+    Array = 'ArrayDataType',
+    Simple = 'SimpleDataType'
 }

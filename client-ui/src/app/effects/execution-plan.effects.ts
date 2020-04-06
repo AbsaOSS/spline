@@ -14,28 +14,35 @@
  * limitations under the License.
  */
 
-import {Injectable} from '@angular/core';
-import {Actions, Effect, ofType} from '@ngrx/effects';
-import {Action, Store} from '@ngrx/store';
-import * as _ from 'lodash';
-import {Observable} from 'rxjs';
-import {map, switchMap} from 'rxjs/operators';
-import {OperationType} from 'src/app/model/types/operationType';
-import {LineageDetailed, Operation, Transition} from '../generated/models';
-import {LineageService} from '../generated/services';
-import {AppState} from '../model/app-state';
-import {CytoscapeGraphVM} from '../model/viewModels/cytoscape/cytoscapeGraphVM';
-import {CytoscapeOperationVM} from '../model/viewModels/cytoscape/cytoscapeOperationVM';
-import {ExecutedLogicalPlanVM} from '../model/viewModels/executedLogicalPlanVM';
-import {handleException} from '../rxjs/operators/handleException';
-import * as ExecutionPlanAction from '../store/actions/execution-plan.actions';
-import {operationColorCodes, operationIconCodes} from '../util/execution-plan';
+import { Injectable } from '@angular/core'
+import { ofType, Actions, Effect } from '@ngrx/effects'
+import { Store } from '@ngrx/store'
+import * as _ from 'lodash'
+import { Observable } from 'rxjs'
+import { map, switchMap } from 'rxjs/operators'
+import { OperationType } from 'src/app/model/types/operationType'
 
+import { LineageDetailed, Operation, Transition } from '../generated/models'
+import { LineageService } from '../generated/services'
+import { AppState } from '../model/app-state'
+import { CytoscapeGraphVM } from '../model/viewModels/cytoscape/cytoscapeGraphVM'
+import { CytoscapeOperationVM } from '../model/viewModels/cytoscape/cytoscapeOperationVM'
+import { ExecutedLogicalPlanVM } from '../model/viewModels/executedLogicalPlanVM'
+import { handleException } from '../rxjs/operators/handleException'
+import * as ExecutionPlanAction from '../store/actions/execution-plan.actions'
+import { operationColorCodes, operationIconCodes } from '../util/execution-plan'
 
-export type Action = ExecutionPlanAction.ExecutionPlanActions
 
 @Injectable()
 export class ExecutionPlanEffects {
+
+
+  @Effect()
+  getExecutionPlan$ = this.actions$.pipe(
+    ofType(ExecutionPlanAction.ExecutionPlanActionTypes.EXECUTION_PLAN_GET),
+    switchMap((action: any) => this.getExecutedLogicalPlan(action.payload)),
+    map(res => new ExecutionPlanAction.GetSuccess(res))
+  );
 
   constructor(
     private actions$: Actions,
@@ -47,19 +54,12 @@ export class ExecutionPlanEffects {
       .subscribe(apiUrl => this.lineageService.rootUrl = apiUrl)
   }
 
-
-  @Effect()
-  public getExecutionPlan$: Observable<Action> = this.actions$.pipe(
-    ofType(ExecutionPlanAction.ExecutionPlanActionTypes.EXECUTION_PLAN_GET),
-    switchMap((action: any) => this.getExecutedLogicalPlan(action.payload)),
-    map(res => new ExecutionPlanAction.GetSuccess(res))
-  )
   private getExecutedLogicalPlan = (executionPlanId: string): Observable<ExecutedLogicalPlanVM> => {
     return this.lineageService.lineageDetailedUsingGET(executionPlanId).pipe(
       map(response => this.toLogicalPlanView(response)),
       handleException(this.store)
     )
-  }
+  };
 
   private toLogicalPlanView = (lineage: LineageDetailed): ExecutedLogicalPlanVM => {
     const cytoscapeGraphVM = {} as CytoscapeGraphVM

@@ -14,26 +14,28 @@
  * limitations under the License.
  */
 
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { AppState } from 'src/app/model/app-state';
-import { ApplicationErrorGet } from 'src/app/store/actions/error.actions';
-import { Observable, Subscription } from 'rxjs';
+import { Component, OnDestroy, OnInit } from '@angular/core'
+import { Store } from '@ngrx/store'
+import { Observable, Subscription } from 'rxjs'
+import { AppState } from 'src/app/model/app-state'
+import { ApplicationErrorGet } from 'src/app/store/actions/error.actions'
+
 
 @Component({
   selector: 'app-error',
   templateUrl: './error.component.html',
-  styleUrls: ['./error.component.less']
+  styleUrls: ['./error.component.scss']
 })
 export class ErrorComponent implements OnInit, OnDestroy {
 
-  constructor(
-    private store: Store<AppState>
-  ) { }
-
   private subscriptions: Subscription[] = []
 
-  public ngOnInit(): void {
+  constructor(
+    private store: Store<AppState>
+  ) {
+  }
+
+  ngOnInit(): void {
     this.subscriptions.push(
       this.store
         .select('router', 'state', 'params')
@@ -41,7 +43,7 @@ export class ErrorComponent implements OnInit, OnDestroy {
     )
   }
 
-  public getError = (): Observable<string> => {
+  getError = (): Observable<string> => {
     return this.store.select('error')
   }
 

@@ -26,15 +26,15 @@
 
     <!-- TAGS LIST -->
     <mat-chip-list>
-      <mat-chip *ngFor="let attr of attributes"
-                (removed)="onAttributeRemoveIconClicked(attr)">
+      <mat-chip (removed)="onAttributeRemoveIconClicked(attr)"
+                *ngFor="let attr of attributes">
 
         {{attr.name}}
 
-        <mat-icon matChipRemove
+        <mat-icon fontIcon="fa-times"
                   fontSet="fa"
-                  matTooltip="Remove"
-                  fontIcon="fa-times">
+                  matChipRemove
+                  matTooltip="Remove">
         </mat-icon>
       </mat-chip>
     </mat-chip-list>
@@ -42,19 +42,19 @@
 
     <!-- LEGEND -->
     <div class="legends-list">
-      <div class="legend" *ngFor="let legend of lineageGraphLegends">
+      <div *ngFor="let legend of lineageGraphLegends" class="legend">
 
-        <div class="legend__circle"
-             [ngStyle]="{background: legend.color}">
+        <div [ngStyle]="{background: legend.color}"
+             class="legend__circle">
         </div>
 
         <div class="px-2 flex-grow-1">
           {{legend.title}}
         </div>
 
-        <mat-icon fontSet="fa"
+        <mat-icon [matTooltip]="legend.description"
                   fontIcon="fa-info-circle"
-                  [matTooltip]="legend.description">
+                  fontSet="fa">
         </mat-icon>
       </div>
     </div>
@@ -63,20 +63,20 @@
 
     <!-- OLD VERSION WARNING -->
 
-    <div class="warnings-container" *ngIf="showOldSplineWarning">
+    <div *ngIf="showOldSplineWarning" class="warnings-container">
       <div class="warning">
         <div class="warning__icon">
-          <mat-icon fontSet="fa"
-                    fontIcon="fa-exclamation-triangle">
+          <mat-icon fontIcon="fa-exclamation-triangle"
+                    fontSet="fa">
           </mat-icon>
         </div>
         <div class="warning__title">
           Only direct attribute usage is displayed.
         </div>
         <div class="warning__info">
-          <mat-icon fontSet="fa"
+          <mat-icon [matTooltip]="'This execution plan is captured by an older version of Spline, so only direct attribute usage is displayed. Transitive attribute lineage and impact highlighting is only available on the metadata captured by Spline version 0.4 or higher.'"
                     fontIcon="fa-info-circle"
-                    [matTooltip]="'This execution plan is captured by an older version of Spline, so only direct attribute usage is displayed. Transitive attribute lineage and impact highlighting is only available on the metadata captured by Spline version 0.4 or higher.'">
+                    fontSet="fa">
           </mat-icon>
         </div>
       </div>

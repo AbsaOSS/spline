@@ -17,10 +17,10 @@
   <mat-accordion>
     <mat-expansion-panel [expanded]="true">
       <mat-expansion-panel-header>
-        <i class="fa fa-xs" aria-hidden="true" [style.color]=getColor()>{{getIcon()}}</i> &nbsp;<strong> {{property.type}}</strong>
+        <i [style.color]=getColor() aria-hidden="true" class="fa fa-xs">{{getIcon()}}</i> &nbsp;<strong> {{property.type}}</strong>
       </mat-expansion-panel-header>
       <div>
-        <a href="" (click)="openExprViewDialog($event, property)"><code>{{property.value}}</code></a>
+        <a (click)="openExprViewDialog($event, property)" href=""><code>{{property.value}}</code></a>
       </div>
     </mat-expansion-panel>
   </mat-accordion>

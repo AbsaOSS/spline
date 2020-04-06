@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
-import { NgbDateStruct } from "@ng-bootstrap/ng-bootstrap";
-import * as _ from "lodash";
-import * as moment from 'moment';
-import { dateToStruct, structToDate } from 'src/app/util/date-converter';
+import { Component, EventEmitter, Input, Output } from '@angular/core'
+import { NgbDateStruct } from '@ng-bootstrap/ng-bootstrap'
+import * as _ from 'lodash'
+import moment from 'moment'
+import { dateToStruct, structToDate } from 'src/app/util/date-converter'
 
-const MODEL_UPDATE_DELAY_ON_TYPING = 500 //millis
+
+const MODEL_UPDATE_DELAY_ON_TYPING = 500 // millis
 
 @Component({
   selector: 'date-picker',
@@ -28,32 +29,12 @@ const MODEL_UPDATE_DELAY_ON_TYPING = 500 //millis
 })
 export class DatePickerComponent {
 
-  public bsModel: Date
-  public bsMinDate: Date
-  public bsMaxDate: Date
-
-  @Input()
-  public set model(date: NgbDateStruct) {
-    this.bsModel = moment(structToDate(date)).toDate()
-  }
-
-  @Input()
-  public set minDate(minDate: NgbDateStruct) {
-    this.bsMinDate = structToDate(minDate)
-  }
-
-  @Input()
-  public set maxDate(maxDate: NgbDateStruct) {
-    this.bsMaxDate = structToDate(maxDate)
-  }
-
-  @Output() public modelChange = new EventEmitter<NgbDateStruct>()
-
-  constructor() { }
-
-  public valid: boolean = true
-
-  public readonly onModelChange: (_: Date) => void = _.debounce(
+  bsModel: Date
+  bsMinDate: Date
+  bsMaxDate: Date
+  @Output() modelChange = new EventEmitter<NgbDateStruct>()
+  valid = true
+  readonly onModelChange: (_: Date) => void = _.debounce(
     (updatedModel: Date) => {
       this.valid = moment(updatedModel).isValid()
       if (this.valid && !_.isEqual(this.bsModel, updatedModel)) {
@@ -61,5 +42,23 @@ export class DatePickerComponent {
       }
     },
     MODEL_UPDATE_DELAY_ON_TYPING)
+
+  constructor() {
+  }
+
+  @Input()
+  set model(date: NgbDateStruct) {
+    this.bsModel = moment(structToDate(date)).toDate()
+  }
+
+  @Input()
+  set minDate(minDate: NgbDateStruct) {
+    this.bsMinDate = structToDate(minDate)
+  }
+
+  @Input()
+  set maxDate(maxDate: NgbDateStruct) {
+    this.bsMaxDate = structToDate(maxDate)
+  }
 
 }

@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as ExecutionEventsAction from '../actions/execution-events.actions';
+import * as ExecutionEventsAction from '../actions/execution-events.actions'
+
 
 export type Action = ExecutionEventsAction.ExecutionEventsActions
 
 export function executionEventReducer(state: string, action: Action): any {
-    switch (action.type) {
-        case ExecutionEventsAction.ExecutionEventsActionTypes.GET_SUCCESS: return { ...action.payload }
-        default: return state
-    }
+  switch (action.type) {
+    case ExecutionEventsAction.ExecutionEventsActionTypes.GET_SUCCESS: return { ...action.payload }
+    default: return state
+  }
 }

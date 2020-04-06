@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import {HttpClient} from '@angular/common/http';
-import {Injectable} from '@angular/core';
-import {Actions, Effect, EffectNotification, ofType, OnRunEffects} from '@ngrx/effects';
-import {Action} from '@ngrx/store';
-import {Observable, of} from 'rxjs';
-import {exhaustMap, map, switchMap, takeUntil} from 'rxjs/operators';
-import * as ConfigAction from '../store/actions/config.actions';
+import { HttpClient } from '@angular/common/http'
+import { Injectable } from '@angular/core'
+import { ofType, Actions, Effect, EffectNotification, OnRunEffects } from '@ngrx/effects'
+import { of, Observable } from 'rxjs'
+import { exhaustMap, map, switchMap, takeUntil } from 'rxjs/operators'
+
+import * as ConfigAction from '../store/actions/config.actions'
 
 
 export type Action = ConfigAction.ConfigActions
@@ -28,36 +28,36 @@ export type Action = ConfigAction.ConfigActions
 @Injectable()
 export class ConfigEffects implements OnRunEffects {
 
+    @Effect()
+    getConfig$ = this.actions$.pipe(
+      ofType(ConfigAction.ConfigActionTypes.CONFIG_GET),
+      switchMap((action: any) => this.load(action.payload)),
+      map(res => new ConfigAction.GetSuccess(res))
+    )
+
     constructor(
         private actions$: Actions,
         private http: HttpClient
     ) { }
 
-    @Effect()
-    public getConfig$: Observable<Action> = this.actions$.pipe(
-        ofType(ConfigAction.ConfigActionTypes.CONFIG_GET),
-        switchMap((action: any) => this.load(action.payload)),
-        map(res => new ConfigAction.GetSuccess(res))
-    )
-
-    public ngrxOnRunEffects = (resolvedEffects$: Observable<EffectNotification>): Observable<EffectNotification> => {
-        return this.actions$.pipe(
-            ofType(ConfigAction.ConfigActionTypes.START_APP_INITIALIZER),
-            exhaustMap(() =>
-                resolvedEffects$.pipe(
-                    takeUntil(this.actions$.pipe(
-                        ofType(ConfigAction.ConfigActionTypes.FINISH_APP_INITIALIZER))
-                    )
-                )
+    ngrxOnRunEffects = (resolvedEffects$: Observable<EffectNotification>): Observable<EffectNotification> => {
+      return this.actions$.pipe(
+        ofType(ConfigAction.ConfigActionTypes.START_APP_INITIALIZER),
+        exhaustMap(() =>
+          resolvedEffects$.pipe(
+            takeUntil(this.actions$.pipe(
+              ofType(ConfigAction.ConfigActionTypes.FINISH_APP_INITIALIZER))
             )
+          )
         )
+      )
     }
 
     private load = (environment: any): Observable<any> => {
-        if (window["SplineConfiguration"]) {
-            return of(window["SplineConfiguration"])
-        }
-        const jsonFile = `${environment.configFile}`
-        return this.http.get(jsonFile)
+      if (window['SplineConfiguration']) {
+        return of(window['SplineConfiguration'])
+      }
+      const jsonFile = `${environment.configFile}`
+      return this.http.get(jsonFile)
     }
 }

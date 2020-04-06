@@ -13,39 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {AppState} from 'src/app/model/app-state';
-import {Observable} from 'rxjs';
-import {OperationDetailsVM} from 'src/app/model/viewModels/operationDetailsVM';
-import {AttributeVM} from 'src/app/model/viewModels/attributeVM';
+import { Component, Input } from '@angular/core'
+import { Store } from '@ngrx/store'
+import { Observable } from 'rxjs'
+import { AppState } from 'src/app/model/app-state'
+import { AttributeVM } from 'src/app/model/viewModels/attributeVM'
+import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM'
+
 
 @Component({
   selector: 'lineage-overview-details',
   templateUrl: './lineage-overview-details.component.html',
-  styleUrls: ['./lineage-overview-details.component.less']
+  styleUrls: ['./lineage-overview-details.component.scss']
 })
 export class LineageOverviewDetailsComponent {
 
   @Input()
-  public embeddedMode: boolean
+  embeddedMode: boolean
 
   constructor(private store: Store<AppState>) {
   }
 
-  public getLineageOverviewInfo = (): Observable<{ [key: string]: {} }> => {
-    return this.store.select('lineageOverview', "lineageInfo")
+  getLineageOverviewInfo = (): Observable<{ [key: string]: {} }> => {
+    return this.store.select('lineageOverview', 'lineageInfo')
   }
 
-  public getDetailsInfo = (): Observable<OperationDetailsVM> => {
+  getDetailsInfo = (): Observable<OperationDetailsVM> => {
     return this.store.select('detailsInfos')
   }
 
-  public getOutputSchema = (operationDetails: OperationDetailsVM): AttributeVM[] => {
+  getOutputSchema = (operationDetails: OperationDetailsVM): AttributeVM[] => {
     return operationDetails.schemas[operationDetails.output]
   }
 
-  public getTargetName = (): Observable<any> => {
-    return this.store.select("lineageOverview", "lineageInfo", "targetNodeName")
+  getTargetName = (): Observable<any> => {
+    return this.store.select('lineageOverview', 'lineageInfo', 'targetNodeName')
   }
 }

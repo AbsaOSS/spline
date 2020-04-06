@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-import {Action} from '@ngrx/store';
-import {DashboardVM} from "../../model/viewModels/dashboardVM";
+import { Action } from '@ngrx/store'
+
+import { DashboardVM } from '../../model/viewModels/dashboardVM'
+
 
 export enum DashboardActionTypes {
   SET_STATE = '[Dashboard] Set state',
@@ -26,35 +28,35 @@ export enum DashboardActionTypes {
 }
 
 export class SetState implements Action {
-  public readonly type = DashboardActionTypes.SET_STATE
+  readonly type = DashboardActionTypes.SET_STATE
 
   constructor(public state: DashboardVM) {
   }
 }
 
 export class SetDateRange implements Action {
-  public readonly type = DashboardActionTypes.SET_DATE_RANGE
+  readonly type = DashboardActionTypes.SET_DATE_RANGE
 
   constructor(public range: [number, number]) {
   }
 }
 
 export class SetSearchQuery implements Action {
-  public readonly type = DashboardActionTypes.SET_SEARCH_QUERY
+  readonly type = DashboardActionTypes.SET_SEARCH_QUERY
 
   constructor(public query: string) {
   }
 }
 
 export class SetPageNumber implements Action {
-  public readonly type = DashboardActionTypes.SET_PAGE_NUMBER
+  readonly type = DashboardActionTypes.SET_PAGE_NUMBER
 
   constructor(public page: number) {
   }
 }
 
 export class SetSortOrder implements Action {
-  public readonly type = DashboardActionTypes.SET_SORT_ORDER
+  readonly type = DashboardActionTypes.SET_SORT_ORDER
 
   constructor(public field: string,
               public order: string) {

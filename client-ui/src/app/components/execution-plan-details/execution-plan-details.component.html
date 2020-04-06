@@ -14,39 +14,39 @@
   ~ limitations under the License.
   -->
 <div *ngIf="(getExecutionPlanVM() | async )" class="execution-details">
-    <h3 class="text-center"> Execution Plan : {{ (getExecutionPlanVM() | async )?.executionPlan.extra.appName }}</h3>
-    <br />
-    <div>
-        <p>
-            <strong>System Info:</strong>
-            {{ (getExecutionPlanVM() | async )?.executionPlan.systemInfo.name }}
-            {{ (getExecutionPlanVM() | async )?.executionPlan.systemInfo.version }}
-        </p>
-        <p *ngIf="(getExecutionPlanVM() | async )?.executionPlan.agentInfo; let agentInfo">
-            <strong>Agent Info:</strong>
-            {{ agentInfo.name }}
-            {{ agentInfo.version }}
-        </p>
-        <p>
-            <strong>Input Sources:</strong>
-        </p>
-        <ul *ngFor="let input of (getExecutionPlanVM() | async )?.executionPlan.inputs">
-            <p>
-                <strong>URI:</strong> {{ input.source }}
-                <br />
-                <strong>Type:</strong> {{ input.sourceType }}
-            </p>
-        </ul>
-        <p>
-            <strong>Output Source:</strong>
-        </p>
-        <ul>
-            <p>
-                <strong>URI:</strong> {{ (getExecutionPlanVM() | async )?.executionPlan.output.source }}
-                <br />
-                <strong> Type: </strong>
-                {{ (getExecutionPlanVM() | async )?.executionPlan.output.sourceType }}
-            </p>
-        </ul>
-    </div>
+  <h3 class="text-center"> Execution Plan : {{ (getExecutionPlanVM() | async)?.executionPlan.extra.appName }}</h3>
+  <br/>
+  <div>
+    <p>
+      <strong>System Info:</strong>
+      {{ (getExecutionPlanVM() | async)?.executionPlan.systemInfo.name }}
+      {{ (getExecutionPlanVM() | async)?.executionPlan.systemInfo.version }}
+    </p>
+    <p *ngIf="(getExecutionPlanVM() | async )?.executionPlan.agentInfo; let agentInfo">
+      <strong>Agent Info:</strong>
+      {{ agentInfo.name }}
+      {{ agentInfo.version }}
+    </p>
+    <p>
+      <strong>Input Sources:</strong>
+    </p>
+    <ul *ngFor="let input of (getExecutionPlanVM() | async )?.executionPlan.inputs">
+      <p>
+        <strong>URI:</strong> {{ input.source }}
+        <br/>
+        <strong>Type:</strong> {{ input.sourceType }}
+      </p>
+    </ul>
+    <p>
+      <strong>Output Source:</strong>
+    </p>
+    <ul>
+      <p>
+        <strong>URI:</strong> {{ (getExecutionPlanVM() | async)?.executionPlan.output.source }}
+        <br/>
+        <strong> Type: </strong>
+        {{ (getExecutionPlanVM() | async)?.executionPlan.output.sourceType }}
+      </p>
+    </ul>
+  </div>
 </div>

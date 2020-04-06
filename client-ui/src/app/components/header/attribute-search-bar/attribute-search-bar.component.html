@@ -21,7 +21,7 @@
         <ngb-highlight [result]="result.name" [term]="term"></ngb-highlight>
       </div>
       <div class="attribute__execution-event-name">
-          {{ result.executionEventName }}
+        {{ result.executionEventName }}
       </div>
     </div>
 
@@ -32,11 +32,10 @@
 </ng-template>
 
 <!-- [inputFormatter] is used because there is no onSelect available -->
-<input id="typeahead-input"
-       type="text"
-       class="form-control"
-       placeholder="Search for an attribute..."
+<input [inputFormatter]="onItemSelected"
        [ngbTypeahead]="search"
        [resultTemplate]="rt"
-       [inputFormatter]="onItemSelected"
+       class="form-control"
+       placeholder="Search for an attribute..."
+       type="text"
 />

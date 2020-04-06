@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 
-<button type="botton" class="btn btn-primary" bsDaterangepicker placement="bottom"
-  [bsConfig]="{containerClass: 'theme-dark-blue'}" [minDate]="bsMinDate" [maxDate]="bsMaxDate" [bsValue]="bsModel"
-  (bsValueChange)="onBsModelChange($event)">
+<button (bsValueChange)="onBsModelChange($event)" [bsConfig]="{containerClass: 'theme-dark-blue'}" [bsValue]="bsModel" [maxDate]="bsMaxDate"
+        [minDate]="bsMinDate" bsDaterangepicker class="btn btn-primary" placement="bottom"
+        type="botton">
   Select date range
 </button>

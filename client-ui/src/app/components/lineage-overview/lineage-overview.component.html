@@ -23,7 +23,7 @@
 
       <!-- GRAPH TOOLBAR -->
       <ng-container *ngIf="lineageState$ | async as lineageState">
-        <div class="graph-toolbar" *ngIf="lineageState.hasMoreNodes">
+        <div *ngIf="lineageState.hasMoreNodes" class="graph-toolbar">
 
           <!-- GRAPH DEPTH CONTROL -->
           <div class="graph-toolbar__section">
@@ -31,8 +31,8 @@
             <div class="graph-toolbar-warning">
 
               <div class="graph-toolbar-warning__icon">
-                <mat-icon fontSet="fa"
-                          fontIcon="fa-exclamation-triangle">
+                <mat-icon fontIcon="fa-exclamation-triangle"
+                          fontSet="fa">
                 </mat-icon>
               </div>
 
@@ -44,8 +44,8 @@
 
             <div class="graph-toolbar__section-footer">
               The current depth is <strong>{{ lineageState.depthRequested }}</strong>.
-              <a class="link-dashed"
-                 (click)="onLoadOlderNodesBtnClicked()"
+              <a (click)="onLoadOlderNodesBtnClicked()"
+                 class="link-dashed"
                  matTooltip="Load older nodes">
                 Click here
               </a>

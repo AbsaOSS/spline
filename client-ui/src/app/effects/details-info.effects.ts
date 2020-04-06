@@ -13,27 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable} from '@angular/core';
-import {Actions, Effect, ofType} from '@ngrx/effects';
-import {Action, Store} from '@ngrx/store';
-import * as _ from 'lodash';
-import {Observable} from 'rxjs';
-import {flatMap, map} from 'rxjs/operators';
-import {Attribute, OperationDetails} from '../generated/models';
-import {OperationsService} from '../generated/services';
-import {StrictHttpResponse} from '../generated/strict-http-response';
-import {AppState} from '../model/app-state';
-import {DataTypeType} from '../model/types/dataTypeType';
-import {AttributeVM, StructFieldVM} from '../model/viewModels/attributeVM';
-import {GenericDataTypeVM} from '../model/viewModels/GenericDataTypeVM';
-import {OperationDetailsVM} from '../model/viewModels/operationDetailsVM';
-import {handleException} from '../rxjs/operators/handleException';
-import * as DetailsInfoAction from '../store/actions/details-info.actions';
-import {DataTypeVM} from "../model/viewModels/dataTypeVM";
+import { Injectable } from '@angular/core'
+import { ofType, Actions, Effect } from '@ngrx/effects'
+import { Action, Store } from '@ngrx/store'
+import * as _ from 'lodash'
+import { Observable } from 'rxjs'
+import { flatMap, map } from 'rxjs/operators'
+
+import { Attribute, OperationDetails } from '../generated/models'
+import { OperationsService } from '../generated/services'
+import { StrictHttpResponse } from '../generated/strict-http-response'
+import { AppState } from '../model/app-state'
+import { DataTypeType } from '../model/types/dataTypeType'
+import { AttributeVM, StructFieldVM } from '../model/viewModels/attributeVM'
+import { DataTypeVM } from '../model/viewModels/dataTypeVM'
+import { OperationDetailsVM } from '../model/viewModels/operationDetailsVM'
+import { GenericDataTypeVM } from '../model/viewModels/GenericDataTypeVM'
+import { handleException } from '../rxjs/operators/handleException'
+import * as DetailsInfoAction from '../store/actions/details-info.actions'
 
 
 @Injectable()
 export class DetailsInfoEffects {
+
+  @Effect()
+  getDetailsInfo$: Observable<Action> = this.actions$.pipe(
+    ofType(DetailsInfoAction.DetailsInfoActionTypes.DETAILS_INFOS_GET),
+    flatMap((action: any) => this.getDetailsInfo(action.payload)),
+    map(res => new DetailsInfoAction.GetSuccess(res))
+  )
 
   constructor(
     private actions$: Actions,
@@ -45,19 +53,13 @@ export class DetailsInfoEffects {
       .subscribe(apiUrl => this.operationsService.rootUrl = apiUrl)
   }
 
-  @Effect()
-  public getDetailsInfo$: Observable<Action> = this.actions$.pipe(
-    ofType(DetailsInfoAction.DetailsInfoActionTypes.DETAILS_INFOS_GET),
-    flatMap((action: any) => this.getDetailsInfo(action.payload)),
-    map(res => new DetailsInfoAction.GetSuccess(res))
-  )
-
 
   private getDetailsInfo = (nodeId: string): Observable<OperationDetailsVM> => {
-    return this.operationsService.operationUsingGETResponse(nodeId).pipe(
-      map(this.toOperationDetailsView),
-      handleException(this.store)
-    )
+    return this.operationsService.operationUsingGETResponse(nodeId)
+      .pipe(
+        map(this.toOperationDetailsView),
+        handleException(this.store)
+      )
   }
 
   private toOperationDetailsView = (operationDetailsVMHttpResponse: StrictHttpResponse<OperationDetails>): OperationDetailsVM => {
@@ -65,16 +67,17 @@ export class DetailsInfoEffects {
     const schemas: Array<Array<AttributeVM>> = operationDetails.schemas.map((attributeRefArray: Array<Attribute>) => {
       const dataTypes = _.keyBy(operationDetails.dataTypes as GenericDataTypeVM[], dt => dt.id)
       return attributeRefArray.map(attRef => {
-          const structField = this.getFieldVM(
-            attRef.dataTypeId,
-            dataTypes,
-            attRef.name)
+        const structField = this.getFieldVM(
+          attRef.dataTypeId,
+          dataTypes,
+          attRef.name
+        )
 
-          return {
-            id: attRef.id,
-            ...structField
-          } as AttributeVM
-        }
+        return {
+          id: attRef.id,
+          ...structField
+        } as AttributeVM
+      }
       )
     })
     return {

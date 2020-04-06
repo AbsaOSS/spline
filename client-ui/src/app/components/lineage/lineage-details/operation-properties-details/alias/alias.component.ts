@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
-import { PropertiesComponent } from '../properties/properties.component';
+import { Component } from '@angular/core'
+
+import { PropertiesComponent } from '../properties/properties.component'
+
 
 @Component({
   selector: 'app-alias',
   templateUrl: './alias.component.html'
 })
-export class AliasComponent extends PropertiesComponent { }
+export class AliasComponent extends PropertiesComponent {
+}

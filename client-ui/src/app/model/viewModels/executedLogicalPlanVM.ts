@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ExecutionPlanInfo} from 'src/app/generated/models/execution-plan-info';
-import {CytoscapeGraphVM} from './cytoscape/cytoscapeGraphVM';
+import { ExecutionPlanInfo } from 'src/app/generated/models/execution-plan-info'
+
+import { CytoscapeGraphVM } from './cytoscape/cytoscapeGraphVM'
+
 
 export type ExecutedLogicalPlanVM = {
     executionPlan: ExecutionPlanInfo

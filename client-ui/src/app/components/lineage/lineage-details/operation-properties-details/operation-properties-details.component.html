@@ -15,7 +15,7 @@
   -->
 <div *ngIf="getDetailsInfo() | async as detailsInfos">
   <div class="details-title">
-    <i class="fa fa-xs" aria-hidden="true" [ngStyle]="{'color':getColor(detailsInfos.operation._type, detailsInfos.operation.name)}">
+    <i [ngStyle]="{'color':getColor(detailsInfos.operation._type, detailsInfos.operation.name)}" aria-hidden="true" class="fa fa-xs">
       {{getIcon(detailsInfos.operation._type, detailsInfos.operation.name)}}
     </i>&nbsp;{{detailsInfos.operation.name}}
   </div>
@@ -23,17 +23,17 @@
   </div>
   <div class="details">
     <div *ngFor="let inputSchema of getInputSchemas(detailsInfos)">
-      <schema [schemaType]=0
+      <schema (selectedAttributeIdChanged)="onSelectedAttributeIdChange($event)"
+              [schemaType]=0
               [schema]="inputSchema"
-              [selectedAttributeId]="selectedAttributeId$ | async"
-              (selectedAttributeIdChanged)="onSelectedAttributeIdChange($event)">
+              [selectedAttributeId]="selectedAttributeId$ | async">
       </schema>
     </div>
-    <schema *ngIf="detailsInfos.operation._type != 'Write'"
+    <schema (selectedAttributeIdChanged)="onSelectedAttributeIdChange($event)"
+            *ngIf="detailsInfos.operation._type != 'Write'"
             [schemaType]=1
             [schema]="getOutputSchema(detailsInfos)"
-            [selectedAttributeId]="selectedAttributeId$ | async"
-            (selectedAttributeIdChanged)="onSelectedAttributeIdChange($event)">
+            [selectedAttributeId]="selectedAttributeId$ | async">
     </schema>
   </div>
 </div>

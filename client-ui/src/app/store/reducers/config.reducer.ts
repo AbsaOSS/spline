@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as ConfigAction from '../actions/config.actions';
+import * as ConfigAction from '../actions/config.actions'
+
 
 export type Action = ConfigAction.ConfigActions
 
 export function configReducer(state: any, action: Action): any {
-    switch (action.type) {
-        case ConfigAction.ConfigActionTypes.CONFIG_GET_SUCCESS: return { ...state, ...action.payload }
-        default: return state
-    }
+  switch (action.type) {
+    case ConfigAction.ConfigActionTypes.CONFIG_GET_SUCCESS:
+      return {
+        ...state,
+        ...action.payload
+      }
+    default:
+      return state
+  }
 }

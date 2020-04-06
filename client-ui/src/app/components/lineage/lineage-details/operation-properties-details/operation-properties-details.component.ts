@@ -42,12 +42,15 @@ import * as RouterAction from '../../../../store/actions/router.actions'
 @Component({
   selector: 'operation-properties-details',
   templateUrl: './operation-properties-details.component.html',
-  styleUrls: ['./operation-properties-details.component.less']
+  styleUrls: ['./operation-properties-details.component.scss']
 })
 export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDestroy {
 
   @ViewChildren('propertiesPanel', { read: ViewContainerRef })
   propertiesPanel: QueryList<ViewContainerRef>
+
+  readonly selectedAttributeId$: Observable<string>
+  private subscriptions: Subscription[] = []
 
   constructor(
     private componentFactoryResolver: ComponentFactoryResolver,
@@ -55,16 +58,7 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
     private store: Store<AppState>) {
   }
 
-  public selectedAttributeId$ =
-    this.store.select('router', 'state', 'queryParams', 'attribute')
-
-  public onSelectedAttributeIdChange(attrId: string) {
-    this.store.dispatch(new RouterAction.Go({ queryParams: { 'attribute': attrId }, url: null }))
-  }
-
-  private subscriptions: Subscription[] = []
-
-  public ngAfterViewInit(): void {
+  ngAfterViewInit(): void {
     this.subscriptions.push(
       this.propertiesPanel.changes.pipe(
         switchMap(_ =>
@@ -93,7 +87,9 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
           let component: Type<PropertiesComponent>
           try {
             properties = this.getProperties(store.detailsInfos, store.attributes)
-            component = type == OperationType.Write ? PropertiesComponents.get(OperationType.Write) : PropertiesComponents.get(name)
+            component = type === OperationType.Write
+              ? PropertiesComponents.get(OperationType.Write)
+              : PropertiesComponents.get(name)
           } catch (error) {
             component = PropertiesComponents.get(OperationType.Error)
           } finally {
@@ -112,24 +108,49 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
     )
   }
 
-  public getDetailsInfo(): Observable<OperationDetailsVM> {
+  onSelectedAttributeIdChange(attrId: string): void {
+    this.store.dispatch(new RouterAction.Go({ queryParams: { attribute: attrId }, url: null }))
+  }
+
+  getDetailsInfo(): Observable<OperationDetailsVM> {
     return this.store.select('detailsInfos')
   }
 
-  public getIcon(operationType: string, operationName: string): string {
+  getIcon(operationType: string, operationName: string): string {
     return getOperationIcon(operationType, operationName)
   }
 
-  public getColor(operationType: string, operationName: string): string {
+  getColor(operationType: string, operationName: string): string {
     return getOperationColor(operationType, operationName)
   }
 
+  getInputSchemas = (operationDetails: OperationDetailsVM): AttributeVM[] => {
+    if (operationDetails) {
+      const inputSchemas = []
+      operationDetails.inputs.forEach(input => {
+        inputSchemas.push(operationDetails.schemas[input])
+      })
+      return inputSchemas
+    }
+    else {
+      return null
+    }
+  }
+
+  getOutputSchema = (operationDetails: OperationDetailsVM): AttributeVM[] => {
+    return operationDetails && operationDetails.schemas[operationDetails.output]
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(s => s.unsubscribe())
+  }
 
   private getProperties(operationDetails: OperationDetailsVM, attributeList: any): Property[] {
     const opInfoProperties = operationDetails.operation.properties
-    let properties = []
+    const properties = []
 
-    if (operationDetails.operation._type == OperationType.Write) {
+    if (operationDetails.operation._type === OperationType.Write) {
+      properties.push(new Property(PropertyType.OutputSource, opInfoProperties.outputSource))
       properties.push(new Property(PropertyType.SourceType, opInfoProperties.destinationType))
       properties.push(new Property(PropertyType.Append, opInfoProperties.append))
       return properties
@@ -204,26 +225,6 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
     }
     return properties
 
-  }
-
-  public getInputSchemas = (operationDetails: OperationDetailsVM): AttributeVM[] => {
-    if (operationDetails) {
-      let inputSchemas = []
-      operationDetails.inputs.forEach(input => {
-        inputSchemas.push(operationDetails.schemas[input])
-      })
-      return inputSchemas
-    } else {
-      return null
-    }
-  }
-
-  public getOutputSchema = (operationDetails: OperationDetailsVM): AttributeVM[] => {
-    return operationDetails && operationDetails.schemas[operationDetails.output]
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(s => s.unsubscribe())
   }
 }
 

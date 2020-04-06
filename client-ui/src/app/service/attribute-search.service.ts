@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-import { Injectable } from '@angular/core';
-import {Store} from "@ngrx/store";
-import {AppState} from "../model/app-state";
-import {AttributeService} from "../generated/services/attribute.service";
-import {Observable} from "rxjs";
-import {FoundAttribute} from "../generated/models/found-attribute";
+import { Injectable } from '@angular/core'
+import { Store } from '@ngrx/store'
+import { Observable } from 'rxjs'
+
+import { FoundAttribute } from '../generated/models/found-attribute'
+import { AttributeService } from '../generated/services/attribute.service'
+import { AppState } from '../model/app-state'
+
 
 @Injectable({
   providedIn: 'root'
@@ -32,10 +34,10 @@ export class AttributeSearchService {
   ) {
     this.store
       .select('config', 'apiUrl')
-      .subscribe(apiUrl => this.attributeService.rootUrl = apiUrl);
+      .subscribe(apiUrl => this.attributeService.rootUrl = apiUrl)
   }
 
-  public search(searchTerm: string): Observable<FoundAttribute[]> {
-    return this.attributeService.attributeSearchUsingGET(searchTerm);
+  search(searchTerm: string): Observable<FoundAttribute[]> {
+    return this.attributeService.attributeSearchUsingGET(searchTerm)
   }
 }

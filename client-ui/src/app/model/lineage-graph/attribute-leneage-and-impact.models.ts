@@ -15,8 +15,9 @@
  */
 
 
-import {AttributeGraph} from "../../generated/models/attribute-graph";
-import {AttributeNode} from "../../generated/models/attribute-node";
+import { AttributeGraph } from '../../generated/models/attribute-graph'
+import { AttributeNode } from '../../generated/models/attribute-node'
+
 
 export function getImpactRootAttributeNode(graph: AttributeGraph): AttributeNode {
   const impactedAttrIds = new Set(graph.edges.map(e => e.source))
