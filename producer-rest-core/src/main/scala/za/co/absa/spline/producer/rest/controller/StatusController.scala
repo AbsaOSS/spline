@@ -21,8 +21,6 @@ import javax.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.{HttpStatus, ResponseEntity}
 import org.springframework.web.bind.annotation._
-import za.co.absa.spline.common.SplineBuildInfo
-import za.co.absa.spline.producer.service.model.ServerStatus
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -31,6 +29,8 @@ import scala.concurrent.{ExecutionContext, Future}
 @Api(tags = Array("status"))
 class StatusController @Autowired()(
   val repo: ExecutionProducerRepository) {
+
+  val ApiVersion = 1
 
   import ExecutionContext.Implicits.global
 
@@ -46,22 +46,15 @@ class StatusController @Autowired()(
   ))
   def statusHead(response: HttpServletResponse): Future[_] = repo
     .isDatabaseOk
-    .map({
-      if (_) new ResponseEntity(HttpStatus.OK)
-      else new ResponseEntity(HttpStatus.SERVICE_UNAVAILABLE)
-    })
-
-  @RequestMapping(
-    path = Array("/status"),
-    method = Array(RequestMethod.GET))
-  @ApiOperation(
-    value = "Server status",
-    notes = "Returns server status, version and abilities")
-  def statusGet(response: `HttpServletResponse`): Future[ServerStatus] = repo
-    .isDatabaseOk
-    .map({
-      if (_) "OK"
-      else "DB unreachable"
-    })
-    .map(ServerStatus(_, SplineBuildInfo.Version, true))
+    .map {
+      if (_) HttpStatus.OK
+      else HttpStatus.SERVICE_UNAVAILABLE
+    }
+    .map {
+      ResponseEntity
+        .status(_)
+        .header("api-version", ApiVersion.toString)
+        .header("supports-request-decompression", "true")
+        .build()
+    }
 }
