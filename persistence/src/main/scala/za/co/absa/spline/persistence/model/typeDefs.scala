@@ -17,6 +17,8 @@
 package za.co.absa.spline.persistence.model
 
 import com.arangodb.entity.CollectionType
+import com.arangodb.entity.arangosearch.{CollectionLink, FieldLink}
+import com.arangodb.model.arangosearch.ArangoSearchPropertiesOptions
 import com.arangodb.model.{HashIndexOptions, SkiplistIndexOptions}
 
 
@@ -47,6 +49,7 @@ sealed abstract class GraphDef(val name: String, val edgeDefs: EdgeDef*) {
   require(edgeDefs.nonEmpty)
 }
 
+sealed abstract class ViewDef(val name: String, val properties: ArangoSearchPropertiesOptions)
 
 object GraphDef {
 
@@ -101,5 +104,22 @@ object NodeDef {
       IndexDef(Seq("_created"), new SkiplistIndexOptions),
       IndexDef(Seq("extra.appId"), new HashIndexOptions().sparse(true)))
   }
+
+}
+
+object ViewDef {
+
+  object AttributeSearchView extends ViewDef("attributeSearchView",
+    (new ArangoSearchPropertiesOptions)
+      .link(CollectionLink.on(NodeDef.ExecutionPlan.name)
+        .analyzers("text_en", "identity")
+        .includeAllFields(false)
+        .fields(FieldLink.on("extra")
+          .fields(FieldLink.on("attributes")
+            .fields(FieldLink.on("name"))
+          )
+        )
+      )
+  )
 
 }
