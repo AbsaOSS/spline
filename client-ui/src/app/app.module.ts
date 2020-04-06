@@ -90,6 +90,7 @@ import {AliasComponent} from './components/lineage/lineage-details/operation-pro
 import {PropertyErrorComponent} from './components/lineage/lineage-details/operation-properties-details/property-error/property-error.component';
 import {attributeLineageGraphReducer} from "./store/reducers/attribute-lineage-graph.reducer";
 import {AttributeLineageGraphEffects} from "./effects/attribute-lineage-graph.effects";
+import { AttributeSearchBarComponent } from './components/header/attribute-search-bar/attribute-search-bar.component';
 
 
 export function initializeApp(store: Store<AppState>): () => Promise<any> {
@@ -139,7 +140,8 @@ const ROOT_ROUTING = "app/"
     FooterComponent,
     WriteComponent,
     AliasComponent,
-    PropertyErrorComponent
+    PropertyErrorComponent,
+    AttributeSearchBarComponent
   ],
   entryComponents: [
     ModalExpressionComponent,
