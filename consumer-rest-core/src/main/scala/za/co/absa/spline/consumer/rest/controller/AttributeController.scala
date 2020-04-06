@@ -28,6 +28,8 @@ import scala.concurrent.Future
 @Api(tags = Array("attribute"))
 class AttributeController @Autowired()(val repo: AttributeRepository) {
 
+  private val SearchResultsLimit = 10;
+
   @GetMapping(Array("attribute-search"))
   @ApiOperation(
     value = "Get attributes starting with provided string",
@@ -39,6 +41,6 @@ class AttributeController @Autowired()(val repo: AttributeRepository) {
 
     import scala.concurrent.ExecutionContext.Implicits._
 
-    repo.findAttributesByPrefix(search)
+    repo.findAttributesByPrefix(search, SearchResultsLimit)
   }
 }

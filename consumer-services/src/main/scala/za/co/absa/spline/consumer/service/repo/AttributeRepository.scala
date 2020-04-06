@@ -21,7 +21,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait AttributeRepository {
 
-  def findAttributesByPrefix(search: String)(implicit ec: ExecutionContext): Future[Array[FoundAttribute]]
+  def findAttributesByPrefix(search: String, limit: Int)(implicit ec: ExecutionContext): Future[Array[FoundAttribute]]
 }
 
 

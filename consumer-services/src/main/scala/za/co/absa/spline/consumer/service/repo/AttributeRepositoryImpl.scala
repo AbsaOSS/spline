@@ -27,47 +27,39 @@ class AttributeRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Attr
 
   import za.co.absa.spline.persistence.ArangoImplicits._
 
-  def findAttributesByPrefix(search: String)(implicit ec: ExecutionContext): Future[Array[FoundAttribute]] = {
+  def findAttributesByPrefix(search: String, limit: Int)(implicit ec: ExecutionContext): Future[Array[FoundAttribute]] = {
     val result = db.queryStream[FoundAttribute](
       """
-        LET executionPlanWithSource = (
-          FOR exec IN attributeSearchView
-            SEARCH STARTS_WITH(exec.extra.attributes.name, @searchTerm)
-            LET timestamp = FIRST(FOR prog IN 1 INBOUND exec progressOf SORT prog.timestamp DESC RETURN prog.timestamp)
-            LET dataSourceKey = FIRST(FOR ds IN 1 OUTBOUND exec affects RETURN ds._key)
-
-            COLLECT dsk = dataSourceKey INTO groups = {
-              "executionPlan": exec,
-              "timestamp": timestamp
-            }
-
-            LET lastWriteExec = FIRST(FOR exg IN groups SORT exg.timestamp DESC RETURN exg.executionPlan)
-            RETURN {
-              "dataSourceKey": dsk,
-              "executionPlan": lastWriteExec
-            }
-        )
-
-        LET results = (
-          For eps IN executionPlanWithSource
-            RETURN (
-              FOR att IN eps.executionPlan.extra.attributes
-                FILTER CONTAINS(att.name, @searchTerm, true) == 0
-                SORT att.name
-                LET type = FIRST(FOR t IN eps.executionPlan.extra.dataTypes FILTER t.id == att.dataTypeId RETURN t)
-                RETURN {
-                  "id": att.id,
-                  "name": att.name,
-                  "attributeType": type,
-                  "executionEventId": eps.executionPlan._key,
-                  "executionEventName": eps.executionPlan.extra.appName
-                }
-            )
-        )
-
-        FOR r IN FLATTEN(results) RETURN r
-
-      """, Map("searchTerm" -> search)
+        |FOR exec IN attributeSearchView
+        |    SEARCH STARTS_WITH(exec.extra.attributes.name, @searchTerm)
+        |
+        |    LET timestamp = FIRST(FOR prog IN 1 INBOUND exec progressOf SORT prog.timestamp DESC RETURN prog.timestamp)
+        |    LET dataSourceKey = FIRST(FOR ds IN 1 OUTBOUND exec affects RETURN ds._key)
+        |
+        |    COLLECT dsk = dataSourceKey INTO groups = {
+        |        "executionPlan": exec,
+        |        "timestamp": timestamp
+        |    }
+        |
+        |    LET lastWriteExec = FIRST(FOR exg IN groups SORT exg.timestamp DESC RETURN exg.executionPlan)
+        |
+        |    FOR att IN lastWriteExec.extra.attributes
+        |        FILTER CONTAINS(att.name, @searchTerm, true) == 0
+        |        SORT att.name
+        |        LET type = FIRST(FOR t IN lastWriteExec.extra.dataTypes FILTER t.id == att.dataTypeId RETURN t)
+        |        LIMIT @limit
+        |        RETURN {
+        |            "id": att.id,
+        |            "name": att.name,
+        |            "attributeType": type,
+        |            "executionEventId": lastWriteExec._key,
+        |            "executionEventName": lastWriteExec.extra.appName
+        |        }
+        |""".stripMargin,
+      Map(
+        "searchTerm" -> search,
+        "limit" -> (limit: Integer)
+      )
     )
 
     result.map(_.toArray)

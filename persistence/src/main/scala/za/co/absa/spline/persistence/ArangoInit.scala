@@ -16,17 +16,17 @@
 
 package za.co.absa.spline.persistence
 
+import java.util.concurrent.ExecutionException
+
 import com.arangodb.async.ArangoDatabaseAsync
-import com.arangodb.entity.arangosearch.{CollectionLink, FieldLink}
 import com.arangodb.entity.{EdgeDefinition, IndexType}
 import com.arangodb.model._
-import com.arangodb.model.arangosearch.{ArangoSearchCreateOptions, ArangoSearchPropertiesOptions}
 import org.apache.commons.io.FilenameUtils
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import za.co.absa.commons.lang.ARM
 import za.co.absa.commons.reflect.ReflectionUtils
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Skip}
-import za.co.absa.spline.persistence.model.{CollectionDef, GraphDef}
+import za.co.absa.spline.persistence.model.{CollectionDef, GraphDef, ViewDef}
 
 import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters._
@@ -65,6 +65,8 @@ object ArangoInit extends ArangoInit {
     }
 
   override def upgrade(connectionURL: ArangoConnectionURL): Future[Unit] = execute(connectionURL) { db =>
+    workAroundArangoAsyncBug(db)
+
     for {
       _ <- deleteAQLUserFunctions(db)
       _ <- createAQLUserFunctions(db)
@@ -77,6 +79,18 @@ object ArangoInit extends ArangoInit {
       // _ <- createGraphs(db)
     } yield Unit
   }
+
+  def workAroundArangoAsyncBug(db: ArangoDatabaseAsync): Unit = {
+    try {
+      db.getInfo.get
+    } catch {
+      // The first call sometime fails with a CCE due to a bug in ArangoDB Java Driver
+      // see: https://github.com/arangodb/arangodb-java-driver-async/issues/21
+      case ee: ExecutionException if ee.getCause.isInstanceOf[ClassCastException] =>
+        db.getInfo.get
+    }
+  }
+
 
   private def execute[A](connectionURL: ArangoConnectionURL)(fn: ArangoDatabaseAsync => Future[A]): Future[A] = {
     val arangoFacade = new ArangoDatabaseFacade(connectionURL)
@@ -146,34 +160,26 @@ object ArangoInit extends ArangoInit {
         db.createAqlFunction(functionName, functionBody, new AqlFunctionCreateOptions()).toScala
       }))
 
-  private val searchViewName = "attributeSearchView"
-
   private def deleteViews(db: ArangoDatabaseAsync) = {
-    val view = db.view(searchViewName)
+      Future.traverse(ReflectionUtils.objectsOf[ViewDef]) { viewDef => {
+        val view = db.view(viewDef.name)
 
-    view.exists().toScala.flatMap{ exists =>
-      if (exists)
-        view.drop().toScala
-      else
-        Future.successful[Void](null)
+        view.exists().toScala.flatMap { exists =>
+          if (exists)
+            view.drop().toScala
+          else
+            Future.successful[Unit]()
+        }
+      }
     }
   }
 
   private def createViews(db: ArangoDatabaseAsync) = {
-
-    db.createArangoSearch(searchViewName, null)
-
-    db.arangoSearch(searchViewName).updateProperties(
-      (new ArangoSearchPropertiesOptions)
-        .link(CollectionLink.on("executionPlan")
-          .analyzers("text_en", "identity")
-          .includeAllFields(false)
-          .fields(FieldLink.on("extra")
-            .fields(FieldLink.on("attributes")
-              .fields(FieldLink.on("name"))
-            )
-          )
-        )
-    ).toScala
+    Future.traverse(ReflectionUtils.objectsOf[ViewDef]) { viewDef =>
+      for {
+        _ <- db.createArangoSearch(viewDef.name, null).toScala
+        _ <- db.arangoSearch(viewDef.name).updateProperties(viewDef.properties).toScala
+      } yield Unit
+    }
   }
 }

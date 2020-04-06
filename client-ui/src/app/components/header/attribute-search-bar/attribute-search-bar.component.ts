@@ -17,11 +17,11 @@
 import {Component, ViewEncapsulation} from '@angular/core';
 import {Store} from "@ngrx/store";
 import {AppState} from "../../../model/app-state";
-import {AttributeService} from "../../../generated/services/attribute.service";
 import {FoundAttribute} from "../../../generated/models/found-attribute";
 import {Observable} from "rxjs";
 import {debounceTime, switchMap} from "rxjs/operators";
 import * as RouterAction from "../../../store/actions/router.actions";
+import {AttributeSearchService} from "../../../service/attribute-search.service";
 
 @Component({
   selector: 'app-attribute-search-bar',
@@ -33,24 +33,18 @@ export class AttributeSearchBarComponent {
 
   constructor(
     private store: Store<AppState>,
-    private attributeService: AttributeService
-  ) {
-    this.store
-      .select('config', 'apiUrl')
-      .subscribe(apiUrl => this.attributeService.rootUrl = apiUrl);
-  }
+    private attributeService: AttributeSearchService
+  ) { }
 
-  public model: any;
-
-  search = (text$: Observable<string>) =>
+  public search = (text$: Observable<string>) =>
     text$.pipe(
       debounceTime(200),
       switchMap(term => term === ''
         ? <FoundAttribute[]>[]
-        : this.attributeService.attributeSearchUsingGET(term))
+        : this.attributeService.search(term))
     )
 
-  onItemSelected = (selectedAttribute: FoundAttribute) => {
+  public onItemSelected = (selectedAttribute: FoundAttribute) => {
     this.store.dispatch(new RouterAction.Go({
       url: "/app/lineage-detailed/" + selectedAttribute.executionEventId,
       queryParams: {'attribute': selectedAttribute.id}
@@ -59,7 +53,7 @@ export class AttributeSearchBarComponent {
     return ""
   }
 
-  getTypeString(attribute: FoundAttribute) {
+  public getTypeString(attribute: FoundAttribute) {
     switch (attribute.attributeType["_typeHint"]) {
       case 'dt.Struct': return 'struct {...}'
       case 'dt.Array': return 'array [...]'
