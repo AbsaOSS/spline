@@ -41,7 +41,9 @@ export class PropertiesComponent implements OnDestroy {
   public propertyName: string
 
   @Input()
-  public properties: Property[]
+  public properties: Property[];
+
+  PropertyType = PropertyType;
 
   public getIcon(): string {
     return getOperationIcon(this.propertyType, this.propertyName)

@@ -4,7 +4,7 @@
   "license": "Apache 2.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --open",
     "build": "ng build",
     "build-prod": "ng build --prod",
     "test": "ng test",
