@@ -32,10 +32,6 @@ export class HeaderComponent {
     private store: Store<AppState>
   ) { }
 
-  public isEmbedded = (): Observable<boolean> => {
-    return this.store.select('config', 'embeddedMode')
-  }
-
   public isActive = (name: string): Observable<boolean> => {
     return this.isSelectedMenuItem(name)
   }
