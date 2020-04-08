@@ -18,15 +18,21 @@ package za.co.absa.spline.common.config
 
 import org.apache.commons.configuration.EnvironmentConfiguration
 import org.apache.commons.lang.StringUtils
+import za.co.absa.spline.common.config.UpperSnakeCaseEnvironmentConfiguration.toUpperSnake
 
-class UpperCaseEnvironmentConfiguration extends EnvironmentConfiguration {
-  override def getProperty(key: String): AnyRef = {
-    val upperCasedKey = key
-      .split("\\W")
+class UpperSnakeCaseEnvironmentConfiguration extends EnvironmentConfiguration {
+
+  override def getProperty(key: String): AnyRef = super.getProperty(toUpperSnake(key))
+
+  override def containsKey(key: String): Boolean = super.containsKey(toUpperSnake(key))
+}
+
+object UpperSnakeCaseEnvironmentConfiguration {
+  private def toUpperSnake(key: String) = {
+    key
+      .split("[\\W_]")
       .flatMap(StringUtils.splitByCharacterTypeCamelCase)
       .map(_.toUpperCase)
       .mkString("_")
-
-    super.getProperty(upperCasedKey)
   }
 }
