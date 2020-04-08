@@ -27,8 +27,9 @@ import scala.util.Try
 abstract class DefaultConfigurationStack extends CompositeConfiguration(util.Arrays.asList(
   jndiConfigurationIfAvailable.toSeq ++ Seq(
     new SystemConfiguration,
-    new UpperCaseEnvironmentConfiguration,
-    new EnvironmentConfiguration): _*))
+    new UpperSnakeCaseEnvironmentConfiguration,
+    new EnvironmentConfiguration
+  ): _*))
 
 object DefaultConfigurationStack {
   def jndiConfigurationIfAvailable: Option[JNDIConfiguration] = Try({
