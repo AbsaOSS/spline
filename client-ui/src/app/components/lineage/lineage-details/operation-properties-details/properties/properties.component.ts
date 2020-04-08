@@ -43,6 +43,8 @@ export class PropertiesComponent implements OnDestroy {
   @Input()
   public properties: Property[]
 
+  PropertyType = PropertyType
+
   public getIcon(): string {
     return getOperationIcon(this.propertyType, this.propertyName)
   }
