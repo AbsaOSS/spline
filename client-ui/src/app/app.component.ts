@@ -15,12 +15,21 @@
  */
 
 import { Component } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { Observable } from 'rxjs';
+import { AppState } from './model/app-state';
+
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.less']
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.less']
 })
 export class AppComponent {
 
+    isEmbeddedMode$: Observable<boolean>
+
+    constructor(private readonly store: Store<AppState>) {
+        this.isEmbeddedMode$ = this.store.select('config', 'embeddedMode')
+    }
 }
