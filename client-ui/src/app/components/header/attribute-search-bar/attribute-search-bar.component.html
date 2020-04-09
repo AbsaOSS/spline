@@ -14,12 +14,19 @@
   ~ limitations under the License.
   -->
 
-<ng-template #rt let-r="result">
-  <div>
-    <strong> {{ r.name }} </strong>
-    <span class="float-right"> {{ getTypeString(r) }} </span>
+<ng-template #rt let-result="result" let-term="term">
+  <div class="d-flex align-items-center width-100">
+    <div class="flex-grow-1">
+      <div class="name">
+        <ngb-highlight [result]="result.name" [term]="term"></ngb-highlight>
+      </div>
+      <div class="execution-event-name">{{ result.executionEventName }}</div>
+    </div>
+
+    <div>
+      <div class="type">{{ getTypeString(result) }}</div>
+    </div>
   </div>
-  <em> {{ r.executionEventName }} </em>
 </ng-template>
 
 <!-- [inputFormatter] is used because there is no onSelect available -->

@@ -14,10 +14,24 @@
  * limitations under the License.
  */
 
+@text-color: #444;
+@dropdown-item-bg-color--active: #f5f5f5;
+@dropdown-item-border-color: #eaeaea;
+@execution-event-name-color: #888;
+
+@type-border-color: #eaeaea;
+@type-border-color--hover: #ddd;
+@type-bg-color: #fff;
+
 app-attribute-search-bar {
 
-  #typeahead-input {
-    width: 20em;
+  #typeahead-input.form-control {
+    width: 20rem;
+    &:focus {
+      outline: none;
+      border-color: inherit;
+      box-shadow: none;
+    }
   }
 
   .dropdown-menu {
@@ -25,14 +39,49 @@ app-attribute-search-bar {
   }
 
   .dropdown-item {
-    strong {
-      color: #007bff;
-    }
-  }
 
-  .dropdown-item.active {
-    strong {
-      color: white;
+    border-bottom: 1px solid @dropdown-item-border-color;
+    padding: 0.5rem 1.25rem;
+
+    &:last-child {
+      border-bottom-style: none;
+    }
+
+    .name {
+      color: @text-color;
+    }
+
+    .execution-event-name {
+      color: @execution-event-name-color;
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .type {
+      color: @text-color;
+      font-size: 12px;
+      display: inline-block;
+      padding: 4px 8px;
+      border: 1px solid @type-border-color;
+      border-radius: 28px;
+      background: @type-bg-color;
+    }
+
+    &.active {
+      background: @dropdown-item-bg-color--active;
+
+      .name {
+        color: @text-color;
+      }
+
+      .execution-event-name {
+        color: @execution-event-name-color;
+      }
+
+      .type {
+        color: @text-color;
+        border: 1px solid @type-border-color--hover;
+      }
     }
   }
 

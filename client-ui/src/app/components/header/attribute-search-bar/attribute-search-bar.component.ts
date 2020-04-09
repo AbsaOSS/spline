@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-import {Component, ViewEncapsulation} from '@angular/core';
-import {Store} from "@ngrx/store";
-import {AppState} from "../../../model/app-state";
-import {FoundAttribute} from "../../../generated/models/found-attribute";
-import {Observable} from "rxjs";
-import {debounceTime, switchMap} from "rxjs/operators";
-import * as RouterAction from "../../../store/actions/router.actions";
-import {AttributeSearchService} from "../../../service/attribute-search.service";
+import { ChangeDetectionStrategy, Component, ViewEncapsulation } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { Observable, of } from 'rxjs';
+import { debounceTime, switchMap } from 'rxjs/operators';
+import { FoundAttribute } from '../../../generated/models/found-attribute';
+import { AppState } from '../../../model/app-state';
+import { AttributeSearchService } from '../../../service/attribute-search.service';
+import * as RouterAction from '../../../store/actions/router.actions';
+
 
 @Component({
   selector: 'app-attribute-search-bar',
   templateUrl: './attribute-search-bar.component.html',
   styleUrls: ['./attribute-search-bar.component.less'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None
 })
 export class AttributeSearchBarComponent {
@@ -36,11 +38,11 @@ export class AttributeSearchBarComponent {
     private attributeService: AttributeSearchService
   ) { }
 
-  public search = (text$: Observable<string>) =>
+  public search = (text$: Observable<string>): Observable<FoundAttribute[]> =>
     text$.pipe(
       debounceTime(200),
       switchMap(term => term === ''
-        ? <FoundAttribute[]>[]
+        ? of([])
         : this.attributeService.search(term))
     )
 
