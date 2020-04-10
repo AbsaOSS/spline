@@ -50,7 +50,9 @@
     </distributionManagement>
 
     <modules>
-        <module>parent</module>
+        <module>build/package-pom</module>
+        <module>build/parent-pom</module>
+
         <module>commons</module>
 
         <module>rest-api-doc-generator</module>
@@ -106,12 +108,12 @@
 
         <profile>
             <id>deploy</id>
-            <!-- defined in parent/pom.xml -->
+            <!-- defined in build/package-pom/pom.xml -->
         </profile>
 
         <profile>
             <id>license-check</id>
-            <!-- defined in parent/pom.xml -->
+            <!-- defined in build/package-pom/pom.xml -->
         </profile>
 
     </profiles>
