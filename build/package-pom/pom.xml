@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2017 ABSA Group Limited
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>za.co.absa.spline</groupId>
+    <artifactId>package-pom</artifactId>
+    <version>0.5.0-SNAPSHOT</version>
+
+    <packaging>pom</packaging>
+
+    <description>Data Lineage Tracking And Visualization Solution</description>
+    <inceptionYear>2017</inceptionYear>
+
+    <url>https://absaoss.github.io/spline/</url>
+
+    <scm>
+        <connection>scm:git:git://github.com/AbsaOSS/spline.git</connection>
+        <developerConnection>scm:git:ssh://github.com:AbsaOSS/spline.git</developerConnection>
+        <url>http://github.com/AbsaOSS/spline/tree/master</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>ABSA Group Limited</name>
+        <url>https://www.absa.africa</url>
+    </organization>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <developers>
+        <developer>
+            <id>wajda</id>
+            <name>Oleksandr Vayda</name>
+            <roles>
+                <role>Tech Lead</role>
+                <role>Full-stack developer</role>
+            </roles>
+            <timezone>Europe/Prague</timezone>
+            <url>https://github.com/wajda</url>
+        </developer>
+        <developer>
+            <id>leborgneromain</id>
+            <name>Romain Leborgne</name>
+            <roles>
+                <role>Front-end developer</role>
+            </roles>
+            <timezone>Europe/Prague</timezone>
+            <url>https://github.com/leborgneromain</url>
+        </developer>
+        <developer>
+            <id>oleksandr-korchak</id>
+            <name>Oleksandr Korchak</name>
+            <roles>
+                <role>Front-end developer</role>
+            </roles>
+            <timezone>Europe/Prague</timezone>
+            <url>https://github.com/oleksandr-korchak</url>
+        </developer>
+        <developer>
+            <id>cerveada</id>
+            <name>Adam Červenka</name>
+            <roles>
+                <role>Back-end developer</role>
+            </roles>
+            <timezone>Europe/Prague</timezone>
+            <url>https://github.com/cerveada</url>
+        </developer>
+    </developers>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <profiles>
+        <profile>
+            <id>license-check</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.rat</groupId>
+                        <artifactId>apache-rat-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/*.json</exclude>
+                                <exclude>**/*.log</exclude>
+                                <exclude>dependency-reduced-pom.xml</exclude>
+                                <exclude>.sonarcloud.properties</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>deploy</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-docs</id>
+                                <goals>
+                                    <goal>javadoc-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <skipRemoteStaging>true</skipRemoteStaging>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                            <autoDropAfterRelease>true</autoDropAfterRelease>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.spotify</groupId>
+                        <artifactId>dockerfile-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>tag-version</id>
+                                <goals>
+                                    <goal>build</goal>
+                                    <goal>push</goal>
+                                </goals>
+                                <configuration>
+                                    <tag>${project.version}</tag>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>tag-latest</id>
+                                <goals>
+                                    <goal>tag</goal>
+                                    <goal>push</goal>
+                                </goals>
+                                <configuration>
+                                    <tag>latest</tag>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <skip>true</skip>
+                            <!-- Dockerfile plugin requires <repository> to be non-empty even if <skip> is true -->
+                            <repository>placeholder/DO_NOT_REMOVE</repository>
+                            <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>net.alchim31.maven</groupId>
+                    <artifactId>scala-maven-plugin</artifactId>
+                    <version>4.2.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.scalatest</groupId>
+                    <artifactId>scalatest-maven-plugin</artifactId>
+                    <version>2.0.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.22.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.rat</groupId>
+                    <artifactId>apache-rat-plugin</artifactId>
+                    <version>0.13</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>1.5.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>3.2.1</version>
+                    <configuration>
+                        <createDependencyReducedPom>false</createDependencyReducedPom>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>3.0.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>1.6</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>nexus-staging-maven-plugin</artifactId>
+                    <version>1.6.8</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.spotify</groupId>
+                    <artifactId>dockerfile-maven-plugin</artifactId>
+                    <version>1.4.13</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>3.2.3</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>1.8</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+</project>
