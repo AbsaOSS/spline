@@ -25,8 +25,8 @@ import {distinct, filter, map} from "rxjs/operators";
 import {CytoscapeGraphVM} from "../../model/viewModels/cytoscape/cytoscapeGraphVM";
 import * as RouterAction from "../../store/actions/router.actions";
 import * as DetailsInfosAction from "../../store/actions/details-info.actions";
-import {AttributeGraph} from "../../generated/models/attribute-graph";
 import {AttributeVM} from "../../model/viewModels/attributeVM";
+import {AttributeLineageAndImpact} from "../../generated/models/attribute-lineage-and-impact";
 
 @Component({
   templateUrl: './lineage.component.html',
@@ -38,7 +38,7 @@ export class LineageComponent implements OnDestroy {
     embeddedMode: boolean,
     layout: object,
     graph: CytoscapeGraphVM,
-    attributeGraph: AttributeGraph
+    attributeLinAndImp: AttributeLineageAndImpact
   }>
 
   public selectedAttribute$: Observable<AttributeVM>
@@ -74,11 +74,11 @@ export class LineageComponent implements OnDestroy {
       this.store.select('config', 'embeddedMode'),
       this.store.select('layout'),
       this.store.select('executedLogicalPlan').pipe(filter(_.identity)),
-      this.store.select('attributeLineageGraph')
+      this.store.select('attributeLineageAndImpact')
     ]).pipe(
       distinct(),
-      map(([embeddedMode, layout, plan, attributeGraph]) =>
-        ({embeddedMode, layout, graph: plan.graph, attributeGraph})
+      map(([embeddedMode, layout, plan, attributeLinAndImp]) =>
+        ({embeddedMode, layout, graph: plan.graph, attributeLinAndImp})
       )
     )
 

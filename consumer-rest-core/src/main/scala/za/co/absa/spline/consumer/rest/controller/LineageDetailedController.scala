@@ -47,22 +47,6 @@ class LineageDetailedController @Autowired()(
     repo.findById(execId)
   }
 
-  @GetMapping(Array("attribute-dependencies"))
-  @ApiOperation(
-    value = "Get graph of attributes that depends on attribute with provided id")
-  def attributeDependencies(
-    @ApiParam(value = "Execution plan ID")
-    @RequestParam("execId") execId: ExecutionPlanInfo.Id,
-    @ApiParam(value = "Attribute ID")
-    @RequestParam("attributeId") attributeId: UUID
-  ): Future[AttributeGraph] = repo
-    .loadExecutionPlanAsDAG(execId)
-    .map(execPlan => {
-      val dependencyResolver = AttributeDependencyResolver.forSystem(execPlan.sysInfo)
-      AttributeDependencySolver(execPlan, dependencyResolver).lineage(attributeId.toString)
-    })
-    .map(_.getOrElse(throw new NoSuchElementException()))
-
   @GetMapping(Array("attribute-lineage-and-impact"))
   @ApiOperation(
     value = "Get graph of attributes that depends on attribute with provided id")

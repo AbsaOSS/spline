@@ -20,14 +20,14 @@ import {Effect} from '@ngrx/effects';
 import {Action, Store} from '@ngrx/store';
 import {Observable, of} from 'rxjs';
 import {filter, map, switchMap} from 'rxjs/operators';
-import {AttributeGraph} from '../generated/models';
+import {AttributeLineageAndImpact} from '../generated/models';
 import {LineageService} from '../generated/services';
 import {AppState} from '../model/app-state';
 import {handleException} from '../rxjs/operators/handleException';
-import * as AttributeLineageGraphActions from '../store/actions/attribute-lineage-graph.actions';
+import * as AttributeLineageAndImpactActions from '../store/actions/attribute-lineage-and-impact.actions';
 
 @Injectable()
-export class AttributeLineageGraphEffects {
+export class AttributeLineageAndImpactEffects {
 
   constructor(
     private lineageService: LineageService,
@@ -35,7 +35,7 @@ export class AttributeLineageGraphEffects {
   }
 
   @Effect()
-  public getAttributeLineageGraph$: Observable<Action> =
+  public getAttributeLineageAndImpact$: Observable<Action> =
 
     this.store.select('executedLogicalPlan').pipe(
       filter(_.identity),
@@ -43,14 +43,14 @@ export class AttributeLineageGraphEffects {
         this.store.select('router', 'state', 'queryParams', 'attribute').pipe(map(attrId => [executionPlan._id, attrId]))
       ),
       switchMap(([execPlanId, attrId]) => attrId
-        ? this.getAttributeLineageGraph(execPlanId, attrId)
+        ? this.getAttributeLineageAndImpact(execPlanId, attrId)
         : of(undefined)),
-      map(graph =>
-        new AttributeLineageGraphActions.Set(graph))
+      map(linAndImp =>
+        new AttributeLineageAndImpactActions.Set(linAndImp))
     )
 
-  private getAttributeLineageGraph = (execId: string, attributeId: string): Observable<AttributeGraph> => {
-    return this.lineageService.attributeDependenciesUsingGET({execId, attributeId}).pipe(
+  private getAttributeLineageAndImpact = (execId: string, attributeId: string): Observable<AttributeLineageAndImpact> => {
+    return this.lineageService.attributeLineageAndImpactUsingGET({execId, attributeId}).pipe(
       handleException(this.store)
     )
   }

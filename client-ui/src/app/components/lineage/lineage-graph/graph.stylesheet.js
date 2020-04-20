@@ -17,7 +17,10 @@
 const LINE_WIDTH_PLANE = 10
 const LINE_WIDTH_HIGHLIGHTED = 20
 const LINE_COLOR_PLANE = 'lightgray'
-const LINE_COLOR_HIGHLIGHTED = 'magenta'
+const LINE_COLOR_HLT_PRIMARY = 'black'
+const LINE_COLOR_HLT_LINEAGE = 'magenta'
+const LINE_COLOR_HLT_IMPACT = 'green'
+const LINE_COLOR_HLT_NONE = 'silver'
 
 export const cyStyles = [
   {
@@ -41,9 +44,30 @@ export const cyStyles = [
     }
   },
   {
-    selector: 'node.hlt',
+    selector: 'node.hlt_prim',
     style: {
-      'border-color': LINE_COLOR_HIGHLIGHTED,
+      'border-color': LINE_COLOR_HLT_PRIMARY,
+      'border-width': LINE_WIDTH_HIGHLIGHTED,
+    }
+  },
+  {
+    selector: 'node.hlt_lin',
+    style: {
+      'border-color': LINE_COLOR_HLT_LINEAGE,
+      'border-width': LINE_WIDTH_HIGHLIGHTED,
+    }
+  },
+  {
+    selector: 'node.hlt_imp',
+    style: {
+      'border-color': LINE_COLOR_HLT_IMPACT,
+      'border-width': LINE_WIDTH_HIGHLIGHTED,
+    }
+  },
+  {
+    selector: 'node.hlt_none',
+    style: {
+      'border-color': LINE_COLOR_HLT_NONE,
       'border-width': LINE_WIDTH_HIGHLIGHTED,
     }
   },
@@ -56,11 +80,35 @@ export const cyStyles = [
     }
   },
   {
-    selector: 'edge.hlt',
+    selector: 'edge.hlt_prim',
     style: {
-      'line-color': LINE_COLOR_HIGHLIGHTED,
-      'target-arrow-color': LINE_COLOR_HIGHLIGHTED,
+      'line-color': LINE_COLOR_HLT_PRIMARY,
+      'target-arrow-color': LINE_COLOR_HLT_PRIMARY,
       'width': LINE_WIDTH_HIGHLIGHTED,
     }
-  }
+  },
+  {
+    selector: 'edge.hlt_lin',
+    style: {
+      'line-color': LINE_COLOR_HLT_LINEAGE,
+      'target-arrow-color': LINE_COLOR_HLT_LINEAGE,
+      'width': LINE_WIDTH_HIGHLIGHTED,
+    }
+  },
+{
+    selector: 'edge.hlt_imp',
+    style: {
+      'line-color': LINE_COLOR_HLT_IMPACT,
+      'target-arrow-color': LINE_COLOR_HLT_IMPACT,
+      'width': LINE_WIDTH_HIGHLIGHTED,
+    }
+  },
+{
+    selector: 'edge.hlt_none',
+    style: {
+      'line-color': LINE_COLOR_HLT_NONE,
+      'target-arrow-color': LINE_COLOR_HLT_NONE,
+      'width': LINE_WIDTH_HIGHLIGHTED,
+    }
+  },
 ]

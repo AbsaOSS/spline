@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 import * as ExecutionPlanAction from '../actions/execution-plan.actions';
-import {AttributeLineageGraphActionTypes, Set} from '../actions/attribute-lineage-graph.actions';
-import {AttributeGraph} from "../../generated/models/attribute-graph";
+import {AttributeLineageAndImpactActionTypes, Set} from '../actions/attribute-lineage-and-impact.actions';
 import {Action} from "@ngrx/store";
+import {AttributeLineageAndImpact} from "../../generated/models/attribute-lineage-and-impact";
 
 
-export function attributeLineageGraphReducer(state: AttributeGraph, action: Action): AttributeGraph {
+export function attributeLineageAndImpactReducer(state: AttributeLineageAndImpact, action: Action): AttributeLineageAndImpact {
   switch (action.type) {
     case ExecutionPlanAction.ExecutionPlanActionTypes.EXECUTION_PLAN_GET_SUCCESS:
     case ExecutionPlanAction.ExecutionPlanActionTypes.EXECUTION_PLAN_RESET:
       return undefined
-    case AttributeLineageGraphActionTypes.ATTRIBUTE_LINEAGE_GRAPH_SET:
-      return (action as Set).graph
+    case AttributeLineageAndImpactActionTypes.ATTRIBUTE_LINEAGE_AND_IMPACT_SET:
+      return (action as Set).linAndImp
     default:
       return state
   }

@@ -90,9 +90,9 @@ import {lineageOverviewReducer} from './store/reducers/lineage-overview.reducer'
 import {WriteComponent} from './components/lineage/lineage-details/operation-properties-details/write/write.component';
 import {AliasComponent} from './components/lineage/lineage-details/operation-properties-details/alias/alias.component';
 import {PropertyErrorComponent} from './components/lineage/lineage-details/operation-properties-details/property-error/property-error.component';
-import {attributeLineageGraphReducer} from "./store/reducers/attribute-lineage-graph.reducer";
-import {AttributeLineageGraphEffects} from "./effects/attribute-lineage-graph.effects";
-import { AttributeSearchBarComponent } from './components/header/attribute-search-bar/attribute-search-bar.component';
+import {attributeLineageAndImpactReducer} from "./store/reducers/attribute-lineage-and-impact.reducer";
+import {AttributeLineageAndImpactEffects} from "./effects/attribute-lineage-and-impact.effects";
+import {AttributeSearchBarComponent} from './components/header/attribute-search-bar/attribute-search-bar.component';
 
 export function initializeApp(store: Store<AppState>): () => Promise<any> {
   return () => new Promise(resolve => {
@@ -183,7 +183,7 @@ const ROOT_ROUTING = "app/"
       config: configReducer,
       dashboard: dashboardReducer,
       executedLogicalPlan: executionPlanReducer,
-      attributeLineageGraph: attributeLineageGraphReducer,
+      attributeLineageAndImpact: attributeLineageAndImpactReducer,
       lineageOverview: lineageOverviewReducer,
       detailsInfos: detailsInfoReducer,
       executionEvents: executionEventReducer,
@@ -197,7 +197,7 @@ const ROOT_ROUTING = "app/"
       NotificationsEffects,
       ExecutionEventsEffects,
       ExecutionPlanEffects,
-      AttributeLineageGraphEffects,
+      AttributeLineageAndImpactEffects,
       LineageOverviewEffects,
       DetailsInfoEffects,
       RouterEffects,
