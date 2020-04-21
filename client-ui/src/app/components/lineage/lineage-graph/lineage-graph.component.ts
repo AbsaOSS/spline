@@ -144,7 +144,7 @@ export class LineageGraphComponent implements OnInit, OnChanges, AfterViewInit {
       this.cytograph.cy.edges().forEach(e => {
         const ed = e.data()
         _.values(AttrRelationStyleClass).forEach(c => e.removeClass(c))
-        if (primaryOpIds.has(ed.source) && primaryOpIds.has(ed.target)) e.addClass(AttrRelationStyleClass.PRIMARY)
+        if (primaryOpIds.has(ed.source)) e.addClass(AttrRelationStyleClass.PRIMARY)
         else if (lineageOpIds.has(ed.source) && primOrLinOpIds.has(ed.target) ) e.addClass(AttrRelationStyleClass.LINEAGE)
         else if (impactOpIds.has(ed.target) && primOrImpOpIds.has(ed.source) ) e.addClass(AttrRelationStyleClass.IMPACT)
         else e.addClass(AttrRelationStyleClass.UNRELATED)
