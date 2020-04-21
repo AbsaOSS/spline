@@ -14,40 +14,39 @@
  * limitations under the License.
  */
 
-const LINE_WIDTH_PLANE = 10
-const LINE_WIDTH_HIGHLIGHTED = 20
-const LINE_COLOR_PLANE = 'lightgray'
-const LINE_COLOR_HLT_PRIMARY = 'black'
-const LINE_COLOR_HLT_LINEAGE = 'magenta'
-const LINE_COLOR_HLT_IMPACT = 'green'
-const LINE_COLOR_HLT_NONE = 'silver'
+import { Stylesheet } from 'cytoscape';
 
-export const cyStyles = [
-  {
-    selector: 'core',
-    style: {
-      'active-bg-size': 0
-    }
-  },
+
+export const LINE_WIDTH_PLANE = 10;
+export const LINE_WIDTH_HIGHLIGHTED = 10;
+export const LINE_COLOR_PLANE = '#f0f0f0';
+export const LINE_COLOR_HLT_PRIMARY = 'black';
+export const LINE_COLOR_HLT_LINEAGE = 'magenta';
+export const LINE_COLOR_HLT_IMPACT = 'green';
+export const LINE_COLOR_HLT_NONE = '#f5f5f5';
+
+export const cyStyles: Partial<Stylesheet>[] = [
   {
     selector: 'node',
     style: {
-      'background-color': 'whitesmoke',
-      'padding': 50
+      'background-color': '#fff',
+      'border-color': LINE_COLOR_HLT_NONE,
+      'border-width': LINE_WIDTH_HIGHLIGHTED,
+      'padding': 50 // that settings is not a part of the Stylesheet for now (it is a bug and it will be fixed in the future).
     }
-  },
+  } as Stylesheet,
   {
     selector: 'node:selected',
     style: {
-      'background-color': LINE_COLOR_PLANE,
-      'padding': 80,
+      'padding': 70, // that settings is not a part of the Stylesheet for now (it is a bug and it will be fixed in the future).
     }
-  },
+  } as Stylesheet,
   {
     selector: 'node.hlt_prim',
     style: {
       'border-color': LINE_COLOR_HLT_PRIMARY,
       'border-width': LINE_WIDTH_HIGHLIGHTED,
+
     }
   },
   {
@@ -95,7 +94,7 @@ export const cyStyles = [
       'width': LINE_WIDTH_HIGHLIGHTED,
     }
   },
-{
+  {
     selector: 'edge.hlt_imp',
     style: {
       'line-color': LINE_COLOR_HLT_IMPACT,
@@ -103,7 +102,7 @@ export const cyStyles = [
       'width': LINE_WIDTH_HIGHLIGHTED,
     }
   },
-{
+  {
     selector: 'edge.hlt_none',
     style: {
       'line-color': LINE_COLOR_HLT_NONE,
