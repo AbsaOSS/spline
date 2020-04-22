@@ -60,6 +60,7 @@
     "@angular/compiler-cli": "~8.2.0",
     "@angular/language-service": "~8.2.0",
     "@ngrx/store-devtools": "^8.2.0",
+    "@types/cytoscape": "^3.14.0",
     "@types/jasmine": "~2.8.8",
     "@types/jasminewd2": "~2.0.3",
     "@types/lodash": "^4.14.145",
