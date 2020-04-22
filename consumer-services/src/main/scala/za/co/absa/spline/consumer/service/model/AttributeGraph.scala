@@ -19,15 +19,12 @@ package za.co.absa.spline.consumer.service.model
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
 
 @ApiModel(description = "Attribute Dependency Graph")
-case class AttributeGraph
-(
+case class AttributeGraph(
   @ApiModelProperty(value = "Array of attribute nodes representing an operation where attribute was created")
   nodes: Array[AttributeNode],
   @ApiModelProperty(value = "Link representing dependency of one attribute on another")
   edges: Array[AttributeTransition]
 ) extends Graph {
-  def this() = this(null, null)
-
   override type Node = AttributeNode
   override type Edge = AttributeTransition
 }

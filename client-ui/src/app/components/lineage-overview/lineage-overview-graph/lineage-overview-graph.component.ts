@@ -78,7 +78,7 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
       )
       .subscribe(state => {
         if (state && this.cytograph.cy) {
-          state.graph.lineage.nodes.map(n => {
+          state.graph.lineage.nodes.forEach(n => {
             if (n.data.properties && n.data.properties["targetNode"]) {
               n.data.color = "#333"
               n.data.shape = "heptagon"

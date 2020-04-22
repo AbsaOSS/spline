@@ -14,25 +14,14 @@
  * limitations under the License.
  */
 
-/deep/ .ngx-datatable {
-  .datatable-body-row,
-  .datatable-body-row.datatable-row-group {
-    cursor: pointer;
-  }
+package za.co.absa.spline.consumer.service.internal
 
-  .datatable-body-cell.type .datatable-body-cell-label {
-    text-align: right;
-  }
-}
+import java.util.UUID
 
-/deep/ .ngx-datatable.non-selectable {
-  .datatable-body-row,
-  .datatable-body-row .datatable-row-group {
-    cursor: default;
-  }
-
-  .datatable-body-row:hover,
-  .datatable-body-row:hover .datatable-row-group {
-    background: unset !important;
-  }
-}
+case class OperationWithSchema(
+  id: String,
+  schema: Array[UUID],
+  extra: Map[String, Any],
+  params: Map[String, Any],
+  childIds: Seq[String]
+)

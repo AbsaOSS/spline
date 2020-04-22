@@ -17,18 +17,20 @@
 import {Component, OnDestroy} from '@angular/core';
 import {Store} from "@ngrx/store";
 import {AppState} from "../../model/app-state";
-import {combineLatest, Observable, ObservedValueOf, Subscription} from "rxjs";
+import {combineLatest, Observable, Subscription} from "rxjs";
 import * as LayoutAction from "../../store/actions/layout.actions";
 import * as _ from "lodash";
 import * as ExecutionPlanAction from "../../store/actions/execution-plan.actions";
-import {distinct, filter, map, startWith} from "rxjs/operators";
+import {distinct, filter, map} from "rxjs/operators";
 import {CytoscapeGraphVM} from "../../model/viewModels/cytoscape/cytoscapeGraphVM";
 import * as RouterAction from "../../store/actions/router.actions";
 import * as DetailsInfosAction from "../../store/actions/details-info.actions";
-import {AttributeGraph} from "../../generated/models/attribute-graph";
+import {AttributeVM} from "../../model/viewModels/attributeVM";
+import {AttributeLineageAndImpact} from "../../generated/models/attribute-lineage-and-impact";
 
 @Component({
-  templateUrl: './lineage.component.html'
+  templateUrl: './lineage.component.html',
+  styleUrls: ['./lineage.component.less']
 })
 export class LineageComponent implements OnDestroy {
 
@@ -36,8 +38,10 @@ export class LineageComponent implements OnDestroy {
     embeddedMode: boolean,
     layout: object,
     graph: CytoscapeGraphVM,
-    attributeGraph: AttributeGraph
+    attributeLinAndImp: AttributeLineageAndImpact
   }>
+
+  public selectedAttribute$: Observable<AttributeVM>
 
   public selectedNodeId: string
 
@@ -66,31 +70,40 @@ export class LineageComponent implements OnDestroy {
 
     this.store.dispatch(new LayoutAction.Get())
 
-    this.data$ = this.combineLatestValues([
+    this.data$ = combineLatest([
       this.store.select('config', 'embeddedMode'),
       this.store.select('layout'),
       this.store.select('executedLogicalPlan').pipe(filter(_.identity)),
-      this.store.select('attributeLineageGraph')
+      this.store.select('attributeLineageAndImpact')
     ]).pipe(
       distinct(),
-      map(([embeddedMode, layout, plan, attributeGraph]) =>
-        ({embeddedMode, layout, graph: plan.graph, attributeGraph}))
+      map(([embeddedMode, layout, plan, attributeLinAndImp]) =>
+        ({embeddedMode, layout, graph: plan.graph, attributeLinAndImp})
+      )
     )
-  }
 
-  private combineLatestValues<O extends Observable<any>>(sources: O[]): Observable<ObservedValueOf<O>[]> {
-    // Same as combineLatest but emits immediately
-    // todo: is there any existing RxJS combinator that does it?
-    const marker: object = {}
-    const prependedSources = sources.map(s => s.pipe(startWith(marker)))
-    return combineLatest(prependedSources)
-      .pipe(filter(xs => !_.includes(xs, marker)))
+    this.selectedAttribute$ =
+      combineLatest([
+        this.store.select('executedLogicalPlan').pipe(filter(_.identity)),
+        this.store.select('router', 'state', 'queryParams', 'attribute')
+      ]).pipe(
+        map(([{executionPlan: {extra: {attributes}}}, attrId]) =>
+          attrId && (attributes as AttributeVM[]).find(a => a.id == attrId)
+        )
+      )
   }
 
   public onNodeSelected(nodeId: string) {
     this.store.dispatch(new RouterAction.Go({
       url: null,
       queryParams: {selectedNode: nodeId}
+    }))
+  }
+
+  public onRemoveSelectedAttrClick() {
+    this.store.dispatch(new RouterAction.Go({
+      url: null,
+      queryParams: {attribute: undefined}
     }))
   }
 }

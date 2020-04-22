@@ -1,0 +1,61 @@
+<!--
+  ~ Copyright (c) 2020 ABSA Group Limited
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<div class="highlights-toolbar">
+
+    <!-- TITLE -->
+    <h5 class="toolbar-title">
+        Highlighted attributes
+    </h5>
+    <!-- ./TITLE -->
+
+    <!-- TAGS LIST -->
+    <mat-chip-list >
+        <mat-chip *ngFor="let attr of attributes"
+                  (removed)="onAttributeRemoveIconClicked(attr)">
+
+            {{attr.name}}
+
+            <mat-icon matChipRemove
+                      fontSet="fa"
+                      matTooltip="Remove"
+                      fontIcon="fa-times">
+            </mat-icon>
+        </mat-chip>
+    </mat-chip-list>
+    <!-- ./TAGS LIST -->
+
+    <!-- LEGEND -->
+    <div class="legends-list">
+        <div class="legend" *ngFor="let legend of lineageGraphLegend">
+
+            <div class="legend__circle"
+                 [ngStyle]="{background: legend.color}">
+            </div>
+
+            <div class="px-2 flex-grow-1">
+                {{legend.title}}
+            </div>
+
+            <mat-icon fontSet="fa"
+                      fontIcon="fa-info-circle"
+                      [matTooltip]="legend.description">
+            </mat-icon>
+        </div>
+    </div>
+    <!-- ./LEGEND -->
+
+</div>

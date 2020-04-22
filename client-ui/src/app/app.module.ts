@@ -17,8 +17,12 @@
 import {HttpClientModule} from '@angular/common/http';
 import {APP_INITIALIZER, NgModule} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {MatExpansionModule} from '@angular/material';
+import {MatButtonModule} from '@angular/material/button';
+import {MatExpansionModule} from '@angular/material/expansion';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {MatChipsModule} from "@angular/material/chips";
+import {MatIconModule} from "@angular/material/icon";
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterModule} from '@angular/router';
@@ -59,6 +63,7 @@ import {SortComponent} from './components/lineage/lineage-details/operation-prop
 import {SchemaTableComponent} from './components/lineage/lineage-details/schema-table/schema-table.component';
 import {SchemaComponent} from './components/lineage/lineage-details/schema/schema.component';
 import {LineageGraphComponent} from './components/lineage/lineage-graph/lineage-graph.component';
+import { LineageHighlightsToolbarComponent } from './components/lineage/lineage-highlights-toolbar/lineage-highlights-toolbar.component';
 import {LineageComponent} from './components/lineage/lineage.component';
 import {ModalExpressionComponent} from './components/modal/modal-expression/modal-expression.component';
 import {DatePickerComponent} from './components/time-frame-picker/date-picker/date-picker.component';
@@ -88,10 +93,9 @@ import {lineageOverviewReducer} from './store/reducers/lineage-overview.reducer'
 import {WriteComponent} from './components/lineage/lineage-details/operation-properties-details/write/write.component';
 import {AliasComponent} from './components/lineage/lineage-details/operation-properties-details/alias/alias.component';
 import {PropertyErrorComponent} from './components/lineage/lineage-details/operation-properties-details/property-error/property-error.component';
-import {attributeLineageGraphReducer} from "./store/reducers/attribute-lineage-graph.reducer";
-import {AttributeLineageGraphEffects} from "./effects/attribute-lineage-graph.effects";
-import { AttributeSearchBarComponent } from './components/header/attribute-search-bar/attribute-search-bar.component';
-
+import {attributeLineageAndImpactReducer} from "./store/reducers/attribute-lineage-and-impact.reducer";
+import {AttributeLineageAndImpactEffects} from "./effects/attribute-lineage-and-impact.effects";
+import {AttributeSearchBarComponent} from './components/header/attribute-search-bar/attribute-search-bar.component';
 
 export function initializeApp(store: Store<AppState>): () => Promise<any> {
   return () => new Promise(resolve => {
@@ -113,6 +117,7 @@ const ROOT_ROUTING = "app/"
     AppComponent,
     ModalExpressionComponent,
     LineageGraphComponent,
+    LineageHighlightsToolbarComponent,
     LineageDetailsComponent,
     LineageComponent,
     ErrorComponent,
@@ -158,58 +163,62 @@ const ROOT_ROUTING = "app/"
     FilterComponent,
     GenericComponent
   ],
-  imports: [
-    MatSlideToggleModule,
-    BrowserAnimationsModule,
-    NgbModule,
-    PrettyJsonModule,
-    TreeModule.forRoot(),
-    BrowserModule,
-    TooltipModule.forRoot(),
-    CytoscapeNgLibModule,
-    HttpClientModule,
-    NgxDatatableModule,
-    FormsModule,
-    BsDatepickerModule.forRoot(),
-    DatepickerModule.forRoot(),
-    ReactiveFormsModule,
-    MatExpansionModule,
-    ModalModule.forRoot(),
-    ToastrModule.forRoot(),
-    StoreModule.forRoot({
-      config: configReducer,
-      dashboard: dashboardReducer,
-      executedLogicalPlan: executionPlanReducer,
-      attributeLineageGraph: attributeLineageGraphReducer,
-      lineageOverview: lineageOverviewReducer,
-      detailsInfos: detailsInfoReducer,
-      executionEvents: executionEventReducer,
-      router: routerReducer,
-      error: errorReducer,
-      contextMenu: contextMenuReducer,
-      layout: layoutReducer
-    }),
-    EffectsModule.forRoot([
-      ConfigEffects,
-      NotificationsEffects,
-      ExecutionEventsEffects,
-      ExecutionPlanEffects,
-      AttributeLineageGraphEffects,
-      LineageOverviewEffects,
-      DetailsInfoEffects,
-      RouterEffects,
-      ModalEffects
-    ]),
-    StoreRouterConnectingModule.forRoot(),
-    RouterModule.forRoot([
-      {path: ROOT_ROUTING + 'dashboard', component: DashboardComponent},
-      {path: ROOT_ROUTING + 'lineage-overview', component: LineageOverviewComponent},
-      {path: ROOT_ROUTING + 'lineage-detailed/:uid', component: LineageComponent},
-      {path: ROOT_ROUTING + 'error/:httpCode', component: ErrorComponent},
-      {path: '**', redirectTo: ROOT_ROUTING + 'dashboard'}
-    ]),
-    !environment.production ? StoreDevtoolsModule.instrument({maxAge: 25}) : [],
-  ],
+    imports: [
+        BrowserAnimationsModule,
+        NgbModule,
+        PrettyJsonModule,
+        TreeModule.forRoot(),
+        BrowserModule,
+        TooltipModule.forRoot(),
+        CytoscapeNgLibModule,
+        HttpClientModule,
+        NgxDatatableModule,
+        FormsModule,
+        BsDatepickerModule.forRoot(),
+        DatepickerModule.forRoot(),
+        ReactiveFormsModule,
+        MatSlideToggleModule,
+        MatExpansionModule,
+        MatChipsModule,
+        MatIconModule,
+        MatButtonModule,
+        ModalModule.forRoot(),
+        ToastrModule.forRoot(),
+        StoreModule.forRoot({
+            config: configReducer,
+            dashboard: dashboardReducer,
+            executedLogicalPlan: executionPlanReducer,
+            attributeLineageAndImpact: attributeLineageAndImpactReducer,
+            lineageOverview: lineageOverviewReducer,
+            detailsInfos: detailsInfoReducer,
+            executionEvents: executionEventReducer,
+            router: routerReducer,
+            error: errorReducer,
+            contextMenu: contextMenuReducer,
+            layout: layoutReducer
+        }),
+        EffectsModule.forRoot([
+            ConfigEffects,
+            NotificationsEffects,
+            ExecutionEventsEffects,
+            ExecutionPlanEffects,
+            AttributeLineageAndImpactEffects,
+            LineageOverviewEffects,
+            DetailsInfoEffects,
+            RouterEffects,
+            ModalEffects
+        ]),
+        StoreRouterConnectingModule.forRoot(),
+        RouterModule.forRoot([
+            { path: ROOT_ROUTING + 'dashboard', component: DashboardComponent },
+            { path: ROOT_ROUTING + 'lineage-overview', component: LineageOverviewComponent },
+            { path: ROOT_ROUTING + 'lineage-detailed/:uid', component: LineageComponent },
+            { path: ROOT_ROUTING + 'error/:httpCode', component: ErrorComponent },
+            { path: '**', redirectTo: ROOT_ROUTING + 'dashboard' }
+        ]),
+        !environment.production ? StoreDevtoolsModule.instrument({ maxAge: 25 }) : [],
+        MatTooltipModule,
+    ],
   providers: [
     {
       provide: APP_INITIALIZER,

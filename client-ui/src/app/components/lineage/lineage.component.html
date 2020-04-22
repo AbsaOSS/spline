@@ -19,10 +19,17 @@
       <lineage-graph [embeddedMode]="d.embeddedMode"
                      [layout]="d.layout"
                      [graph]="d.graph"
-                     [attributeGraph]="d.attributeGraph"
+                     [attributeLineageAndImpactGraph]="d.attributeLinAndImp"
                      [selectedNode]="selectedNodeId"
                      (selectedNodeChange)="onNodeSelected($event)">
       </lineage-graph>
+
+      <lineage-highlights-toolbar
+              *ngIf="selectedAttribute$ | async as selectedAttributes"
+              [attributes]="[selectedAttributes]"
+              (removeAttribute$)="onRemoveSelectedAttrClick()">
+      </lineage-highlights-toolbar>
+
     </div>
 
     <div class="col-sm-4 ">

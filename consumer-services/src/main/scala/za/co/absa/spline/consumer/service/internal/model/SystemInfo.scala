@@ -14,25 +14,8 @@
  * limitations under the License.
  */
 
-/deep/ .ngx-datatable {
-  .datatable-body-row,
-  .datatable-body-row.datatable-row-group {
-    cursor: pointer;
-  }
+package za.co.absa.spline.consumer.service.internal.model
 
-  .datatable-body-cell.type .datatable-body-cell-label {
-    text-align: right;
-  }
-}
+import za.co.absa.commons.version.Version
 
-/deep/ .ngx-datatable.non-selectable {
-  .datatable-body-row,
-  .datatable-body-row .datatable-row-group {
-    cursor: default;
-  }
-
-  .datatable-body-row:hover,
-  .datatable-body-row:hover .datatable-row-group {
-    background: unset !important;
-  }
-}
+case class SystemInfo(name: String, version: Version)

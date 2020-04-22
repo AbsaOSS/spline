@@ -15,7 +15,7 @@
   -->
 <div *ngIf="getDetailsInfo() | async as detailsInfos">
   <div class="details-title">
-    <i class="fa fa-xs" [ngStyle]="{'color':getColor(detailsInfos.operation._type, detailsInfos.operation.name)}">
+    <i class="fa fa-xs" aria-hidden="true" [ngStyle]="{'color':getColor(detailsInfos.operation._type, detailsInfos.operation.name)}">
       {{getIcon(detailsInfos.operation._type, detailsInfos.operation.name)}}
     </i>&nbsp;{{detailsInfos.operation.name}}
   </div>

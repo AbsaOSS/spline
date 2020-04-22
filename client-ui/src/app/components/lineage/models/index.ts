@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 ABSA Group Limited
+ * Copyright (c) 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,5 @@
  * limitations under the License.
  */
 
-/deep/ .ngx-datatable {
-  .datatable-body-row,
-  .datatable-body-row.datatable-row-group {
-    cursor: pointer;
-  }
-
-  .datatable-body-cell.type .datatable-body-cell-label {
-    text-align: right;
-  }
-}
-
-/deep/ .ngx-datatable.non-selectable {
-  .datatable-body-row,
-  .datatable-body-row .datatable-row-group {
-    cursor: default;
-  }
-
-  .datatable-body-row:hover,
-  .datatable-body-row:hover .datatable-row-group {
-    background: unset !important;
-  }
-}
+export * from './leneage-graph.models';
+export * from './leneage-graph-legend.models';

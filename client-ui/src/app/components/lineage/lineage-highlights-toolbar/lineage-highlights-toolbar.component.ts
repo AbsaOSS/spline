@@ -1,0 +1,39 @@
+/*
+ * Copyright (c) 2020 ABSA Group Limited
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core'
+import { AttributeVM } from '../../../model/viewModels/attributeVM'
+import { getLineageGraphLegend, LineageGraphLegend } from '../models'
+
+
+@Component({
+  selector: 'lineage-highlights-toolbar',
+  templateUrl: './lineage-highlights-toolbar.component.html',
+  styleUrls: ['./lineage-highlights-toolbar.component.less'],
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class LineageHighlightsToolbarComponent {
+
+  @Input() attributes: AttributeVM[]
+
+  @Output() removeAttribute$ = new EventEmitter<AttributeVM>()
+
+  readonly lineageGraphLegend: LineageGraphLegend[] = getLineageGraphLegend()
+
+  onAttributeRemoveIconClicked(attribute: AttributeVM): void {
+    this.removeAttribute$.emit(attribute)
+  }
+}

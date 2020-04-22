@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 import {Action} from '@ngrx/store';
-import {AttributeGraph} from "../../generated/models/attribute-graph";
+import {AttributeLineageAndImpact} from "../../generated/models/attribute-lineage-and-impact";
 
-export enum AttributeLineageGraphActionTypes {
-  ATTRIBUTE_LINEAGE_GRAPH_SET = '[Attribute Lineage] Set',
+export enum AttributeLineageAndImpactActionTypes {
+  ATTRIBUTE_LINEAGE_AND_IMPACT_SET = '[Attribute Lineage And Impact] Set',
 }
 
 export class Set implements Action {
-  public readonly type = AttributeLineageGraphActionTypes.ATTRIBUTE_LINEAGE_GRAPH_SET
+  public readonly type = AttributeLineageAndImpactActionTypes.ATTRIBUTE_LINEAGE_AND_IMPACT_SET
 
-  constructor(public graph: AttributeGraph) {
+  constructor(public linAndImp: AttributeLineageAndImpact) {
   }
 }
 
-export type AttributeLineageGraphActions = Set
+export type AttributeLineageAndImpactActions = Set
