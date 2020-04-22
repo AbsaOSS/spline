@@ -51,6 +51,7 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
       vertex = targetOp,
       acc = Acc(attrsToProcessByOpId = Map(targetOp._key -> Set(targetAttrId))),
       next = execPlan.followingOps,
+      filter = (acc, v) => acc.attrsToProcessByOpId.contains(v._key),
       prune = (_, acc, _) => acc.attrsToProcessByOpId.isEmpty,
       collect = {
         case (Acc(nodes, edges, attrsToProcessByOpId, _), op: Operation) =>
@@ -85,7 +86,7 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
           val nextAttrsByChild: Map[OperationId, Set[AttributeId]] = followingOps.map(fo => {
             val foAttrDeps: Map[AttributeId, Set[AttributeId]] = dependencyResolver
               .resolve(fo, execPlan.inputSchema(fo._key), execPlan.outputSchema(fo._key))
-              .filter({ case (k, v) => v.intersect(myAttrsToProcess).nonEmpty })
+              .filter({ case (_, v) => v.intersect(myAttrsToProcess).nonEmpty })
             val hisOriginAttrs: Set[AttributeId] = foAttrDeps.keySet
             val hisTransAttrs: Set[AttributeId] = myAttrsToProcess.intersect(execPlan.outputSchema(fo._key))
             fo._key -> (hisOriginAttrs ++ hisTransAttrs)
@@ -106,6 +107,7 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
       vertex = targetOp,
       acc = Acc(attrsToProcessByOpId = Map(targetOp._key -> Set(targetAttrId))),
       next = execPlan.precedingOps,
+      filter = (acc, v) => acc.attrsToProcessByOpId.contains(v._key),
       prune = (_, acc, _) => acc.attrsToProcessByOpId.isEmpty,
       collect = {
         case (Acc(nodes, edges, attrsToProcessByOpId, transOpsByAttrId), op: Operation) =>
