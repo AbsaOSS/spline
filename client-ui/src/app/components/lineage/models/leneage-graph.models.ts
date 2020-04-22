@@ -19,6 +19,7 @@ import { Stylesheet } from 'cytoscape';
 
 export const LINE_WIDTH_PLANE = 10;
 export const LINE_WIDTH_HIGHLIGHTED = 10;
+export const LINE_WIDTH_SELECTED = 15;
 export const LINE_COLOR_PLANE = '#f0f0f0';
 export const LINE_COLOR_HLT_PRIMARY = 'black';
 export const LINE_COLOR_HLT_LINEAGE = 'magenta';
@@ -38,6 +39,7 @@ export const cyStyles: Partial<Stylesheet>[] = [
   {
     selector: 'node:selected',
     style: {
+      'border-width': LINE_WIDTH_SELECTED,
       'padding': 70, // that settings is not a part of the Stylesheet for now (it is a bug and it will be fixed in the future).
     }
   } as Stylesheet,

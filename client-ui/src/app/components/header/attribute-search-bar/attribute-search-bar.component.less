@@ -55,6 +55,12 @@ app-attribute-search-bar {
       color: @execution-event-name-color;
       font-size: 12px;
       line-height: 1;
+
+      &__inner {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
 
     .type {

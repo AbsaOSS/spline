@@ -20,7 +20,11 @@
       <div class="name">
         <ngb-highlight [result]="result.name" [term]="term"></ngb-highlight>
       </div>
-      <div class="execution-event-name">{{ result.executionEventName }}</div>
+      <div class="execution-event-name">
+        <div class="execution-event-name__inner">
+          {{ result.executionEventName }}
+        </div>
+      </div>
     </div>
 
     <div>
