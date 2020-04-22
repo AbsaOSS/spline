@@ -28,7 +28,6 @@ import {CytoscapeNgLibComponent} from 'cytoscape-ng-lib';
 import {operationColorCodes, operationIconCodes} from 'src/app/util/execution-plan';
 import {OperationType} from 'src/app/model/types/operationType';
 import {CytoscapeGraphVM} from "../../../model/viewModels/cytoscape/cytoscapeGraphVM";
-import * as _ from 'lodash'
 import {cyStyles} from './graph.stylesheet'
 import {AttributeLineageAndImpact} from "../../../generated/models/attribute-lineage-and-impact";
 import {AttributeGraph} from "../../../generated/models/attribute-graph";
@@ -110,7 +109,7 @@ export class LineageGraphComponent implements OnInit, OnChanges, AfterViewInit {
 
   private clearAttrHighlighting() {
     this.cytograph && this.cytograph.cy && this.cytograph.cy.ready(() => {
-      let attrStyleClasses = _.values(AttrRelationStyleClass)
+      let attrStyleClasses = Object.values(AttrRelationStyleClass)
       this.cytograph.cy.nodes().forEach(v => attrStyleClasses.forEach(c => v.removeClass(c)))
       this.cytograph.cy.edges().forEach(e => attrStyleClasses.forEach(c => e.removeClass(c)))
     })
@@ -126,15 +125,15 @@ export class LineageGraphComponent implements OnInit, OnChanges, AfterViewInit {
       const impactAttrs = attrImpGraph.nodes.filter(a => a != primaryAttr)
 
       const primaryOpIds = new Set([primaryAttr.originOpId].concat(primaryAttr.transOpIds))
-      const lineageOpIds = new Set(_.flatMap(lineageAttrs, a => [a.originOpId].concat(a.transOpIds)))
-      const impactOpIds = new Set(_.flatMap(impactAttrs, a => [a.originOpId].concat(a.transOpIds)))
+      const lineageOpIds = new Set(lineageAttrs.flatMap(a => [a.originOpId].concat(a.transOpIds)))
+      const impactOpIds = new Set(impactAttrs.flatMap(a => [a.originOpId].concat(a.transOpIds)))
 
       const primOrLinOpIds = new Set([...primaryOpIds, ...lineageOpIds])
       const primOrImpOpIds = new Set([...primaryOpIds, ...impactOpIds])
 
       this.cytograph.cy.nodes().forEach(v => {
         const vd = v.data()
-        _.values(AttrRelationStyleClass).forEach(c => v.removeClass(c))
+        Object.values(AttrRelationStyleClass).forEach(c => v.removeClass(c))
         if (primaryOpIds.has(vd.id)) v.addClass(AttrRelationStyleClass.PRIMARY)
         else if (lineageOpIds.has(vd.id)) v.addClass(AttrRelationStyleClass.LINEAGE)
         else if (impactOpIds.has(vd.id)) v.addClass(AttrRelationStyleClass.IMPACT)
@@ -143,7 +142,7 @@ export class LineageGraphComponent implements OnInit, OnChanges, AfterViewInit {
 
       this.cytograph.cy.edges().forEach(e => {
         const ed = e.data()
-        _.values(AttrRelationStyleClass).forEach(c => e.removeClass(c))
+        Object.values(AttrRelationStyleClass).forEach(c => e.removeClass(c))
         if (primaryOpIds.has(ed.source)) e.addClass(AttrRelationStyleClass.PRIMARY)
         else if (lineageOpIds.has(ed.source) && primOrLinOpIds.has(ed.target) ) e.addClass(AttrRelationStyleClass.LINEAGE)
         else if (impactOpIds.has(ed.target) && primOrImpOpIds.has(ed.source) ) e.addClass(AttrRelationStyleClass.IMPACT)
