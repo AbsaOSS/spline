@@ -16,7 +16,7 @@
 
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core'
 import { AttributeVM } from '../../../model/viewModels/attributeVM'
-import { getLineageGraphLegend, LineageGraphLegend } from '../models'
+import { getLineageGraphLegend, LineageGraphLegend } from '../../../model/lineage-graph'
 
 
 @Component({

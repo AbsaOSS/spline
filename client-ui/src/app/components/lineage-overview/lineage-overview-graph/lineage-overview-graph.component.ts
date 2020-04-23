@@ -29,6 +29,7 @@ import * as LayoutAction from 'src/app/store/actions/layout.actions';
 import * as LineageOverviewAction from 'src/app/store/actions/lineage-overview.actions';
 import * as RouterAction from 'src/app/store/actions/router.actions';
 import {getWriteOperationIdFromExecutionId} from 'src/app/util/execution-plan';
+import { cyStyles } from '../../../model/lineage-graph'
 
 
 @Component({
@@ -78,13 +79,6 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
       )
       .subscribe(state => {
         if (state && this.cytograph.cy) {
-          state.graph.lineage.nodes.forEach(n => {
-            if (n.data.properties && n.data.properties["targetNode"]) {
-              n.data.color = "#333"
-              n.data.shape = "heptagon"
-            }
-            return n
-          })
           this.cytograph.cy.add(state.graph.lineage)
           this.cytograph.cy.nodeHtmlLabel([{
             tpl: function (data) {
@@ -101,8 +95,7 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
 
   public ngAfterViewInit(): void {
     this.cytograph.cy.ready(() => {
-      this.cytograph.cy.style().selector('core').css({'active-bg-size': 0})
-      this.cytograph.cy.style().selector('edge').css({'width': 7})
+      this.cytograph.cy.style(cyStyles)
       this.cytograph.cy.on('mouseover', 'node', e => e.originalEvent.target.style.cursor = 'pointer')
       this.cytograph.cy.on('mouseout', 'node', e => e.originalEvent.target.style.cursor = '')
       const doubleClickDelayMs = 350
