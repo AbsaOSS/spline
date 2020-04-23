@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 ABSA Group Limited
+ * Copyright (c) 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,16 +40,17 @@ export const cyStyles: Partial<Stylesheet>[] = [
       'background-color': '#fff',
       'border-color': LINE_COLOR_HLT_NONE,
       'border-width': LINE_WIDTH_HIGHLIGHTED,
-      'padding': 50 // that settings is not a part of the Stylesheet for now (it is a bug and it will be fixed in the future).
-    }
+      'padding': 50, // that settings is not a part of the Stylesheet for now (it is a bug and it will be fixed in the future).
+      'content': 'data(name)',
+      'text-valign': 'bottom',
+      'text-margin-y': 12,
+    },
   } as Stylesheet,
   {
     selector: 'node:selected',
     style: {
       ...selectedNodeStyles
     },
-    css: {
-    }
   } as Stylesheet,
   {
     selector: 'node.hlt_prim',
@@ -109,6 +110,10 @@ export const cyStyles: Partial<Stylesheet>[] = [
       'line-color': LINE_COLOR_PLANE,
       'target-arrow-color': LINE_COLOR_PLANE,
       'width': LINE_WIDTH_PLANE,
+    },
+    css: {
+      'label': (el) => el.data('label') || '',
+      'curve-style': 'bezier',
     }
   },
   {
