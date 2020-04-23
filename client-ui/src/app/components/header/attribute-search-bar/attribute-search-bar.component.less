@@ -47,40 +47,61 @@ app-attribute-search-bar {
       border-bottom-style: none;
     }
 
-    .name {
-      color: @text-color;
-    }
+    .attribute {
+      display: flex;
+      align-items: center;
+      width: 100%;
 
-    .execution-event-name {
-      color: @execution-event-name-color;
-      font-size: 12px;
-      line-height: 1;
-    }
+      &__name-container {
+        flex-grow: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding-right: 0.5rem;
+      }
 
-    .type {
-      color: @text-color;
-      font-size: 12px;
-      display: inline-block;
-      padding: 4px 8px;
-      border: 1px solid @type-border-color;
-      border-radius: 28px;
-      background: @type-bg-color;
+      &__name {
+        color: @text-color;
+      }
+
+      &__execution-event-name {
+        color: @execution-event-name-color;
+        font-size: 12px;
+        line-height: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      &__type {
+        color: @text-color;
+        font-size: 12px;
+        display: inline-block;
+        padding: 4px 8px;
+        border: 1px solid @type-border-color;
+        border-radius: 28px;
+        background: @type-bg-color;
+      }
+
     }
 
     &.active {
       background: @dropdown-item-bg-color--active;
 
-      .name {
-        color: @text-color;
-      }
+      .attribute {
 
-      .execution-event-name {
-        color: @execution-event-name-color;
-      }
+        &__name {
+          color: @text-color;
+        }
 
-      .type {
-        color: @text-color;
-        border: 1px solid @type-border-color--hover;
+        &__execution-event-name {
+          color: @execution-event-name-color;
+        }
+
+        &__type {
+          color: @text-color;
+          border: 1px solid @type-border-color--hover;
+        }
       }
     }
   }

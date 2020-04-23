@@ -28,7 +28,7 @@ import {CytoscapeNgLibComponent} from 'cytoscape-ng-lib';
 import {operationColorCodes, operationIconCodes} from 'src/app/util/execution-plan';
 import {OperationType} from 'src/app/model/types/operationType';
 import {CytoscapeGraphVM} from "../../../model/viewModels/cytoscape/cytoscapeGraphVM";
-import {cyStyles} from '../models';
+import {cyStyles} from '../../../model/lineage-graph';
 import {AttributeLineageAndImpact} from "../../../generated/models/attribute-lineage-and-impact";
 import {AttributeGraph} from "../../../generated/models/attribute-graph";
 

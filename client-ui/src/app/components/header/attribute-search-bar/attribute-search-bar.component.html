@@ -15,16 +15,18 @@
   -->
 
 <ng-template #rt let-result="result" let-term="term">
-  <div class="d-flex align-items-center width-100">
-    <div class="flex-grow-1">
-      <div class="name">
+  <div class="attribute">
+    <div class="attribute__name-container">
+      <div class="attribute__name">
         <ngb-highlight [result]="result.name" [term]="term"></ngb-highlight>
       </div>
-      <div class="execution-event-name">{{ result.executionEventName }}</div>
+      <div class="attribute__execution-event-name">
+          {{ result.executionEventName }}
+      </div>
     </div>
 
     <div>
-      <div class="type">{{ getTypeString(result) }}</div>
+      <div class="attribute__type">{{ getTypeString(result) }}</div>
     </div>
   </div>
 </ng-template>

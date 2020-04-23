@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 ABSA Group Limited
+ * Copyright 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core'
 import { AttributeVM } from '../../../model/viewModels/attributeVM'
-import { getLineageGraphLegend, LineageGraphLegend } from '../models'
+import { getLineageGraphLegend, LineageGraphLegend } from '../../../model/lineage-graph'
 
 
 @Component({

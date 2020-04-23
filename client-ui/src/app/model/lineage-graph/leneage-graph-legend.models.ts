@@ -27,10 +27,10 @@ export interface LineageGraphLegend {
 export function getLineageGraphLegend(): LineageGraphLegend[] {
   return [
     {
-      title: 'Primary',
+      title: 'Usage',
       color: LINE_COLOR_HLT_PRIMARY,
       description: `
-          Primary - consists of operations that have the selected attribute in their output.
+          Usage - consists of operations that have the selected attribute in their output.
           I.e operations that either create the attribute or propagate through.
       `
     },
