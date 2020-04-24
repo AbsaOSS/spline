@@ -19,7 +19,6 @@ import {
   EventEmitter,
   Input,
   OnChanges,
-  OnInit,
   Output,
   SimpleChanges,
   ViewChild
@@ -36,7 +35,7 @@ import {AttributeGraph} from "../../../generated/models/attribute-graph";
   selector: 'lineage-graph',
   templateUrl: './lineage-graph.component.html'
 })
-export class LineageGraphComponent implements OnInit, OnChanges, AfterViewInit {
+export class LineageGraphComponent implements OnChanges, AfterViewInit {
   @Input()
   public embeddedMode: boolean
 
@@ -58,25 +57,13 @@ export class LineageGraphComponent implements OnInit, OnChanges, AfterViewInit {
   @ViewChild(CytoscapeNgLibComponent, {static: true})
   private cytograph: CytoscapeNgLibComponent
 
-  public ngOnInit(): void {
-    const writeNode = this.graph.nodes.find(n => n.data._type == 'Write')
-    writeNode.data.icon = operationIconCodes.get(OperationType.Write)
-    writeNode.data.color = operationColorCodes.get(OperationType.Write)
-  }
-
   public ngOnChanges(changes: SimpleChanges): void {
+    if (changes['graph']) this.refreshGraph()
     if (changes['selectedNode']) this.refreshSelectedNode()
     if (changes['attributeLineageAndImpactGraph']) this.refreshAttributeGraph()
   }
 
   public ngAfterViewInit(): void {
-    this.cytograph.cy.add(this.graph)
-    this.cytograph.cy.nodeHtmlLabel([{
-      tpl: d => d.icon && `<i class="fa fa-4x" style="color:${d.color}">${String.fromCharCode(d.icon)}</i>`
-    }])
-    this.cytograph.cy.panzoom()
-    this.cytograph.cy.layout(this.layout).run()
-
     this.cytograph.cy.ready(() => {
       this.cytograph.cy.style(cyStyles)
       this.cytograph.cy.on('mouseover', 'node', e => e.originalEvent.target.style.cursor = 'pointer')
@@ -87,8 +74,26 @@ export class LineageGraphComponent implements OnInit, OnChanges, AfterViewInit {
         this.selectedNodeChange.emit(nodeId)
       })
     })
+    this.refreshGraph()
     this.refreshSelectedNode()
     this.refreshAttributeGraph()
+  }
+
+  public refreshGraph(): void {
+    this.cytograph && this.cytograph.cy && this.cytograph.cy.ready(() => {
+      const writeNode = this.graph.nodes.find(n => n.data._type == 'Write')
+      writeNode.data.icon = operationIconCodes.get(OperationType.Write)
+      writeNode.data.color = operationColorCodes.get(OperationType.Write)
+
+      this.cytograph.cy.nodeHtmlLabel([{
+        tpl: d => d.icon && `<i class="fa fa-4x" style="color:${d.color}">${String.fromCharCode(d.icon)}</i>`
+      }])
+
+      this.cytograph.cy.elements().remove()
+      this.cytograph.cy.add(this.graph)
+      this.cytograph.cy.panzoom()
+      this.cytograph.cy.layout(this.layout).run()
+    })
   }
 
   private refreshSelectedNode() {
@@ -144,8 +149,8 @@ export class LineageGraphComponent implements OnInit, OnChanges, AfterViewInit {
         const ed = e.data()
         Object.values(AttrRelationStyleClass).forEach(c => e.removeClass(c))
         if (primaryOpIds.has(ed.source)) e.addClass(AttrRelationStyleClass.PRIMARY)
-        else if (lineageOpIds.has(ed.source) && primOrLinOpIds.has(ed.target) ) e.addClass(AttrRelationStyleClass.LINEAGE)
-        else if (impactOpIds.has(ed.target) && primOrImpOpIds.has(ed.source) ) e.addClass(AttrRelationStyleClass.IMPACT)
+        else if (lineageOpIds.has(ed.source) && primOrLinOpIds.has(ed.target)) e.addClass(AttrRelationStyleClass.LINEAGE)
+        else if (impactOpIds.has(ed.target) && primOrImpOpIds.has(ed.source)) e.addClass(AttrRelationStyleClass.IMPACT)
         else e.addClass(AttrRelationStyleClass.UNRELATED)
       })
     })
