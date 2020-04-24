@@ -47,7 +47,7 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
   }
 
   private def getAttributeImpact(targetOp: Operation, targetAttrId: AttributeId) = {
-    val Acc(nodesRes, edgesRes, _, _) = try DAGTraversals.dfs[Operation, Acc](
+    val Acc(nodesRes, edgesRes, _, _) = DAGTraversals.dfs[Operation, Acc](
       vertex = targetOp,
       acc = Acc(attrsToProcessByOpId = Map(targetOp._key -> Set(targetAttrId))),
       next = execPlan.followingOps,
@@ -101,11 +101,6 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
           )
       }
     )
-    catch {
-      case e: Exception =>
-        e.printStackTrace()
-        throw e
-    }
     (nodesRes, edgesRes)
   }
 
