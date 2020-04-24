@@ -125,8 +125,8 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         import za.co.absa.commons.version.Version._
         new ExecutionPlanDAG(
           sysInfo = SystemInfo(sysName, ver"$sysVersion"),
-          operations = vertices.toSet,
-          edges = edges.toSet)
+          operations = vertices,
+          edges = edges)
     }
   }
 }
