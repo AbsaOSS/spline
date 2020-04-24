@@ -62,8 +62,10 @@ class LineageDetailedController @Autowired()(
       val solver = AttributeDependencySolver(execPlan, dependencyResolver)
       val maybeAttrLineage = solver.lineage(attributeId.toString)
       val maybeAttrImpact = solver.impact(attributeId.toString)
-      val Seq((lineage: AttributeGraph, impact: AttributeGraph)) = maybeAttrLineage.zip(maybeAttrImpact)
-      AttributeLineageAndImpact(lineage, impact)
+      maybeAttrLineage
+        .zip(maybeAttrImpact)
+        .map((AttributeLineageAndImpact.apply _).tupled)
+        .head // else NoSuchElementException -> 404
     })
 }
 
