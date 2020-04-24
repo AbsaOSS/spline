@@ -467,7 +467,7 @@ object AttributeDependencySolver_LineageSpec extends Matchers {
     ) extends Operation
 
     val execPlanDag = {
-      val opSet = operations.toSet
+      val opSet = operations.toArray
       new ExecutionPlanDAG(
         sysInfo = SystemInfo("spark", ver"doesn't matter"),
         operations = opSet.map(ows => TestOperation(

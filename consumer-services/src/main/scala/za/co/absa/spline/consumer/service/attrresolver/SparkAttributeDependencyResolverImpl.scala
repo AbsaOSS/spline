@@ -29,18 +29,26 @@ object SparkAttributeDependencyResolverImpl extends AttributeDependencyResolver 
     outputSchema: => Seq[AttributeId]
   ): Map[AttributeId, Set[AttributeId]] =
     op.extra("name") match {
-      case "Project" => resolveExpressionList(op.params("projectList"), outputSchema)
-      case "Aggregate" => resolveExpressionList(op.params("aggregateExpressions"), outputSchema)
+      case "Project" => resolveExpressionList(asScalaListOfMaps(op.params("projectList")), outputSchema)
+      case "Aggregate" => resolveExpressionList(asScalaListOfMaps(op.params("aggregateExpressions")), outputSchema)
       case "SubqueryAlias" => resolveSubqueryAlias(inputSchema, outputSchema)
       case "Generate" => resolveGenerator(op)
       case _ => Map.empty
     }
 
-  private def resolveExpressionList(exprList: Any, schema: Seq[AttributeId]): Map[AttributeId, Set[AttributeId]] =
-    asScalaListOfMaps[String, Any](exprList)
-      .zip(schema)
+  private def resolveExpressionList(exprs: Seq[mutable.Map[String, Any]], schema: Seq[AttributeId]): Map[AttributeId, Set[AttributeId]] = {
+    // Execution plans migrated from Spline 0.3.x don't store AttrRefs in the "projectList".
+    // So that if you do "df.withColumn(x, y)" the respective attributes for [x, y] columns end up to be the right part of the schema,
+    // whilst its left part corresponds to the "df" schema and can be ignored for the purpose of this algorithm.
+    val exprOutAttrIds =
+      if (schema.length == exprs.length) schema
+      else schema.takeRight(exprs.length)
+
+    exprs
+      .zip(exprOutAttrIds)
       .map { case (expr, attrId) => attrId -> expressionDependencies(expr) }
       .toMap
+  }
 
   private def resolveSubqueryAlias(inputSchema: Seq[AttributeId], outputSchema: Seq[AttributeId]): Map[AttributeId, Set[AttributeId]] =
     inputSchema

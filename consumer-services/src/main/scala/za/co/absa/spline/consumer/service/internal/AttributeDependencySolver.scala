@@ -35,8 +35,8 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
 
   private def findOriginOperationForAttr(attributeId: AttributeId): Option[Operation] =
     execPlan.operations.find(op =>
-      execPlan.outputSchema(op._key).contains(attributeId) &&
-        !execPlan.inputAttributes(op._key).contains(attributeId)
+      execPlan.outputSchemaSet(op._key).contains(attributeId) &&
+        !execPlan.inputSchemaSet(op._key).contains(attributeId)
     )
 
   private def asGraph(tuple: (Nodes, Edges)): AttributeGraph = {
@@ -47,7 +47,7 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
   }
 
   private def getAttributeImpact(targetOp: Operation, targetAttrId: AttributeId) = {
-    val Acc(nodesRes, edgesRes, _, _) = DAGTraversals.dfs[Operation, Acc](
+    val Acc(nodesRes, edgesRes, _, _) = try DAGTraversals.dfs[Operation, Acc](
       vertex = targetOp,
       acc = Acc(attrsToProcessByOpId = Map(targetOp._key -> Set(targetAttrId))),
       next = execPlan.followingOps,
@@ -55,7 +55,7 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
       prune = (_, acc, _) => acc.attrsToProcessByOpId.isEmpty,
       collect = {
         case (Acc(nodes, edges, attrsToProcessByOpId, _), op: Operation) =>
-          val inputSchema: Set[AttributeId] = execPlan.inputAttributes(op._key)
+          val inputSchema: Set[AttributeId] = execPlan.inputSchemaSet(op._key)
           val myAttrsToProcess = attrsToProcessByOpId(op._key)
           val (transitiveAttrIds, originAttrIds) = myAttrsToProcess.partition(inputSchema)
 
@@ -73,8 +73,8 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
           val newEdges =
             for {
               fo <- followingOps
-              inSchema = execPlan.firsInputSchema(fo._key)
-              outSchema = execPlan.outputSchema(fo._key)
+              inSchema = execPlan.inputSchemaArray(fo._key)
+              outSchema = execPlan.outputSchemaArray(fo._key)
               (toAttrId, fromAttrIds) <- dependencyResolver.resolve(fo, inSchema, outSchema)
               fromAttrId <- fromAttrIds
               if toAttrId != fromAttrId
@@ -84,13 +84,13 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
             }
 
           val nextAttrsByChild: Map[OperationId, Set[AttributeId]] = followingOps.map(fo => {
-            val inSchema = execPlan.firsInputSchema(fo._key)
-            val outSchema = execPlan.outputSchema(fo._key)
+            val foInputSchema = execPlan.inputSchemaArray(fo._key)
+            val foOutputSchema = execPlan.outputSchemaArray(fo._key)
             val foAttrDeps: Map[AttributeId, Set[AttributeId]] = dependencyResolver
-              .resolve(fo, inSchema, outSchema)
+              .resolve(fo, foInputSchema, foOutputSchema)
               .filter({ case (_, v) => v.intersect(myAttrsToProcess).nonEmpty })
             val hisOriginAttrs: Set[AttributeId] = foAttrDeps.keySet
-            val hisTransAttrs: Set[AttributeId] = myAttrsToProcess.intersect(execPlan.outputSchema(fo._key).toSet)
+            val hisTransAttrs: Set[AttributeId] = myAttrsToProcess.intersect(execPlan.outputSchemaSet(fo._key))
             fo._key -> (hisOriginAttrs ++ hisTransAttrs)
           }).toMap
 
@@ -101,6 +101,11 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
           )
       }
     )
+    catch {
+      case e: Exception =>
+        e.printStackTrace()
+        throw e
+    }
     (nodesRes, edgesRes)
   }
 
@@ -113,18 +118,20 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
       prune = (_, acc, _) => acc.attrsToProcessByOpId.isEmpty,
       collect = {
         case (Acc(nodes, edges, attrsToProcessByOpId, transOpsByAttrId), op: Operation) =>
-          val outputSchema: Seq[AttributeId] = execPlan.outputSchema(op._key)
-          val inputSchema: Array[AttributeId] = execPlan.firsInputSchema(op._key)
-          val inputAttributes = execPlan.inputAttributes(op._key)
-          val (transitiveAttrIds, originAttrIds) = attrsToProcessByOpId(op._key).partition(inputAttributes)
+          val (transitiveAttrIds, originAttrIds) = {
+            val inputSchema: Set[AttributeId] = execPlan.inputSchemaSet(op._key)
+            attrsToProcessByOpId(op._key).partition(inputSchema)
+          }
 
           val newNodes = originAttrIds.map(attId => {
             val transOpIds = transOpsByAttrId.getOrElse(attId, Set.empty)
             attId -> NodeValue(op._key, transOpIds)
           }).toMap
 
+          val opInputSchema = execPlan.inputSchemaArray(op._key)
+          val opOutputSchema = execPlan.outputSchemaArray(op._key)
           val newEdges = dependencyResolver
-            .resolve(op, inputSchema, outputSchema)
+            .resolve(op, opInputSchema, opOutputSchema)
             .filterKeys(originAttrIds)
             .flatMap {
               case (origAttrId, depAttrIds) =>
@@ -138,8 +145,8 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
           val nextAttrIds = transitiveAttrIds ++ newEdges.map(_.to)
           val nextAttrsByChild: Map[OperationId, Set[AttributeId]] =
             execPlan.operationById
-              .filterKeys(execPlan.precedingOps(op).map(_._key))
-              .mapValues(o => execPlan.outputSchema(o._key).toSet.intersect(nextAttrIds))
+              .filterKeys(execPlan.precedingOps(op).map(_._key).contains)
+              .mapValues(o => execPlan.outputSchemaSet(o._key).intersect(nextAttrIds))
               .filter { case (_, nextAttrs) => nextAttrs.nonEmpty }
 
           val updatedAttrsToProcessByOpId = attrsToProcessByOpId - op._key ++ nextAttrsByChild
