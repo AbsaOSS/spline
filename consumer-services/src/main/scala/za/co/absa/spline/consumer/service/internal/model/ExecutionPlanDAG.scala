@@ -24,15 +24,19 @@ class ExecutionPlanDAG(val sysInfo: SystemInfo, val operations: Set[_ <: Operati
   val outboundEdges: Map[OperationId, Set[Edge]] = edges.groupBy(_._from).withDefaultValue(Set.empty)
   val inboundEdges: Map[OperationId, Set[Edge]] = edges.groupBy(_._to).withDefaultValue(Set.empty)
 
-  val outputSchema: Map[OperationId, Set[AttributeId]] =
+  val outputSchema: Map[OperationId, Array[AttributeId]] =
     operations.map(op => {
       op._key -> op.outputSchema
         .asInstanceOf[Option[Array[AttributeId]]]
-        .map(_.toSet)
-        .getOrElse(Set.empty)
+        .getOrElse(Array.empty)
     }).toMap
 
-  val inputSchema: Map[OperationId, Set[AttributeId]] =
+  val firsInputSchema: Map[OperationId, Array[AttributeId]] =
+    operations.map(op => {
+      op._key -> precedingOps(op).headOption.map(p => outputSchema(p._key)).getOrElse(Array.empty)
+    }).toMap
+
+  val inputAttributes: Map[OperationId, Set[AttributeId]] =
     operations.map(op => {
       op._key -> precedingOps(op).flatMap(p => outputSchema(p._key))
     }).toMap

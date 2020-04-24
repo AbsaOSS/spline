@@ -36,7 +36,7 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
   private def findOriginOperationForAttr(attributeId: AttributeId): Option[Operation] =
     execPlan.operations.find(op =>
       execPlan.outputSchema(op._key).contains(attributeId) &&
-        !execPlan.inputSchema(op._key).contains(attributeId)
+        !execPlan.inputAttributes(op._key).contains(attributeId)
     )
 
   private def asGraph(tuple: (Nodes, Edges)): AttributeGraph = {
@@ -55,7 +55,7 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
       prune = (_, acc, _) => acc.attrsToProcessByOpId.isEmpty,
       collect = {
         case (Acc(nodes, edges, attrsToProcessByOpId, _), op: Operation) =>
-          val inputSchema: Set[AttributeId] = execPlan.inputSchema(op._key)
+          val inputSchema: Set[AttributeId] = execPlan.inputAttributes(op._key)
           val myAttrsToProcess = attrsToProcessByOpId(op._key)
           val (transitiveAttrIds, originAttrIds) = myAttrsToProcess.partition(inputSchema)
 
@@ -73,7 +73,7 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
           val newEdges =
             for {
               fo <- followingOps
-              inSchema = execPlan.inputSchema(fo._key)
+              inSchema = execPlan.firsInputSchema(fo._key)
               outSchema = execPlan.outputSchema(fo._key)
               (toAttrId, fromAttrIds) <- dependencyResolver.resolve(fo, inSchema, outSchema)
               fromAttrId <- fromAttrIds
@@ -84,11 +84,13 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
             }
 
           val nextAttrsByChild: Map[OperationId, Set[AttributeId]] = followingOps.map(fo => {
+            val inSchema = execPlan.firsInputSchema(fo._key)
+            val outSchema = execPlan.outputSchema(fo._key)
             val foAttrDeps: Map[AttributeId, Set[AttributeId]] = dependencyResolver
-              .resolve(fo, execPlan.inputSchema(fo._key), execPlan.outputSchema(fo._key))
+              .resolve(fo, inSchema, outSchema)
               .filter({ case (_, v) => v.intersect(myAttrsToProcess).nonEmpty })
             val hisOriginAttrs: Set[AttributeId] = foAttrDeps.keySet
-            val hisTransAttrs: Set[AttributeId] = myAttrsToProcess.intersect(execPlan.outputSchema(fo._key))
+            val hisTransAttrs: Set[AttributeId] = myAttrsToProcess.intersect(execPlan.outputSchema(fo._key).toSet)
             fo._key -> (hisOriginAttrs ++ hisTransAttrs)
           }).toMap
 
@@ -111,9 +113,10 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
       prune = (_, acc, _) => acc.attrsToProcessByOpId.isEmpty,
       collect = {
         case (Acc(nodes, edges, attrsToProcessByOpId, transOpsByAttrId), op: Operation) =>
-          val outputSchema: Set[AttributeId] = execPlan.outputSchema(op._key)
-          val inputSchema: Set[AttributeId] = execPlan.inputSchema(op._key)
-          val (transitiveAttrIds, originAttrIds) = attrsToProcessByOpId(op._key).partition(inputSchema)
+          val outputSchema: Seq[AttributeId] = execPlan.outputSchema(op._key)
+          val inputSchema: Array[AttributeId] = execPlan.firsInputSchema(op._key)
+          val inputAttributes = execPlan.inputAttributes(op._key)
+          val (transitiveAttrIds, originAttrIds) = attrsToProcessByOpId(op._key).partition(inputAttributes)
 
           val newNodes = originAttrIds.map(attId => {
             val transOpIds = transOpsByAttrId.getOrElse(attId, Set.empty)
@@ -136,7 +139,7 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
           val nextAttrsByChild: Map[OperationId, Set[AttributeId]] =
             execPlan.operationById
               .filterKeys(execPlan.precedingOps(op).map(_._key))
-              .mapValues(o => execPlan.outputSchema(o._key).intersect(nextAttrIds))
+              .mapValues(o => execPlan.outputSchema(o._key).toSet.intersect(nextAttrIds))
               .filter { case (_, nextAttrs) => nextAttrs.nonEmpty }
 
           val updatedAttrsToProcessByOpId = attrsToProcessByOpId - op._key ++ nextAttrsByChild

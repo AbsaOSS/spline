@@ -23,8 +23,8 @@ import za.co.absa.spline.persistence.model.Operation
 trait AttributeDependencyResolver {
   def resolve(
     op: Operation,
-    inputSchema: => Set[AttributeId],
-    outputSchema: => Set[AttributeId]
+    inputSchema: => Seq[AttributeId],
+    outputSchema: => Seq[AttributeId]
   ): Map[AttributeId, Set[AttributeId]]
 }
 
