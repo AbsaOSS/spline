@@ -126,13 +126,12 @@ export class LineageGraphComponent implements OnChanges, AfterViewInit {
     })
   }
 
-  private highlightAttrLinAndImp(attrLinGraph: AttributeGraph, attrImpGraph: AttributeGraph) {
+  private highlightAttrLinAndImp(attrLinGraph: AttributeGraph | undefined, attrImpGraph: AttributeGraph) {
     this.cytograph && this.cytograph.cy && this.cytograph.cy.ready(() => {
-      const lineageAttrIds = new Set(attrLinGraph.edges.map(e => e.target))
-      const primaryAttrId = attrLinGraph.nodes.find(a => !lineageAttrIds.has(a._id))._id
+      const impactedAttrIds = new Set(attrImpGraph.edges.map(e => e.source))
+      const primaryAttr = attrImpGraph.nodes.find(a => !impactedAttrIds.has(a._id))
 
-      const primaryAttr = attrImpGraph.nodes.find(a => a._id === primaryAttrId)
-      const lineageAttrs = attrLinGraph.nodes.filter(a => a != primaryAttr)
+      const lineageAttrs = attrLinGraph ? attrLinGraph.nodes.filter(a => a != primaryAttr) : []
       const impactAttrs = attrImpGraph.nodes.filter(a => a != primaryAttr)
 
       const primaryOpIds = new Set([primaryAttr.originOpId].concat(primaryAttr.transOpIds))

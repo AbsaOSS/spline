@@ -18,7 +18,7 @@
     <div class="col-sm-8 no-padding">
       <lineage-graph [embeddedMode]="d.embeddedMode"
                      [layout]="d.layout"
-                     [graph]="d.graph"
+                     [graph]="d.plan.graph"
                      [attributeLineageAndImpactGraph]="d.attributeLinAndImp"
                      [selectedNode]="selectedNodeId"
                      (selectedNodeChange)="onNodeSelected($event)">
@@ -26,7 +26,9 @@
 
       <lineage-highlights-toolbar
               *ngIf="selectedAttribute$ | async as selectedAttributes"
+              [lineageGraphLegends]="lineageGraphLegendsToShow$ | async"
               [attributes]="[selectedAttributes]"
+              [showOldSplineWarning]="isExecPlanFromOldSpline(d.plan.executionPlan)"
               (removeAttribute$)="onRemoveSelectedAttrClick()">
       </lineage-highlights-toolbar>
 

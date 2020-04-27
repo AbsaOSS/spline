@@ -22,11 +22,13 @@ import * as LayoutAction from "../../store/actions/layout.actions";
 import * as _ from "lodash";
 import * as ExecutionPlanAction from "../../store/actions/execution-plan.actions";
 import {distinct, filter, map} from "rxjs/operators";
-import {CytoscapeGraphVM} from "../../model/viewModels/cytoscape/cytoscapeGraphVM";
 import * as RouterAction from "../../store/actions/router.actions";
 import * as DetailsInfosAction from "../../store/actions/details-info.actions";
 import {AttributeVM} from "../../model/viewModels/attributeVM";
 import {AttributeLineageAndImpact} from "../../generated/models/attribute-lineage-and-impact";
+import {LineageGraphLegend, LineageGraphLegends} from "../../model/lineage-graph";
+import {ExecutedLogicalPlanVM} from "../../model/viewModels/executedLogicalPlanVM";
+import {ExecutionPlanInfo} from "../../generated/models/execution-plan-info";
 
 @Component({
   templateUrl: './lineage.component.html',
@@ -37,11 +39,13 @@ export class LineageComponent implements OnDestroy {
   public data$: Observable<{
     embeddedMode: boolean,
     layout: object,
-    graph: CytoscapeGraphVM,
+    plan: ExecutedLogicalPlanVM,
     attributeLinAndImp: AttributeLineageAndImpact
   }>
 
   public selectedAttribute$: Observable<AttributeVM>
+
+  public lineageGraphLegendsToShow$: Observable<LineageGraphLegend[]>
 
   public selectedNodeId: string
 
@@ -78,7 +82,7 @@ export class LineageComponent implements OnDestroy {
     ]).pipe(
       distinct(),
       map(([embeddedMode, layout, plan, attributeLinAndImp]) =>
-        ({embeddedMode, layout, graph: plan.graph, attributeLinAndImp})
+        ({embeddedMode, layout, plan, attributeLinAndImp})
       )
     )
 
@@ -91,6 +95,24 @@ export class LineageComponent implements OnDestroy {
           attrId && (attributes as AttributeVM[]).find(a => a.id == attrId)
         )
       )
+
+    this.lineageGraphLegendsToShow$ =
+      this.store.select('attributeLineageAndImpact').pipe(filter(_.identity)).pipe(
+        map(({lineage, impact}: AttributeLineageAndImpact) => {
+          const lineageNonEmpty = lineage && lineage.edges.length > 0
+          const impactNonEmpty = impact.edges.length > 0
+          return [
+            LineageGraphLegends.Usage,
+            ...(lineageNonEmpty ? [LineageGraphLegends.Lineage] : []),
+            ...(impactNonEmpty ? [LineageGraphLegends.Impact] : []),
+          ]
+        })
+      )
+  }
+
+  public isExecPlanFromOldSpline(planInfo: ExecutionPlanInfo) {
+    const agent = planInfo.agentInfo as { name: string, version: string }
+    return agent.name.toLowerCase() == 'spline' && agent.version == '0.3.x'
   }
 
   public onNodeSelected(nodeId: string) {
