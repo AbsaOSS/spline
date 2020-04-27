@@ -20,6 +20,7 @@ import {
   Input,
   OnChanges,
   Output,
+  SimpleChange,
   SimpleChanges,
   ViewChild
 } from '@angular/core';
@@ -58,9 +59,14 @@ export class LineageGraphComponent implements OnChanges, AfterViewInit {
   private cytograph: CytoscapeNgLibComponent
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes['graph']) this.refreshGraph()
-    if (changes['selectedNode']) this.refreshSelectedNode()
-    if (changes['attributeLineageAndImpactGraph']) this.refreshAttributeGraph()
+    const changeExceptFirst = (prop: string): SimpleChange | undefined => {
+      const change = changes[prop]
+      return change && !change.isFirstChange() ? change : undefined
+    }
+
+    if (changeExceptFirst('graph')) this.refreshGraph()
+    if (changeExceptFirst('selectedNode')) this.refreshSelectedNode()
+    if (changeExceptFirst('attributeLineageAndImpactGraph')) this.refreshAttributeGraph()
   }
 
   public ngAfterViewInit(): void {
