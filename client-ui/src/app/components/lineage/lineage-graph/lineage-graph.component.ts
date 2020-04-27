@@ -85,7 +85,7 @@ export class LineageGraphComponent implements OnChanges, AfterViewInit {
     this.refreshAttributeGraph()
   }
 
-  public refreshGraph(): void {
+  private refreshGraph(): void {
     this.cytograph && this.cytograph.cy && this.cytograph.cy.ready(() => {
       const writeNode = this.graph.nodes.find(n => n.data._type == 'Write')
       writeNode.data.icon = operationIconCodes.get(OperationType.Write)
