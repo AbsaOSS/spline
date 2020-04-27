@@ -37,15 +37,9 @@ object SparkAttributeDependencyResolverImpl extends AttributeDependencyResolver 
     }
 
   private def resolveExpressionList(exprs: Seq[mutable.Map[String, Any]], schema: Seq[AttributeId]): Map[AttributeId, Set[AttributeId]] = {
-    // Execution plans migrated from Spline 0.3.x don't store AttrRefs in the "projectList".
-    // So that if you do "df.withColumn(x, y)" the respective attributes for [x, y] columns end up to be the right part of the schema,
-    // whilst its left part corresponds to the "df" schema and can be ignored for the purpose of this algorithm.
-    val exprOutAttrIds =
-      if (schema.length == exprs.length) schema
-      else schema.takeRight(exprs.length)
-
+    assume(schema.length == exprs.length)
     exprs
-      .zip(exprOutAttrIds)
+      .zip(schema)
       .map { case (expr, attrId) => attrId -> expressionDependencies(expr) }
       .toMap
   }

@@ -16,6 +16,4 @@
 
 package za.co.absa.spline.consumer.service.internal.model
 
-import za.co.absa.commons.version.Version
-
-case class SystemInfo(name: String, version: Version)
+case class VersionInfo(name: String, version: String)

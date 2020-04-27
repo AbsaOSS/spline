@@ -16,10 +16,18 @@
 
 package za.co.absa.spline.consumer.service.internal.model
 
+import java.util.UUID
+
 import za.co.absa.spline.consumer.service.internal.model.ExecutionPlanDAG._
 import za.co.absa.spline.persistence.model.{Edge, Operation}
 
-class ExecutionPlanDAG(val sysInfo: SystemInfo, val operations: Array[_ <: Operation], edges: Array[Edge]) {
+class ExecutionPlanDAG(
+  val id: UUID,
+  val systemInfo: VersionInfo,
+  val agentInfo: VersionInfo,
+  val operations: Array[_ <: Operation],
+  edges: Array[Edge]) {
+
   val operationById: Map[OperationId, Operation] = operations.map(op => op._key -> op).toMap
 
   private val outboundEdges: Map[OperationId, Array[Edge]] = edges.groupBy(_._from).withDefaultValue(Array.empty)
@@ -48,6 +56,10 @@ class ExecutionPlanDAG(val sysInfo: SystemInfo, val operations: Array[_ <: Opera
     inboundEdges(op._key)
       .map(e => operationById(e._from))
 
+  def findOriginOperationForAttr(attributeId: AttributeId): Option[Operation] =
+    operations.find(op =>
+      outputSchemaSet(op._key).contains(attributeId) &&
+        !inputSchemaSet(op._key).contains(attributeId))
 }
 
 object ExecutionPlanDAG {
