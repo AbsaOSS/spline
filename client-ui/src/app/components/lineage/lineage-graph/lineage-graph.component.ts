@@ -28,7 +28,7 @@ import {CytoscapeNgLibComponent} from 'cytoscape-ng-lib';
 import {operationColorCodes, operationIconCodes} from 'src/app/util/execution-plan';
 import {OperationType} from 'src/app/model/types/operationType';
 import {CytoscapeGraphVM} from "../../../model/viewModels/cytoscape/cytoscapeGraphVM";
-import {cyStyles} from '../../../model/lineage-graph';
+import {cyStyles, getImpactRootAttributeNode} from '../../../model/lineage-graph';
 import {AttributeLineageAndImpact} from "../../../generated/models/attribute-lineage-and-impact";
 import {AttributeGraph} from "../../../generated/models/attribute-graph";
 
@@ -128,8 +128,7 @@ export class LineageGraphComponent implements OnChanges, AfterViewInit {
 
   private highlightAttrLinAndImp(attrLinGraph: AttributeGraph | undefined, attrImpGraph: AttributeGraph) {
     this.cytograph && this.cytograph.cy && this.cytograph.cy.ready(() => {
-      const impactedAttrIds = new Set(attrImpGraph.edges.map(e => e.source))
-      const primaryAttr = attrImpGraph.nodes.find(a => !impactedAttrIds.has(a._id))
+      const primaryAttr = getImpactRootAttributeNode(attrImpGraph)
 
       const lineageAttrs = attrLinGraph ? attrLinGraph.nodes.filter(a => a != primaryAttr) : []
       const impactAttrs = attrImpGraph.nodes.filter(a => a != primaryAttr)

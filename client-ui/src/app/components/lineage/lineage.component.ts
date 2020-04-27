@@ -26,7 +26,7 @@ import * as RouterAction from "../../store/actions/router.actions";
 import * as DetailsInfosAction from "../../store/actions/details-info.actions";
 import {AttributeVM} from "../../model/viewModels/attributeVM";
 import {AttributeLineageAndImpact} from "../../generated/models/attribute-lineage-and-impact";
-import {LineageGraphLegend, LineageGraphLegends} from "../../model/lineage-graph";
+import {getImpactRootAttributeNode, LineageGraphLegend, LineageGraphLegends} from "../../model/lineage-graph";
 import {ExecutedLogicalPlanVM} from "../../model/viewModels/executedLogicalPlanVM";
 import {ExecutionPlanInfo} from "../../generated/models/execution-plan-info";
 
@@ -65,10 +65,22 @@ export class LineageComponent implements OnDestroy {
       .select('router', 'state', 'queryParams', 'selectedNode')
       .subscribe((nodeId: string) => {
         this.selectedNodeId = nodeId
+        console.log("NODE", nodeId)
         this.store.dispatch(nodeId
           ? new DetailsInfosAction.Get(nodeId)
           : new DetailsInfosAction.Reset()
         )
+      })
+    )
+
+    this.subscriptions.push(this.store
+      .select('attributeLineageAndImpact').pipe(filter(_.identity))
+      .subscribe(({impact}: AttributeLineageAndImpact) => {
+        if (!this.selectedNodeId) {
+          const primaryAttr = getImpactRootAttributeNode(impact)
+          console.log("IMPACT")
+          this.onNodeSelected(primaryAttr.originOpId)
+        }
       })
     )
 

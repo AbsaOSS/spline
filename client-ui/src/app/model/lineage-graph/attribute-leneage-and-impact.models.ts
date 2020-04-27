@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
-export * from './leneage-graph.models';
-export * from './leneage-graph-legend.models';
-export * from './attribute-leneage-and-impact.models';
+
+import {AttributeGraph} from "../../generated/models/attribute-graph";
+import {AttributeNode} from "../../generated/models/attribute-node";
+
+export function getImpactRootAttributeNode(graph: AttributeGraph): AttributeNode {
+  const impactedAttrIds = new Set(graph.edges.map(e => e.source))
+  return graph.nodes.find(a => !impactedAttrIds.has(a._id))
+}
