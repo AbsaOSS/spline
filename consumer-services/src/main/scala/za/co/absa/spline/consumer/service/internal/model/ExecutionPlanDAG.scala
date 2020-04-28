@@ -16,35 +16,50 @@
 
 package za.co.absa.spline.consumer.service.internal.model
 
+import java.util.UUID
+
 import za.co.absa.spline.consumer.service.internal.model.ExecutionPlanDAG._
 import za.co.absa.spline.persistence.model.{Edge, Operation}
 
-class ExecutionPlanDAG(val sysInfo: SystemInfo, val operations: Set[_ <: Operation], edges: Set[Edge]) {
-  val operationById: Map[OperationId, Operation] = operations.map(op => op._key -> op).toMap
-  val outboundEdges: Map[OperationId, Set[Edge]] = edges.groupBy(_._from).withDefaultValue(Set.empty)
-  val inboundEdges: Map[OperationId, Set[Edge]] = edges.groupBy(_._to).withDefaultValue(Set.empty)
+class ExecutionPlanDAG(
+  val id: UUID,
+  val systemInfo: VersionInfo,
+  val agentInfo: VersionInfo,
+  val operations: Array[_ <: Operation],
+  edges: Array[Edge]) {
 
-  val outputSchema: Map[OperationId, Set[AttributeId]] =
+  val operationById: Map[OperationId, Operation] = operations.map(op => op._key -> op).toMap
+
+  private val outboundEdges: Map[OperationId, Array[Edge]] = edges.groupBy(_._from).withDefaultValue(Array.empty)
+  private val inboundEdges: Map[OperationId, Array[Edge]] = edges.groupBy(_._to).withDefaultValue(Array.empty)
+
+  val outputSchemaArray: Map[OperationId, Array[AttributeId]] =
     operations.map(op => {
       op._key -> op.outputSchema
         .asInstanceOf[Option[Array[AttributeId]]]
-        .map(_.toSet)
-        .getOrElse(Set.empty)
+        .getOrElse(Array.empty)
     }).toMap
 
-  val inputSchema: Map[OperationId, Set[AttributeId]] =
+  val inputSchemaArray: Map[OperationId, Array[AttributeId]] =
     operations.map(op => {
-      op._key -> precedingOps(op).flatMap(p => outputSchema(p._key))
+      op._key -> precedingOps(op).flatMap(p => outputSchemaArray(p._key))
     }).toMap
 
-  def precedingOps(op: Operation): Set[Operation] =
+  val outputSchemaSet: Map[OperationId, Set[AttributeId]] = outputSchemaArray.mapValues(_.toSet)
+  val inputSchemaSet: Map[OperationId, Set[AttributeId]] = inputSchemaArray.mapValues(_.toSet)
+
+  def precedingOps(op: Operation): Array[Operation] =
     outboundEdges(op._key)
       .map(e => operationById(e._to))
 
-  def followingOps(op: Operation): Set[Operation] =
+  def followingOps(op: Operation): Array[Operation] =
     inboundEdges(op._key)
       .map(e => operationById(e._from))
 
+  def findOriginOperationForAttr(attributeId: AttributeId): Option[Operation] =
+    operations.find(op =>
+      outputSchemaSet(op._key).contains(attributeId) &&
+        !inputSchemaSet(op._key).contains(attributeId))
 }
 
 object ExecutionPlanDAG {

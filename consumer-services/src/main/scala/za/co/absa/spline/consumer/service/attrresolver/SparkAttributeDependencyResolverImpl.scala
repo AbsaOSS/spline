@@ -25,24 +25,26 @@ import scala.collection.mutable
 object SparkAttributeDependencyResolverImpl extends AttributeDependencyResolver {
   override def resolve(
     op: Operation,
-    inputSchema: => Set[AttributeId],
-    outputSchema: => Set[AttributeId]
+    inputSchema: => Seq[AttributeId],
+    outputSchema: => Seq[AttributeId]
   ): Map[AttributeId, Set[AttributeId]] =
     op.extra("name") match {
-      case "Project" => resolveExpressionList(op.params("projectList"), outputSchema)
-      case "Aggregate" => resolveExpressionList(op.params("aggregateExpressions"), outputSchema)
+      case "Project" => resolveExpressionList(asScalaListOfMaps(op.params("projectList")), outputSchema)
+      case "Aggregate" => resolveExpressionList(asScalaListOfMaps(op.params("aggregateExpressions")), outputSchema)
       case "SubqueryAlias" => resolveSubqueryAlias(inputSchema, outputSchema)
       case "Generate" => resolveGenerator(op)
       case _ => Map.empty
     }
 
-  private def resolveExpressionList(exprList: Any, schema: Set[AttributeId]): Map[AttributeId, Set[AttributeId]] =
-    asScalaListOfMaps[String, Any](exprList)
+  private def resolveExpressionList(exprs: Seq[mutable.Map[String, Any]], schema: Seq[AttributeId]): Map[AttributeId, Set[AttributeId]] = {
+    assume(schema.length == exprs.length)
+    exprs
       .zip(schema)
       .map { case (expr, attrId) => attrId -> expressionDependencies(expr) }
       .toMap
+  }
 
-  private def resolveSubqueryAlias(inputSchema: Set[AttributeId], outputSchema: Set[AttributeId]): Map[AttributeId, Set[AttributeId]] =
+  private def resolveSubqueryAlias(inputSchema: Seq[AttributeId], outputSchema: Seq[AttributeId]): Map[AttributeId, Set[AttributeId]] =
     inputSchema
       .zip(outputSchema)
       .map { case (inAtt, outAtt) => outAtt -> Set(inAtt) }

@@ -15,26 +15,31 @@
  */
 
 
-import { LINE_COLOR_HLT_IMPACT, LINE_COLOR_HLT_LINEAGE, LINE_COLOR_HLT_PRIMARY } from './leneage-graph.models';
+import {LINE_COLOR_HLT_IMPACT, LINE_COLOR_HLT_LINEAGE, LINE_COLOR_HLT_PRIMARY} from './leneage-graph.models';
 
 
-export interface LineageGraphLegend {
+export type LineageGraphLegend = {
   title: string;
   color: string;
   description: string;
 }
 
-export function getLineageGraphLegend(): LineageGraphLegend[] {
-  return [
-    {
-      title: 'Primary',
+export type LineageGraphLegendKeys =
+  "Usage" |
+  "Lineage" |
+  "Impact"
+
+export const LineageGraphLegends: { [key in LineageGraphLegendKeys]: LineageGraphLegend } =
+  Object.freeze({
+    Usage: {
+      title: 'Usage',
       color: LINE_COLOR_HLT_PRIMARY,
       description: `
-          Primary - consists of operations that have the selected attribute in their output.
+          Usage - consists of operations that have the selected attribute in their output.
           I.e operations that either create the attribute or propagate through.
       `
     },
-    {
+    Lineage: {
       title: 'Lineage',
       color: LINE_COLOR_HLT_LINEAGE,
       description: `
@@ -43,7 +48,7 @@ export function getLineageGraphLegend(): LineageGraphLegend[] {
           attributes which the selected attribute depends on.
       `
     },
-    {
+    Impact: {
       title: 'Impact',
       color: LINE_COLOR_HLT_IMPACT,
       description: `
@@ -51,5 +56,4 @@ export function getLineageGraphLegend(): LineageGraphLegend[] {
           That is, the operations that produces/propagate attributes that depend on selected one transitively.
       `
     }
-  ];
-}
+  })

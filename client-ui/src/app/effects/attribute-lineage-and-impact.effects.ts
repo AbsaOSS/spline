@@ -14,34 +14,34 @@
  * limitations under the License.
  */
 
-import * as _ from 'lodash'
+import * as _ from "lodash";
 import {Injectable} from '@angular/core';
-import {Effect} from '@ngrx/effects';
+import {Actions, Effect, ofType} from '@ngrx/effects';
 import {Action, Store} from '@ngrx/store';
 import {Observable, of} from 'rxjs';
-import {filter, map, switchMap} from 'rxjs/operators';
+import {distinctUntilChanged, map, switchMap} from 'rxjs/operators';
 import {AttributeLineageAndImpact} from '../generated/models';
 import {LineageService} from '../generated/services';
 import {AppState} from '../model/app-state';
 import {handleException} from '../rxjs/operators/handleException';
 import * as AttributeLineageAndImpactActions from '../store/actions/attribute-lineage-and-impact.actions';
+import {ROUTER_NAVIGATED} from "@ngrx/router-store";
 
 @Injectable()
 export class AttributeLineageAndImpactEffects {
 
   constructor(
     private lineageService: LineageService,
-    private store: Store<AppState>) {
+    private store: Store<AppState>,
+    private actions$: Actions) {
   }
 
   @Effect()
   public getAttributeLineageAndImpact$: Observable<Action> =
-
-    this.store.select('executedLogicalPlan').pipe(
-      filter(_.identity),
-      switchMap(({executionPlan}) =>
-        this.store.select('router', 'state', 'queryParams', 'attribute').pipe(map(attrId => [executionPlan._id, attrId]))
-      ),
+    this.actions$.pipe(
+      ofType(ROUTER_NAVIGATED),
+      map(({payload: {routerState: {params: {uid: execPlanId}, queryParams: {attribute: attrId}}}}) => [execPlanId, attrId]),
+      distinctUntilChanged(_.isEqual),
       switchMap(([execPlanId, attrId]) => attrId
         ? this.getAttributeLineageAndImpact(execPlanId, attrId)
         : of(undefined)),

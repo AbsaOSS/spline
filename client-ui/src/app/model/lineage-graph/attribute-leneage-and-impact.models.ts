@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.consumer.service.internal.model
 
-import za.co.absa.commons.version.Version
+import {AttributeGraph} from "../../generated/models/attribute-graph";
+import {AttributeNode} from "../../generated/models/attribute-node";
 
-case class SystemInfo(name: String, version: Version)
+export function getImpactRootAttributeNode(graph: AttributeGraph): AttributeNode {
+  const impactedAttrIds = new Set(graph.edges.map(e => e.source))
+  return graph.nodes.find(a => !impactedAttrIds.has(a._id))
+}

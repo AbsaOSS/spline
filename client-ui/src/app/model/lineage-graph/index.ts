@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 ABSA Group Limited
+ * Copyright 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,3 +16,4 @@
 
 export * from './leneage-graph.models';
 export * from './leneage-graph-legend.models';
+export * from './attribute-leneage-and-impact.models';

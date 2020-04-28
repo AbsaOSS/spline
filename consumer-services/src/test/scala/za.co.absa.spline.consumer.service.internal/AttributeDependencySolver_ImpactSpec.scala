@@ -20,8 +20,9 @@ import java.util.UUID
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.consumer.service.attrresolver.AttributeDependencyResolver
-import za.co.absa.spline.consumer.service.internal.model.{ExecutionPlanDAG, SystemInfo}
+import za.co.absa.spline.consumer.service.internal.model.{ExecutionPlanDAG, VersionInfo}
 import za.co.absa.spline.consumer.service.model.{AttributeNode, AttributeTransition}
 import za.co.absa.spline.persistence.model.{Edge, Operation}
 
@@ -482,8 +483,6 @@ class AttributeDependencySolver_ImpactSpec extends AnyFlatSpec with Matchers {
 
 object AttributeDependencySolver_ImpactSpec extends Matchers {
 
-  import za.co.absa.commons.version.Version._
-
   private val A, B, C, D, E, F, G = UUID.randomUUID()
 
   private def assertImpactEquals(
@@ -502,9 +501,11 @@ object AttributeDependencySolver_ImpactSpec extends Matchers {
     ) extends Operation
 
     val execPlanDag = {
-      val opSet = operations.toSet
+      val opSet = operations.toArray
       new ExecutionPlanDAG(
-        sysInfo = SystemInfo("spark", ver"doesn't matter"),
+        UUID.randomUUID,
+        systemInfo = VersionInfo("spark", "doesn't matter"),
+        agentInfo = VersionInfo("spline", SplineBuildInfo.Version),
         operations = opSet.map(ows => TestOperation(
           params = ows.params,
           extra = ows.extra,
@@ -518,9 +519,8 @@ object AttributeDependencySolver_ImpactSpec extends Matchers {
         } yield Edge(o.id, cId))
     }
 
-    val depResolver = AttributeDependencyResolver.forSystem(execPlanDag.sysInfo)
-    val maybeGraph = AttributeDependencySolver(execPlanDag, depResolver).impact(forAttribute.toString)
-    val graph = maybeGraph.getOrElse(fail())
+    val Some(depResolver) = AttributeDependencyResolver.forSystemAndAgent(execPlanDag.systemInfo, execPlanDag.agentInfo)
+    val graph = AttributeDependencySolver(execPlanDag).impact(forAttribute.toString, Some(depResolver))
 
     val expectedEdges = edges.map { case (a, b) => AttributeTransition(a.toString, b.toString) }
     val expectedNodes = nodes.map { case (a, b, c) => AttributeNode(a.toString, b.toString, c.map(_.toString).toSet) }
