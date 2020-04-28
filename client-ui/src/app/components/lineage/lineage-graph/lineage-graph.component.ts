@@ -112,8 +112,8 @@ export class LineageGraphComponent implements OnChanges, AfterViewInit {
   private refreshAttributeGraph() {
     if (this.attributeLineageAndImpactGraph)
       this.highlightAttrLinAndImp(
-        this.attributeLineageAndImpactGraph.lineage,
-        this.attributeLineageAndImpactGraph.impact)
+        this.attributeLineageAndImpactGraph.impact,
+        this.attributeLineageAndImpactGraph.lineage)
     else
       this.clearAttrHighlighting()
   }
@@ -126,7 +126,7 @@ export class LineageGraphComponent implements OnChanges, AfterViewInit {
     })
   }
 
-  private highlightAttrLinAndImp(attrLinGraph: AttributeGraph | undefined, attrImpGraph: AttributeGraph) {
+  private highlightAttrLinAndImp(attrImpGraph: AttributeGraph, attrLinGraph?: AttributeGraph) {
     this.cytograph && this.cytograph.cy && this.cytograph.cy.ready(() => {
       const primaryAttr = getImpactRootAttributeNode(attrImpGraph)
 

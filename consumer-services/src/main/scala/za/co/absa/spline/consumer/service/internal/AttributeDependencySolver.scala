@@ -35,8 +35,8 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG) {
 
   def lineage(attributeId: AttributeId, dependencyResolver: AttributeDependencyResolver): AttributeGraph = {
     val originOp = originOperationForAttr(attributeId)
-    val impact = getAttributeLineage(originOp, attributeId, dependencyResolver)
-    asGraph(impact)
+    val lineage = getAttributeLineage(originOp, attributeId, dependencyResolver)
+    asGraph(lineage)
   }
 
   private def originOperationForAttr(attributeId: AttributeId) =

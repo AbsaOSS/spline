@@ -65,7 +65,6 @@ export class LineageComponent implements OnDestroy {
       .select('router', 'state', 'queryParams', 'selectedNode')
       .subscribe((nodeId: string) => {
         this.selectedNodeId = nodeId
-        console.log("NODE", nodeId)
         this.store.dispatch(nodeId
           ? new DetailsInfosAction.Get(nodeId)
           : new DetailsInfosAction.Reset()
@@ -78,7 +77,6 @@ export class LineageComponent implements OnDestroy {
       .subscribe(({impact}: AttributeLineageAndImpact) => {
         if (!this.selectedNodeId) {
           const primaryAttr = getImpactRootAttributeNode(impact)
-          console.log("IMPACT")
           this.onNodeSelected(primaryAttr.originOpId)
         }
       })
