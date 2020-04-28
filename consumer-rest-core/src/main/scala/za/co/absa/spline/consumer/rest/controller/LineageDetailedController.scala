@@ -58,14 +58,12 @@ class LineageDetailedController @Autowired()(
   ): Future[AttributeLineageAndImpact] = repo
     .loadExecutionPlanAsDAG(execId)
     .map(execPlan => {
-      val dependencyResolver = AttributeDependencyResolver.forSystem(execPlan.sysInfo)
-      val solver = AttributeDependencySolver(execPlan, dependencyResolver)
-      val maybeAttrLineage = solver.lineage(attributeId.toString)
-      val maybeAttrImpact = solver.impact(attributeId.toString)
-      maybeAttrLineage
-        .zip(maybeAttrImpact)
-        .map((AttributeLineageAndImpact.apply _).tupled)
-        .head // else NoSuchElementException -> 404
+      val solver = AttributeDependencySolver(execPlan)
+      val maybeDependencyResolver = AttributeDependencyResolver.forSystemAndAgent(execPlan.systemInfo, execPlan.agentInfo)
+      val maybeAttrLineage = maybeDependencyResolver.map(solver.lineage(attributeId.toString, _))
+      val attrImpact = solver.impact(attributeId.toString, maybeDependencyResolver)
+
+      AttributeLineageAndImpact(maybeAttrLineage, attrImpact)
     })
 }
 
@@ -74,7 +72,7 @@ object LineageDetailedController {
   @ApiModel(description = "Attribute Lineage And Impact")
   case class AttributeLineageAndImpact(
     @ApiModelProperty("Attribute Lineage")
-    lineage: AttributeGraph,
+    lineage: Option[AttributeGraph],
     @ApiModelProperty("Attribute Impact")
     impact: AttributeGraph
   )

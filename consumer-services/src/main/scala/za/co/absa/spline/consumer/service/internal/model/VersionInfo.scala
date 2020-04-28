@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-export * from './leneage-graph.models';
-export * from './leneage-graph-legend.models';
-export * from './attribute-leneage-and-impact.models';
+package za.co.absa.spline.consumer.service.internal.model
+
+case class VersionInfo(name: String, version: String)

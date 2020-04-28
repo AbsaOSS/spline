@@ -28,7 +28,7 @@ import {CytoscapeNgLibComponent} from 'cytoscape-ng-lib';
 import {operationColorCodes, operationIconCodes} from 'src/app/util/execution-plan';
 import {OperationType} from 'src/app/model/types/operationType';
 import {CytoscapeGraphVM} from "../../../model/viewModels/cytoscape/cytoscapeGraphVM";
-import {cyStyles} from '../../../model/lineage-graph';
+import {cyStyles, getImpactRootAttributeNode} from '../../../model/lineage-graph';
 import {AttributeLineageAndImpact} from "../../../generated/models/attribute-lineage-and-impact";
 import {AttributeGraph} from "../../../generated/models/attribute-graph";
 
@@ -112,8 +112,8 @@ export class LineageGraphComponent implements OnChanges, AfterViewInit {
   private refreshAttributeGraph() {
     if (this.attributeLineageAndImpactGraph)
       this.highlightAttrLinAndImp(
-        this.attributeLineageAndImpactGraph.lineage,
-        this.attributeLineageAndImpactGraph.impact)
+        this.attributeLineageAndImpactGraph.impact,
+        this.attributeLineageAndImpactGraph.lineage)
     else
       this.clearAttrHighlighting()
   }
@@ -126,13 +126,11 @@ export class LineageGraphComponent implements OnChanges, AfterViewInit {
     })
   }
 
-  private highlightAttrLinAndImp(attrLinGraph: AttributeGraph, attrImpGraph: AttributeGraph) {
+  private highlightAttrLinAndImp(attrImpGraph: AttributeGraph, attrLinGraph?: AttributeGraph) {
     this.cytograph && this.cytograph.cy && this.cytograph.cy.ready(() => {
-      const lineageAttrIds = new Set(attrLinGraph.edges.map(e => e.target))
-      const primaryAttrId = attrLinGraph.nodes.find(a => !lineageAttrIds.has(a._id))._id
+      const primaryAttr = getImpactRootAttributeNode(attrImpGraph)
 
-      const primaryAttr = attrImpGraph.nodes.find(a => a._id === primaryAttrId)
-      const lineageAttrs = attrLinGraph.nodes.filter(a => a != primaryAttr)
+      const lineageAttrs = attrLinGraph ? attrLinGraph.nodes.filter(a => a != primaryAttr) : []
       const impactAttrs = attrImpGraph.nodes.filter(a => a != primaryAttr)
 
       const primaryOpIds = new Set([primaryAttr.originOpId].concat(primaryAttr.transOpIds))

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core'
-import { AttributeVM } from '../../../model/viewModels/attributeVM'
-import { getLineageGraphLegend, LineageGraphLegend } from '../../../model/lineage-graph'
+import {ChangeDetectionStrategy, Component, EventEmitter, Input, Output} from '@angular/core'
+import {AttributeVM} from '../../../model/viewModels/attributeVM'
+import {LineageGraphLegend} from '../../../model/lineage-graph'
 
 
 @Component({
@@ -29,11 +29,13 @@ export class LineageHighlightsToolbarComponent {
 
   @Input() attributes: AttributeVM[]
 
+  @Input() lineageGraphLegends: LineageGraphLegend[]
+
+  @Input() showOldSplineWarning: boolean
+
   @Output() removeAttribute$ = new EventEmitter<AttributeVM>()
 
-  readonly lineageGraphLegend: LineageGraphLegend[] = getLineageGraphLegend()
-
-  onAttributeRemoveIconClicked(attribute: AttributeVM): void {
+  public onAttributeRemoveIconClicked(attribute: AttributeVM): void {
     this.removeAttribute$.emit(attribute)
   }
 }

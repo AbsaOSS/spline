@@ -16,9 +16,13 @@
 
 package za.co.absa.spline.consumer.service.attrresolver
 
+import za.co.absa.commons.version.Version._
 import za.co.absa.spline.consumer.service.attrresolver.AttributeDependencyResolver.AttributeId
-import za.co.absa.spline.consumer.service.internal.model.SystemInfo
+import za.co.absa.spline.consumer.service.internal.model.VersionInfo
 import za.co.absa.spline.persistence.model.Operation
+
+import scala.PartialFunction.condOpt
+import scala.util.Try
 
 trait AttributeDependencyResolver {
   def resolve(
@@ -31,7 +35,14 @@ trait AttributeDependencyResolver {
 object AttributeDependencyResolver {
   type AttributeId = String
 
-  def forSystem(sysInfo: SystemInfo): AttributeDependencyResolver = sysInfo match {
-    case SystemInfo("spark", _) => SparkAttributeDependencyResolverImpl
+  def forSystemAndAgent(system: VersionInfo, agent: VersionInfo): Option[AttributeDependencyResolver] = condOpt(system) {
+    case VersionInfo("spark", _) if !isSplinePrior04(agent) => SparkAttributeDependencyResolverImpl
+  }
+
+  private def isSplinePrior04(agent: VersionInfo) = {
+    (agent.name equalsIgnoreCase "spline") && {
+      val splineVersion = Try(semver"${agent.version}") getOrElse semver"0.3.0"
+      splineVersion < semver"0.4.0"
+    }
   }
 }

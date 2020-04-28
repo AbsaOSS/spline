@@ -25,19 +25,24 @@ import za.co.absa.spline.consumer.service.internal.model.ExecutionPlanDAG
 import za.co.absa.spline.consumer.service.model.{AttributeGraph, AttributeNode, AttributeTransition}
 import za.co.absa.spline.persistence.model.Operation
 
-class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyResolver: AttributeDependencyResolver) {
+class AttributeDependencySolver private(execPlan: ExecutionPlanDAG) {
 
-  def impact(attributeId: AttributeId): Option[AttributeGraph] =
-    findOriginOperationForAttr(attributeId).map(originOp => asGraph(getAttributeImpact(originOp, attributeId)))
+  def impact(attributeId: AttributeId, dependencyResolver: Option[AttributeDependencyResolver]): AttributeGraph = {
+    val originOp = originOperationForAttr(attributeId)
+    val impact = getAttributeImpact(originOp, attributeId, dependencyResolver)
+    asGraph(impact)
+  }
 
-  def lineage(attributeId: AttributeId): Option[AttributeGraph] =
-    findOriginOperationForAttr(attributeId).map(originOp => asGraph(getAttributeLineage(originOp, attributeId)))
+  def lineage(attributeId: AttributeId, dependencyResolver: AttributeDependencyResolver): AttributeGraph = {
+    val originOp = originOperationForAttr(attributeId)
+    val lineage = getAttributeLineage(originOp, attributeId, dependencyResolver)
+    asGraph(lineage)
+  }
 
-  private def findOriginOperationForAttr(attributeId: AttributeId): Option[Operation] =
-    execPlan.operations.find(op =>
-      execPlan.outputSchemaSet(op._key).contains(attributeId) &&
-        !execPlan.inputSchemaSet(op._key).contains(attributeId)
-    )
+  private def originOperationForAttr(attributeId: AttributeId) =
+    execPlan
+      .findOriginOperationForAttr(attributeId)
+      .getOrElse(sys.error(s"Execution plan $id doesn't have any operation producing attribute $attributeId"))
 
   private def asGraph(tuple: (Nodes, Edges)): AttributeGraph = {
     val (nodes, edges) = tuple
@@ -46,7 +51,15 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
     AttributeGraph(attNodes.toArray, attEdges.toArray)
   }
 
-  private def getAttributeImpact(targetOp: Operation, targetAttrId: AttributeId) = {
+  /**
+   * @param maybeDependencyResolver if no {{AttributeDependencyResolver}} provided the impact will only represent
+   *                                direct usage of the attribute in the execution plan, with no transitive impact
+   */
+  private def getAttributeImpact(
+    targetOp: Operation,
+    targetAttrId: AttributeId,
+    maybeDependencyResolver: Option[AttributeDependencyResolver]) = {
+
     val Acc(nodesRes, edgesRes, _, _) = DAGTraversals.dfs[Operation, Acc](
       vertex = targetOp,
       acc = Acc(attrsToProcessByOpId = Map(targetOp._key -> Set(targetAttrId))),
@@ -72,6 +85,7 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
 
           val newEdges =
             for {
+              dependencyResolver <- maybeDependencyResolver.toSeq
               fo <- followingOps
               inSchema = execPlan.inputSchemaArray(fo._key)
               outSchema = execPlan.outputSchemaArray(fo._key)
@@ -84,13 +98,20 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
             }
 
           val nextAttrsByChild: Map[OperationId, Set[AttributeId]] = followingOps.map(fo => {
-            val foInputSchema = execPlan.inputSchemaArray(fo._key)
-            val foOutputSchema = execPlan.outputSchemaArray(fo._key)
-            val foAttrDeps: Map[AttributeId, Set[AttributeId]] = dependencyResolver
-              .resolve(fo, foInputSchema, foOutputSchema)
-              .filter({ case (_, v) => v.intersect(myAttrsToProcess).nonEmpty })
-            val hisOriginAttrs: Set[AttributeId] = foAttrDeps.keySet
+            val hisOriginAttrs: Set[AttributeId] =
+              maybeDependencyResolver
+                .map(dependencyResolver => {
+                  val foInputSchema = execPlan.inputSchemaArray(fo._key)
+                  val foOutputSchema = execPlan.outputSchemaArray(fo._key)
+                  val foAttrDeps: Map[AttributeId, Set[AttributeId]] = dependencyResolver
+                    .resolve(fo, foInputSchema, foOutputSchema)
+                    .filter({ case (_, v) => v.intersect(myAttrsToProcess).nonEmpty })
+                  foAttrDeps.keySet
+                })
+                .getOrElse(Set.empty)
+
             val hisTransAttrs: Set[AttributeId] = myAttrsToProcess.intersect(execPlan.outputSchemaSet(fo._key))
+
             fo._key -> (hisOriginAttrs ++ hisTransAttrs)
           }).toMap
 
@@ -104,7 +125,11 @@ class AttributeDependencySolver private(execPlan: ExecutionPlanDAG, dependencyRe
     (nodesRes, edgesRes)
   }
 
-  private def getAttributeLineage(targetOp: Operation, targetAttrId: AttributeId) = {
+  private def getAttributeLineage(
+    targetOp: Operation,
+    targetAttrId: AttributeId,
+    dependencyResolver: AttributeDependencyResolver) = {
+
     val Acc(nodesRes, edgesRes, _, _) = DAGTraversals.dfs[Operation, Acc](
       vertex = targetOp,
       acc = Acc(attrsToProcessByOpId = Map(targetOp._key -> Set(targetAttrId))),
@@ -187,7 +212,6 @@ object AttributeDependencySolver {
     attrsToProcessByOpId: Map[OperationId, Set[AttributeId]] = Map.empty,
     transOpsByAttrId: Map[AttributeId, Set[OperationId]] = Map.empty)
 
-  def apply(execPlan: ExecutionPlanDAG, attrDependencyResolver: AttributeDependencyResolver) =
-    new AttributeDependencySolver(execPlan, attrDependencyResolver)
+  def apply(execPlan: ExecutionPlanDAG) = new AttributeDependencySolver(execPlan)
 }
 

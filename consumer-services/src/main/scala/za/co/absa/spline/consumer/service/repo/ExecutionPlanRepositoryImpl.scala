@@ -19,7 +19,7 @@ package za.co.absa.spline.consumer.service.repo
 import com.arangodb.async.ArangoDatabaseAsync
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import za.co.absa.spline.consumer.service.internal.model.{ExecutionPlanDAG, SystemInfo}
+import za.co.absa.spline.consumer.service.internal.model.{ExecutionPlanDAG, VersionInfo}
 import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
 import za.co.absa.spline.consumer.service.model.LineageDetailed
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepositoryImpl.ExecutionPlanDagPO
@@ -113,18 +113,21 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |            ]
         |    )
         |    RETURN {
-        |        sysName:    ex.systemInfo.name,
-        |        sysVersion: ex.systemInfo.version,
-        |        vertices:   UNIQUE(parts[*][0]),
-        |        edges:      UNIQUE(parts[* FILTER CURRENT[1]][1])
+        |        systemName:     ex.systemInfo.name,
+        |        systemVersion:  ex.systemInfo.version,
+        |        agentName:      ex.agentInfo.name,
+        |        agentVersion:   ex.agentInfo.version,
+        |        vertices:       UNIQUE(parts[*][0]),
+        |        edges:          UNIQUE(parts[* FILTER CURRENT[1]][1])
         |    }
         |""".stripMargin,
       Map("execId" -> execId)
     ).map {
-      case ExecutionPlanDagPO(sysName, sysVersion, vertices, edges) =>
-        import za.co.absa.commons.version.Version._
+      case ExecutionPlanDagPO(systemName, systemVersion, agentName, agentVersion, vertices, edges) =>
         new ExecutionPlanDAG(
-          sysInfo = SystemInfo(sysName, ver"$sysVersion"),
+          execId,
+          systemInfo = VersionInfo(systemName, systemVersion),
+          agentInfo = VersionInfo(agentName, agentVersion),
           operations = vertices,
           edges = edges)
     }
@@ -143,8 +146,14 @@ object ExecutionPlanRepositoryImpl {
     def this() = this(null, null, null, null, null)
   }
 
-  case class ExecutionPlanDagPO(sysName: String, sysVersion: String, vertices: Array[AnyOperation], edges: Array[Edge]) {
-    def this() = this(null, null, null, null)
+  case class ExecutionPlanDagPO(
+    systemName: String,
+    systemVersion: String,
+    agentName: String,
+    agentVersion: String,
+    vertices: Array[AnyOperation],
+    edges: Array[Edge]) {
+    def this() = this(null, null, null, null, null, null)
   }
 
 }
