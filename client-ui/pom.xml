@@ -15,15 +15,14 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>za.co.absa.spline</groupId>
     <artifactId>package-pom</artifactId>
     <relativePath>../build/package-pom/pom.xml</relativePath>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.5.0</version>
   </parent>
 
   <artifactId>client-ui</artifactId>
@@ -55,11 +54,11 @@
             </goals>
             <configuration>
               <target>
-                <property name="plugin_classpath" refid="maven.plugin.classpath"/>
+                <property name="plugin_classpath" refid="maven.plugin.classpath" />
                 <java classpath="${plugin_classpath}" classname="za.co.absa.spline.swagger.SwaggerDocGenCLI">
-                  <arg value="-o"/>
-                  <arg value="${project.basedir}/src/app/generated/swagger.json"/>
-                  <arg value="za.co.absa.spline.consumer.rest.ConsumerRESTConfig"/>
+                  <arg value="-o" />
+                  <arg value="${project.basedir}/src/app/generated/swagger.json" />
+                  <arg value="za.co.absa.spline.consumer.rest.ConsumerRESTConfig" />
                 </java>
               </target>
             </configuration>
@@ -73,17 +72,17 @@
             <configuration>
               <target>
                 <exec executable="cmd" osfamily="windows" failonerror="true">
-                  <env key="SPLINE_VERSION" value="${project.version}"/>
-                  <arg line="/c build.cmd"/>
+                  <env key="SPLINE_VERSION" value="${project.version}" />
+                  <arg line="/c build.cmd" />
                 </exec>
                 <exec executable="bash" osfamily="unix" failonerror="true">
-                  <env key="SPLINE_VERSION" value="${project.version}"/>
-                  <arg line="build.sh"/>
+                  <env key="SPLINE_VERSION" value="${project.version}" />
+                  <arg line="build.sh" />
                 </exec>
 
-                <echo message="Build Spline Webjar"/>
+                <echo message="Build Spline Webjar" />
                 <copy todir="${project.build.outputDirectory}/META-INF/resources/webjars/spline/${project.version}">
-                  <fileset dir="${project.basedir}/dist/ui2"/>
+                  <fileset dir="${project.basedir}/dist/ui2" />
                 </copy>
               </target>
             </configuration>
