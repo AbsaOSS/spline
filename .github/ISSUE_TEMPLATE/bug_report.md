@@ -10,6 +10,9 @@ assignees: ''
 ## Describe the bug
 A clear and concise description of what the bug is.
 
+## Versions
+Please provide versions of: Spline, Spark and Scala that were in use when the bug happened.
+
 ## Components State
 - [ ] ArangoDB running without errors
 - [ ] ArangoDB spline database initialized
