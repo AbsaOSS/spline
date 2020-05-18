@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.model
+package za.co.absa.spline.producer.model.v1_1
 
 import java.util.UUID
 
-case class ExecutionEvent(
-  planId: UUID,
-  timestamp: Long,
-  error: Option[Any] = None,
-  extra: Map[String, Any] = Map.empty
+case class ExecutionPlan(
+  id: UUID = UUID.randomUUID(),
+  operations: Operations,
+  systemInfo: SystemInfo,
+  agentInfo: Option[AgentInfo] = None,
+  extraInfo: Map[String, Any] = Map.empty
 )

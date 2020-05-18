@@ -21,12 +21,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation._
-import za.co.absa.spline.producer.model.ExecutionEvent
+import za.co.absa.spline.producer.model.v1_1.ExecutionEvent
+import za.co.absa.spline.producer.rest.ProducerAPI
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Controller
+@RequestMapping(consumes = Array(ProducerAPI.MimeTypeV1_1))
 @Api(tags = Array("execution"))
 class ExecutionEventsController @Autowired()(
   val repo: ExecutionProducerRepository) {

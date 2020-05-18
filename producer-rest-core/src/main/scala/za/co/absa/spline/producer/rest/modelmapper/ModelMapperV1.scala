@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.rest
+package za.co.absa.spline.producer.rest.modelmapper
 
-import za.co.absa.commons.version.Version
-import za.co.absa.commons.version.Version._
+import za.co.absa.spline.producer.model.v1_1.{ExecutionEvent, ExecutionPlan}
+import za.co.absa.spline.producer.model.{ExecutionEvent => ExecutionEventV1, ExecutionPlan => ExecutionPlanV1}
 
-object ProducerAPI {
-  val CurrentVersion: Version = ver"1.1"
-  val DeprecatedVersions: Seq[Version] = Seq(ver"1" /*, ...*/)
-  val LTSVersions: Seq[Version] = Seq(CurrentVersion /*, ...*/)
-  val SupportedVersions: Seq[Version] = LTSVersions ++ DeprecatedVersions
+object ModelMapperV1 extends ModelMapper {
+  override type P = ExecutionPlanV1
+  override type E = ExecutionEventV1
 
-  final val MimeTypeV1_1 = "application/vnd.spline.producer.v1.1+json"
+  override def fromDTO(plan: ExecutionPlanV1): ExecutionPlan = ???
+
+  override def fromDTO(event: ExecutionEventV1): ExecutionEvent = ???
 }

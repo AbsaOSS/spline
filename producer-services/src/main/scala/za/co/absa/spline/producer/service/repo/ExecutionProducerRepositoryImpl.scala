@@ -28,9 +28,9 @@ import org.springframework.stereotype.Repository
 import za.co.absa.spline.persistence.model._
 import za.co.absa.spline.persistence.tx.{InsertQuery, TxBuilder}
 import za.co.absa.spline.persistence.{ArangoImplicits, Persister, model => dbModel}
-import za.co.absa.spline.producer.model._
+import za.co.absa.spline.producer.model.v1_1
+import za.co.absa.spline.producer.model.v1_1.{DataOperation, ExecutionEvent, ReadOperation, WriteOperation}
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepositoryImpl._
-import za.co.absa.spline.producer.{model => apiModel}
 
 import scala.compat.java8.FutureConverters._
 import scala.compat.java8.StreamConverters._
@@ -43,7 +43,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 
   import ArangoImplicits._
 
-  override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
+  override def insertExecutionPlan(executionPlan: v1_1.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
     val eventuallyExists = db.queryOne[Boolean](
       s"""
          |FOR ex IN ${NodeDef.ExecutionPlan.name}
@@ -113,7 +113,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
   })
 
   private def createInsertTransaction(
-    executionPlan: apiModel.ExecutionPlan,
+    executionPlan: v1_1.ExecutionPlan,
     referencedDSURIs: Set[String],
     persistedDSes: Map[String, String]
   ) = {
@@ -154,36 +154,36 @@ object ExecutionProducerRepositoryImpl {
   private[repo] def createEventKey(e: ExecutionEvent) =
     s"${e.planId}:${jl.Long.toString(e.timestamp, 36)}"
 
-  private def createExecutes(executionPlan: apiModel.ExecutionPlan) = EdgeDef.Executes.edge(
+  private def createExecutes(executionPlan: v1_1.ExecutionPlan) = EdgeDef.Executes.edge(
     executionPlan.id,
     s"${executionPlan.id}:${executionPlan.operations.write.id}")
 
-  private def createExecution(executionPlan: apiModel.ExecutionPlan): dbModel.ExecutionPlan =
+  private def createExecution(executionPlan: v1_1.ExecutionPlan): dbModel.ExecutionPlan =
     dbModel.ExecutionPlan(
       systemInfo = executionPlan.systemInfo.toJsonAs[Map[String, Any]],
       agentInfo = executionPlan.agentInfo.map(_.toJsonAs[Map[String, Any]]).orNull,
       extra = executionPlan.extraInfo,
       _key = executionPlan.id.toString)
 
-  private def createReadsFrom(plan: apiModel.ExecutionPlan, dsUriToKey: String => String): Seq[Edge] = for {
+  private def createReadsFrom(plan: v1_1.ExecutionPlan, dsUriToKey: String => String): Seq[Edge] = for {
     ro <- plan.operations.reads
     ds <- ro.inputSources
   } yield EdgeDef.ReadsFrom.edge(
     s"${plan.id}:${ro.id}",
     dsUriToKey(ds))
 
-  private def createWriteTo(executionPlan: apiModel.ExecutionPlan, dsUriToKey: String => String) = EdgeDef.WritesTo.edge(
+  private def createWriteTo(executionPlan: v1_1.ExecutionPlan, dsUriToKey: String => String) = EdgeDef.WritesTo.edge(
     s"${executionPlan.id}:${executionPlan.operations.write.id}",
     dsUriToKey(executionPlan.operations.write.outputSource))
 
-  private def createExecutionDepends(plan: apiModel.ExecutionPlan, dsUriToKey: String => String): Seq[Edge] = for {
+  private def createExecutionDepends(plan: v1_1.ExecutionPlan, dsUriToKey: String => String): Seq[Edge] = for {
     ro <- plan.operations.reads
     ds <- ro.inputSources
   } yield EdgeDef.Depends.edge(
     plan.id,
     dsUriToKey(ds))
 
-  private def createExecutionAffects(executionPlan: apiModel.ExecutionPlan, dsUriToKey: String => String) = EdgeDef.Affects.edge(
+  private def createExecutionAffects(executionPlan: v1_1.ExecutionPlan, dsUriToKey: String => String) = EdgeDef.Affects.edge(
     executionPlan.id,
     dsUriToKey(executionPlan.operations.write.outputSource))
 
@@ -191,7 +191,7 @@ object ExecutionProducerRepositoryImpl {
     .map({ case (uri, key) => DataSource(uri, key) })
     .toVector
 
-  private def createOperations(executionPlan: apiModel.ExecutionPlan): Seq[dbModel.Operation] = {
+  private def createOperations(executionPlan: v1_1.ExecutionPlan): Seq[dbModel.Operation] = {
     val allOperations = executionPlan.operations.all
     val schemaFinder = new RecursiveSchemaFinder(allOperations)
     allOperations.map {
@@ -222,7 +222,7 @@ object ExecutionProducerRepositoryImpl {
     }
   }
 
-  private def createFollows(executionPlan: apiModel.ExecutionPlan): Seq[Edge] =
+  private def createFollows(executionPlan: v1_1.ExecutionPlan): Seq[Edge] =
     for {
       operation <- executionPlan.operations.all
       childId <- operation.childIds

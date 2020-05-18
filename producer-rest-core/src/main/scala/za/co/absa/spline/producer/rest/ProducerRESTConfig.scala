@@ -30,7 +30,8 @@ import za.co.absa.spline.common.webmvc.{ScalaFutureMethodReturnValueHandler, Uni
 @EnableWebMvc
 @Configuration
 @ComponentScan(basePackageClasses = Array(
-  classOf[controller._package]
+  classOf[controller._package],
+  classOf[controller.v1._package],
 ))
 class ProducerRESTConfig extends WebMvcConfigurer {
 

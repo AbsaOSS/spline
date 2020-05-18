@@ -22,12 +22,14 @@ import io.swagger.annotations.{Api, ApiOperation, ApiResponse, ApiResponses}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation._
-import za.co.absa.spline.producer.model.ExecutionPlan
+import za.co.absa.spline.producer.model.v1_1.ExecutionPlan
+import za.co.absa.spline.producer.rest.ProducerAPI
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @RestController
+@RequestMapping(consumes = Array(ProducerAPI.MimeTypeV1_1))
 @Api(tags = Array("execution"))
 class ExecutionPlansController @Autowired()(
   val repo: ExecutionProducerRepository) {

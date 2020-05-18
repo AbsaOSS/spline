@@ -14,16 +14,22 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.rest
+package za.co.absa.spline.producer.model.v1_1
 
-import za.co.absa.commons.version.Version
-import za.co.absa.commons.version.Version._
+case class Operations(
+  write: WriteOperation,
+  reads: Seq[ReadOperation] = Nil,
+  other: Seq[DataOperation] = Nil) {
 
-object ProducerAPI {
-  val CurrentVersion: Version = ver"1.1"
-  val DeprecatedVersions: Seq[Version] = Seq(ver"1" /*, ...*/)
-  val LTSVersions: Seq[Version] = Seq(CurrentVersion /*, ...*/)
-  val SupportedVersions: Seq[Version] = LTSVersions ++ DeprecatedVersions
-
-  final val MimeTypeV1_1 = "application/vnd.spline.producer.v1.1+json"
+  def all: Seq[OperationLike] = reads ++ other :+ write
 }
+
+/**
+  * Information about a data framework in use (e.g. Spark, StreamSets etc)
+  */
+case class SystemInfo(name: String, version: String)
+
+/**
+  * Spline agent information
+  */
+case class AgentInfo(name: String, version: String)

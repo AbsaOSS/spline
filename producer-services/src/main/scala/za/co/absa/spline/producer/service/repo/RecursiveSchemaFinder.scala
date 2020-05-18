@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.producer.service.repo
 
-import za.co.absa.spline.producer.model.OperationLike
+import za.co.absa.spline.producer.model.v1_1.OperationLike
 
 import scala.collection.mutable
 

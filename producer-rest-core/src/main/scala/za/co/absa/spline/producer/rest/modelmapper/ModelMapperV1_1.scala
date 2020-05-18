@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,15 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.model
+package za.co.absa.spline.producer.rest.modelmapper
 
-case class Operations(
-  write: WriteOperation,
-  reads: Seq[ReadOperation] = Nil,
-  other: Seq[DataOperation] = Nil) {
+import za.co.absa.spline.producer.model.v1_1.{ExecutionEvent, ExecutionPlan}
 
-  def all: Seq[OperationLike] = reads ++ other :+ write
+object ModelMapperV1_1 extends ModelMapper {
+  override type P = ExecutionPlan
+  override type E = ExecutionEvent
+
+  override def fromDTO(plan: ExecutionPlan): ExecutionPlan = plan
+
+  override def fromDTO(event: ExecutionEvent): ExecutionEvent = event
 }
-
-/**
-  * Information about a data framework in use (e.g. Spark, StreamSets etc)
-  */
-case class SystemInfo(name: String, version: String)
-
-/**
-  * Spline agent information
-  */
-case class AgentInfo(name: String, version: String)
