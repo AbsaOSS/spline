@@ -21,7 +21,20 @@ import java.util.UUID
 case class ExecutionPlan(
   id: UUID = UUID.randomUUID(),
   operations: Operations,
-  systemInfo: SystemInfo,
-  agentInfo: Option[AgentInfo] = None,
+  attributes: Seq[Attribute],
+  systemInfo: NameAndVersion,
+  //Information about a data framework in use (e.g. Spark, StreamSets etc)
+  agentInfo: Option[NameAndVersion] = None,
+  // Spline agent information
   extraInfo: Map[String, Any] = Map.empty
 )
+
+case class Operations(
+  write: WriteOperation,
+  reads: Seq[ReadOperation] = Nil,
+  other: Seq[DataOperation] = Nil) {
+
+  def all: Seq[OperationLike] = reads ++ other :+ write
+}
+
+case class NameAndVersion(name: String, version: String)

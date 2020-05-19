@@ -21,11 +21,14 @@ import za.co.absa.spline.producer.model.v1_1.OperationLike
 import scala.collection.mutable
 
 class RecursiveSchemaFinder(operations: Seq[OperationLike]) {
+
+  import za.co.absa.commons.lang.OptionImplicits._
+
   private val schemaByOperationIdCollector = mutable.Map.empty[Int, Option[Any]]
   private val operationById: Map[Int, OperationLike] = operations.map(op => op.id -> op).toMap
 
   def findSchemaOf(op: OperationLike): Option[Any] =
-    schemaByOperationIdCollector.getOrElseUpdate(op.id, op.schema.orElse {
+    schemaByOperationIdCollector.getOrElseUpdate(op.id, op.schema.asOption.orElse {
       // We assume that the graph is consistent in terms of schema definitions.
       // E.i. if the schema is unknown/undefined than it's unknown/undefined for every operation in the DAG.
       // Or if the schema is None because it's the same as the input's schema than EVERY input has the same schema by definition.

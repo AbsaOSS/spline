@@ -16,20 +16,18 @@
 
 package za.co.absa.spline.producer.model.v1_1
 
-case class Operations(
-  write: WriteOperation,
-  reads: Seq[ReadOperation] = Nil,
-  other: Seq[DataOperation] = Nil) {
+import java.util.UUID
 
-  def all: Seq[OperationLike] = reads ++ other :+ write
+import za.co.absa.spline.producer.model.v1_1.Attribute.Id
+
+object Attribute {
+  type Id = UUID
 }
 
-/**
-  * Information about a data framework in use (e.g. Spark, StreamSets etc)
-  */
-case class SystemInfo(name: String, version: String)
-
-/**
-  * Spline agent information
-  */
-case class AgentInfo(name: String, version: String)
+case class Attribute(
+  id: Id,
+  name: String,
+  dataType: Option[DataType],
+  expr: Seq[Expression],
+  extra: Map[String, Any]
+)
