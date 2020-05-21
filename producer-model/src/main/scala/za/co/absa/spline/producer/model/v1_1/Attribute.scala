@@ -28,6 +28,6 @@ case class Attribute(
   id: Id,
   name: String,
   dataType: Option[DataType],
-  expr: Seq[Expression],
+  expressions: Seq[Expression],
   extra: Map[String, Any]
 )
