@@ -25,5 +25,5 @@ object ProducerAPI {
   val LTSVersions: Seq[Version] = Seq(CurrentVersion /*, ...*/)
   val SupportedVersions: Seq[Version] = LTSVersions ++ DeprecatedVersions
 
-  final val MimeTypeV1_1 = "application/vnd.spline.producer.v1.1+json"
+  final val MimeTypeV1_1 = "application/vnd.absa.spline.producer.v1.1+json"
 }
