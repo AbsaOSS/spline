@@ -16,7 +16,13 @@
 
 package za.co.absa.spline.producer.model.v1_1
 
+import java.util.UUID
+
 sealed trait Expression
+
+object Expression {
+  type Id = UUID
+}
 
 case class GenericExpression(
   name: String,

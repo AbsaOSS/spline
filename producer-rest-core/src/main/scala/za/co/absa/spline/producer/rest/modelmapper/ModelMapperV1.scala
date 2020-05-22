@@ -22,6 +22,9 @@ import za.co.absa.spline.producer.model.v1_1._
 import za.co.absa.spline.producer.model.{ExecutionEvent => ExecutionEventV1, ExecutionPlan => ExecutionPlanV1, Operations => OperationsV1}
 
 object ModelMapperV1 extends ModelMapper {
+
+  import za.co.absa.commons.lang.OptionImplicits._
+
   override type P = ExecutionPlanV1
   override type E = ExecutionEventV1
 
@@ -38,10 +41,15 @@ object ModelMapperV1 extends ModelMapper {
       wop1.extra
     )
 
+    val schemaByOpIds = (for {
+      rop1 <- rops1
+      schema1 <- rop1.schema
+      schema2 <- convertSchema(schema1).asOption
+    } yield rop1.id -> schema2).toMap
+
     val rops = rops1.map(rop1 => ReadOperation(
       inputSources = rop1.inputSources,
       id = rop1.id,
-      schema = convertSchema(rop1.schema),
       params = rop1.params,
       extra = rop1.extra
     ))
@@ -49,9 +57,16 @@ object ModelMapperV1 extends ModelMapper {
     val dops = dops1.map(dop1 => DataOperation(
       id = dop1.id,
       childIds = dop1.childIds,
-      schema = convertSchema(dop1.schema),
       params = dop1.params,
       extra = dop1.extra
+    ))
+
+    val maybeAttributes = Some(Attributes(
+      operationSchemaMapping = schemaByOpIds,
+      // Fixme in SPLINE-677
+      attributeExpressionMapping = Map.empty,
+      attrDefs = Nil,
+      exprDefs = Nil,
     ))
 
     ExecutionPlan(
@@ -61,7 +76,7 @@ object ModelMapperV1 extends ModelMapper {
         reads = rops,
         other = dops
       ),
-      attributes = Nil, // Fixme in SPLINE-677
+      attributes = maybeAttributes,
       systemInfo = NameAndVersion(plan1.systemInfo.name, plan1.systemInfo.version),
       agentInfo = plan1.agentInfo.map(ai => NameAndVersion(ai.name, ai.version)),
       extraInfo = plan1.extraInfo
@@ -75,8 +90,8 @@ object ModelMapperV1 extends ModelMapper {
     extra = event.extra
   )
 
-  private def convertSchema(schema1: Option[Any]): Seq[Attribute.Id] = {
+  private def convertSchema(schema1: Any): Seq[Attribute.Id] = {
     // Fixme in SPLINE-677
-    schema1.map(_.asInstanceOf[Seq[String]].map(UUID.fromString)) getOrElse Nil
+    schema1.asInstanceOf[Seq[String]].map(UUID.fromString)
   }
 }

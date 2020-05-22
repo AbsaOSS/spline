@@ -149,7 +149,6 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 object ExecutionProducerRepositoryImpl {
 
   import za.co.absa.commons.json.DefaultJacksonJsonSerDe._
-  import za.co.absa.commons.lang.OptionImplicits._
 
   private[repo] def createEventKey(e: apiModel.ExecutionEvent) =
     s"${e.planId}:${jl.Long.toString(e.timestamp, 36)}"
@@ -193,14 +192,16 @@ object ExecutionProducerRepositoryImpl {
 
   private def createOperations(executionPlan: apiModel.ExecutionPlan): Seq[dbModel.Operation] = {
     val allOperations = executionPlan.operations.all
-    val schemaFinder = new RecursiveSchemaFinder(allOperations)
+    val maybeSchemaFinder = executionPlan.attributes.map(attrs =>
+      new RecursiveSchemaFinder(allOperations, attrs.operationSchemaMapping))
+
     allOperations.map {
       case r: apiModel.ReadOperation =>
         dbModel.Read(
           inputSources = r.inputSources,
           params = r.params,
           extra = r.extra,
-          outputSchema = r.schema.asOption,
+          outputSchema = executionPlan.attributes.flatMap(_.operationSchemaMapping.get(r.id)),
           _key = s"${executionPlan.id}:${r.id.toString}"
         )
       case w: apiModel.WriteOperation =>
@@ -209,14 +210,14 @@ object ExecutionProducerRepositoryImpl {
           append = w.append,
           params = w.params,
           extra = w.extra,
-          outputSchema = schemaFinder.findSchemaOf(w),
+          outputSchema = maybeSchemaFinder.flatMap(_.findSchemaOf(w)),
           _key = s"${executionPlan.id}:${w.id.toString}"
         )
       case t: apiModel.DataOperation =>
         dbModel.Transformation(
           params = t.params,
           extra = t.extra,
-          outputSchema = schemaFinder.findSchemaOf(t),
+          outputSchema = maybeSchemaFinder.flatMap(_.findSchemaOf(t)),
           _key = s"${executionPlan.id}:${t.id.toString}"
         )
     }

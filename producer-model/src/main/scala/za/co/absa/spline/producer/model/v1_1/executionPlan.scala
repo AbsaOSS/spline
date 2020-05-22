@@ -20,12 +20,15 @@ import java.util.UUID
 
 case class ExecutionPlan(
   id: UUID = UUID.randomUUID(),
+
   operations: Operations,
-  attributes: Seq[Attribute],
+  attributes: Option[Attributes],
+
+  // Information about a data framework in use (e.g. Spark, StreamSets etc)
   systemInfo: NameAndVersion,
-  //Information about a data framework in use (e.g. Spark, StreamSets etc)
-  agentInfo: Option[NameAndVersion] = None,
   // Spline agent information
+  agentInfo: Option[NameAndVersion] = None,
+  // User payload
   extraInfo: Map[String, Any] = Map.empty
 )
 
@@ -36,5 +39,12 @@ case class Operations(
 
   def all: Seq[OperationLike] = reads ++ other :+ write
 }
+
+case class Attributes(
+  attrDefs: Seq[Attribute],
+  exprDefs: Seq[Expression],
+  operationSchemaMapping: Map[OperationLike.Id, Seq[Attribute.Id]],
+  attributeExpressionMapping: Map[Attribute.Id, Seq[Expression.Id]]
+)
 
 case class NameAndVersion(name: String, version: String)

@@ -16,41 +16,41 @@
 
 package za.co.absa.spline.producer.model.v1_1
 
+import za.co.absa.spline.producer.model.v1_1.OperationLike.Id
+
 sealed trait OperationLike {
-  val id: Int
-  val childIds: Seq[Int]
-  val schema: Seq[Attribute.Id]
+  val id: Id
+  val childIds: Seq[Id]
   val params: Map[String, Any]
   val extra: Map[String, Any]
 }
 
+object OperationLike {
+  type Id = Int
+}
+
 
 case class DataOperation(
-  override val id: Int,
-  override val childIds: Seq[Int] = Seq.empty,
-  override val schema: Seq[Attribute.Id] = Nil, // Empty schema means that it is either inherited/unchanged or unknown
+  override val id: Id,
+  override val childIds: Seq[Id] = Seq.empty,
   override val params: Map[String, Any] = Map.empty,
   override val extra: Map[String, Any] = Map.empty
 ) extends OperationLike
 
 case class ReadOperation(
   inputSources: Seq[String],
-  override val id: Int,
-  override val schema: Seq[Attribute.Id] = Nil,
+  override val id: Id,
   override val params: Map[String, Any] = Map.empty,
   override val extra: Map[String, Any] = Map.empty
 ) extends OperationLike {
-  override val childIds: Seq[Int] = Seq.empty // Read operation is always a terminal node in a DAG
+  override val childIds: Seq[Id] = Seq.empty // Read operation is always a terminal node in a DAG
 }
 
 case class WriteOperation(
   outputSource: String,
   append: Boolean,
-  override val id: Int,
-  override val childIds: Seq[Int],
+  override val id: Id,
+  override val childIds: Seq[Id],
   override val params: Map[String, Any] = Map.empty,
   override val extra: Map[String, Any] = Map.empty
-) extends OperationLike {
-  override val schema: Seq[Attribute.Id] = Nil // Being a side-effect only, Write operation never changes the schema
-}
-
+) extends OperationLike
