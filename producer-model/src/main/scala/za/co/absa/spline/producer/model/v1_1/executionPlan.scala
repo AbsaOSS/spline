@@ -43,8 +43,8 @@ case class Operations(
 case class Attributes(
   attrDefs: Seq[Attribute],
   exprDefs: Seq[Expression],
-  operationSchemaMapping: Map[OperationLike.Id, Seq[Attribute.Id]],
-  attributeExpressionMapping: Map[Attribute.Id, Seq[Expression.Id]]
+  operationSchemaMapping: Map[OperationLike.Id, Array[Attribute.Id]],
+  attributeExpressionMapping: Map[Attribute.Id, Array[Expression.Id]]
 )
 
 case class NameAndVersion(name: String, version: String)

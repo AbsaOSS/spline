@@ -22,7 +22,7 @@ import scala.collection.mutable
 
 class RecursiveSchemaFinder(
   operations: Seq[OperationLike],
-  schemaMapping: Map[OperationLike.Id, Seq[Attribute.Id]]) {
+  schemaMapping: Map[OperationLike.Id, Array[Attribute.Id]]) {
 
   private val schemaByOperationIdCollector = mutable.Map.empty[Int, Option[Any]]
   private val operationById: Map[Int, OperationLike] = operations.map(op => op.id -> op).toMap

@@ -20,12 +20,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation._
+import springfox.documentation.annotations.ApiIgnore
 import za.co.absa.spline.producer.model.ExecutionEvent
 import za.co.absa.spline.producer.rest.modelmapper.ModelMapperV1
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 
+@ApiIgnore
 @Controller
 @RequestMapping(consumes = Array("application/json"))
 class ExecutionEventsV1Controller @Autowired()(

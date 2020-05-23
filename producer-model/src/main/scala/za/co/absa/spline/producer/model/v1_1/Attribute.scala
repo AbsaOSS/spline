@@ -16,18 +16,15 @@
 
 package za.co.absa.spline.producer.model.v1_1
 
-import java.util.UUID
-
 import za.co.absa.spline.producer.model.v1_1.Attribute.Id
 
 object Attribute {
-  type Id = UUID
+  type Id = String
 }
 
 case class Attribute(
   id: Id,
   name: String,
   dataType: Option[DataType],
-  dependencies: Seq[Attribute.Id],
   extra: Map[String, Any]
 )

@@ -16,8 +16,6 @@
 
 package za.co.absa.spline.producer.rest.modelmapper
 
-import java.util.UUID
-
 import za.co.absa.spline.producer.model.v1_1._
 import za.co.absa.spline.producer.model.{ExecutionEvent => ExecutionEventV1, ExecutionPlan => ExecutionPlanV1, Operations => OperationsV1}
 
@@ -90,8 +88,8 @@ object ModelMapperV1 extends ModelMapper {
     extra = event.extra
   )
 
-  private def convertSchema(schema1: Any): Seq[Attribute.Id] = {
+  private def convertSchema(schema1: Any): Array[Attribute.Id] = {
     // Fixme in SPLINE-677
-    schema1.asInstanceOf[Seq[String]].map(UUID.fromString)
+    schema1.asInstanceOf[Seq[String]].toArray
   }
 }
