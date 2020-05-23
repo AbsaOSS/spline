@@ -16,13 +16,13 @@
 
 package za.co.absa.spline.producer.service.repo
 
-import za.co.absa.spline.producer.model.v1_1.{Attribute, OperationLike}
+import za.co.absa.spline.producer.model.v1_1.{ExpressionLike, OperationLike}
 
 import scala.collection.mutable
 
 class RecursiveSchemaFinder(
   operations: Seq[OperationLike],
-  schemaMapping: Map[OperationLike.Id, Array[Attribute.Id]]) {
+  schemaMapping: Map[OperationLike.Id, Array[ExpressionLike.Id]]) {
 
   private val schemaByOperationIdCollector = mutable.Map.empty[Int, Option[Any]]
   private val operationById: Map[Int, OperationLike] = operations.map(op => op.id -> op).toMap

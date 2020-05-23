@@ -40,10 +40,10 @@ object ModelMapperV1 extends ModelMapper {
     )
 
     val schemaByOpIds = (for {
-      rop1 <- rops1
-      schema1 <- rop1.schema
+      op1 <- plan1.operations.all
+      schema1 <- op1.schema
       schema2 <- convertSchema(schema1).asOption
-    } yield rop1.id -> schema2).toMap
+    } yield op1.id -> schema2).toMap
 
     val rops = rops1.map(rop1 => ReadOperation(
       inputSources = rop1.inputSources,
@@ -59,12 +59,11 @@ object ModelMapperV1 extends ModelMapper {
       extra = dop1.extra
     ))
 
-    val maybeAttributes = Some(Attributes(
-      operationSchemaMapping = schemaByOpIds,
-      // Fixme in SPLINE-677
-      attributeExpressionMapping = Map.empty,
-      attrDefs = Nil,
-      exprDefs = Nil,
+    val maybeSchemas = Some(Schemas(
+      mapping = schemaByOpIds,
+      attributes = Nil, // Fixme in SPLINE-677
+      functions = Nil, // Fixme in SPLINE-677
+      constants = Nil, // Fixme in SPLINE-677
     ))
 
     ExecutionPlan(
@@ -74,7 +73,7 @@ object ModelMapperV1 extends ModelMapper {
         reads = rops,
         other = dops
       ),
-      attributes = maybeAttributes,
+      schemas = maybeSchemas,
       systemInfo = NameAndVersion(plan1.systemInfo.name, plan1.systemInfo.version),
       agentInfo = plan1.agentInfo.map(ai => NameAndVersion(ai.name, ai.version)),
       extraInfo = plan1.extraInfo
@@ -88,7 +87,7 @@ object ModelMapperV1 extends ModelMapper {
     extra = event.extra
   )
 
-  private def convertSchema(schema1: Any): Array[Attribute.Id] = {
+  private def convertSchema(schema1: Any): Array[ExpressionLike.Id] = {
     // Fixme in SPLINE-677
     schema1.asInstanceOf[Seq[String]].toArray
   }

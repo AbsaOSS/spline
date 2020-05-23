@@ -16,20 +16,42 @@
 
 package za.co.absa.spline.producer.model.v1_1
 
-sealed trait Expression
+import za.co.absa.spline.producer.model.v1_1.ExpressionLike.Id
 
-object Expression {
+sealed trait ExpressionLike {
+  def id: Id
+  def dataType: Option[DataType]
+  def childIds: Seq[ExpressionLike.Id]
+  def extra: Map[String, Any]
+}
+
+object ExpressionLike {
   type Id = String
 }
 
-case class GenericExpression(
+case class FunctionalExpression(
+  override val id: Id,
+  override val dataType: Option[DataType],
+  override val childIds: Seq[ExpressionLike.Id],
+  override val extra: Map[String, Any],
   name: String,
-  args: Seq[Expression],
-  dataType: Option[DataType],
+  args: Seq[ExpressionLike.Id],
   params: Map[String, Any],
-  extra: Map[String, Any],
-) extends Exception
+) extends ExpressionLike
 
-case class AttrRefExpression(ref: Attribute.Id) extends Expression
+case class AttributeReference(
+  override val id: Id,
+  override val dataType: Option[DataType],
+  override val childIds: Seq[ExpressionLike.Id],
+  override val extra: Map[String, Any],
+  name: String,
+) extends ExpressionLike
 
-case class LiteralExpression(value: Any, dataType: Option[DataType]) extends Expression
+case class Literal(
+  override val id: Id,
+  override val dataType: Option[DataType],
+  override val extra: Map[String, Any],
+  value: Any,
+) extends ExpressionLike {
+  override def childIds: Seq[ExpressionLike.Id] = Nil
+}

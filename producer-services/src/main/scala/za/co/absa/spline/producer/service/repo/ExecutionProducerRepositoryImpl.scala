@@ -192,8 +192,8 @@ object ExecutionProducerRepositoryImpl {
 
   private def createOperations(executionPlan: apiModel.ExecutionPlan): Seq[dbModel.Operation] = {
     val allOperations = executionPlan.operations.all
-    val maybeSchemaFinder = executionPlan.attributes.map(attrs =>
-      new RecursiveSchemaFinder(allOperations, attrs.operationSchemaMapping))
+    val maybeSchemaFinder = executionPlan.schemas.map(attrs =>
+      new RecursiveSchemaFinder(allOperations, attrs.mapping))
 
     allOperations.map {
       case r: apiModel.ReadOperation =>
@@ -201,7 +201,7 @@ object ExecutionProducerRepositoryImpl {
           inputSources = r.inputSources,
           params = r.params,
           extra = r.extra,
-          outputSchema = executionPlan.attributes.flatMap(_.operationSchemaMapping.get(r.id)),
+          outputSchema = executionPlan.schemas.flatMap(_.mapping.get(r.id)),
           _key = s"${executionPlan.id}:${r.id.toString}"
         )
       case w: apiModel.WriteOperation =>
