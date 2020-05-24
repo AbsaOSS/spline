@@ -33,8 +33,8 @@ object ModelMapperV1 extends ModelMapper {
     val wop = WriteOperation(
       wop1.outputSource,
       wop1.append,
-      wop1.id,
-      wop1.childIds,
+      wop1.id.toString,
+      wop1.childIds.map(_.toString),
       wop1.params,
       wop1.extra
     )
@@ -43,18 +43,18 @@ object ModelMapperV1 extends ModelMapper {
       op1 <- plan1.operations.all
       schema1 <- op1.schema
       schema2 <- convertSchema(schema1).asOption
-    } yield op1.id -> schema2).toMap
+    } yield op1.id.toString -> schema2).toMap
 
     val rops = rops1.map(rop1 => ReadOperation(
       inputSources = rop1.inputSources,
-      id = rop1.id,
+      id = rop1.id.toString,
       params = rop1.params,
       extra = rop1.extra
     ))
 
     val dops = dops1.map(dop1 => DataOperation(
-      id = dop1.id,
-      childIds = dop1.childIds,
+      id = dop1.id.toString,
+      childIds = dop1.childIds.map(_.toString),
       params = dop1.params,
       extra = dop1.extra
     ))

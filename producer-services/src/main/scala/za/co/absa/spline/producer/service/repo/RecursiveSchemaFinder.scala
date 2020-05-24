@@ -24,8 +24,8 @@ class RecursiveSchemaFinder(
   operations: Seq[OperationLike],
   schemaMapping: Map[OperationLike.Id, Array[ExpressionLike.Id]]) {
 
-  private val schemaByOperationIdCollector = mutable.Map.empty[Int, Option[Any]]
-  private val operationById: Map[Int, OperationLike] = operations.map(op => op.id -> op).toMap
+  private val schemaByOperationIdCollector = mutable.Map.empty[OperationLike.Id, Option[Any]]
+  private val operationById: Map[OperationLike.Id, OperationLike] = operations.map(op => op.id -> op).toMap
 
   def findSchemaOf(op: OperationLike): Option[Any] =
     schemaByOperationIdCollector.getOrElseUpdate(op.id, schemaMapping.get(op.id).orElse {

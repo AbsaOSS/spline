@@ -26,7 +26,7 @@ sealed trait OperationLike {
 }
 
 object OperationLike {
-  type Id = Int
+  type Id = String
 }
 
 
