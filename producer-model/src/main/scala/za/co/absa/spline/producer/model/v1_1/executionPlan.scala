@@ -41,7 +41,7 @@ case class Operations(
 }
 
 case class Schemas(
-  attributes: Seq[AttributeReference],
+  attributes: Seq[Attribute],
   functions: Seq[FunctionalExpression],
   constants: Seq[Literal],
   mapping: Map[OperationLike.Id, Array[ExpressionLike.Id]]

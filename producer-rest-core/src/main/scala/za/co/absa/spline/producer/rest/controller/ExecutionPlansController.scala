@@ -109,7 +109,7 @@ class ExecutionPlansController @Autowired()(
           // Attribute/Schema level lineage info
           schemas: {
 
-            // Attribute reference definitions
+            // Attribute definitions
             attributes: [
               {
                 id: <string>,

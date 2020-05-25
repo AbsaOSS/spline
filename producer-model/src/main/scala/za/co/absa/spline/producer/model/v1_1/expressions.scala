@@ -39,7 +39,7 @@ case class FunctionalExpression(
   params: Map[String, Any],
 ) extends ExpressionLike
 
-case class AttributeReference(
+case class Attribute(
   override val id: Id,
   override val dataType: Option[DataType],
   override val childIds: Seq[ExpressionLike.Id],
