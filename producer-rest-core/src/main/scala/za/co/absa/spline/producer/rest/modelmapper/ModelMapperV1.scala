@@ -59,8 +59,8 @@ object ModelMapperV1 extends ModelMapper {
       extra = dop1.extra
     ))
 
-    val maybeSchemas = Some(Schemas(
-      mapping = schemaByOpIds,
+    val maybeExpressions = Some(Expressions(
+      mappingByOperation = schemaByOpIds,
       attributes = Nil, // Fixme in SPLINE-677
       functions = Nil, // Fixme in SPLINE-677
       constants = Nil, // Fixme in SPLINE-677
@@ -73,7 +73,7 @@ object ModelMapperV1 extends ModelMapper {
         reads = rops,
         other = dops
       ),
-      schemas = maybeSchemas,
+      expressions = maybeExpressions,
       systemInfo = NameAndVersion(plan1.systemInfo.name, plan1.systemInfo.version),
       agentInfo = plan1.agentInfo.map(ai => NameAndVersion(ai.name, ai.version)),
       extraInfo = plan1.extraInfo

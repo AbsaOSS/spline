@@ -106,8 +106,8 @@ class ExecutionPlansController @Autowired()(
             ]
           },
 
-          // Attribute/Schema level lineage info
-          schemas: {
+          // Attribute level lineage info
+          expressions: {
 
             // Attribute definitions
             attributes: [
@@ -150,8 +150,9 @@ class ExecutionPlansController @Autowired()(
               }
             },
 
-            // Operation output schema definitions (array of attribute IDs by operation ID)
-            mapping: {
+            // Operation output definitions.
+            // Maps operation IDs to arrays of attribute IDs that form the corresponding operation output.
+            mappingByOperation: {
               <string>: [<string>],
             }
           },
