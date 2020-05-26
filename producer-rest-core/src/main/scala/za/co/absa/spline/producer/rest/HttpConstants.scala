@@ -22,6 +22,7 @@ object HttpConstants {
     private val Prefix = "ABSA-Spline"
 
     val ApiVersion = s"$Prefix-API-Version"
+    val ApiLTSVersion = s"$Prefix-API-LTS-Version"
     val AcceptRequestEncoding = s"$Prefix-Accept-Request-Encoding"
   }
 

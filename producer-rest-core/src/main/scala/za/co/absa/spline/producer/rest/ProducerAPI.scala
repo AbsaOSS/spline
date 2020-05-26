@@ -16,6 +16,14 @@
 
 package za.co.absa.spline.producer.rest
 
+import za.co.absa.commons.version.Version
+import za.co.absa.commons.version.Version._
+
 object ProducerAPI {
-  val VersionNumber: Int = 1
+  val CurrentVersion: Version = ver"1.1"
+  val DeprecatedVersions: Seq[Version] = Seq(ver"1" /*, ...*/)
+  val LTSVersions: Seq[Version] = Seq(CurrentVersion /*, ...*/)
+  val SupportedVersions: Seq[Version] = LTSVersions ++ DeprecatedVersions
+
+  final val MimeTypeV1_1 = "application/vnd.absa.spline.producer.v1.1+json"
 }

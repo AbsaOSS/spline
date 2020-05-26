@@ -28,9 +28,8 @@ import org.springframework.stereotype.Repository
 import za.co.absa.spline.persistence.model._
 import za.co.absa.spline.persistence.tx.{InsertQuery, TxBuilder}
 import za.co.absa.spline.persistence.{ArangoImplicits, Persister, model => dbModel}
-import za.co.absa.spline.producer.model._
+import za.co.absa.spline.producer.model.{v1_1 => apiModel}
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepositoryImpl._
-import za.co.absa.spline.producer.{model => apiModel}
 
 import scala.compat.java8.FutureConverters._
 import scala.compat.java8.StreamConverters._
@@ -76,7 +75,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
     } yield Unit
   })
 
-  override def insertExecutionEvents(events: Array[ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
+  override def insertExecutionEvents(events: Array[apiModel.ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
     val allReferencesConsistentFuture = db.queryOne[Boolean](
       """
         |LET cnt = FIRST(
@@ -151,7 +150,7 @@ object ExecutionProducerRepositoryImpl {
 
   import za.co.absa.commons.json.DefaultJacksonJsonSerDe._
 
-  private[repo] def createEventKey(e: ExecutionEvent) =
+  private[repo] def createEventKey(e: apiModel.ExecutionEvent) =
     s"${e.planId}:${jl.Long.toString(e.timestamp, 36)}"
 
   private def createExecutes(executionPlan: apiModel.ExecutionPlan) = EdgeDef.Executes.edge(
@@ -193,30 +192,32 @@ object ExecutionProducerRepositoryImpl {
 
   private def createOperations(executionPlan: apiModel.ExecutionPlan): Seq[dbModel.Operation] = {
     val allOperations = executionPlan.operations.all
-    val schemaFinder = new RecursiveSchemaFinder(allOperations)
+    val maybeSchemaFinder = executionPlan.expressions.map(attrs =>
+      new RecursiveSchemaFinder(allOperations, attrs.mappingByOperation))
+
     allOperations.map {
-      case r: ReadOperation =>
+      case r: apiModel.ReadOperation =>
         dbModel.Read(
           inputSources = r.inputSources,
           params = r.params,
           extra = r.extra,
-          outputSchema = r.schema,
+          outputSchema = executionPlan.expressions.flatMap(_.mappingByOperation.get(r.id)),
           _key = s"${executionPlan.id}:${r.id.toString}"
         )
-      case w: WriteOperation =>
+      case w: apiModel.WriteOperation =>
         dbModel.Write(
           outputSource = w.outputSource,
           append = w.append,
           params = w.params,
           extra = w.extra,
-          outputSchema = schemaFinder.findSchemaOf(w),
+          outputSchema = maybeSchemaFinder.flatMap(_.findSchemaOf(w)),
           _key = s"${executionPlan.id}:${w.id.toString}"
         )
-      case t: DataOperation =>
+      case t: apiModel.DataOperation =>
         dbModel.Transformation(
           params = t.params,
           extra = t.extra,
-          outputSchema = schemaFinder.findSchemaOf(t),
+          outputSchema = maybeSchemaFinder.flatMap(_.findSchemaOf(t)),
           _key = s"${executionPlan.id}:${t.id.toString}"
         )
     }

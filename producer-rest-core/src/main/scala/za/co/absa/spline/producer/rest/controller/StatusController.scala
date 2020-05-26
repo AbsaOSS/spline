@@ -17,7 +17,6 @@
 package za.co.absa.spline.producer.rest.controller
 
 import io.swagger.annotations.{Api, ApiOperation, ApiResponse, ApiResponses}
-import javax.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.{HttpStatus, ResponseEntity}
 import org.springframework.web.bind.annotation._
@@ -44,7 +43,7 @@ class StatusController @Autowired()(
     new ApiResponse(code = 200, message = "Everything's working"),
     new ApiResponse(code = 503, message = "There is a problem")
   ))
-  def statusHead(response: HttpServletResponse): Future[_] = repo
+  def statusHead(): Future[_] = repo
     .isDatabaseOk
     .map {
       if (_) HttpStatus.OK
@@ -53,7 +52,8 @@ class StatusController @Autowired()(
     .map {
       ResponseEntity
         .status(_)
-        .header(SplineHeaders.ApiVersion, ProducerAPI.VersionNumber.toString)
+        .header(SplineHeaders.ApiVersion, ProducerAPI.SupportedVersions.map(_.asString): _*)
+        .header(SplineHeaders.ApiLTSVersion, ProducerAPI.LTSVersions.map(_.asString): _*)
         .header(SplineHeaders.AcceptRequestEncoding, Encoding.GZIP)
         .build()
     }

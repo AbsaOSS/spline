@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.model
+package za.co.absa.spline.producer.rest.controller
 
-import java.util.UUID
+package object v1 {
 
-case class ExecutionEvent(
-  planId: UUID,
-  timestamp: Long,
-  error: Option[Any] = None,
-  extra: Map[String, Any] = Map.empty
-)
+  trait _package
+
+}

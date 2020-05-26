@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.swagger
+package za.co.absa.spline.producer.model
 
-import java.io.File
+package object v1_1 {
 
-case class SwaggerDocGenConfig(
-  maybeOutputFile: Option[File] = None,
-  restContextClass: Option[Class[_]] = None)
+  type DataType = Any // TBD
+
+}
