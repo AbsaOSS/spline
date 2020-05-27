@@ -14,26 +14,24 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.service.repo
-
-import za.co.absa.spline.producer.model.v1_1.{ExpressionLike, OperationLike}
+package za.co.absa.spline.producer.model
 
 import scala.collection.mutable
 
-class RecursiveSchemaFinder(
-  operations: Seq[OperationLike],
-  schemaMapping: Map[OperationLike.Id, Array[ExpressionLike.Id]]) {
+class RecursiveSchemaFinder[Id, Scm](
+  schemaMapping: Id => Option[Scm],
+  childIds: Id => Seq[Id]
+) {
 
-  private val schemaByOperationIdCollector = mutable.Map.empty[OperationLike.Id, Option[Any]]
-  private val operationById: Map[OperationLike.Id, OperationLike] = operations.map(op => op.id -> op).toMap
+  private val schemaByOperationIdCollector = mutable.Map.empty[Id, Option[Scm]]
 
-  def findSchemaOf(op: OperationLike): Option[Any] =
-    schemaByOperationIdCollector.getOrElseUpdate(op.id, schemaMapping.get(op.id).orElse {
+  def findSchemaByOpId(opId: Id): Option[Scm] =
+    schemaByOperationIdCollector.getOrElseUpdate(opId, schemaMapping(opId).orElse {
       // We assume that the graph is consistent in terms of schema definitions.
       // E.i. if the schema is unknown/undefined than it's unknown/undefined for every operation in the DAG.
       // Or if the schema is None because it's the same as the input's schema than EVERY input has the same schema by definition.
       // In either case it's enough to only traverse any of the inputs to resolve a schema if one is defined in the DAG.
-      val maybeChildId = op.childIds.headOption
-      maybeChildId.flatMap(childId => findSchemaOf(operationById(childId)))
+      val maybeChildId = childIds(opId).headOption
+      maybeChildId.flatMap(childId => findSchemaByOpId(childId))
     })
 }

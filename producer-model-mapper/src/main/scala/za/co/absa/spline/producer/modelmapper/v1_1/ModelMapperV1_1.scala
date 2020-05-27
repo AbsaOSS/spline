@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.consumer.service.internal
+package za.co.absa.spline.producer.modelmapper.v1_1
 
-import java.util.UUID
+import za.co.absa.spline.producer.model.v1_1.{ExecutionEvent, ExecutionPlan}
+import za.co.absa.spline.producer.modelmapper.ModelMapper
 
-case class OperationWithSchema(
-  id: String,
-  schema: Array[UUID],
-  extra: Map[String, Any],
-  params: Map[String, Any],
-  childIds: Seq[String]
-)
+object ModelMapperV1_1 extends ModelMapper {
+  override type P = ExecutionPlan
+  override type E = ExecutionEvent
+
+  override def fromDTO(plan: ExecutionPlan): ExecutionPlan = plan
+
+  override def fromDTO(event: ExecutionEvent): ExecutionEvent = event
+}

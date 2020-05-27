@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.rest.modelmapper
+package za.co.absa.spline.producer.modelmapper
 
 import za.co.absa.spline.producer.model.v1_1.{ExecutionEvent, ExecutionPlan}
 

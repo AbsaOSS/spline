@@ -26,7 +26,7 @@ import za.co.absa.commons.json.DefaultJacksonJsonSerDe
 import za.co.absa.spline.persistence.model._
 import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, TxBuilder}
 import za.co.absa.spline.persistence.{ArangoImplicits, Persister, model => dbModel}
-import za.co.absa.spline.producer.model.{v1_1 => apiModel}
+import za.co.absa.spline.producer.model.{RecursiveSchemaFinder, v1_1 => apiModel}
 
 import java.util.UUID
 import java.util.UUID.randomUUID
@@ -184,6 +184,8 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 
 object ExecutionProducerRepositoryImpl extends DefaultJacksonJsonSerDe {
 
+  import za.co.absa.commons.lang.OptionImplicits._
+
   private object ExecutionPlanDetails {
     val ExecutionPlanId = "executionPlanId"
     val FrameworkName = "frameworkName"
@@ -235,8 +237,11 @@ object ExecutionProducerRepositoryImpl extends DefaultJacksonJsonSerDe {
 
   private def createOperations(executionPlan: apiModel.ExecutionPlan): Seq[dbModel.Operation] = {
     val allOperations = executionPlan.operations.all
-    val maybeSchemaFinder = executionPlan.expressions.map(attrs =>
-      new RecursiveSchemaFinder(allOperations, attrs.mappingByOperation))
+
+    val schemaFinder = new RecursiveSchemaFinder(
+      allOperations.map(op => op.id -> op.output.asOption).toMap,
+      allOperations.map(op => op.id -> op.childIds).toMap
+    )
 
     allOperations.map {
       case r: apiModel.ReadOperation =>
@@ -244,7 +249,7 @@ object ExecutionProducerRepositoryImpl extends DefaultJacksonJsonSerDe {
           inputSources = r.inputSources,
           params = r.params,
           extra = r.extra,
-          outputSchema = executionPlan.expressions.flatMap(_.mappingByOperation.get(r.id)),
+          outputSchema = r.output.asOption,
           _key = s"${executionPlan.id}:${r.id}"
         )
       case w: apiModel.WriteOperation =>
@@ -253,14 +258,14 @@ object ExecutionProducerRepositoryImpl extends DefaultJacksonJsonSerDe {
           append = w.append,
           params = w.params,
           extra = w.extra,
-          outputSchema = maybeSchemaFinder.flatMap(_.findSchemaOf(w)),
+          outputSchema = schemaFinder.findSchemaByOpId(w.id),
           _key = s"${executionPlan.id}:${w.id}"
         )
       case t: apiModel.DataOperation =>
         dbModel.Transformation(
           params = t.params,
           extra = t.extra,
-          outputSchema = maybeSchemaFinder.flatMap(_.findSchemaOf(t)),
+          outputSchema = schemaFinder.findSchemaByOpId(t.id),
           _key = s"${executionPlan.id}:${t.id}"
         )
     }

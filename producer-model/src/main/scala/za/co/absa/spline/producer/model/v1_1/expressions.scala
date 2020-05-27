@@ -35,17 +35,20 @@ case class FunctionalExpression(
   override val childIds: Seq[ExpressionLike.Id],
   override val extra: Map[String, Any],
   name: String,
-  args: Seq[ExpressionLike.Id],
   params: Map[String, Any],
 ) extends ExpressionLike
 
 case class Attribute(
-  override val id: Id,
+  override val id: Attribute.Id,
   override val dataType: Option[DataType],
   override val childIds: Seq[ExpressionLike.Id],
   override val extra: Map[String, Any],
   name: String,
 ) extends ExpressionLike
+
+object Attribute {
+  type Id = ExpressionLike.Id
+}
 
 case class Literal(
   override val id: Id,

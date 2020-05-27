@@ -22,7 +22,7 @@ import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.internal.model.{ExecutionPlanDAG, VersionInfo}
 import za.co.absa.spline.consumer.service.model.DataSourceActionType.{Read, Write}
 import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
-import za.co.absa.spline.consumer.service.model.{DataSourceActionType, LineageDetailed}
+import za.co.absa.spline.consumer.service.model.{AttributeGraph, DataSourceActionType, LineageDetailed}
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepositoryImpl.ExecutionPlanDagPO
 import za.co.absa.spline.persistence.model.{Edge, Operation}
 
@@ -134,6 +134,28 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
           operations = vertices,
           edges = edges)
     }
+  }
+
+  override def execPlanAttributeLineage(planId: Id, attrId: String)(implicit ec: ExecutionContext): Future[AttributeGraph] = {
+    db.queryOne[AttributeGraph](
+      """
+        |???
+        |""".stripMargin,
+      Map(
+        "planId" -> planId,
+        "attrId" -> attrId,
+      ))
+  }
+
+  override def execPlanAttributeImpact(planId: Id, attrId: String)(implicit ec: ExecutionContext): Future[AttributeGraph] = {
+    db.queryOne[AttributeGraph](
+      """
+        |???
+        |""".stripMargin,
+      Map(
+        "planId" -> planId,
+        "attrId" -> attrId,
+      ))
   }
 
   override def getDataSources(execPlanId: String, access: Option[DataSourceActionType])(implicit ec: ExecutionContext): Future[Array[String]] =  {

@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.rest.modelmapper
+package za.co.absa.spline.producer.modelmapper.v1
 
-import za.co.absa.spline.producer.model.v1_1.{ExecutionEvent, ExecutionPlan}
+import za.co.absa.commons.lang.Converter
+import za.co.absa.spline.producer.model.v1_1.ExpressionLike
 
-object ModelMapperV1_1 extends ModelMapper {
-  override type P = ExecutionPlan
-  override type E = ExecutionEvent
+trait ExpressionConverter extends Converter {
+  override type From = Map[String, Any]
+  override type To = ExpressionLike
 
-  override def fromDTO(plan: ExecutionPlan): ExecutionPlan = plan
-
-  override def fromDTO(event: ExecutionEvent): ExecutionEvent = event
+  def isExpression(obj: Any): Boolean
 }

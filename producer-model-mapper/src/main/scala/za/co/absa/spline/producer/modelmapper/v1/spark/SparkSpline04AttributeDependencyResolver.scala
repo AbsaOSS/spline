@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.consumer.service.attrresolver
+package za.co.absa.spline.producer.modelmapper.v1.spark
 
-import za.co.absa.spline.consumer.service.attrresolver.AttributeDependencyResolver._
-import za.co.absa.spline.persistence.model.Operation
+import za.co.absa.spline.producer.model.v1_1.ExpressionLike
+import za.co.absa.spline.producer.model.{OperationLike => OperationLikeV1}
+import za.co.absa.spline.producer.modelmapper.v1.AttributeDependencyResolver.AttributeId
+import za.co.absa.spline.producer.modelmapper.v1.{AttributeDependencyResolver, FieldNamesV1}
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable
 
-object SparkAttributeDependencyResolverImpl extends AttributeDependencyResolver {
+object SparkSpline04AttributeDependencyResolver extends AttributeDependencyResolver {
   override def resolve(
-    op: Operation,
+    op: OperationLikeV1,
     inputSchema: => Seq[AttributeId],
     outputSchema: => Seq[AttributeId]
-  ): Map[AttributeId, Set[AttributeId]] =
-    op.extra("name") match {
+  ): Map[AttributeId, Set[ExpressionLike.Id]] =
+    op.extra(FieldNamesV1.OperationExtraInfo.Name) match {
       case "Project" => resolveExpressionList(asScalaListOfMaps(op.params("projectList")), outputSchema)
       case "Aggregate" => resolveExpressionList(asScalaListOfMaps(op.params("aggregateExpressions")), outputSchema)
       case "SubqueryAlias" => resolveSubqueryAlias(inputSchema, outputSchema)
@@ -36,7 +37,7 @@ object SparkAttributeDependencyResolverImpl extends AttributeDependencyResolver 
       case _ => Map.empty
     }
 
-  private def resolveExpressionList(exprs: Seq[mutable.Map[String, Any]], schema: Seq[AttributeId]): Map[AttributeId, Set[AttributeId]] = {
+  private def resolveExpressionList(exprs: Seq[Map[String, Any]], schema: Seq[AttributeId]): Map[AttributeId, Set[ExpressionLike.Id]] = {
     assume(schema.length == exprs.length)
     exprs
       .zip(schema)
@@ -50,14 +51,14 @@ object SparkAttributeDependencyResolverImpl extends AttributeDependencyResolver 
       .map { case (inAtt, outAtt) => outAtt -> Set(inAtt) }
       .toMap
 
-  private def resolveGenerator(op: Operation): Map[AttributeId, Set[AttributeId]] = {
+  private def resolveGenerator(op: OperationLikeV1): Map[AttributeId, Set[AttributeId]] = {
     val expression = asScalaMap[String, Any](op.params("generator"))
     val dependencies = expressionDependencies(expression)
     val keyId = asScalaListOfMaps[String, String](op.params("generatorOutput")).head("refId")
     Map(keyId -> dependencies)
   }
 
-  private def expressionDependencies(expr: mutable.Map[String, Any]): Set[AttributeId] = expr("_typeHint") match {
+  private def expressionDependencies(expr: Map[String, Any]): Set[AttributeId] = expr("_typeHint") match {
     case "expr.AttrRef" =>
       Set(expr("refId").asInstanceOf[String])
     case "expr.Alias" =>
@@ -70,10 +71,10 @@ object SparkAttributeDependencyResolverImpl extends AttributeDependencyResolver 
   }
 
   private def asScalaMap[K, V](javaMap: Any) =
-    javaMap.asInstanceOf[java.util.Map[K, V]].asScala
+    javaMap.asInstanceOf[java.util.Map[K, V]].asScala.toMap
 
-  private def asScalaListOfMaps[K, V](javaList: Any) =
-    javaList.asInstanceOf[java.util.List[java.util.Map[K, V]]].asScala.map(_.asScala)
+  private def asScalaListOfMaps[K, V](javaList: Any): Seq[Map[K, V]] =
+    javaList.asInstanceOf[java.util.List[java.util.Map[K, V]]].asScala.map(_.asScala.toMap)
 
 
 }

@@ -21,7 +21,9 @@ import za.co.absa.spline.producer.model.v1_1.OperationLike.Id
 sealed trait OperationLike {
   val id: Id
   val childIds: Seq[Id]
+  val output: Seq[ExpressionLike.Id]
   val params: Map[String, Any]
+  val expressions: Map[String, Seq[ExpressionLike.Id]]
   val extra: Map[String, Any]
 }
 
@@ -33,17 +35,21 @@ object OperationLike {
 case class DataOperation(
   override val id: Id,
   override val childIds: Seq[Id] = Seq.empty,
+  override val output: Seq[Attribute.Id],
   override val params: Map[String, Any] = Map.empty,
+  override val expressions: Map[String, Seq[ExpressionLike.Id]] = Map.empty,
   override val extra: Map[String, Any] = Map.empty
 ) extends OperationLike
 
 case class ReadOperation(
   inputSources: Seq[String],
   override val id: Id,
+  override val output: Seq[Attribute.Id],
   override val params: Map[String, Any] = Map.empty,
+  override val expressions: Map[String, Seq[ExpressionLike.Id]] = Map.empty,
   override val extra: Map[String, Any] = Map.empty
 ) extends OperationLike {
-  override val childIds: Seq[Id] = Seq.empty // Read operation is always a terminal node in a DAG
+  override val childIds: Seq[Id] = Seq.empty
 }
 
 case class WriteOperation(
@@ -52,5 +58,9 @@ case class WriteOperation(
   override val id: Id,
   override val childIds: Seq[Id],
   override val params: Map[String, Any] = Map.empty,
+  override val expressions: Map[String, Seq[ExpressionLike.Id]] = Map.empty,
   override val extra: Map[String, Any] = Map.empty
-) extends OperationLike
+) extends OperationLike {
+  override val output: Seq[Attribute.Id] = Nil
+
+}
