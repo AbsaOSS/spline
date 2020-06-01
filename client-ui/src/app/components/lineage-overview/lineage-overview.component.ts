@@ -17,18 +17,19 @@
 import { Component } from '@angular/core'
 import { Store } from '@ngrx/store'
 import { Observable } from 'rxjs'
-import { filter, map, tap } from 'rxjs/operators'
+import { filter, map } from 'rxjs/operators'
 import { AppState } from '../../model/app-state'
 import * as LineageOverviewAction from '../../store/actions/lineage-overview.actions'
 
 
 @Component({
   selector: 'lineage-overview',
-  templateUrl: './lineage-overview.component.html'
+  templateUrl: './lineage-overview.component.html',
+  styleUrls: ['./lineage-overview.component.less']
 })
 export class LineageOverviewComponent {
 
-  lineageState$: Observable<{ depthRequested: number; hasOlderNodes: boolean; } >
+  lineageState$: Observable<{ depthRequested: number; hasMoreNodes: boolean; }>
   embeddedMode$: Observable<boolean>
 
   constructor(private store: Store<AppState>) {
@@ -36,16 +37,16 @@ export class LineageOverviewComponent {
     this.embeddedMode$ = this.store.select('config', 'embeddedMode')
 
     this.lineageState$ = this.store.select('lineageOverview')
-        .pipe(
-            filter(x => !!x),
-            map(lineageOverview => ({
-              depthRequested: lineageOverview.depthRequested,
-              hasOlderNodes: lineageOverview.hasOlderNodes,
-            }))
-        )
+      .pipe(
+        filter(x => !!x),
+        map(lineageOverview => ({
+          depthRequested: lineageOverview.depthRequested,
+          hasMoreNodes: lineageOverview.hasMoreNodes,
+        }))
+      )
   }
 
   onLoadOlderNodesBtnClicked(): void {
-    this.store.dispatch(new LineageOverviewAction.GetOlderNodes())
+    this.store.dispatch(new LineageOverviewAction.GetMoreNodes())
   }
 }

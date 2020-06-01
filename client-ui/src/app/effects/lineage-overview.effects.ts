@@ -60,7 +60,7 @@ export class LineageOverviewEffects {
 
   @Effect()
   public getLineageOverviewOlderNodes$: Observable<Action> = this.actions$.pipe(
-      ofType<LineageOverviewAction.GetOlderNodes>(LineageOverviewAction.LineageOverviewActionTypes.OVERVIEW_LINEAGE_GET_OLDER_NODES),
+      ofType<LineageOverviewAction.GetMoreNodes>(LineageOverviewAction.LineageOverviewActionTypes.OVERVIEW_LINEAGE_GET_MORE_NODES),
       withLatestFrom(this.store.select('lineageOverview')),
       switchMap(([action, currentLineageOverview]) => {
         const maxDepth = action.payload.maxDepth
@@ -122,9 +122,9 @@ export class LineageOverviewEffects {
       executionEventId: executionEventId
     }
 
-    lineageOverviewVM.depthComputed = lineageOverview.graph['depthComputed'] ? lineageOverview.graph['depthComputed'] : 10
-    lineageOverviewVM.depthRequested = lineageOverview.graph['depthRequested'] ? lineageOverview.graph['depthRequested'] : 10
-    lineageOverviewVM.hasOlderNodes = lineageOverviewVM.depthComputed >= lineageOverviewVM.depthRequested
+    lineageOverviewVM.depthComputed = lineageOverview.graph.depthComputed ? lineageOverview.graph.depthComputed : 0
+    lineageOverviewVM.depthRequested = lineageOverview.graph.depthRequested ? lineageOverview.graph.depthRequested : 0
+    lineageOverviewVM.hasMoreNodes = lineageOverviewVM.depthComputed && lineageOverviewVM.depthComputed >= lineageOverviewVM.depthRequested
 
     return lineageOverviewVM
   }

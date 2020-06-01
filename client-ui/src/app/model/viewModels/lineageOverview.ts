@@ -26,5 +26,5 @@ export type LineageOverviewVM = {
     applicationId: string
     depthRequested: number
     depthComputed: number
-    hasOlderNodes: boolean
+    hasMoreNodes: boolean
 }

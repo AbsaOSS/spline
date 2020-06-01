@@ -19,17 +19,30 @@
   <div class="row">
     <div class="col-sm-8 no-padding">
       <lineage-overview-graph [embeddedMode]="embeddedMode$ | async"></lineage-overview-graph>
+
+      <ng-container *ngIf="lineageState$ | async as lineageState">
+        <div class="highlights-toolbar" *ngIf="lineageState.hasMoreNodes">
+          <div class="highlighted-attributes">
+            <div class="warning">
+              <div class="warning__icon">
+                <mat-icon fontSet="fa"
+                          fontIcon="fa-exclamation-triangle">
+                </mat-icon>
+              </div>
+              <div class="warning__title">
+                Some older nodes might not be displayed.
+              </div>
+            </div>
+            <div class="warning-footer">
+              The current depth is <b>{{ lineageState.depthRequested }}</b>.
+              <a class="link-dashed" (click)="onLoadOlderNodesBtnClicked()" matTooltip="Load older nodes">Click here</a> to load older nodes.
+            </div>
+          </div>
+        </div>
+      </ng-container>
     </div>
 
     <div class="col-sm-4 ">
-      <ng-container *ngIf="lineageState$ | async as lineageState">
-        Requested Depth {{ lineageState.depthRequested }}
-        <br/>
-        Has older Nodes {{ lineageState.hasOlderNodes ? 'YES' : 'NO' }}
-
-        <button (click)="onLoadOlderNodesBtnClicked()"> Load More </button>
-      </ng-container>
-
       <lineage-overview-details [embeddedMode]="embeddedMode$ | async"></lineage-overview-details>
     </div>
   </div>
