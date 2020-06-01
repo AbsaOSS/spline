@@ -13,51 +13,73 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable} from '@angular/core';
-import {Actions, Effect, ofType} from '@ngrx/effects';
-import {Action, Store} from '@ngrx/store';
-import * as _ from 'lodash';
-import {Observable} from 'rxjs';
-import {map, switchMap} from 'rxjs/operators';
-import {LineageOverview, Transition} from '../generated/models';
-import {LineageService} from '../generated/services';
-import {AppState} from '../model/app-state';
-import {LineageOverviewNodeType} from '../model/types/lineageOverviewNodeType';
-import {CytoscapeGraphVM} from '../model/viewModels/cytoscape/cytoscapeGraphVM';
-import {CytoscapeOperationVM} from '../model/viewModels/cytoscape/cytoscapeOperationVM';
-import {LineageOverviewVM} from '../model/viewModels/lineageOverview';
-import {LineageOverviewNodeVM} from '../model/viewModels/LineageOverviewNodeVM';
-import {handleException} from '../rxjs/operators/handleException';
-import * as LineageOverviewAction from '../store/actions/lineage-overview.actions';
-import {lineageOverviewColorCodes, lineageOverviewIconCodes} from '../store/reducers/lineage-overview.reducer';
+import { Injectable } from '@angular/core'
+import { Actions, Effect, ofType } from '@ngrx/effects'
+import { Action, Store } from '@ngrx/store'
+import * as _ from 'lodash'
+import { Observable } from 'rxjs'
+import { map, switchMap, withLatestFrom } from 'rxjs/operators'
+import { LineageOverview, Transition } from '../generated/models'
+import { LineageService } from '../generated/services'
+import { AppState } from '../model/app-state'
+import { LineageOverviewNodeType } from '../model/types/lineageOverviewNodeType'
+import { CytoscapeGraphVM } from '../model/viewModels/cytoscape/cytoscapeGraphVM'
+import { CytoscapeOperationVM } from '../model/viewModels/cytoscape/cytoscapeOperationVM'
+import { LineageOverviewVM } from '../model/viewModels/lineageOverview'
+import { LineageOverviewNodeVM } from '../model/viewModels/LineageOverviewNodeVM'
+import { handleException } from '../rxjs/operators/handleException'
+import * as LineageOverviewAction from '../store/actions/lineage-overview.actions'
+import { lineageOverviewColorCodes, lineageOverviewIconCodes } from '../store/reducers/lineage-overview.reducer'
 
 
 @Injectable()
 export class LineageOverviewEffects {
+
+  readonly lineageOverviewDefaultMaxDepth = 10
+
   constructor(
-    private actions$: Actions,
-    private lineageOverviewService: LineageService,
-    private store: Store<AppState>
+      private actions$: Actions,
+      private lineageOverviewService: LineageService,
+      private store: Store<AppState>
   ) {
     this.store
-      .select('config', 'apiUrl')
-      .subscribe(apiUrl => this.lineageOverviewService.rootUrl = apiUrl)
+        .select('config', 'apiUrl')
+        .subscribe(apiUrl => this.lineageOverviewService.rootUrl = apiUrl)
   }
 
   @Effect()
   public getLineageOverview$: Observable<Action> = this.actions$.pipe(
-    ofType(LineageOverviewAction.LineageOverviewActionTypes.OVERVIEW_LINEAGE_GET),
-    switchMap((action: any) => this.getLineageOverview(action.payload)),
-    map((res: LineageOverviewVM) => new LineageOverviewAction.GetSuccess(res))
+      ofType<LineageOverviewAction.Get>(LineageOverviewAction.LineageOverviewActionTypes.OVERVIEW_LINEAGE_GET),
+      switchMap((action: any) => {
+        const executionEventId = action.payload.executionEventId
+        const maxDepth = action.payload.maxDepth ? action.payload.maxDepth : this.lineageOverviewDefaultMaxDepth
+        return this.getLineageOverview(executionEventId, maxDepth)
+      }),
+      map((res: LineageOverviewVM) => new LineageOverviewAction.GetSuccess(res))
   )
 
-  private getLineageOverview(executionEventId: string): Observable<LineageOverviewVM> {
+  @Effect()
+  public getLineageOverviewOlderNodes$: Observable<Action> = this.actions$.pipe(
+      ofType<LineageOverviewAction.GetOlderNodes>(LineageOverviewAction.LineageOverviewActionTypes.OVERVIEW_LINEAGE_GET_OLDER_NODES),
+      withLatestFrom(this.store.select('lineageOverview')),
+      switchMap(([action, currentLineageOverview]) => {
+        const maxDepth = action.payload.maxDepth
+            ? action.payload.maxDepth
+            : currentLineageOverview.depthRequested + this.lineageOverviewDefaultMaxDepth
+
+        const executionEventId = currentLineageOverview.lineageInfo.executionEventId
+        return this.getLineageOverview(executionEventId, maxDepth)
+      }),
+      map((res: LineageOverviewVM) => new LineageOverviewAction.GetSuccess(res))
+  )
+
+  private getLineageOverview(executionEventId: string, maxDepth: number): Observable<LineageOverviewVM> {
     return this.lineageOverviewService
-      .lineageOverviewUsingGET({eventId: executionEventId, maxDepth: 10})
-      .pipe(
-        map(response => this.toLineageOverviewVM(response, executionEventId)),
-        handleException(this.store)
-      )
+        .lineageOverviewUsingGET({ eventId: executionEventId, maxDepth })
+        .pipe(
+            map(response => this.toLineageOverviewVM(response, executionEventId)),
+            handleException(this.store)
+        )
   }
 
   private toLineageOverviewVM = (lineageOverview: LineageOverview, executionEventId: string): LineageOverviewVM => {
@@ -89,17 +111,21 @@ export class LineageOverviewEffects {
       cytoscapeGraphVM.nodes.push({data: cytoscapeOperation})
     })
     _.each(graph.edges, (edge: Transition) => {
-      cytoscapeGraphVM.edges.push({data: edge})
+      cytoscapeGraphVM.edges.push({ data: edge })
     })
 
     const lineageOverviewVM = {} as LineageOverviewVM
     lineageOverviewVM.lineage = cytoscapeGraphVM
     lineageOverviewVM.lineageInfo = {
-      ...lineageOverview.info, ...{
-        "targetNodeName": targetNodeName,
-        "executionEventId": executionEventId
-      }
+      ...lineageOverview.info,
+      targetNodeName: targetNodeName,
+      executionEventId: executionEventId
     }
+
+    lineageOverviewVM.depthComputed = lineageOverview.graph['depthComputed'] ? lineageOverview.graph['depthComputed'] : 10
+    lineageOverviewVM.depthRequested = lineageOverview.graph['depthRequested'] ? lineageOverview.graph['depthRequested'] : 10
+    lineageOverviewVM.hasOlderNodes = lineageOverviewVM.depthComputed >= lineageOverviewVM.depthRequested
+
     return lineageOverviewVM
   }
 }

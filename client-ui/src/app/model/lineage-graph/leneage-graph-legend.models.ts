@@ -57,3 +57,4 @@ export const LineageGraphLegends: { [key in LineageGraphLegendKeys]: LineageGrap
       `
     }
   })
+

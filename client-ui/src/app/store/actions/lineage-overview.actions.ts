@@ -18,12 +18,18 @@ import { LineageOverviewVM } from 'src/app/model/viewModels/lineageOverview';
 
 export enum LineageOverviewActionTypes {
     OVERVIEW_LINEAGE_GET = '[Overview Lineage] Get',
+    OVERVIEW_LINEAGE_GET_OLDER_NODES = '[Overview Lineage] Get Older Nodes',
     OVERVIEW_LINEAGE_GET_GET_SUCCESS = '[Overview Lineage] Get Success'
 }
 
 export class Get implements Action {
     public readonly type = LineageOverviewActionTypes.OVERVIEW_LINEAGE_GET
-    constructor(public payload: string) { }
+    constructor(public payload: { executionEventId: string; maxDepth?: number }) { }
+}
+
+export class GetOlderNodes implements Action {
+    public readonly type = LineageOverviewActionTypes.OVERVIEW_LINEAGE_GET_OLDER_NODES
+    constructor(public payload: { maxDepth?: number } = {}) { }
 }
 
 export class GetSuccess implements Action {

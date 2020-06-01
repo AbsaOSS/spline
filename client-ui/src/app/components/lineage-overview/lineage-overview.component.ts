@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
-import {Observable} from "rxjs";
-import {Store} from "@ngrx/store";
-import {AppState} from "../../model/app-state";
+import { Component } from '@angular/core'
+import { Store } from '@ngrx/store'
+import { Observable } from 'rxjs'
+import { filter, map, tap } from 'rxjs/operators'
+import { AppState } from '../../model/app-state'
+import * as LineageOverviewAction from '../../store/actions/lineage-overview.actions'
+
 
 @Component({
   selector: 'lineage-overview',
@@ -25,9 +28,24 @@ import {AppState} from "../../model/app-state";
 })
 export class LineageOverviewComponent {
 
-  public embeddedMode$: Observable<boolean>
+  lineageState$: Observable<{ depthRequested: number; hasOlderNodes: boolean; } >
+  embeddedMode$: Observable<boolean>
 
   constructor(private store: Store<AppState>) {
+
     this.embeddedMode$ = this.store.select('config', 'embeddedMode')
+
+    this.lineageState$ = this.store.select('lineageOverview')
+        .pipe(
+            filter(x => !!x),
+            map(lineageOverview => ({
+              depthRequested: lineageOverview.depthRequested,
+              hasOlderNodes: lineageOverview.hasOlderNodes,
+            }))
+        )
+  }
+
+  onLoadOlderNodesBtnClicked(): void {
+    this.store.dispatch(new LineageOverviewAction.GetOlderNodes())
   }
 }
