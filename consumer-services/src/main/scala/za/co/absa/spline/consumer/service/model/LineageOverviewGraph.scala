@@ -24,9 +24,13 @@ case class LineageOverviewGraph
   @ApiModelProperty(value = "Array of Lineage Overview nodes representing an Execution or a DataSource")
   nodes: Array[LineageOverviewNode],
   @ApiModelProperty(value = "Link between the Executions and the DataSources")
-  edges: Array[Transition]
+  edges: Array[Transition],
+  @ApiModelProperty(value = "Requested max depth")
+  depthRequested: Int,
+  @ApiModelProperty(value = "Computed depth")
+  depthComputed: Int,
 ) extends Graph {
-  def this() = this(null, null)
+  def this() = this(null, null, -1, -1)
 
   override type Node = LineageOverviewNode
   override type Edge = Transition
