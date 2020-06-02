@@ -18,19 +18,19 @@
 @separator-color: #eaeaea;
 @warning-color: #E39256;
 
-.highlights-toolbar {
+.graph-toolbar {
   position: absolute;
   top: 1rem;
   right: 1rem;
   min-width: @toolbar-width;
 }
 
-.highlighted-attributes {
+.graph-toolbar__section {
   background: rgba(250, 250, 250, 0.8);
   padding: 16px;
 }
 
-.warning {
+.graph-toolbar-warning {
   display: flex;
   align-items: center;
   font-size: 12px;
@@ -53,24 +53,15 @@
     flex-grow: 1;
     padding: 0 .5rem;
   }
-
-  &__info {
-    .mat-icon {
-      width: 1rem;
-      height: 1rem;
-      font-size: 1rem;
-      color: #ccc;
-    }
-  }
 }
 
-.warning-footer {
+.graph-toolbar__section-footer {
   margin: 1rem -1rem 0;
   padding: 1rem 1rem 0;
   font-size: 12px;
   border-top: 1px solid @separator-color;
 
-  a.link-dashed {
+  a {
     border-bottom: 1px dashed @warning-color;
     color: @warning-color;
 
