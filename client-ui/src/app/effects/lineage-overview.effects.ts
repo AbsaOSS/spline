@@ -35,51 +35,51 @@ import { lineageOverviewColorCodes, lineageOverviewIconCodes } from '../store/re
 @Injectable()
 export class LineageOverviewEffects {
 
-  readonly lineageOverviewDefaultMaxDepth = 10
+  private readonly lineageOverviewDefaultMaxDepth = 10
 
   constructor(
-      private actions$: Actions,
-      private lineageOverviewService: LineageService,
-      private store: Store<AppState>
+    private actions$: Actions,
+    private lineageOverviewService: LineageService,
+    private store: Store<AppState>
   ) {
     this.store
-        .select('config', 'apiUrl')
-        .subscribe(apiUrl => this.lineageOverviewService.rootUrl = apiUrl)
+      .select('config', 'apiUrl')
+      .subscribe(apiUrl => this.lineageOverviewService.rootUrl = apiUrl)
   }
 
   @Effect()
   public getLineageOverview$: Observable<Action> = this.actions$.pipe(
-      ofType<LineageOverviewAction.Get>(LineageOverviewAction.LineageOverviewActionTypes.OVERVIEW_LINEAGE_GET),
-      switchMap((action: any) => {
-        const executionEventId = action.payload.executionEventId
-        const maxDepth = action.payload.maxDepth ? action.payload.maxDepth : this.lineageOverviewDefaultMaxDepth
-        return this.getLineageOverview(executionEventId, maxDepth)
-      }),
-      map((res: LineageOverviewVM) => new LineageOverviewAction.GetSuccess(res))
+    ofType<LineageOverviewAction.Get>(LineageOverviewAction.LineageOverviewActionTypes.OVERVIEW_LINEAGE_GET),
+    switchMap((action: any) => {
+      const executionEventId = action.payload.executionEventId
+      const maxDepth = action.payload.maxDepth ? action.payload.maxDepth : this.lineageOverviewDefaultMaxDepth
+      return this.getLineageOverview(executionEventId, maxDepth)
+    }),
+    map((res: LineageOverviewVM) => new LineageOverviewAction.GetSuccess(res))
   )
 
   @Effect()
   public getLineageOverviewOlderNodes$: Observable<Action> = this.actions$.pipe(
-      ofType<LineageOverviewAction.GetMoreNodes>(LineageOverviewAction.LineageOverviewActionTypes.OVERVIEW_LINEAGE_GET_MORE_NODES),
-      withLatestFrom(this.store.select('lineageOverview')),
-      switchMap(([action, currentLineageOverview]) => {
-        const maxDepth = action.payload.maxDepth
-            ? action.payload.maxDepth
-            : currentLineageOverview.depthRequested + this.lineageOverviewDefaultMaxDepth
+    ofType<LineageOverviewAction.GetMoreNodes>(LineageOverviewAction.LineageOverviewActionTypes.OVERVIEW_LINEAGE_GET_MORE_NODES),
+    withLatestFrom(this.store.select('lineageOverview')),
+    switchMap(([action, currentLineageOverview]) => {
+      const maxDepth = action.payload.maxDepth
+        ? action.payload.maxDepth
+        : currentLineageOverview.depthRequested + this.lineageOverviewDefaultMaxDepth
 
-        const executionEventId = currentLineageOverview.lineageInfo.executionEventId
-        return this.getLineageOverview(executionEventId, maxDepth)
-      }),
-      map((res: LineageOverviewVM) => new LineageOverviewAction.GetSuccess(res))
+      const executionEventId = currentLineageOverview.lineageInfo.executionEventId
+      return this.getLineageOverview(executionEventId, maxDepth)
+    }),
+    map((res: LineageOverviewVM) => new LineageOverviewAction.GetSuccess(res))
   )
 
   private getLineageOverview(executionEventId: string, maxDepth: number): Observable<LineageOverviewVM> {
     return this.lineageOverviewService
-        .lineageOverviewUsingGET({ eventId: executionEventId, maxDepth })
-        .pipe(
-            map(response => this.toLineageOverviewVM(response, executionEventId)),
-            handleException(this.store)
-        )
+      .lineageOverviewUsingGET({ eventId: executionEventId, maxDepth })
+      .pipe(
+        map(response => this.toLineageOverviewVM(response, executionEventId)),
+        handleException(this.store)
+      )
   }
 
   private toLineageOverviewVM = (lineageOverview: LineageOverview, executionEventId: string): LineageOverviewVM => {
@@ -93,22 +93,22 @@ export class LineageOverviewEffects {
       .map((n: LineageOverviewNodeVM) => n._id)
       .find(id => !nonTerminalNodeIds.has(id))
 
-    let targetNodeName = ""
+    let targetNodeName = ''
     _.each(graph.nodes, (node: LineageOverviewNodeVM) => {
       const cytoscapeOperation = {} as CytoscapeOperationVM
       if (node._id == targetNodeId) {
         targetNodeName = node.name
-        cytoscapeOperation.properties = {"targetNode": true}
+        cytoscapeOperation.properties = { 'targetNode': true }
       }
       cytoscapeOperation._type = node._type
       cytoscapeOperation.id = node._id
       cytoscapeOperation._id = node.name
-      const nodeName = node._type == LineageOverviewNodeType.DataSource ? node.name.substring(node.name.lastIndexOf("/") + 1) : node.name
+      const nodeName = node._type == LineageOverviewNodeType.DataSource ? node.name.substring(node.name.lastIndexOf('/') + 1) : node.name
       const splitedNames = node.name.split('/')
-      cytoscapeOperation.name = nodeName == "*" ? `${splitedNames[splitedNames.length - 2]}/${nodeName}` : nodeName
+      cytoscapeOperation.name = nodeName == '*' ? `${splitedNames[splitedNames.length - 2]}/${nodeName}` : nodeName
       cytoscapeOperation.color = lineageOverviewColorCodes.get(node._type)
       cytoscapeOperation.icon = lineageOverviewIconCodes.get(node._type)
-      cytoscapeGraphVM.nodes.push({data: cytoscapeOperation})
+      cytoscapeGraphVM.nodes.push({ data: cytoscapeOperation })
     })
     _.each(graph.edges, (edge: Transition) => {
       cytoscapeGraphVM.edges.push({ data: edge })

@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {CytoscapeGraphVM} from './cytoscape/cytoscapeGraphVM';
+import { CytoscapeGraphVM } from './cytoscape/cytoscapeGraphVM'
+
 
 export type LineageOverviewVM = {
-    lineageInfo: {
-        targetNodeName: string;
-        executionEventId: string
-        [key: string]: any
-    }
-    lineage: CytoscapeGraphVM
-    path: string
-    applicationId: string
-    depthRequested: number
-    depthComputed: number
-    hasMoreNodes: boolean
+  lineageInfo: {
+    targetNodeName: string;
+    executionEventId: string
+    [key: string]: any
+  }
+  lineage: CytoscapeGraphVM
+  path: string
+  applicationId: string
+  depthRequested: number
+  depthComputed: number
+  hasMoreNodes: boolean
 }

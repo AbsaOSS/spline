@@ -44,7 +44,12 @@
 
             <div class="graph-toolbar__section-footer">
               The current depth is <strong>{{ lineageState.depthRequested }}</strong>.
-              <a class="link-dashed" (click)="onLoadOlderNodesBtnClicked()" matTooltip="Load older nodes">Click here</a> to load older nodes.
+              <a class="link-dashed"
+                 (click)="onLoadOlderNodesBtnClicked()"
+                 matTooltip="Load older nodes">
+                Click here
+              </a>
+              to load older nodes.
             </div>
           </div>
           <!-- ./GRAPH DEPTH CONTROL -->

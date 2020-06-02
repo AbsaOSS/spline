@@ -29,8 +29,8 @@ import * as LineageOverviewAction from '../../store/actions/lineage-overview.act
 })
 export class LineageOverviewComponent {
 
-  lineageState$: Observable<{ depthRequested: number; hasMoreNodes: boolean; }>
-  embeddedMode$: Observable<boolean>
+  public lineageState$: Observable<{ depthRequested: number; hasMoreNodes: boolean; }>
+  public embeddedMode$: Observable<boolean>
 
   constructor(private store: Store<AppState>) {
 
@@ -46,7 +46,7 @@ export class LineageOverviewComponent {
       )
   }
 
-  onLoadOlderNodesBtnClicked(): void {
+  public onLoadOlderNodesBtnClicked(): void {
     this.store.dispatch(new LineageOverviewAction.GetMoreNodes())
   }
 }
