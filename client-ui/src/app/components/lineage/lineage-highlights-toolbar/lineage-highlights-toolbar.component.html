@@ -16,62 +16,73 @@
 
 <div class="highlights-toolbar">
 
-  <!-- TITLE -->
-  <h5 class="toolbar-title">
-    Highlighted attributes
-  </h5>
-  <!-- ./TITLE -->
+  <div class="highlighted-attributes mb-3">
 
-  <!-- TAGS LIST -->
-  <mat-chip-list>
-    <mat-chip *ngFor="let attr of attributes"
-              (removed)="onAttributeRemoveIconClicked(attr)">
+    <!-- TITLE -->
+    <h5 class="toolbar-title">
+      Highlighted attributes
+    </h5>
+    <!-- ./TITLE -->
 
-      {{attr.name}}
+    <!-- TAGS LIST -->
+    <mat-chip-list>
+      <mat-chip *ngFor="let attr of attributes"
+                (removed)="onAttributeRemoveIconClicked(attr)">
 
-      <mat-icon matChipRemove
-                fontSet="fa"
-                matTooltip="Remove"
-                fontIcon="fa-times">
-      </mat-icon>
-    </mat-chip>
-  </mat-chip-list>
-  <!-- ./TAGS LIST -->
+        {{attr.name}}
 
-  <!-- LEGEND -->
-  <div class="legends-list">
-    <div class="legend" *ngFor="let legend of lineageGraphLegends">
+        <mat-icon matChipRemove
+                  fontSet="fa"
+                  matTooltip="Remove"
+                  fontIcon="fa-times">
+        </mat-icon>
+      </mat-chip>
+    </mat-chip-list>
+    <!-- ./TAGS LIST -->
 
-      <div class="legend__circle"
-           [ngStyle]="{background: legend.color}">
+    <!-- LEGEND -->
+    <div class="legends-list">
+      <div class="legend" *ngFor="let legend of lineageGraphLegends">
+
+        <div class="legend__circle"
+             [ngStyle]="{background: legend.color}">
+        </div>
+
+        <div class="px-2 flex-grow-1">
+          {{legend.title}}
+        </div>
+
+        <mat-icon fontSet="fa"
+                  fontIcon="fa-info-circle"
+                  [matTooltip]="legend.description">
+        </mat-icon>
       </div>
-
-      <div class="px-2 flex-grow-1">
-        {{legend.title}}
-      </div>
-
-      <mat-icon fontSet="fa"
-                fontIcon="fa-info-circle"
-                [matTooltip]="legend.description">
-      </mat-icon>
     </div>
+
+    <!-- ./LEGEND -->
+
+    <!-- OLD VERSION WARNING -->
+
+    <div class="warnings-container" *ngIf="showOldSplineWarning">
+      <div class="warning">
+        <div class="warning__icon">
+          <mat-icon fontSet="fa"
+                    fontIcon="fa-exclamation-triangle">
+          </mat-icon>
+        </div>
+        <div class="warning__title">
+          Only direct attribute usage is displayed.
+        </div>
+        <div class="warning__info">
+          <mat-icon fontSet="fa"
+                    fontIcon="fa-info-circle"
+                    [matTooltip]="'This execution plan is captured by an older version of Spline, so only direct attribute usage is displayed. Transitive attribute lineage and impact highlighting is only available on the metadata captured by Spline version 0.4 or higher.'">
+          </mat-icon>
+        </div>
+      </div>
+    </div>
+
+    <!-- OLD VERSION WARNING -->
   </div>
-
-  <!-- ./LEGEND -->
-
-  <!-- SPLINE VER WARNING -->
-
-  <div *ngIf="showOldSplineWarning" class="old-spline-warn small mark">
-    <p>
-      This execution plan is captured by an older version of Spline,
-      so only direct attribute usage is displayed.
-    </p>
-    <p>
-      Transitive attribute lineage and impact highlighting is only available on the metadata
-      captured by Spline version 0.4 or higher.
-    </p>
-  </div>
-
-  <!-- ./SPLINE VER WARNING -->
 
 </div>

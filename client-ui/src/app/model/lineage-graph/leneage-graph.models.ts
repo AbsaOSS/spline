@@ -110,6 +110,8 @@ export const cyStyles: Partial<Stylesheet>[] = [
       'line-color': LINE_COLOR_PLANE,
       'target-arrow-color': LINE_COLOR_PLANE,
       'width': LINE_WIDTH_PLANE,
+      'curve-style': 'bezier',
+      'target-arrow-shape': 'triangle',
     },
     css: {
       'label': (el) => el.data('label') || '',

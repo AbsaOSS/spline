@@ -14,10 +14,49 @@
   ~ limitations under the License.
   -->
 
+
 <div class="container-fluid">
   <div class="row">
     <div class="col-sm-8 no-padding">
+
       <lineage-overview-graph [embeddedMode]="embeddedMode$ | async"></lineage-overview-graph>
+
+      <!-- GRAPH TOOLBAR -->
+      <ng-container *ngIf="lineageState$ | async as lineageState">
+        <div class="graph-toolbar" *ngIf="lineageState.hasMoreNodes">
+
+          <!-- GRAPH DEPTH CONTROL -->
+          <div class="graph-toolbar__section">
+
+            <div class="graph-toolbar-warning">
+
+              <div class="graph-toolbar-warning__icon">
+                <mat-icon fontSet="fa"
+                          fontIcon="fa-exclamation-triangle">
+                </mat-icon>
+              </div>
+
+              <div class="graph-toolbar-warning__title">
+                Some older nodes might not be displayed.
+              </div>
+
+            </div>
+
+            <div class="graph-toolbar__section-footer">
+              The current depth is <strong>{{ lineageState.depthRequested }}</strong>.
+              <a class="link-dashed"
+                 (click)="onLoadOlderNodesBtnClicked()"
+                 matTooltip="Load older nodes">
+                Click here
+              </a>
+              to load older nodes.
+            </div>
+          </div>
+          <!-- ./GRAPH DEPTH CONTROL -->
+
+        </div>
+      </ng-container>
+      <!-- ./GRAPH TOOLBAR -->
     </div>
 
     <div class="col-sm-4 ">

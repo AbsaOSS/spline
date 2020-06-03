@@ -39,6 +39,8 @@ class LineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Lineag
         |        "applicationId" : executionEvent.extra.appId
         |    },
         |    "graph": {
+        |        "depthRequested": @maxDepth,
+        |        "depthComputed": lineageGraph.depth || -1,
         |        "nodes": lineageGraph.vertices,
         |        "edges": lineageGraph.edges
         |    }
