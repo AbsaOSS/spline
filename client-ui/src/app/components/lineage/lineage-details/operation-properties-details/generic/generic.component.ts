@@ -13,11 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core'
 import { PropertiesComponent } from '../properties/properties.component';
+import { OperationProperty } from '../../../../../model/operation/operation-property.models'
+import ExtraProperties = OperationProperty.ExtraProperties
+import * as _ from 'lodash'
+import NativeProperties = OperationProperty.NativeProperties
+
 
 @Component({
   selector: 'app-generic',
   templateUrl: './generic.component.html'
 })
-export class GenericComponent extends PropertiesComponent { }
+export class GenericComponent extends PropertiesComponent {
+
+  extraProperties: ExtraProperties
+
+  @Input() set nativeProperties(props: NativeProperties) {
+    const defaultProps = [
+      'name'
+    ]
+    const noDefaultProps = _.omit(props, defaultProps)
+    this.extraProperties = OperationProperty.parseExtraOptions(noDefaultProps)
+  }
+
+}

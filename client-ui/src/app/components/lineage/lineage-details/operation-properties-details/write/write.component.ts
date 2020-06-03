@@ -13,8 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
-import { PropertiesComponent } from '../properties/properties.component';
+import { Component, Input } from '@angular/core'
+import * as _ from 'lodash'
+import { OperationProperty } from '../../../../../model/operation/operation-property.models'
+import { PropertiesComponent } from '../properties/properties.component'
+import ExtraProperties = OperationProperty.ExtraProperties
+import NativeProperties = OperationProperty.NativeProperties
+
+
+export type WriteNativeProperties =
+  & NativeProperties
+  &
+  {
+    destinationType: string
+    outputSource: string
+  }
 
 @Component({
   selector: 'app-write',
@@ -22,4 +35,16 @@ import { PropertiesComponent } from '../properties/properties.component';
 })
 export class WriteComponent extends PropertiesComponent {
 
+  extraProperties: ExtraProperties
+  outputSource: string
+
+  @Input() set nativeProperties(props: WriteNativeProperties) {
+    this.outputSource = props.outputSource
+
+    const defaultProps = [
+      'name', 'append', 'outputSource', 'destinationType'
+    ]
+    const noDefaultProps = _.omit(props, defaultProps)
+    this.extraProperties = OperationProperty.parseExtraOptions(noDefaultProps)
+  }
 }
