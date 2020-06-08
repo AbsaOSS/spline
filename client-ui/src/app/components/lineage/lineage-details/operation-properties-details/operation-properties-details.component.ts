@@ -35,8 +35,10 @@ import { AttributeVM } from 'src/app/model/viewModels/attributeVM'
 import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM'
 import { getOperationColor, getOperationIcon } from 'src/app/util/execution-plan'
 import { getText } from 'src/app/util/expressions'
-import { PropertiesComponent } from './properties/properties.component'
+
 import * as RouterAction from '../../../../store/actions/router.actions'
+
+import { PropertiesComponent } from './properties/properties.component'
 
 
 @Component({
@@ -56,6 +58,9 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
     private componentFactoryResolver: ComponentFactoryResolver,
     private changeDetectorRef: ChangeDetectorRef,
     private store: Store<AppState>) {
+
+    this.selectedAttributeId$ = this.store.select('router', 'state', 'queryParams', 'attribute')
+
   }
 
   ngAfterViewInit(): void {

@@ -19,7 +19,7 @@ import { Component, Input } from '@angular/core'
 @Component({
   selector: 'app-operation-property-json',
   templateUrl: './operation-property-json.component.html',
-  styleUrls: ['./operation-property-json.component.less']
+  styleUrls: ['./operation-property-json.component.scss']
 })
 export class OperationPropertyJsonComponent {
   @Input() label: string

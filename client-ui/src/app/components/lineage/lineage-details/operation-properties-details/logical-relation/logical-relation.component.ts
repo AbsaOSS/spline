@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import { Component, Input } from '@angular/core'
+import * as _ from 'lodash'
+
 import { OperationProperty } from '../../../../../model/operation/operation-property.models'
 import { PropertiesComponent } from '../properties/properties.component'
-import * as _ from 'lodash'
 import ExtraProperties = OperationProperty.ExtraProperties
 import NativeProperties = OperationProperty.NativeProperties
 
