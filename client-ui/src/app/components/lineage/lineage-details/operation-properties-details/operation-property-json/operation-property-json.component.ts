@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component, Input } from '@angular/core'
 
-.details-title {
-    padding-top: 10px;
-    font-weight: bold;
-    font-size  : 110%;
-    color      : #555;
-    text-align : center;
-    margin-bottom: 10px;
-}
 
-.execution-details-title {
-    font-weight: bold;
-}
-
-/deep/ .mat-content,
-/deep/ .mat-expansion-panel-header-title {
-  display: inline-block !important;
-
-  strong {
-    font-weight: normal;
-  }
+@Component({
+  selector: 'app-operation-property-json',
+  templateUrl: './operation-property-json.component.html',
+  styleUrls: ['./operation-property-json.component.less']
+})
+export class OperationPropertyJsonComponent {
+  @Input() label: string
+  @Input() value: any[] | Record<string, any>
 }
