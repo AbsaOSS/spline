@@ -129,9 +129,6 @@
     document.querySelector('#spline-producer-url').textContent = `${baseUrl}/producer`
     document.querySelector('#spline-consumer-url').textContent = `${baseUrl}/consumer`
 
-    update()
-    setInterval(update, 5000)
-
     function update() {
         const OK = "badge-success"
         const WARN = "badge-secondary"
