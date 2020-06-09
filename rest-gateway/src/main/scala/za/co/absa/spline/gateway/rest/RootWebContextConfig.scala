@@ -17,11 +17,20 @@
 package za.co.absa.spline.gateway.rest
 
 import org.springframework.context.annotation.{ComponentScan, Configuration}
-import org.springframework.web.servlet.config.annotation.{DefaultServletHandlerConfigurer, EnableWebMvc, WebMvcConfigurer}
+import org.springframework.core.Ordered
+import org.springframework.web.servlet.config.annotation.{DefaultServletHandlerConfigurer, EnableWebMvc, ViewControllerRegistry, WebMvcConfigurer}
 
 @EnableWebMvc
 @Configuration
 @ComponentScan(basePackageClasses = Array(classOf[controller._package]))
 class RootWebContextConfig extends WebMvcConfigurer {
-  override def configureDefaultServletHandling(configurer: DefaultServletHandlerConfigurer): Unit = configurer.enable()
+
+  override def configureDefaultServletHandling(configurer: DefaultServletHandlerConfigurer): Unit = {
+    configurer.enable()
+  }
+
+  override def addViewControllers(registry: ViewControllerRegistry): Unit = {
+    registry.addViewController("/").setViewName("forward:/index.html")
+    registry.setOrder(Ordered.HIGHEST_PRECEDENCE)
+  }
 }
