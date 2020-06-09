@@ -23,20 +23,20 @@ import {
   Type,
   ViewChildren,
   ViewContainerRef
-} from '@angular/core';
-import {Store} from '@ngrx/store';
-import * as _ from 'lodash';
-import {Observable, Subscription} from 'rxjs';
-import {map, switchMap} from 'rxjs/operators';
-import {AppState} from 'src/app/model/app-state';
-import {Property, PropertyType} from 'src/app/model/property';
-import {OperationType, PropertiesComponents} from 'src/app/model/types/operationType';
-import {AttributeVM} from 'src/app/model/viewModels/attributeVM';
-import {OperationDetailsVM} from 'src/app/model/viewModels/operationDetailsVM';
-import {getOperationColor, getOperationIcon} from 'src/app/util/execution-plan';
-import {getText} from 'src/app/util/expressions';
-import {PropertiesComponent} from './properties/properties.component';
-import * as RouterAction from "../../../../store/actions/router.actions";
+} from '@angular/core'
+import { Store } from '@ngrx/store'
+import * as _ from 'lodash'
+import { Observable, Subscription } from 'rxjs'
+import { map, switchMap } from 'rxjs/operators'
+import { AppState } from 'src/app/model/app-state'
+import { Property, PropertyType } from 'src/app/model/property'
+import { OperationType, PropertiesComponents } from 'src/app/model/types/operationType'
+import { AttributeVM } from 'src/app/model/viewModels/attributeVM'
+import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM'
+import { getOperationColor, getOperationIcon } from 'src/app/util/execution-plan'
+import { getText } from 'src/app/util/expressions'
+import { PropertiesComponent } from './properties/properties.component'
+import * as RouterAction from '../../../../store/actions/router.actions'
 
 
 @Component({
@@ -46,7 +46,7 @@ import * as RouterAction from "../../../../store/actions/router.actions";
 })
 export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDestroy {
 
-  @ViewChildren('propertiesPanel', {read: ViewContainerRef})
+  @ViewChildren('propertiesPanel', { read: ViewContainerRef })
   propertiesPanel: QueryList<ViewContainerRef>
 
   constructor(
@@ -59,7 +59,7 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
     this.store.select('router', 'state', 'queryParams', 'attribute')
 
   public onSelectedAttributeIdChange(attrId: string) {
-    this.store.dispatch(new RouterAction.Go({queryParams: {'attribute': attrId}, url: null}))
+    this.store.dispatch(new RouterAction.Go({ queryParams: { 'attribute': attrId }, url: null }))
   }
 
   private subscriptions: Subscription[] = []
@@ -74,7 +74,7 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
                 return this.store.select('executedLogicalPlan', 'executionPlan', 'extra', 'attributes')
                   .pipe(
                     map(attributes => {
-                      return {detailsInfos: detailsInfos, attributes: attributes}
+                      return { detailsInfos: detailsInfos, attributes: attributes }
                     })
                   )
               })
@@ -95,7 +95,6 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
             properties = this.getProperties(store.detailsInfos, store.attributes)
             component = type == OperationType.Write ? PropertiesComponents.get(OperationType.Write) : PropertiesComponents.get(name)
           } catch (error) {
-            console.error(error)
             component = PropertiesComponents.get(OperationType.Error)
           } finally {
             const factory = this.componentFactoryResolver.resolveComponentFactory(component)
@@ -103,8 +102,11 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
             instance.properties = properties
             instance.propertyName = name
             instance.propertyType = type
+            instance.nativeProperties = store.detailsInfos.operation.properties
           }
-          if (!this.changeDetectorRef["destroyed"]) this.changeDetectorRef.detectChanges()
+          if (!this.changeDetectorRef['destroyed']) {
+            this.changeDetectorRef.detectChanges()
+          }
         }
       })
     )
@@ -128,8 +130,8 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
     let properties = []
 
     if (operationDetails.operation._type == OperationType.Write) {
-      properties.push(new Property(PropertyType.OutputSource, opInfoProperties.outputSource))
       properties.push(new Property(PropertyType.SourceType, opInfoProperties.destinationType))
+      properties.push(new Property(PropertyType.Append, opInfoProperties.append))
       return properties
     }
 

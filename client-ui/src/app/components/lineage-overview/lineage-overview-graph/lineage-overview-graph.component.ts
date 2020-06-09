@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {CytoscapeNgLibComponent} from 'cytoscape-ng-lib';
-import * as _ from 'lodash';
-import {Subscription} from 'rxjs';
-import {filter, map, switchMap} from 'rxjs/operators';
-import {AppState} from 'src/app/model/app-state';
-import {RouterStateUrl} from 'src/app/model/routerStateUrl';
-import {LineageOverviewNodeType} from 'src/app/model/types/lineageOverviewNodeType';
-import * as ContextMenuAction from 'src/app/store/actions/context-menu.actions';
-import * as DetailsInfosAction from 'src/app/store/actions/details-info.actions';
-import * as ExecutionPlanAction from 'src/app/store/actions/execution-plan.actions';
-import * as LayoutAction from 'src/app/store/actions/layout.actions';
-import * as LineageOverviewAction from 'src/app/store/actions/lineage-overview.actions';
-import * as RouterAction from 'src/app/store/actions/router.actions';
-import {getWriteOperationIdFromExecutionId} from 'src/app/util/execution-plan';
+import { AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core'
+import { Store } from '@ngrx/store'
+import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib'
+import * as _ from 'lodash'
+import { Subscription } from 'rxjs'
+import { filter, map, switchMap } from 'rxjs/operators'
+import { AppState } from 'src/app/model/app-state'
+import { RouterStateUrl } from 'src/app/model/routerStateUrl'
+import { LineageOverviewNodeType } from 'src/app/model/types/lineageOverviewNodeType'
+import * as ContextMenuAction from 'src/app/store/actions/context-menu.actions'
+import * as DetailsInfosAction from 'src/app/store/actions/details-info.actions'
+import * as ExecutionPlanAction from 'src/app/store/actions/execution-plan.actions'
+import * as LayoutAction from 'src/app/store/actions/layout.actions'
+import * as LineageOverviewAction from 'src/app/store/actions/lineage-overview.actions'
+import * as RouterAction from 'src/app/store/actions/router.actions'
+import { getWriteOperationIdFromExecutionId } from 'src/app/util/execution-plan'
 import { cyStyles } from '../../../model/lineage-graph'
 
 
@@ -73,20 +73,22 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
               filter(state => !_.isNil(state)),
               map(state => {
                 return { graph: state, layout: res.layout, contextMenu: res.contextMenu }
-              })
+              }),
             )
         })
       )
       .subscribe(state => {
         if (state && this.cytograph.cy) {
+          this.cytograph.cy.elements().remove()
           this.cytograph.cy.add(state.graph.lineage)
           this.cytograph.cy.nodeHtmlLabel([{
             tpl: function (data) {
-              if (data.icon) return `<i class='fa fa-4x' style='color:${data.color}'> ${String.fromCharCode(data.icon)}</i>`
+              if (data.icon) {
+                return `<i class='fa fa-4x' style='color:${data.color}'> ${String.fromCharCode(data.icon)}</i>`
+              }
               return null
             }
           }])
-          this.cytograph.cy.cxtmenu(state.contextMenu)
           this.cytograph.cy.panzoom()
           this.cytograph.cy.layout(state.layout).run()
         }
@@ -150,7 +152,7 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
           filter(state => state != null)
         )
         .subscribe(
-          executionEventId => this.store.dispatch(new LineageOverviewAction.Get(executionEventId))
+          executionEventId => this.store.dispatch(new LineageOverviewAction.Get({ executionEventId }))
         )
     )
   }

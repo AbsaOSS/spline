@@ -46,6 +46,7 @@
     "moment": "^2.24.0",
     "ngx-bootstrap": "^4.3.0",
     "ngx-bootstrap-switch": "0.0.3",
+    "ngx-json-viewer": "^2.4.0",
     "ngx-toastr": "^11.1.0",
     "rxjs": "~6.5.2",
     "tslib": "^1.10.0",

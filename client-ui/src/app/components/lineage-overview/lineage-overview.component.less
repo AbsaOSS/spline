@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 @toolbar-width: 250px;
 
 @separator-color: #eaeaea;
@@ -29,68 +28,9 @@
 .graph-toolbar__section {
   background: rgba(250, 250, 250, 0.8);
   padding: 16px;
-
-  mat-chip.mat-chip {
-    font-size: 12px;
-  }
-
-  .toolbar-title {
-    font-size: 10px;
-    text-transform: uppercase;
-    padding: 0.5rem 1rem;
-    margin: -1rem -1rem 1rem;
-    background: #f5f5f5;
-  }
-
-  .legends-list {
-    margin: 1rem -1rem 0;
-    padding: 1rem 1rem 0;
-    border-top: 1px solid @separator-color;
-  }
-
-  .legend {
-    display: flex;
-    align-items: center;
-    font-size: 12px;
-    margin-top: 0.5rem;
-
-    &:first-child {
-      margin-top: 0;
-    }
-
-    &__circle {
-      border-radius: 50%;
-      display: inline-block;
-      width: 1rem;
-      height: 1rem;
-    }
-  }
-
-  .legend mat-icon.mat-icon {
-    width: 1rem;
-    height: 1rem;
-    font-size: 1rem;
-    color: #ccc;
-  }
-
-  .old-spline-warn {
-    margin-top: 1rem;
-    max-width: 220px;
-
-    p {
-      margin: 0.25rem 0;
-    }
-  }
-
 }
 
-.warnings-container {
-  margin: 1rem -1rem 0;
-  padding: 1rem 1rem 0;
-  border-top: 1px solid @separator-color;
-}
-
-.warning {
+.graph-toolbar-warning {
   display: flex;
   align-items: center;
   font-size: 12px;
@@ -113,13 +53,20 @@
     flex-grow: 1;
     padding: 0 .5rem;
   }
+}
 
-  &__info {
-    .mat-icon {
-      width: 1rem;
-      height: 1rem;
-      font-size: 1rem;
-      color: #ccc;
+.graph-toolbar__section-footer {
+  margin: 1rem -1rem 0;
+  padding: 1rem 1rem 0;
+  font-size: 12px;
+  border-top: 1px solid @separator-color;
+
+  a {
+    border-bottom: 1px dashed @warning-color;
+    color: @warning-color;
+
+    &:hover {
+      border-bottom-color: transparent;
     }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2017 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CytoscapeGraphVM } from './cytoscape/cytoscapeGraphVM'
+import { Component, Input } from '@angular/core'
 
 
-export type LineageOverviewVM = {
-  lineageInfo: {
-    targetNodeName: string;
-    executionEventId: string
-    [key: string]: any
-  }
-  lineage: CytoscapeGraphVM
-  path: string
-  applicationId: string
-  depthRequested: number
-  depthComputed: number
-  hasMoreNodes: boolean
+@Component({
+  selector: 'app-operation-property-json',
+  templateUrl: './operation-property-json.component.html',
+  styleUrls: ['./operation-property-json.component.less']
+})
+export class OperationPropertyJsonComponent {
+  @Input() label: string
+  @Input() value: any[] | Record<string, any>
 }

@@ -16,8 +16,6 @@
 
 package za.co.absa.spline.persistence
 
-import java.util.concurrent.ExecutionException
-
 import com.arangodb.async.ArangoDatabaseAsync
 import com.arangodb.entity.{EdgeDefinition, IndexType}
 import com.arangodb.model._
@@ -34,7 +32,7 @@ import scala.concurrent.Future
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
-trait ArangoInit {
+trait ArangoManager {
 
   /**
    * @return `true` if actual initialization was performed.
@@ -43,7 +41,7 @@ trait ArangoInit {
   def upgrade(connectionURL: ArangoConnectionURL): Future[Unit]
 }
 
-object ArangoInit extends ArangoInit {
+object ArangoManager extends ArangoManager {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
@@ -64,33 +62,20 @@ object ArangoInit extends ArangoInit {
       }
     }
 
-  override def upgrade(connectionURL: ArangoConnectionURL): Future[Unit] = execute(connectionURL) { db =>
-    workAroundArangoAsyncBug(db)
-
-    for {
-      _ <- deleteAQLUserFunctions(db)
-      _ <- createAQLUserFunctions(db)
-      _ <- deleteIndices(db)
-      _ <- createIndices(db)
-      _ <- deleteViews(db)
-      _ <- createViews(db)
-      // fixme: Current version of Arango driver doesn't seem to support graph deletion. Try after https://github.com/AbsaOSS/spline/issues/396
-      // _ <- deleteGraphs(db)
-      // _ <- createGraphs(db)
-    } yield Unit
-  }
-
-  def workAroundArangoAsyncBug(db: ArangoDatabaseAsync): Unit = {
-    try {
-      db.getInfo.get
-    } catch {
-      // The first call sometime fails with a CCE due to a bug in ArangoDB Java Driver
-      // see: https://github.com/arangodb/arangodb-java-driver-async/issues/21
-      case ee: ExecutionException if ee.getCause.isInstanceOf[ClassCastException] =>
-        db.getInfo.get
+  override def upgrade(connectionURL: ArangoConnectionURL): Future[Unit] =
+    execute(connectionURL) { db =>
+      for {
+        _ <- deleteAQLUserFunctions(db)
+        _ <- createAQLUserFunctions(db)
+        _ <- deleteIndices(db)
+        _ <- createIndices(db)
+        _ <- deleteViews(db)
+        _ <- createViews(db)
+        // fixme: Current version of Arango driver doesn't seem to support graph deletion. Try after https://github.com/AbsaOSS/spline/issues/396
+        // _ <- deleteGraphs(db)
+        // _ <- createGraphs(db)
+      } yield Unit
     }
-  }
-
 
   private def execute[A](connectionURL: ArangoConnectionURL)(fn: ArangoDatabaseAsync => Future[A]): Future[A] = {
     val arangoFacade = new ArangoDatabaseFacade(connectionURL)

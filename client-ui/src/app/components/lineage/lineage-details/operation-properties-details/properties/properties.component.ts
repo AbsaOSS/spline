@@ -38,6 +38,9 @@ export class PropertiesComponent implements OnDestroy {
   public propertyType: string
 
   @Input()
+  public nativeProperties: Record<string, any>
+
+  @Input()
   public propertyName: string
 
   @Input()
