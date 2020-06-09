@@ -30,7 +30,7 @@ class RootWebContextConfig extends WebMvcConfigurer {
   }
 
   override def addViewControllers(registry: ViewControllerRegistry): Unit = {
-    registry.addViewController("/").setViewName("forward:/index.html")
+    registry.addViewController("/").setViewName("redirect:/index.html")
     registry.setOrder(Ordered.HIGHEST_PRECEDENCE)
   }
 }
