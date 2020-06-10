@@ -15,24 +15,24 @@
  */
 
 ::ng-deep ngx-datatable {
-  .datatable-body-row,
-  .datatable-body-row.datatable-row-group {
-    cursor: pointer;
-  }
+    .datatable-body-row,
+    .datatable-body-row.datatable-row-group {
+        cursor: pointer;
+    }
 
-  .datatable-body-cell.type .datatable-body-cell-label {
-    text-align: right;
-  }
+    .datatable-body-cell.type .datatable-body-cell-label {
+        text-align: right;
+    }
 }
 
 ::ng-deep ngx-datatable.non-selectable {
-  .datatable-body-row,
-  .datatable-body-row .datatable-row-group {
-    cursor: default;
-  }
+    .datatable-body-row,
+    .datatable-body-row .datatable-row-group {
+        cursor: default;
+    }
 
-  .datatable-body-row:hover,
-  .datatable-body-row:hover .datatable-row-group {
-    background: unset !important;
-  }
+    .datatable-body-row:hover,
+    .datatable-body-row:hover .datatable-row-group {
+        background: unset !important;
+    }
 }

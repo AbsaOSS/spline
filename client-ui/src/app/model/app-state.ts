@@ -25,22 +25,22 @@ import { OperationDetailsVM } from './viewModels/operationDetailsVM'
 
 
 export interface AppState {
-  config: {
-    apiUrl: string
-    embeddedMode: boolean
-  }
-  executionEvents: PageableExecutionEventsResponse
-  dashboard: DashboardVM
-  lineageOverview: LineageOverviewVM
-  executedLogicalPlan: ExecutedLogicalPlanVM
-  attributeLineageAndImpact: AttributeLineageAndImpact
-  detailsInfos: OperationDetailsVM
-  attributes: CytoscapeGraphVM
-  router: {
-    state: RouterStateUrl
-    navigationId: number
-  }
-  layout: any
-  contextMenu: any
-  error: string
+    config: {
+        apiUrl: string
+        embeddedMode: boolean
+    }
+    executionEvents: PageableExecutionEventsResponse
+    dashboard: DashboardVM
+    lineageOverview: LineageOverviewVM
+    executedLogicalPlan: ExecutedLogicalPlanVM
+    attributeLineageAndImpact: AttributeLineageAndImpact
+    detailsInfos: OperationDetailsVM
+    attributes: CytoscapeGraphVM
+    router: {
+        state: RouterStateUrl
+        navigationId: number
+    }
+    layout: any
+    contextMenu: any
+    error: string
 }

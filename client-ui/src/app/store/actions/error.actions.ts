@@ -18,30 +18,30 @@ import { Action } from '@ngrx/store'
 
 
 export enum ErrorActionTypes {
-  APPLICATION_ERROR_GET = '[Application Error] Get',
-  SERVICE_ERROR_GET = '[Service Error] Get',
-  SERVICE_ERROR_RESET = '[Service Error] Reset'
+    APPLICATION_ERROR_GET = '[Application Error] Get',
+    SERVICE_ERROR_GET = '[Service Error] Get',
+    SERVICE_ERROR_RESET = '[Service Error] Reset'
 }
 
 export class ApplicationErrorGet implements Action {
-  readonly type = ErrorActionTypes.APPLICATION_ERROR_GET
+    readonly type = ErrorActionTypes.APPLICATION_ERROR_GET
 
-  constructor(public payload: string) {
-  }
+    constructor(public payload: string) {
+    }
 }
 
 export class ServiceErrorGet implements Action {
-  readonly type = ErrorActionTypes.SERVICE_ERROR_GET
+    readonly type = ErrorActionTypes.SERVICE_ERROR_GET
 
-  constructor(public payload: string) {
-  }
+    constructor(public payload: string) {
+    }
 }
 
 export class ServiceErrorReset implements Action {
-  readonly type = ErrorActionTypes.SERVICE_ERROR_RESET
+    readonly type = ErrorActionTypes.SERVICE_ERROR_RESET
 }
 
 export type ErrorActions
-  = ApplicationErrorGet
-  | ServiceErrorGet
-  | ServiceErrorReset
+    = ApplicationErrorGet
+    | ServiceErrorGet
+    | ServiceErrorReset

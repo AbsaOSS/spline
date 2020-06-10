@@ -19,9 +19,9 @@ import { PropertiesComponent } from '../properties/properties.component'
 
 
 @Component({
-  selector: 'projection',
-  templateUrl: './projection.component.html',
-  styleUrls: ['./projection.component.scss']
+    selector: 'projection',
+    templateUrl: './projection.component.html',
+    styleUrls: ['./projection.component.scss']
 })
 
 export class ProjectionComponent extends PropertiesComponent {

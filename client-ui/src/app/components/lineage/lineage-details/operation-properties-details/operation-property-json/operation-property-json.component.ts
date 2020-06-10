@@ -17,11 +17,11 @@ import { Component, Input } from '@angular/core'
 
 
 @Component({
-  selector: 'app-operation-property-json',
-  templateUrl: './operation-property-json.component.html',
-  styleUrls: ['./operation-property-json.component.scss']
+    selector: 'app-operation-property-json',
+    templateUrl: './operation-property-json.component.html',
+    styleUrls: ['./operation-property-json.component.scss']
 })
 export class OperationPropertyJsonComponent {
-  @Input() label: string
-  @Input() value: any[] | Record<string, any>
+    @Input() label: string
+    @Input() value: any[] | Record<string, any>
 }

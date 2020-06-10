@@ -23,29 +23,29 @@ import NativeProperties = OperationProperty.NativeProperties
 
 
 export type WriteNativeProperties =
-  & NativeProperties
-  &
-  {
-    destinationType: string
-    outputSource: string
-  }
+    & NativeProperties
+    &
+    {
+        destinationType: string
+        outputSource: string
+    }
 
 @Component({
-  selector: 'app-write',
-  templateUrl: './write.component.html'
+    selector: 'app-write',
+    templateUrl: './write.component.html'
 })
 export class WriteComponent extends PropertiesComponent {
 
-  extraProperties: ExtraProperties
-  outputSource: string
+    extraProperties: ExtraProperties
+    outputSource: string
 
-  @Input() set nativeProperties(props: WriteNativeProperties) {
-    this.outputSource = props.outputSource
+    @Input() set nativeProperties(props: WriteNativeProperties) {
+        this.outputSource = props.outputSource
 
-    const defaultProps = [
-      'name', 'append', 'outputSource', 'destinationType'
-    ]
-    const noDefaultProps = _.omit(props, defaultProps)
-    this.extraProperties = OperationProperty.parseExtraOptions(noDefaultProps)
-  }
+        const defaultProps = [
+            'name', 'append', 'outputSource', 'destinationType'
+        ]
+        const noDefaultProps = _.omit(props, defaultProps)
+        this.extraProperties = OperationProperty.parseExtraOptions(noDefaultProps)
+    }
 }

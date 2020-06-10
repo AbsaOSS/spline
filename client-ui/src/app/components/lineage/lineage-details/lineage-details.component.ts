@@ -22,18 +22,18 @@ import { OperationDetailsVM } from '../../../model/viewModels/operationDetailsVM
 
 
 @Component({
-  selector: 'lineage-details',
-  templateUrl: './lineage-details.component.html',
-  styleUrls: ['./lineage-details.component.scss']
+    selector: 'lineage-details',
+    templateUrl: './lineage-details.component.html',
+    styleUrls: ['./lineage-details.component.scss']
 })
 export class LineageDetailsComponent {
 
-  @Input() embeddedMode: boolean
+    @Input() embeddedMode: boolean
 
-  readonly detailsInfos$: Observable<OperationDetailsVM>
+    readonly detailsInfos$: Observable<OperationDetailsVM>
 
-  constructor(private readonly store: Store<AppState>) {
-    this.detailsInfos$ = this.store.select('detailsInfos')
-  }
+    constructor(private readonly store: Store<AppState>) {
+        this.detailsInfos$ = this.store.select('detailsInfos')
+    }
 
 }

@@ -23,66 +23,66 @@ import * as RouterAction from 'src/app/store/actions/router.actions'
 
 
 @Component({
-  selector: 'app-header',
-  templateUrl: './header.component.html',
-  styleUrls: ['./header.component.scss']
+    selector: 'app-header',
+    templateUrl: './header.component.html',
+    styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent {
 
-  constructor(private store: Store<AppState>) {
-  }
-
-  isActive(name: string): Observable<boolean> {
-    return this.isSelectedMenuItem(name)
-  }
-
-  isVisible(name: string): Observable<boolean> {
-    switch (name) {
-      case 'lineage-overview':
-        return combineLatest([
-          this.isSelectedMenuItem(name),
-          this.isSelectedMenuItem('lineage-detailed')
-        ])
-          .pipe(
-            map(([item1, item2]) => item1 || item2)
-          )
-      case 'lineage-detailed':
-        return this.isSelectedMenuItem(name)
-      default:
-        return of(false)
+    constructor(private store: Store<AppState>) {
     }
-  }
 
-  onLineageOverviewClick(): void {
-    this.store
-      .select('lineageOverview')
-      .pipe(
-        first()
-      )
-      .subscribe(lineage => {
-        const params: RouterStateUrl = {
-          url: '/app/lineage-overview',
-          queryParams: { executionEventId: lineage.lineageInfo.executionEventId }
+    isActive(name: string): Observable<boolean> {
+        return this.isSelectedMenuItem(name)
+    }
+
+    isVisible(name: string): Observable<boolean> {
+        switch (name) {
+            case 'lineage-overview':
+                return combineLatest([
+                    this.isSelectedMenuItem(name),
+                    this.isSelectedMenuItem('lineage-detailed')
+                ])
+                    .pipe(
+                        map(([item1, item2]) => item1 || item2)
+                    )
+            case 'lineage-detailed':
+                return this.isSelectedMenuItem(name)
+            default:
+                return of(false)
         }
-        this.store.dispatch(new RouterAction.Go(params))
-      })
-  }
+    }
+
+    onLineageOverviewClick(): void {
+        this.store
+            .select('lineageOverview')
+            .pipe(
+                first()
+            )
+            .subscribe(lineage => {
+                const params: RouterStateUrl = {
+                    url: '/app/lineage-overview',
+                    queryParams: { executionEventId: lineage.lineageInfo.executionEventId }
+                }
+                this.store.dispatch(new RouterAction.Go(params))
+            })
+    }
 
 
-  onHomeClick(): void {
-    this.store.dispatch(
-      new RouterAction.Go({ url: '/app/dashboard' })
-    )
-  }
+    onHomeClick(): void {
+        this.store.dispatch(
+            new RouterAction.Go({ url: '/app/dashboard' })
+        )
+    }
 
-  private isSelectedMenuItem = (name: string): Observable<boolean> => {
-    return this.store.select('router', 'state', 'url')
-      .pipe(
-        filter(state => state !== null),
-        map(url => {
-          return url?.includes(name)
-        })
-      )
-  }
+    private isSelectedMenuItem = (name: string): Observable<boolean> => {
+        return this.store.select('router', 'state', 'url')
+            .pipe(
+                filter(state => state !== null),
+                map(url => {
+                    return url?.includes(name)
+                })
+            )
+    }
 
 }

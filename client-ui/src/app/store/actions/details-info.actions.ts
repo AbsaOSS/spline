@@ -19,33 +19,33 @@ import { OperationDetailsVM } from '../../model/viewModels/operationDetailsVM'
 
 
 export enum DetailsInfoActionTypes {
-  DETAILS_INFOS_GET = '[Details Info] Get',
-  DETAILS_INFOS_GET_SUCCESS = '[Details Info] Get Success',
-  DETAILS_INFOS_RESET = '[Details Info] Reset'
+    DETAILS_INFOS_GET = '[Details Info] Get',
+    DETAILS_INFOS_GET_SUCCESS = '[Details Info] Get Success',
+    DETAILS_INFOS_RESET = '[Details Info] Reset'
 }
 
 export class Get implements Action {
-  readonly type = DetailsInfoActionTypes.DETAILS_INFOS_GET
+    readonly type = DetailsInfoActionTypes.DETAILS_INFOS_GET
 
-  constructor(public payload: string) {
-  }
+    constructor(public payload: string) {
+    }
 }
 
 export class GetSuccess implements Action {
-  readonly type = DetailsInfoActionTypes.DETAILS_INFOS_GET_SUCCESS
+    readonly type = DetailsInfoActionTypes.DETAILS_INFOS_GET_SUCCESS
 
-  constructor(public payload: OperationDetailsVM) {
-  }
+    constructor(public payload: OperationDetailsVM) {
+    }
 }
 
 export class Reset implements Action {
-  readonly type = DetailsInfoActionTypes.DETAILS_INFOS_RESET
+    readonly type = DetailsInfoActionTypes.DETAILS_INFOS_RESET
 
-  constructor() {
-  }
+    constructor() {
+    }
 }
 
 export type DetailsInfoActions
-  = Get
-  | GetSuccess
-  | Reset
+    = Get
+    | GetSuccess
+    | Reset

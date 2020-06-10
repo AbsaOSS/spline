@@ -20,24 +20,24 @@ import { PageableExecutionEventsResponse } from 'src/app/generated/models'
 
 
 export enum ExecutionEventsActionTypes {
-  GET = '[Execution Events] Get',
-  GET_SUCCESS = '[Execution Events] Get Success'
+    GET = '[Execution Events] Get',
+    GET_SUCCESS = '[Execution Events] Get Success'
 }
 
 export class Get implements Action {
-  readonly type = ExecutionEventsActionTypes.GET
+    readonly type = ExecutionEventsActionTypes.GET
 
-  constructor(public payload: Params) {
-  }
+    constructor(public payload: Params) {
+    }
 }
 
 export class GetSuccess implements Action {
-  readonly type = ExecutionEventsActionTypes.GET_SUCCESS
+    readonly type = ExecutionEventsActionTypes.GET_SUCCESS
 
-  constructor(public payload: PageableExecutionEventsResponse) {
-  }
+    constructor(public payload: PageableExecutionEventsResponse) {
+    }
 }
 
 export type ExecutionEventsActions
-  = Get
-  | GetSuccess
+    = Get
+    | GetSuccess

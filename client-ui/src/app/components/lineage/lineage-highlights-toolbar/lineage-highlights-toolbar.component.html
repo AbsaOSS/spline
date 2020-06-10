@@ -16,73 +16,74 @@
 
 <div class="graph-toolbar">
 
-  <div class="graph-toolbar__section mb-3">
+    <div class="graph-toolbar__section mb-3">
 
-    <!-- TITLE -->
-    <h5 class="toolbar-title">
-      Highlighted attributes
-    </h5>
-    <!-- ./TITLE -->
+        <!-- TITLE -->
+        <h5 class="toolbar-title">
+            Highlighted attributes
+        </h5>
+        <!-- ./TITLE -->
 
-    <!-- TAGS LIST -->
-    <mat-chip-list>
-      <mat-chip (removed)="onAttributeRemoveIconClicked(attr)"
-                *ngFor="let attr of attributes">
+        <!-- TAGS LIST -->
+        <mat-chip-list>
+            <mat-chip (removed)="onAttributeRemoveIconClicked(attr)"
+                      *ngFor="let attr of attributes">
 
-        {{attr.name}}
+                {{attr.name}}
 
-        <mat-icon fontIcon="fa-times"
-                  fontSet="fa"
-                  matChipRemove
-                  matTooltip="Remove">
-        </mat-icon>
-      </mat-chip>
-    </mat-chip-list>
-    <!-- ./TAGS LIST -->
+                <mat-icon fontIcon="fa-times"
+                          fontSet="fa"
+                          matChipRemove
+                          matTooltip="Remove">
+                </mat-icon>
+            </mat-chip>
+        </mat-chip-list>
+        <!-- ./TAGS LIST -->
 
-    <!-- LEGEND -->
-    <div class="legends-list">
-      <div *ngFor="let legend of lineageGraphLegends" class="legend">
+        <!-- LEGEND -->
+        <div class="legends-list">
+            <div *ngFor="let legend of lineageGraphLegends" class="legend">
 
-        <div [ngStyle]="{background: legend.color}"
-             class="legend__circle">
+                <div [ngStyle]="{background: legend.color}"
+                     class="legend__circle">
+                </div>
+
+                <div class="px-2 flex-grow-1">
+                    {{legend.title}}
+                </div>
+
+                <mat-icon [matTooltip]="legend.description"
+                          fontIcon="fa-info-circle"
+                          fontSet="fa">
+                </mat-icon>
+            </div>
         </div>
 
-        <div class="px-2 flex-grow-1">
-          {{legend.title}}
+        <!-- ./LEGEND -->
+
+        <!-- OLD VERSION WARNING -->
+
+        <div *ngIf="showOldSplineWarning" class="warnings-container">
+            <div class="warning">
+                <div class="warning__icon">
+                    <mat-icon fontIcon="fa-exclamation-triangle"
+                              fontSet="fa">
+                    </mat-icon>
+                </div>
+                <div class="warning__title">
+                    Only direct attribute usage is displayed.
+                </div>
+                <div class="warning__info">
+                    <mat-icon
+                        [matTooltip]="'This execution plan is captured by an older version of Spline, so only direct attribute usage is displayed. Transitive attribute lineage and impact highlighting is only available on the metadata captured by Spline version 0.4 or higher.'"
+                        fontIcon="fa-info-circle"
+                        fontSet="fa">
+                    </mat-icon>
+                </div>
+            </div>
         </div>
 
-        <mat-icon [matTooltip]="legend.description"
-                  fontIcon="fa-info-circle"
-                  fontSet="fa">
-        </mat-icon>
-      </div>
+        <!-- OLD VERSION WARNING -->
     </div>
-
-    <!-- ./LEGEND -->
-
-    <!-- OLD VERSION WARNING -->
-
-    <div *ngIf="showOldSplineWarning" class="warnings-container">
-      <div class="warning">
-        <div class="warning__icon">
-          <mat-icon fontIcon="fa-exclamation-triangle"
-                    fontSet="fa">
-          </mat-icon>
-        </div>
-        <div class="warning__title">
-          Only direct attribute usage is displayed.
-        </div>
-        <div class="warning__info">
-          <mat-icon [matTooltip]="'This execution plan is captured by an older version of Spline, so only direct attribute usage is displayed. Transitive attribute lineage and impact highlighting is only available on the metadata captured by Spline version 0.4 or higher.'"
-                    fontIcon="fa-info-circle"
-                    fontSet="fa">
-          </mat-icon>
-        </div>
-      </div>
-    </div>
-
-    <!-- OLD VERSION WARNING -->
-  </div>
 
 </div>

@@ -19,8 +19,8 @@ import { PropertiesComponent } from '../properties/properties.component'
 
 
 @Component({
-  selector: 'filter',
-  templateUrl: './filter.component.html'
+    selector: 'filter',
+    templateUrl: './filter.component.html'
 })
 export class FilterComponent extends PropertiesComponent {
 }

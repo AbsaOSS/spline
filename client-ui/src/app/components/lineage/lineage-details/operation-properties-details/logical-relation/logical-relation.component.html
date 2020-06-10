@@ -16,51 +16,51 @@
 
 <div class="operation-info-section">
 
-  <!-- TITLE -->
-  <div class="operation-info-section__title">
-    <i [style.color]=getColor() aria-hidden="true" class="fa fa-xs">{{getIcon()}}</i>
-    Read From
-  </div>
-  <!-- ./TITLE -->
-
-  <!-- BODY -->
-  <div class="operation-info-section__body">
-
-    <!-- INPUT SOURCES -->
-    <div class="operation-property">
-      <span class="operation-property__label">Input Sources</span>:
-      <ul>
-        <li *ngFor="let inputSource of inputSources">
-          <div class="operation-property__value">{{inputSource.split('/').slice(-1)[0]}}</div>
-          <div class="small">{{inputSource}}</div>
-        </li>
-      </ul>
+    <!-- TITLE -->
+    <div class="operation-info-section__title">
+        <i [style.color]=getColor() aria-hidden="true" class="fa fa-xs">{{getIcon()}}</i>
+        Read From
     </div>
-    <div class="operation-property">
-      <span class="operation-property__label">Source Type</span>:
-      <span class="operation-property__value">{{sourceType}}</span>
+    <!-- ./TITLE -->
+
+    <!-- BODY -->
+    <div class="operation-info-section__body">
+
+        <!-- INPUT SOURCES -->
+        <div class="operation-property">
+            <span class="operation-property__label">Input Sources</span>:
+            <ul>
+                <li *ngFor="let inputSource of inputSources">
+                    <div class="operation-property__value">{{inputSource.split('/').slice(-1)[0]}}</div>
+                    <div class="small">{{inputSource}}</div>
+                </li>
+            </ul>
+        </div>
+        <div class="operation-property">
+            <span class="operation-property__label">Source Type</span>:
+            <span class="operation-property__value">{{sourceType}}</span>
+        </div>
+        <!-- /.INPUT SOURCES -->
+
+        <!-- EXTRA PROPS :: PRIMITIVE -->
+        <ng-container *ngIf="extraProperties?.primitive?.length">
+            <div *ngFor="let property of extraProperties.primitive" class="operation-property">
+                <span class="operation-property__label">{{property.label}}</span>:
+                <span class="operation-property__value">{{property.value}}</span>
+            </div>
+        </ng-container>
+        <!-- ./EXTRA PROPS :: PRIMITIVE -->
+
     </div>
-    <!-- /.INPUT SOURCES -->
-
-    <!-- EXTRA PROPS :: PRIMITIVE -->
-    <ng-container *ngIf="extraProperties?.primitive?.length">
-      <div *ngFor="let property of extraProperties.primitive" class="operation-property">
-        <span class="operation-property__label">{{property.label}}</span>:
-        <span class="operation-property__value">{{property.value}}</span>
-      </div>
-    </ng-container>
-    <!-- ./EXTRA PROPS :: PRIMITIVE -->
-
-  </div>
-  <!-- ./BODY -->
+    <!-- ./BODY -->
 
 </div>
 
 <!-- EXTRA PROPS :: JSON -->
 <ng-container *ngIf="extraProperties?.json?.length">
-  <app-operation-property-json *ngFor="let property of extraProperties.json"
-                               [label]="property.label"
-                               [value]="property.value">
-  </app-operation-property-json>
+    <app-operation-property-json *ngFor="let property of extraProperties.json"
+                                 [label]="property.label"
+                                 [value]="property.value">
+    </app-operation-property-json>
 </ng-container>
 <!-- EXTRA PROPS :: JSON -->

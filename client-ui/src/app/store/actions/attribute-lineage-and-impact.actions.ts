@@ -19,14 +19,14 @@ import { AttributeLineageAndImpact } from '../../generated/models/attribute-line
 
 
 export enum AttributeLineageAndImpactActionTypes {
-  ATTRIBUTE_LINEAGE_AND_IMPACT_SET = '[Attribute Lineage And Impact] Set',
+    ATTRIBUTE_LINEAGE_AND_IMPACT_SET = '[Attribute Lineage And Impact] Set',
 }
 
 export class Set implements Action {
-  readonly type = AttributeLineageAndImpactActionTypes.ATTRIBUTE_LINEAGE_AND_IMPACT_SET
+    readonly type = AttributeLineageAndImpactActionTypes.ATTRIBUTE_LINEAGE_AND_IMPACT_SET
 
-  constructor(public linAndImp: AttributeLineageAndImpact) {
-  }
+    constructor(public linAndImp: AttributeLineageAndImpact) {
+    }
 }
 
 export type AttributeLineageAndImpactActions = Set

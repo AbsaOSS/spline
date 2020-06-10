@@ -19,8 +19,8 @@ import { PropertiesComponent } from '../properties/properties.component'
 
 
 @Component({
-  selector: 'app-alias',
-  templateUrl: './alias.component.html'
+    selector: 'app-alias',
+    templateUrl: './alias.component.html'
 })
 export class AliasComponent extends PropertiesComponent {
 }

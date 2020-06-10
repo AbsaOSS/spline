@@ -18,11 +18,11 @@ import { Action } from '@ngrx/store'
 
 
 export enum LayoutActionTypes {
-  LAYOUT_GET = '[Layout] Get',
+    LAYOUT_GET = '[Layout] Get',
 }
 
 export class Get implements Action {
-  readonly type = LayoutActionTypes.LAYOUT_GET
+    readonly type = LayoutActionTypes.LAYOUT_GET
 }
 
 export type LayoutActions

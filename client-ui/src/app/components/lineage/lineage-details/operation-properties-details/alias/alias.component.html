@@ -14,13 +14,13 @@
   ~ limitations under the License.
   -->
 <mat-expansion-panel [expanded]="true">
-  <mat-expansion-panel-header>
-    <i [style.color]=getColor() aria-hidden="true" class="fa fa-xs">{{getIcon()}}</i> <strong> Alias </strong>
-  </mat-expansion-panel-header>
-  <div *ngFor="let property of properties ;let i=index">
-    <li style="list-style-type:none;">
-      <span> {{property.type}}: </span>
-      <span style="color:#337ab7;">{{property.value}}</span>
-    </li>
-  </div>
+    <mat-expansion-panel-header>
+        <i [style.color]=getColor() aria-hidden="true" class="fa fa-xs">{{getIcon()}}</i> <strong> Alias </strong>
+    </mat-expansion-panel-header>
+    <div *ngFor="let property of properties ;let i=index">
+        <li style="list-style-type:none;">
+            <span> {{property.type}}: </span>
+            <span style="color:#337ab7;">{{property.value}}</span>
+        </li>
+    </div>
 </mat-expansion-panel>

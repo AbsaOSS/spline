@@ -24,85 +24,85 @@ $type-border-color--hover: #ddd;
 $type-bg-color: #fff;
 
 app-attribute-search-bar {
-  input.form-control {
-    width: 20rem;
+    input.form-control {
+        width: 20rem;
 
-    &:focus {
-      border-color: inherit;
-      box-shadow: none;
-      outline: none;
-    }
-  }
-
-  .dropdown-menu {
-    width: 20rem;
-  }
-
-  .dropdown-item {
-
-    border-bottom: 1px solid $dropdown-item-border-color;
-    padding: 0.5rem 1.25rem;
-
-    &:last-child {
-      border-bottom-style: none;
+        &:focus {
+            border-color: inherit;
+            box-shadow: none;
+            outline: none;
+        }
     }
 
-    .attribute {
-      align-items: center;
-      display: flex;
-      width: 100%;
-
-      &__name-container {
-        flex-grow: 1;
-        overflow: hidden;
-        padding-right: 0.5rem;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      &__name {
-        color: $text-color;
-      }
-
-      &__execution-event-name {
-        color: $execution-event-name-color;
-        font-size: 12px;
-        line-height: 1;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      &__type {
-        background: $type-bg-color;
-        border: 1px solid $type-border-color;
-        border-radius: 28px;
-        color: $text-color;
-        display: inline-block;
-        font-size: 12px;
-        padding: 4px 8px;
-      }
-
+    .dropdown-menu {
+        width: 20rem;
     }
 
-    &.active {
-      background: $dropdown-item-bg-color--active;
+    .dropdown-item {
 
-      .attribute {
-        &__name {
-          color: $text-color;
+        border-bottom: 1px solid $dropdown-item-border-color;
+        padding: 0.5rem 1.25rem;
+
+        &:last-child {
+            border-bottom-style: none;
         }
 
-        &__execution-event-name {
-          color: $execution-event-name-color;
+        .attribute {
+            align-items: center;
+            display: flex;
+            width: 100%;
+
+            &__name-container {
+                flex-grow: 1;
+                overflow: hidden;
+                padding-right: 0.5rem;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            &__name {
+                color: $text-color;
+            }
+
+            &__execution-event-name {
+                color: $execution-event-name-color;
+                font-size: 12px;
+                line-height: 1;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            &__type {
+                background: $type-bg-color;
+                border: 1px solid $type-border-color;
+                border-radius: 28px;
+                color: $text-color;
+                display: inline-block;
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+
         }
 
-        &__type {
-          border: 1px solid $type-border-color--hover;
-          color: $text-color;
+        &.active {
+            background: $dropdown-item-bg-color--active;
+
+            .attribute {
+                &__name {
+                    color: $text-color;
+                }
+
+                &__execution-event-name {
+                    color: $execution-event-name-color;
+                }
+
+                &__type {
+                    border: 1px solid $type-border-color--hover;
+                    color: $text-color;
+                }
+            }
         }
-      }
     }
-  }
 
 }

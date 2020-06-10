@@ -21,46 +21,46 @@ import { DataTypeVM } from '../../../../model/viewModels/dataTypeVM'
 
 
 @Component({
-  selector: 'schema-table',
-  templateUrl: './schema-table.component.html',
-  styleUrls: ['./schema-table.component.scss']
+    selector: 'schema-table',
+    templateUrl: './schema-table.component.html',
+    styleUrls: ['./schema-table.component.scss']
 })
 export class SchemaTableComponent implements OnChanges {
 
-  @ViewChild('table', { static: true })
-  table: any
+    @ViewChild('table', { static: true })
+    table: any
 
-  @Input()
-  schema: StructFieldVM[]
+    @Input()
+    schema: StructFieldVM[]
 
-  @Input()
-  selectable = true
+    @Input()
+    selectable = true
 
-  @Input()
-  selectedField: StructFieldVM
-  @Output()
-  selectedFieldChanged = new EventEmitter<StructFieldVM>()
+    @Input()
+    selectedField: StructFieldVM
+    @Output()
+    selectedFieldChanged = new EventEmitter<StructFieldVM>()
 
-  ngOnChanges(): void {
-    this.table.selected = this.selectedField ? [this.selectedField] : []
-    this.table.cd.markForCheck()
-  }
+    ngOnChanges(): void {
+        this.table.selected = this.selectedField ? [this.selectedField] : []
+        this.table.cd.markForCheck()
+    }
 
-  getArrayInnermostElementTypeWithNestingLevel = (dt: DataTypeVM, level = 1): [DataTypeVM, number] => {
-    return dt.elementDataType.dataType._type === DataTypeType.Array
-      ? this.getArrayInnermostElementTypeWithNestingLevel(dt.elementDataType.dataType, level + 1)
-      : [dt.elementDataType.dataType, level]
-  }
+    getArrayInnermostElementTypeWithNestingLevel = (dt: DataTypeVM, level = 1): [DataTypeVM, number] => {
+        return dt.elementDataType.dataType._type === DataTypeType.Array
+            ? this.getArrayInnermostElementTypeWithNestingLevel(dt.elementDataType.dataType, level + 1)
+            : [dt.elementDataType.dataType, level]
+    }
 
-  selectCheck = (): boolean => this.selectable
+    selectCheck = (): boolean => this.selectable
 
-  onSelect = ({ selected }): void => {
-    this.selectedFieldChanged.emit(selected[0])
-  }
+    onSelect = ({ selected }): void => {
+        this.selectedFieldChanged.emit(selected[0])
+    }
 
-  onStructTypeClick = (e: Event, row: any) => {
-    e.stopPropagation()
-    this.table.rowDetail.toggleExpandRow(row)
-  }
+    onStructTypeClick = (e: Event, row: any) => {
+        e.stopPropagation()
+        this.table.rowDetail.toggleExpandRow(row)
+    }
 
 }

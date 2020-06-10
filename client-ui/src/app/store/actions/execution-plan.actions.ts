@@ -19,23 +19,27 @@ import { ExecutedLogicalPlanVM } from '../../model/viewModels/executedLogicalPla
 
 
 export enum ExecutionPlanActionTypes {
-  EXECUTION_PLAN_GET = '[Execution Plan] Get',
-  EXECUTION_PLAN_GET_SUCCESS = '[Execution Plan] Get Success',
-  EXECUTION_PLAN_RESET = '[Execution Plan] Reset'
+    EXECUTION_PLAN_GET = '[Execution Plan] Get',
+    EXECUTION_PLAN_GET_SUCCESS = '[Execution Plan] Get Success',
+    EXECUTION_PLAN_RESET = '[Execution Plan] Reset'
 }
 
 export class Get implements Action {
-  readonly type = ExecutionPlanActionTypes.EXECUTION_PLAN_GET
-  constructor(public payload: string) { }
+    readonly type = ExecutionPlanActionTypes.EXECUTION_PLAN_GET
+
+    constructor(public payload: string) {
+    }
 }
 
 export class GetSuccess implements Action {
-  readonly type = ExecutionPlanActionTypes.EXECUTION_PLAN_GET_SUCCESS
-  constructor(public payload: ExecutedLogicalPlanVM) { }
+    readonly type = ExecutionPlanActionTypes.EXECUTION_PLAN_GET_SUCCESS
+
+    constructor(public payload: ExecutedLogicalPlanVM) {
+    }
 }
 
 export class Reset implements Action {
-  readonly type = ExecutionPlanActionTypes.EXECUTION_PLAN_RESET
+    readonly type = ExecutionPlanActionTypes.EXECUTION_PLAN_RESET
 }
 
 export type ExecutionPlanActions

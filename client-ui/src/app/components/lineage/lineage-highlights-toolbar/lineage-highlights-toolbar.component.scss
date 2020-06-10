@@ -20,106 +20,106 @@ $separator-color: #eaeaea;
 $warning-color: #e39256;
 
 .graph-toolbar {
-  min-width: $toolbar-width;
-  position: absolute;
-  right: 1rem;
-  top: 1rem;
+    min-width: $toolbar-width;
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
 }
 
 .graph-toolbar__section {
-  background: rgba(250, 250, 250, 0.8);
-  padding: 16px;
+    background: rgba(250, 250, 250, 0.8);
+    padding: 16px;
 
-  mat-chip.mat-chip {
-    font-size: 12px;
-  }
+    mat-chip.mat-chip {
+        font-size: 12px;
+    }
 
-  .toolbar-title {
-    background: #f5f5f5;
-    font-size: 10px;
-    margin: -1rem -1rem 1rem;
-    padding: 0.5rem 1rem;
-    text-transform: uppercase;
-  }
+    .toolbar-title {
+        background: #f5f5f5;
+        font-size: 10px;
+        margin: -1rem -1rem 1rem;
+        padding: 0.5rem 1rem;
+        text-transform: uppercase;
+    }
 
-  .legends-list {
+    .legends-list {
+        border-top: 1px solid $separator-color;
+        margin: 1rem -1rem 0;
+        padding: 1rem 1rem 0;
+    }
+
+    .legend {
+        align-items: center;
+        display: flex;
+        font-size: 12px;
+        margin-top: 0.5rem;
+
+        &:first-child {
+            margin-top: 0;
+        }
+
+        &__circle {
+            border-radius: 50%;
+            display: inline-block;
+            height: 1rem;
+            width: 1rem;
+        }
+    }
+
+    .legend mat-icon.mat-icon {
+        color: #ccc;
+        font-size: 1rem;
+        height: 1rem;
+        width: 1rem;
+    }
+
+    .old-spline-warn {
+        margin-top: 1rem;
+        max-width: 220px;
+
+        p {
+            margin: 0.25rem 0;
+        }
+    }
+
+}
+
+.warnings-container {
     border-top: 1px solid $separator-color;
     margin: 1rem -1rem 0;
     padding: 1rem 1rem 0;
-  }
+}
 
-  .legend {
+.warning {
     align-items: center;
+    color: $warning-color;
     display: flex;
     font-size: 12px;
     margin-top: 0.5rem;
 
     &:first-child {
-      margin-top: 0;
+        margin-top: 0;
     }
 
-    &__circle {
-      border-radius: 50%;
-      display: inline-block;
-      height: 1rem;
-      width: 1rem;
+    &__icon {
+        .mat-icon {
+            font-size: 1rem;
+            height: 1rem;
+            width: 1rem;
+        }
     }
-  }
 
-  .legend mat-icon.mat-icon {
-    color: #ccc;
-    font-size: 1rem;
-    height: 1rem;
-    width: 1rem;
-  }
-
-  .old-spline-warn {
-    margin-top: 1rem;
-    max-width: 220px;
-
-    p {
-      margin: 0.25rem 0;
+    &__title {
+        flex-grow: 1;
+        padding: 0 .5rem;
     }
-  }
 
-}
-
-.warnings-container {
-  border-top: 1px solid $separator-color;
-  margin: 1rem -1rem 0;
-  padding: 1rem 1rem 0;
-}
-
-.warning {
-  align-items: center;
-  color: $warning-color;
-  display: flex;
-  font-size: 12px;
-  margin-top: 0.5rem;
-
-  &:first-child {
-    margin-top: 0;
-  }
-
-  &__icon {
-    .mat-icon {
-      font-size: 1rem;
-      height: 1rem;
-      width: 1rem;
+    &__info {
+        .mat-icon {
+            color: #ccc;
+            font-size: 1rem;
+            height: 1rem;
+            width: 1rem;
+        }
     }
-  }
-
-  &__title {
-    flex-grow: 1;
-    padding: 0 .5rem;
-  }
-
-  &__info {
-    .mat-icon {
-      color: #ccc;
-      font-size: 1rem;
-      height: 1rem;
-      width: 1rem;
-    }
-  }
 }

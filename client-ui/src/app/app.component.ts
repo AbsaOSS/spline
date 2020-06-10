@@ -22,15 +22,15 @@ import { AppState } from './model/app-state'
 
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
 
     isEmbeddedMode$: Observable<boolean>
 
     constructor(private readonly store: Store<AppState>) {
-      this.isEmbeddedMode$ = this.store.select('config', 'embeddedMode')
+        this.isEmbeddedMode$ = this.store.select('config', 'embeddedMode')
     }
 }

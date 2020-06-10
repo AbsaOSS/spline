@@ -19,21 +19,25 @@ import { RouterStateUrl } from 'src/app/model/routerStateUrl'
 
 
 export enum RouterActionTypes {
-  GO = '[Router] Go',
-  NAVIGATES = '[Router] Navigates',
-  REPLACE_URL_STATE = '[Router] Replace url state'
+    GO = '[Router] Go',
+    NAVIGATES = '[Router] Navigates',
+    REPLACE_URL_STATE = '[Router] Replace url state'
 }
 
 export class Go implements Action {
-  readonly type = RouterActionTypes.GO
-  constructor(public payload: RouterStateUrl) { }
+    readonly type = RouterActionTypes.GO
+
+    constructor(public payload: RouterStateUrl) {
+    }
 }
 
 export class ReplaceUrlState implements Action {
-  readonly type = RouterActionTypes.REPLACE_URL_STATE
-  constructor(public payload: Params) { }
+    readonly type = RouterActionTypes.REPLACE_URL_STATE
+
+    constructor(public payload: Params) {
+    }
 }
 
 export type RouterActions
-  = Go
-  | ReplaceUrlState
+    = Go
+    | ReplaceUrlState

@@ -19,8 +19,8 @@ import { PropertiesComponent } from '../properties/properties.component'
 
 
 @Component({
-  selector: 'join',
-  templateUrl: './join.component.html'
+    selector: 'join',
+    templateUrl: './join.component.html'
 })
 export class JoinComponent extends PropertiesComponent {
 }

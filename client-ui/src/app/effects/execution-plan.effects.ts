@@ -36,51 +36,51 @@ import { operationColorCodes, operationIconCodes } from '../util/execution-plan'
 @Injectable()
 export class ExecutionPlanEffects {
 
-
-  @Effect()
-  getExecutionPlan$ = this.actions$.pipe(
-    ofType(ExecutionPlanAction.ExecutionPlanActionTypes.EXECUTION_PLAN_GET),
-    switchMap((action: any) => this.getExecutedLogicalPlan(action.payload)),
-    map(res => new ExecutionPlanAction.GetSuccess(res))
-  );
-
-  constructor(
-    private actions$: Actions,
-    private lineageService: LineageService,
-    private store: Store<AppState>
-  ) {
-    this.store
-      .select('config', 'apiUrl')
-      .subscribe(apiUrl => this.lineageService.rootUrl = apiUrl)
-  }
-
-  private getExecutedLogicalPlan = (executionPlanId: string): Observable<ExecutedLogicalPlanVM> => {
-    return this.lineageService.lineageDetailedUsingGET(executionPlanId).pipe(
-      map(response => this.toLogicalPlanView(response)),
-      handleException(this.store)
+    @Effect()
+    getExecutionPlan$ = this.actions$.pipe(
+        ofType(ExecutionPlanAction.ExecutionPlanActionTypes.EXECUTION_PLAN_GET),
+        switchMap((action: any) => this.getExecutedLogicalPlan(action.payload)),
+        map(res => new ExecutionPlanAction.GetSuccess(res))
     )
-  };
 
-  private toLogicalPlanView = (lineage: LineageDetailed): ExecutedLogicalPlanVM => {
-    const cytoscapeGraphVM = {} as CytoscapeGraphVM
-    cytoscapeGraphVM.nodes = []
-    cytoscapeGraphVM.edges = []
-    _.each(lineage.graph.nodes, (node: Operation) => {
-      const cytoscapeOperation = {} as CytoscapeOperationVM
-      cytoscapeOperation._type = node._type
-      cytoscapeOperation.id = node._id
-      cytoscapeOperation._id = node._id
-      cytoscapeOperation.name = node.name
-      cytoscapeOperation.color = operationColorCodes.get(node.name) || operationColorCodes.get(OperationType.Generic)
-      cytoscapeOperation.icon = operationIconCodes.get(node.name) || operationIconCodes.get(OperationType.Generic)
-      cytoscapeGraphVM.nodes.push({data: cytoscapeOperation})
-    })
-    _.each(lineage.graph.edges, (edge: Transition) => {
-      cytoscapeGraphVM.edges.push({data: edge})
-    })
-    const executedLogicalPlanVM = {} as ExecutedLogicalPlanVM
-    executedLogicalPlanVM.executionPlan = lineage.executionPlan
-    executedLogicalPlanVM.graph = cytoscapeGraphVM
-    return executedLogicalPlanVM
-  }
+
+    constructor(
+        private actions$: Actions,
+        private lineageService: LineageService,
+        private store: Store<AppState>
+    ) {
+        this.store
+            .select('config', 'apiUrl')
+            .subscribe(apiUrl => this.lineageService.rootUrl = apiUrl)
+    }
+
+    private getExecutedLogicalPlan = (executionPlanId: string): Observable<ExecutedLogicalPlanVM> => {
+        return this.lineageService.lineageDetailedUsingGET(executionPlanId).pipe(
+            map(response => this.toLogicalPlanView(response)),
+            handleException(this.store)
+        )
+    }
+
+    private toLogicalPlanView = (lineage: LineageDetailed): ExecutedLogicalPlanVM => {
+        const cytoscapeGraphVM = {} as CytoscapeGraphVM
+        cytoscapeGraphVM.nodes = []
+        cytoscapeGraphVM.edges = []
+        _.each(lineage.graph.nodes, (node: Operation) => {
+            const cytoscapeOperation = {} as CytoscapeOperationVM
+            cytoscapeOperation._type = node._type
+            cytoscapeOperation.id = node._id
+            cytoscapeOperation._id = node._id
+            cytoscapeOperation.name = node.name
+            cytoscapeOperation.color = operationColorCodes.get(node.name) || operationColorCodes.get(OperationType.Generic)
+            cytoscapeOperation.icon = operationIconCodes.get(node.name) || operationIconCodes.get(OperationType.Generic)
+            cytoscapeGraphVM.nodes.push({ data: cytoscapeOperation })
+        })
+        _.each(lineage.graph.edges, (edge: Transition) => {
+            cytoscapeGraphVM.edges.push({ data: edge })
+        })
+        const executedLogicalPlanVM = {} as ExecutedLogicalPlanVM
+        executedLogicalPlanVM.executionPlan = lineage.executionPlan
+        executedLogicalPlanVM.graph = cytoscapeGraphVM
+        return executedLogicalPlanVM
+    }
 }

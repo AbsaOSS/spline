@@ -27,73 +27,73 @@
                [selectionType]="'single'"
                class='material expandable'>
 
-  <!-- Row Detail Template -->
+    <!-- Row Detail Template -->
 
-  <ngx-datatable-row-detail #detailRow [rowHeight]="'100%'">
-    <ng-template let-expanded="expanded" let-row="row" ngx-datatable-row-detail-template>
-      <schema-table *ngIf="row.dataType._type == 'StructDataType'"
-                    [schema]="row.dataType.children"
-                    [selectable]="false">
-      </schema-table>
+    <ngx-datatable-row-detail #detailRow [rowHeight]="'100%'">
+        <ng-template let-expanded="expanded" let-row="row" ngx-datatable-row-detail-template>
+            <schema-table *ngIf="row.dataType._type == 'StructDataType'"
+                          [schema]="row.dataType.children"
+                          [selectable]="false">
+            </schema-table>
 
-      <ng-container
-          *ngIf="row.dataType._type == 'ArrayDataType' && getArrayInnermostElementTypeWithNestingLevel(row.dataType); let innerDtWithLevel">
-        <schema-table *ngIf="innerDtWithLevel[0]._type == 'StructDataType'"
-                      [schema]="innerDtWithLevel[0].children"
-                      [selectable]="false">
-        </schema-table>
-      </ng-container>
-    </ng-template>
-  </ngx-datatable-row-detail>
-
-  <!-- Column Templates -->
-
-  <ngx-datatable-column name="Name">
-    <ng-template let-row="row" ngx-datatable-cell-template>
-      {{row.name}}
-    </ng-template>
-  </ngx-datatable-column>
-
-  <ngx-datatable-column cellClass="type" name="Type">
-    <ng-template let-dt="row.dataType" let-expanded="expanded" let-row="row" let-type="type"
-                 ngx-datatable-cell-template>
-      <ng-container [ngSwitch]="dt._type">
-        <ng-container *ngSwitchCase="'SimpleDataType'">
-          {{dt.name}}
-        </ng-container>
-        <ng-container *ngSwitchCase="'StructDataType'">
-          <ng-container *ngTemplateOutlet="structTypeView; context: {$implicit: row}"></ng-container>
-        </ng-container>
-        <ng-container *ngSwitchCase="'ArrayDataType'">
-          <ng-container
-              *ngIf="getArrayInnermostElementTypeWithNestingLevel(dt); let innerDtWithLevel">
-            {{'['.repeat(innerDtWithLevel[1])}}
-            <ng-container [ngSwitch]="innerDtWithLevel[0]._type">
-              <ng-container *ngSwitchCase="'SimpleDataType'">
-                {{innerDtWithLevel[0].name}}
-              </ng-container>
-              <ng-container *ngSwitchCase="'StructDataType'">
-                <ng-container *ngTemplateOutlet="structTypeView; context: {$implicit: row}"></ng-container>
-              </ng-container>
+            <ng-container
+                *ngIf="row.dataType._type == 'ArrayDataType' && getArrayInnermostElementTypeWithNestingLevel(row.dataType); let innerDtWithLevel">
+                <schema-table *ngIf="innerDtWithLevel[0]._type == 'StructDataType'"
+                              [schema]="innerDtWithLevel[0].children"
+                              [selectable]="false">
+                </schema-table>
             </ng-container>
-            {{']'.repeat(innerDtWithLevel[1])}}
-          </ng-container>
-        </ng-container>
-      </ng-container>
+        </ng-template>
+    </ngx-datatable-row-detail>
 
-      <ng-template #structTypeView let-row>
-        <button (click)="onStructTypeClick($event, row)">&#x7B;...&#x7D;</button>
-      </ng-template>
+    <!-- Column Templates -->
 
-    </ng-template>
-  </ngx-datatable-column>
+    <ngx-datatable-column name="Name">
+        <ng-template let-row="row" ngx-datatable-cell-template>
+            {{row.name}}
+        </ng-template>
+    </ngx-datatable-column>
 
-  <!--Footer -->
+    <ngx-datatable-column cellClass="type" name="Type">
+        <ng-template let-dt="row.dataType" let-expanded="expanded" let-row="row" let-type="type"
+                     ngx-datatable-cell-template>
+            <ng-container [ngSwitch]="dt._type">
+                <ng-container *ngSwitchCase="'SimpleDataType'">
+                    {{dt.name}}
+                </ng-container>
+                <ng-container *ngSwitchCase="'StructDataType'">
+                    <ng-container *ngTemplateOutlet="structTypeView; context: {$implicit: row}"></ng-container>
+                </ng-container>
+                <ng-container *ngSwitchCase="'ArrayDataType'">
+                    <ng-container
+                        *ngIf="getArrayInnermostElementTypeWithNestingLevel(dt); let innerDtWithLevel">
+                        {{'['.repeat(innerDtWithLevel[1])}}
+                        <ng-container [ngSwitch]="innerDtWithLevel[0]._type">
+                            <ng-container *ngSwitchCase="'SimpleDataType'">
+                                {{innerDtWithLevel[0].name}}
+                            </ng-container>
+                            <ng-container *ngSwitchCase="'StructDataType'">
+                                <ng-container *ngTemplateOutlet="structTypeView; context: {$implicit: row}"></ng-container>
+                            </ng-container>
+                        </ng-container>
+                        {{']'.repeat(innerDtWithLevel[1])}}
+                    </ng-container>
+                </ng-container>
+            </ng-container>
 
-  <ngx-datatable-footer>
-    <ng-template let-curPage="curPage" let-isVisible="isVisible" let-offset="offset"
-                 let-pageSize="pageSize" let-rowCount="rowCount" let-selectedCount="selectedCount" ngx-datatable-footer-template>
-    </ng-template>
-  </ngx-datatable-footer>
+            <ng-template #structTypeView let-row>
+                <button (click)="onStructTypeClick($event, row)">&#x7B;...&#x7D;</button>
+            </ng-template>
+
+        </ng-template>
+    </ngx-datatable-column>
+
+    <!--Footer -->
+
+    <ngx-datatable-footer>
+        <ng-template let-curPage="curPage" let-isVisible="isVisible" let-offset="offset"
+                     let-pageSize="pageSize" let-rowCount="rowCount" let-selectedCount="selectedCount" ngx-datatable-footer-template>
+        </ng-template>
+    </ngx-datatable-footer>
 
 </ngx-datatable>

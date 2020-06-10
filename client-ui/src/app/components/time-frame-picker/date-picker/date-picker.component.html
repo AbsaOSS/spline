@@ -14,7 +14,9 @@
   ~ limitations under the License.
   -->
 
-<input #dp="bsDatepicker" (bsValueChange)="onModelChange($event)" [bsConfig]="{  dateInputFormat: 'YYYY-MM-DD', containerClass: 'theme-dark-blue' }" [bsValue]="bsModel" [maxDate]="bsMaxDate" [minDate]="bsMinDate"
+<input #dp="bsDatepicker" (bsValueChange)="onModelChange($event)"
+       [bsConfig]="{  dateInputFormat: 'YYYY-MM-DD', containerClass: 'theme-dark-blue' }" [bsValue]="bsModel" [maxDate]="bsMaxDate"
+       [minDate]="bsMinDate"
        [ngClass]="{ 'is-invalid': !valid }" bsDatepicker class="form-control"
        placement="bottom"
        type="text" value="{{ bsModel | date: 'yyyy-MM-dd' }}">

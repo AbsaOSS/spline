@@ -79,7 +79,7 @@ module.exports = {
         'semi': ['error', 'never'],
         'indent': [
           'error',
-          2,
+          4,
           {
             'SwitchCase': 1,
             'FunctionDeclaration': {

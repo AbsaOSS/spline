@@ -37,91 +37,91 @@ import { TablePage, TableSort } from './dashboard.model'
 const SEARCH_TERM_UPDATE_DELAY = 300 // millis
 
 @Component({
-  selector: 'dashboard',
-  templateUrl: './dashboard.component.html',
-  styleUrls: ['dashboard.component.scss'],
-  encapsulation: ViewEncapsulation.None
+    selector: 'dashboard',
+    templateUrl: './dashboard.component.html',
+    styleUrls: ['dashboard.component.scss'],
+    encapsulation: ViewEncapsulation.None
 })
 export class DashboardComponent implements OnDestroy {
-  readonly loadingIndicator = new DashboardLoadingIndicator
-  executionEvents: PageableExecutionEventsResponse = {}
-  dashboardState: DashboardVM
-  sort: TableSort
-  readonly onSearchTermChange: (_: KeyboardEvent) => void = _.debounce(
-    (input: KeyboardEvent) =>
-      this.store.dispatch(new DashboardActions.SetSearchQuery((input.target as HTMLInputElement).value)),
-    SEARCH_TERM_UPDATE_DELAY)
-  private readonly subscriptions: Subscription[] = []
-  private readonly asAtTime: Timestamp = +moment()
+    readonly loadingIndicator = new DashboardLoadingIndicator
+    executionEvents: PageableExecutionEventsResponse = {}
+    dashboardState: DashboardVM
+    sort: TableSort
+    readonly onSearchTermChange: (_: KeyboardEvent) => void = _.debounce(
+        (input: KeyboardEvent) =>
+            this.store.dispatch(new DashboardActions.SetSearchQuery((input.target as HTMLInputElement).value)),
+        SEARCH_TERM_UPDATE_DELAY)
+    private readonly subscriptions: Subscription[] = []
+    private readonly asAtTime: Timestamp = +moment()
 
-  constructor(private store: Store<AppState>) {
-    this.subscriptions.push(
-      this.store.select('dashboard')
-        .subscribe((dashboardState) => {
-          this.dashboardState = dashboardState
-          this.sort = {
-            prop: dashboardState.sort.field,
-            dir: dashboardState.sort.order
-          }
-          this.loadExecutionEvents(dashboardState)
-          this.loadingIndicator.activate()
-        }),
+    constructor(private store: Store<AppState>) {
+        this.subscriptions.push(
+            this.store.select('dashboard')
+                .subscribe((dashboardState) => {
+                    this.dashboardState = dashboardState
+                    this.sort = {
+                        prop: dashboardState.sort.field,
+                        dir: dashboardState.sort.order
+                    }
+                    this.loadExecutionEvents(dashboardState)
+                    this.loadingIndicator.activate()
+                }),
 
-      this.store.select('executionEvents')
-        .pipe(filter(_.identity))
-        .subscribe(executionEvents => {
-          this.executionEvents = executionEvents
-          this.loadingIndicator.deactivate()
-        })
-    )
-  }
+            this.store.select('executionEvents')
+                .pipe(filter(_.identity))
+                .subscribe(executionEvents => {
+                    this.executionEvents = executionEvents
+                    this.loadingIndicator.deactivate()
+                })
+        )
+    }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(s => s.unsubscribe())
-  }
+    ngOnDestroy(): void {
+        this.subscriptions.forEach(s => s.unsubscribe())
+    }
 
-  onSelect(event): void {
-    const executionEventId = event.selected[0].executionEventId
-    const params = {} as RouterStateUrl
-    params.queryParams = { executionEventId: executionEventId }
-    params.url = '/app/lineage-overview/'
-    this.store.dispatch(new RouterAction.Go(params))
-  }
+    onSelect(event): void {
+        const executionEventId = event.selected[0].executionEventId
+        const params = {} as RouterStateUrl
+        params.queryParams = { executionEventId: executionEventId }
+        params.url = '/app/lineage-overview/'
+        this.store.dispatch(new RouterAction.Go(params))
+    }
 
-  onFilterByDateSwitchToggle(switchOn: MatSlideToggleChange): void {
-    const dateRange = switchOn.checked
-      ? this.executionEvents.totalDateRange as DateRange
-      : undefined
-    this.store.dispatch(new DashboardActions.SetDateRange(dateRange))
-  }
+    onFilterByDateSwitchToggle(switchOn: MatSlideToggleChange): void {
+        const dateRange = switchOn.checked
+            ? this.executionEvents.totalDateRange as DateRange
+            : undefined
+        this.store.dispatch(new DashboardActions.SetDateRange(dateRange))
+    }
 
-  onDateRangeSelected(range: DateRange): void {
-    this.store.dispatch(new DashboardActions.SetDateRange(range))
-  }
+    onDateRangeSelected(range: DateRange): void {
+        this.store.dispatch(new DashboardActions.SetDateRange(range))
+    }
 
-  onPageChange(page: TablePage): void {
-    this.store.dispatch(new DashboardActions.SetPageNumber(page.offset + 1))
-  }
+    onPageChange(page: TablePage): void {
+        this.store.dispatch(new DashboardActions.SetPageNumber(page.offset + 1))
+    }
 
-  onSortChange(sort: TableSort): void {
-    this.store.dispatch(new DashboardActions.SetSortOrder(sort.prop, sort.dir))
-  }
+    onSortChange(sort: TableSort): void {
+        this.store.dispatch(new DashboardActions.SetSortOrder(sort.prop, sort.dir))
+    }
 
-  getFrameworkIconClass(frameworkName: string): string {
-    return /^spark\b/i.test(frameworkName) ? 'spark' : 'other'
-  }
+    getFrameworkIconClass(frameworkName: string): string {
+        return /^spark\b/i.test(frameworkName) ? 'spark' : 'other'
+    }
 
-  private loadExecutionEvents(dashboardState: DashboardVM): void {
-    const dateRange = dashboardState.filters.dateRange
-    this.store.dispatch(new ExecutionEventsActions.Get(
-      {
-        asAtTime: this.asAtTime,
-        timestampStart: dateRange && dateRange[0],
-        timestampEnd: dateRange && dateRange[1],
-        pageNum: dashboardState.pagination.page,
-        sortField: dashboardState.sort.field,
-        sortOrder: dashboardState.sort.order,
-        searchTerm: dashboardState.filters.searchQuery,
-      }))
-  }
+    private loadExecutionEvents(dashboardState: DashboardVM): void {
+        const dateRange = dashboardState.filters.dateRange
+        this.store.dispatch(new ExecutionEventsActions.Get(
+            {
+                asAtTime: this.asAtTime,
+                timestampStart: dateRange && dateRange[0],
+                timestampEnd: dateRange && dateRange[1],
+                pageNum: dashboardState.pagination.page,
+                sortField: dashboardState.sort.field,
+                sortOrder: dashboardState.sort.order,
+                searchTerm: dashboardState.filters.searchQuery,
+            }))
+    }
 }

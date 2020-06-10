@@ -22,31 +22,31 @@ import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM'
 
 
 @Component({
-  selector: 'lineage-overview-details',
-  templateUrl: './lineage-overview-details.component.html',
-  styleUrls: ['./lineage-overview-details.component.scss']
+    selector: 'lineage-overview-details',
+    templateUrl: './lineage-overview-details.component.html',
+    styleUrls: ['./lineage-overview-details.component.scss']
 })
 export class LineageOverviewDetailsComponent {
 
-  @Input()
-  embeddedMode: boolean
+    @Input()
+    embeddedMode: boolean
 
-  constructor(private store: Store<AppState>) {
-  }
+    constructor(private store: Store<AppState>) {
+    }
 
-  getLineageOverviewInfo = (): Observable<{ [key: string]: {} }> => {
-    return this.store.select('lineageOverview', 'lineageInfo')
-  }
+    getLineageOverviewInfo = (): Observable<{ [key: string]: {} }> => {
+        return this.store.select('lineageOverview', 'lineageInfo')
+    }
 
-  getDetailsInfo = (): Observable<OperationDetailsVM> => {
-    return this.store.select('detailsInfos')
-  }
+    getDetailsInfo = (): Observable<OperationDetailsVM> => {
+        return this.store.select('detailsInfos')
+    }
 
-  getOutputSchema = (operationDetails: OperationDetailsVM): AttributeVM[] => {
-    return operationDetails.schemas[operationDetails.output]
-  }
+    getOutputSchema = (operationDetails: OperationDetailsVM): AttributeVM[] => {
+        return operationDetails.schemas[operationDetails.output]
+    }
 
-  getTargetName = (): Observable<any> => {
-    return this.store.select('lineageOverview', 'lineageInfo', 'targetNodeName')
-  }
+    getTargetName = (): Observable<any> => {
+        return this.store.select('lineageOverview', 'lineageInfo', 'targetNodeName')
+    }
 }

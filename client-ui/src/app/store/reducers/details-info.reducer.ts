@@ -16,13 +16,17 @@
 import { OperationDetailsVM } from '../../model/viewModels/operationDetailsVM'
 import * as DetailsInfoAction from '../actions/details-info.actions'
 
+
 export type Action = DetailsInfoAction.DetailsInfoActions
 
 export function detailsInfoReducer(state: OperationDetailsVM, action: Action): OperationDetailsVM {
-  switch (action.type) {
-    case DetailsInfoAction.DetailsInfoActionTypes.DETAILS_INFOS_GET_SUCCESS: return { ...state, ...action.payload }
-    case DetailsInfoAction.DetailsInfoActionTypes.DETAILS_INFOS_RESET: return null
-    default: return state
+    switch (action.type) {
+        case DetailsInfoAction.DetailsInfoActionTypes.DETAILS_INFOS_GET_SUCCESS:
+            return { ...state, ...action.payload }
+        case DetailsInfoAction.DetailsInfoActionTypes.DETAILS_INFOS_RESET:
+            return null
+        default:
+            return state
 
-  }
+    }
 }

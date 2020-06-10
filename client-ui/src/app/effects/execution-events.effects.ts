@@ -32,28 +32,28 @@ export type Action = ExecutionEventsAction.ExecutionEventsActions
 @Injectable()
 export class ExecutionEventsEffects {
 
-  @Effect()
-  getDefaultPageableExecutionEvents$: Observable<ExecutionEventsAction.GetSuccess> =
-    this.actions$.pipe(
-      ofType(ExecutionEventsAction.ExecutionEventsActionTypes.GET),
-      switchMap(({payload: params}) =>
-        this.executionEventService.executionEventsUsingGET(params)
-          .pipe(
-            handleException(this.store)
-          )
-      ),
-      map((res: PageableExecutionEventsResponse) =>
-        new ExecutionEventsAction.GetSuccess(res))
-    )
+    @Effect()
+    getDefaultPageableExecutionEvents$: Observable<ExecutionEventsAction.GetSuccess> =
+        this.actions$.pipe(
+            ofType(ExecutionEventsAction.ExecutionEventsActionTypes.GET),
+            switchMap(({ payload: params }) =>
+                this.executionEventService.executionEventsUsingGET(params)
+                    .pipe(
+                        handleException(this.store)
+                    )
+            ),
+            map((res: PageableExecutionEventsResponse) =>
+                new ExecutionEventsAction.GetSuccess(res))
+        )
 
-  constructor(
-    private actions$: Actions,
-    private executionEventService: ExecutionEventsService,
-    private store: Store<AppState>
-  ) {
-    this.store
-      .select('config', 'apiUrl')
-      .subscribe(apiUrl => this.executionEventService.rootUrl = apiUrl)
-  }
+    constructor(
+        private actions$: Actions,
+        private executionEventService: ExecutionEventsService,
+        private store: Store<AppState>
+    ) {
+        this.store
+            .select('config', 'apiUrl')
+            .subscribe(apiUrl => this.executionEventService.rootUrl = apiUrl)
+    }
 
 }

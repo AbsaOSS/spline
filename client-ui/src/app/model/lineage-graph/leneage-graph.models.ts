@@ -28,126 +28,126 @@ export const LINE_COLOR_HLT_IMPACT = 'green'
 export const LINE_COLOR_HLT_NONE = '#f5f5f5'
 
 export const selectedNodeStyles = {
-  'border-color': LINE_COLOR_SELECTED,
-  'border-width': LINE_WIDTH_SELECTED,
-  padding: 70,
+    'border-color': LINE_COLOR_SELECTED,
+    'border-width': LINE_WIDTH_SELECTED,
+    padding: 70,
 }
 
 export const cyStyles: Partial<Stylesheet>[] = [
-  {
-    selector: 'node',
-    style: {
-      'background-color': '#fff',
-      'border-color': LINE_COLOR_HLT_NONE,
-      'border-width': LINE_WIDTH_HIGHLIGHTED,
-      padding: 50, // that settings is not a part of the Stylesheet for now (it is a bug and it will be fixed in the future).
-      content: 'data(name)',
-      'text-valign': 'bottom',
-      'text-margin-y': 12,
+    {
+        selector: 'node',
+        style: {
+            'background-color': '#fff',
+            'border-color': LINE_COLOR_HLT_NONE,
+            'border-width': LINE_WIDTH_HIGHLIGHTED,
+            padding: 50, // that settings is not a part of the Stylesheet for now (it is a bug and it will be fixed in the future).
+            content: 'data(name)',
+            'text-valign': 'bottom',
+            'text-margin-y': 12,
+        },
+    } as Stylesheet,
+    {
+        selector: 'node:selected',
+        style: {
+            ...selectedNodeStyles
+        },
+    } as Stylesheet,
+    {
+        selector: 'node.hlt_prim',
+        style: {
+            'border-color': LINE_COLOR_HLT_PRIMARY,
+            'border-width': LINE_WIDTH_HIGHLIGHTED,
+        }
     },
-  } as Stylesheet,
-  {
-    selector: 'node:selected',
-    style: {
-      ...selectedNodeStyles
+    {
+        selector: 'node.hlt_prim:selected',
+        style: {
+            ...selectedNodeStyles
+        }
     },
-  } as Stylesheet,
-  {
-    selector: 'node.hlt_prim',
-    style: {
-      'border-color': LINE_COLOR_HLT_PRIMARY,
-      'border-width': LINE_WIDTH_HIGHLIGHTED,
-    }
-  },
-  {
-    selector: 'node.hlt_prim:selected',
-    style: {
-      ...selectedNodeStyles
-    }
-  },
-  {
-    selector: 'node.hlt_lin',
-    style: {
-      'border-color': LINE_COLOR_HLT_LINEAGE,
-      'border-width': LINE_WIDTH_HIGHLIGHTED,
-    }
-  },
-  {
-    selector: 'node.hlt_lin:selected',
-    style: {
-      ...selectedNodeStyles
-    }
-  },
-  {
-    selector: 'node.hlt_imp',
-    style: {
-      'border-color': LINE_COLOR_HLT_IMPACT,
-      'border-width': LINE_WIDTH_HIGHLIGHTED,
-    }
-  },
-  {
-    selector: 'node.hlt_imp:selected',
-    style: {
-      ...selectedNodeStyles
-    }
-  },
-  {
-    selector: 'node.hlt_none',
-    style: {
-      'border-color': LINE_COLOR_HLT_NONE,
-      'border-width': LINE_WIDTH_HIGHLIGHTED,
-    }
-  },
-  {
-    selector: 'node.hlt_none:selected',
-    style: {
-      ...selectedNodeStyles
-    }
-  },
-  {
-    selector: 'edge',
-    style: {
-      'line-color': LINE_COLOR_PLANE,
-      'target-arrow-color': LINE_COLOR_PLANE,
-      width: LINE_WIDTH_PLANE,
-      'curve-style': 'bezier',
-      'target-arrow-shape': 'triangle',
+    {
+        selector: 'node.hlt_lin',
+        style: {
+            'border-color': LINE_COLOR_HLT_LINEAGE,
+            'border-width': LINE_WIDTH_HIGHLIGHTED,
+        }
     },
-    css: {
-      label: (el) => el.data('label') || '',
-      'curve-style': 'bezier',
-    }
-  },
-  {
-    selector: 'edge.hlt_prim',
-    style: {
-      'line-color': LINE_COLOR_HLT_PRIMARY,
-      'target-arrow-color': LINE_COLOR_HLT_PRIMARY,
-      width: LINE_WIDTH_HIGHLIGHTED,
-    }
-  },
-  {
-    selector: 'edge.hlt_lin',
-    style: {
-      'line-color': LINE_COLOR_HLT_LINEAGE,
-      'target-arrow-color': LINE_COLOR_HLT_LINEAGE,
-      width: LINE_WIDTH_HIGHLIGHTED,
-    }
-  },
-  {
-    selector: 'edge.hlt_imp',
-    style: {
-      'line-color': LINE_COLOR_HLT_IMPACT,
-      'target-arrow-color': LINE_COLOR_HLT_IMPACT,
-      width: LINE_WIDTH_HIGHLIGHTED,
-    }
-  },
-  {
-    selector: 'edge.hlt_none',
-    style: {
-      'line-color': LINE_COLOR_HLT_NONE,
-      'target-arrow-color': LINE_COLOR_HLT_NONE,
-      width: LINE_WIDTH_HIGHLIGHTED,
-    }
-  },
+    {
+        selector: 'node.hlt_lin:selected',
+        style: {
+            ...selectedNodeStyles
+        }
+    },
+    {
+        selector: 'node.hlt_imp',
+        style: {
+            'border-color': LINE_COLOR_HLT_IMPACT,
+            'border-width': LINE_WIDTH_HIGHLIGHTED,
+        }
+    },
+    {
+        selector: 'node.hlt_imp:selected',
+        style: {
+            ...selectedNodeStyles
+        }
+    },
+    {
+        selector: 'node.hlt_none',
+        style: {
+            'border-color': LINE_COLOR_HLT_NONE,
+            'border-width': LINE_WIDTH_HIGHLIGHTED,
+        }
+    },
+    {
+        selector: 'node.hlt_none:selected',
+        style: {
+            ...selectedNodeStyles
+        }
+    },
+    {
+        selector: 'edge',
+        style: {
+            'line-color': LINE_COLOR_PLANE,
+            'target-arrow-color': LINE_COLOR_PLANE,
+            width: LINE_WIDTH_PLANE,
+            'curve-style': 'bezier',
+            'target-arrow-shape': 'triangle',
+        },
+        css: {
+            label: (el) => el.data('label') || '',
+            'curve-style': 'bezier',
+        }
+    },
+    {
+        selector: 'edge.hlt_prim',
+        style: {
+            'line-color': LINE_COLOR_HLT_PRIMARY,
+            'target-arrow-color': LINE_COLOR_HLT_PRIMARY,
+            width: LINE_WIDTH_HIGHLIGHTED,
+        }
+    },
+    {
+        selector: 'edge.hlt_lin',
+        style: {
+            'line-color': LINE_COLOR_HLT_LINEAGE,
+            'target-arrow-color': LINE_COLOR_HLT_LINEAGE,
+            width: LINE_WIDTH_HIGHLIGHTED,
+        }
+    },
+    {
+        selector: 'edge.hlt_imp',
+        style: {
+            'line-color': LINE_COLOR_HLT_IMPACT,
+            'target-arrow-color': LINE_COLOR_HLT_IMPACT,
+            width: LINE_WIDTH_HIGHLIGHTED,
+        }
+    },
+    {
+        selector: 'edge.hlt_none',
+        style: {
+            'line-color': LINE_COLOR_HLT_NONE,
+            'target-arrow-color': LINE_COLOR_HLT_NONE,
+            width: LINE_WIDTH_HIGHLIGHTED,
+        }
+    },
 ]

@@ -16,51 +16,51 @@
 
 
 <div class="container-fluid">
-  <div class="row">
-    <div class="col-sm-8 no-padding">
+    <div class="row">
+        <div class="col-sm-8 no-padding">
 
-      <lineage-overview-graph [embeddedMode]="embeddedMode$ | async"></lineage-overview-graph>
+            <lineage-overview-graph [embeddedMode]="embeddedMode$ | async"></lineage-overview-graph>
 
-      <!-- GRAPH TOOLBAR -->
-      <ng-container *ngIf="lineageState$ | async as lineageState">
-        <div *ngIf="lineageState.hasMoreNodes" class="graph-toolbar">
+            <!-- GRAPH TOOLBAR -->
+            <ng-container *ngIf="lineageState$ | async as lineageState">
+                <div *ngIf="lineageState.hasMoreNodes" class="graph-toolbar">
 
-          <!-- GRAPH DEPTH CONTROL -->
-          <div class="graph-toolbar__section">
+                    <!-- GRAPH DEPTH CONTROL -->
+                    <div class="graph-toolbar__section">
 
-            <div class="graph-toolbar-warning">
+                        <div class="graph-toolbar-warning">
 
-              <div class="graph-toolbar-warning__icon">
-                <mat-icon fontIcon="fa-exclamation-triangle"
-                          fontSet="fa">
-                </mat-icon>
-              </div>
+                            <div class="graph-toolbar-warning__icon">
+                                <mat-icon fontIcon="fa-exclamation-triangle"
+                                          fontSet="fa">
+                                </mat-icon>
+                            </div>
 
-              <div class="graph-toolbar-warning__title">
-                Some older nodes might not be displayed.
-              </div>
+                            <div class="graph-toolbar-warning__title">
+                                Some older nodes might not be displayed.
+                            </div>
 
-            </div>
+                        </div>
 
-            <div class="graph-toolbar__section-footer">
-              The current depth is <strong>{{ lineageState.depthRequested }}</strong>.
-              <a (click)="onLoadOlderNodesBtnClicked()"
-                 class="link-dashed"
-                 matTooltip="Load older nodes">
-                Click here
-              </a>
-              to load older nodes.
-            </div>
-          </div>
-          <!-- ./GRAPH DEPTH CONTROL -->
+                        <div class="graph-toolbar__section-footer">
+                            The current depth is <strong>{{ lineageState.depthRequested }}</strong>.
+                            <a (click)="onLoadOlderNodesBtnClicked()"
+                               class="link-dashed"
+                               matTooltip="Load older nodes">
+                                Click here
+                            </a>
+                            to load older nodes.
+                        </div>
+                    </div>
+                    <!-- ./GRAPH DEPTH CONTROL -->
 
+                </div>
+            </ng-container>
+            <!-- ./GRAPH TOOLBAR -->
         </div>
-      </ng-container>
-      <!-- ./GRAPH TOOLBAR -->
-    </div>
 
-    <div class="col-sm-4 ">
-      <lineage-overview-details [embeddedMode]="embeddedMode$ | async"></lineage-overview-details>
+        <div class="col-sm-4 ">
+            <lineage-overview-details [embeddedMode]="embeddedMode$ | async"></lineage-overview-details>
+        </div>
     </div>
-  </div>
 </div>

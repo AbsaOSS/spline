@@ -17,10 +17,10 @@ import { DataTypeVM } from './dataTypeVM'
 
 
 export type AttributeVM = StructFieldVM & {
-  id: string
+    id: string
 }
 
 export type StructFieldVM = {
-  name: string
-  dataType: DataTypeVM
+    name: string
+    dataType: DataTypeVM
 }

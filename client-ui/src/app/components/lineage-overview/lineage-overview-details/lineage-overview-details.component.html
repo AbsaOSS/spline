@@ -15,31 +15,31 @@
   -->
 <div [ngClass]="embeddedMode ? 'embeddedHeight' : 'fullHeight'"
      class="lineage-overview-container">
-  <div *ngIf="(getLineageOverviewInfo() | async)" class="lineage-overview-details ">
-    <br/>
-    <h3 class="text-center"> Job Lineage </h3>
-    <br/>
-    <p>
-      <span class="lineage-overview-details-title">DataSource URI:</span>
-      {{ getTargetName() | async}}
-    </p>
-    <p>
-      <span class="lineage-overview-details-title">Timestamp : </span>
-      {{ (getLineageOverviewInfo() | async)?.timestamp | date: 'yyyy-MM-dd HH:mm' }}
-    </p>
-    <p>
-      <span class="lineage-overview-details-title">Application ID:</span>
-      {{ (getLineageOverviewInfo() | async)?.applicationId }}
-    </p>
-    <hr>
-    <execution-plan-details></execution-plan-details>
+    <div *ngIf="(getLineageOverviewInfo() | async)" class="lineage-overview-details ">
+        <br/>
+        <h3 class="text-center"> Job Lineage </h3>
+        <br/>
+        <p>
+            <span class="lineage-overview-details-title">DataSource URI:</span>
+            {{ getTargetName() | async}}
+        </p>
+        <p>
+            <span class="lineage-overview-details-title">Timestamp : </span>
+            {{ (getLineageOverviewInfo() | async)?.timestamp | date: 'yyyy-MM-dd HH:mm' }}
+        </p>
+        <p>
+            <span class="lineage-overview-details-title">Application ID:</span>
+            {{ (getLineageOverviewInfo() | async)?.applicationId }}
+        </p>
+        <hr>
+        <execution-plan-details></execution-plan-details>
 
-    <div *ngIf="(getDetailsInfo() | async); let detailsInfo">
-      <div>
-        <schema [schemaType]=2
-                [schema]="getOutputSchema(detailsInfo)">
-        </schema>
-      </div>
+        <div *ngIf="(getDetailsInfo() | async); let detailsInfo">
+            <div>
+                <schema [schemaType]=2
+                        [schema]="getOutputSchema(detailsInfo)">
+                </schema>
+            </div>
+        </div>
     </div>
-  </div>
 </div>

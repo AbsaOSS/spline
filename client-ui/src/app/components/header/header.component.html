@@ -14,33 +14,33 @@
   ~ limitations under the License.
   -->
 <nav class="navbar navbar-expand navbar-dark bg-dark">
-  <div class="navbar navbar-expand-md sticky-top">
-    <a (click)="onHomeClick()" class="navbar-item">
-      <img class="spline-icon-menu" src="./assets/images/logo.png">
-    </a>
-  </div>
-
-  <div class="collapse navbar-collapse" id="navbarSupportedContent">
-    <div class="title">
-      Data Lineage Tracking And Visualization
+    <div class="navbar navbar-expand-md sticky-top">
+        <a (click)="onHomeClick()" class="navbar-item">
+            <img class="spline-icon-menu" src="./assets/images/logo.png">
+        </a>
     </div>
-  </div>
 
-  <app-attribute-search-bar></app-attribute-search-bar>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="title">
+            Data Lineage Tracking And Visualization
+        </div>
+    </div>
+
+    <app-attribute-search-bar></app-attribute-search-bar>
 </nav>
 
 <div>
-  <ol class="breadcrumb">
-    <li [ngClass]="{ 'active': (isActive('dashboard') | async)}" class="breadcrumb-item">
-      <a (click)="onHomeClick()">Dashboard</a>
-    </li>
-    <li [ngClass]="{ 'active': (isActive('lineage-overview') | async), 'display-none': !(isVisible('lineage-overview') | async)}"
-        class="breadcrumb-item">
-      <a (click)="onLineageOverviewClick()"> Lineage Overview </a>
-    </li>
-    <li [ngClass]="{ 'active': (isActive('lineage-detailed') | async), 'display-none': !(isVisible('lineage-detailed') | async)}"
-        class="breadcrumb-item">
-      <a>Detailed Lineage</a>
-    </li>
-  </ol>
+    <ol class="breadcrumb">
+        <li [ngClass]="{ 'active': (isActive('dashboard') | async)}" class="breadcrumb-item">
+            <a (click)="onHomeClick()">Dashboard</a>
+        </li>
+        <li [ngClass]="{ 'active': (isActive('lineage-overview') | async), 'display-none': !(isVisible('lineage-overview') | async)}"
+            class="breadcrumb-item">
+            <a (click)="onLineageOverviewClick()"> Lineage Overview </a>
+        </li>
+        <li [ngClass]="{ 'active': (isActive('lineage-detailed') | async), 'display-none': !(isVisible('lineage-detailed') | async)}"
+            class="breadcrumb-item">
+            <a>Detailed Lineage</a>
+        </li>
+    </ol>
 </div>

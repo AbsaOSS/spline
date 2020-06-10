@@ -19,42 +19,42 @@ import { LINE_COLOR_HLT_IMPACT, LINE_COLOR_HLT_LINEAGE, LINE_COLOR_HLT_PRIMARY }
 
 
 export type LineageGraphLegend = {
-  title: string
-  color: string
-  description: string
+    title: string
+    color: string
+    description: string
 }
 
 export type LineageGraphLegendKeys =
-  'Usage' |
-  'Lineage' |
-  'Impact'
+    'Usage' |
+    'Lineage' |
+    'Impact'
 
 export const LineageGraphLegends: { [key in LineageGraphLegendKeys]: LineageGraphLegend } =
-  Object.freeze({
-    Usage: {
-      title: 'Usage',
-      color: LINE_COLOR_HLT_PRIMARY,
-      description: `
+    Object.freeze({
+        Usage: {
+            title: 'Usage',
+            color: LINE_COLOR_HLT_PRIMARY,
+            description: `
           Usage - consists of operations that have the selected attribute in their output.
           I.e operations that either create the attribute or propagate through.
       `
-    },
-    Lineage: {
-      title: 'Lineage',
-      color: LINE_COLOR_HLT_LINEAGE,
-      description: `
+        },
+        Lineage: {
+            title: 'Lineage',
+            color: LINE_COLOR_HLT_LINEAGE,
+            description: `
           Lineage - outlines operations that produces or propagate attributes that affects the
           selected one transitively (at any level of nesting). In other words, the operations containing
           attributes which the selected attribute depends on.
       `
-    },
-    Impact: {
-      title: 'Impact',
-      color: LINE_COLOR_HLT_IMPACT,
-      description: `
+        },
+        Impact: {
+            title: 'Impact',
+            color: LINE_COLOR_HLT_IMPACT,
+            description: `
           Impact - the part of the graph affected by the selected attribute (opposite to the lineage part).
           That is, the operations that produces/propagate attributes that depend on selected one transitively.
       `
-    }
-  })
+        }
+    })
 

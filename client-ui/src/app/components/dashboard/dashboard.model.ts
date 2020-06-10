@@ -15,13 +15,13 @@
  */
 
 export interface TableSort {
-  prop: string
-  dir: string
+    prop: string
+    dir: string
 }
 
 export interface TablePage {
-  count: number
-  pageSize: number
-  limit: number
-  offset: number
+    count: number
+    pageSize: number
+    limit: number
+    offset: number
 }

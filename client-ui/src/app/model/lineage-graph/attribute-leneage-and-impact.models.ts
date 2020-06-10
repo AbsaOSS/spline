@@ -20,6 +20,6 @@ import { AttributeNode } from '../../generated/models/attribute-node'
 
 
 export function getImpactRootAttributeNode(graph: AttributeGraph): AttributeNode {
-  const impactedAttrIds = new Set(graph.edges.map(e => e.source))
-  return graph.nodes.find(a => !impactedAttrIds.has(a._id))
+    const impactedAttrIds = new Set(graph.edges.map(e => e.source))
+    return graph.nodes.find(a => !impactedAttrIds.has(a._id))
 }

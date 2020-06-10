@@ -15,17 +15,17 @@
   -->
 <div [ngClass]="embeddedMode ? 'embeddedHeight' : 'fullHeight'"
      class="detail-container">
-  <div class="details container-fluid">
-    <div class="row">
-      <div class="col-sm-12 no-padding">
-        <operation-properties-details *ngIf="detailsInfos$ | async; else executionPlanDetailsTmpl"></operation-properties-details>
-      </div>
+    <div class="details container-fluid">
+        <div class="row">
+            <div class="col-sm-12 no-padding">
+                <operation-properties-details *ngIf="detailsInfos$ | async; else executionPlanDetailsTmpl"></operation-properties-details>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
 
 <ng-template #executionPlanDetailsTmpl>
-  <br/>
-  <execution-plan-details></execution-plan-details>
+    <br/>
+    <execution-plan-details></execution-plan-details>
 </ng-template>

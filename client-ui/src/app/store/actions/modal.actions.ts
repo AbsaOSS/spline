@@ -20,27 +20,29 @@ import { ModalOptions } from 'ngx-bootstrap/modal'
 
 
 export enum ModalActionTypes {
-  MODAL_OPEN = '[MODAL] OPEN',
-  MODAL_OPEN_SUCCESS = '[MODAL] OPEN SUCCESS',
-  MODAL_CLOSE = '[MODAL] CLOSE',
-  MODAL_CLOSE_SUCCESS = '[MODAL] CLOSE SUCESS',
+    MODAL_OPEN = '[MODAL] OPEN',
+    MODAL_OPEN_SUCCESS = '[MODAL] OPEN SUCCESS',
+    MODAL_CLOSE = '[MODAL] CLOSE',
+    MODAL_CLOSE_SUCCESS = '[MODAL] CLOSE SUCESS',
 }
 
 export class Open implements Action {
-  readonly type = ModalActionTypes.MODAL_OPEN
-  constructor(public content: string | TemplateRef<any> | any, public config?: ModalOptions) { }
+    readonly type = ModalActionTypes.MODAL_OPEN
+
+    constructor(public content: string | TemplateRef<any> | any, public config?: ModalOptions) {
+    }
 }
 
 export class OpenSuccess implements Action {
-  readonly type = ModalActionTypes.MODAL_OPEN_SUCCESS
+    readonly type = ModalActionTypes.MODAL_OPEN_SUCCESS
 }
 
 export class Close implements Action {
-  readonly type = ModalActionTypes.MODAL_CLOSE
+    readonly type = ModalActionTypes.MODAL_CLOSE
 }
 
 export class CloseSuccess implements Action {
-  readonly type = ModalActionTypes.MODAL_CLOSE_SUCCESS
+    readonly type = ModalActionTypes.MODAL_CLOSE_SUCCESS
 }
 
 export type ModalActions

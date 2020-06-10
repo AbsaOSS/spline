@@ -14,26 +14,26 @@
   ~ limitations under the License.
   -->
 <div *ngIf="schema != null">
-  <mat-accordion>
-    <mat-expansion-panel [expanded]="true">
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          <ng-container *ngIf="schemaType == 0">
-            <i aria-hidden="true" class='fa fa-xs fa-arrow-circle-right text-success'></i> <strong> Input </strong>
-          </ng-container>
-          <ng-container *ngIf="schemaType == 1">
-            <i aria-hidden="true" class='fa fa-xs fa-arrow-circle-left text-danger'></i> <strong> Output </strong>
-          </ng-container>
-          <ng-container *ngIf="schemaType != 0 && schemaType != 1">
-            <strong> Schema </strong>
-          </ng-container>
-        </mat-panel-title>
-      </mat-expansion-panel-header>
-      <schema-table
-          (selectedFieldChanged)="onAttributeSelected($event)"
-          [schema]="schema"
-          [selectedField]="selectedAttribute()">
-      </schema-table>
-    </mat-expansion-panel>
-  </mat-accordion>
+    <mat-accordion>
+        <mat-expansion-panel [expanded]="true">
+            <mat-expansion-panel-header>
+                <mat-panel-title>
+                    <ng-container *ngIf="schemaType == 0">
+                        <i aria-hidden="true" class='fa fa-xs fa-arrow-circle-right text-success'></i> <strong> Input </strong>
+                    </ng-container>
+                    <ng-container *ngIf="schemaType == 1">
+                        <i aria-hidden="true" class='fa fa-xs fa-arrow-circle-left text-danger'></i> <strong> Output </strong>
+                    </ng-container>
+                    <ng-container *ngIf="schemaType != 0 && schemaType != 1">
+                        <strong> Schema </strong>
+                    </ng-container>
+                </mat-panel-title>
+            </mat-expansion-panel-header>
+            <schema-table
+                (selectedFieldChanged)="onAttributeSelected($event)"
+                [schema]="schema"
+                [selectedField]="selectedAttribute()">
+            </schema-table>
+        </mat-expansion-panel>
+    </mat-accordion>
 </div>

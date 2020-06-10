@@ -102,143 +102,143 @@ import { lineageOverviewReducer } from './store/reducers/lineage-overview.reduce
 
 
 export function initializeApp(store: Store<AppState>): () => Promise<any> {
-  return () => new Promise(resolve => {
-    store.dispatch(new ConfigActions.StartAppInitializer())
-    store.dispatch(new ConfigActions.Get(environment))
-    store.select('config').pipe(
-      filter(config => config !== null && config !== undefined)
-    ).subscribe(_ => {
-      store.dispatch(new ConfigActions.FinishAppInitializer())
-      resolve(true)
+    return () => new Promise(resolve => {
+        store.dispatch(new ConfigActions.StartAppInitializer())
+        store.dispatch(new ConfigActions.Get(environment))
+        store.select('config').pipe(
+            filter(config => config !== null && config !== undefined)
+        ).subscribe(_ => {
+            store.dispatch(new ConfigActions.FinishAppInitializer())
+            resolve(true)
+        })
     })
-  })
 }
 
 const ROOT_ROUTING = 'app/'
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    ModalExpressionComponent,
-    LineageGraphComponent,
-    LineageHighlightsToolbarComponent,
-    LineageDetailsComponent,
-    LineageComponent,
-    ErrorComponent,
-    SchemaComponent,
-    OperationPropertiesDetailsComponent,
-    SchemaTableComponent,
-    JoinComponent,
-    PropertiesComponent,
-    ProjectionComponent,
-    LineageOverviewComponent,
-    LineageOverviewDetailsComponent,
-    LineageOverviewGraphComponent,
-    DashboardComponent,
-    ExecutionPlanDetailsComponent,
-    AggregateComponent,
-    LogicalRelationComponent,
-    SortComponent,
-    FilterComponent,
-    GenericComponent,
-    TimeFramePickerComponent,
-    DatePickerComponent,
-    DateRangePickerComponent,
-    TimePickerComponent,
-    HeaderComponent,
-    FooterComponent,
-    WriteComponent,
-    AliasComponent,
-    PropertyErrorComponent,
-    AttributeSearchBarComponent,
-    OperationPropertyJsonComponent
-  ],
-  entryComponents: [
-    ModalExpressionComponent,
-    SchemaTableComponent,
-    PropertiesComponent,
-    PropertyErrorComponent,
-    WriteComponent,
-    AliasComponent,
-    JoinComponent,
-    ProjectionComponent,
-    AggregateComponent,
-    LogicalRelationComponent,
-    SortComponent,
-    FilterComponent,
-    GenericComponent
-  ],
-  imports: [
-    BrowserAnimationsModule,
-    NgbModule,
-    PrettyJsonModule,
-    TreeModule.forRoot(),
-    BrowserModule,
-    CytoscapeNgLibModule,
-    HttpClientModule,
-    NgxDatatableModule,
-    FormsModule,
-    BsDatepickerModule.forRoot(),
-    DatepickerModule.forRoot(),
-    ReactiveFormsModule,
-    MatSlideToggleModule,
-    MatExpansionModule,
-    MatChipsModule,
-    MatIconModule,
-    MatButtonModule,
-    ModalModule.forRoot(),
-    ToastrModule.forRoot(),
-    StoreModule.forRoot({
-      config: configReducer,
-      dashboard: dashboardReducer,
-      executedLogicalPlan: executionPlanReducer,
-      attributeLineageAndImpact: attributeLineageAndImpactReducer,
-      lineageOverview: lineageOverviewReducer,
-      detailsInfos: detailsInfoReducer,
-      executionEvents: executionEventReducer,
-      router: routerReducer,
-      error: errorReducer,
-      contextMenu: contextMenuReducer,
-      layout: layoutReducer
-    }),
-    EffectsModule.forRoot([
-      ConfigEffects,
-      NotificationsEffects,
-      ExecutionEventsEffects,
-      ExecutionPlanEffects,
-      AttributeLineageAndImpactEffects,
-      LineageOverviewEffects,
-      DetailsInfoEffects,
-      RouterEffects,
-      ModalEffects
-    ]),
-    StoreRouterConnectingModule.forRoot(),
-    RouterModule.forRoot([
-      { path: ROOT_ROUTING + 'dashboard', component: DashboardComponent },
-      { path: ROOT_ROUTING + 'lineage-overview', component: LineageOverviewComponent },
-      { path: ROOT_ROUTING + 'lineage-detailed/:uid', component: LineageComponent },
-      { path: ROOT_ROUTING + 'error/:httpCode', component: ErrorComponent },
-      { path: '**', redirectTo: ROOT_ROUTING + 'dashboard' }
-    ]),
-    !environment.production ? StoreDevtoolsModule.instrument({ maxAge: 25 }) : [],
-    MatTooltipModule,
-    NgxJsonViewerModule
-  ],
-  providers: [
-    {
-      provide: APP_INITIALIZER,
-      useFactory: initializeApp,
-      deps: [Store],
-      multi: true
-    },
-    {
-      provide: RouterStateSerializer,
-      useClass: RouterSerializer,
-    }
-  ],
+    declarations: [
+        AppComponent,
+        ModalExpressionComponent,
+        LineageGraphComponent,
+        LineageHighlightsToolbarComponent,
+        LineageDetailsComponent,
+        LineageComponent,
+        ErrorComponent,
+        SchemaComponent,
+        OperationPropertiesDetailsComponent,
+        SchemaTableComponent,
+        JoinComponent,
+        PropertiesComponent,
+        ProjectionComponent,
+        LineageOverviewComponent,
+        LineageOverviewDetailsComponent,
+        LineageOverviewGraphComponent,
+        DashboardComponent,
+        ExecutionPlanDetailsComponent,
+        AggregateComponent,
+        LogicalRelationComponent,
+        SortComponent,
+        FilterComponent,
+        GenericComponent,
+        TimeFramePickerComponent,
+        DatePickerComponent,
+        DateRangePickerComponent,
+        TimePickerComponent,
+        HeaderComponent,
+        FooterComponent,
+        WriteComponent,
+        AliasComponent,
+        PropertyErrorComponent,
+        AttributeSearchBarComponent,
+        OperationPropertyJsonComponent
+    ],
+    entryComponents: [
+        ModalExpressionComponent,
+        SchemaTableComponent,
+        PropertiesComponent,
+        PropertyErrorComponent,
+        WriteComponent,
+        AliasComponent,
+        JoinComponent,
+        ProjectionComponent,
+        AggregateComponent,
+        LogicalRelationComponent,
+        SortComponent,
+        FilterComponent,
+        GenericComponent
+    ],
+    imports: [
+        BrowserAnimationsModule,
+        NgbModule,
+        PrettyJsonModule,
+        TreeModule.forRoot(),
+        BrowserModule,
+        CytoscapeNgLibModule,
+        HttpClientModule,
+        NgxDatatableModule,
+        FormsModule,
+        BsDatepickerModule.forRoot(),
+        DatepickerModule.forRoot(),
+        ReactiveFormsModule,
+        MatSlideToggleModule,
+        MatExpansionModule,
+        MatChipsModule,
+        MatIconModule,
+        MatButtonModule,
+        ModalModule.forRoot(),
+        ToastrModule.forRoot(),
+        StoreModule.forRoot({
+            config: configReducer,
+            dashboard: dashboardReducer,
+            executedLogicalPlan: executionPlanReducer,
+            attributeLineageAndImpact: attributeLineageAndImpactReducer,
+            lineageOverview: lineageOverviewReducer,
+            detailsInfos: detailsInfoReducer,
+            executionEvents: executionEventReducer,
+            router: routerReducer,
+            error: errorReducer,
+            contextMenu: contextMenuReducer,
+            layout: layoutReducer
+        }),
+        EffectsModule.forRoot([
+            ConfigEffects,
+            NotificationsEffects,
+            ExecutionEventsEffects,
+            ExecutionPlanEffects,
+            AttributeLineageAndImpactEffects,
+            LineageOverviewEffects,
+            DetailsInfoEffects,
+            RouterEffects,
+            ModalEffects
+        ]),
+        StoreRouterConnectingModule.forRoot(),
+        RouterModule.forRoot([
+            { path: ROOT_ROUTING + 'dashboard', component: DashboardComponent },
+            { path: ROOT_ROUTING + 'lineage-overview', component: LineageOverviewComponent },
+            { path: ROOT_ROUTING + 'lineage-detailed/:uid', component: LineageComponent },
+            { path: ROOT_ROUTING + 'error/:httpCode', component: ErrorComponent },
+            { path: '**', redirectTo: ROOT_ROUTING + 'dashboard' }
+        ]),
+        !environment.production ? StoreDevtoolsModule.instrument({ maxAge: 25 }) : [],
+        MatTooltipModule,
+        NgxJsonViewerModule
+    ],
+    providers: [
+        {
+            provide: APP_INITIALIZER,
+            useFactory: initializeApp,
+            deps: [Store],
+            multi: true
+        },
+        {
+            provide: RouterStateSerializer,
+            useClass: RouterSerializer,
+        }
+    ],
 
-  exports: [RouterModule],
-  bootstrap: [AppComponent]
+    exports: [RouterModule],
+    bootstrap: [AppComponent]
 })
 export class AppModule {
 }

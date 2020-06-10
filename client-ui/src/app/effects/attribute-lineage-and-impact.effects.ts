@@ -32,28 +32,32 @@ import * as AttributeLineageAndImpactActions from '../store/actions/attribute-li
 @Injectable()
 export class AttributeLineageAndImpactEffects {
 
-  @Effect()
-  getAttributeLineageAndImpact$: Observable<Action> =
-    this.actions$.pipe(
-      ofType(ROUTER_NAVIGATED),
-      map(({payload: {routerState: {params: {uid: execPlanId}, queryParams: {attribute: attrId}}}}) => [execPlanId, attrId]),
-      distinctUntilChanged(_.isEqual),
-      switchMap(([execPlanId, attrId]) => attrId
-        ? this.getAttributeLineageAndImpact(execPlanId, attrId)
-        : of(undefined)),
-      map(linAndImp =>
-        new AttributeLineageAndImpactActions.Set(linAndImp))
-    )
+    @Effect()
+    getAttributeLineageAndImpact$: Observable<Action> =
+        this.actions$.pipe(
+            ofType(ROUTER_NAVIGATED),
+            map((action: any) => {
+                const execPlanId = action.payload.routerState.params.uid
+                const attrId = action.payload.routerState.queryParams.attribute
+                return {execPlanId, attrId}
+            }),
+            distinctUntilChanged(_.isEqual),
+            switchMap(({execPlanId, attrId}) => attrId
+                ? this.getAttributeLineageAndImpact(execPlanId, attrId)
+                : of(undefined)),
+            map(linAndImp =>
+                new AttributeLineageAndImpactActions.Set(linAndImp))
+        )
 
-  constructor(
-    private lineageService: LineageService,
-    private store: Store<AppState>,
-    private actions$: Actions) {
-  }
+    constructor(
+        private lineageService: LineageService,
+        private store: Store<AppState>,
+        private actions$: Actions) {
+    }
 
-  private getAttributeLineageAndImpact = (execId: string, attributeId: string): Observable<AttributeLineageAndImpact> => {
-    return this.lineageService.attributeLineageAndImpactUsingGET({execId, attributeId}).pipe(
-      handleException(this.store)
-    )
-  }
+    private getAttributeLineageAndImpact = (execId: string, attributeId: string): Observable<AttributeLineageAndImpact> => {
+        return this.lineageService.attributeLineageAndImpactUsingGET({ execId, attributeId }).pipe(
+            handleException(this.store)
+        )
+    }
 }

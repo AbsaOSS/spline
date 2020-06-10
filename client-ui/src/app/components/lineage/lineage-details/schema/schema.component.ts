@@ -22,35 +22,35 @@ import { AttributeVM, StructFieldVM } from '../../../../model/viewModels/attribu
 
 
 @Component({
-  selector: 'schema',
-  templateUrl: './schema.component.html'
+    selector: 'schema',
+    templateUrl: './schema.component.html'
 })
 export class SchemaComponent {
 
-  @Input()
-  schemaType: SchemaType
-  @Input()
-  selectedAttributeId: string
-  @Output()
-  selectedAttributeIdChanged = new EventEmitter<string>()
-  private _schema: AttributeVM[]
-  private attrById: { [key: string]: AttributeVM } = {}
+    @Input()
+    schemaType: SchemaType
+    @Input()
+    selectedAttributeId: string
+    @Output()
+    selectedAttributeIdChanged = new EventEmitter<string>()
+    private _schema: AttributeVM[]
+    private attrById: { [key: string]: AttributeVM } = {}
 
-  get schema(): AttributeVM[] {
-    return this._schema
-  }
+    get schema(): AttributeVM[] {
+        return this._schema
+    }
 
-  @Input()
-  set schema(schema: AttributeVM[]) {
-    this._schema = schema
-    this.attrById = _.keyBy(schema, attr => attr.id)
-  }
+    @Input()
+    set schema(schema: AttributeVM[]) {
+        this._schema = schema
+        this.attrById = _.keyBy(schema, attr => attr.id)
+    }
 
-  selectedAttribute(): AttributeVM {
-    return this.attrById[this.selectedAttributeId]
-  }
+    selectedAttribute(): AttributeVM {
+        return this.attrById[this.selectedAttributeId]
+    }
 
-  onAttributeSelected(attr: StructFieldVM) {
-    this.selectedAttributeIdChanged.emit((attr as AttributeVM).id)
-  }
+    onAttributeSelected(attr: StructFieldVM) {
+        this.selectedAttributeIdChanged.emit((attr as AttributeVM).id)
+    }
 }

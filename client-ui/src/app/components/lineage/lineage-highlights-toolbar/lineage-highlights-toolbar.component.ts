@@ -21,22 +21,22 @@ import { AttributeVM } from '../../../model/viewModels/attributeVM'
 
 
 @Component({
-  selector: 'lineage-highlights-toolbar',
-  templateUrl: './lineage-highlights-toolbar.component.html',
-  styleUrls: ['./lineage-highlights-toolbar.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'lineage-highlights-toolbar',
+    templateUrl: './lineage-highlights-toolbar.component.html',
+    styleUrls: ['./lineage-highlights-toolbar.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LineageHighlightsToolbarComponent {
 
-  @Input() attributes: AttributeVM[]
+    @Input() attributes: AttributeVM[]
 
-  @Input() lineageGraphLegends: LineageGraphLegend[]
+    @Input() lineageGraphLegends: LineageGraphLegend[]
 
-  @Input() showOldSplineWarning: boolean
+    @Input() showOldSplineWarning: boolean
 
-  @Output() removeAttribute$ = new EventEmitter<AttributeVM>()
+    @Output() removeAttribute$ = new EventEmitter<AttributeVM>()
 
-  onAttributeRemoveIconClicked(attribute: AttributeVM): void {
-    this.removeAttribute$.emit(attribute)
-  }
+    onAttributeRemoveIconClicked(attribute: AttributeVM): void {
+        this.removeAttribute$.emit(attribute)
+    }
 }

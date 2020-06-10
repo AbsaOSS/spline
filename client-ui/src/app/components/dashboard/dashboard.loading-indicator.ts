@@ -17,21 +17,21 @@
 const LOADING_INDICATOR_DELAY = 300 // millis
 
 export class DashboardLoadingIndicator {
-  private loading: boolean
-  private timeoutId: number
+    private loading: boolean
+    private timeoutId: number
 
-  get isActive(): boolean {
-    return this.loading
-  }
+    get isActive(): boolean {
+        return this.loading
+    }
 
-  activate(): void {
-    this.timeoutId = setTimeout(
-      () => this.loading = true,
-      LOADING_INDICATOR_DELAY)
-  }
+    activate(): void {
+        this.timeoutId = setTimeout(
+            () => this.loading = true,
+            LOADING_INDICATOR_DELAY)
+    }
 
-  deactivate(): void {
-    this.loading = false
-    clearTimeout(this.timeoutId)
-  }
+    deactivate(): void {
+        this.loading = false
+        clearTimeout(this.timeoutId)
+    }
 }

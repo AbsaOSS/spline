@@ -20,52 +20,52 @@ import { DashboardVM } from '../../model/viewModels/dashboardVM'
 
 
 export enum DashboardActionTypes {
-  SET_STATE = '[Dashboard] Set state',
-  SET_DATE_RANGE = '[Dashboard][Filters] Set date range',
-  SET_SEARCH_QUERY = '[Dashboard][Filters] Set search query',
-  SET_PAGE_NUMBER = '[Dashboard][Pagination] Set page number',
-  SET_SORT_ORDER = '[Dashboard] Set sort order',
+    SET_STATE = '[Dashboard] Set state',
+    SET_DATE_RANGE = '[Dashboard][Filters] Set date range',
+    SET_SEARCH_QUERY = '[Dashboard][Filters] Set search query',
+    SET_PAGE_NUMBER = '[Dashboard][Pagination] Set page number',
+    SET_SORT_ORDER = '[Dashboard] Set sort order',
 }
 
 export class SetState implements Action {
-  readonly type = DashboardActionTypes.SET_STATE
+    readonly type = DashboardActionTypes.SET_STATE
 
-  constructor(public state: DashboardVM) {
-  }
+    constructor(public state: DashboardVM) {
+    }
 }
 
 export class SetDateRange implements Action {
-  readonly type = DashboardActionTypes.SET_DATE_RANGE
+    readonly type = DashboardActionTypes.SET_DATE_RANGE
 
-  constructor(public range: [number, number]) {
-  }
+    constructor(public range: [number, number]) {
+    }
 }
 
 export class SetSearchQuery implements Action {
-  readonly type = DashboardActionTypes.SET_SEARCH_QUERY
+    readonly type = DashboardActionTypes.SET_SEARCH_QUERY
 
-  constructor(public query: string) {
-  }
+    constructor(public query: string) {
+    }
 }
 
 export class SetPageNumber implements Action {
-  readonly type = DashboardActionTypes.SET_PAGE_NUMBER
+    readonly type = DashboardActionTypes.SET_PAGE_NUMBER
 
-  constructor(public page: number) {
-  }
+    constructor(public page: number) {
+    }
 }
 
 export class SetSortOrder implements Action {
-  readonly type = DashboardActionTypes.SET_SORT_ORDER
+    readonly type = DashboardActionTypes.SET_SORT_ORDER
 
-  constructor(public field: string,
-              public order: string) {
-  }
+    constructor(public field: string,
+                public order: string) {
+    }
 }
 
 export type DashboardActions
-  = SetState
-  | SetDateRange
-  | SetSearchQuery
-  | SetPageNumber
-  | SetSortOrder
+    = SetState
+    | SetDateRange
+    | SetSearchQuery
+    | SetPageNumber
+    | SetSortOrder

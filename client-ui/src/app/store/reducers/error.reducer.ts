@@ -19,17 +19,23 @@ import * as ErrorAction from '../actions/error.actions'
 export type Action = ErrorAction.ErrorActions
 
 export function errorReducer(state: string, action: Action): string {
-  switch (action.type) {
-    case ErrorAction.ErrorActionTypes.APPLICATION_ERROR_GET: return getTextError(action.payload)
-    case ErrorAction.ErrorActionTypes.SERVICE_ERROR_GET: return action.payload
-    case ErrorAction.ErrorActionTypes.SERVICE_ERROR_RESET: return ''
-    default: return state
-  }
+    switch (action.type) {
+        case ErrorAction.ErrorActionTypes.APPLICATION_ERROR_GET:
+            return getTextError(action.payload)
+        case ErrorAction.ErrorActionTypes.SERVICE_ERROR_GET:
+            return action.payload
+        case ErrorAction.ErrorActionTypes.SERVICE_ERROR_RESET:
+            return ''
+        default:
+            return state
+    }
 }
 
 function getTextError(httpCode: string): string {
-  switch (Number(httpCode)) {
-    case 404: return '404 ! Could not find the requested lineage'
-    default: return 'OUPS, Something went wrong !'
-  }
+    switch (Number(httpCode)) {
+        case 404:
+            return '404 ! Could not find the requested lineage'
+        default:
+            return 'OUPS, Something went wrong !'
+    }
 }

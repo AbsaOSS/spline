@@ -30,34 +30,35 @@ export class ConfigEffects implements OnRunEffects {
 
     @Effect()
     getConfig$ = this.actions$.pipe(
-      ofType(ConfigAction.ConfigActionTypes.CONFIG_GET),
-      switchMap((action: any) => this.load(action.payload)),
-      map(res => new ConfigAction.GetSuccess(res))
+        ofType(ConfigAction.ConfigActionTypes.CONFIG_GET),
+        switchMap((action: any) => this.load(action.payload)),
+        map(res => new ConfigAction.GetSuccess(res))
     )
 
     constructor(
         private actions$: Actions,
         private http: HttpClient
-    ) { }
+    ) {
+    }
 
     ngrxOnRunEffects = (resolvedEffects$: Observable<EffectNotification>): Observable<EffectNotification> => {
-      return this.actions$.pipe(
-        ofType(ConfigAction.ConfigActionTypes.START_APP_INITIALIZER),
-        exhaustMap(() =>
-          resolvedEffects$.pipe(
-            takeUntil(this.actions$.pipe(
-              ofType(ConfigAction.ConfigActionTypes.FINISH_APP_INITIALIZER))
+        return this.actions$.pipe(
+            ofType(ConfigAction.ConfigActionTypes.START_APP_INITIALIZER),
+            exhaustMap(() =>
+                resolvedEffects$.pipe(
+                    takeUntil(this.actions$.pipe(
+                        ofType(ConfigAction.ConfigActionTypes.FINISH_APP_INITIALIZER))
+                    )
+                )
             )
-          )
         )
-      )
     }
 
     private load = (environment: any): Observable<any> => {
-      if (window['SplineConfiguration']) {
-        return of(window['SplineConfiguration'])
-      }
-      const jsonFile = `${environment.configFile}`
-      return this.http.get(jsonFile)
+        if (window['SplineConfiguration']) {
+            return of(window['SplineConfiguration'])
+        }
+        const jsonFile = `${environment.configFile}`
+        return this.http.get(jsonFile)
     }
 }

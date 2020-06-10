@@ -24,41 +24,41 @@ import { dateToStruct, structToDate } from 'src/app/util/date-converter'
 const MODEL_UPDATE_DELAY_ON_TYPING = 500 // millis
 
 @Component({
-  selector: 'date-picker',
-  templateUrl: './date-picker.component.html'
+    selector: 'date-picker',
+    templateUrl: './date-picker.component.html'
 })
 export class DatePickerComponent {
 
-  bsModel: Date
-  bsMinDate: Date
-  bsMaxDate: Date
-  @Output() modelChange = new EventEmitter<NgbDateStruct>()
-  valid = true
-  readonly onModelChange: (_: Date) => void = _.debounce(
-    (updatedModel: Date) => {
-      this.valid = moment(updatedModel).isValid()
-      if (this.valid && !_.isEqual(this.bsModel, updatedModel)) {
-        this.modelChange.emit(dateToStruct(updatedModel))
-      }
-    },
-    MODEL_UPDATE_DELAY_ON_TYPING)
+    bsModel: Date
+    bsMinDate: Date
+    bsMaxDate: Date
+    @Output() modelChange = new EventEmitter<NgbDateStruct>()
+    valid = true
+    readonly onModelChange: (_: Date) => void = _.debounce(
+        (updatedModel: Date) => {
+            this.valid = moment(updatedModel).isValid()
+            if (this.valid && !_.isEqual(this.bsModel, updatedModel)) {
+                this.modelChange.emit(dateToStruct(updatedModel))
+            }
+        },
+        MODEL_UPDATE_DELAY_ON_TYPING)
 
-  constructor() {
-  }
+    constructor() {
+    }
 
-  @Input()
-  set model(date: NgbDateStruct) {
-    this.bsModel = moment(structToDate(date)).toDate()
-  }
+    @Input()
+    set model(date: NgbDateStruct) {
+        this.bsModel = moment(structToDate(date)).toDate()
+    }
 
-  @Input()
-  set minDate(minDate: NgbDateStruct) {
-    this.bsMinDate = structToDate(minDate)
-  }
+    @Input()
+    set minDate(minDate: NgbDateStruct) {
+        this.bsMinDate = structToDate(minDate)
+    }
 
-  @Input()
-  set maxDate(maxDate: NgbDateStruct) {
-    this.bsMaxDate = structToDate(maxDate)
-  }
+    @Input()
+    set maxDate(maxDate: NgbDateStruct) {
+        this.bsMaxDate = structToDate(maxDate)
+    }
 
 }

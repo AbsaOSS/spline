@@ -30,38 +30,39 @@ export class RouterEffects {
 
     @Effect({ dispatch: false })
     go$: Observable<RouterAction.Go> = this.actions$.pipe(
-      ofType(RouterAction.RouterActionTypes.GO),
-      tap((action: RouterAction.Go) => {
-        const params: RouterStateUrl = action.payload
-        const command = params.url !== null ? [params.url] : []
-        const queryParamsHandling = params.url !== null ? '' : 'merge'
+        ofType(RouterAction.RouterActionTypes.GO),
+        tap((action: RouterAction.Go) => {
+            const params: RouterStateUrl = action.payload
+            const command = params.url !== null ? [params.url] : []
+            const queryParamsHandling = params.url !== null ? '' : 'merge'
 
-        const url = this.router.createUrlTree(command, {
-          relativeTo: this.activatedRoute,
-          queryParams: params.queryParams,
-          queryParamsHandling: queryParamsHandling
-        }).toString()
-        this.router.navigateByUrl(url)
-      })
+            const url = this.router.createUrlTree(command, {
+                relativeTo: this.activatedRoute,
+                queryParams: params.queryParams,
+                queryParamsHandling: queryParamsHandling
+            }).toString()
+            this.router.navigateByUrl(url)
+        })
     )
 
     @Effect({ dispatch: false })
     replaceUrlState$: Observable<RouterAction.ReplaceUrlState> = this.actions$.pipe(
-      ofType(RouterAction.RouterActionTypes.REPLACE_URL_STATE),
-      tap((action: RouterAction.ReplaceUrlState) => {
-        const url = this.router.createUrlTree([], {
-          relativeTo: this.activatedRoute,
-          queryParams: action.payload,
-          queryParamsHandling: 'merge'
-        }).toString()
-        this.location.replaceState(url)
-      })
+        ofType(RouterAction.RouterActionTypes.REPLACE_URL_STATE),
+        tap((action: RouterAction.ReplaceUrlState) => {
+            const url = this.router.createUrlTree([], {
+                relativeTo: this.activatedRoute,
+                queryParams: action.payload,
+                queryParamsHandling: 'merge'
+            }).toString()
+            this.location.replaceState(url)
+        })
     )
 
     constructor(
-    private actions$: Actions,
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-    private location: Location
-    ) { }
+        private actions$: Actions,
+        private router: Router,
+        private activatedRoute: ActivatedRoute,
+        private location: Location
+    ) {
+    }
 }

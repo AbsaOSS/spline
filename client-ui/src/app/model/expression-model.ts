@@ -13,43 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface IExpression {
-}
+export type IExpression = {}
 
 export interface IAttrRef {
-  refId: string
+    refId: string
 }
 
 export interface IGeneric {
-  params: ({ [key: string]: string } | null)
-  exprType: string
-  children: IExpression[]
-  dataTypeId: string
-  name: string
+    params: ({ [key: string]: string } | null)
+    exprType: string
+    children: IExpression[]
+    dataTypeId: string
+    name: string
 }
 
 export interface IGenericLeaf {
-  params: ({ [key: string]: string } | null)
-  exprType: string
-  dataTypeId: string
-  name: string
+    params: ({ [key: string]: string } | null)
+    exprType: string
+    dataTypeId: string
+    name: string
 }
 
 export interface IAlias {
-  child: IExpression
-  alias: string
+    child: IExpression
+    alias: string
 }
 
 export interface IBinary {
-  children: IExpression[]
-  dataTypeId: string
-  symbol: string
+    children: IExpression[]
+    dataTypeId: string
+    symbol: string
 }
 
 export interface IUDF {
-  children: IExpression[]
-  dataTypeId: string
-  name: string
+    children: IExpression[]
+    dataTypeId: string
+    name: string
 }
 
 export interface ILiteral {

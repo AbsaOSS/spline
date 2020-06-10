@@ -33,120 +33,120 @@ import * as RouterAction from '../../store/actions/router.actions'
 
 
 @Component({
-  templateUrl: './lineage.component.html',
-  styleUrls: ['./lineage.component.scss']
+    templateUrl: './lineage.component.html',
+    styleUrls: ['./lineage.component.scss']
 })
 export class LineageComponent implements OnDestroy {
 
-  data$: Observable<{
-    embeddedMode: boolean
-    layout: object
-    plan: ExecutedLogicalPlanVM
-    attributeLinAndImp: AttributeLineageAndImpact
-  }>
+    data$: Observable<{
+        embeddedMode: boolean
+        layout: object
+        plan: ExecutedLogicalPlanVM
+        attributeLinAndImp: AttributeLineageAndImpact
+    }>
 
-  selectedAttribute$: Observable<AttributeVM>
+    selectedAttribute$: Observable<AttributeVM>
 
-  lineageGraphLegendsToShow$: Observable<LineageGraphLegend[]>
+    lineageGraphLegendsToShow$: Observable<LineageGraphLegend[]>
 
-  selectedNodeId: string
+    selectedNodeId: string
 
-  private subscriptions: Subscription[] = []
+    private subscriptions: Subscription[] = []
 
-  constructor(private store: Store<AppState>) {
-    this.subscriptions.push(this.store
-      .select('router', 'state', 'params', 'uid')
-      .pipe(filter(_.identity))
-      .subscribe(uid => this.store.dispatch(new ExecutionPlanAction.Get(uid))))
+    constructor(private store: Store<AppState>) {
+        this.subscriptions.push(this.store
+            .select('router', 'state', 'params', 'uid')
+            .pipe(filter(_.identity))
+            .subscribe(uid => this.store.dispatch(new ExecutionPlanAction.Get(uid))))
 
-    this.subscriptions.push(this.store
-      .select('router', 'state', 'queryParams', 'selectedNode')
-      .subscribe((nodeId: string) => {
-        this.selectedNodeId = nodeId
-        const action = nodeId
-          ? new DetailsInfosAction.Get(nodeId)
-          : new DetailsInfosAction.Reset()
+        this.subscriptions.push(this.store
+            .select('router', 'state', 'queryParams', 'selectedNode')
+            .subscribe((nodeId: string) => {
+                this.selectedNodeId = nodeId
+                const action = nodeId
+                    ? new DetailsInfosAction.Get(nodeId)
+                    : new DetailsInfosAction.Reset()
 
-        this.store.dispatch(action)
-      })
-    )
-
-    this.subscriptions.push(this.store
-      .select('attributeLineageAndImpact').pipe(filter(_.identity))
-      .subscribe(({ impact }: AttributeLineageAndImpact) => {
-        if (!this.selectedNodeId) {
-          const primaryAttr = getImpactRootAttributeNode(impact)
-          this.onNodeSelected(primaryAttr.originOpId)
-        }
-      })
-    )
-
-    this.store.dispatch(new LayoutAction.Get())
-
-    this.data$ = combineLatest([
-      this.store.select('config', 'embeddedMode'),
-      this.store.select('layout'),
-      this.store.select('executedLogicalPlan')
-        .pipe(
-          filter((x) => !!_.identity(x))
-        ),
-      this.store.select('attributeLineageAndImpact')
-    ])
-      .pipe(
-        distinct(),
-        map(([embeddedMode, layout, plan, attributeLinAndImp]) =>
-          ({ embeddedMode, layout, plan, attributeLinAndImp })
+                this.store.dispatch(action)
+            })
         )
-      )
 
-    this.selectedAttribute$ =
-      combineLatest([
-        this.store.select('executedLogicalPlan').pipe(filter(_.identity)),
-        this.store.select('router', 'state', 'queryParams', 'attribute')
-      ]).pipe(
-        map(([{ executionPlan: { extra: { attributes } } }, attrId]) =>
-          attrId && (attributes as AttributeVM[]).find(a => a.id === attrId)
+        this.subscriptions.push(this.store
+            .select('attributeLineageAndImpact').pipe(filter(_.identity))
+            .subscribe(({ impact }: AttributeLineageAndImpact) => {
+                if (!this.selectedNodeId) {
+                    const primaryAttr = getImpactRootAttributeNode(impact)
+                    this.onNodeSelected(primaryAttr.originOpId)
+                }
+            })
         )
-      )
 
-    this.lineageGraphLegendsToShow$ =
-      this.store.select('attributeLineageAndImpact').pipe(filter(_.identity)).pipe(
-        map(({ lineage, impact }: AttributeLineageAndImpact) => {
-          const lineageNonEmpty = lineage && lineage.edges.length > 0
-          const impactNonEmpty = impact.edges.length > 0
-          return [
-            LineageGraphLegends.Usage,
-            ...(lineageNonEmpty ? [LineageGraphLegends.Lineage] : []),
-            ...(impactNonEmpty ? [LineageGraphLegends.Impact] : []),
-          ]
-        })
-      )
-  }
+        this.store.dispatch(new LayoutAction.Get())
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(s => s.unsubscribe())
-  }
+        this.data$ = combineLatest([
+            this.store.select('config', 'embeddedMode'),
+            this.store.select('layout'),
+            this.store.select('executedLogicalPlan')
+                .pipe(
+                    filter((x) => !!_.identity(x))
+                ),
+            this.store.select('attributeLineageAndImpact')
+        ])
+            .pipe(
+                distinct(),
+                map(([embeddedMode, layout, plan, attributeLinAndImp]) =>
+                    ({ embeddedMode, layout, plan, attributeLinAndImp })
+                )
+            )
 
-  isExecPlanFromOldSpline(planInfo: ExecutionPlanInfo) {
-    const agent = planInfo.agentInfo as { name: string; version: string }
-    return agent.name.toLowerCase() === 'spline' && agent.version === '0.3.x'
-  }
+        this.selectedAttribute$ =
+            combineLatest([
+                this.store.select('executedLogicalPlan').pipe(filter(_.identity)),
+                this.store.select('router', 'state', 'queryParams', 'attribute')
+            ]).pipe(
+                map(([{ executionPlan: { extra: { attributes } } }, attrId]) =>
+                    attrId && (attributes as AttributeVM[]).find(a => a.id === attrId)
+                )
+            )
 
-  onNodeSelected(nodeId: string) {
-    this.store.dispatch(
-      new RouterAction.Go({
-        url: null,
-        queryParams: { selectedNode: nodeId }
-      })
-    )
-  }
+        this.lineageGraphLegendsToShow$ =
+            this.store.select('attributeLineageAndImpact').pipe(filter(_.identity)).pipe(
+                map(({ lineage, impact }: AttributeLineageAndImpact) => {
+                    const lineageNonEmpty = lineage && lineage.edges.length > 0
+                    const impactNonEmpty = impact.edges.length > 0
+                    return [
+                        LineageGraphLegends.Usage,
+                        ...(lineageNonEmpty ? [LineageGraphLegends.Lineage] : []),
+                        ...(impactNonEmpty ? [LineageGraphLegends.Impact] : []),
+                    ]
+                })
+            )
+    }
 
-  onRemoveSelectedAttrClick() {
-    this.store.dispatch(
-      new RouterAction.Go({
-        url: null,
-        queryParams: { attribute: undefined }
-      })
-    )
-  }
+    ngOnDestroy(): void {
+        this.subscriptions.forEach(s => s.unsubscribe())
+    }
+
+    isExecPlanFromOldSpline(planInfo: ExecutionPlanInfo) {
+        const agent = planInfo.agentInfo as { name: string; version: string }
+        return agent.name.toLowerCase() === 'spline' && agent.version === '0.3.x'
+    }
+
+    onNodeSelected(nodeId: string) {
+        this.store.dispatch(
+            new RouterAction.Go({
+                url: null,
+                queryParams: { selectedNode: nodeId }
+            })
+        )
+    }
+
+    onRemoveSelectedAttrClick() {
+        this.store.dispatch(
+            new RouterAction.Go({
+                url: null,
+                queryParams: { attribute: undefined }
+            })
+        )
+    }
 }

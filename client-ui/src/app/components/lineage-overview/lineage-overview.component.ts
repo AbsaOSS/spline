@@ -24,30 +24,30 @@ import * as LineageOverviewAction from '../../store/actions/lineage-overview.act
 
 
 @Component({
-  selector: 'lineage-overview',
-  templateUrl: './lineage-overview.component.html',
-  styleUrls: ['./lineage-overview.component.scss']
+    selector: 'lineage-overview',
+    templateUrl: './lineage-overview.component.html',
+    styleUrls: ['./lineage-overview.component.scss']
 })
 export class LineageOverviewComponent {
 
-  lineageState$: Observable<{ depthRequested: number; hasMoreNodes: boolean }>
-  embeddedMode$: Observable<boolean>
+    lineageState$: Observable<{ depthRequested: number; hasMoreNodes: boolean }>
+    embeddedMode$: Observable<boolean>
 
-  constructor(private store: Store<AppState>) {
+    constructor(private store: Store<AppState>) {
 
-    this.embeddedMode$ = this.store.select('config', 'embeddedMode')
+        this.embeddedMode$ = this.store.select('config', 'embeddedMode')
 
-    this.lineageState$ = this.store.select('lineageOverview')
-      .pipe(
-        filter(x => !!x),
-        map(lineageOverview => ({
-          depthRequested: lineageOverview.depthRequested,
-          hasMoreNodes: lineageOverview.hasMoreNodes,
-        }))
-      )
-  }
+        this.lineageState$ = this.store.select('lineageOverview')
+            .pipe(
+                filter(x => !!x),
+                map(lineageOverview => ({
+                    depthRequested: lineageOverview.depthRequested,
+                    hasMoreNodes: lineageOverview.hasMoreNodes,
+                }))
+            )
+    }
 
-  onLoadOlderNodesBtnClicked(): void {
-    this.store.dispatch(new LineageOverviewAction.GetMoreNodes())
-  }
+    onLoadOlderNodesBtnClicked(): void {
+        this.store.dispatch(new LineageOverviewAction.GetMoreNodes())
+    }
 }

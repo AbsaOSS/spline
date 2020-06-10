@@ -23,19 +23,19 @@ import NativeProperties = OperationProperty.NativeProperties
 
 
 @Component({
-  selector: 'app-generic',
-  templateUrl: './generic.component.html'
+    selector: 'app-generic',
+    templateUrl: './generic.component.html'
 })
 export class GenericComponent extends PropertiesComponent {
 
-  extraProperties: ExtraProperties
+    extraProperties: ExtraProperties
 
-  @Input() set nativeProperties(props: NativeProperties) {
-    const defaultProps = [
-      'name'
-    ]
-    const noDefaultProps = _.omit(props, defaultProps)
-    this.extraProperties = OperationProperty.parseExtraOptions(noDefaultProps)
-  }
+    @Input() set nativeProperties(props: NativeProperties) {
+        const defaultProps = [
+            'name'
+        ]
+        const noDefaultProps = _.omit(props, defaultProps)
+        this.extraProperties = OperationProperty.parseExtraOptions(noDefaultProps)
+    }
 
 }

@@ -15,6 +15,6 @@
  */
 
 export const environment = {
-  production: true,
-  configFile: './assets/config.json'
+    production: true,
+    configFile: './assets/config.json'
 }

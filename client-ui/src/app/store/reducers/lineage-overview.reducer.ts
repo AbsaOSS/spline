@@ -22,21 +22,21 @@ import * as LineageOverviewAction from '../actions/lineage-overview.actions'
 export type Action = LineageOverviewAction.LineageOverviewActions
 
 export function lineageOverviewReducer(state: LineageOverviewVM, action: Action): LineageOverviewVM {
-  switch (action.type) {
-    case LineageOverviewAction.LineageOverviewActionTypes.OVERVIEW_LINEAGE_GET_GET_SUCCESS:
-      return (action).payload
-    default:
-      return state
-  }
+    switch (action.type) {
+        case LineageOverviewAction.LineageOverviewActionTypes.OVERVIEW_LINEAGE_GET_GET_SUCCESS:
+            return (action).payload
+        default:
+            return state
+    }
 }
 
 export const lineageOverviewIconCodes: Map<string, number> = new Map([
-  [LineageOverviewNodeType.Execution, 0xf085],
-  [LineageOverviewNodeType.DataSource, 0xf15b]
+    [LineageOverviewNodeType.Execution, 0xf085],
+    [LineageOverviewNodeType.DataSource, 0xf15b]
 ])
 
 
 export const lineageOverviewColorCodes: Map<string, string> = new Map([
-  [LineageOverviewNodeType.Execution, '#e39255'],
-  [LineageOverviewNodeType.DataSource, '#337AB7']
+    [LineageOverviewNodeType.Execution, '#e39255'],
+    [LineageOverviewNodeType.DataSource, '#337AB7']
 ])

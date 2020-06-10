@@ -14,12 +14,12 @@
   ~ limitations under the License.
   -->
 <mat-expansion-panel [expanded]="true">
-  <mat-expansion-panel-header>
-    <i [style.color]=getColor() aria-hidden="true" class="fa fa-xs">{{getIcon()}}</i> <strong> Filter On </strong>
-  </mat-expansion-panel-header>
-  <div *ngFor="let property of properties ;let i=index">
-    <a (click)="openExprViewDialog($event, property)" href="">
-      <code>{{property.value}}</code>
-    </a>
-  </div>
+    <mat-expansion-panel-header>
+        <i [style.color]=getColor() aria-hidden="true" class="fa fa-xs">{{getIcon()}}</i> <strong> Filter On </strong>
+    </mat-expansion-panel-header>
+    <div *ngFor="let property of properties ;let i=index">
+        <a (click)="openExprViewDialog($event, property)" href="">
+            <code>{{property.value}}</code>
+        </a>
+    </div>
 </mat-expansion-panel>

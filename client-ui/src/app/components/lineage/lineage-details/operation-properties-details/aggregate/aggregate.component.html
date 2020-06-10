@@ -15,31 +15,31 @@
   -->
 
 <div *ngIf="propertiesContain(PropertyType.Aggregate)">
-  <mat-expansion-panel [expanded]="true">
-    <mat-expansion-panel-header>
-      <i [style.color]=getColor() aria-hidden="true" class="fa fa-xs">{{getIcon()}}</i> <strong> Aggregate </strong>
-    </mat-expansion-panel-header>
-    <div *ngFor="let property of properties ;let i=index">
-      <div *ngIf="property.type===PropertyType.Aggregate">
-        <a (click)="openExprViewDialog($event, property)" href="">
-          <i class='transformation-prexif'>Σ = </i><code>{{property.value}}</code>
-        </a>
-      </div>
-    </div>
-  </mat-expansion-panel>
+    <mat-expansion-panel [expanded]="true">
+        <mat-expansion-panel-header>
+            <i [style.color]=getColor() aria-hidden="true" class="fa fa-xs">{{getIcon()}}</i> <strong> Aggregate </strong>
+        </mat-expansion-panel-header>
+        <div *ngFor="let property of properties ;let i=index">
+            <div *ngIf="property.type===PropertyType.Aggregate">
+                <a (click)="openExprViewDialog($event, property)" href="">
+                    <i class='transformation-prexif'>Σ = </i><code>{{property.value}}</code>
+                </a>
+            </div>
+        </div>
+    </mat-expansion-panel>
 </div>
 
 <div *ngIf="propertiesContain(PropertyType.Grouping)">
-  <mat-expansion-panel [expanded]="true">
-    <mat-expansion-panel-header>
-      <i [style.color]=getColor() aria-hidden="true" class="fa fa-xs">{{getIcon()}}</i> <strong> Grouping </strong>
-    </mat-expansion-panel-header>
-    <div *ngFor="let property of properties ;let i=index">
-      <div *ngIf="property.type===PropertyType.Grouping">
-        <a (click)="openExprViewDialog($event, property)" href="">
-          <i class='transformation-prexif'>[] = </i><code>{{property.value}}</code>
-        </a>
-      </div>
-    </div>
-  </mat-expansion-panel>
+    <mat-expansion-panel [expanded]="true">
+        <mat-expansion-panel-header>
+            <i [style.color]=getColor() aria-hidden="true" class="fa fa-xs">{{getIcon()}}</i> <strong> Grouping </strong>
+        </mat-expansion-panel-header>
+        <div *ngFor="let property of properties ;let i=index">
+            <div *ngIf="property.type===PropertyType.Grouping">
+                <a (click)="openExprViewDialog($event, property)" href="">
+                    <i class='transformation-prexif'>[] = </i><code>{{property.value}}</code>
+                </a>
+            </div>
+        </div>
+    </mat-expansion-panel>
 </div>

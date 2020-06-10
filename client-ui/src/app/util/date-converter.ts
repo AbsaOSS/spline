@@ -17,16 +17,16 @@ import { NgbDateStruct } from '@ng-bootstrap/ng-bootstrap'
  */
 
 export function structToDate(ngbDate: NgbDateStruct): Date {
-  return new Date(
-    ngbDate.year,
-    ngbDate.month - 1,
-    ngbDate.day)
+    return new Date(
+        ngbDate.year,
+        ngbDate.month - 1,
+        ngbDate.day)
 }
 
 export function dateToStruct(date: Date): NgbDateStruct {
-  return {
-    year: date.getFullYear(),
-    month: date.getMonth() + 1,
-    day: date.getDate()
-  }
+    return {
+        year: date.getFullYear(),
+        month: date.getMonth() + 1,
+        day: date.getDate()
+    }
 }

@@ -18,15 +18,15 @@ import { Action } from '@ngrx/store'
 
 
 export enum DashboardFilterActionTypes {
-  SET_DATE_RANGE = '[Dashboard] Set date range',
+    SET_DATE_RANGE = '[Dashboard] Set date range',
 }
 
 export class SetDateRange implements Action {
-  readonly type = DashboardFilterActionTypes.SET_DATE_RANGE
+    readonly type = DashboardFilterActionTypes.SET_DATE_RANGE
 
-  constructor(public range: [number, number]) {
-  }
+    constructor(public range: [number, number]) {
+    }
 }
 
 export type DashboardFiltersActions
-  = SetDateRange
+    = SetDateRange

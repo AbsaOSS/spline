@@ -19,8 +19,8 @@ import { PropertiesComponent } from '../properties/properties.component'
 
 
 @Component({
-  selector: 'app-sort',
-  templateUrl: './sort.component.html'
+    selector: 'app-sort',
+    templateUrl: './sort.component.html'
 })
 export class SortComponent extends PropertiesComponent {
 

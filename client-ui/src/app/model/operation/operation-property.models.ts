@@ -16,68 +16,67 @@
 
 export namespace OperationProperty {
 
-  export type NativeProperties = Record<string, any>
+    export type NativeProperties = Record<string, any>
 
-  export type ExtraPropertyValue<T> = {
-    label: string
-    value: T
-  }
-
-  export type ExtraPropertyValuePrimitive = ExtraPropertyValue<string | number>
-  export type ExtraPropertyValueJson = ExtraPropertyValue<any[] | Record<any, any>>
-
-  export type ExtraProperties = {
-    primitive: ExtraPropertyValuePrimitive[]
-    json: ExtraPropertyValueJson[]
-  }
-
-  export function decorateJsonProperty(propValue: ExtraPropertyValueJson): ExtraPropertyValueJson {
-    // make label human readable "camelCase" => "Camel Case"
-    const regex = new RegExp('([a-z])([A-Z])', 'g')
-    let label = propValue.label.replace(regex, '$1 $2')
-    label = label.substring(0, 1).toUpperCase() + label.substring(1)
-    return {
-      ...propValue,
-      label
-    }
-  }
-
-  export function parseExtraOptions(nativeProperties: NativeProperties): ExtraProperties {
-    const extraProperties: ExtraProperties = {
-      primitive: [],
-      json: []
+    export type ExtraPropertyValue<T> = {
+        label: string
+        value: T
     }
 
-    return Object.keys(nativeProperties)
-      .reduce(
-        (result, key) => {
-          const value = nativeProperties[key]
+    export type ExtraPropertyValuePrimitive = ExtraPropertyValue<string | number>
+    export type ExtraPropertyValueJson = ExtraPropertyValue<any[] | Record<any, any>>
 
-          if (value === undefined || value === null) {
-            return result
-          }
+    export type ExtraProperties = {
+        primitive: ExtraPropertyValuePrimitive[]
+        json: ExtraPropertyValueJson[]
+    }
 
-          const primitivePropValue = {
-            label: key,
-            value
-          }
+    export function decorateJsonProperty(propValue: ExtraPropertyValueJson): ExtraPropertyValueJson {
+        // make label human readable "camelCase" => "Camel Case"
+        const regex = new RegExp('([a-z])([A-Z])', 'g')
+        let label = propValue.label.replace(regex, '$1 $2')
+        label = label.substring(0, 1).toUpperCase() + label.substring(1)
+        return {
+            ...propValue,
+            label
+        }
+    }
 
-          if (typeof value === 'string' || typeof value === 'number') {
-            extraProperties.primitive.push(primitivePropValue)
-          }
-          else if (Array.isArray(value) || typeof value === 'object') {
-            extraProperties.json.push(
-              decorateJsonProperty(primitivePropValue)
+    export function parseExtraOptions(nativeProperties: NativeProperties): ExtraProperties {
+        const extraProperties: ExtraProperties = {
+            primitive: [],
+            json: []
+        }
+
+        return Object.keys(nativeProperties)
+            .reduce(
+                (result, key) => {
+                    const value = nativeProperties[key]
+
+                    if (value === undefined || value === null) {
+                        return result
+                    }
+
+                    const primitivePropValue = {
+                        label: key,
+                        value
+                    }
+
+                    if (typeof value === 'string' || typeof value === 'number') {
+                        extraProperties.primitive.push(primitivePropValue)
+                    }
+                    else if (Array.isArray(value) || typeof value === 'object') {
+                        extraProperties.json.push(
+                            decorateJsonProperty(primitivePropValue)
+                        )
+                    }
+
+                    return result
+                },
+                extraProperties
             )
-          }
 
-          return result
-        },
-        extraProperties
-      )
-
-  }
-
+    }
 
 
 }

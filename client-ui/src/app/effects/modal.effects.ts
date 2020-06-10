@@ -29,24 +29,25 @@ export class ModalEffects {
 
     @Effect()
     openModal$: Observable<Action> = this.actions$.pipe(
-      ofType(ModalAction.ModalActionTypes.MODAL_OPEN),
-      map((action: { content: string | TemplateRef<any> | any; config?: ModalOptions }) => {
-        this.modalService.show(action.content, action.config)
-        return new ModalAction.OpenSuccess()
-      })
+        ofType(ModalAction.ModalActionTypes.MODAL_OPEN),
+        map((action: { content: string | TemplateRef<any> | any; config?: ModalOptions }) => {
+            this.modalService.show(action.content, action.config)
+            return new ModalAction.OpenSuccess()
+        })
     )
 
     @Effect()
     closeModal$: Observable<Action> = this.actions$.pipe(
-      ofType(ModalAction.ModalActionTypes.MODAL_CLOSE),
-      map(_ => {
-        this.modalService.hide(1)
-        return new ModalAction.CloseSuccess()
-      })
+        ofType(ModalAction.ModalActionTypes.MODAL_CLOSE),
+        map(_ => {
+            this.modalService.hide(1)
+            return new ModalAction.CloseSuccess()
+        })
     )
 
     constructor(
         private actions$: Actions,
         private modalService: BsModalService,
-    ) { }
+    ) {
+    }
 }

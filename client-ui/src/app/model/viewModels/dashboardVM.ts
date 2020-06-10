@@ -15,20 +15,20 @@
  */
 
 export type DashboardVM = {
-  filters: {
-    dateRange: [number, number]
-    searchQuery: string
-  }
-  pagination: Pagination
-  sort: Sorting
+    filters: {
+        dateRange: [number, number]
+        searchQuery: string
+    }
+    pagination: Pagination
+    sort: Sorting
 }
 
 export type Pagination = {
-  page: number
-  size: number
+    page: number
+    size: number
 }
 
 export type Sorting = {
-  field: string
-  order: string
+    field: string
+    order: string
 }

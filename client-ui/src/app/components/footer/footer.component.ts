@@ -20,12 +20,12 @@ declare const __APP_VERSION__: string
 
 
 @Component({
-  selector: 'app-footer',
-  templateUrl: './footer.component.html',
-  styleUrls: ['./footer.component.scss']
+    selector: 'app-footer',
+    templateUrl: './footer.component.html',
+    styleUrls: ['./footer.component.scss']
 })
 export class FooterComponent {
 
-  appVersion: string = __APP_VERSION__
+    appVersion: string = __APP_VERSION__
 
 }

@@ -17,36 +17,36 @@ import { Action } from '@ngrx/store'
 
 
 export enum ConfigActionTypes {
-  START_APP_INITIALIZER = '[App] Start Initialization',
-  FINISH_APP_INITIALIZER = '[App] Finish Initialization',
-  CONFIG_GET = '[Config] Get',
-  CONFIG_GET_SUCCESS = '[Config] Get Success'
+    START_APP_INITIALIZER = '[App] Start Initialization',
+    FINISH_APP_INITIALIZER = '[App] Finish Initialization',
+    CONFIG_GET = '[Config] Get',
+    CONFIG_GET_SUCCESS = '[Config] Get Success'
 }
 
 export class StartAppInitializer implements Action {
-  readonly type = ConfigActionTypes.START_APP_INITIALIZER
+    readonly type = ConfigActionTypes.START_APP_INITIALIZER
 }
 
 export class FinishAppInitializer implements Action {
-  readonly type = ConfigActionTypes.FINISH_APP_INITIALIZER
+    readonly type = ConfigActionTypes.FINISH_APP_INITIALIZER
 }
 
 export class Get implements Action {
-  readonly type = ConfigActionTypes.CONFIG_GET
+    readonly type = ConfigActionTypes.CONFIG_GET
 
-  constructor(public payload: any) {
-  }
+    constructor(public payload: any) {
+    }
 }
 
 export class GetSuccess implements Action {
-  readonly type = ConfigActionTypes.CONFIG_GET_SUCCESS
+    readonly type = ConfigActionTypes.CONFIG_GET_SUCCESS
 
-  constructor(public payload: any) {
-  }
+    constructor(public payload: any) {
+    }
 }
 
 export type ConfigActions
-  = StartAppInitializer
-  | FinishAppInitializer
-  | Get
-  | GetSuccess
+    = StartAppInitializer
+    | FinishAppInitializer
+    | Get
+    | GetSuccess

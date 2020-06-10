@@ -23,16 +23,16 @@ import * as ErrorActions from '../../store/actions/error.actions'
 
 
 function handleError(err: HttpErrorResponse): string {
-  return (err.error instanceof ErrorEvent)
-    ? `An error occurred: ${err.error.message}`
-    : `Server returned code: ${err.status}, error message is: ${err.message}`
+    return (err.error instanceof ErrorEvent)
+        ? `An error occurred: ${err.error.message}`
+        : `Server returned code: ${err.status}, error message is: ${err.message}`
 }
 
 export const handleException = (store: Store<AppState>) => (source: Observable<any>) => {
-  return source.pipe(
-    catchError(err => {
-      store.dispatch(new ErrorActions.ServiceErrorGet(handleError(err)))
-      return of(err)
-    })
-  )
+    return source.pipe(
+        catchError(err => {
+            store.dispatch(new ErrorActions.ServiceErrorGet(handleError(err)))
+            return of(err)
+        })
+    )
 }

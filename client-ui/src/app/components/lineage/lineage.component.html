@@ -14,28 +14,28 @@
   ~ limitations under the License.
   -->
 <div class="container-fluid">
-  <div *ngIf="data$ | async; let d" class="row">
-    <div class="col-sm-8 no-padding">
-      <lineage-graph (selectedNodeChange)="onNodeSelected($event)"
-                     [attributeLineageAndImpactGraph]="d.attributeLinAndImp"
-                     [embeddedMode]="d.embeddedMode"
-                     [graph]="d.plan.graph"
-                     [layout]="d.layout"
-                     [selectedNode]="selectedNodeId">
-      </lineage-graph>
+    <div *ngIf="data$ | async; let d" class="row">
+        <div class="col-sm-8 no-padding">
+            <lineage-graph (selectedNodeChange)="onNodeSelected($event)"
+                           [attributeLineageAndImpactGraph]="d.attributeLinAndImp"
+                           [embeddedMode]="d.embeddedMode"
+                           [graph]="d.plan.graph"
+                           [layout]="d.layout"
+                           [selectedNode]="selectedNodeId">
+            </lineage-graph>
 
-      <lineage-highlights-toolbar
-          (removeAttribute$)="onRemoveSelectedAttrClick()"
-          *ngIf="selectedAttribute$ | async as selectedAttributes"
-          [attributes]="[selectedAttributes]"
-          [lineageGraphLegends]="lineageGraphLegendsToShow$ | async"
-          [showOldSplineWarning]="isExecPlanFromOldSpline(d.plan.executionPlan)">
-      </lineage-highlights-toolbar>
+            <lineage-highlights-toolbar
+                (removeAttribute$)="onRemoveSelectedAttrClick()"
+                *ngIf="selectedAttribute$ | async as selectedAttributes"
+                [attributes]="[selectedAttributes]"
+                [lineageGraphLegends]="lineageGraphLegendsToShow$ | async"
+                [showOldSplineWarning]="isExecPlanFromOldSpline(d.plan.executionPlan)">
+            </lineage-highlights-toolbar>
 
+        </div>
+
+        <div class="col-sm-4 ">
+            <lineage-details [embeddedMode]="d.embeddedMode"></lineage-details>
+        </div>
     </div>
-
-    <div class="col-sm-4 ">
-      <lineage-details [embeddedMode]="d.embeddedMode"></lineage-details>
-    </div>
-  </div>
 </div>

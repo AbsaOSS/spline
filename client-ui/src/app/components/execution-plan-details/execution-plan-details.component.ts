@@ -21,19 +21,19 @@ import { ExecutedLogicalPlanVM } from 'src/app/model/viewModels/executedLogicalP
 
 
 @Component({
-  selector: 'execution-plan-details',
-  templateUrl: './execution-plan-details.component.html',
-  styleUrls: ['./execution-plan-details.component.scss']
+    selector: 'execution-plan-details',
+    templateUrl: './execution-plan-details.component.html',
+    styleUrls: ['./execution-plan-details.component.scss']
 })
 export class ExecutionPlanDetailsComponent {
 
 
-  constructor(
-    private store: Store<AppState>
-  ) {
-  }
+    constructor(
+        private store: Store<AppState>
+    ) {
+    }
 
-  getExecutionPlanVM(): Observable<ExecutedLogicalPlanVM> {
-    return this.store.select('executedLogicalPlan')
-  }
+    getExecutionPlanVM(): Observable<ExecutedLogicalPlanVM> {
+        return this.store.select('executedLogicalPlan')
+    }
 }

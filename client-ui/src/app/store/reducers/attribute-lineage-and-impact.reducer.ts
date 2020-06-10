@@ -21,13 +21,13 @@ import * as ExecutionPlanAction from '../actions/execution-plan.actions'
 
 
 export function attributeLineageAndImpactReducer(state: AttributeLineageAndImpact, action: Action): AttributeLineageAndImpact {
-  switch (action.type) {
-    case ExecutionPlanAction.ExecutionPlanActionTypes.EXECUTION_PLAN_GET_SUCCESS:
-    case ExecutionPlanAction.ExecutionPlanActionTypes.EXECUTION_PLAN_RESET:
-      return undefined
-    case AttributeLineageAndImpactActionTypes.ATTRIBUTE_LINEAGE_AND_IMPACT_SET:
-      return (action as Set).linAndImp
-    default:
-      return state
-  }
+    switch (action.type) {
+        case ExecutionPlanAction.ExecutionPlanActionTypes.EXECUTION_PLAN_GET_SUCCESS:
+        case ExecutionPlanAction.ExecutionPlanActionTypes.EXECUTION_PLAN_RESET:
+            return undefined
+        case AttributeLineageAndImpactActionTypes.ATTRIBUTE_LINEAGE_AND_IMPACT_SET:
+            return (action as Set).linAndImp
+        default:
+            return state
+    }
 }

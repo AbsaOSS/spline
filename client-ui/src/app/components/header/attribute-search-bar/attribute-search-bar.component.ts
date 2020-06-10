@@ -26,45 +26,45 @@ import * as RouterAction from '../../../store/actions/router.actions'
 
 
 @Component({
-  selector: 'app-attribute-search-bar',
-  templateUrl: './attribute-search-bar.component.html',
-  styleUrls: ['./attribute-search-bar.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None
+    selector: 'app-attribute-search-bar',
+    templateUrl: './attribute-search-bar.component.html',
+    styleUrls: ['./attribute-search-bar.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    encapsulation: ViewEncapsulation.None
 })
 export class AttributeSearchBarComponent {
 
-  constructor(
-    private store: Store<AppState>,
-    private attributeService: AttributeSearchService
-  ) {
-  }
-
-  search = (text$: Observable<string>): Observable<FoundAttribute[]> =>
-    text$.pipe(
-      debounceTime(200),
-      switchMap(term => term === ''
-        ? of([])
-        : this.attributeService.search(term))
-    )
-
-  onItemSelected = (selectedAttribute: FoundAttribute) => {
-    this.store.dispatch(new RouterAction.Go({
-      url: '/app/lineage-detailed/' + selectedAttribute.executionEventId,
-      queryParams: { attribute: selectedAttribute.id }
-    }))
-
-    return ''
-  }
-
-  getTypeString(attribute: FoundAttribute) {
-    switch (attribute.attributeType['_typeHint']) {
-      case 'dt.Struct':
-        return 'struct {...}'
-      case 'dt.Array':
-        return 'array [...]'
-      default:
-        return attribute.attributeType.name
+    constructor(
+        private store: Store<AppState>,
+        private attributeService: AttributeSearchService
+    ) {
     }
-  }
+
+    search = (text$: Observable<string>): Observable<FoundAttribute[]> =>
+        text$.pipe(
+            debounceTime(200),
+            switchMap(term => term === ''
+                ? of([])
+                : this.attributeService.search(term))
+        )
+
+    onItemSelected = (selectedAttribute: FoundAttribute) => {
+        this.store.dispatch(new RouterAction.Go({
+            url: '/app/lineage-detailed/' + selectedAttribute.executionEventId,
+            queryParams: { attribute: selectedAttribute.id }
+        }))
+
+        return ''
+    }
+
+    getTypeString(attribute: FoundAttribute) {
+        switch (attribute.attributeType['_typeHint']) {
+            case 'dt.Struct':
+                return 'struct {...}'
+            case 'dt.Array':
+                return 'array [...]'
+            default:
+                return attribute.attributeType.name
+        }
+    }
 }

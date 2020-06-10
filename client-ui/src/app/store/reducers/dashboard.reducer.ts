@@ -20,73 +20,73 @@ import { DashboardActionTypes, SetDateRange, SetPageNumber, SetSearchQuery, SetS
 
 
 const initialState: DashboardVM = {
-  filters: {
-    dateRange: undefined,
-    searchQuery: undefined
-  },
-  pagination: {
-    page: 1,
-    size: 10
-  },
-  sort: {
-    field: 'timestamp',
-    order: 'desc',
-  }
+    filters: {
+        dateRange: undefined,
+        searchQuery: undefined
+    },
+    pagination: {
+        page: 1,
+        size: 10
+    },
+    sort: {
+        field: 'timestamp',
+        order: 'desc',
+    }
 }
 
 export function dashboardReducer(state: DashboardVM = initialState, action: Action): DashboardVM {
-  switch (action.type) {
-    case DashboardActionTypes.SET_STATE:
-      return (action as SetState).state
+    switch (action.type) {
+        case DashboardActionTypes.SET_STATE:
+            return (action as SetState).state
 
-    case DashboardActionTypes.SET_DATE_RANGE:
-      return {
-        ...state,
-        filters: {
-          ...state.filters,
-          dateRange: (action as SetDateRange).range
-        },
-        pagination: {
-          ...state.pagination,
-          page: 1
-        }
-      }
+        case DashboardActionTypes.SET_DATE_RANGE:
+            return {
+                ...state,
+                filters: {
+                    ...state.filters,
+                    dateRange: (action as SetDateRange).range
+                },
+                pagination: {
+                    ...state.pagination,
+                    page: 1
+                }
+            }
 
-    case DashboardActionTypes.SET_SEARCH_QUERY:
-      return {
-        ...state,
-        filters: {
-          ...state.filters,
-          searchQuery: (action as SetSearchQuery).query || undefined
-        },
-        pagination: {
-          ...state.pagination,
-          page: 1
-        }
-      }
+        case DashboardActionTypes.SET_SEARCH_QUERY:
+            return {
+                ...state,
+                filters: {
+                    ...state.filters,
+                    searchQuery: (action as SetSearchQuery).query || undefined
+                },
+                pagination: {
+                    ...state.pagination,
+                    page: 1
+                }
+            }
 
-    case DashboardActionTypes.SET_PAGE_NUMBER:
-      return {
-        ...state,
-        pagination: {
-          ...state.pagination,
-          page: (action as SetPageNumber).page
-        }
-      }
+        case DashboardActionTypes.SET_PAGE_NUMBER:
+            return {
+                ...state,
+                pagination: {
+                    ...state.pagination,
+                    page: (action as SetPageNumber).page
+                }
+            }
 
 
-    case DashboardActionTypes.SET_SORT_ORDER:
-      const sortAction = (action as SetSortOrder)
-      return {
-        ...state,
-        sort: {
-          field: sortAction.field,
-          order: sortAction.order
-        }
-      }
+        case DashboardActionTypes.SET_SORT_ORDER:
+            const sortAction = (action as SetSortOrder)
+            return {
+                ...state,
+                sort: {
+                    field: sortAction.field,
+                    order: sortAction.order
+                }
+            }
 
-    default:
-      return state
-  }
+        default:
+            return state
+    }
 
 }

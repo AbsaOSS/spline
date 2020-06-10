@@ -34,192 +34,192 @@ import { cyStyles } from '../../../model/lineage-graph'
 
 
 @Component({
-  selector: 'lineage-overview-graph',
-  templateUrl: './lineage-overview-graph.component.html'
+    selector: 'lineage-overview-graph',
+    templateUrl: './lineage-overview-graph.component.html'
 })
 export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  @Input()
-  embeddedMode: boolean
+    @Input()
+    embeddedMode: boolean
 
-  @ViewChild(CytoscapeNgLibComponent, { static: true })
-  private cytograph: CytoscapeNgLibComponent
+    @ViewChild(CytoscapeNgLibComponent, { static: true })
+    private cytograph: CytoscapeNgLibComponent
 
-  private subscriptions: Subscription[] = []
-  private executionEventId: string
+    private subscriptions: Subscription[] = []
+    private executionEventId: string
 
 
-  constructor(private store: Store<AppState>) {
-    this.getContextMenuConfiguration()
-    this.getLayoutConfiguration()
-    this.getOverviewLineage()
-  }
+    constructor(private store: Store<AppState>) {
+        this.getContextMenuConfiguration()
+        this.getLayoutConfiguration()
+        this.getOverviewLineage()
+    }
 
-  ngOnInit(): void {
+    ngOnInit(): void {
 
-  }
+    }
 
-  ngAfterViewInit(): void {
-    const domInitDelayInMs = 200 // in us;
-    setTimeout(
-      () => this.initGraph(),
-      domInitDelayInMs
-    )
-  }
+    ngAfterViewInit(): void {
+        const domInitDelayInMs = 200 // in us;
+        setTimeout(
+            () => this.initGraph(),
+            domInitDelayInMs
+        )
+    }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(s => s.unsubscribe())
-  }
+    ngOnDestroy(): void {
+        this.subscriptions.forEach(s => s.unsubscribe())
+    }
 
-  private initGraph(): void {
-    this.cytograph.cy.ready(() => {
-      this.cytograph.cy.style(cyStyles)
-      this.cytograph.cy.on('mouseover', 'node', e => e.originalEvent.target.style.cursor = 'pointer')
-      this.cytograph.cy.on('mouseout', 'node', e => e.originalEvent.target.style.cursor = '')
-      const doubleClickDelayMs = 350
-      let previousTimeStamp
+    private initGraph(): void {
+        this.cytograph.cy.ready(() => {
+            this.cytograph.cy.style(cyStyles)
+            this.cytograph.cy.on('mouseover', 'node', e => e.originalEvent.target.style.cursor = 'pointer')
+            this.cytograph.cy.on('mouseout', 'node', e => e.originalEvent.target.style.cursor = '')
+            const doubleClickDelayMs = 350
+            let previousTimeStamp
 
-      this.cytograph.cy.on('tap', (event) => {
-        const currentTimeStamp = event.timeStamp
-        const msFromLastTap = currentTimeStamp - previousTimeStamp
+            this.cytograph.cy.on('tap', (event) => {
+                const currentTimeStamp = event.timeStamp
+                const msFromLastTap = currentTimeStamp - previousTimeStamp
 
-        if (msFromLastTap < doubleClickDelayMs) {
-          event.target.trigger('doubleTap', event)
-        }
-        else {
-          previousTimeStamp = currentTimeStamp
-          const clikedTarget = event.target
-          const nodeId = (clikedTarget !== this.cytograph.cy && clikedTarget.isNode()) ? clikedTarget.id() : null
-          const params: RouterStateUrl = {
-            url: '/app/lineage-overview/',
-            queryParams: {
-              selectedNodeId: nodeId,
-              executionEventId: this.executionEventId
-            }
-          }
-          this.store.dispatch(
-            new RouterAction.Go(params)
-          )
-        }
-      })
-      this.cytograph.cy.on('doubleTap', (event) => {
-        const clikedTarget = event.target
-        const nodeId = (clikedTarget !== this.cytograph.cy && clikedTarget.isNode()) ? clikedTarget.id() : null
-        if (nodeId && clikedTarget.data()._type === LineageOverviewNodeType.Execution) {
-          const params: RouterStateUrl = {
-            url: `/app/lineage-detailed/${nodeId}`
-          }
-          this.store.dispatch(new RouterAction.Go(params))
-        }
-      })
-    })
+                if (msFromLastTap < doubleClickDelayMs) {
+                    event.target.trigger('doubleTap', event)
+                }
+                else {
+                    previousTimeStamp = currentTimeStamp
+                    const clikedTarget = event.target
+                    const nodeId = (clikedTarget !== this.cytograph.cy && clikedTarget.isNode()) ? clikedTarget.id() : null
+                    const params: RouterStateUrl = {
+                        url: '/app/lineage-overview/',
+                        queryParams: {
+                            selectedNodeId: nodeId,
+                            executionEventId: this.executionEventId
+                        }
+                    }
+                    this.store.dispatch(
+                        new RouterAction.Go(params)
+                    )
+                }
+            })
+            this.cytograph.cy.on('doubleTap', (event) => {
+                const clikedTarget = event.target
+                const nodeId = (clikedTarget !== this.cytograph.cy && clikedTarget.isNode()) ? clikedTarget.id() : null
+                if (nodeId && clikedTarget.data()._type === LineageOverviewNodeType.Execution) {
+                    const params: RouterStateUrl = {
+                        url: `/app/lineage-detailed/${nodeId}`
+                    }
+                    this.store.dispatch(new RouterAction.Go(params))
+                }
+            })
+        })
 
-    this.cytograph.cy.on('layoutstop', () => {
-      this.subscriptions.push(
-        this.store
-          .select('router', 'state', 'queryParams', 'selectedNodeId')
-          .subscribe((selectedNodeId) => {
-            this.cytograph.cy.nodes().unselect()
-            const selectedNode = this.cytograph.cy.nodes().filter(`[id='${selectedNodeId}']`)
-            selectedNode.select()
-            this.getNodeInfo(selectedNode.data())
-          })
-      )
-    })
-
-    this.subscriptions.push(this.store
-      .select('layout')
-      .pipe(
-        switchMap(layout => {
-          return this.store
-            .select('contextMenu')
-            .pipe(
-              map(contextMenu => {
-                return { layout, contextMenu }
-              })
-            )
-        }),
-        switchMap(res => {
-          return this.store
-            .select('lineageOverview')
-            .pipe(
-              filter(state => !_.isNil(state)),
-              map(state => {
-                return { graph: state, layout: res.layout, contextMenu: res.contextMenu }
-              }),
+        this.cytograph.cy.on('layoutstop', () => {
+            this.subscriptions.push(
+                this.store
+                    .select('router', 'state', 'queryParams', 'selectedNodeId')
+                    .subscribe((selectedNodeId) => {
+                        this.cytograph.cy.nodes().unselect()
+                        const selectedNode = this.cytograph.cy.nodes().filter(`[id='${selectedNodeId}']`)
+                        selectedNode.select()
+                        this.getNodeInfo(selectedNode.data())
+                    })
             )
         })
-      )
-      .subscribe(state => {
-        if (state && this.cytograph.cy) {
-          this.cytograph.cy.elements().remove()
-          const lineageData = _.cloneDeep(state.graph.lineage)
-          this.cytograph.cy.add(lineageData)
-          this.cytograph.cy.nodeHtmlLabel([{
-            tpl: function (data) {
-              if (data.icon) {
-                return `<i class='fa fa-4x' style='color:${data.color}'> ${String.fromCharCode(data.icon)}</i>`
-              }
-              return null
-            }
-          }])
-          this.cytograph.cy.layout(state.layout).run()
-        }
-      }))
-  }
 
-  private getOverviewLineage = (): void => {
-    this.subscriptions.push(
-      this.store
-        .select('router', 'state', 'queryParams', 'executionEventId')
-        .pipe(
-          filter(state => state !== null)
-        )
-        .subscribe(
-          executionEventId => {
-            this.executionEventId = executionEventId
-            this.store.dispatch(new LineageOverviewAction.Get({ executionEventId }))
-          }
-        )
-    )
-  }
-
-  private getNodeInfo = (node: any): void => {
-    if (node) {
-      this.store.dispatch(new DetailsInfosAction.Reset())
-      switch (node._type) {
-        case LineageOverviewNodeType.Execution: {
-          this.store.dispatch(new ExecutionPlanAction.Get(node.id))
-          break
-        }
-        case LineageOverviewNodeType.DataSource: {
-          this.store.dispatch(new ExecutionPlanAction.Reset())
-          this.subscriptions.push(
-            this.store.select('lineageOverview')
-              .subscribe(lineageOverview => {
-                const edge = lineageOverview.lineage.edges.find(e => e.data.target === node.id)
-                if (edge) {
-                  const executionPlanId = edge.data.source
-                  this.store.dispatch(new DetailsInfosAction.Get(getWriteOperationIdFromExecutionId(executionPlanId)))
+        this.subscriptions.push(this.store
+            .select('layout')
+            .pipe(
+                switchMap(layout => {
+                    return this.store
+                        .select('contextMenu')
+                        .pipe(
+                            map(contextMenu => {
+                                return { layout, contextMenu }
+                            })
+                        )
+                }),
+                switchMap(res => {
+                    return this.store
+                        .select('lineageOverview')
+                        .pipe(
+                            filter(state => !_.isNil(state)),
+                            map(state => {
+                                return { graph: state, layout: res.layout, contextMenu: res.contextMenu }
+                            }),
+                        )
+                })
+            )
+            .subscribe(state => {
+                if (state && this.cytograph.cy) {
+                    this.cytograph.cy.elements().remove()
+                    const lineageData = _.cloneDeep(state.graph.lineage)
+                    this.cytograph.cy.add(lineageData)
+                    this.cytograph.cy.nodeHtmlLabel([{
+                        tpl: function (data) {
+                            if (data.icon) {
+                                return `<i class='fa fa-4x' style='color:${data.color}'> ${String.fromCharCode(data.icon)}</i>`
+                            }
+                            return null
+                        }
+                    }])
+                    this.cytograph.cy.layout(state.layout).run()
                 }
-              })
-          )
-          break
+            }))
+    }
+
+    private getOverviewLineage = (): void => {
+        this.subscriptions.push(
+            this.store
+                .select('router', 'state', 'queryParams', 'executionEventId')
+                .pipe(
+                    filter(state => state !== null)
+                )
+                .subscribe(
+                    executionEventId => {
+                        this.executionEventId = executionEventId
+                        this.store.dispatch(new LineageOverviewAction.Get({ executionEventId }))
+                    }
+                )
+        )
+    }
+
+    private getNodeInfo = (node: any): void => {
+        if (node) {
+            this.store.dispatch(new DetailsInfosAction.Reset())
+            switch (node._type) {
+                case LineageOverviewNodeType.Execution: {
+                    this.store.dispatch(new ExecutionPlanAction.Get(node.id))
+                    break
+                }
+                case LineageOverviewNodeType.DataSource: {
+                    this.store.dispatch(new ExecutionPlanAction.Reset())
+                    this.subscriptions.push(
+                        this.store.select('lineageOverview')
+                            .subscribe(lineageOverview => {
+                                const edge = lineageOverview.lineage.edges.find(e => e.data.target === node.id)
+                                if (edge) {
+                                    const executionPlanId = edge.data.source
+                                    this.store.dispatch(new DetailsInfosAction.Get(getWriteOperationIdFromExecutionId(executionPlanId)))
+                                }
+                            })
+                    )
+                    break
+                }
+            }
         }
-      }
+        else {
+            this.store.dispatch(new DetailsInfosAction.Reset())
+            this.store.dispatch(new ExecutionPlanAction.Reset())
+        }
     }
-    else {
-      this.store.dispatch(new DetailsInfosAction.Reset())
-      this.store.dispatch(new ExecutionPlanAction.Reset())
+
+    private getContextMenuConfiguration = (): void => {
+        this.store.dispatch(new ContextMenuAction.Get())
     }
-  }
 
-  private getContextMenuConfiguration = (): void => {
-    this.store.dispatch(new ContextMenuAction.Get())
-  }
-
-  private getLayoutConfiguration = (): void => {
-    this.store.dispatch(new LayoutAction.Get())
-  }
+    private getLayoutConfiguration = (): void => {
+        this.store.dispatch(new LayoutAction.Get())
+    }
 
 }

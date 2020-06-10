@@ -24,54 +24,54 @@ import { getName } from 'src/app/util/expressions'
 
 
 @Component({
-  selector: 'app-modal-expression',
-  templateUrl: './modal-expression.component.html',
-  styleUrls: ['./modal-expression.component.scss']
+    selector: 'app-modal-expression',
+    templateUrl: './modal-expression.component.html',
+    styleUrls: ['./modal-expression.component.scss']
 })
 export class ModalExpressionComponent implements AfterContentInit {
 
-  title: any
-  exprTree: any[]
+    title: any
+    exprTree: any[]
 
-  readonly treeOptions: ITreeOptions = {
-    actionMapping: {
-      click: (_, node): void => node.toggleExpanded()
-    },
-    allowDrag: false,
-    allowDrop: false,
-  }
-
-  private data: any
-  private attributes: any
-
-  constructor(private store: Store<AppState>) {
-  }
-
-  ngAfterContentInit(): void {
-    this.exprTree = this.buildExprTree()
-  }
-
-  close(): void {
-    this.store.dispatch(new ModalAction.Close())
-  }
-
-
-  private buildExprTree(): any[] {
-    let seq = 0
-
-    const buildNode = (expr: IExpression) => ({
-      id: seq++,
-      name: getName(expr, this.attributes),
-      children: buildChildrenNodes(expr)
-    })
-
-    // TODO: remove inline function definition.
-    function buildChildrenNodes(ex: IExpression): (any[] | undefined) {
-      const children = ex['children'] || (ex['child'] && [ex['child']])
-      return children && children.map(buildNode)
+    readonly treeOptions: ITreeOptions = {
+        actionMapping: {
+            click: (_, node): void => node.toggleExpanded()
+        },
+        allowDrag: false,
+        allowDrop: false,
     }
 
-    return [buildNode(this.data.metadata)]
-  }
+    private data: any
+    private attributes: any
+
+    constructor(private store: Store<AppState>) {
+    }
+
+    ngAfterContentInit(): void {
+        this.exprTree = this.buildExprTree()
+    }
+
+    close(): void {
+        this.store.dispatch(new ModalAction.Close())
+    }
+
+
+    private buildExprTree(): any[] {
+        let seq = 0
+
+        const buildNode = (expr: IExpression) => ({
+            id: seq++,
+            name: getName(expr, this.attributes),
+            children: buildChildrenNodes(expr)
+        })
+
+        // TODO: remove inline function definition.
+        function buildChildrenNodes(ex: IExpression): (any[] | undefined) {
+            const children = ex['children'] || (ex['child'] && [ex['child']])
+            return children && children.map(buildNode)
+        }
+
+        return [buildNode(this.data.metadata)]
+    }
 
 }

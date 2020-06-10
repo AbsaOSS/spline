@@ -24,55 +24,55 @@ import { getOperationColor, getOperationIcon } from 'src/app/util/execution-plan
 
 
 @Component({
-  selector: 'properties',
-  template: ''
+    selector: 'properties',
+    template: ''
 })
 
 @PropertyTypeAware
 export class PropertiesComponent implements OnDestroy {
 
-  @Input() propertyType: string
-  @Input() propertyName: string
-  @Input() properties: Property[]
-  @Input() nativeProperties: Record<string, any>
+    @Input() propertyType: string
+    @Input() propertyName: string
+    @Input() properties: Property[]
+    @Input() nativeProperties: Record<string, any>
 
-  PropertyType = PropertyType
+    PropertyType = PropertyType
 
-  private subscriptions: Subscription[] = []
+    private subscriptions: Subscription[] = []
 
-  constructor(private store: Store<AppState>) {
-  }
+    constructor(private store: Store<AppState>) {
+    }
 
-  getIcon(): string {
-    return getOperationIcon(this.propertyType, this.propertyName)
-  }
+    getIcon(): string {
+        return getOperationIcon(this.propertyType, this.propertyName)
+    }
 
-  getColor(): string {
-    return getOperationColor(this.propertyType, this.propertyName)
-  }
+    getColor(): string {
+        return getOperationColor(this.propertyType, this.propertyName)
+    }
 
-  propertiesContain(propertyType: PropertyType): boolean {
-    return this.properties.filter(p => p.type === propertyType).length > 0
-  }
+    propertiesContain(propertyType: PropertyType): boolean {
+        return this.properties.filter(p => p.type === propertyType).length > 0
+    }
 
-  openExprViewDialog(event: Event, expression: Property): void {
-    event.preventDefault()
-    this.subscriptions.push(
-      this.store
-        .select('executedLogicalPlan', 'executionPlan', 'extra', 'attributes')
-        .subscribe(attributes => {
-          const initialState = {
-            data: expression,
-            attributes: attributes,
-            type: this.propertyName
-          }
-          this.store.dispatch(new ModalAction.Open(ModalExpressionComponent, { initialState }))
-        })
-    )
-  }
+    openExprViewDialog(event: Event, expression: Property): void {
+        event.preventDefault()
+        this.subscriptions.push(
+            this.store
+                .select('executedLogicalPlan', 'executionPlan', 'extra', 'attributes')
+                .subscribe(attributes => {
+                    const initialState = {
+                        data: expression,
+                        attributes: attributes,
+                        type: this.propertyName
+                    }
+                    this.store.dispatch(new ModalAction.Open(ModalExpressionComponent, { initialState }))
+                })
+        )
+    }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(s => s.unsubscribe())
-  }
+    ngOnDestroy(): void {
+        this.subscriptions.forEach(s => s.unsubscribe())
+    }
 
 }

@@ -22,33 +22,33 @@ import { ApplicationErrorGet } from 'src/app/store/actions/error.actions'
 
 
 @Component({
-  selector: 'app-error',
-  templateUrl: './error.component.html',
-  styleUrls: ['./error.component.scss']
+    selector: 'app-error',
+    templateUrl: './error.component.html',
+    styleUrls: ['./error.component.scss']
 })
 export class ErrorComponent implements OnInit, OnDestroy {
 
-  private subscriptions: Subscription[] = []
+    private subscriptions: Subscription[] = []
 
-  constructor(
-    private store: Store<AppState>
-  ) {
-  }
+    constructor(
+        private store: Store<AppState>
+    ) {
+    }
 
-  ngOnInit(): void {
-    this.subscriptions.push(
-      this.store
-        .select('router', 'state', 'params')
-        .subscribe(params => this.store.dispatch(new ApplicationErrorGet(params.httpCode)))
-    )
-  }
+    ngOnInit(): void {
+        this.subscriptions.push(
+            this.store
+                .select('router', 'state', 'params')
+                .subscribe(params => this.store.dispatch(new ApplicationErrorGet(params.httpCode)))
+        )
+    }
 
-  getError = (): Observable<string> => {
-    return this.store.select('error')
-  }
+    getError = (): Observable<string> => {
+        return this.store.select('error')
+    }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(s => s.unsubscribe())
-  }
+    ngOnDestroy(): void {
+        this.subscriptions.forEach(s => s.unsubscribe())
+    }
 
 }

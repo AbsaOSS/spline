@@ -23,32 +23,32 @@ import NativeProperties = OperationProperty.NativeProperties
 
 
 export type LogicalRelationNativeProperties =
-  & NativeProperties
-  &
-  {
-    sourceType: string
-    inputSources: string[]
-  }
+    & NativeProperties
+    &
+    {
+        sourceType: string
+        inputSources: string[]
+    }
 
 @Component({
-  selector: 'app-logical-relation',
-  templateUrl: './logical-relation.component.html',
+    selector: 'app-logical-relation',
+    templateUrl: './logical-relation.component.html',
 })
 export class LogicalRelationComponent extends PropertiesComponent {
 
-  extraProperties: ExtraProperties
-  sourceType: string
-  inputSources: string[]
+    extraProperties: ExtraProperties
+    sourceType: string
+    inputSources: string[]
 
-  @Input() set nativeProperties(props: LogicalRelationNativeProperties) {
-    this.sourceType = props.sourceType
-    this.inputSources = props.inputSources
+    @Input() set nativeProperties(props: LogicalRelationNativeProperties) {
+        this.sourceType = props.sourceType
+        this.inputSources = props.inputSources
 
-    const defaultProps = [
-      'name', 'sourceType', 'inputSources'
-    ]
-    const noDefaultProps = _.omit(props, defaultProps)
-    this.extraProperties = OperationProperty.parseExtraOptions(noDefaultProps)
-  }
+        const defaultProps = [
+            'name', 'sourceType', 'inputSources'
+        ]
+        const noDefaultProps = _.omit(props, defaultProps)
+        this.extraProperties = OperationProperty.parseExtraOptions(noDefaultProps)
+    }
 
 }

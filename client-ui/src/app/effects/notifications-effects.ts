@@ -28,19 +28,25 @@ import * as ErrorAction from '../store/actions/error.actions'
 @Injectable()
 export class NotificationsEffects {
 
-
     @Effect({ dispatch: false })
     sendNotification$: Observable<Action> = this.actions$.pipe(
-      ofType(ErrorAction.ErrorActionTypes.SERVICE_ERROR_GET),
-      tap((action: any) => {
-        this.toastrService.error(action.payload, 'ERROR', { progressBar: true, positionClass: 'toast-bottom-full-width' })
-        this.store.dispatch(new ErrorAction.ServiceErrorReset())
-      })
+        ofType(ErrorAction.ErrorActionTypes.SERVICE_ERROR_GET),
+        tap((action: any) => {
+            this.toastrService.error(
+                action.payload,
+                'ERROR',
+                {
+                    progressBar: true,
+                    positionClass: 'toast-bottom-full-width'
+                }
+            )
+            this.store.dispatch(new ErrorAction.ServiceErrorReset())
+        })
     )
 
     constructor(
         private actions$: Actions,
         private toastrService: ToastrService,
-        private store: Store<AppState>
-    ) { }
+        private store: Store<AppState>) {
+    }
 }

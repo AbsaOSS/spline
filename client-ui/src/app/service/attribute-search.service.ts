@@ -24,20 +24,20 @@ import { AppState } from '../model/app-state'
 
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class AttributeSearchService {
 
-  constructor(
-    private store: Store<AppState>,
-    private attributeService: AttributeService
-  ) {
-    this.store
-      .select('config', 'apiUrl')
-      .subscribe(apiUrl => this.attributeService.rootUrl = apiUrl)
-  }
+    constructor(
+        private store: Store<AppState>,
+        private attributeService: AttributeService
+    ) {
+        this.store
+            .select('config', 'apiUrl')
+            .subscribe(apiUrl => this.attributeService.rootUrl = apiUrl)
+    }
 
-  search(searchTerm: string): Observable<FoundAttribute[]> {
-    return this.attributeService.attributeSearchUsingGET(searchTerm)
-  }
+    search(searchTerm: string): Observable<FoundAttribute[]> {
+        return this.attributeService.attributeSearchUsingGET(searchTerm)
+    }
 }

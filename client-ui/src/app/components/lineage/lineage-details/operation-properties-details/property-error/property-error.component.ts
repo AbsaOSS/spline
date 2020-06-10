@@ -19,9 +19,9 @@ import { PropertiesComponent } from '../properties/properties.component'
 
 
 @Component({
-  selector: 'app-property-error',
-  templateUrl: './property-error.component.html',
-  styleUrls: ['property-error.component.scss']
+    selector: 'app-property-error',
+    templateUrl: './property-error.component.html',
+    styleUrls: ['property-error.component.scss']
 })
 export class PropertyErrorComponent extends PropertiesComponent {
 

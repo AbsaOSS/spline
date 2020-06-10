@@ -15,16 +15,16 @@
   -->
 
 <div class="modal-header">
-  <h4 class="modal-title pull-left">{{title}}</h4>
-  <button (click)="close()" aria-label="Close" class="close pull-right" type="button">
-    <span aria-hidden="true">&times;</span>
-  </button>
+    <h4 class="modal-title pull-left">{{title}}</h4>
+    <button (click)="close()" aria-label="Close" class="close pull-right" type="button">
+        <span aria-hidden="true">&times;</span>
+    </button>
 </div>
 <div class="modal-body">
-  <tree-root #tree [nodes]="exprTree" [options]="treeOptions">
-    <ng-template #treeNodeTemplate let-node>{{ node.data.name }}</ng-template>
-  </tree-root>
+    <tree-root #tree [nodes]="exprTree" [options]="treeOptions">
+        <ng-template #treeNodeTemplate let-node>{{ node.data.name }}</ng-template>
+    </tree-root>
 </div>
 <div class="modal-footer">
-  <button (click)="close()" class="btn btn-secondary" type="button">Close</button>
+    <button (click)="close()" class="btn btn-secondary" type="button">Close</button>
 </div>

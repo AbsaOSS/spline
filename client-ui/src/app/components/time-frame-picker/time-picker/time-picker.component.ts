@@ -19,28 +19,28 @@ import { NgbTimeStruct } from '@ng-bootstrap/ng-bootstrap'
 
 
 @Component({
-  selector: 'time-picker',
-  templateUrl: './time-picker.component.html',
-  styleUrls: ['./time-picker.component.scss']
+    selector: 'time-picker',
+    templateUrl: './time-picker.component.html',
+    styleUrls: ['./time-picker.component.scss']
 })
 export class TimePickerComponent implements OnChanges {
 
-  @Input()
-  model: NgbTimeStruct
+    @Input()
+    model: NgbTimeStruct
 
-  @Output()
-  modelChange = new EventEmitter<NgbTimeStruct>()
+    @Output()
+    modelChange = new EventEmitter<NgbTimeStruct>()
 
-  valid: boolean
+    valid: boolean
 
-  ngOnChanges(): void {
-    this.valid = true
-  }
-
-  onModelChange(updatedModel: NgbTimeStruct): void {
-    this.valid = !!updatedModel
-    if (this.valid) {
-      this.modelChange.emit(updatedModel)
+    ngOnChanges(): void {
+        this.valid = true
     }
-  }
+
+    onModelChange(updatedModel: NgbTimeStruct): void {
+        this.valid = !!updatedModel
+        if (this.valid) {
+            this.modelChange.emit(updatedModel)
+        }
+    }
 }

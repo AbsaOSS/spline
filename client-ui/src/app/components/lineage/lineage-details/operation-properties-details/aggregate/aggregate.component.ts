@@ -19,8 +19,8 @@ import { PropertiesComponent } from '../properties/properties.component'
 
 
 @Component({
-  selector: 'aggregate',
-  templateUrl: './aggregate.component.html'
+    selector: 'aggregate',
+    templateUrl: './aggregate.component.html'
 })
 export class AggregateComponent extends PropertiesComponent {
 
