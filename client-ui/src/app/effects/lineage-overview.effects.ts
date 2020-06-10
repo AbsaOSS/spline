@@ -18,7 +18,7 @@ import { ofType, Actions, Effect } from '@ngrx/effects'
 import { Action, Store } from '@ngrx/store'
 import * as _ from 'lodash'
 import { Observable } from 'rxjs'
-import { map, switchMap, withLatestFrom } from 'rxjs/operators'
+import { filter, map, switchMap, withLatestFrom } from 'rxjs/operators'
 
 import { LineageOverview, Transition } from '../generated/models'
 import { LineageService } from '../generated/services'
@@ -39,6 +39,7 @@ export class LineageOverviewEffects {
   @Effect()
   getLineageOverview$: Observable<Action> = this.actions$.pipe(
     ofType<LineageOverviewAction.Get>(LineageOverviewAction.LineageOverviewActionTypes.OVERVIEW_LINEAGE_GET),
+    filter(action => !!action.payload.executionEventId),
     switchMap((action: any) => {
       const executionEventId = action.payload.executionEventId
       const maxDepth = action.payload.maxDepth ? action.payload.maxDepth : this.lineageOverviewDefaultMaxDepth

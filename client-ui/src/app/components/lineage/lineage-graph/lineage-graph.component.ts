@@ -16,7 +16,7 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, SimpleChange, SimpleChanges, ViewChild } from '@angular/core'
 import { CytoscapeNgLibComponent } from 'cytoscape-ng-lib'
 import _ from 'lodash'
-import { OperationType } from 'src/app/model/types/operationType'
+import { OperationType } from 'src/app/model/types/operation-type'
 import { operationColorCodes, operationIconCodes } from 'src/app/util/execution-plan'
 
 import { AttributeGraph } from '../../../generated/models/attribute-graph'

@@ -30,21 +30,21 @@ import { PropertiesComponent } from '../../components/lineage/lineage-details/op
 
 
 export const enum OperationType {
-    Projection = 'Project',
-    LogicalRelation = 'LogicalRelation',
-    Join = 'Join',
-    Union = 'Union',
-    Generic = 'Generic',
-    Filter = 'Filter',
-    Sort = 'Sort',
-    Aggregate = 'Aggregate',
-    Write = 'Write',
-    Alias = 'SubqueryAlias',
-    Error = 'Error'
+  Projection = 'Project',
+  LogicalRelation = 'LogicalRelation',
+  Join = 'Join',
+  Union = 'Union',
+  Generic = 'Generic',
+  Filter = 'Filter',
+  Sort = 'Sort',
+  Aggregate = 'Aggregate',
+  Write = 'Write',
+  Alias = 'SubqueryAlias',
+  Error = 'Error'
 }
 
 
-export const PropertiesComponents: Map<string, Type<PropertiesComponent>> = new Map([
+export const OPERATION_PROPERTY_COMPONENT_TYPE_MAP: Map<string, Type<PropertiesComponent>> = new Map([
   [OperationType.Join, JoinComponent],
   [OperationType.Projection, ProjectionComponent],
   [OperationType.LogicalRelation, LogicalRelationComponent],
@@ -57,3 +57,9 @@ export const PropertiesComponents: Map<string, Type<PropertiesComponent>> = new 
   [OperationType.Alias, AliasComponent],
   [OperationType.Error, PropertyErrorComponent]
 ])
+
+export function getOperationPropertiesComponentType(operationType: OperationType, operationName: string): Type<PropertiesComponent> {
+  return operationType === OperationType.Write
+    ? OPERATION_PROPERTY_COMPONENT_TYPE_MAP.get(OperationType.Write)
+    : OPERATION_PROPERTY_COMPONENT_TYPE_MAP.get(operationName)
+}

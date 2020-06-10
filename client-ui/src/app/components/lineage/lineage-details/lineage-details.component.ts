@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 import { Component, Input } from '@angular/core'
+import { Store } from '@ngrx/store'
+import { Observable } from 'rxjs'
+
+import { AppState } from '../../../model/app-state'
+import { OperationDetailsVM } from '../../../model/viewModels/operationDetailsVM'
 
 
 @Component({
@@ -23,6 +28,12 @@ import { Component, Input } from '@angular/core'
 })
 export class LineageDetailsComponent {
 
-  @Input()
-  embeddedMode: boolean
+  @Input() embeddedMode: boolean
+
+  readonly detailsInfos$: Observable<OperationDetailsVM>
+
+  constructor(private readonly store: Store<AppState>) {
+    this.detailsInfos$ = this.store.select('detailsInfos')
+  }
+
 }

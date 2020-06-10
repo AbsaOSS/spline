@@ -19,9 +19,8 @@ import {
   Component,
   ComponentFactoryResolver,
   OnDestroy,
-  QueryList,
   Type,
-  ViewChildren,
+  ViewChild,
   ViewContainerRef
 } from '@angular/core'
 import { Store } from '@ngrx/store'
@@ -30,7 +29,11 @@ import { Observable, Subscription } from 'rxjs'
 import { map, switchMap } from 'rxjs/operators'
 import { AppState } from 'src/app/model/app-state'
 import { Property, PropertyType } from 'src/app/model/property'
-import { OperationType, PropertiesComponents } from 'src/app/model/types/operationType'
+import {
+  getOperationPropertiesComponentType,
+  OperationType,
+  OPERATION_PROPERTY_COMPONENT_TYPE_MAP
+} from 'src/app/model/types/operation-type'
 import { AttributeVM } from 'src/app/model/viewModels/attributeVM'
 import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM'
 import { getOperationColor, getOperationIcon } from 'src/app/util/execution-plan'
@@ -48,10 +51,10 @@ import { PropertiesComponent } from './properties/properties.component'
 })
 export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDestroy {
 
-  @ViewChildren('propertiesPanel', { read: ViewContainerRef })
-  propertiesPanel: QueryList<ViewContainerRef>
+  @ViewChild('propertiesPanel', { read: ViewContainerRef }) propertiesPanelContainerViewRef: ViewContainerRef
 
   readonly selectedAttributeId$: Observable<string>
+  readonly detailsInfos$: Observable<OperationDetailsVM>
   private subscriptions: Subscription[] = []
 
   constructor(
@@ -60,49 +63,52 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
     private store: Store<AppState>) {
 
     this.selectedAttributeId$ = this.store.select('router', 'state', 'queryParams', 'attribute')
+    this.detailsInfos$ = this.store.select('detailsInfos')
 
   }
 
   ngAfterViewInit(): void {
-    this.subscriptions.push(
-      this.propertiesPanel.changes.pipe(
-        switchMap(_ =>
-          this.store.select('detailsInfos')
+    const subs = this.store.select('detailsInfos')
+      .pipe(
+        switchMap(detailsInfos => {
+          return this.store.select('executedLogicalPlan', 'executionPlan', 'extra', 'attributes')
             .pipe(
-              switchMap(detailsInfos => {
-                return this.store.select('executedLogicalPlan', 'executionPlan', 'extra', 'attributes')
-                  .pipe(
-                    map(attributes => {
-                      return { detailsInfos: detailsInfos, attributes: attributes }
-                    })
-                  )
+              map(attributes => {
+                return { detailsInfos: detailsInfos, attributes: attributes }
               })
             )
-        )
-      ).subscribe(store => {
-        const container = this.propertiesPanel.first
+        })
+      )
+      .subscribe(store => {
+        const container = this.propertiesPanelContainerViewRef
         if (container && store.detailsInfos) {
-          container.clear()
-          let name = store.detailsInfos.operation.name
-          const type = store.detailsInfos.operation._type
-          if (!PropertiesComponents.has(name)) {
-            name = OperationType.Generic
-          }
+          const operationName = !OPERATION_PROPERTY_COMPONENT_TYPE_MAP.has(store.detailsInfos.operation.name)
+            ? OperationType.Generic
+            : store.detailsInfos.operation.name
+
+          const operationType = store.detailsInfos.operation._type
+
           let properties: Property[] = []
-          let component: Type<PropertiesComponent>
+          let componentType: Type<PropertiesComponent>
+
           try {
             properties = this.getProperties(store.detailsInfos, store.attributes)
-            component = type === OperationType.Write
-              ? PropertiesComponents.get(OperationType.Write)
-              : PropertiesComponents.get(name)
+            componentType = getOperationPropertiesComponentType(operationType as OperationType, operationName)
+
           } catch (error) {
-            component = PropertiesComponents.get(OperationType.Error)
+
+            componentType = OPERATION_PROPERTY_COMPONENT_TYPE_MAP.get(OperationType.Error)
+
           } finally {
-            const factory = this.componentFactoryResolver.resolveComponentFactory(component)
+            // clear container
+            container.clear()
+            // create component
+            const factory = this.componentFactoryResolver.resolveComponentFactory(componentType)
             const instance = container.createComponent(factory).instance
+            // init component
             instance.properties = properties
-            instance.propertyName = name
-            instance.propertyType = type
+            instance.propertyName = operationName
+            instance.propertyType = operationType
             instance.nativeProperties = store.detailsInfos.operation.properties
           }
           if (!this.changeDetectorRef['destroyed']) {
@@ -110,15 +116,12 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
           }
         }
       })
-    )
+
+    this.subscriptions.push(subs)
   }
 
   onSelectedAttributeIdChange(attrId: string): void {
     this.store.dispatch(new RouterAction.Go({ queryParams: { attribute: attrId }, url: null }))
-  }
-
-  getDetailsInfo(): Observable<OperationDetailsVM> {
-    return this.store.select('detailsInfos')
   }
 
   getIcon(operationType: string, operationName: string): string {
@@ -136,8 +139,7 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
         inputSchemas.push(operationDetails.schemas[input])
       })
       return inputSchemas
-    }
-    else {
+    } else {
       return null
     }
   }
@@ -163,7 +165,10 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
 
     switch (opInfoProperties.name) {
       case OperationType.Join:
-        const joinExpression = new Property(PropertyType.Join, `${opInfoProperties.joinType} JOIN ON ${getText(opInfoProperties.condition, attributeList)}`, opInfoProperties.condition)
+        const joinExpression = new Property(
+          PropertyType.Join, `${opInfoProperties.joinType} JOIN ON ${getText(opInfoProperties.condition, attributeList)}`,
+          opInfoProperties.condition
+        )
         properties.push(joinExpression)
         break
       case OperationType.Projection:
@@ -217,7 +222,9 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
         )
         break
       case OperationType.Filter:
-        const filterExpression = new Property(PropertyType.Filter, getText(opInfoProperties.condition, attributeList), opInfoProperties.condition)
+        const filterExpression = new Property(
+          PropertyType.Filter, getText(opInfoProperties.condition, attributeList), opInfoProperties.condition
+        )
         properties.push(filterExpression)
         break
       case OperationType.Alias:

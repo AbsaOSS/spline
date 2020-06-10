@@ -20,7 +20,7 @@ import { Store } from '@ngrx/store'
 import * as _ from 'lodash'
 import { Observable } from 'rxjs'
 import { map, switchMap } from 'rxjs/operators'
-import { OperationType } from 'src/app/model/types/operationType'
+import { OperationType } from 'src/app/model/types/operation-type'
 
 import { LineageDetailed, Operation, Transition } from '../generated/models'
 import { LineageService } from '../generated/services'

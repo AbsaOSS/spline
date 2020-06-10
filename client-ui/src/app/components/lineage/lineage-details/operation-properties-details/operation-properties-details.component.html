@@ -13,15 +13,16 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<div *ngIf="getDetailsInfo() | async as detailsInfos">
-  <div class="details-title">
+<div>
+  <div class="details-title" *ngIf="detailsInfos$ | async as detailsInfos">
     <i [ngStyle]="{'color':getColor(detailsInfos.operation._type, detailsInfos.operation.name)}" aria-hidden="true" class="fa fa-xs">
       {{getIcon(detailsInfos.operation._type, detailsInfos.operation.name)}}
     </i>&nbsp;{{detailsInfos.operation.name}}
   </div>
-  <div #propertiesPanel>
-  </div>
-  <div class="details">
+
+  <ng-container #propertiesPanel></ng-container>
+
+  <div class="details" *ngIf="detailsInfos$ | async as detailsInfos">
     <div *ngFor="let inputSchema of getInputSchemas(detailsInfos)">
       <schema (selectedAttributeIdChanged)="onSelectedAttributeIdChange($event)"
               [schemaType]=0
@@ -36,8 +37,4 @@
             [selectedAttributeId]="selectedAttributeId$ | async">
     </schema>
   </div>
-</div>
-<div *ngIf="! (getDetailsInfo() | async)">
-  <br/>
-  <execution-plan-details></execution-plan-details>
 </div>
