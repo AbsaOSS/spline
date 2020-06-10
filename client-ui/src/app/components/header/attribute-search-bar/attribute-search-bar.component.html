@@ -31,11 +31,13 @@
     </div>
 </ng-template>
 
-<!-- [inputFormatter] is used because there is no onSelect available -->
-<input [inputFormatter]="onItemSelected"
-       [ngbTypeahead]="search"
-       [resultTemplate]="rt"
-       class="form-control"
-       placeholder="Search for an attribute..."
-       type="text"
-/>
+<div class="app-attribute-search-bar">
+    <!-- [inputFormatter] is used because there is no onSelect available -->
+    <input [inputFormatter]="onItemSelected"
+           [ngbTypeahead]="search"
+           [resultTemplate]="rt"
+           class="form-control"
+           placeholder="Search for an attribute..."
+           type="text"
+    />
+</div>

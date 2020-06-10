@@ -2,7 +2,7 @@
     "plugins": ["stylelint-scss"],
     "extends": ["stylelint-config-sass-guidelines"],
     "rules": {
-        "indentation": 2,
+        "indentation": 4,
         "number-leading-zero": null,
         "block-no-empty": null,
         "selector-pseudo-element-no-unknown": [
