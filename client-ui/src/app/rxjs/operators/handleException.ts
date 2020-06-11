@@ -32,5 +32,5 @@ export const handleException = (store: Store<AppState>) => (source: Observable<a
 function handleError(err: HttpErrorResponse): string {
     return (err.error instanceof ErrorEvent)
         ? `An error occurred: ${err.error.message}`
-        : `Server returned code: ${err.status}, error message is: ${err.message}`
+        : `Server returned code: ${err.status}. Http failure response for ${err.url}`
 }
