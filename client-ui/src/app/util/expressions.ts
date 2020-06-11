@@ -21,13 +21,13 @@ import * as _ from 'lodash'
 export function getName(expr: IExpression, attributeList: any): string {
     switch (getType(expr)) {
         case ExpressionType.Literal: {
-            return ExpressionType.Literal.toLowerCase()
+            return (<ILiteral>expr).value
         }
         case ExpressionType.Binary: {
             return (<IBinary>expr).symbol
         }
         case ExpressionType.Alias: {
-            return ExpressionType.Alias.toLowerCase()
+            return (<IAlias>expr).alias
         }
         case ExpressionType.UDF: {
             return `UDF:${(<IUDF>expr).name}`
@@ -79,7 +79,7 @@ export function getText(expr: IExpression, attributeList: any): string {
     }
 }
 
-function getType(attribute: any): string {
+export function getType(attribute: any): ExpressionType {
     return attribute._typeHint
 }
 

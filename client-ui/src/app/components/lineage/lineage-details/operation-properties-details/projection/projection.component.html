@@ -23,7 +23,7 @@
         <div *ngFor="let property of properties ;let i=index">
           <div *ngIf="property.type===PropertyType.Transformations"><a href=""
               (click)="openExprViewDialog($event, property)">
-              <i class='transformation-prexif'>λ = </i><code>{{property.value}}</code></a></div>
+              <code class='expression-icon'>{{property.value}}</code></a></div>
         </div>
       </div>
     </mat-expansion-panel>
