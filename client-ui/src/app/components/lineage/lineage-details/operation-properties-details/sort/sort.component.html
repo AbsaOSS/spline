@@ -19,7 +19,7 @@
     </mat-expansion-panel-header>
     <div *ngFor="let property of properties ;let i=index">
         <a href="" (click)="openExprViewDialog($event, property)">
-            <code>{{property.value}}</code>
+            <code class='expression-icon'>{{property.value}}</code>
         </a>
     </div>
 </mat-expansion-panel>

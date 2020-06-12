@@ -22,7 +22,7 @@
     <div *ngFor="let property of properties ;let i=index">
       <div *ngIf="property.type===PropertyType.Aggregate">
         <a href="" (click)="openExprViewDialog($event, property)">
-          <i class='transformation-prexif'>Σ = </i><code>{{property.value}}</code>
+          <code class='expression-icon'>{{property.value}}</code>
         </a>
       </div>
     </div>
@@ -37,7 +37,7 @@
     <div *ngFor="let property of properties ;let i=index">
       <div *ngIf="property.type===PropertyType.Grouping">
         <a href="" (click)="openExprViewDialog($event, property)">
-          <i class='transformation-prexif'>[] = </i><code>{{property.value}}</code>
+          <code class='expression-icon'>{{property.value}}</code>
         </a>
       </div>
     </div>
