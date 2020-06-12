@@ -56,6 +56,22 @@
 
 </div>
 
+<!-- EXTRA PROPS :: EXPRESSION -->
+<ng-container *ngIf="extraProperties?.expression?.length">
+  <mat-expansion-panel [expanded]="true" *ngFor="let property of extraProperties.expression">
+    <mat-expansion-panel-header>
+      <i aria-hidden="true" class="fa fa-xs fa-info-circle text-success"></i>
+      {{property.label}}
+    </mat-expansion-panel-header>
+    <div>
+      <a href="" (click)="openPropertyExprViewDialog($event, property)">
+        <code class='expression-icon'>{{property.value.value}}</code>
+      </a>
+    </div>
+  </mat-expansion-panel>
+</ng-container>
+<!-- EXTRA PROPS :: EXPRESSION -->
+
 <!-- EXTRA PROPS :: JSON -->
 <ng-container *ngIf="extraProperties?.json?.length">
   <app-operation-property-json *ngFor="let property of extraProperties.json"

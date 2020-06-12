@@ -34,7 +34,7 @@ export class GenericComponent extends PropertiesComponent {
       'name'
     ]
     const noDefaultProps = _.omit(props, defaultProps)
-    this.extraProperties = OperationProperty.parseExtraOptions(noDefaultProps)
+    this.extraProperties = OperationProperty.parseExtraOptions(noDefaultProps, this.attributesList)
   }
 
 }

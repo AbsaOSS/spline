@@ -59,7 +59,6 @@ import { LogicalRelationComponent } from './components/lineage/lineage-details/o
 import { OperationPropertyJsonComponent } from './components/lineage/lineage-details/operation-properties-details/operation-property-json/operation-property-json.component'
 import { OperationPropertiesDetailsComponent } from './components/lineage/lineage-details/operation-properties-details/operation-properties-details.component'
 import { ProjectionComponent } from './components/lineage/lineage-details/operation-properties-details/projection/projection.component'
-import { PropertiesComponent } from './components/lineage/lineage-details/operation-properties-details/properties/properties.component'
 import { SortComponent } from './components/lineage/lineage-details/operation-properties-details/sort/sort.component'
 import { SchemaTableComponent } from './components/lineage/lineage-details/schema-table/schema-table.component'
 import { SchemaComponent } from './components/lineage/lineage-details/schema/schema.component'
@@ -128,7 +127,6 @@ const ROOT_ROUTING = 'app/'
     OperationPropertiesDetailsComponent,
     SchemaTableComponent,
     JoinComponent,
-    PropertiesComponent,
     ProjectionComponent,
     LineageOverviewComponent,
     LineageOverviewDetailsComponent,
@@ -155,7 +153,6 @@ const ROOT_ROUTING = 'app/'
   entryComponents: [
     ModalExpressionComponent,
     SchemaTableComponent,
-    PropertiesComponent,
     PropertyErrorComponent,
     WriteComponent,
     AliasComponent,
