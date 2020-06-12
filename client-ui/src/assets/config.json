@@ -1,4 +1,4 @@
 {
-    "apiUrl": "https://opensource.bigusdatus.com/spline/rest/consumer",
+    "apiUrl": "http://localhost:8080/consumer",
     "embeddedMode": false
 }
