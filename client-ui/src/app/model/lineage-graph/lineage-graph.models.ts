@@ -35,6 +35,13 @@ export const selectedNodeStyles = {
 
 export const cyStyles: Partial<Stylesheet>[] = [
   {
+    selector: 'core',
+    style: {
+      'active-bg-size': 0
+    },
+  } as Stylesheet,
+  {
+
     selector: 'node',
     style: {
       'background-color': '#fff',
