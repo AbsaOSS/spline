@@ -41,11 +41,10 @@
 <!-- ./EXTRA PROPS :: PRIMITIVE -->
 
 <!-- EXTRA PROPS :: EXPRESSION -->
-<ng-container *ngIf="extraProperties?.expression?.length">
-  <app-extra-properties-expression [properties]="extraProperties.expression"
-                                   (valueClicked$)="openPropertyExprViewDialog($event.property)">
-  </app-extra-properties-expression>
-</ng-container>
+<app-extra-properties-expression *ngIf="extraProperties?.expression?.length"
+                                 [properties]="extraProperties.expression"
+                                 (valueClicked$)="openPropertyExprViewDialog($event.property)">
+</app-extra-properties-expression>
 <!-- EXTRA PROPS :: EXPRESSION -->
 
 <!-- EXTRA PROPS :: JSON -->
