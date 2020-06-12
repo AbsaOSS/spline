@@ -20,11 +20,11 @@ declare const __APP_VERSION__: string
 
 
 @Component({
-  selector: 'app-footer',
-  templateUrl: './footer.component.html',
-  styleUrls: ['./footer.component.less']
+  selector: 'spline-watermark',
+  templateUrl: './watermark.component.html',
+  styleUrls: ['./watermark.component.less']
 })
-export class FooterComponent {
+export class WatermarkComponent {
 
   constructor(
   ) { }
