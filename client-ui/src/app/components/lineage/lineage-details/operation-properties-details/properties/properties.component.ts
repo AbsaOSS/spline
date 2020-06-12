@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnDestroy } from '@angular/core'
+import { Input, OnDestroy } from '@angular/core'
 import { Store } from '@ngrx/store'
 import { Subscription } from 'rxjs'
 import { ModalExpressionComponent } from 'src/app/components/modal/modal-expression/modal-expression.component'
@@ -25,7 +25,7 @@ import { AttributeVM } from '../../../../../model/viewModels/attributeVM'
 import { OperationProperty } from '../../../../../model/operation/operation-property.models'
 
 
-export abstract class PropertiesComponent implements OnDestroy {
+export class PropertiesComponent implements OnDestroy {
 
   constructor(private store: Store<AppState>) {
   }
@@ -56,8 +56,11 @@ export abstract class PropertiesComponent implements OnDestroy {
     return this.properties.filter(p => p.type === propertyType).length > 0
   }
 
-  openExprViewDialog(event: Event, property: Property): void {
-    event.preventDefault()
+  openExprViewDialog(property: Property, event?: Event): void {
+    if (event) {
+      event.preventDefault()
+    }
+
     this.subscriptions.push(
       this.store
         .select('executedLogicalPlan', 'executionPlan', 'extra', 'attributes')
@@ -72,12 +75,12 @@ export abstract class PropertiesComponent implements OnDestroy {
     )
   }
 
-  openPropertyExprViewDialog($event: MouseEvent, expressionProp: OperationProperty.ExtraPropertyValueExpression) {
+  openPropertyExprViewDialog(expressionProp: OperationProperty.ExtraPropertyValueExpression) {
     // PropertyType.Join does not play any role here
     const property = new Property(
       PropertyType.Join, expressionProp.value.value, expressionProp.value.rawValue
     )
-    this.openExprViewDialog($event, property)
+    this.openExprViewDialog(property)
   }
 
   ngOnDestroy(): void {

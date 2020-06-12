@@ -58,17 +58,9 @@
 
 <!-- EXTRA PROPS :: EXPRESSION -->
 <ng-container *ngIf="extraProperties?.expression?.length">
-  <mat-expansion-panel [expanded]="true" *ngFor="let property of extraProperties.expression">
-    <mat-expansion-panel-header>
-      <i aria-hidden="true" class="fa fa-xs fa-info-circle text-success"></i>
-      {{property.label}}
-    </mat-expansion-panel-header>
-    <div>
-      <a href="" (click)="openPropertyExprViewDialog($event, property)">
-        <code class='expression-icon'>{{property.value.value}}</code>
-      </a>
-    </div>
-  </mat-expansion-panel>
+  <app-extra-properties-expression [properties]="extraProperties.expression"
+                                   (valueClicked$)="openPropertyExprViewDialog($event.property)">
+  </app-extra-properties-expression>
 </ng-container>
 <!-- EXTRA PROPS :: EXPRESSION -->
 

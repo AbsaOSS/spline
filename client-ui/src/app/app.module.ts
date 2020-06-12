@@ -97,6 +97,7 @@ import { attributeLineageAndImpactReducer } from './store/reducers/attribute-lin
 import { AttributeLineageAndImpactEffects } from './effects/attribute-lineage-and-impact.effects'
 import { AttributeSearchBarComponent } from './components/header/attribute-search-bar/attribute-search-bar.component'
 import { NgxJsonViewerModule } from 'ngx-json-viewer'
+import { ExtraPropertiesExpressionComponent } from './components/lineage/lineage-details/operation-properties-details/extra-properties/extra-properties-expression.component'
 
 
 export function initializeApp(store: Store<AppState>): () => Promise<any> {
@@ -148,7 +149,8 @@ const ROOT_ROUTING = 'app/'
     AliasComponent,
     PropertyErrorComponent,
     AttributeSearchBarComponent,
-    OperationPropertyJsonComponent
+    OperationPropertyJsonComponent,
+    ExtraPropertiesExpressionComponent
   ],
   entryComponents: [
     ModalExpressionComponent,

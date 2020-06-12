@@ -94,9 +94,12 @@ export namespace OperationProperty {
             extraProperties.primitive.push(primitivePropValue)
           }
           else if (typeof value === 'object' && isExpresionProperty(value)) {
-            extraProperties.expression.push(
-              decorateExpressionProperty(primitivePropValue, attributesList)
-            )
+            try {
+              const decoratedValue = decorateExpressionProperty(primitivePropValue, attributesList)
+              extraProperties.expression.push(decoratedValue)
+            } catch (e) {
+              console.error(`Expresion decoration error`, e)
+            }
           }
           else if (Array.isArray(value) || typeof value === 'object') {
             extraProperties.json.push(
