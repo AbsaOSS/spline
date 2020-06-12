@@ -39,7 +39,7 @@ export class LineageOverviewDetailsComponent {
   readonly executedLogicalPlan$: Observable<ExecutedLogicalPlanVM>
 
   readonly lineageInfo$: Observable<{
-    targetNodeName: string;
+    targetNodeName: string
     executionEventId: string
     [key: string]: any
   }>
