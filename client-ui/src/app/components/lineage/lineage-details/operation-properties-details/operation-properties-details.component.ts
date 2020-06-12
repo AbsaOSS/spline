@@ -35,8 +35,9 @@ import { AttributeVM } from 'src/app/model/viewModels/attributeVM'
 import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM'
 import { getOperationColor, getOperationIcon } from 'src/app/util/execution-plan'
 import { getText } from 'src/app/util/expressions'
-import { PropertiesComponent } from './properties/properties.component'
+import { ExecutedLogicalPlanVM } from '../../../../model/viewModels/executedLogicalPlanVM'
 import * as RouterAction from '../../../../store/actions/router.actions'
+import { PropertiesComponent } from './properties/properties.component'
 
 
 @Component({
@@ -46,23 +47,27 @@ import * as RouterAction from '../../../../store/actions/router.actions'
 })
 export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDestroy {
 
-  @ViewChildren('propertiesPanel', { read: ViewContainerRef })
-  propertiesPanel: QueryList<ViewContainerRef>
-
   constructor(
     private componentFactoryResolver: ComponentFactoryResolver,
     private changeDetectorRef: ChangeDetectorRef,
     private store: Store<AppState>) {
+
+    this.executedLogicalPlan$ = this.store.select('executedLogicalPlan')
   }
 
-  public selectedAttributeId$ =
+  @ViewChildren('propertiesPanel', { read: ViewContainerRef })
+  propertiesPanel: QueryList<ViewContainerRef>
+
+  readonly executedLogicalPlan$: Observable<ExecutedLogicalPlanVM>
+
+  selectedAttributeId$ =
     this.store.select('router', 'state', 'queryParams', 'attribute')
 
-  public onSelectedAttributeIdChange(attrId: string) {
+  private subscriptions: Subscription[] = []
+
+  onSelectedAttributeIdChange(attrId: string) {
     this.store.dispatch(new RouterAction.Go({ queryParams: { 'attribute': attrId }, url: null }))
   }
-
-  private subscriptions: Subscription[] = []
 
   public ngAfterViewInit(): void {
     this.subscriptions.push(
@@ -127,7 +132,7 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
 
   private getProperties(operationDetails: OperationDetailsVM, attributeList: any): Property[] {
     const opInfoProperties = operationDetails.operation.properties
-    let properties = []
+    const properties = []
 
     if (operationDetails.operation._type == OperationType.Write) {
       properties.push(new Property(PropertyType.SourceType, opInfoProperties.destinationType))
@@ -208,7 +213,7 @@ export class OperationPropertiesDetailsComponent implements AfterViewInit, OnDes
 
   public getInputSchemas = (operationDetails: OperationDetailsVM): AttributeVM[] => {
     if (operationDetails) {
-      let inputSchemas = []
+      const inputSchemas = []
       operationDetails.inputs.forEach(input => {
         inputSchemas.push(operationDetails.schemas[input])
       })
