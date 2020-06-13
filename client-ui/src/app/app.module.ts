@@ -59,7 +59,6 @@ import { LogicalRelationComponent } from './components/lineage/lineage-details/o
 import { OperationPropertyJsonComponent } from './components/lineage/lineage-details/operation-properties-details/operation-property-json/operation-property-json.component'
 import { OperationPropertiesDetailsComponent } from './components/lineage/lineage-details/operation-properties-details/operation-properties-details.component'
 import { ProjectionComponent } from './components/lineage/lineage-details/operation-properties-details/projection/projection.component'
-import { PropertiesComponent } from './components/lineage/lineage-details/operation-properties-details/properties/properties.component'
 import { SortComponent } from './components/lineage/lineage-details/operation-properties-details/sort/sort.component'
 import { SchemaTableComponent } from './components/lineage/lineage-details/schema-table/schema-table.component'
 import { SchemaComponent } from './components/lineage/lineage-details/schema/schema.component'
@@ -98,6 +97,7 @@ import { attributeLineageAndImpactReducer } from './store/reducers/attribute-lin
 import { AttributeLineageAndImpactEffects } from './effects/attribute-lineage-and-impact.effects'
 import { AttributeSearchBarComponent } from './components/header/attribute-search-bar/attribute-search-bar.component'
 import { NgxJsonViewerModule } from 'ngx-json-viewer'
+import { ExtraPropertiesExpressionComponent } from './components/lineage/lineage-details/operation-properties-details/extra-properties/extra-properties-expression.component'
 
 
 export function initializeApp(store: Store<AppState>): () => Promise<any> {
@@ -128,7 +128,6 @@ const ROOT_ROUTING = 'app/'
     OperationPropertiesDetailsComponent,
     SchemaTableComponent,
     JoinComponent,
-    PropertiesComponent,
     ProjectionComponent,
     LineageOverviewComponent,
     LineageOverviewDetailsComponent,
@@ -150,12 +149,12 @@ const ROOT_ROUTING = 'app/'
     AliasComponent,
     PropertyErrorComponent,
     AttributeSearchBarComponent,
-    OperationPropertyJsonComponent
+    OperationPropertyJsonComponent,
+    ExtraPropertiesExpressionComponent
   ],
   entryComponents: [
     ModalExpressionComponent,
     SchemaTableComponent,
-    PropertiesComponent,
     PropertyErrorComponent,
     WriteComponent,
     AliasComponent,

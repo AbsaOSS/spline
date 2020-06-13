@@ -40,6 +40,13 @@
 </div>
 <!-- ./EXTRA PROPS :: PRIMITIVE -->
 
+<!-- EXTRA PROPS :: EXPRESSION -->
+<app-extra-properties-expression *ngIf="extraProperties?.expression?.length"
+                                 [properties]="extraProperties.expression"
+                                 (valueClicked$)="openPropertyExprViewDialog($event.property)">
+</app-extra-properties-expression>
+<!-- EXTRA PROPS :: EXPRESSION -->
+
 <!-- EXTRA PROPS :: JSON -->
 <ng-container *ngIf="extraProperties?.json?.length">
   <app-operation-property-json *ngFor="let property of extraProperties.json"

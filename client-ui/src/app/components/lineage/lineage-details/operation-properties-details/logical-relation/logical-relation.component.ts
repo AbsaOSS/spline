@@ -47,7 +47,7 @@ export class LogicalRelationComponent extends PropertiesComponent {
       'name', 'sourceType', 'inputSources'
     ]
     const noDefaultProps = _.omit(props, defaultProps)
-    this.extraProperties = OperationProperty.parseExtraOptions(noDefaultProps)
+    this.extraProperties = OperationProperty.parseExtraOptions(noDefaultProps, this.attributesList)
   }
 
 }
