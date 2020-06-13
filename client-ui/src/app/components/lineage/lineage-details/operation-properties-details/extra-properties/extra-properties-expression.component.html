@@ -18,9 +18,9 @@
         <i aria-hidden="true" class="fa fa-xs fa-info-circle text-success"></i>
         {{property.label}}
     </mat-expansion-panel-header>
-    <div>
-        <a href="" (click)="onValueClicked($event, property)">
-            <code class='expression-icon'>{{property.value.value}}</code>
+    <div *ngFor="let expr of property.value">
+        <a href="" (click)="onValueClicked($event, expr)">
+            <code class='expression-icon'>{{expr.value}}</code>
         </a>
     </div>
 </mat-expansion-panel>

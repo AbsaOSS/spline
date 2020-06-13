@@ -33,7 +33,7 @@ export class ModalExpressionComponent implements AfterContentInit {
     this.exprTree = this.buildExprTree()
   }
 
-  private data: any
+  private expression: IExpression
   private attributes: any
   public exprTree: any[]
 
@@ -54,7 +54,7 @@ export class ModalExpressionComponent implements AfterContentInit {
       return children && children.map(buildNode)
     }
 
-    return [buildNode(this.data.metadata)]
+    return [buildNode(this.expression)]
   }
 
 

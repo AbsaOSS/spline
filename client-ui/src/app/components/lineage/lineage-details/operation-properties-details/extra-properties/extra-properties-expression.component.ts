@@ -25,10 +25,10 @@ export class ExtraPropertiesExpressionComponent {
 
   @Input() properties: OperationProperty.ExtraPropertyValueExpression[]
 
-  @Output() valueClicked$ = new EventEmitter<{ property: OperationProperty.ExtraPropertyValueExpression }>()
+  @Output() expressionClicked$ = new EventEmitter<OperationProperty.ExpressionValue>()
 
-  onValueClicked($event: MouseEvent, property: OperationProperty.ExtraPropertyValueExpression) {
+  onValueClicked($event: MouseEvent, exprValue: OperationProperty.ExpressionValue) {
     $event.preventDefault()
-    this.valueClicked$.emit({ property })
+    this.expressionClicked$.emit(exprValue)
   }
 }
