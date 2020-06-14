@@ -29,5 +29,5 @@ export class WatermarkComponent {
   constructor(
   ) { }
 
-  appVersion: string = __APP_VERSION__
+  readonly appVersion: string = __APP_VERSION__
 }

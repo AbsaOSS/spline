@@ -55,10 +55,10 @@ export namespace OperationProperty {
             return {...acc, primitive: [...acc.primitive, primitiveValue]}
           }
           else if (typeof value === 'object' && isExpresionProperty(value)) {
-            return {...acc, expression: [...acc.expression, expressionValue(key, [value], attributesList)]}
+            return {...acc, expression: [...acc.expression, toExpressionValue(key, [value], attributesList)]}
           }
           else if (typeof Array.isArray(value) && value.length && isExpresionProperty(value[0])) {
-            return {...acc, expression: [...acc.expression, expressionValue(key, value, attributesList)]}
+            return {...acc, expression: [...acc.expression, toExpressionValue(key, value, attributesList)]}
           }
           else {
             const jsonValue: ExtraPropertyValueJson = {
@@ -76,7 +76,7 @@ export namespace OperationProperty {
       )
   }
 
-  function expressionValue(key: string, exprs: Record<string, any>[], attrs: AttributeVM[]): ExtraPropertyValueExpression {
+  function toExpressionValue(key: string, exprs: Record<string, any>[], attrs: AttributeVM[]): ExtraPropertyValueExpression {
     return {
       label: humanizeCase(key),
       value: exprs.map(e => ({

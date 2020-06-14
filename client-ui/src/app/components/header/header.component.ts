@@ -34,7 +34,7 @@ export class HeaderComponent {
     private store: Store<AppState>
   ) { }
 
-  appVersion: string = __APP_VERSION__
+  readonly appVersion: string = __APP_VERSION__
 
   public isActive = (name: string): Observable<boolean> => {
     return this.isSelectedMenuItem(name)
