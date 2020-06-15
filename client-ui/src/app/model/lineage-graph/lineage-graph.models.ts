@@ -60,6 +60,12 @@ export const cyStyles: Partial<Stylesheet>[] = [
     },
   } as Stylesheet,
   {
+    selector: 'node.root',
+    style: {
+      'background-color': '#333333',
+    },
+  } as Stylesheet,
+  {
     selector: 'node.hlt_prim',
     style: {
       'border-color': LINE_COLOR_HLT_PRIMARY,

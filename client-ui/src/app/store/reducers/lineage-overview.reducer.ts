@@ -35,6 +35,7 @@ export const lineageOverviewIconCodes: Map<string, number> = new Map([
 
 
 export const lineageOverviewColorCodes: Map<string, string> = new Map([
+  [LineageOverviewNodeType.Root, "#ffffff"],
   [LineageOverviewNodeType.Execution, "#e39255"],
   [LineageOverviewNodeType.DataSource, "#337AB7"]
 ])
