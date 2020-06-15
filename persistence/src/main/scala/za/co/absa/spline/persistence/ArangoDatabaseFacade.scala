@@ -18,6 +18,7 @@ package za.co.absa.spline.persistence
 
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
+import java.util.concurrent.ExecutionException
 
 import com.arangodb.async.{ArangoDBAsync, ArangoDatabaseAsync}
 import com.arangodb.velocypack.module.scala.VPackScalaModule
@@ -50,7 +51,11 @@ class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL) extends Disposabl
     arangoBuilder.build
   }
 
-  val db: ArangoDatabaseAsync = arango.db(dbName)
+  val db: ArangoDatabaseAsync = {
+    val db = arango.db(dbName)
+    ArangoDatabaseFacade.workAroundArangoAsyncBug(db)
+    db
+  }
 
   override def destroy(): Unit = arango.shutdown()
 }
@@ -75,5 +80,15 @@ object ArangoDatabaseFacade {
     }
   }
 
+  def workAroundArangoAsyncBug(db: ArangoDatabaseAsync): Unit = {
+    try {
+      db.getInfo.get
+    } catch {
+      // The first call sometime fails with a CCE due to a bug in ArangoDB Java Driver
+      // see: https://github.com/arangodb/arangodb-java-driver-async/issues/21
+      case ee: ExecutionException if ee.getCause.isInstanceOf[ClassCastException] =>
+        db.getInfo.get
+    }
+  }
 }
 

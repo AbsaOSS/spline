@@ -13,13 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
-import { PropertiesComponent } from '../properties/properties.component';
+import { Component, Input } from '@angular/core'
+import { OperationProperty } from '../../../../../model/operation/operation-property.models'
+import { PropertiesComponent } from '../properties/properties.component'
+import * as _ from 'lodash'
+import ExtraProperties = OperationProperty.ExtraProperties
+import NativeProperties = OperationProperty.NativeProperties
+
+
+export type LogicalRelationNativeProperties =
+  & NativeProperties
+  &
+  {
+    sourceType: string
+    inputSources: string[]
+  }
 
 @Component({
   selector: 'app-logical-relation',
-  templateUrl: './logical-relation.component.html'
+  templateUrl: './logical-relation.component.html',
 })
 export class LogicalRelationComponent extends PropertiesComponent {
+
+  extraProperties: ExtraProperties
+  sourceType: string
+  inputSources: string[]
+
+  @Input() set nativeProperties(props: LogicalRelationNativeProperties) {
+    this.sourceType = props.sourceType
+    this.inputSources = props.inputSources
+
+    const defaultProps = [
+      'name', 'sourceType', 'inputSources'
+    ]
+    const noDefaultProps = _.omit(props, defaultProps)
+    this.extraProperties = OperationProperty.parseExtraOptions(noDefaultProps, this.attributesList)
+  }
 
 }

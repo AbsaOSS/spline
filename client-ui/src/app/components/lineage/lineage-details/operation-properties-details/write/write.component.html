@@ -13,14 +13,63 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<mat-expansion-panel [expanded]="true">
-    <mat-expansion-panel-header>
-        <i class="fa fa-xs" aria-hidden="true" [style.color]=getColor()>{{getIcon()}}</i> <strong> Write </strong>
-    </mat-expansion-panel-header>
-    <div *ngFor="let property of properties ;let i=index">
-        <li style="list-style-type:none;">
-            <span> {{property.type}}: </span>
-            <span style="color:#337ab7;">{{property.value}}</span>
+
+<div class="operation-info-section">
+
+  <!-- TITLE -->
+  <div class="operation-info-section__title">
+    <i [style.color]=getColor() aria-hidden="true" class="fa fa-xs">{{getIcon()}}</i>
+    Write To
+  </div>
+  <!-- ./TITLE -->
+
+  <!-- BODY -->
+  <div class="operation-info-section__body">
+
+    <!-- DEFAULT PROPS -->
+    <div class="operation-property">
+      <span class="operation-property__label">Output Sources</span>:
+      <ul>
+        <li>
+          <div class="operation-property__value">{{outputSource.split('/').slice(-1)[0]}}</div>
+          <div class="small">{{outputSource}}</div>
         </li>
+      </ul>
     </div>
-</mat-expansion-panel>
+
+    <div *ngFor="let property of properties" class="operation-property">
+      <span class="operation-property__label">{{property.type}}</span>:
+      <span class="operation-property__value">{{property.value}}</span>
+    </div>
+    <!-- ./DEFAULT PROPS -->
+
+    <!-- EXTRA PROPS :: PRIMITIVE -->
+    <ng-container *ngIf="extraProperties?.primitive?.length">
+      <div *ngFor="let property of extraProperties.primitive" class="operation-property">
+        <span class="operation-property__label">{{property.label}}</span>:
+        <span class="operation-property__value">{{property.value}}</span>
+      </div>
+    </ng-container>
+    <!-- ./EXTRA PROPS :: PRIMITIVE -->
+
+  </div>
+  <!-- ./BODY -->
+
+</div>
+
+<!-- EXTRA PROPS :: EXPRESSION -->
+<app-extra-properties-expression *ngIf="extraProperties?.expression?.length"
+                                 [properties]="extraProperties.expression"
+                                 (expressionClicked$)="openExprViewDialog($event.rawValue)">
+</app-extra-properties-expression>
+<!-- EXTRA PROPS :: EXPRESSION -->
+
+<!-- EXTRA PROPS :: JSON -->
+<ng-container *ngIf="extraProperties?.json?.length">
+  <app-operation-property-json *ngFor="let property of extraProperties.json"
+                               [label]="property.label"
+                               [value]="property.value">
+  </app-operation-property-json>
+</ng-container>
+<!-- EXTRA PROPS :: JSON -->
+

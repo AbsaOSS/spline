@@ -72,10 +72,14 @@
         const graphBuilder = new GraphBuilder([startSource]);
 
         function traverse(event, depth) {
+            let remainingDepth = depth - 1;
             if (depth > 1) {
                 db._query(aql`RETURN SPLINE::OBSERVED_WRITES_BY_READ(${event})`)
                     .next()
-                    .forEach(writeEvent => traverse(writeEvent, depth - 1))
+                    .forEach(writeEvent => {
+                        const remainingDepth_i = traverse(writeEvent, depth - 1);
+                        remainingDepth = Math.min(remainingDepth, remainingDepth_i);
+                    })
             }
             const partialGraph = db._query(aql`
                 LET exec = FIRST(FOR ex IN 1 OUTBOUND ${event} progressOf RETURN ex)
@@ -115,10 +119,16 @@
             `).next();
 
             graphBuilder.add(partialGraph);
+            return remainingDepth;
         }
 
-        if (maxDepth > 0) traverse(startEvent, maxDepth);
+        const remainingDepth = maxDepth > 0 ? traverse(startEvent, maxDepth) : 0;
+        const resultedGraph = graphBuilder.graph();
 
-        return graphBuilder.graph()
+        return {
+            depth: maxDepth - remainingDepth,
+            vertices: resultedGraph.vertices,
+            edges: resultedGraph.edges
+        }
     }
 })()

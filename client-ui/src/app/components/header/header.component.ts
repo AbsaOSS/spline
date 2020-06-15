@@ -21,6 +21,8 @@ import {AppState} from 'src/app/model/app-state';
 import {RouterStateUrl} from 'src/app/model/routerStateUrl';
 import * as RouterAction from 'src/app/store/actions/router.actions';
 
+declare const __APP_VERSION__: string
+
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
@@ -31,6 +33,8 @@ export class HeaderComponent {
   constructor(
     private store: Store<AppState>
   ) { }
+
+  readonly appVersion: string = __APP_VERSION__
 
   public isActive = (name: string): Observable<boolean> => {
     return this.isSelectedMenuItem(name)

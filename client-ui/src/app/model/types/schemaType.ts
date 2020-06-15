@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export const enum SchemaType {
+export enum SchemaType {
     Input = 0,
     Output = 1
 }

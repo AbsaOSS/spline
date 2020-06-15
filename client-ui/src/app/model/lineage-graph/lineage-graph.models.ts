@@ -14,27 +14,34 @@
  * limitations under the License.
  */
 
-import { Stylesheet } from 'cytoscape';
+import { Stylesheet } from 'cytoscape'
 
 
-export const LINE_WIDTH_PLANE = 10;
-export const LINE_WIDTH_HIGHLIGHTED = 10;
-export const LINE_WIDTH_SELECTED = 16;
-export const LINE_COLOR_PLANE = '#f0f0f0';
-export const LINE_COLOR_SELECTED = 'orange';
-export const LINE_COLOR_HLT_PRIMARY = 'black';
-export const LINE_COLOR_HLT_LINEAGE = 'magenta';
-export const LINE_COLOR_HLT_IMPACT = 'green';
-export const LINE_COLOR_HLT_NONE = '#f5f5f5';
+export const LINE_WIDTH_PLANE = 10
+export const LINE_WIDTH_HIGHLIGHTED = 10
+export const LINE_WIDTH_SELECTED = 16
+export const LINE_COLOR_PLANE = '#e0e0e0'
+export const LINE_COLOR_SELECTED = 'orange'
+export const LINE_COLOR_HLT_PRIMARY = 'black'
+export const LINE_COLOR_HLT_LINEAGE = 'magenta'
+export const LINE_COLOR_HLT_IMPACT = 'green'
+export const LINE_COLOR_HLT_NONE = '#eaeaea'
 
 export const selectedNodeStyles = {
   'border-color': LINE_COLOR_SELECTED,
   'border-width': LINE_WIDTH_SELECTED,
   'padding': 70,
-};
+}
 
 export const cyStyles: Partial<Stylesheet>[] = [
   {
+    selector: 'core',
+    style: {
+      'active-bg-size': 0
+    },
+  } as Stylesheet,
+  {
+
     selector: 'node',
     style: {
       'background-color': '#fff',
@@ -50,6 +57,12 @@ export const cyStyles: Partial<Stylesheet>[] = [
     selector: 'node:selected',
     style: {
       ...selectedNodeStyles
+    },
+  } as Stylesheet,
+  {
+    selector: 'node.root',
+    style: {
+      'background-color': '#333333',
     },
   } as Stylesheet,
   {
@@ -110,6 +123,9 @@ export const cyStyles: Partial<Stylesheet>[] = [
       'line-color': LINE_COLOR_PLANE,
       'target-arrow-color': LINE_COLOR_PLANE,
       'width': LINE_WIDTH_PLANE,
+      'curve-style': 'bezier',
+      'target-arrow-shape': 'triangle',
+      'arrow-scale': 1.5,
     },
     css: {
       'label': (el) => el.data('label') || '',

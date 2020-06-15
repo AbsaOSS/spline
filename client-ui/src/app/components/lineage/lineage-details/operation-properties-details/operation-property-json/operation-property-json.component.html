@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2019 ABSA Group Limited
+  ~ Copyright 2017 ABSA Group Limited
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,6 +13,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<div>
-  <a class="title small text-muted" href="https://github.com/AbsaOSS/spline">Powered by Spline | v. {{ appVersion }}</a>
-</div>
+<mat-expansion-panel [expanded]="true">
+    <mat-expansion-panel-header>
+        <i aria-hidden="true" class="fa fa-xs fa-info-circle text-success"></i>
+        {{label}}
+    </mat-expansion-panel-header>
+    <ngx-json-viewer [json]="value" [expanded]="false"></ngx-json-viewer>
+</mat-expansion-panel>

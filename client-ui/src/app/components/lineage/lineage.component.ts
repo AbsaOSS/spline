@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-import {Component, OnDestroy} from '@angular/core';
-import {Store} from "@ngrx/store";
-import {AppState} from "../../model/app-state";
-import {combineLatest, Observable, Subscription} from "rxjs";
-import * as LayoutAction from "../../store/actions/layout.actions";
-import * as _ from "lodash";
-import * as ExecutionPlanAction from "../../store/actions/execution-plan.actions";
-import {distinct, filter, map} from "rxjs/operators";
-import * as RouterAction from "../../store/actions/router.actions";
-import * as DetailsInfosAction from "../../store/actions/details-info.actions";
-import {AttributeVM} from "../../model/viewModels/attributeVM";
-import {AttributeLineageAndImpact} from "../../generated/models/attribute-lineage-and-impact";
-import {getImpactRootAttributeNode, LineageGraphLegend, LineageGraphLegends} from "../../model/lineage-graph";
-import {ExecutedLogicalPlanVM} from "../../model/viewModels/executedLogicalPlanVM";
-import {ExecutionPlanInfo} from "../../generated/models/execution-plan-info";
+import { Component, OnDestroy } from '@angular/core'
+import { Store } from '@ngrx/store'
+import { AppState } from '../../model/app-state'
+import { combineLatest, Observable, Subscription } from 'rxjs'
+import * as LayoutAction from '../../store/actions/layout.actions'
+import * as _ from 'lodash'
+import * as ExecutionPlanAction from '../../store/actions/execution-plan.actions'
+import { distinct, filter, map } from 'rxjs/operators'
+import * as RouterAction from '../../store/actions/router.actions'
+import * as DetailsInfosAction from '../../store/actions/details-info.actions'
+import { AttributeVM } from '../../model/viewModels/attributeVM'
+import { AttributeLineageAndImpact } from '../../generated/models/attribute-lineage-and-impact'
+import { getImpactRootAttributeNode, LineageGraphLegend, LineageGraphLegends } from '../../model/lineage-graph'
+import { ExecutedLogicalPlanVM } from '../../model/viewModels/executedLogicalPlanVM'
+import { ExecutionPlanInfo } from '../../generated/models/execution-plan-info'
 
 @Component({
   templateUrl: './lineage.component.html',

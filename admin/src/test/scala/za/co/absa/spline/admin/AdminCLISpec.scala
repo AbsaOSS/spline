@@ -25,7 +25,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.commons.scalatest.{ConsoleStubs, SystemExitFixture}
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
-import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoInit, OnDBExistsAction}
+import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManager, OnDBExistsAction}
 
 import scala.concurrent.Future
 
@@ -38,8 +38,8 @@ class AdminCLISpec
     with SystemExitFixture.Methods
     with ConsoleStubs {
 
-  private val arangoInitMock = mock[ArangoInit]
-  private val cli = new AdminCLI(arangoInitMock)
+  private val arangoManagerMock = mock[ArangoManager]
+  private val cli = new AdminCLI(arangoManagerMock)
 
 
   behavior of "AdminCLI"
@@ -59,11 +59,11 @@ class AdminCLISpec
     val actionFlgCaptor: ArgumentCaptor[OnDBExistsAction] = ArgumentCaptor.forClass(classOf[OnDBExistsAction])
 
     (when(
-      arangoInitMock.initialize(connUrlCaptor.capture, actionFlgCaptor.capture))
+      arangoManagerMock.initialize(connUrlCaptor.capture, actionFlgCaptor.capture))
       thenReturn Future.successful(true))
 
     (when(
-      arangoInitMock.upgrade(connUrlCaptor.capture))
+      arangoManagerMock.upgrade(connUrlCaptor.capture))
       thenReturn Future.successful({}))
 
     it should "when called with wrong options, print welcome message" in {
@@ -110,7 +110,7 @@ class AdminCLISpec
     }
 
     it must "not say DONE when it's not done" in {
-      when(arangoInitMock.upgrade(any())) thenReturn Future.failed(new Exception("Boom!"))
+      when(arangoManagerMock.upgrade(any())) thenReturn Future.failed(new Exception("Boom!"))
       assertingStdOut(not(include("DONE"))) {
         intercept[Exception] {
           cli.exec(Array("db-upgrade", "arangodb://foo/bar"))

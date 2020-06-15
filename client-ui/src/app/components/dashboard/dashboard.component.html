@@ -31,7 +31,7 @@
         </mat-slide-toggle>
       </div>
       <ngx-datatable #table class='table material expandable' [columnMode]="'force'" [headerHeight]="'auto'"
-        [footerHeight]="'auto'" [rowHeight]="'auto'" [scrollbarV]="false" [selectionType]="'single'"
+        [footerHeight]="'auto'" [rowHeight]="50" [scrollbarV]="false" [selectionType]="'single'"
         [loadingIndicator]="loadingIndicator.isActive" [rows]="executionEvents.items"
         [count]="executionEvents.totalCount" [externalPaging]="true" [offset]="dashboardState.pagination.page - 1"
         [limit]="dashboardState.pagination.size" [externalSorting]="true" [sorts]="[sort]" (page)="onPageChange($event)"

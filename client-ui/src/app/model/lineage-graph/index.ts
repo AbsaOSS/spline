@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-export * from './leneage-graph.models';
-export * from './leneage-graph-legend.models';
-export * from './attribute-leneage-and-impact.models';
+export * from './lineage-graph.models'
+export * from './lineage-graph-legend.models'
+export * from './attribute-leneage-and-impact.models'

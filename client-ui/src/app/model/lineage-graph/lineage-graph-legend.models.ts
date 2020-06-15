@@ -15,7 +15,7 @@
  */
 
 
-import {LINE_COLOR_HLT_IMPACT, LINE_COLOR_HLT_LINEAGE, LINE_COLOR_HLT_PRIMARY} from './leneage-graph.models';
+import {LINE_COLOR_HLT_IMPACT, LINE_COLOR_HLT_LINEAGE, LINE_COLOR_HLT_PRIMARY} from './lineage-graph.models';
 
 
 export type LineageGraphLegend = {
@@ -57,3 +57,4 @@ export const LineageGraphLegends: { [key in LineageGraphLegendKeys]: LineageGrap
       `
     }
   })
+

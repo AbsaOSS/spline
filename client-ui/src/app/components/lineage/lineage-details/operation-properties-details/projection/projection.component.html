@@ -20,10 +20,10 @@
         <i class="fa fa-xs" aria-hidden="true" [style.color]=getColor()>{{getIcon()}}</i> <strong> Transformations </strong>
       </mat-expansion-panel-header>
       <div>
-        <div *ngFor="let property of properties ;let i=index">
+        <div *ngFor="let property of properties">
           <div *ngIf="property.type===PropertyType.Transformations"><a href=""
-              (click)="openExprViewDialog($event, property)">
-              <i class='transformation-prexif'>λ = </i><code>{{property.value}}</code></a></div>
+              (click)="openExprViewDialog(property.metadata, $event)">
+              <code class='expression-icon'>{{property.value}}</code></a></div>
         </div>
       </div>
     </mat-expansion-panel>
@@ -37,7 +37,7 @@
         <i class="fa fa-xs" aria-hidden="true" [style.color]=getColor()>{{getIcon()}}</i> <strong> Dropped Attributes</strong>
       </mat-expansion-panel-header>
       <div>
-        <div *ngFor="let property of properties ;let i=index">
+        <div *ngFor="let property of properties">
           <div *ngIf="property.type===PropertyType.DroppedAttributes"><i class='dropped-attribute-prexif'>a =
             </i><del><code>{{property.value}}</code></del></div>
         </div>

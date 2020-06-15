@@ -15,31 +15,51 @@
   -->
 <div class="lineage-overview-container"
      [ngClass]="embeddedMode ? 'embeddedHeight' : 'fullHeight'">
-  <div *ngIf="(getLineageOverviewInfo() | async)" class="lineage-overview-details ">
-    <br/>
-    <h3 class="text-center"> Job Lineage </h3>
-    <br/>
-    <p>
-      <span class="lineage-overview-details-title">DataSource URI:</span>
-      {{ getTargetName() | async}}
-    </p>
+  <div *ngIf="lineageInfo$ | async as lineageInfo" class="lineage-overview-details ">
+    <h3 class="text-center pb-3 mt-3"> Execution Event </h3>
     <p>
       <span class="lineage-overview-details-title">Timestamp : </span>
-      {{ (getLineageOverviewInfo() | async)?.timestamp | date: 'yyyy-MM-dd HH:mm' }}
+      {{ lineageInfo?.timestamp | date: 'yyyy-MM-dd HH:mm' }}
     </p>
     <p>
       <span class="lineage-overview-details-title">Application ID:</span>
-      {{ (getLineageOverviewInfo() | async)?.applicationId }}
+      {{ lineageInfo?.applicationId }}
     </p>
-    <hr>
-    <execution-plan-details></execution-plan-details>
+    <p>
+      <strong>Output Source:</strong>
+    </p>
+    <ul>
+      <p>
+        <strong>URI:</strong> {{ lineageInfo.targetURI }}
+      </p>
+    </ul>
 
-    <div *ngIf="(getDetailsInfo() | async); let detailsInfo">
+    <div class="divider"></div>
+
+
+    <execution-plan-details *ngIf="executedLogicalPlan$ | async as executedLogicalPlan"
+                            [executedLogicalPlan]="executedLogicalPlan">
+    </execution-plan-details>
+
+    <!-- SELECTED DATA SOURCE INFO -->
+    <div class="mb-5" *ngIf="selectedNodeUrl$ | async as selectedNodeUrl">
+      <h3 class="text-center mb-3">
+        Data Source
+      </h3>
+      <p>
+        <span class="lineage-overview-details-title">URI:</span>
+        {{ selectedNodeUrl }}
+      </p>
+    </div>
+    <!-- ./SELECTED DATA SOURCE INFO -->
+
+    <div *ngIf="operationDetails$ | async as operationDetails">
       <div>
-        <schema [schemaType]=2
-                [schema]="getOutputSchema(detailsInfo)">
+        <schema [schemaType]="2"
+                [schema]="operationDetails.schemas[operationDetails.output]">
         </schema>
       </div>
     </div>
+
   </div>
 </div>

@@ -13,60 +13,61 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnDestroy } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { Subscription } from 'rxjs';
-import { ModalExpressionComponent } from 'src/app/components/modal/modal-expression/modal-expression.component';
-import { AppState } from 'src/app/model/app-state';
-import { Property, PropertyType, PropertyTypeAware } from 'src/app/model/property';
-import * as ModalAction from 'src/app/store/actions/modal.actions';
-import { getOperationColor, getOperationIcon } from 'src/app/util/execution-plan';
+import { Input, OnDestroy } from '@angular/core'
+import { Store } from '@ngrx/store'
+import { Subscription } from 'rxjs'
+import { ModalExpressionComponent } from 'src/app/components/modal/modal-expression/modal-expression.component'
+import { AppState } from 'src/app/model/app-state'
+import { Property, PropertyType } from 'src/app/model/property'
+import * as ModalAction from 'src/app/store/actions/modal.actions'
+import { getOperationColor, getOperationIcon } from 'src/app/util/execution-plan'
+import { AttributeVM } from '../../../../../model/viewModels/attributeVM'
+import { IExpression } from "../../../../../model/expression-model"
 
-@Component({
-  selector: 'properties',
-  template: ''
-})
 
-@PropertyTypeAware
 export class PropertiesComponent implements OnDestroy {
 
-  constructor(private store: Store<AppState>) { }
+  constructor(private store: Store<AppState>) {
+  }
 
   private subscriptions: Subscription[] = []
 
-  @Input()
-  public propertyType: string
+  @Input() propertyType: string
 
-  @Input()
-  public propertyName: string
+  @Input() attributesList: AttributeVM[]
 
-  @Input()
-  public properties: Property[]
+  @Input() nativeProperties: Record<string, any>
+
+  @Input() propertyName: string
+
+  @Input() properties: Property[]
 
   PropertyType = PropertyType
 
-  public getIcon(): string {
+  getIcon(): string {
     return getOperationIcon(this.propertyType, this.propertyName)
   }
 
-  public getColor(): string {
+  getColor(): string {
     return getOperationColor(this.propertyType, this.propertyName)
   }
 
-  public propertiesContain(propertyType: PropertyType): boolean {
-    return this.properties.filter(p => p.type == propertyType).length > 0
+  propertiesContain(propertyType: PropertyType): boolean {
+    return this.properties.filter(p => p.type === propertyType).length > 0
   }
 
-  public openExprViewDialog(event: Event, expression: Property): void {
-    event.preventDefault()
+  openExprViewDialog(expression: IExpression, event?: Event): void {
+    if (event) {
+      event.preventDefault()
+    }
+
     this.subscriptions.push(
       this.store
         .select('executedLogicalPlan', 'executionPlan', 'extra', 'attributes')
         .subscribe(attributes => {
           const initialState = {
-            data: expression,
-            attributes: attributes,
-            type: this.propertyName
+            expression: expression,
+            attributes: attributes
           }
           this.store.dispatch(new ModalAction.Open(ModalExpressionComponent, { initialState }))
         })

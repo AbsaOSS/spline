@@ -31,14 +31,18 @@ class LineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Lineag
     .queryOne[LineageOverview](
       """
         |LET executionEvent = FIRST(FOR p IN progress FILTER p._key == @eventId RETURN p)
+        |LET targetDataSource = FIRST(FOR ds IN 2 OUTBOUND executionEvent progressOf, affects RETURN ds)
         |LET lineageGraph = SPLINE::EVENT_LINEAGE_OVERVIEW(executionEvent, @maxDepth)
         |
         |RETURN lineageGraph && {
         |    "info": {
         |        "timestamp" : executionEvent.timestamp,
-        |        "applicationId" : executionEvent.extra.appId
+        |        "applicationId" : executionEvent.extra.appId,
+        |        "targetDataSourceId": targetDataSource._key
         |    },
         |    "graph": {
+        |        "depthRequested": @maxDepth,
+        |        "depthComputed": lineageGraph.depth || -1,
         |        "nodes": lineageGraph.vertices,
         |        "edges": lineageGraph.edges
         |    }

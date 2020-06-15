@@ -14,76 +14,178 @@
  * limitations under the License.
  */
 
- :host {
+:host {
+  /deep/ div.tree {
+    padding-left: 0;
+    margin-left: -5px;
 
-    /deep/ .node-wrapper {
+    div.tree-children {
       position: relative;
-      display: inline-block;
-  
-      ::before {
+      padding-left: 0;
+      margin-left: 16px;
+
+      &::before {
         content: "";
         position: absolute;
-        height: 13px;
-        width: 7px;
+        border-left: 1px dotted #23527c;
+        height: 100%;
+        top: -11px;
+        left: 5px;
       }
     }
-  
-    /deep/ .tree-children {
-      padding-left: 5px;
-    }
-  
-    /deep/ .tree-node-children {
-      padding-left: 15px;
-    }
-  
-    /deep/ .tree-node {
-  
-      padding-left: 10px;
-      border-left: 1px dotted #23527c;
-  
-    }
-  
-    /deep/ .node-content-wrapper {
-      ::before {
-        left: -10px;
+
+    tree-node > div {
+
+      > .node-wrapper {
+        margin-left: 24px;
+
+        > .node-content-wrapper {
+          margin-left: 4px;
+
+          tree-node-content {
+            margin-left: 30px;
+
+            .node-title {
+              color: red
+            }
+          }
+        }
+      }
+
+      &.tree-node-leaf > .node-wrapper {
+        margin-left: 0
+      }
+
+      &::before {
+        content: "";
+        position: absolute;
         border-bottom: 1px dotted #23527c;
-        width: 10px;
+        width: 7px;
+        margin-top: 12px;
+        left: 7px
       }
-      padding-top: 10px;
-      padding-left: 20px;
-      display: inline-block;
-      box-shadow: none;
-      opacity: 1 !important;
-      cursor: pointer;
-    }
-  
-    /deep/ .toggle-children-wrapper.toggle-children-wrapper-collapsed::after {
-      position: absolute;
-      top: 15px;
-      // Awesome plus-square
-      display: inline-block;
-      font: normal normal normal 15px/1 FontAwesome;
-      font-size: inherit;
-      text-rendering: auto;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      content: "\f0fe";
-    }
-  
-    /deep/ .toggle-children-wrapper.toggle-children-wrapper-expanded::after {
-      position: absolute;
-      top: 15px;
-      // Awesome minus-square
-      display: inline-block;
-      font: normal normal normal 15px/1 FontAwesome;
-      font-size: inherit;
-      text-rendering: auto;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      content: "\f146";
-    }
-  
-    /deep/ tree-viewport {
-      overflow: hidden;
+
+      .toggle-children-wrapper {
+        width: 13px;
+        height: 13px;
+        border: 1px solid #23527c;
+        position: absolute;
+        left: 15px;
+        margin-top: 5px;
+        margin-left: 0;
+        display: inline-block;
+        background-color: #fff;
+        z-index: 1;
+
+        &::before {
+          content: "";
+          display: inline-block;
+          width: 7px;
+          border-top: 1px solid #23527c;
+          position: absolute;
+          top: 5px;
+          left: 2px
+        }
+
+        &.toggle-children-wrapper-collapsed::after {
+          content: "";
+          display: inline-block;
+          height: 7px;
+          border-left: 1px solid #23527c;
+          position: absolute;
+          top: 2px;
+          left: 5px
+        }
+
+        .toggle-children {
+          display: none
+        }
+      }
+
+      .node-content-wrapper {
+        margin-left: 4px;
+
+        tree-node-content {
+          margin-left: 32px;
+
+          .node-title {
+            &::before,
+            &::after {
+              margin: 4px;
+            }
+
+            &.expr-Generic::before,
+            &.expr-GenericLeaf::before {
+              content: "f(x)";
+              color: dodgerblue;
+            }
+
+            &.expr-Union::before {
+              content: "⋃";
+              color: dodgerblue;
+            }
+
+            &.expr-UDF::before {
+              content: "UDF";
+              color: dodgerblue;
+            }
+
+            &.expr-Binary {
+              font-weight: bold;
+              color: dodgerblue;
+            }
+
+            &.expr-AttrRef {
+              font-weight: bold;
+
+              &::before {
+                -moz-osx-font-smoothing: grayscale;
+                -webkit-font-smoothing: antialiased;
+                display: inline-block;
+                font-style: normal;
+                font-variant: normal;
+                text-rendering: auto;
+                line-height: 1;
+                font-family: "Font Awesome 5 Free";
+                content: "\f02b";
+                color: darkcyan;
+                font-size: 12px;
+              }
+            }
+
+            &.expr-Alias {
+              font-weight: bold;
+
+              &::after {
+                -moz-osx-font-smoothing: grayscale;
+                -webkit-font-smoothing: antialiased;
+                display: inline-block;
+                font-style: normal;
+                font-variant: normal;
+                text-rendering: auto;
+                line-height: 1;
+                font-family: "Font Awesome 5 Free";
+                content: "\f52c";
+                color: darkcyan;
+                font-size: 12px;
+              }
+            }
+
+            &.expr-Literal {
+              color: magenta;
+              font-style: italic;
+
+              &::before {
+                content: '"'
+              }
+
+              &::after {
+                content: '"'
+              }
+            }
+          }
+        }
+      }
     }
   }
+}

@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {AppState} from 'src/app/model/app-state';
-import {Observable} from 'rxjs';
-import {OperationDetailsVM} from 'src/app/model/viewModels/operationDetailsVM';
-import {AttributeVM} from 'src/app/model/viewModels/attributeVM';
+import { Component, Input } from '@angular/core'
+import { Store } from '@ngrx/store'
+import { Observable } from 'rxjs'
+import { filter, map, switchMap, take } from 'rxjs/operators'
+import { AppState } from 'src/app/model/app-state'
+import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM'
+import { LineageOverviewNodeType } from '../../../model/types/lineageOverviewNodeType'
+import { ExecutedLogicalPlanVM } from '../../../model/viewModels/executedLogicalPlanVM'
+
 
 @Component({
   selector: 'lineage-overview-details',
@@ -27,25 +30,44 @@ import {AttributeVM} from 'src/app/model/viewModels/attributeVM';
 })
 export class LineageOverviewDetailsComponent {
 
-  @Input()
-  public embeddedMode: boolean
+  @Input() embeddedMode: boolean
 
-  constructor(private store: Store<AppState>) {
+  readonly selectedNodeUrl$: Observable<string | null>
+
+  readonly operationDetails$: Observable<OperationDetailsVM>
+
+  readonly executedLogicalPlan$: Observable<ExecutedLogicalPlanVM>
+
+  readonly lineageInfo$: Observable<{
+    targetURI: string
+    executionEventId: string
+    [key: string]: any
+  }>
+
+  constructor(private readonly store: Store<AppState>,) {
+
+    this.lineageInfo$ = this.store.select('lineageOverview', 'lineageInfo')
+    this.operationDetails$ = this.store.select('detailsInfos')
+    this.executedLogicalPlan$ = this.store.select('executedLogicalPlan')
+
+    this.selectedNodeUrl$ = this.store.select('router', 'state', 'queryParams', 'selectedNodeId')
+      .pipe(
+        switchMap((selectedNodeId) =>
+          this.store.select('lineageOverview', 'lineage')
+            .pipe(
+              filter(x => !!x),
+              take(1),
+              map(lineage => [selectedNodeId, lineage])
+            )),
+        map(([selectedNodeId, lineage]) => {
+          const node = lineage.nodes.find(x => x.data.id === selectedNodeId)
+          // node not fount || node is not DataSourceNode => no URL can be defined
+          if (!node || node.data._type !== LineageOverviewNodeType.DataSource) {
+            return null
+          }
+          return node.data._id
+        })
+      )
   }
 
-  public getLineageOverviewInfo = (): Observable<{ [key: string]: {} }> => {
-    return this.store.select('lineageOverview', "lineageInfo")
-  }
-
-  public getDetailsInfo = (): Observable<OperationDetailsVM> => {
-    return this.store.select('detailsInfos')
-  }
-
-  public getOutputSchema = (operationDetails: OperationDetailsVM): AttributeVM[] => {
-    return operationDetails.schemas[operationDetails.output]
-  }
-
-  public getTargetName = (): Observable<any> => {
-    return this.store.select("lineageOverview", "lineageInfo", "targetNodeName")
-  }
 }

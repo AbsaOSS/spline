@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
+.details-container {
+  overflow-wrap: break-word;
+}
+
 .details-title {
     padding-top: 10px;
     font-weight: bold;
     font-size  : 110%;
     color      : #555;
     text-align : center;
+    margin-bottom: 10px;
 }
 
 .execution-details-title {
@@ -33,4 +38,13 @@
   strong {
     font-weight: normal;
   }
+}
+
+/deep/ .expression-icon {
+    &::before {
+        font-size: 80%;
+        font-weight: bold;
+        color:lightseagreen;
+        content: "λ = ";
+    }
 }

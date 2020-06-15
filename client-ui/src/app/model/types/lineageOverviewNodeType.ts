@@ -17,5 +17,6 @@
 
 export const enum LineageOverviewNodeType {
     Execution = 'ExecutionNode',
-    DataSource = 'DataSourceNode'
+    DataSource = 'DataSourceNode',
+    Root = 'Root'
 }

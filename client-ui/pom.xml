@@ -22,7 +22,7 @@
     <groupId>za.co.absa.spline</groupId>
     <artifactId>package-pom</artifactId>
     <relativePath>../build/package-pom/pom.xml</relativePath>
-    <version>0.5.1</version>
+    <version>0.5.2</version>
   </parent>
 
   <artifactId>client-ui</artifactId>

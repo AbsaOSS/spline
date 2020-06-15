@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterContentInit, Component } from '@angular/core';
-import { IActionMapping, ITreeOptions } from 'angular-tree-component';
-import { ITreeNode } from 'angular-tree-component/dist/defs/api';
-import { IExpression } from 'src/app/model/expression-model';
-import { Store } from '@ngrx/store';
-import { AppState } from 'src/app/model/app-state';
+import {AfterContentInit, Component} from '@angular/core';
+import {IActionMapping, ITreeOptions} from 'angular-tree-component';
+import {ITreeNode} from 'angular-tree-component/dist/defs/api';
+import {IExpression} from 'src/app/model/expression-model';
+import {Store} from '@ngrx/store';
+import {AppState} from 'src/app/model/app-state';
 import * as ModalAction from 'src/app/store/actions/modal.actions';
-import { getName } from 'src/app/util/expressions';
+import {getName, getType} from 'src/app/util/expressions';
 
 @Component({
   selector: 'app-modal-expression',
@@ -33,27 +33,28 @@ export class ModalExpressionComponent implements AfterContentInit {
     this.exprTree = this.buildExprTree()
   }
 
-  private data: any
+  private expression: IExpression
   private attributes: any
-  public title: any
   public exprTree: any[]
 
-  constructor(private store: Store<AppState>) { }
-
+  constructor(private store: Store<AppState>) {
+  }
 
   private buildExprTree(): any[] {
     let seq = 0
     const buildNode = (expr: IExpression) => ({
       id: seq++,
       name: getName(expr, this.attributes),
+      className: getType(expr).replace(".", "-"),
       children: buildChildrenNodes(expr)
-    })
+    });
 
     function buildChildrenNodes(ex: IExpression): (any[] | undefined) {
       const children = ex['children'] || (ex['child'] && [ex['child']])
       return children && children.map(buildNode)
     }
-    return [buildNode(this.data.metadata)]
+
+    return [buildNode(this.expression)]
   }
 
 
