@@ -45,6 +45,6 @@ export class WriteComponent extends PropertiesComponent {
       'name', 'append', 'outputSource', 'destinationType'
     ]
     const noDefaultProps = _.omit(props, defaultProps)
-    this.extraProperties = OperationProperty.parseExtraOptions(noDefaultProps)
+    this.extraProperties = OperationProperty.parseExtraOptions(noDefaultProps, this.attributesList)
   }
 }

@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component } from '@angular/core';
 
-.footer {
-    position: absolute;
-    bottom  : 0;
-}
 
-.title {
-    .footer;
-    border-radius   : 25px;
-    text-align      : center;
-    width           : 10%;
-    bottom          : 10px;
-    left            : 10px;
-    background-color: rgba(255, 255, 255, 0.7);
+declare const __APP_VERSION__: string
+
+
+@Component({
+  selector: 'spline-watermark',
+  templateUrl: './watermark.component.html',
+  styleUrls: ['./watermark.component.less']
+})
+export class WatermarkComponent {
+
+  constructor(
+  ) { }
+
+  readonly appVersion: string = __APP_VERSION__
 }

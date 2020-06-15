@@ -15,8 +15,8 @@
   -->
 
 
-<app-header *ngIf="(isEmbeddedMode$ | async) === false"></app-header>
+<app-header *ngIf="!(isEmbeddedMode$ | async)"></app-header>
 
 <router-outlet></router-outlet>
 
-<app-footer></app-footer>
+<spline-watermark *ngIf="isEmbeddedMode$ | async"></spline-watermark>

@@ -53,8 +53,8 @@ function getConfiguration(): any {
             /* UNDEFINED, RIGHT, LEFT, DOWN, UP */
             edgeRouting: 'SPLINES', // Defines how edges are routed (POLYLINE, ORTHOGONAL, SPLINES)
             edgeSpacingFactor: 0.5, // Factor by which the object spacing is multiplied to arrive at the minimal spacing between edges.
-            feedbackEdges: false, // Whether feedback edges should be highlighted by routing around the nodes.
-            fixedAlignment: 'LEFTUP', // Tells the BK node placer to use a certain alignment instead of taking the optimal result.  This option should usually be left alone.
+            feedbackEdges: true, // Whether feedback edges should be highlighted by routing around the nodes.
+            fixedAlignment: 'NONE', // Tells the BK node placer to use a certain alignment instead of taking the optimal result.  This option should usually be left alone.
             /* NONE Chooses the sTmallest layout from the four possible candidates.
             LEFTUP Chooses the left-up candidate from the four possible candidates.
             RIGHTUP Chooses the right-up candidate from the four possible candidates.

@@ -17,17 +17,18 @@
 import { IExpression, IBinary, IUDF, IAttrRef, IAlias, IGenericLeaf, IGeneric, ILiteral } from 'src/app/model/expression-model'
 import { ExpressionType } from 'src/app/model/types/expressionType'
 import * as _ from 'lodash'
+import { AttributeVM } from '../model/viewModels/attributeVM'
 
 export function getName(expr: IExpression, attributeList: any): string {
     switch (getType(expr)) {
         case ExpressionType.Literal: {
-            return ExpressionType.Literal.toLowerCase()
+            return (<ILiteral>expr).value
         }
         case ExpressionType.Binary: {
             return (<IBinary>expr).symbol
         }
         case ExpressionType.Alias: {
-            return ExpressionType.Alias.toLowerCase()
+            return (<IAlias>expr).alias
         }
         case ExpressionType.UDF: {
             return `UDF:${(<IUDF>expr).name}`
@@ -44,7 +45,7 @@ export function getName(expr: IExpression, attributeList: any): string {
     }
 }
 
-export function getText(expr: IExpression, attributeList: any): string {
+export function getText(expr: IExpression, attributeList: AttributeVM[]): string {
     switch (getType(expr)) {
         case ExpressionType.Literal: {
             return (expr as ILiteral).value
@@ -79,8 +80,8 @@ export function getText(expr: IExpression, attributeList: any): string {
     }
 }
 
-function getType(attribute: any): string {
-    return attribute._typeHint
+export function getType(expression: any): ExpressionType {
+    return expression._typeHint
 }
 
 function renderAsGenericLeafExpr(gle: IGenericLeaf, attributeList: any): string {

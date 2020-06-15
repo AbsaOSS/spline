@@ -83,33 +83,40 @@ export class LineageOverviewEffects {
   }
 
   private toLineageOverviewVM = (lineageOverview: LineageOverview, executionEventId: string): LineageOverviewVM => {
-    const cytoscapeGraphVM = {} as CytoscapeGraphVM
-    cytoscapeGraphVM.nodes = []
-    cytoscapeGraphVM.edges = []
+    const cytoscapeGraphVM: CytoscapeGraphVM = {
+      nodes: [],
+      edges: []
+    }
 
     const graph = lineageOverview.graph
-    const nonTerminalNodeIds = new Set(graph.edges.map(e => e.source))
-    const targetNodeId = graph.nodes
-      .map((n: LineageOverviewNodeVM) => n._id)
-      .find(id => !nonTerminalNodeIds.has(id))
+    let targetURI = ''
 
-    let targetNodeName = ''
     _.each(graph.nodes, (node: LineageOverviewNodeVM) => {
       const cytoscapeOperation = {} as CytoscapeOperationVM
-      if (node._id == targetNodeId) {
-        targetNodeName = node.name
-        cytoscapeOperation.properties = { 'targetNode': true }
+      const isTargetNode = node._id == lineageOverview.info.targetDataSourceId
+
+      if (isTargetNode) {
+        targetURI = node.name
       }
+
       cytoscapeOperation._type = node._type
       cytoscapeOperation.id = node._id
       cytoscapeOperation._id = node.name
+
       const nodeName = node._type == LineageOverviewNodeType.DataSource ? node.name.substring(node.name.lastIndexOf('/') + 1) : node.name
       const splitedNames = node.name.split('/')
       cytoscapeOperation.name = nodeName == '*' ? `${splitedNames[splitedNames.length - 2]}/${nodeName}` : nodeName
-      cytoscapeOperation.color = lineageOverviewColorCodes.get(node._type)
       cytoscapeOperation.icon = lineageOverviewIconCodes.get(node._type)
-      cytoscapeGraphVM.nodes.push({ data: cytoscapeOperation })
+      cytoscapeOperation.color = isTargetNode
+        ? lineageOverviewColorCodes.get("Root")
+        : lineageOverviewColorCodes.get(node._type)
+
+      cytoscapeGraphVM.nodes.push({
+        data: cytoscapeOperation,
+        classes: isTargetNode ? ["root"] : undefined
+      })
     })
+
     _.each(graph.edges, (edge: Transition) => {
       cytoscapeGraphVM.edges.push({ data: edge })
     })
@@ -118,12 +125,11 @@ export class LineageOverviewEffects {
     lineageOverviewVM.lineage = cytoscapeGraphVM
     lineageOverviewVM.lineageInfo = {
       ...lineageOverview.info,
-      targetNodeName: targetNodeName,
+      targetURI: targetURI,
       executionEventId: executionEventId
     }
-
-    lineageOverviewVM.depthComputed = lineageOverview.graph.depthComputed ? lineageOverview.graph.depthComputed : 0
-    lineageOverviewVM.depthRequested = lineageOverview.graph.depthRequested ? lineageOverview.graph.depthRequested : 0
+    lineageOverviewVM.depthComputed = graph.depthComputed ? graph.depthComputed : 0
+    lineageOverviewVM.depthRequested = graph.depthRequested ? graph.depthRequested : 0
     lineageOverviewVM.hasMoreNodes = lineageOverviewVM.depthComputed && lineageOverviewVM.depthComputed >= lineageOverviewVM.depthRequested
 
     return lineageOverviewVM

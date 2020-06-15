@@ -13,16 +13,20 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<div *ngIf="(getExecutionPlanVM() | async )" class="execution-details">
-    <h3 class="text-center"> Execution Plan : {{ (getExecutionPlanVM() | async )?.executionPlan.extra.appName }}</h3>
+<div class="execution-details">
+    <h3 class="text-center"> Execution Plan </h3>
     <br />
     <div>
         <p>
-            <strong>System Info:</strong>
-            {{ (getExecutionPlanVM() | async )?.executionPlan.systemInfo.name }}
-            {{ (getExecutionPlanVM() | async )?.executionPlan.systemInfo.version }}
+            <strong>Name:</strong>
+            {{ executedLogicalPlan?.executionPlan.extra.appName }}
         </p>
-        <p *ngIf="(getExecutionPlanVM() | async )?.executionPlan.agentInfo; let agentInfo">
+        <p>
+            <strong>System Info:</strong>
+            {{ executedLogicalPlan?.executionPlan.systemInfo.name }}
+            {{ executedLogicalPlan?.executionPlan.systemInfo.version }}
+        </p>
+        <p *ngIf="executedLogicalPlan?.executionPlan.agentInfo; let agentInfo">
             <strong>Agent Info:</strong>
             {{ agentInfo.name }}
             {{ agentInfo.version }}
@@ -30,7 +34,7 @@
         <p>
             <strong>Input Sources:</strong>
         </p>
-        <ul *ngFor="let input of (getExecutionPlanVM() | async )?.executionPlan.inputs">
+        <ul *ngFor="let input of executedLogicalPlan?.executionPlan.inputs">
             <p>
                 <strong>URI:</strong> {{ input.source }}
                 <br />
@@ -42,10 +46,10 @@
         </p>
         <ul>
             <p>
-                <strong>URI:</strong> {{ (getExecutionPlanVM() | async )?.executionPlan.output.source }}
+                <strong>URI:</strong> {{ executedLogicalPlan?.executionPlan.output.source }}
                 <br />
                 <strong> Type: </strong>
-                {{ (getExecutionPlanVM() | async )?.executionPlan.output.sourceType }}
+                {{ executedLogicalPlan?.executionPlan.output.sourceType }}
             </p>
         </ul>
     </div>

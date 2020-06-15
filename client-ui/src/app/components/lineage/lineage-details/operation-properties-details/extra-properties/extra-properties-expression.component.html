@@ -13,19 +13,14 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<div class="modal-header">
-    <h4 class="modal-title">Expression</h4>
-    <button type="button" class="close" aria-label="Close" (click)="close()">
-        <span aria-hidden="true">&times;</span>
-    </button>
-</div>
-<div class="modal-body tree">
-    <tree-root #tree [nodes]="exprTree" [options]="treeOptions">
-        <ng-template #treeNodeTemplate let-node>
-            <span class="node-title {{ node.data.className }}">{{ node.data.name }}</span>
-        </ng-template>
-    </tree-root>
-</div>
-<div class="modal-footer">
-    <button type="button" class="btn btn-secondary" (click)="close()">Close</button>
-</div>
+<mat-expansion-panel [expanded]="true" *ngFor="let property of properties">
+    <mat-expansion-panel-header>
+        <i aria-hidden="true" class="fa fa-xs fa-info-circle text-success"></i>
+        {{property.label}}
+    </mat-expansion-panel-header>
+    <div *ngFor="let expr of property.value">
+        <a href="" (click)="onValueClicked($event, expr)">
+            <code class='expression-icon'>{{expr.value}}</code>
+        </a>
+    </div>
+</mat-expansion-panel>

@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+import { getText } from '../../util/expressions'
+import { AttributeVM } from '../viewModels/attributeVM'
+
+
 export namespace OperationProperty {
 
   export type NativeProperties = Record<string, any>
@@ -23,61 +27,76 @@ export namespace OperationProperty {
     value: T
   }
 
-  export type ExtraPropertyValuePrimitive = ExtraPropertyValue<string | number>
+  export type ExpressionValue = {
+    value: string
+    rawValue: Record<string, any>
+  }
+
+  export type ExtraPropertyValuePrimitive = ExtraPropertyValue<string | number | boolean>
+  export type ExtraPropertyValueExpression = ExtraPropertyValue<ExpressionValue[]>
   export type ExtraPropertyValueJson = ExtraPropertyValue<any[] | Record<any, any>>
 
   export type ExtraProperties = {
     primitive: ExtraPropertyValuePrimitive[]
+    expression: ExtraPropertyValueExpression[]
     json: ExtraPropertyValueJson[]
   }
 
-  export function decorateJsonProperty(propValue: ExtraPropertyValueJson): ExtraPropertyValueJson {
-    // make label human readable "camelCase" => "Camel Case"
-    const regex = new RegExp('([a-z])([A-Z])', 'g')
-    let label = propValue.label.replace(regex, '$1 $2')
-    label = label.substring(0, 1).toUpperCase() + label.substring(1)
-    return {
-      ...propValue,
-      label
-    }
-  }
-
-  export function parseExtraOptions(nativeProperties: NativeProperties): ExtraProperties {
-    const extraProperties: ExtraProperties = {
-      primitive: [],
-      json: []
-    }
-
-    return Object.keys(nativeProperties)
+  export function parseExtraOptions(nativeProperties: NativeProperties, attributesList: AttributeVM[]): ExtraProperties {
+    return Object.entries(nativeProperties)
+      .filter(([, v]) => v != null)
       .reduce(
-        (result, key) => {
-          const value = nativeProperties[key]
-
-          if (value === undefined || value === null) {
-            return result
+        (acc, [key, value]) => {
+          if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+            const primitiveValue: ExtraPropertyValuePrimitive = {
+              label: key,
+              value: value
+            }
+            return {...acc, primitive: [...acc.primitive, primitiveValue]}
           }
-
-          const primitivePropValue = {
-            label: key,
-            value
+          else if (typeof value === 'object' && isExpresionProperty(value)) {
+            return {...acc, expression: [...acc.expression, toExpressionValue(key, [value], attributesList)]}
           }
-
-          if (typeof value === 'string' || typeof value === 'number') {
-            extraProperties.primitive.push(primitivePropValue)
+          else if (typeof Array.isArray(value) && value.length && isExpresionProperty(value[0])) {
+            return {...acc, expression: [...acc.expression, toExpressionValue(key, value, attributesList)]}
           }
-          else if (Array.isArray(value) || typeof value === 'object') {
-            extraProperties.json.push(
-              decorateJsonProperty(primitivePropValue)
-            )
+          else {
+            const jsonValue: ExtraPropertyValueJson = {
+              label: humanizeCase(key),
+              value
+            }
+            return {...acc, json: [...acc.json, jsonValue]}
           }
-
-          return result
         },
-        extraProperties
+        {
+          primitive: [],
+          expression: [],
+          json: []
+        }
       )
-
   }
 
+  function toExpressionValue(key: string, exprs: Record<string, any>[], attrs: AttributeVM[]): ExtraPropertyValueExpression {
+    return {
+      label: humanizeCase(key),
+      value: exprs.map(e => ({
+        value: getText(e, attrs),
+        rawValue: e
+      }))
+    }
+  }
 
+  function humanizeCase(str: string): string {
+    // "fooBar-Baz_Qux" => "Foo Bar Baz Qux"
+    return str
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/(\d)([^\d])/g, '$1 $2')
+      .replace(/([^\d])(\d)/g, '$1 $2')
+      .split(/[\W_]/)
+      .map(s => s.substring(0, 1).toUpperCase() + s.substring(1)).join(" ")
+  }
 
+  function isExpresionProperty(propertyValue: Record<string, any>): boolean {
+    return propertyValue._typeHint && (propertyValue._typeHint as string).startsWith('expr.')
+  }
 }

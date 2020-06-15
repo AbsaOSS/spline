@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
-import { AppState } from 'src/app/model/app-state';
-import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs';
-import { ExecutedLogicalPlanVM } from 'src/app/model/viewModels/executedLogicalPlanVM';
+import { Component, Input } from '@angular/core'
+import { ExecutedLogicalPlanVM } from 'src/app/model/viewModels/executedLogicalPlanVM'
+
 
 @Component({
   selector: 'execution-plan-details',
@@ -26,12 +24,6 @@ import { ExecutedLogicalPlanVM } from 'src/app/model/viewModels/executedLogicalP
 })
 export class ExecutionPlanDetailsComponent {
 
+  @Input() executedLogicalPlan: ExecutedLogicalPlanVM
 
-  constructor(
-    private store: Store<AppState>
-  ) { }
-
-  public getExecutionPlanVM(): Observable<ExecutedLogicalPlanVM> {
-    return this.store.select('executedLogicalPlan')
-  }
 }
