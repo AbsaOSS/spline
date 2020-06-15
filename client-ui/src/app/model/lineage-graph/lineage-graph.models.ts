@@ -20,7 +20,7 @@ import { Stylesheet } from 'cytoscape'
 export const LINE_WIDTH_PLANE = 10
 export const LINE_WIDTH_HIGHLIGHTED = 10
 export const LINE_WIDTH_SELECTED = 16
-export const LINE_COLOR_PLANE = '#eaeaea'
+export const LINE_COLOR_PLANE = '#e0e0e0'
 export const LINE_COLOR_SELECTED = 'orange'
 export const LINE_COLOR_HLT_PRIMARY = 'black'
 export const LINE_COLOR_HLT_LINEAGE = 'magenta'
@@ -125,6 +125,7 @@ export const cyStyles: Partial<Stylesheet>[] = [
       'width': LINE_WIDTH_PLANE,
       'curve-style': 'bezier',
       'target-arrow-shape': 'triangle',
+      'arrow-scale': 1.5,
     },
     css: {
       'label': (el) => el.data('label') || '',
