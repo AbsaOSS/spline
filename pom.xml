@@ -20,7 +20,7 @@
 
     <groupId>za.co.absa.spline</groupId>
     <artifactId>spline</artifactId>
-    <version>0.5.2</version>
+    <version>0.5.3-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
@@ -34,7 +34,7 @@
         <url>${scm.url}</url>
         <connection>${scm.connection}</connection>
         <developerConnection>${scm.developerConnection}</developerConnection>
-        <tag>release/0.5.2</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <distributionManagement>
