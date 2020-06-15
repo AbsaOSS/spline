@@ -22,7 +22,7 @@ import { Property, PropertyType } from 'src/app/model/property'
 import * as ModalAction from 'src/app/store/actions/modal.actions'
 import { getOperationColor, getOperationIcon } from 'src/app/util/execution-plan'
 import { AttributeVM } from '../../../../../model/viewModels/attributeVM'
-import { OperationProperty } from '../../../../../model/operation/operation-property.models'
+import { IExpression } from "../../../../../model/expression-model"
 
 
 export class PropertiesComponent implements OnDestroy {
@@ -56,7 +56,7 @@ export class PropertiesComponent implements OnDestroy {
     return this.properties.filter(p => p.type === propertyType).length > 0
   }
 
-  openExprViewDialog(property: Property, event?: Event): void {
+  openExprViewDialog(expression: IExpression, event?: Event): void {
     if (event) {
       event.preventDefault()
     }
@@ -66,21 +66,12 @@ export class PropertiesComponent implements OnDestroy {
         .select('executedLogicalPlan', 'executionPlan', 'extra', 'attributes')
         .subscribe(attributes => {
           const initialState = {
-            data: property,
-            attributes: attributes,
-            type: this.propertyName
+            expression: expression,
+            attributes: attributes
           }
           this.store.dispatch(new ModalAction.Open(ModalExpressionComponent, { initialState }))
         })
     )
-  }
-
-  openPropertyExprViewDialog(expressionProp: OperationProperty.ExtraPropertyValueExpression) {
-    // PropertyType.Join does not play any role here
-    const property = new Property(
-      PropertyType.Join, expressionProp.value.value, expressionProp.value.rawValue
-    )
-    this.openExprViewDialog(property)
   }
 
   ngOnDestroy(): void {

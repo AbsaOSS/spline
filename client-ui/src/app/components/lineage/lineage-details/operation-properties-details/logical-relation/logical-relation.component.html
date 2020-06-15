@@ -59,7 +59,7 @@
 <!-- EXTRA PROPS :: EXPRESSION -->
 <app-extra-properties-expression *ngIf="extraProperties?.expression?.length"
                                  [properties]="extraProperties.expression"
-                                 (valueClicked$)="openPropertyExprViewDialog($event.property)">
+                                 (expressionClicked$)="openExprViewDialog($event.rawValue)">
 </app-extra-properties-expression>
 <!-- EXTRA PROPS :: EXPRESSION -->
 

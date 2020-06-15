@@ -45,7 +45,7 @@ import { AppComponent } from './app.component'
 import { DashboardComponent } from './components/dashboard/dashboard.component'
 import { ErrorComponent } from './components/error/error.component'
 import { ExecutionPlanDetailsComponent } from './components/execution-plan-details/execution-plan-details.component'
-import { FooterComponent } from './components/footer/footer.component'
+import { WatermarkComponent } from './components/watermark/watermark.component'
 import { HeaderComponent } from './components/header/header.component'
 import { LineageOverviewDetailsComponent } from './components/lineage-overview/lineage-overview-details/lineage-overview-details.component'
 import { LineageOverviewGraphComponent } from './components/lineage-overview/lineage-overview-graph/lineage-overview-graph.component'
@@ -144,7 +144,7 @@ const ROOT_ROUTING = 'app/'
     DateRangePickerComponent,
     TimePickerComponent,
     HeaderComponent,
-    FooterComponent,
+    WatermarkComponent,
     WriteComponent,
     AliasComponent,
     PropertyErrorComponent,
