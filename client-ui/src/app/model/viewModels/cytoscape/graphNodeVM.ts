@@ -16,5 +16,6 @@
 import {CytoscapeOperationVM} from './cytoscapeOperationVM';
 
 export type GraphNode = {
-    data: CytoscapeOperationVM
+  data: CytoscapeOperationVM,
+  classes?: string[]
 }
