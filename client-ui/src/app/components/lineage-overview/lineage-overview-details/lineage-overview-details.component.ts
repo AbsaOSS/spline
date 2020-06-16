@@ -21,6 +21,7 @@ import { AppState } from 'src/app/model/app-state'
 import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM'
 import { LineageOverviewNodeType } from '../../../model/types/lineageOverviewNodeType'
 import { ExecutedLogicalPlanVM } from '../../../model/viewModels/executedLogicalPlanVM'
+import * as RouterAction from '../../../store/actions/router.actions'
 
 
 @Component({
@@ -68,6 +69,12 @@ export class LineageOverviewDetailsComponent {
           return node.data._id
         })
       )
+  }
+
+  gotoDetailedLineage(execPlanId: string) {
+    this.store.dispatch(new RouterAction.Go({
+      url: `/app/lineage-detailed/${execPlanId}`
+    }))
   }
 
 }

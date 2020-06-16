@@ -36,10 +36,25 @@
 
     <div class="divider"></div>
 
+    <!-- EXECUTION PLAN DETAILS -->
+    <div *ngIf="executedLogicalPlan$ | async as executedLogicalPlan" class="exec-plan-details">
+      <div ngbDropdown class="d-inline-block toolbar">
+        <button class="btn btn-sm btn-outline-secondary" ngbDropdownToggle>
+          <i class="fa fa-bars"></i>
+        </button>
+        <div ngbDropdownMenu>
+          <button ngbDropdownItem
+                  (click)="gotoDetailedLineage(executedLogicalPlan.executionPlan._id)"
+                  title="same as double click on a graph node">
+            Detailed Lineage
+          </button>
+        </div>
+      </div>
 
-    <execution-plan-details *ngIf="executedLogicalPlan$ | async as executedLogicalPlan"
-                            [executedLogicalPlan]="executedLogicalPlan">
-    </execution-plan-details>
+      <execution-plan-details [executedLogicalPlan]="executedLogicalPlan">
+      </execution-plan-details>
+    </div>
+    <!-- ./EXECUTION PLAN DETAILS -->
 
     <!-- SELECTED DATA SOURCE INFO -->
     <div class="mb-5" *ngIf="selectedNodeUrl$ | async as selectedNodeUrl">
