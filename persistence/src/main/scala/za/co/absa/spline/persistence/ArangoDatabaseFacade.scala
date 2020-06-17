@@ -82,12 +82,12 @@ object ArangoDatabaseFacade {
 
   def workAroundArangoAsyncBug(db: ArangoDatabaseAsync): Unit = {
     try {
-      db.getInfo.get
+      db.exists.get
     } catch {
       // The first call sometime fails with a CCE due to a bug in ArangoDB Java Driver
       // see: https://github.com/arangodb/arangodb-java-driver-async/issues/21
       case ee: ExecutionException if ee.getCause.isInstanceOf[ClassCastException] =>
-        db.getInfo.get
+        db.exists.get
     }
   }
 }
