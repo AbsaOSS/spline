@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {combineLatest, Observable, of} from 'rxjs';
-import {filter, first, map} from 'rxjs/operators';
-import {AppState} from 'src/app/model/app-state';
-import {RouterStateUrl} from 'src/app/model/routerStateUrl';
-import * as RouterAction from 'src/app/store/actions/router.actions';
+import { Component } from '@angular/core'
+import { Store } from '@ngrx/store'
+import { Observable } from 'rxjs'
+import { filter , map} from 'rxjs/operators'
+import { AppState } from 'src/app/model/app-state'
+import { Router } from '@angular/router'
 
 declare const __APP_VERSION__: string
 
@@ -30,60 +29,28 @@ declare const __APP_VERSION__: string
 })
 export class HeaderComponent {
 
-  constructor(
-    private store: Store<AppState>
-  ) { }
-
   readonly appVersion: string = __APP_VERSION__
 
-  public isActive = (name: string): Observable<boolean> => {
-    return this.isSelectedMenuItem(name)
-  }
+  prevPageUrl$: Observable<string>
+  currentPageUrlPrefix$: Observable<string>
 
-  public isVisible = (name: string): Observable<boolean> => {
-    switch (name) {
-      case 'lineage-overview':
-        return combineLatest(
-          this.isSelectedMenuItem(name),
-          this.isSelectedMenuItem('lineage-detailed'),
-          (item1, item2) => (item1 || item2)
-        )
-      case 'lineage-detailed':
-        return this.isSelectedMenuItem(name)
-      default: return of(false)
-    }
-  }
-
-  private isSelectedMenuItem = (name: string): Observable<boolean> => {
-    return this.store.select('router', 'state', 'url')
+  constructor(
+    private store: Store<AppState>,
+    private router: Router
+  ) {
+    this.prevPageUrl$ = this.store.select('router', 'state', 'queryParams', 'returnUrl')
       .pipe(
-        filter(state => state != null),
-        map(url => {
-          return url.indexOf(name) !== -1
-        })
+        map(url => url || "#")
+      )
+    this.currentPageUrlPrefix$ = this.store.select('router', 'state', 'url')
+      .pipe(
+        filter(x => x),
+        map(url => /\/app\/[^/?#]+/.exec(url)[0])
       )
   }
 
-  public onLineageOverviewClick = (): void => {
-    this.store
-      .select('lineageOverview')
-      .pipe(
-        first()
-      )
-      .subscribe(lineage => {
-        const params: RouterStateUrl = {
-          url: "/app/lineage-overview",
-          queryParams: { executionEventId: lineage.lineageInfo.executionEventId }
-        }
-        this.store.dispatch(new RouterAction.Go(params))
-      })
+  public goToUrl(url: string): void {
+    if (url !== "#")
+    this.router.navigateByUrl(url)
   }
-
-
-  public onHomeClick = (): void => {
-    this.store.dispatch(
-      new RouterAction.Go({ url: "/app/dashboard" })
-    )
-  }
-
 }

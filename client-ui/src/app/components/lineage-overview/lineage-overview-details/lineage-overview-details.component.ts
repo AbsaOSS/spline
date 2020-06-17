@@ -35,6 +35,8 @@ export class LineageOverviewDetailsComponent {
 
   readonly selectedNodeUrl$: Observable<string | null>
 
+  readonly currentPageUrl$: Observable<string>
+
   readonly operationDetails$: Observable<OperationDetailsVM>
 
   readonly executedLogicalPlan$: Observable<ExecutedLogicalPlanVM>
@@ -50,6 +52,7 @@ export class LineageOverviewDetailsComponent {
     this.lineageInfo$ = this.store.select('lineageOverview', 'lineageInfo')
     this.operationDetails$ = this.store.select('detailsInfos')
     this.executedLogicalPlan$ = this.store.select('executedLogicalPlan')
+    this.currentPageUrl$ = this.store.select('router', 'state', 'url')
 
     this.selectedNodeUrl$ = this.store.select('router', 'state', 'queryParams', 'selectedNodeId')
       .pipe(
@@ -71,9 +74,10 @@ export class LineageOverviewDetailsComponent {
       )
   }
 
-  gotoDetailedLineage(execPlanId: string) {
+  goToDetailedLineagePage(execPlanId: string, returnUrl: string) {
     this.store.dispatch(new RouterAction.Go({
-      url: `/app/lineage-detailed/${execPlanId}`
+      url: `/app/lineage-detailed/${execPlanId}`,
+      queryParams: {returnUrl: returnUrl}
     }))
   }
 

@@ -29,6 +29,7 @@ import { AttributeLineageAndImpact } from '../../generated/models/attribute-line
 import { getImpactRootAttributeNode, LineageGraphLegend, LineageGraphLegends } from '../../model/lineage-graph'
 import { ExecutedLogicalPlanVM } from '../../model/viewModels/executedLogicalPlanVM'
 import { ExecutionPlanInfo } from '../../generated/models/execution-plan-info'
+import { Router } from '@angular/router'
 
 @Component({
   templateUrl: './lineage.component.html',
@@ -43,6 +44,9 @@ export class LineageComponent implements OnDestroy {
     attributeLinAndImp: AttributeLineageAndImpact
   }>
 
+  public returnUrl$: Observable<string>
+  public isEmbeddedMode$: Observable<boolean>
+
   public selectedAttribute$: Observable<AttributeVM>
 
   public lineageGraphLegendsToShow$: Observable<LineageGraphLegend[]>
@@ -55,7 +59,8 @@ export class LineageComponent implements OnDestroy {
     this.subscriptions.forEach(s => s.unsubscribe())
   }
 
-  constructor(private store: Store<AppState>) {
+  constructor(private store: Store<AppState>,
+              private router: Router) {
     this.subscriptions.push(this.store
       .select('router', 'state', 'params', 'uid')
       .pipe(filter(_.identity))
@@ -95,6 +100,9 @@ export class LineageComponent implements OnDestroy {
         ({embeddedMode, layout, plan, attributeLinAndImp})
       )
     )
+
+    this.returnUrl$ = this.store.select('router', 'state', 'queryParams', 'returnUrl')
+    this.isEmbeddedMode$ = this.store.select('config', 'embeddedMode')
 
     this.selectedAttribute$ =
       combineLatest([
@@ -137,5 +145,9 @@ export class LineageComponent implements OnDestroy {
       url: null,
       queryParams: {attribute: undefined}
     }))
+  }
+
+  public goToUrl(url: string) {
+    this.router.navigateByUrl(url)
   }
 }
