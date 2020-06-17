@@ -50,7 +50,8 @@ export class HeaderComponent {
   }
 
   public goToUrl(url: string): void {
-    if (url !== "#")
-    this.router.navigateByUrl(url)
+    if (url !== "#") {
+      this.router.navigateByUrl(url)
+    }
   }
 }
