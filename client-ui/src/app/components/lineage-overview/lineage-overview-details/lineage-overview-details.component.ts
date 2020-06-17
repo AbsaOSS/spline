@@ -21,6 +21,7 @@ import { AppState } from 'src/app/model/app-state'
 import { OperationDetailsVM } from 'src/app/model/viewModels/operationDetailsVM'
 import { LineageOverviewNodeType } from '../../../model/types/lineageOverviewNodeType'
 import { ExecutedLogicalPlanVM } from '../../../model/viewModels/executedLogicalPlanVM'
+import * as RouterAction from '../../../store/actions/router.actions'
 
 
 @Component({
@@ -33,6 +34,8 @@ export class LineageOverviewDetailsComponent {
   @Input() embeddedMode: boolean
 
   readonly selectedNodeUrl$: Observable<string | null>
+
+  readonly currentPageUrl$: Observable<string>
 
   readonly operationDetails$: Observable<OperationDetailsVM>
 
@@ -49,6 +52,7 @@ export class LineageOverviewDetailsComponent {
     this.lineageInfo$ = this.store.select('lineageOverview', 'lineageInfo')
     this.operationDetails$ = this.store.select('detailsInfos')
     this.executedLogicalPlan$ = this.store.select('executedLogicalPlan')
+    this.currentPageUrl$ = this.store.select('router', 'state', 'url')
 
     this.selectedNodeUrl$ = this.store.select('router', 'state', 'queryParams', 'selectedNodeId')
       .pipe(
@@ -68,6 +72,13 @@ export class LineageOverviewDetailsComponent {
           return node.data._id
         })
       )
+  }
+
+  goToDetailedLineagePage(execPlanId: string, returnUrl: string) {
+    this.store.dispatch(new RouterAction.Go({
+      url: `/app/lineage-detailed/${execPlanId}`,
+      queryParams: {returnUrl: returnUrl}
+    }))
   }
 
 }

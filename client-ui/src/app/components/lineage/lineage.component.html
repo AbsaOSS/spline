@@ -24,6 +24,14 @@
                      (selectedNodeChange)="onNodeSelected($event)">
       </lineage-graph>
 
+      <ng-container *ngIf="isEmbeddedMode$ | async">
+        <graph-toolbar position="top-left" title="Actions" *ngIf="returnUrl$ | async as returnUrl">
+          <button class="btn btn-sm btn-outline-secondary" (click)="goToUrl(returnUrl)">
+            <i class="fa fa-chevron-left"></i> Return to Lineage Overview
+          </button>
+        </graph-toolbar>
+      </ng-container>
+
       <lineage-highlights-toolbar
               *ngIf="selectedAttribute$ | async as selectedAttributes"
               [lineageGraphLegends]="lineageGraphLegendsToShow$ | async"
