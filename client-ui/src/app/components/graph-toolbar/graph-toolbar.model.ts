@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,33 +15,8 @@
  */
 
 
-.lineage-overview-container {
-    overflow-y: hidden;
-}
-
-.lineage-overview-details {
-    overflow-y: scroll;
-    height: 100%;
-    padding: 1rem;
-    overflow-wrap: break-word;
-
-    .exec-plan-details {
-      position: relative;
-
-      .toolbar {
-          position: absolute;
-      }
-    }
-}
-
-.lineage-overview-details-title {
-    font-weight: bold;
-}
-
-.lineage-overview-title {
-    word-wrap : break-word;
-    top       : 0;
-    margin-top: 25px;
-    width     : 100%;
-    z-index   : 99999;
-}
+export type Position =
+  "top-left"
+  | "top-right"
+  | "bottom-right"
+  | "bottom-left"

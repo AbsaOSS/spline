@@ -46,6 +46,8 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
 
   private subscriptions: Subscription[] = []
 
+  private currentUrl: string
+
 
   constructor(private store: Store<AppState>) {
     this.getContextMenuConfiguration()
@@ -54,6 +56,13 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
   }
 
   ngOnInit(): void {
+    this.subscriptions.push(
+      this.store
+        .select('router', 'state', 'url')
+        .subscribe(url => {
+          this.currentUrl = url
+        }))
+
     this.subscriptions.push(this.store
       .select('layout')
       .pipe(
@@ -123,7 +132,10 @@ export class LineageOverviewGraphComponent implements OnInit, AfterViewInit, OnD
         const nodeId = (clikedTarget != this.cytograph.cy && clikedTarget.isNode()) ? clikedTarget.id() : null
         if (nodeId && clikedTarget.data()._type == LineageOverviewNodeType.Execution) {
           const params: RouterStateUrl = {
-            url: `/app/lineage-detailed/${nodeId}`
+            url: `/app/lineage-detailed/${nodeId}`,
+            queryParams: {
+              returnUrl: this.currentUrl
+            }
           }
           this.store.dispatch(new RouterAction.Go(params))
         }

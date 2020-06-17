@@ -98,6 +98,7 @@ import { AttributeLineageAndImpactEffects } from './effects/attribute-lineage-an
 import { AttributeSearchBarComponent } from './components/header/attribute-search-bar/attribute-search-bar.component'
 import { NgxJsonViewerModule } from 'ngx-json-viewer'
 import { ExtraPropertiesExpressionComponent } from './components/lineage/lineage-details/operation-properties-details/extra-properties/extra-properties-expression.component'
+import { GraphToolbarComponent } from './components/graph-toolbar/graph-toolbar.component'
 
 
 export function initializeApp(store: Store<AppState>): () => Promise<any> {
@@ -120,6 +121,7 @@ const ROOT_ROUTING = 'app/'
     AppComponent,
     ModalExpressionComponent,
     LineageGraphComponent,
+    GraphToolbarComponent,
     LineageHighlightsToolbarComponent,
     LineageDetailsComponent,
     LineageComponent,
