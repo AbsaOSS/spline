@@ -21,8 +21,11 @@ services:
           echo waiting for arango db
           sleep 5
         done
+        echo downloading admin-cli &&
         curl -O -s https://repo1.maven.org/maven2/za/co/absa/spline/admin/${SPLINE_VERSION}/admin-${SPLINE_VERSION}.jar &&
+        echo creating Spline database &&
         java -jar ./admin-${SPLINE_VERSION}.jar db-init arangodb://arangodb/spline -s &&
+        echo starting Spline server &&
         catalina.sh run
       "
     environment:
