@@ -51,6 +51,20 @@
         }
     }
 
+    function memoize(keyFn, valFn) {
+        const cache = new Map();
+        return function () {
+            const key = keyFn.apply(this, arguments);
+            if (cache.has(key)) {
+                return cache.get(key);
+            } else {
+                const value = valFn.apply(this, arguments);
+                cache.set(key, value);
+                return value;
+            }
+        }
+    }
+
     return (startEvent, maxDepth) => {
         const {db, aql} = require('@arangodb');
 
@@ -71,16 +85,11 @@
 
         const graphBuilder = new GraphBuilder([startSource]);
 
-        function traverse(event, depth) {
-            let remainingDepth = depth - 1;
-            if (depth > 1) {
-                db._query(aql`RETURN SPLINE::OBSERVED_WRITES_BY_READ(${event})`)
-                    .next()
-                    .forEach(writeEvent => {
-                        const remainingDepth_i = traverse(writeEvent, depth - 1);
-                        remainingDepth = Math.min(remainingDepth, remainingDepth_i);
-                    })
-            }
+        const findObservedWritesByRead = memoize(e => e._id, event =>
+            db._query(aql`RETURN SPLINE::OBSERVED_WRITES_BY_READ(${event})`).next()
+        );
+
+        const collectPartialGraphForEvent = memoize(e => e._id, event => {
             const partialGraph = db._query(aql`
                 LET exec = FIRST(FOR ex IN 1 OUTBOUND ${event} progressOf RETURN ex)
                 LET affectedDsEdge = FIRST(FOR v, e IN 1 OUTBOUND exec affects RETURN e)
@@ -119,8 +128,22 @@
             `).next();
 
             graphBuilder.add(partialGraph);
+        });
+
+        const traverse = (event, depth) => {
+            let remainingDepth = depth - 1;
+            if (depth > 1) {
+                findObservedWritesByRead(event)
+                    .forEach(writeEvent => {
+                        const remainingDepth_i = traverse(writeEvent, depth - 1);
+                        remainingDepth = Math.min(remainingDepth, remainingDepth_i);
+                    })
+            }
+
+            collectPartialGraphForEvent(event);
+
             return remainingDepth;
-        }
+        };
 
         const remainingDepth = maxDepth > 0 ? traverse(startEvent, maxDepth) : 0;
         const resultedGraph = graphBuilder.graph();
