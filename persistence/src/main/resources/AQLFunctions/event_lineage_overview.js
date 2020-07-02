@@ -85,11 +85,10 @@
 
         const graphBuilder = new GraphBuilder([startSource]);
 
-        const findObservedWritesByRead = memoize(e => e._id, event =>
-            db._query(aql`RETURN SPLINE::OBSERVED_WRITES_BY_READ(${event})`).next()
-        );
+        const findObservedWritesByRead = event =>
+            db._query(aql`RETURN SPLINE::OBSERVED_WRITES_BY_READ(${event})`).next();
 
-        const collectPartialGraphForEvent = memoize(e => e._id, event => {
+        const collectPartialGraphForEvent = event => {
             const partialGraph = db._query(aql`
                 LET exec = FIRST(FOR ex IN 1 OUTBOUND ${event} progressOf RETURN ex)
                 LET affectedDsEdge = FIRST(FOR v, e IN 1 OUTBOUND exec affects RETURN e)
@@ -128,9 +127,9 @@
             `).next();
 
             graphBuilder.add(partialGraph);
-        });
+        };
 
-        const traverse = (event, depth) => {
+        const traverse = memoize(e => e._id, (event, depth) => {
             let remainingDepth = depth - 1;
             if (depth > 1) {
                 findObservedWritesByRead(event)
@@ -143,7 +142,7 @@
             collectPartialGraphForEvent(event);
 
             return remainingDepth;
-        };
+        });
 
         const remainingDepth = maxDepth > 0 ? traverse(startEvent, maxDepth) : 0;
         const resultedGraph = graphBuilder.graph();
