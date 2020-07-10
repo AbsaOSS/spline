@@ -63,5 +63,12 @@ case class Progress(
   timestamp: Long,
   error: Option[Any],
   extra: Map[String, Any],
-  override val _key: String
+  override val _key: String,
+  // the rest of the parameters is copied from other entities - for performance reasons
+  executionPlanId: String,
+  frameworkName: String,
+  applicationName: String,
+  dataSourceUri: String,
+  dataSourceType: String,
+  append: Boolean
 ) extends Vertex

@@ -125,8 +125,8 @@ object ArangoManager extends ArangoManager {
       (idxDef.options match {
         case opts: FulltextIndexOptions => dbCol.ensureFulltextIndex(fields, opts)
         case opts: GeoIndexOptions => dbCol.ensureGeoIndex(fields, opts)
-        case opts: HashIndexOptions => dbCol.ensureHashIndex(fields, opts)
-        case opts: SkiplistIndexOptions => dbCol.ensureSkiplistIndex(fields, opts)
+        case opts: PersistentIndexOptions => dbCol.ensurePersistentIndex(fields, opts)
+        case opts: TtlIndexOptions => dbCol.ensureTtlIndex(fields, opts)
       }).toScala
     })
 

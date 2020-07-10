@@ -1,0 +1,24 @@
+FOR ee IN progress
+    LET executionEventDetails = FIRST(
+        FOR v,e,p IN 2 OUTBOUND ee progressOf, executes
+            LET exec = p.vertices[1]
+            LET ope = v
+            RETURN {
+                "executionPlanId" : exec._key,
+                "frameworkName" : CONCAT(exec.systemInfo.name, " ", exec.systemInfo.version),
+                "applicationName" : exec.extra.appName,
+                "dataSourceUri" : ope.outputSource,
+                "dataSourceType" : ope.extra.destinationType,
+                "append" : ope.append
+            }
+    )
+
+   UPDATE ee WITH {
+        executionPlanId : executionEventDetails.executionPlanId,
+        frameworkName : executionEventDetails.frameworkName,
+        applicationName : executionEventDetails.applicationName,
+        dataSourceUri : executionEventDetails.dataSourceUri,
+        dataSourceType : executionEventDetails.dataSourceType,
+        append : executionEventDetails.append
+   } IN progress
+

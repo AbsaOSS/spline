@@ -26,7 +26,7 @@ import org.slf4s.Logging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.persistence.model._
-import za.co.absa.spline.persistence.tx.{InsertQuery, TxBuilder}
+import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, TxBuilder}
 import za.co.absa.spline.persistence.{ArangoImplicits, Persister, model => dbModel}
 import za.co.absa.spline.producer.model._
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepositoryImpl._
@@ -90,27 +90,59 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
       Map("keys" -> events.map(_.planId))
     )
 
-    val progressNodes = events.map(e => Progress(
+    val queryPerformanceData = db.queryAs[Map[String, Any]](
+      """
+        |FOR ep IN executionPlan
+        |    FILTER ep._key IN @keys
+        |
+        |    LET writeOp = FIRST(FOR v IN 1 OUTBOUND ep executes RETURN v)
+        |
+        |    RETURN {
+        |        "executionPlanId" : ep._key,
+        |        "frameworkName" : CONCAT(ep.systemInfo.name, " ", ep.systemInfo.version),
+        |        "applicationName" : ep.extra.appName,
+        |        "dataSourceUri" : writeOp.outputSource,
+        |        "dataSourceType" : writeOp.extra.destinationType,
+        |        "append" : writeOp.append
+        |    }
+        |""".stripMargin,
+      Map("keys" -> events.map(_.planId))
+    ).map(_.streamRemaining().toScala.toArray)
+
+    for {
+      refConsistent <- allReferencesConsistentFuture
+      if refConsistent
+      performanceData <- queryPerformanceData
+      res <- buildTranscation(events, performanceData).execute(db)
+    } yield res
+  })
+
+  private def buildTranscation(
+      events: Array[apiModel.ExecutionEvent],
+      performanceData: Array[Map[String, Any]]
+  ): ArangoTx = {
+    val progressNodes = (events zip performanceData).map{ case (e, pd) => Progress(
       e.timestamp,
       e.error,
       e.extra,
-      createEventKey(e)))
+      createEventKey(e),
+      pd("executionPlanId").asInstanceOf[String],
+      pd("frameworkName").asInstanceOf[String],
+      pd("applicationName").asInstanceOf[String],
+      pd("dataSourceUri").asInstanceOf[String],
+      pd("dataSourceType").asInstanceOf[String],
+      pd("append").asInstanceOf[Boolean]
+    )}
 
     val progressEdges = progressNodes
       .zip(events)
       .map({ case (p, e) => EdgeDef.ProgressOf.edge(p._key, e.planId) })
 
-    val tx = new TxBuilder()
+    new TxBuilder()
       .addQuery(InsertQuery(NodeDef.Progress, progressNodes: _*).copy(ignoreExisting = true))
       .addQuery(InsertQuery(EdgeDef.ProgressOf, progressEdges: _*).copy(ignoreExisting = true))
       .buildTx
-
-    for {
-      refConsistent <- allReferencesConsistentFuture
-      if refConsistent
-      res <- tx.execute(db)
-    } yield res
-  })
+  }
 
   private def createInsertTransaction(
     executionPlan: apiModel.ExecutionPlan,

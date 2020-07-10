@@ -57,6 +57,8 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         "asAtTime" -> (asAtTime: java.lang.Long)
       ))
 
+    val sortFieldMap = Map("executionEventId" -> "_key", "applicationId" -> List("extra", "appId"))
+
     val eventualArangoCursorAsync = db.queryAs[ExecutionEventInfo](
       """
         |FOR ee IN progress
@@ -64,37 +66,31 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |        && ee.timestamp >= @timestampStart
         |        && ee.timestamp <= @timestampEnd
         |
-        |    LET executionEventDetails = FIRST(
-        |        FOR v,e,p IN 2 OUTBOUND ee progressOf, executes
-        |            LET exec = p.vertices[1]
-        |            LET ope = v
-        |            RETURN {
-        |                "executionEventId" : ee._key,
-        |                "executionPlanId" : exec._key,
-        |                "frameworkName" : CONCAT(exec.systemInfo.name, " ", exec.systemInfo.version),
-        |                "applicationName" : exec.extra.appName,
-        |                "applicationId" : ee.extra.appId,
-        |                "timestamp" : ee.timestamp,
-        |                "dataSourceUri" : ope.outputSource,
-        |                "dataSourceType" : ope.extra.destinationType,
-        |                "append" : ope.append
-        |            }
-        |    )
-        |
-        |    FILTER !LENGTH(@applicationId) || @applicationId == executionEventDetails.applicationId
-        |    FILTER !LENGTH(@dataSourceUri) || @dataSourceUri == executionEventDetails.dataSourceUri
+        |    FILTER !LENGTH(@applicationId) || @applicationId == ee.extra.appId
+        |    FILTER !LENGTH(@dataSourceUri) || @dataSourceUri == ee.dataSourceUri
         |    FILTER !LENGTH(@searchTerm)
-        |        || executionEventDetails.timestamp == @searchTerm
-        |        || CONTAINS(LOWER(executionEventDetails.frameworkName), @searchTerm)
-        |        || CONTAINS(LOWER(executionEventDetails.applicationName), @searchTerm)
-        |        || CONTAINS(LOWER(executionEventDetails.applicationId), @searchTerm)
-        |        || CONTAINS(LOWER(executionEventDetails.dataSourceUri), @searchTerm)
-        |        || CONTAINS(LOWER(executionEventDetails.dataSourceType), @searchTerm)
+        |        || ee.timestamp == @searchTerm
+        |        || CONTAINS(LOWER(ee.frameworkName), @searchTerm)
+        |        || CONTAINS(LOWER(ee.applicationName), @searchTerm)
+        |        || CONTAINS(LOWER(ee.extra.appId), @searchTerm)
+        |        || CONTAINS(LOWER(ee.dataSourceUri), @searchTerm)
+        |        || CONTAINS(LOWER(ee.dataSourceType), @searchTerm)
         |
-        |    SORT executionEventDetails.@sortField @sortOrder
+        |    SORT ee.@sortField @sortOrder
         |    LIMIT @pageOffset*@pageSize, @pageSize
         |
-        |    RETURN executionEventDetails
+        |    RETURN {
+        |        "executionEventId" : ee._key,
+        |        "executionPlanId" : ee.executionPlanId,
+        |        "frameworkName" : ee.frameworkName,
+        |        "applicationName" : ee.applicationName,
+        |        "applicationId" : ee.extra.appId,
+        |        "timestamp" : ee.timestamp,
+        |        "dataSourceUri" : ee.dataSourceUri,
+        |        "dataSourceType" : ee.dataSourceType,
+        |        "append" : ee.append
+        |    }
+        |
         |""".stripMargin,
       Map(
         "asAtTime" -> (asAtTime: java.lang.Long),
@@ -102,7 +98,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         "timestampEnd" -> (timestampEnd: java.lang.Long),
         "pageOffset" -> (pageRequest.page - 1: Integer),
         "pageSize" -> (pageRequest.size: Integer),
-        "sortField" -> sortRequest.sortField,
+        "sortField" -> sortFieldMap.getOrElse(sortRequest.sortField, sortRequest.sortField),
         "sortOrder" -> sortRequest.sortOrder,
         "searchTerm" -> StringUtils.lowerCase(searchTerm),
         "applicationId" -> applicationId,
