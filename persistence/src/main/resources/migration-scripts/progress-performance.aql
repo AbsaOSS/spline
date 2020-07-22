@@ -31,11 +31,13 @@ FOR ee IN progress
     )
 
    UPDATE ee WITH {
-        executionPlanId : executionEventDetails.executionPlanId,
-        frameworkName : executionEventDetails.frameworkName,
-        applicationName : executionEventDetails.applicationName,
-        dataSourceUri : executionEventDetails.dataSourceUri,
-        dataSourceType : executionEventDetails.dataSourceType,
-        append : executionEventDetails.append
+        execPlanDetails : {
+            executionPlanId : executionEventDetails.executionPlanId,
+            frameworkName : executionEventDetails.frameworkName,
+            applicationName : executionEventDetails.applicationName,
+            dataSourceUri : executionEventDetails.dataSourceUri,
+            dataSourceType : executionEventDetails.dataSourceType,
+            append : executionEventDetails.append
+        }
    } IN progress
 

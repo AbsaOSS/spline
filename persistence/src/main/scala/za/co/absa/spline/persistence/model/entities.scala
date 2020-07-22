@@ -64,11 +64,17 @@ case class Progress(
   error: Option[Any],
   extra: Map[String, Any],
   override val _key: String,
-  // the rest of the parameters is copied from other entities - for performance reasons
+  execPlanDetails: ExecPlanDetails
+) extends Vertex
+
+/**
+  * These values are copied from other entities for performance optimization.
+  */
+case class ExecPlanDetails(
   executionPlanId: String,
   frameworkName: String,
   applicationName: String,
   dataSourceUri: String,
   dataSourceType: String,
   append: Boolean
-) extends Vertex
+)

@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.model._
+import za.co.absa.spline.consumer.service.repo.ExecutionEventRepositoryImpl.SortFieldMap
 
 import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -57,8 +58,6 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         "asAtTime" -> (asAtTime: java.lang.Long)
       ))
 
-    val sortFieldMap = Map("executionEventId" -> "_key", "applicationId" -> List("extra", "appId"))
-
     val eventualArangoCursorAsync = db.queryAs[ExecutionEventInfo](
       """
         |FOR ee IN progress
@@ -67,28 +66,28 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |        && ee.timestamp <= @timestampEnd
         |
         |    FILTER !LENGTH(@applicationId) || @applicationId == ee.extra.appId
-        |    FILTER !LENGTH(@dataSourceUri) || @dataSourceUri == ee.dataSourceUri
+        |    FILTER !LENGTH(@dataSourceUri) || @dataSourceUri == ee.execPlanDetails.dataSourceUri
         |    FILTER !LENGTH(@searchTerm)
         |        || ee.timestamp == @searchTerm
-        |        || CONTAINS(LOWER(ee.frameworkName), @searchTerm)
-        |        || CONTAINS(LOWER(ee.applicationName), @searchTerm)
+        |        || CONTAINS(LOWER(ee.execPlanDetails.frameworkName), @searchTerm)
+        |        || CONTAINS(LOWER(ee.execPlanDetails.applicationName), @searchTerm)
         |        || CONTAINS(LOWER(ee.extra.appId), @searchTerm)
-        |        || CONTAINS(LOWER(ee.dataSourceUri), @searchTerm)
-        |        || CONTAINS(LOWER(ee.dataSourceType), @searchTerm)
+        |        || CONTAINS(LOWER(ee.execPlanDetails.dataSourceUri), @searchTerm)
+        |        || CONTAINS(LOWER(ee.execPlanDetails.dataSourceType), @searchTerm)
         |
         |    SORT ee.@sortField @sortOrder
         |    LIMIT @pageOffset*@pageSize, @pageSize
         |
         |    RETURN {
         |        "executionEventId" : ee._key,
-        |        "executionPlanId" : ee.executionPlanId,
-        |        "frameworkName" : ee.frameworkName,
-        |        "applicationName" : ee.applicationName,
+        |        "executionPlanId" : ee.execPlanDetails.executionPlanId,
+        |        "frameworkName" : ee.execPlanDetails.frameworkName,
+        |        "applicationName" : ee.execPlanDetails.applicationName,
         |        "applicationId" : ee.extra.appId,
         |        "timestamp" : ee.timestamp,
-        |        "dataSourceUri" : ee.dataSourceUri,
-        |        "dataSourceType" : ee.dataSourceType,
-        |        "append" : ee.append
+        |        "dataSourceUri" : ee.execPlanDetails.dataSourceUri,
+        |        "dataSourceType" : ee.execPlanDetails.dataSourceType,
+        |        "append" : ee.execPlanDetails.append
         |    }
         |
         |""".stripMargin,
@@ -98,7 +97,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         "timestampEnd" -> (timestampEnd: java.lang.Long),
         "pageOffset" -> (pageRequest.page - 1: Integer),
         "pageSize" -> (pageRequest.size: Integer),
-        "sortField" -> sortFieldMap.getOrElse(sortRequest.sortField, sortRequest.sortField),
+        "sortField" -> SortFieldMap.getOrElse(sortRequest.sortField, sortRequest.sortField),
         "sortOrder" -> sortRequest.sortOrder,
         "searchTerm" -> StringUtils.lowerCase(searchTerm),
         "applicationId" -> applicationId,
@@ -119,3 +118,17 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         totalDateRange)
   }
 }
+
+object ExecutionEventRepositoryImpl {
+  val SortFieldMap = Map(
+    "executionEventId" -> "_key",
+    "executionPlanId" -> List("execPlanDetails", "executionPlanId"),
+    "frameworkName" -> List("execPlanDetails", "frameworkName"),
+    "applicationName" -> List("execPlanDetails", "applicationName"),
+    "applicationId" -> List("extra", "appId"),
+    "dataSourceUri" -> List("execPlanDetails", "dataSourceUri"),
+    "dataSourceType" -> List("execPlanDetails", "dataSourceType"),
+    "append" -> List("execPlanDetails", "append")
+  )
+}
+

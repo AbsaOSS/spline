@@ -103,12 +103,12 @@ object NodeDef {
       IndexDef(Seq("timestamp"), new PersistentIndexOptions),
       IndexDef(Seq("_created"), new PersistentIndexOptions),
       IndexDef(Seq("extra.appId"), new PersistentIndexOptions().sparse(true)),
-      IndexDef(Seq("executionPlanId"), new PersistentIndexOptions),
-      IndexDef(Seq("frameworkName"), new PersistentIndexOptions),
-      IndexDef(Seq("applicationName"), new PersistentIndexOptions),
-      IndexDef(Seq("dataSourceUri"), new PersistentIndexOptions),
-      IndexDef(Seq("dataSourceType"), new PersistentIndexOptions),
-      IndexDef(Seq("append"), new PersistentIndexOptions))
+      IndexDef(Seq("execPlanDetails.executionPlanId"), new PersistentIndexOptions),
+      IndexDef(Seq("execPlanDetails.frameworkName"), new PersistentIndexOptions),
+      IndexDef(Seq("execPlanDetails.applicationName"), new PersistentIndexOptions),
+      IndexDef(Seq("execPlanDetails.dataSourceUri"), new PersistentIndexOptions),
+      IndexDef(Seq("execPlanDetails.dataSourceType"), new PersistentIndexOptions),
+      IndexDef(Seq("execPlanDetails.append"), new PersistentIndexOptions))
   }
 
 }

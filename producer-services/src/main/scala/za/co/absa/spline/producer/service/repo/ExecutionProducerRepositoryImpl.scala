@@ -90,7 +90,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
       Map("keys" -> events.map(_.planId))
     )
 
-    val queryPerformanceData = db.queryAs[Map[String, Any]](
+    val eventualExecPlanDetails = db.queryAs[Map[String, Any]](
       """
         |FOR ep IN executionPlan
         |    FILTER ep._key IN @keys
@@ -112,27 +112,30 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
     for {
       refConsistent <- allReferencesConsistentFuture
       if refConsistent
-      performanceData <- queryPerformanceData
-      res <- buildTranscation(events, performanceData).execute(db)
+      execPlanDetails <- eventualExecPlanDetails
+      res <- buildTranscation(events, execPlanDetails).execute(db)
     } yield res
   })
 
   private def buildTranscation(
-      events: Array[apiModel.ExecutionEvent],
-      performanceData: Array[Map[String, Any]]
+    events: Array[apiModel.ExecutionEvent],
+    execPlanDetails: Array[Map[String, Any]]
   ): ArangoTx = {
-    val progressNodes = (events zip performanceData).map{ case (e, pd) => Progress(
-      e.timestamp,
-      e.error,
-      e.extra,
-      createEventKey(e),
-      pd("executionPlanId").asInstanceOf[String],
-      pd("frameworkName").asInstanceOf[String],
-      pd("applicationName").asInstanceOf[String],
-      pd("dataSourceUri").asInstanceOf[String],
-      pd("dataSourceType").asInstanceOf[String],
-      pd("append").asInstanceOf[Boolean]
-    )}
+   val progressNodes = (events zip execPlanDetails).map{ case (e, pd) =>
+     Progress(
+       e.timestamp,
+       e.error,
+       e.extra,
+       createEventKey(e),
+       ExecPlanDetails(
+         pd("executionPlanId").asInstanceOf[String],
+         pd("frameworkName").asInstanceOf[String],
+         pd("applicationName").asInstanceOf[String],
+         pd("dataSourceUri").asInstanceOf[String],
+         pd("dataSourceType").asInstanceOf[String],
+         pd("append").asInstanceOf[Boolean]
+       )
+     )}
 
     val progressEdges = progressNodes
       .zip(events)
