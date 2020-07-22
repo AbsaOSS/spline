@@ -19,7 +19,7 @@ package za.co.absa.spline.persistence.model
 import com.arangodb.entity.CollectionType
 import com.arangodb.entity.arangosearch.{CollectionLink, FieldLink}
 import com.arangodb.model.arangosearch.ArangoSearchPropertiesOptions
-import com.arangodb.model.{HashIndexOptions, SkiplistIndexOptions}
+import com.arangodb.model.PersistentIndexOptions
 
 
 case class IndexDef(fields: Seq[String], options: AnyRef)
@@ -85,24 +85,30 @@ object NodeDef {
 
   object DataSource extends NodeDef("dataSource") with CollectionDef {
     override def indexDefs: Seq[IndexDef] = Seq(
-      IndexDef(Seq("uri"), (new HashIndexOptions).unique(true)))
+      IndexDef(Seq("uri"), (new PersistentIndexOptions).unique(true)))
   }
 
   object ExecutionPlan extends NodeDef("executionPlan") with CollectionDef
 
   object Operation extends NodeDef("operation") with CollectionDef {
     override def indexDefs: Seq[IndexDef] = Seq(
-      IndexDef(Seq("_type"), new HashIndexOptions),
-      IndexDef(Seq("outputSource"), new HashIndexOptions().sparse(true)),
-      IndexDef(Seq("append"), new HashIndexOptions().sparse(true))
+      IndexDef(Seq("_type"), new PersistentIndexOptions),
+      IndexDef(Seq("outputSource"), new PersistentIndexOptions().sparse(true)),
+      IndexDef(Seq("append"), new PersistentIndexOptions().sparse(true))
     )
   }
 
   object Progress extends NodeDef("progress") with CollectionDef {
     override def indexDefs: Seq[IndexDef] = Seq(
-      IndexDef(Seq("timestamp"), new SkiplistIndexOptions),
-      IndexDef(Seq("_created"), new SkiplistIndexOptions),
-      IndexDef(Seq("extra.appId"), new HashIndexOptions().sparse(true)))
+      IndexDef(Seq("timestamp"), new PersistentIndexOptions),
+      IndexDef(Seq("_created"), new PersistentIndexOptions),
+      IndexDef(Seq("extra.appId"), new PersistentIndexOptions().sparse(true)),
+      IndexDef(Seq("execPlanDetails.executionPlanId"), new PersistentIndexOptions),
+      IndexDef(Seq("execPlanDetails.frameworkName"), new PersistentIndexOptions),
+      IndexDef(Seq("execPlanDetails.applicationName"), new PersistentIndexOptions),
+      IndexDef(Seq("execPlanDetails.dataSourceUri"), new PersistentIndexOptions),
+      IndexDef(Seq("execPlanDetails.dataSourceType"), new PersistentIndexOptions),
+      IndexDef(Seq("execPlanDetails.append"), new PersistentIndexOptions))
   }
 
 }
