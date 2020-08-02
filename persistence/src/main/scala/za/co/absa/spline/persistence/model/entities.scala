@@ -30,6 +30,23 @@ case class Edge(
   def this() = this(null, null)
 }
 
+case class DBVersion(
+  version: String,
+  status: String
+) extends ArangoDocument {
+  def this() = this(null, null)
+}
+
+object DBVersion {
+
+  object Status {
+    val Current = "current"
+    val Preparing = "preparing"
+    val Upgraded = "upgraded"
+  }
+
+}
+
 /**
   * Represents a named location WHERE data can be read from or written to.
   * It can be anything that can serve as a data input or output for a data pipeline.
