@@ -20,10 +20,12 @@ package com.arangodb.internal {
   import com.arangodb.async.ArangoDatabaseAsync
   import com.arangodb.async.internal.ArangoExecutorAsync
   import com.arangodb.async.internal.velocystream.VstCommunicationAsync
-  import com.arangodb.internal.velocystream.ServerCoordinates
+  import com.arangodb.internal.velocystream.ConnectionParams
   import org.apache.commons.io.IOUtils
+  import org.apache.http.auth.UsernamePasswordCredentials
   import org.apache.http.client.methods.HttpPost
   import org.apache.http.entity.StringEntity
+  import org.apache.http.impl.auth.BasicScheme
   import org.apache.http.impl.client.HttpClients
   import za.co.absa.commons.lang.ARM.managed
   import za.co.absa.commons.reflect.ReflectionUtils
@@ -43,13 +45,17 @@ package com.arangodb.internal {
         val executor = db.asInstanceOf[ArangoExecuteable[_ <: ArangoExecutorAsync]].executor
         val dbName = db.name
         val comm = ReflectionUtils.extractFieldValue[VstCommunicationAsync](executor, "communication")
-        val ServerCoordinates(host, port, user, password) = comm
+        val ConnectionParams(host, port, maybeUser, maybePassword) = comm
 
         val request = {
-          val post = new HttpPost(s"http://$host:$port/_db/$dbName/_admin/execute")
-          post.setEntity(new StringEntity(script))
-          // fixme: add authentication
-          post
+          val postReq = new HttpPost(s"http://$host:$port/_db/$dbName/_admin/execute")
+          postReq.setEntity(new StringEntity(script))
+          maybeUser.foreach(user => {
+            val credentials = new UsernamePasswordCredentials(user, maybePassword.orNull)
+            val authHeader = new BasicScheme().authenticate(credentials, postReq, null)
+            postReq.addHeader(authHeader)
+          })
+          postReq
         }
 
         val (respStatusLine, respBody) =
@@ -85,9 +91,7 @@ package com.arangodb.internal {
 
     import scala.reflect.ClassTag
 
-    case class ServerCoordinates(host: String, port: Int, user: Option[String], password: Option[String])
-
-    object ServerCoordinates {
+    object ConnectionParams {
       def unapply(comm: VstCommunicationAsync): Option[(String, Int, Option[String], Option[String])] = {
         val user = comm.user
         val password = comm.password
