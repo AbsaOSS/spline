@@ -173,25 +173,6 @@ db._collections()
         db._dropIndex(idx);
     });
 
-console.log("Create indices");
-
-db.dataSource.ensureIndex({type: "persistent", fields: ["uri"], unique: true});
-
-db.operation.ensureIndex({type: "persistent", fields: ["_type"]});
-db.operation.ensureIndex({type: "persistent", fields: ["outputSource"], sparse: true});
-db.operation.ensureIndex({type: "persistent", fields: ["append"], sparse: true});
-
-db.progress.ensureIndex({type: "persistent", fields: ["timestamp"]});
-db.progress.ensureIndex({type: "persistent", fields: ["_created"]});
-db.progress.ensureIndex({type: "persistent", fields: ["extra.appId"], sparse: true});
-
-db.progress.ensureIndex({type: "persistent", fields: ["execPlanDetails.executionPlanId"]});
-db.progress.ensureIndex({type: "persistent", fields: ["execPlanDetails.frameworkName"]});
-db.progress.ensureIndex({type: "persistent", fields: ["execPlanDetails.applicationName"]});
-db.progress.ensureIndex({type: "persistent", fields: ["execPlanDetails.dataSourceUri"]});
-db.progress.ensureIndex({type: "persistent", fields: ["execPlanDetails.dataSourceType"]});
-db.progress.ensureIndex({type: "persistent", fields: ["execPlanDetails.append"]});
-
 console.log("Upgrade data");
 
 db._query(aql`
@@ -222,5 +203,24 @@ db._query(aql`
        } IN progress
      `
 );
+
+console.log("Create indices");
+
+db.dataSource.ensureIndex({type: "persistent", fields: ["uri"], unique: true});
+
+db.operation.ensureIndex({type: "persistent", fields: ["_type"]});
+db.operation.ensureIndex({type: "persistent", fields: ["outputSource"], sparse: true});
+db.operation.ensureIndex({type: "persistent", fields: ["append"], sparse: true});
+
+db.progress.ensureIndex({type: "persistent", fields: ["timestamp"]});
+db.progress.ensureIndex({type: "persistent", fields: ["_created"]});
+db.progress.ensureIndex({type: "persistent", fields: ["extra.appId"], sparse: true});
+
+db.progress.ensureIndex({type: "persistent", fields: ["execPlanDetails.executionPlanId"]});
+db.progress.ensureIndex({type: "persistent", fields: ["execPlanDetails.frameworkName"]});
+db.progress.ensureIndex({type: "persistent", fields: ["execPlanDetails.applicationName"]});
+db.progress.ensureIndex({type: "persistent", fields: ["execPlanDetails.dataSourceUri"]});
+db.progress.ensureIndex({type: "persistent", fields: ["execPlanDetails.dataSourceType"]});
+db.progress.ensureIndex({type: "persistent", fields: ["execPlanDetails.append"]});
 
 console.log("Done");
