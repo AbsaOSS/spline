@@ -17,8 +17,6 @@
 package za.co.absa.spline.persistence.migration
 
 import com.arangodb.async.ArangoDatabaseAsync
-import com.arangodb.async.internal.ArangoExecutorAsync
-import com.arangodb.internal.{ArangoExecuteable, ArangoExecutor, InternalArangoDatabase}
 import org.slf4s.Logging
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import scalax.collection.Graph
@@ -38,6 +36,7 @@ import za.co.absa.spline.persistence.model.NodeDef.DBVersion
 import za.co.absa.spline.persistence.tx._
 
 import scala.compat.java8.FutureConverters.CompletionStageOps
+import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.io.Source
 import scala.util.matching.Regex
@@ -66,12 +65,22 @@ class Migrator(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) extends L
       for {
         dbVersionExists <- db.collection(DBVersion.name).exists.toScala
         currentVersion <-
-          if (dbVersionExists) getCurrentDBVersion
-          else initializeDbVersionCollection(BaselineVersion)
+          if (!dbVersionExists) initializeDbVersionCollection(BaselineVersion)
+          else getDBVersion(Status.Current).map(_.getOrElse(sys.error("'current' DB version not found")))
+        maybePreparingVersion <- getDBVersion(Status.Preparing)
       } yield {
-        val migrationChain = findMigrationChain(currentVersion, targetVersion, migrationScripts)
         log.info(s"Current database version: ${currentVersion.asString}")
         log.info(s"Target database version: ${targetVersion.asString}")
+        maybePreparingVersion.foreach(prepVersion =>
+          sys.error("" +
+            s"Incomplete upgrade to version: ${prepVersion.asString} detected." +
+            " The previous DB upgrade has probably failed" +
+            " or another application is performing it at the moment." +
+            " The database might be left in an inconsistent state." +
+            " Please restore the database backup before proceeding," +
+            " or wait until the ongoing upgrade has finished.")
+        )
+        val migrationChain = findMigrationChain(currentVersion, targetVersion, migrationScripts)
         if (migrationChain.isEmpty)
           log.info(s"The database is up-to-date")
         else {
@@ -91,13 +100,16 @@ class Migrator(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) extends L
     )
   }
 
-  private def getCurrentDBVersion = db
-    .queryOne[String](
+  private def getDBVersion(status: String) = db
+    .queryAs[String](
       s"""
          |FOR v IN ${DBVersion.name}
-         |    FILTER v.status == '${Status.Current}'
+         |    FILTER v.status == '$status'
          |    RETURN v.version""".stripMargin)
-    .map(Version.asSemVer)
+    .map(_
+      .streamRemaining.toScala
+      .headOption
+      .map(Version.asSemVer))
 
   private def executeMigration(script: String, version: SemanticVersion): Future[Unit] = {
     log.info(s"Upgrading to version: ${version.asString}")
@@ -105,7 +117,6 @@ class Migrator(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) extends L
 
     import com.arangodb.internal.InternalArangoDatabaseImplicits._
 
-    // fixme: check for already started transaction. If so then stop and ask user to clean things up.
     for {
       _ <- db.collection(DBVersion.name).insertDocument(model.DBVersion(version.asString, Status.Preparing)).toScala
       _ <- db.adminExecute(script)
