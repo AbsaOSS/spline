@@ -42,11 +42,12 @@ import scala.io.Source
 import scala.util.matching.Regex
 
 class Migrator(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) extends Logging {
+  //fixme: refactoring: introduce a new class, e.g. MigrationScriptsManager/Loader etc
   private val migrationScripts = loadMigrationScripts(MigrationScriptsLocation)
 
   val targetVersion: SemanticVersion = findClosestTargetVersion(CoreAppVersion, migrationScripts)
 
-  // fixme: avoid calling public from inside. refactor dependencies
+  // fixme: refactoring: avoid calling public from inside. Review dependencies
   def initializeDbVersionCollection(currentVersion: SemanticVersion): Future[SemanticVersion] = {
     val dbVersion = model.DBVersion(currentVersion.asString, model.DBVersion.Status.Current)
     for {
@@ -100,7 +101,7 @@ class Migrator(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) extends L
     )
   }
 
-  private def getDBVersion(status: String) = db
+  private def getDBVersion(status: model.DBVersion.Status.Type) = db
     .queryAs[String](
       s"""
          |FOR v IN ${DBVersion.name}
@@ -121,8 +122,10 @@ class Migrator(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) extends L
       _ <- db.collection(DBVersion.name).insertDocument(model.DBVersion(version.asString, Status.Preparing)).toScala
       _ <- db.adminExecute(script)
       _ <- new TxBuilder()
-        .addQuery(UpdateQuery(DBVersion, s"${UpdateQuery.DocWildcard}.status == '${Status.Current}'", Map("status" -> Status.Upgraded)))
-        .addQuery(UpdateQuery(DBVersion, s"${UpdateQuery.DocWildcard}.status == '${Status.Preparing}'", Map("status" -> Status.Current)))
+        .addQuery(UpdateQuery(DBVersion,
+          s"${UpdateQuery.DocWildcard}.status == '${Status.Current}'", Map("status" -> Status.Upgraded.toString)))
+        .addQuery(UpdateQuery(DBVersion,
+          s"${UpdateQuery.DocWildcard}.status == '${Status.Preparing}'", Map("status" -> Status.Current.toString)))
         .buildTx
         .execute(db)
     } yield ()

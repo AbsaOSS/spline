@@ -38,11 +38,15 @@ case class DBVersion(
 }
 
 object DBVersion {
+  def apply(version: String, status: Status.Type): DBVersion = DBVersion(version, status.toString)
 
-  object Status {
-    val Current = "current"
-    val Preparing = "preparing"
-    val Upgraded = "upgraded"
+  object Status extends Enumeration {
+
+    type Type = Value
+
+    val Current: Status.Type = Value("current")
+    val Preparing: Status.Type = Value("preparing")
+    val Upgraded: Status.Type = Value("upgraded")
   }
 
 }
