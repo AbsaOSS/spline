@@ -18,12 +18,6 @@ package za.co.absa.spline.persistence.migration
 
 import com.arangodb.async.ArangoDatabaseAsync
 import org.slf4s.Logging
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver
-import scalax.collection.Graph
-import scalax.collection.GraphPredef._
-import scalax.collection.edge.Implicits.edge2WDiEdgeAssoc
-import scalax.collection.edge.WDiEdge
-import za.co.absa.commons.lang.ARM
 import za.co.absa.commons.version.Version
 import za.co.absa.commons.version.Version.VersionStringInterpolator
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
@@ -38,14 +32,11 @@ import za.co.absa.spline.persistence.tx._
 import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.io.Source
-import scala.util.matching.Regex
 
 class Migrator(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) extends Logging {
-  //fixme: refactoring: introduce a new class, e.g. MigrationScriptsManager/Loader etc
-  private val migrationScripts = loadMigrationScripts(MigrationScriptsLocation)
+  private val scriptRepo = new MigrationScriptRepository(MigrationScriptLoader.loadAll(ScriptsLocation))
 
-  val targetVersion: SemanticVersion = findClosestTargetVersion(CoreAppVersion, migrationScripts)
+  val targetVersion: SemanticVersion = scriptRepo.getTargetVersionClosestTo(semver"${SplineBuildInfo.Version}")
 
   // fixme: refactoring: avoid calling public from inside. Review dependencies
   def initializeDbVersionCollection(currentVersion: SemanticVersion): Future[SemanticVersion] = {
@@ -81,7 +72,7 @@ class Migrator(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) extends L
             " Please restore the database backup before proceeding," +
             " or wait until the ongoing upgrade has finished.")
         )
-        val migrationChain = findMigrationChain(currentVersion, targetVersion, migrationScripts)
+        val migrationChain = scriptRepo.findMigrationChain(currentVersion, targetVersion)
         if (migrationChain.isEmpty)
           log.info(s"The database is up-to-date")
         else {
@@ -133,61 +124,6 @@ class Migrator(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) extends L
 }
 
 object Migrator {
-  private val MigrationScriptsLocation = "classpath:migration-scripts"
-  private val SemVerRegexp: Regex = ("" +
-    "(?:0|[1-9]\\d*)\\." +
-    "(?:0|[1-9]\\d*)\\." +
-    "(?:0|[1-9]\\d*)" +
-    "(?:-(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?" +
-    "(?:\\+[0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*)?").r
-  private val MigrationScriptNameRegexp = s"($SemVerRegexp)-($SemVerRegexp).js".r
-
   private val BaselineVersion = semver"0.4.0"
-
-  val CoreAppVersion: SemanticVersion = Version.asSemVer(SplineBuildInfo.Version).core
-
-  private[migration] case class MigrationScript(verFrom: SemanticVersion, verTo: SemanticVersion, script: String) {
-    override def toString: String = MigrationScript.asString(this)
-  }
-
-  object MigrationScript {
-    val FileNamePattern = "*-*.js"
-
-    private def asString(script: MigrationScript): String =
-      FileNamePattern
-        .replaceFirst("\\*", script.verFrom.asString)
-        .replaceFirst("\\*", script.verTo.asString)
-  }
-
-  private[migration] def loadMigrationScripts(location: String): Seq[MigrationScript] = {
-    new PathMatchingResourcePatternResolver(getClass.getClassLoader)
-      .getResources(s"$location/${MigrationScript.FileNamePattern}").toSeq
-      .map(res => {
-        val MigrationScriptNameRegexp(verFrom, verTo) = res.getFilename
-        val scriptBody = ARM.using(Source.fromURL(res.getURL))(_.getLines.mkString)
-        MigrationScript(
-          Version.asSemVer(verFrom),
-          Version.asSemVer(verTo),
-          scriptBody)
-      })
-  }
-
-  private[migration] def findMigrationChain(verFrom: SemanticVersion, verTo: SemanticVersion, allScripts: Seq[MigrationScript]): Seq[MigrationScript] = {
-    try {
-      val scriptByVersionPair = allScripts.groupBy(scr => (scr.verFrom, scr.verTo)).mapValues(_.head)
-      val edges: Seq[WDiEdge[SemanticVersion]] = allScripts.map(scr => scr.verFrom ~> scr.verTo % 1)
-      val graph = Graph(edges: _*)
-      val vFrom = graph.get(verFrom)
-      val vTo = graph.get(verTo)
-      val path = (vFrom shortestPathTo vTo).get
-      path.edges.map(e => scriptByVersionPair((e.from, e.to))).toSeq
-    } catch {
-      case _: NoSuchElementException =>
-        sys.error(s"Cannot find migration scripts from version ${verFrom.asString} to ${verTo.asString}")
-    }
-  }
-
-  private[migration] def findClosestTargetVersion(targetVersion: SemanticVersion, allScripts: Seq[MigrationScript]): SemanticVersion = {
-    allScripts.map(_.verTo).filter(_ <= targetVersion).max
-  }
+  private val ScriptsLocation = "classpath:migration-scripts"
 }
