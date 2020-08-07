@@ -94,15 +94,14 @@ class MigrationScriptRepositorySpec extends AnyFlatSpec with Matchers {
     ex.getMessage should include("1.0.0")
   }
 
-  behavior of "getTargetVersionClosestTo()"
+  behavior of "latestToVersion"
 
-  it should "return closest 'to' version that is less or equal to the given one" in {
+  it should "return latest 'to' version" in {
     val repo = new MigrationScriptRepository(Seq(
       MigrationScript(semver"1.0.0", semver"1.1.0", "aaa"),
       MigrationScript(semver"1.1.0", semver"2.0.0", "bbb"),
       MigrationScript(semver"2.0.0", semver"3.0.0", "ccc"),
     ))
-    repo.getTargetVersionClosestTo(semver"1.2.3") should equal(semver"1.1.0")
-    repo.getTargetVersionClosestTo(semver"1.1.0") should equal(semver"1.1.0")
+    repo.latestToVersion should equal(semver"3.0.0")
   }
 }

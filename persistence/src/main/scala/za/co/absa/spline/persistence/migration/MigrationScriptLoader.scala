@@ -23,7 +23,6 @@ import za.co.absa.commons.version.Version
 import scala.io.Source
 
 object MigrationScriptLoader {
-
   def loadAll(location: String): Seq[MigrationScript] = {
     new PathMatchingResourcePatternResolver(getClass.getClassLoader)
       .getResources(s"$location/${MigrationScript.FileNamePattern}").toSeq

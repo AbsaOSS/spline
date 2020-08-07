@@ -18,17 +18,18 @@ package za.co.absa.spline.persistence
 
 import com.arangodb.async.ArangoDatabaseAsync
 import za.co.absa.commons.version.Version
+import za.co.absa.commons.version.Version._
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 import za.co.absa.spline.persistence.ArangoImplicits.ArangoDatabaseAsyncScalaWrapper
+import za.co.absa.spline.persistence.DatabaseVersionManager._
 import za.co.absa.spline.persistence.model.DBVersion.Status
 import za.co.absa.spline.persistence.model.NodeDef.DBVersion
 
 import scala.compat.java8.FutureConverters.CompletionStageOps
-import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class DatabaseVersionManager(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) {
-  def initializeDbVersionCollection(currentVersion: SemanticVersion): Future[SemanticVersion] = {
+  def insertDbVersion(currentVersion: SemanticVersion): Future[SemanticVersion] = {
     val dbVersion = model.DBVersion(currentVersion.asString, model.DBVersion.Status.Current)
     for {
       exists <- db.collection(DBVersion.name).exists.toScala
@@ -43,23 +44,28 @@ class DatabaseVersionManager(db: ArangoDatabaseAsync)(implicit ec: ExecutionCont
 
   def currentVersion: Future[SemanticVersion] =
     getDBVersion(Status.Current)
-      .map(_.getOrElse(sys.error("'current' DB version not found")))
+      .map(_.getOrElse(BaselineVersion))
 
   def preparingVersion: Future[Option[SemanticVersion]] =
     getDBVersion(Status.Preparing)
 
-  private def getDBVersion(status: model.DBVersion.Status.Type) = db
-    .queryAs[String](
-      s"""
-         |FOR v IN ${DBVersion.name}
-         |    FILTER v.status == '$status'
-         |    RETURN v.version""".stripMargin)
-    .map(_
-      .streamRemaining.toScala
-      .headOption
-      .map(Version.asSemVer))
+  private def getDBVersion(status: model.DBVersion.Status.Type) = {
+    db
+      .collection(DBVersion.name)
+      .exists().toScala
+      .flatMap(exists =>
+        if (exists) db.queryOptional[String](
+          s"""
+             |FOR v IN ${DBVersion.name}
+             |    FILTER v.status == '$status'
+             |    RETURN v.version
+             |""".stripMargin)
+          .map(_.map(Version.asSemVer))
+        else Future.successful(None))
+  }
 }
 
 object DatabaseVersionManager {
+  val BaselineVersion = semver"0.4.0"
 
 }

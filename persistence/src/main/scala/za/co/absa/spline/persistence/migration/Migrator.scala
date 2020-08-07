@@ -19,7 +19,6 @@ package za.co.absa.spline.persistence.migration
 import com.arangodb.async.ArangoDatabaseAsync
 import org.slf4s.Logging
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
-import za.co.absa.spline.persistence.ArangoManager._
 import za.co.absa.spline.persistence.model.DBVersion.Status
 import za.co.absa.spline.persistence.model.NodeDef.DBVersion
 import za.co.absa.spline.persistence.tx._
@@ -28,21 +27,23 @@ import za.co.absa.spline.persistence.{DatabaseVersionManager, model}
 import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.concurrent.{ExecutionContext, Future}
 
-class Migrator(migrationChain: Seq[MigrationScript], db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) extends Logging {
+class Migrator(
+  scriptRepository: MigrationScriptRepository,
+  dbVersionManager: DatabaseVersionManager,
+  db: ArangoDatabaseAsync)
+  (implicit ec: ExecutionContext) extends Logging {
 
-  private val dbVersionManager = new DatabaseVersionManager(db)
-
-  def migrate(): Future[Unit] = {
+  def migrate(verFrom: SemanticVersion, verTo: SemanticVersion): Future[Unit] = {
     val eventualMigrationChain =
       for {
         dbVersionExists <- db.collection(DBVersion.name).exists.toScala
         maybePreparingVersion <- dbVersionManager.preparingVersion
         currentVersion <-
           if (dbVersionExists) dbVersionManager.currentVersion
-          else dbVersionManager.initializeDbVersionCollection(BaselineVersion)
+          else dbVersionManager.insertDbVersion(DatabaseVersionManager.BaselineVersion)
       } yield {
         log.info(s"Current database version: ${currentVersion.asString}")
-        log.info(s"Target database version: ${TargetVersion.asString}")
+        log.info(s"Target database version: ${verTo.asString}")
         maybePreparingVersion.foreach(prepVersion =>
           sys.error("" +
             s"Incomplete upgrade to version: ${prepVersion.asString} detected." +
@@ -52,6 +53,7 @@ class Migrator(migrationChain: Seq[MigrationScript], db: ArangoDatabaseAsync)(im
             " Please restore the database backup before proceeding," +
             " or wait until the ongoing upgrade has finished.")
         )
+        val migrationChain = scriptRepository.findMigrationChain(verFrom, verTo)
         if (migrationChain.isEmpty)
           log.info(s"The database is up-to-date")
         else {

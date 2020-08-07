@@ -39,9 +39,8 @@ class MigrationScriptRepository(scripts: Seq[MigrationScript]) {
     }
   }
 
-  def getTargetVersionClosestTo(targetVersion: SemanticVersion): SemanticVersion = {
-    val coreVersion = targetVersion.core
-    scripts.map(_.verTo).filter(_ <= coreVersion).max
+  def latestToVersion: SemanticVersion = {
+    scripts.map(_.verTo).max
   }
 }
 

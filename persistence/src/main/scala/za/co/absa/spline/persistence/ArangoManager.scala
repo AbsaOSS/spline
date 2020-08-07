@@ -24,80 +24,55 @@ import org.slf4s.Logging
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import za.co.absa.commons.lang.ARM
 import za.co.absa.commons.reflect.ReflectionUtils
-import za.co.absa.commons.version.Version.VersionStringInterpolator
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
-import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Skip}
-import za.co.absa.spline.persistence.migration.{MigrationScriptLoader, MigrationScriptRepository, Migrator}
+import za.co.absa.spline.persistence.migration.Migrator
 import za.co.absa.spline.persistence.model.{CollectionDef, GraphDef, ViewDef}
 
 import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters._
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.io.Source
-import scala.util.{Failure, Success, Try}
 
 trait ArangoManager {
 
   /**
    * @return `true` if actual initialization was performed.
    */
-  def initialize(connectionURL: ArangoConnectionURL, onExistsAction: OnDBExistsAction): Future[Boolean]
-  def upgrade(connectionURL: ArangoConnectionURL): Future[Unit]
+  def initialize(onExistsAction: OnDBExistsAction): Future[Boolean]
+  def upgrade(): Future[Unit]
 }
 
-object ArangoManager extends ArangoManager with Logging {
+class ArangoManagerImpl(
+  db: ArangoDatabaseAsync,
+  dbVersionManager: DatabaseVersionManager,
+  migrator: Migrator,
+  appDBVersion: SemanticVersion)
+  (implicit val ex: ExecutionContext)
+  extends ArangoManager
+    with Logging {
 
-  import scala.concurrent.ExecutionContext.Implicits._
-
-  private val scriptsLocation = "classpath:migration-scripts"
-  private val scriptRepo = new MigrationScriptRepository(MigrationScriptLoader.loadAll(scriptsLocation))
-
-  val TargetVersion: SemanticVersion = scriptRepo.getTargetVersionClosestTo(semver"${SplineBuildInfo.Version}")
-  val BaselineVersion = semver"0.4.0"
-
-  def initialize(connectionURL: ArangoConnectionURL, onExistsAction: OnDBExistsAction): Future[Boolean] =
-    execute(connectionURL) { db =>
-      db.exists.toScala.flatMap { exists =>
-        if (exists && onExistsAction == Skip)
-          Future.successful(false)
-        else for {
-          _ <- deleteDbIfRequested(db, onExistsAction == Drop)
-          _ <- db.create().toScala
-          _ <- createCollections(db)
-          _ <- createAQLUserFunctions(db)
-          _ <- createIndices(db)
-          _ <- createGraphs(db)
-          _ <- createViews(db)
-          _ <- {
-            val dbVersionManager = new DatabaseVersionManager(db)
-            dbVersionManager.initializeDbVersionCollection(TargetVersion)
-          }
-        } yield true
-      }
+  def initialize(onExistsAction: OnDBExistsAction): Future[Boolean] =
+    db.exists.toScala.flatMap { exists =>
+      if (exists && onExistsAction == Skip)
+        Future.successful(false)
+      else for {
+        _ <- deleteDbIfRequested(db, onExistsAction == Drop)
+        _ <- db.create().toScala
+        _ <- createCollections(db)
+        _ <- createAQLUserFunctions(db)
+        _ <- createIndices(db)
+        _ <- createGraphs(db)
+        _ <- createViews(db)
+        _ <- dbVersionManager.insertDbVersion(appDBVersion)
+      } yield true
     }
 
-  override def upgrade(connectionURL: ArangoConnectionURL): Future[Unit] =
-    execute(connectionURL) {
-      db => {
-        val dbVersionManager = new DatabaseVersionManager(db)
-        for {
-          currentVersion <- dbVersionManager.currentVersion
-          scripts = scriptRepo.findMigrationChain(currentVersion, TargetVersion)
-          migrationDone <- new Migrator(scripts, db).migrate()
-        } yield migrationDone
-      }
-    }
-
-  private def execute[A](connectionURL: ArangoConnectionURL)(fn: ArangoDatabaseAsync => Future[A]): Future[A] = {
-    val arangoFacade = new ArangoDatabaseFacade(connectionURL)
-
-    (Try(fn(arangoFacade.db)) match {
-      case Failure(e) => Future.failed(e)
-      case Success(v) => v
-    }) andThen {
-      case _ => arangoFacade.destroy()
-    }
+  override def upgrade(): Future[Unit] = {
+    for {
+      currentVersion <- dbVersionManager.currentVersion
+      migrationDone <- migrator.migrate(currentVersion, appDBVersion)
+    } yield migrationDone
   }
 
   private def deleteDbIfRequested(db: ArangoDatabaseAsync, dropIfExists: Boolean) =
