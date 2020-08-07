@@ -80,6 +80,10 @@ class Migrator(
     import com.arangodb.internal.InternalArangoDatabaseImplicits._
 
     for {
+      _ <- db.adminExecute(
+        // It also serves as a pre-flight check of the '/_admin/execute' API
+        s"console.log('Starting migration to version ${version.asString}')"
+      )
       _ <- db.collection(DBVersion.name).insertDocument(model.DBVersion(version.asString, Status.Preparing)).toScala
       _ <- db.adminExecute(script)
       _ <- new TxBuilder()
