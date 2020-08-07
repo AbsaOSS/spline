@@ -31,14 +31,14 @@ class ResourceMigrationScriptLoaderSpec extends AnyFlatSpec with Matchers {
   it should "load scripts from a given resource" in {
     val dir = TempDirectory(getClass.getName).deleteOnExit().path.toFile
 
-    FileUtils.writeStringToFile(new File(dir, "1.0.0-1.1.0.js"), "aaa", "UTF-8")
-    FileUtils.writeStringToFile(new File(dir, "1.1.0-1.2.0.js"), "bbb", "UTF-8")
-    FileUtils.writeStringToFile(new File(dir, "1.2.0-1.3.0.js"), "ccc", "UTF-8")
+    FileUtils.writeStringToFile(new File(dir, "1.0.0-1.1.0.js"), "aaa\n111", "UTF-8")
+    FileUtils.writeStringToFile(new File(dir, "1.1.0-1.2.0.js"), "bbb\n222", "UTF-8")
+    FileUtils.writeStringToFile(new File(dir, "1.2.0-1.3.0.js"), "ccc\n333", "UTF-8")
 
     new ResourceMigrationScriptLoader(dir.toURI.toString).loadAll() should equal(Seq(
-      MigrationScript(semver"1.0.0", semver"1.1.0", "aaa"),
-      MigrationScript(semver"1.1.0", semver"1.2.0", "bbb"),
-      MigrationScript(semver"1.2.0", semver"1.3.0", "ccc"),
+      MigrationScript(semver"1.0.0", semver"1.1.0", "aaa\n111"),
+      MigrationScript(semver"1.1.0", semver"1.2.0", "bbb\n222"),
+      MigrationScript(semver"1.2.0", semver"1.3.0", "ccc\n333"),
     ))
   }
 }

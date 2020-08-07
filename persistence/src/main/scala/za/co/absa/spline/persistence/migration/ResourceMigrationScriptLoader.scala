@@ -28,7 +28,7 @@ class ResourceMigrationScriptLoader(location: String) extends MigrationScriptLoa
       .getResources(s"$location/${MigrationScript.FileNamePattern}").toSeq
       .map(res => {
         val MigrationScript.NameRegexp(verFrom, verTo) = res.getFilename
-        val scriptBody = ARM.using(Source.fromURL(res.getURL))(_.getLines.mkString)
+        val scriptBody = ARM.using(Source.fromURL(res.getURL))(_.getLines.mkString("\n"))
         MigrationScript(
           Version.asSemVer(verFrom),
           Version.asSemVer(verTo),
