@@ -106,8 +106,10 @@ package com.arangodb.internal {
         ))
       }
 
+      /**
+       * Remove when https://github.com/AbsaOSS/commons/issues/28 is fixed
+       */
       private def extractFieldValue[A: ClassTag, B](o: AnyRef, fieldName: String) = {
-        // fixme: incorporate it into the commons impl / fix one to find field in super-classes
         val declaringClass = implicitly[ClassTag[A]]
         val field = declaringClass.runtimeClass.getDeclaredField(fieldName)
         field.setAccessible(true)

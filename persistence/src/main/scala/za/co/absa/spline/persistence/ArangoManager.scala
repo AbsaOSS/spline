@@ -24,8 +24,11 @@ import org.slf4s.Logging
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import za.co.absa.commons.lang.ARM
 import za.co.absa.commons.reflect.ReflectionUtils
+import za.co.absa.commons.version.Version.VersionStringInterpolator
+import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
+import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Skip}
-import za.co.absa.spline.persistence.migration.Migrator
+import za.co.absa.spline.persistence.migration.{MigrationScriptLoader, MigrationScriptRepository, Migrator}
 import za.co.absa.spline.persistence.model.{CollectionDef, GraphDef, ViewDef}
 
 import scala.collection.JavaConverters._
@@ -47,6 +50,12 @@ object ArangoManager extends ArangoManager with Logging {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
+  private val scriptsLocation = "classpath:migration-scripts"
+  private val scriptRepo = new MigrationScriptRepository(MigrationScriptLoader.loadAll(scriptsLocation))
+
+  val TargetVersion: SemanticVersion = scriptRepo.getTargetVersionClosestTo(semver"${SplineBuildInfo.Version}")
+  val BaselineVersion = semver"0.4.0"
+
   def initialize(connectionURL: ArangoConnectionURL, onExistsAction: OnDBExistsAction): Future[Boolean] =
     execute(connectionURL) { db =>
       db.exists.toScala.flatMap { exists =>
@@ -61,16 +70,23 @@ object ArangoManager extends ArangoManager with Logging {
           _ <- createGraphs(db)
           _ <- createViews(db)
           _ <- {
-            val migrator = new Migrator(db)
-            migrator.initializeDbVersionCollection(migrator.targetVersion)
+            val dbVersionManager = new DatabaseVersionManager(db)
+            dbVersionManager.initializeDbVersionCollection(TargetVersion)
           }
         } yield true
       }
     }
 
   override def upgrade(connectionURL: ArangoConnectionURL): Future[Unit] =
-    execute(connectionURL) { db =>
-      new Migrator(db).migrate()
+    execute(connectionURL) {
+      db => {
+        val dbVersionManager = new DatabaseVersionManager(db)
+        for {
+          currentVersion <- dbVersionManager.currentVersion
+          scripts = scriptRepo.findMigrationChain(currentVersion, TargetVersion)
+          migrationDone <- new Migrator(scripts, db).migrate()
+        } yield migrationDone
+      }
     }
 
   private def execute[A](connectionURL: ArangoConnectionURL)(fn: ArangoDatabaseAsync => Future[A]): Future[A] = {

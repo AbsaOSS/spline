@@ -18,51 +18,31 @@ package za.co.absa.spline.persistence.migration
 
 import com.arangodb.async.ArangoDatabaseAsync
 import org.slf4s.Logging
-import za.co.absa.commons.version.Version
-import za.co.absa.commons.version.Version.VersionStringInterpolator
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
-import za.co.absa.spline.common.SplineBuildInfo
-import za.co.absa.spline.persistence.ArangoImplicits.ArangoDatabaseAsyncScalaWrapper
-import za.co.absa.spline.persistence.migration.Migrator._
-import za.co.absa.spline.persistence.model
+import za.co.absa.spline.persistence.ArangoManager._
 import za.co.absa.spline.persistence.model.DBVersion.Status
 import za.co.absa.spline.persistence.model.NodeDef.DBVersion
 import za.co.absa.spline.persistence.tx._
+import za.co.absa.spline.persistence.{DatabaseVersionManager, model}
 
 import scala.compat.java8.FutureConverters.CompletionStageOps
-import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-class Migrator(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) extends Logging {
-  private val scriptRepo = new MigrationScriptRepository(MigrationScriptLoader.loadAll(ScriptsLocation))
+class Migrator(migrationChain: Seq[MigrationScript], db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) extends Logging {
 
-  val targetVersion: SemanticVersion = scriptRepo.getTargetVersionClosestTo(semver"${SplineBuildInfo.Version}")
-
-  // fixme: refactoring: avoid calling public from inside. Review dependencies
-  def initializeDbVersionCollection(currentVersion: SemanticVersion): Future[SemanticVersion] = {
-    val dbVersion = model.DBVersion(currentVersion.asString, model.DBVersion.Status.Current)
-    for {
-      exists <- db.collection(DBVersion.name).exists.toScala
-      _ <-
-        if (exists) Future.successful({})
-        else db.createCollection(DBVersion.name).toScala
-      _ <- db.collection(DBVersion.name)
-        .insertDocument(dbVersion)
-        .toScala
-    } yield currentVersion
-  }
+  private val dbVersionManager = new DatabaseVersionManager(db)
 
   def migrate(): Future[Unit] = {
     val eventualMigrationChain =
       for {
         dbVersionExists <- db.collection(DBVersion.name).exists.toScala
+        maybePreparingVersion <- dbVersionManager.preparingVersion
         currentVersion <-
-          if (!dbVersionExists) initializeDbVersionCollection(BaselineVersion)
-          else getDBVersion(Status.Current).map(_.getOrElse(sys.error("'current' DB version not found")))
-        maybePreparingVersion <- getDBVersion(Status.Preparing)
+          if (dbVersionExists) dbVersionManager.currentVersion
+          else dbVersionManager.initializeDbVersionCollection(BaselineVersion)
       } yield {
         log.info(s"Current database version: ${currentVersion.asString}")
-        log.info(s"Target database version: ${targetVersion.asString}")
+        log.info(s"Target database version: ${TargetVersion.asString}")
         maybePreparingVersion.foreach(prepVersion =>
           sys.error("" +
             s"Incomplete upgrade to version: ${prepVersion.asString} detected." +
@@ -72,7 +52,6 @@ class Migrator(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) extends L
             " Please restore the database backup before proceeding," +
             " or wait until the ongoing upgrade has finished.")
         )
-        val migrationChain = scriptRepo.findMigrationChain(currentVersion, targetVersion)
         if (migrationChain.isEmpty)
           log.info(s"The database is up-to-date")
         else {
@@ -92,17 +71,6 @@ class Migrator(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) extends L
     )
   }
 
-  private def getDBVersion(status: model.DBVersion.Status.Type) = db
-    .queryAs[String](
-      s"""
-         |FOR v IN ${DBVersion.name}
-         |    FILTER v.status == '$status'
-         |    RETURN v.version""".stripMargin)
-    .map(_
-      .streamRemaining.toScala
-      .headOption
-      .map(Version.asSemVer))
-
   private def executeMigration(script: String, version: SemanticVersion): Future[Unit] = {
     log.info(s"Upgrading to version: ${version.asString}")
     log.trace(s"Applying script: \n$script")
@@ -121,9 +89,4 @@ class Migrator(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) extends L
         .execute(db)
     } yield ()
   }
-}
-
-object Migrator {
-  private val BaselineVersion = semver"0.4.0"
-  private val ScriptsLocation = "classpath:migration-scripts"
 }
