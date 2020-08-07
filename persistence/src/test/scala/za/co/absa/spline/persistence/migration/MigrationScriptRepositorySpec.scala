@@ -39,7 +39,7 @@ class MigrationScriptRepositorySpec extends AnyFlatSpec with Matchers {
    *    (3.0.0)
    */
   it should "find a correct migration path" in {
-    val repo = new MigrationScriptRepository(Seq(
+    val repo = new MigrationScriptRepository(() => Seq(
       MigrationScript(semver"1.0.0", semver"1.1.0", "aaa"),
       MigrationScript(semver"1.1.0", semver"1.2.0", "bbb"),
       MigrationScript(semver"1.1.0", semver"2.0.0", "bbb"),
@@ -58,7 +58,7 @@ class MigrationScriptRepositorySpec extends AnyFlatSpec with Matchers {
   }
 
   it should "return empty path in 'from' and 'to' nodes are the same " in {
-    val repo = new MigrationScriptRepository(Seq(
+    val repo = new MigrationScriptRepository(() => Seq(
       MigrationScript(semver"1.0.0", semver"2.0.0", "aaa")
     ))
 
@@ -67,7 +67,7 @@ class MigrationScriptRepositorySpec extends AnyFlatSpec with Matchers {
   }
 
   it should "throw if no such vertex exists" in {
-    val repo = new MigrationScriptRepository(Seq(
+    val repo = new MigrationScriptRepository(() => Seq(
       MigrationScript(semver"1.0.0", semver"2.0.0", "aaa")
     ))
 
@@ -81,7 +81,7 @@ class MigrationScriptRepositorySpec extends AnyFlatSpec with Matchers {
   }
 
   it should "throw if no path exists" in {
-    val repo = new MigrationScriptRepository(Seq(
+    val repo = new MigrationScriptRepository(() => Seq(
       MigrationScript(semver"1.0.0", semver"2.0.0", "aaa"),
       MigrationScript(semver"2.0.0", semver"3.0.0", "bbb"),
     ))
@@ -97,7 +97,7 @@ class MigrationScriptRepositorySpec extends AnyFlatSpec with Matchers {
   behavior of "latestToVersion"
 
   it should "return latest 'to' version" in {
-    val repo = new MigrationScriptRepository(Seq(
+    val repo = new MigrationScriptRepository(() => Seq(
       MigrationScript(semver"1.0.0", semver"1.1.0", "aaa"),
       MigrationScript(semver"1.1.0", semver"2.0.0", "bbb"),
       MigrationScript(semver"2.0.0", semver"3.0.0", "ccc"),

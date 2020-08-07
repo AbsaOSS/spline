@@ -24,7 +24,7 @@ import org.scalatest.matchers.should.Matchers
 import za.co.absa.commons.io.TempDirectory
 import za.co.absa.commons.version.Version._
 
-class MigrationScriptLoaderSpec extends AnyFlatSpec with Matchers {
+class ResourceMigrationScriptLoaderSpec extends AnyFlatSpec with Matchers {
 
   behavior of "loadAll()"
 
@@ -35,7 +35,7 @@ class MigrationScriptLoaderSpec extends AnyFlatSpec with Matchers {
     FileUtils.writeStringToFile(new File(dir, "1.1.0-1.2.0.js"), "bbb", "UTF-8")
     FileUtils.writeStringToFile(new File(dir, "1.2.0-1.3.0.js"), "ccc", "UTF-8")
 
-    MigrationScriptLoader.loadAll(dir.toURI.toString) should equal(Seq(
+    new ResourceMigrationScriptLoader(dir.toURI.toString).loadAll() should equal(Seq(
       MigrationScript(semver"1.0.0", semver"1.1.0", "aaa"),
       MigrationScript(semver"1.1.0", semver"1.2.0", "bbb"),
       MigrationScript(semver"1.2.0", semver"1.3.0", "ccc"),

@@ -22,7 +22,9 @@ import scalax.collection.edge.Implicits.edge2WDiEdgeAssoc
 import scalax.collection.edge.WDiEdge
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 
-class MigrationScriptRepository(scripts: Seq[MigrationScript]) {
+class MigrationScriptRepository(scriptLoader: MigrationScriptLoader) {
+
+  private val scripts: Seq[MigrationScript] = scriptLoader.loadAll()
 
   def findMigrationChain(verFrom: SemanticVersion, verTo: SemanticVersion): Seq[MigrationScript] = {
     try {
@@ -43,4 +45,7 @@ class MigrationScriptRepository(scripts: Seq[MigrationScript]) {
     scripts.map(_.verTo).max
   }
 }
+
+object MigrationScriptRepository extends MigrationScriptRepository(
+  new ResourceMigrationScriptLoader("classpath:migration-scripts"))
 

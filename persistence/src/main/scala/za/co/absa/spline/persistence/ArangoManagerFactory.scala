@@ -17,7 +17,7 @@
 package za.co.absa.spline.persistence
 
 import com.arangodb.async.ArangoDatabaseAsync
-import za.co.absa.spline.persistence.migration.{MigrationScriptLoader, MigrationScriptRepository, Migrator}
+import za.co.absa.spline.persistence.migration.{MigrationScriptRepository, Migrator}
 
 import scala.concurrent.ExecutionContext
 
@@ -27,17 +27,12 @@ trait ArangoManagerFactory {
 
 class ArangoManagerFactoryImpl()(implicit ec: ExecutionContext) extends ArangoManagerFactory {
 
-  private val MigrationScriptsLocation = "classpath:migration-scripts"
-
   override def create(connectionURL: ArangoConnectionURL): ArangoManager = {
-    val scriptRepo = {
-      val scripts = MigrationScriptLoader.loadAll(MigrationScriptsLocation)
-      new MigrationScriptRepository(scripts)
-    }
+    val scriptRepo = MigrationScriptRepository
 
     def dbManagerFactory(db: ArangoDatabaseAsync): ArangoManagerImpl = {
       val versionManager = new DatabaseVersionManager(db)
-      val migrator = new Migrator(scriptRepo, versionManager, db)
+      val migrator = new Migrator(db, scriptRepo, versionManager)
       new ArangoManagerImpl(db, versionManager, migrator, scriptRepo.latestToVersion)
     }
 

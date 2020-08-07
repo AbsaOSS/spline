@@ -28,9 +28,9 @@ import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.concurrent.{ExecutionContext, Future}
 
 class Migrator(
+  db: ArangoDatabaseAsync,
   scriptRepository: MigrationScriptRepository,
-  dbVersionManager: DatabaseVersionManager,
-  db: ArangoDatabaseAsync)
+  dbVersionManager: DatabaseVersionManager)
   (implicit ec: ExecutionContext) extends Logging {
 
   def migrate(verFrom: SemanticVersion, verTo: SemanticVersion): Future[Unit] = {

@@ -16,23 +16,6 @@
 
 package za.co.absa.spline.persistence.migration
 
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver
-import za.co.absa.commons.lang.ARM
-import za.co.absa.commons.version.Version
-
-import scala.io.Source
-
-object MigrationScriptLoader {
-  def loadAll(location: String): Seq[MigrationScript] = {
-    new PathMatchingResourcePatternResolver(getClass.getClassLoader)
-      .getResources(s"$location/${MigrationScript.FileNamePattern}").toSeq
-      .map(res => {
-        val MigrationScript.NameRegexp(verFrom, verTo) = res.getFilename
-        val scriptBody = ARM.using(Source.fromURL(res.getURL))(_.getLines.mkString)
-        MigrationScript(
-          Version.asSemVer(verFrom),
-          Version.asSemVer(verTo),
-          scriptBody)
-      })
-  }
+trait MigrationScriptLoader {
+  def loadAll(): Seq[MigrationScript]
 }
