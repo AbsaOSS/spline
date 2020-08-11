@@ -16,17 +16,45 @@
 
 package za.co.absa.spline.persistence.tx
 
+import java.util.UUID
+
 import com.arangodb.async.ArangoDatabaseAsync
 import com.arangodb.model.TransactionOptions
 import za.co.absa.spline.persistence.model.{ArangoDocument, CollectionDef}
-import za.co.absa.spline.persistence.tx.TxBuilder.{ArangoTxImpl, condStmt}
+import za.co.absa.spline.persistence.tx.TxBuilder.{ArangoTxImpl, condLine}
 
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.Future
 
-sealed trait Query
+sealed trait Query {
+  def collectionDefs: Seq[CollectionDef]
+}
 
-case class InsertQuery(collectionDef: CollectionDef, documents: Seq[ArangoDocument], ignoreExisting: Boolean = false) extends Query
+case class NativeQuery(
+  query: String,
+  params: Map[String, Any] = Map.empty,
+  override val collectionDefs: Seq[CollectionDef] = Nil
+) extends Query
+
+case class UpdateQuery(
+  collectionDef: CollectionDef,
+  filter: String,
+  data: Map[String, Any]
+) extends Query {
+  override def collectionDefs: Seq[CollectionDef] = Seq(collectionDef)
+}
+
+object UpdateQuery {
+  val DocWildcard = s"_${UUID.randomUUID}_"
+}
+
+case class InsertQuery(
+  collectionDef: CollectionDef,
+  documents: Seq[ArangoDocument],
+  ignoreExisting: Boolean = false
+) extends Query {
+  override def collectionDefs: Seq[CollectionDef] = Seq(collectionDef)
+}
 
 object InsertQuery {
   def apply(colDef: CollectionDef, docs: ArangoDocument*): InsertQuery = InsertQuery(colDef, docs)
@@ -45,41 +73,67 @@ class TxBuilder {
 
   private[tx] def generateJs(): String = {
     val statements = queries.zipWithIndex.map {
-      case (InsertQuery(col, _, ignoreExisting), _) =>
+      case (nq: NativeQuery, i) =>
+        s"""
+           |(function(db, params){
+           |  ${nq.query}
+           |})(_db, _params[$i]);
+           |""".stripMargin.trim
+
+      case (iq: InsertQuery, i) =>
+        val colName = iq.collectionDef.name
         Seq(
-          s"_params.${col.name}.forEach(o => ",
-          condStmt(ignoreExisting,
-            s"""0 ||
-               |    o._key && _db.${col.name}.exists(o._key) ||
-               |    o._from && o._to && _db._query(`
-               |      FOR e IN ${col.name}
-               |          FILTER e._from == @o._from && e._to == @o._to
-               |          LIMIT 1
-               |          COLLECT WITH COUNT INTO cnt
-               |          RETURN !!cnt
-               |      `, {o}).next() ||
-               |    """.stripMargin),
-          s"_db.${col.name}.insert(o, {silent:true}));"
+          s"_params[$i].forEach(o =>",
+          condLine(iq.ignoreExisting,
+            s"""
+               |  o._key && _db._collection("$colName").exists(o._key) ||
+               |  o._from && o._to && _db._query(`
+               |    FOR e IN $colName
+               |        FILTER e._from == @o._from && e._to == @o._to
+               |        LIMIT 1
+               |        COLLECT WITH COUNT INTO cnt
+               |        RETURN !!cnt
+               |    `, {o}).next() ||
+               |  """.stripMargin),
+          s"""_db._collection("$colName").insert(o, {silent:true}));"""
         ).mkString
+
+      case (uq: UpdateQuery, i) =>
+        val colName = uq.collectionDef.name
+        val doc = "a"
+        val filter = uq.filter.replace(UpdateQuery.DocWildcard, doc)
+        s"""
+           |_db._query(`
+           |  FOR $doc IN $colName
+           |      FILTER $filter
+           |      UPDATE $doc._key WITH @b IN $colName
+           |`, {"b": _params[$i]});
+           |""".stripMargin.trim
     }
     s"""
        |function (_params) {
        |  const _db = require('internal').db;
-       |  ${statements.mkString("\n  ")}
+       |  ${statements.mkString("\n").replace("\n", "\n  ")}
        |}
        |""".stripMargin
   }
 
   private def options: TransactionOptions = {
+    val params = queries
+      .map({
+        case nq: NativeQuery => nq.params
+        case iq: InsertQuery => iq.documents.toVector
+        case uq: UpdateQuery => uq.data
+      })
     val writeCollections = queries
-      .collect({ case InsertQuery(col, docs, _) => col.name -> docs.toVector })
-      .toMap
+      .flatMap(_.collectionDefs)
+      .map(_.name)
+      .distinct
     new TransactionOptions()
-      .params(writeCollections)
-      .writeCollections(writeCollections.keys.toArray: _*)
+      .params(params)
+      .writeCollections(writeCollections: _*)
       .allowImplicit(false)
   }
-
 }
 
 object TxBuilder {
@@ -89,5 +143,5 @@ object TxBuilder {
       db.transaction(txBuilder.generateJs(), classOf[Unit], txBuilder.options).toScala
   }
 
-  private def condStmt(cond: => Boolean, stmt: => String): String = if (cond) stmt else ""
+  private def condLine(cond: => Boolean, stmt: => String): String = if (cond) stmt else ""
 }

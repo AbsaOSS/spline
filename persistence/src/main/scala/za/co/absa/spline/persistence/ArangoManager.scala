@@ -17,75 +17,62 @@
 package za.co.absa.spline.persistence
 
 import com.arangodb.async.ArangoDatabaseAsync
-import com.arangodb.entity.{EdgeDefinition, IndexType}
+import com.arangodb.entity.EdgeDefinition
 import com.arangodb.model._
 import org.apache.commons.io.FilenameUtils
+import org.slf4s.Logging
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import za.co.absa.commons.lang.ARM
 import za.co.absa.commons.reflect.ReflectionUtils
+import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Skip}
+import za.co.absa.spline.persistence.migration.Migrator
 import za.co.absa.spline.persistence.model.{CollectionDef, GraphDef, ViewDef}
 
 import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters._
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.io.Source
-import scala.util.{Failure, Success, Try}
 
 trait ArangoManager {
 
   /**
    * @return `true` if actual initialization was performed.
    */
-  def initialize(connectionURL: ArangoConnectionURL, onExistsAction: OnDBExistsAction): Future[Boolean]
-  def upgrade(connectionURL: ArangoConnectionURL): Future[Unit]
+  def initialize(onExistsAction: OnDBExistsAction): Future[Boolean]
+  def upgrade(): Future[Unit]
 }
 
-object ArangoManager extends ArangoManager {
+class ArangoManagerImpl(
+  db: ArangoDatabaseAsync,
+  dbVersionManager: DatabaseVersionManager,
+  migrator: Migrator,
+  appDBVersion: SemanticVersion)
+  (implicit val ex: ExecutionContext)
+  extends ArangoManager
+    with Logging {
 
-  import scala.concurrent.ExecutionContext.Implicits._
-
-  def initialize(connectionURL: ArangoConnectionURL, onExistsAction: OnDBExistsAction): Future[Boolean] =
-    execute(connectionURL) { db =>
-      db.exists.toScala.flatMap { exists =>
-        if (exists && onExistsAction == Skip)
-          Future.successful(false)
-        else for {
-          _ <- deleteDbIfRequested(db, onExistsAction == Drop)
-          _ <- db.create().toScala
-          _ <- createCollections(db)
-          _ <- createAQLUserFunctions(db)
-          _ <- createIndices(db)
-          _ <- createGraphs(db)
-          _ <- createViews(db)
-        } yield true
-      }
-    }
-
-  override def upgrade(connectionURL: ArangoConnectionURL): Future[Unit] =
-    execute(connectionURL) { db =>
-      for {
-        _ <- deleteAQLUserFunctions(db)
+  def initialize(onExistsAction: OnDBExistsAction): Future[Boolean] =
+    db.exists.toScala.flatMap { exists =>
+      if (exists && onExistsAction == Skip)
+        Future.successful(false)
+      else for {
+        _ <- deleteDbIfRequested(db, onExistsAction == Drop)
+        _ <- db.create().toScala
+        _ <- createCollections(db)
         _ <- createAQLUserFunctions(db)
-        _ <- deleteIndices(db)
         _ <- createIndices(db)
-        _ <- deleteViews(db)
+        _ <- createGraphs(db)
         _ <- createViews(db)
-        // fixme: Current version of Arango driver doesn't seem to support graph deletion. Try after https://github.com/AbsaOSS/spline/issues/396
-        // _ <- deleteGraphs(db)
-        // _ <- createGraphs(db)
-      } yield Unit
+        _ <- dbVersionManager.insertDbVersion(appDBVersion)
+      } yield true
     }
 
-  private def execute[A](connectionURL: ArangoConnectionURL)(fn: ArangoDatabaseAsync => Future[A]): Future[A] = {
-    val arangoFacade = new ArangoDatabaseFacade(connectionURL)
-
-    (Try(fn(arangoFacade.db)) match {
-      case Failure(e) => Future.failed(e)
-      case Success(v) => v
-    }) andThen {
-      case _ => arangoFacade.destroy()
-    }
+  override def upgrade(): Future[Unit] = {
+    for {
+      currentVersion <- dbVersionManager.currentVersion
+      migrationDone <- migrator.migrate(currentVersion, appDBVersion)
+    } yield migrationDone
   }
 
   private def deleteDbIfRequested(db: ArangoDatabaseAsync, dropIfExists: Boolean) =
@@ -106,15 +93,6 @@ object ArangoManager extends ArangoManager {
       db.createGraph(graphDef.name, edgeDefs.asJava).toScala
     })
 
-  private def deleteIndices(db: ArangoDatabaseAsync): Future[_] = {
-    for {
-      cols <- db.getCollections.toScala.map(_.asScala.filter(!_.getIsSystem))
-      allIndices <- Future.reduce(cols.map(col => db.collection(col.getName).getIndexes.toScala.map(_.asScala)))(_ ++ _)
-      userIndices = allIndices.filter(idx => idx.getType != IndexType.primary && idx.getType != IndexType.edge)
-      _ <- Future.traverse(userIndices)(idx => db.deleteIndex(idx.getId).toScala)
-    } yield Unit
-  }
-
   private def createIndices(db: ArangoDatabaseAsync) = Future.sequence(
     for {
       colDef <- ReflectionUtils.objectsOf[CollectionDef]
@@ -130,12 +108,6 @@ object ArangoManager extends ArangoManager {
       }).toScala
     })
 
-  private def deleteAQLUserFunctions(db: ArangoDatabaseAsync) =
-    for {
-      fns <- db.getAqlFunctions(new AqlFunctionGetOptions).toScala.map(_.asScala)
-      _ <- Future.traverse(fns)(fn => db.deleteAqlFunction(fn.getName, new AqlFunctionDeleteOptions).toScala)
-    } yield Unit
-
   private def createAQLUserFunctions(db: ArangoDatabaseAsync) = Future.sequence(
     new PathMatchingResourcePatternResolver(getClass.getClassLoader)
       .getResources("classpath:AQLFunctions/*.js").toSeq
@@ -144,20 +116,6 @@ object ArangoManager extends ArangoManager {
         val functionBody = ARM.using(Source.fromURL(res.getURL))(_.getLines.mkString)
         db.createAqlFunction(functionName, functionBody, new AqlFunctionCreateOptions()).toScala
       }))
-
-  private def deleteViews(db: ArangoDatabaseAsync) = {
-      Future.traverse(ReflectionUtils.objectsOf[ViewDef]) { viewDef => {
-        val view = db.view(viewDef.name)
-
-        view.exists().toScala.flatMap { exists =>
-          if (exists)
-            view.drop().toScala
-          else
-            Future.successful[Unit]()
-        }
-      }
-    }
-  }
 
   private def createViews(db: ArangoDatabaseAsync) = {
     Future.traverse(ReflectionUtils.objectsOf[ViewDef]) { viewDef =>

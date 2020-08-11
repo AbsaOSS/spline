@@ -18,8 +18,8 @@ package za.co.absa.spline.persistence.model
 
 import com.arangodb.entity.CollectionType
 import com.arangodb.entity.arangosearch.{CollectionLink, FieldLink}
-import com.arangodb.model.arangosearch.ArangoSearchPropertiesOptions
 import com.arangodb.model.PersistentIndexOptions
+import com.arangodb.model.arangosearch.ArangoSearchPropertiesOptions
 
 
 case class IndexDef(fields: Seq[String], options: AnyRef)
@@ -27,7 +27,6 @@ case class IndexDef(fields: Seq[String], options: AnyRef)
 sealed trait GraphElementDef
 
 sealed trait CollectionDef {
-  this: GraphElementDef =>
   def name: String
   def collectionType: CollectionType
   def indexDefs: Seq[IndexDef] = Nil
@@ -35,14 +34,14 @@ sealed trait CollectionDef {
 
 sealed abstract class EdgeDef(override val name: String, val from: NodeDef, val to: NodeDef) extends GraphElementDef {
   this: CollectionDef =>
-  override val collectionType = CollectionType.EDGES
+  override def collectionType = CollectionType.EDGES
 
-  def edge(fromKey: Any, toKey: Any) = Edge(s"${from.name}/$fromKey", s"${to.name}/$toKey")
+  def edge(fromKey: Any, toKey: Any): Edge = Edge(s"${from.name}/$fromKey", s"${to.name}/$toKey")
 }
 
 sealed abstract class NodeDef(override val name: String) extends GraphElementDef {
   this: CollectionDef =>
-  override val collectionType = CollectionType.DOCUMENT
+  override def collectionType = CollectionType.DOCUMENT
 }
 
 sealed abstract class GraphDef(val name: String, val edgeDefs: EdgeDef*) {
@@ -82,6 +81,12 @@ object EdgeDef {
 }
 
 object NodeDef {
+
+  object DBVersion extends CollectionDef {
+    override def collectionType = CollectionType.DOCUMENT
+
+    override def name: String = "dbVersion"
+  }
 
   object DataSource extends NodeDef("dataSource") with CollectionDef {
     override def indexDefs: Seq[IndexDef] = Seq(

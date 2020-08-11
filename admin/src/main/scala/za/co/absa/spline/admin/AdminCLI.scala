@@ -20,21 +20,24 @@ import org.backuity.ansi.AnsiFormatter.FormattedHelper
 import scopt.{OptionDef, OptionParser}
 import za.co.absa.spline.admin.AdminCLI.AdminCLIConfig
 import za.co.absa.spline.common.SplineBuildInfo
-import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
-import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManager}
 import za.co.absa.spline.persistence.ArangoConnectionURL.{ArangoDbScheme, ArangoSecureDbScheme}
+import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
+import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManagerFactory, ArangoManagerFactoryImpl}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
 object AdminCLI extends App {
 
+  import scala.concurrent.ExecutionContext.Implicits._
+
   case class AdminCLIConfig(cmd: Command = null)
 
-  new AdminCLI(ArangoManager).exec(args)
+  private val dbManagerFactory = new ArangoManagerFactoryImpl()
+  new AdminCLI(dbManagerFactory).exec(args)
 }
 
-class AdminCLI(dbManager: ArangoManager) {
+class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
 
   def exec(args: Array[String]): Unit = {
 
@@ -99,11 +102,13 @@ class AdminCLI(dbManager: ArangoManager) {
           case (false, true) => Skip
           case (false, false) => Fail
         }
-        val wasInitialized = Await.result(dbManager.initialize(ArangoConnectionURL(url), onExistsAction), timeout)
+        val dbManager = dbManagerFactory.create(ArangoConnectionURL(url))
+        val wasInitialized = Await.result(dbManager.initialize(onExistsAction), timeout)
         if (!wasInitialized) println(ansi"%yellow{Skipped. DB is already initialized}")
 
       case DBUpgrade(url, timeout, _) =>
-        Await.result(dbManager.upgrade(ArangoConnectionURL(url)), timeout)
+        val dbManager = dbManagerFactory.create(ArangoConnectionURL(url))
+        Await.result(dbManager.upgrade(), timeout)
     }
 
     println(ansi"%green{DONE}")

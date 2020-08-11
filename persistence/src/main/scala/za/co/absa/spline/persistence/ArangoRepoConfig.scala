@@ -16,14 +16,19 @@
 
 package za.co.absa.spline.persistence
 
-import java.util.concurrent.ExecutionException
-
 import com.arangodb.async.ArangoDatabaseAsync
 import org.slf4s.Logging
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.context.annotation.{Bean, Configuration}
 import za.co.absa.commons.config.ConfTyped
+import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.common.config.DefaultConfigurationStack
+import za.co.absa.spline.persistence.migration.MigrationScriptRepository
+
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.Implicits._
+import scala.concurrent.duration.Duration
+
 
 @Configuration
 class ArangoRepoConfig extends InitializingBean with Logging {
@@ -32,19 +37,24 @@ class ArangoRepoConfig extends InitializingBean with Logging {
 
   override def afterPropertiesSet(): Unit = {
     log.info(s"Connecting to ${Database.connectionURL.asString}")
-    try {
+    ArangoDatabaseFacade.withWorkaroundForArangoAsyncBug {
       arangoDatabase.getInfo.get()
-    } catch {
-      // The first call sometime fails with a CCE due to a bug in ArangoDB Java Driver
-      // see: https://github.com/arangodb/arangodb-java-driver-async/issues/21
-      case ee: ExecutionException if ee.getCause.isInstanceOf[ClassCastException] =>
-        arangoDatabase.getInfo.get()
     }
+
+    val requiredDBVersion = MigrationScriptRepository.latestToVersion
+    val currentDBVersion = Await.result(databaseVersionManager.currentVersion, Duration.Inf)
+
+    if (requiredDBVersion != currentDBVersion)
+      sys.error("" +
+        s"Database version ${currentDBVersion.asString} is out of date, version ${requiredDBVersion.asString} is required. " +
+        s"Please execute 'java -jar admin-cli-${SplineBuildInfo.Version}.jar db-upgrade' to upgrade the database.")
   }
 
   @Bean def arangoDatabaseFacade: ArangoDatabaseFacade = new ArangoDatabaseFacade(Database.connectionURL)
 
   @Bean def arangoDatabase: ArangoDatabaseAsync = arangoDatabaseFacade.db
+
+  @Bean def databaseVersionManager: DatabaseVersionManager = new DatabaseVersionManager(arangoDatabase)
 }
 
 object ArangoRepoConfig extends DefaultConfigurationStack with ConfTyped {
