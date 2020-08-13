@@ -25,7 +25,7 @@ import com.arangodb.velocypack.module.scala.VPackScalaModule
 import javax.net.ssl._
 import org.springframework.beans.factory.DisposableBean
 import za.co.absa.commons.lang.OptionImplicits.AnyWrapper
-import za.co.absa.spline.persistence.ArangoDatabaseFacade.createSslContext
+import za.co.absa.spline.persistence.ArangoDatabaseFacade._
 
 class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL) extends DisposableBean {
 
@@ -53,14 +53,25 @@ class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL) extends Disposabl
 
   val db: ArangoDatabaseAsync = {
     val db = arango.db(dbName)
-    ArangoDatabaseFacade.workAroundArangoAsyncBug(db)
+    warmUpDb(db)
     db
   }
 
-  override def destroy(): Unit = arango.shutdown()
+  override def destroy(): Unit = {
+    withWorkaroundForArangoAsyncBug {
+      arango.shutdown()
+    }
+  }
 }
 
 object ArangoDatabaseFacade {
+
+  private def warmUpDb(db: ArangoDatabaseAsync): Unit = {
+    withWorkaroundForArangoAsyncBug {
+      db.exists.get
+    }
+  }
+
   private def createSslContext(): SSLContext = {
     val sslContext = SSLContext.getInstance("SSL")
     sslContext.init(null, Array(TrustAll), new SecureRandom())
@@ -80,14 +91,15 @@ object ArangoDatabaseFacade {
     }
   }
 
-  def workAroundArangoAsyncBug(db: ArangoDatabaseAsync): Unit = {
+  def withWorkaroundForArangoAsyncBug[A](body: => A): A = {
     try {
-      db.exists.get
+      body
     } catch {
       // The first call sometime fails with a CCE due to a bug in ArangoDB Java Driver
       // see: https://github.com/arangodb/arangodb-java-driver-async/issues/21
-      case ee: ExecutionException if ee.getCause.isInstanceOf[ClassCastException] =>
-        db.exists.get
+      case _: ClassCastException => body
+      case ee: ExecutionException
+        if ee.getCause.isInstanceOf[ClassCastException] => body
     }
   }
 }

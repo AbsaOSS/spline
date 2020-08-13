@@ -19,38 +19,53 @@ package za.co.absa.spline.persistence
 import com.arangodb.async.{ArangoCursorAsync, ArangoDatabaseAsync}
 import com.arangodb.model.AqlQueryOptions
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters._
+import scala.compat.java8.StreamConverters.RichStream
+import scala.concurrent.{ExecutionContext, Future}
 
 object ArangoImplicits {
 
-    implicit class ArangoDatabaseAsyncScalaWrapper(db: ArangoDatabaseAsync) {
-      def queryOne[T: Manifest](queryString: String,
-                                bindVars: Map[String, AnyRef] = Map.empty,
-                                options: AqlQueryOptions = null)
-                               (implicit ec: ExecutionContext): Future[T] = {
-        for (
-          res <- queryAs[T](queryString, bindVars, options)
-          if res.hasNext
-        ) yield res.next
-      }
-
-      def queryStream[T: Manifest](queryString: String,
-                                bindVars: Map[String, AnyRef] = Map.empty,
-                                options: AqlQueryOptions = null)
-                               (implicit ec: ExecutionContext): Future[Stream[T]] = {
-        queryAs[T](queryString, bindVars, options)
-          .map(_.iterator().asScala.toStream)
-      }
-
-      def queryAs[T: Manifest](queryString: String,
-                             bindVars: Map[String, AnyRef] = Map.empty,
-                             options: AqlQueryOptions = null
-                            ): Future[ArangoCursorAsync[T]] = {
-        val resultType = implicitly[Manifest[T]].runtimeClass.asInstanceOf[Class[T]]
-        db.query(queryString, bindVars.asJava, options, resultType).toScala
-      }
+  implicit class ArangoDatabaseAsyncScalaWrapper(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) {
+    def queryOne[T: Manifest](
+      queryString: String,
+      bindVars: Map[String, AnyRef] = Map.empty,
+      options: AqlQueryOptions = null
+    ): Future[T] = {
+      for (
+        cur <- queryAs[T](queryString, bindVars, options)
+        if cur.hasNext
+      ) yield cur.next
     }
+
+    def queryStream[T: Manifest](
+      queryString: String,
+      bindVars: Map[String, AnyRef] = Map.empty,
+      options: AqlQueryOptions = null
+    ): Future[Stream[T]] = {
+      queryAs[T](queryString, bindVars, options)
+        .map(_.streamRemaining().toScala)
+    }
+
+    def queryOptional[T: Manifest](
+      queryString: String,
+      bindVars: Map[String, AnyRef] = Map.empty,
+      options: AqlQueryOptions = null
+    ): Future[Option[T]] = {
+      queryAs[T](queryString, bindVars, options)
+        .map(cur =>
+          if (cur.hasNext) Some(cur.next)
+          else None
+        )
+    }
+
+    def queryAs[T: Manifest](queryString: String,
+      bindVars: Map[String, AnyRef] = Map.empty,
+      options: AqlQueryOptions = null
+    ): Future[ArangoCursorAsync[T]] = {
+      val resultType = implicitly[Manifest[T]].runtimeClass.asInstanceOf[Class[T]]
+      db.query(queryString, bindVars.asJava, options, resultType).toScala
+    }
+  }
 
 }

@@ -23,7 +23,30 @@ import za.co.absa.spline.persistence.model.NodeDef
 
 class TxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
 
-  "generateJs" should "generate INSERT statements" in {
+  behavior of "generateJs()"
+
+  it should "generate NATIVE statements" in {
+    val generatedJS = new TxBuilder()
+      .addQuery(NativeQuery("db.FOO();"))
+      .addQuery(NativeQuery("db.BAR();"))
+      .generateJs()
+
+    generatedJS should be {
+      """
+        |function (_params) {
+        |  const _db = require('internal').db;
+        |  (function(db, params){
+        |    db.FOO();
+        |  })(_db, _params[0]);
+        |  (function(db, params){
+        |    db.BAR();
+        |  })(_db, _params[1]);
+        |}
+        |""".stripMargin
+    }
+  }
+
+  it should "generate INSERT statements" in {
     val generatedJS = new TxBuilder()
       .addQuery(InsertQuery(NodeDef.DataSource))
       .addQuery(InsertQuery(NodeDef.Operation).copy(ignoreExisting = true))
@@ -33,9 +56,9 @@ class TxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
       """
         |function (_params) {
         |  const _db = require('internal').db;
-        |  _params.dataSource.forEach(o => _db.dataSource.insert(o, {silent:true}));
-        |  _params.operation.forEach(o => 0 ||
-        |    o._key && _db.operation.exists(o._key) ||
+        |  _params[0].forEach(o =>_db._collection("dataSource").insert(o, {silent:true}));
+        |  _params[1].forEach(o =>
+        |    o._key && _db._collection("operation").exists(o._key) ||
         |    o._from && o._to && _db._query(`
         |      FOR e IN operation
         |          FILTER e._from == @o._from && e._to == @o._to
@@ -43,7 +66,32 @@ class TxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
         |          COLLECT WITH COUNT INTO cnt
         |          RETURN !!cnt
         |      `, {o}).next() ||
-        |    _db.operation.insert(o, {silent:true}));
+        |    _db._collection("operation").insert(o, {silent:true}));
+        |}
+        |""".stripMargin
+    }
+  }
+
+  it should "generate UPDATE statements" in {
+    val generatedJS = new TxBuilder()
+      .addQuery(UpdateQuery(NodeDef.DataSource, s"${UpdateQuery.DocWildcard}.foo == 42", Map.empty))
+      .addQuery(UpdateQuery(NodeDef.DataSource, s"${UpdateQuery.DocWildcard}.baz == 777", Map.empty))
+      .generateJs()
+
+    generatedJS should be {
+      """
+        |function (_params) {
+        |  const _db = require('internal').db;
+        |  _db._query(`
+        |    FOR a IN dataSource
+        |        FILTER a.foo == 42
+        |        UPDATE a._key WITH @b IN dataSource
+        |  `, {"b": _params[0]});
+        |  _db._query(`
+        |    FOR a IN dataSource
+        |        FILTER a.baz == 777
+        |        UPDATE a._key WITH @b IN dataSource
+        |  `, {"b": _params[1]});
         |}
         |""".stripMargin
     }

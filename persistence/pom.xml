@@ -43,6 +43,12 @@
             <version>4.5.10</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.scala-graph</groupId>
+            <artifactId>graph-core_${scala.compat.version}</artifactId>
+            <version>1.13.1</version>
+        </dependency>
+
         <!-- Spring -->
 
         <dependency>
@@ -59,7 +65,7 @@
         <dependency>
             <groupId>com.arangodb</groupId>
             <artifactId>arangodb-java-driver</artifactId>
-            <version>6.6.0</version>
+            <version>6.6.3</version>
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
