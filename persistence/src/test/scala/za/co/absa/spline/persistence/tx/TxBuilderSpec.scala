@@ -60,6 +60,7 @@ class TxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
         |  _params[1].forEach(o =>
         |    o._key && _db._collection("operation").exists(o._key) ||
         |    o._from && o._to && _db._query(`
+        |      WITH operation
         |      FOR e IN operation
         |          FILTER e._from == @o._from && e._to == @o._to
         |          LIMIT 1
@@ -83,11 +84,13 @@ class TxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
         |function (_params) {
         |  const _db = require('internal').db;
         |  _db._query(`
+        |    WITH dataSource
         |    FOR a IN dataSource
         |        FILTER a.foo == 42
         |        UPDATE a._key WITH @b IN dataSource
         |  `, {"b": _params[0]});
         |  _db._query(`
+        |    WITH dataSource
         |    FOR a IN dataSource
         |        FILTER a.baz == 777
         |        UPDATE a._key WITH @b IN dataSource

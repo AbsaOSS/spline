@@ -17,6 +17,56 @@
 const {db, aql} = require("@arangodb");
 const udfs = require("@arangodb/aql/functions");
 
+console.log("Update SPLINE::OBSERVED_WRITES_BY_READ");
+
+udfs.unregister("SPLINE::OBSERVED_WRITES_BY_READ");
+udfs.register("SPLINE::OBSERVED_WRITES_BY_READ", "" +
+    "/*\n" +
+    " * Copyright 2019 ABSA Group Limited\n" +
+    " *\n" +
+    " * Licensed under the Apache License, Version 2.0 (the \"License\");\n" +
+    " * you may not use this file except in compliance with the License.\n" +
+    " * You may obtain a copy of the License at\n" +
+    " *\n" +
+    " *     http://www.apache.org/licenses/LICENSE-2.0\n" +
+    " *\n" +
+    " * Unless required by applicable law or agreed to in writing, software\n" +
+    " * distributed under the License is distributed on an \"AS IS\" BASIS,\n" +
+    " * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n" +
+    " * See the License for the specific language governing permissions and\n" +
+    " * limitations under the License.\n" +
+    " */\n" +
+    "(readEvent) => {\n" +
+    "    'use strict';\n" +
+    "    const {db, aql} = require('@arangodb');\n" +
+    "\n" +
+    "    return readEvent && db._query(aql`\n" +
+    "        WITH progress, progressOf, executionPlan, executes, operation, depends, writesTo, dataSource\n" +
+    "        LET readTime = ${readEvent}.timestamp\n" +
+    "        FOR rds IN 2 OUTBOUND ${readEvent} progressOf, depends\n" +
+    "            LET maybeObservedOverwrite = SLICE(\n" +
+    "                (FOR wo IN 1 INBOUND rds writesTo\n" +
+    "                    FILTER !wo.append\n" +
+    "                    FOR e IN 2 INBOUND wo executes, progressOf\n" +
+    "                        FILTER e.timestamp < readTime\n" +
+    "                        SORT e.timestamp DESC\n" +
+    "                        LIMIT 1\n" +
+    "                        RETURN e\n" +
+    "                ), 0, 1)\n" +
+    "            LET observedAppends = (\n" +
+    "                FOR wo IN 1 INBOUND rds writesTo\n" +
+    "                    FILTER wo.append\n" +
+    "                    FOR e IN 2 INBOUND wo executes, progressOf\n" +
+    "                        FILTER e.timestamp > maybeObservedOverwrite[0].timestamp\n" +
+    "                           AND e.timestamp < readTime\n" +
+    "                        SORT e.timestamp ASC\n" +
+    "                        RETURN e\n" +
+    "                )\n" +
+    "            LET allObservedEvents = APPEND(maybeObservedOverwrite, observedAppends)\n" +
+    "            FOR e IN allObservedEvents RETURN e\n" +
+    "    `).toArray()\n" +
+    "}\n");
+
 console.log("Update SPLINE::EVENT_LINEAGE_OVERVIEW");
 
 udfs.unregister("SPLINE::EVENT_LINEAGE_OVERVIEW");
@@ -96,6 +146,7 @@ udfs.register("SPLINE::EVENT_LINEAGE_OVERVIEW", "" +
     "        }\n" +
     "\n" +
     "        const startSource = db._query(aql`\n" +
+    "            WITH progress, progressOf, executionPlan, affects, dataSource\n" +
     "            RETURN FIRST(\n" +
     "                FOR ds IN 2 OUTBOUND ${startEvent} progressOf, affects \n" +
     "                    RETURN {\n" +
@@ -113,6 +164,8 @@ udfs.register("SPLINE::EVENT_LINEAGE_OVERVIEW", "" +
     "\n" +
     "        const collectPartialGraphForEvent = event => {\n" +
     "            const partialGraph = db._query(aql`\n" +
+    "                WITH progress, progressOf, executionPlan, affects, depends, dataSource\n" +
+    "\n" +
     "                LET exec = FIRST(FOR ex IN 1 OUTBOUND ${event} progressOf RETURN ex)\n" +
     "                LET affectedDsEdge = FIRST(FOR v, e IN 1 OUTBOUND exec affects RETURN e)\n" +
     "                LET rdsWithInEdges = (FOR ds, e IN 1 OUTBOUND exec depends RETURN [ds, e])\n" +
@@ -192,6 +245,7 @@ db._collections()
 console.log("Upgrade data");
 
 db._query(aql`
+    WITH progress, progressOf, executionPlan, executes, operation
     FOR ee IN progress
         LET executionEventDetails = FIRST(
             FOR v,e,p IN 2 OUTBOUND ee progressOf, executes
@@ -207,7 +261,7 @@ db._query(aql`
                 }
         )
     
-       UPDATE ee WITH {
+        UPDATE ee WITH {
             execPlanDetails : {
                 executionPlanId : executionEventDetails.executionPlanId,
                 frameworkName : executionEventDetails.frameworkName,
@@ -216,8 +270,8 @@ db._query(aql`
                 dataSourceType : executionEventDetails.dataSourceType,
                 append : executionEventDetails.append
             }
-       } IN progress
-     `
+        } IN progress
+    `
 );
 
 console.log("Create indices");

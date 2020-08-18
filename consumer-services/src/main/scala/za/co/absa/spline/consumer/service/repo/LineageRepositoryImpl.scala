@@ -30,6 +30,7 @@ class LineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Lineag
   override def lineageOverviewForExecutionEvent(eventId: String, maxDepth: Int)(implicit ec: ExecutionContext): Future[LineageOverview] = db
     .queryOne[LineageOverview](
       """
+        |WITH progress, progressOf, executionPlan, affects, dataSource
         |LET executionEvent = FIRST(FOR p IN progress FILTER p._key == @eventId RETURN p)
         |LET targetDataSource = FIRST(FOR ds IN 2 OUTBOUND executionEvent progressOf, affects RETURN ds)
         |LET lineageGraph = SPLINE::EVENT_LINEAGE_OVERVIEW(executionEvent, @maxDepth)
