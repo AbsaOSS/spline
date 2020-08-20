@@ -15,43 +15,27 @@
  */
 package za.co.absa.spline.consumer.service.repo
 
+import java.util.concurrent.CompletionException
+
+import com.arangodb.ArangoDBException
 import com.arangodb.async.ArangoDatabaseAsync
+import com.arangodb.internal.ArangoDatabaseImplicits.InternalArangoDatabaseOps
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.model.LineageOverview
 
+import scala.PartialFunction.cond
 import scala.concurrent.{ExecutionContext, Future}
 
 @Repository
 class LineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends LineageRepository {
 
-  import za.co.absa.spline.persistence.ArangoImplicits._
-
-  override def lineageOverviewForExecutionEvent(eventId: String, maxDepth: Int)(implicit ec: ExecutionContext): Future[LineageOverview] = db
-    .queryOne[LineageOverview](
-      """
-        |WITH progress, progressOf, executionPlan, affects, dataSource
-        |LET executionEvent = FIRST(FOR p IN progress FILTER p._key == @eventId RETURN p)
-        |LET targetDataSource = FIRST(FOR ds IN 2 OUTBOUND executionEvent progressOf, affects RETURN ds)
-        |LET lineageGraph = SPLINE::EVENT_LINEAGE_OVERVIEW(executionEvent, @maxDepth)
-        |
-        |RETURN lineageGraph && {
-        |    "info": {
-        |        "timestamp" : executionEvent.timestamp,
-        |        "applicationId" : executionEvent.extra.appId,
-        |        "targetDataSourceId": targetDataSource._key
-        |    },
-        |    "graph": {
-        |        "depthRequested": @maxDepth,
-        |        "depthComputed": lineageGraph.depth || -1,
-        |        "nodes": lineageGraph.vertices,
-        |        "edges": lineageGraph.edges
-        |    }
-        |}
-        |""".stripMargin,
-      Map(
-        "eventId" -> eventId,
-        "maxDepth" -> (maxDepth: Integer))
-    )
-    .filter(null.!=)
+  override def lineageOverviewForExecutionEvent(eventId: String, maxDepth: Int)(implicit ec: ExecutionContext): Future[LineageOverview] =
+    db
+      .foxxGet[LineageOverview](s"/spline/events/$eventId/lineage-overview/$maxDepth")
+      .recover({
+        case ce: CompletionException
+          if cond(ce.getCause)({ case ae: ArangoDBException => ae.getResponseCode == 404 }) =>
+          throw new NoSuchElementException(s"Event ID: $eventId")
+      })
 }

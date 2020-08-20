@@ -17,9 +17,11 @@
 package com.arangodb.internal {
 
 
+  import java.net.URI
+
   import com.arangodb.async.ArangoDatabaseAsync
-  import com.arangodb.async.internal.ArangoExecutorAsync
   import com.arangodb.async.internal.velocystream.VstCommunicationAsync
+  import com.arangodb.async.internal.{ArangoDatabaseAsyncImpl, ArangoExecutorAsync}
   import com.arangodb.internal.velocystream.ConnectionParams
   import org.apache.commons.io.IOUtils
   import org.apache.http.auth.UsernamePasswordCredentials
@@ -30,17 +32,34 @@ package com.arangodb.internal {
   import za.co.absa.commons.lang.ARM.managed
   import za.co.absa.commons.reflect.ReflectionUtils
 
-  import scala.concurrent.Future
+  import scala.compat.java8.FutureConverters.CompletionStageOps
+  import scala.concurrent.{ExecutionContext, Future}
+  import scala.reflect.ClassTag
 
   /**
-   * A workaround for the ArangoDB Java Driver issue #353
-   *
-   * @see [[https://github.com/arangodb/arangodb-java-driver/issues/353]]
+   * A set of workarounds for the ArangoDB Java Driver
    */
-  object InternalArangoDatabaseImplicits {
+  object ArangoDatabaseImplicits {
 
-    implicit class InternalArangoDatabaseOps(db: ArangoDatabaseAsync) {
+    implicit class InternalArangoDatabaseOps(val db: ArangoDatabaseAsync) extends AnyVal {
 
+      /**
+       * @see [[https://github.com/arangodb/arangodb-java-driver/issues/357]]
+       */
+      def foxxGet[A: ClassTag](path: String)(implicit ec: ExecutionContext): Future[A] = {
+        import com.arangodb.async.internal.ArangoDatabaseAsyncImplImplicits._
+        val resType = implicitly[ClassTag[A]].runtimeClass
+        db.asInstanceOf[ArangoDatabaseAsyncImpl]
+          .route(new URI(path))
+          .get()
+          .toScala
+          .map(resp =>
+            db.util().deserialize(resp.getBody, resType): A)
+      }
+
+      /**
+       * @see [[https://github.com/arangodb/arangodb-java-driver/issues/353]]
+       */
       def adminExecute(script: String): Future[Unit] = {
         val executor = db.asInstanceOf[ArangoExecuteable[_ <: ArangoExecutorAsync]].executor
         val dbName = db.name
@@ -80,40 +99,6 @@ package com.arangodb.internal {
           case _ =>
             sys.error(s"ArangoDB response: $respStatusLine. $respBody")
         }
-      }
-    }
-
-  }
-
-  package velocystream {
-
-    import com.arangodb.internal.net.{AccessType, HostDescription, HostHandler}
-
-    import scala.reflect.ClassTag
-
-    object ConnectionParams {
-      def unapply(comm: VstCommunicationAsync): Option[(String, Int, Option[String], Option[String])] = {
-        val user = comm.user
-        val password = comm.password
-        val hostHandler = extractFieldValue[VstCommunication[_, _], HostHandler](comm, "hostHandler")
-        val host = hostHandler.get(null, AccessType.WRITE)
-        val hostDescr = ReflectionUtils.extractFieldValue[HostDescription](host, "description")
-        Some((
-          hostDescr.getHost,
-          hostDescr.getPort,
-          Option(user),
-          Option(password)
-        ))
-      }
-
-      /**
-       * Remove when https://github.com/AbsaOSS/commons/issues/28 is fixed
-       */
-      private def extractFieldValue[A: ClassTag, B](o: AnyRef, fieldName: String) = {
-        val declaringClass = implicitly[ClassTag[A]]
-        val field = declaringClass.runtimeClass.getDeclaredField(fieldName)
-        field.setAccessible(true)
-        field.get(o).asInstanceOf[B]
       }
     }
 

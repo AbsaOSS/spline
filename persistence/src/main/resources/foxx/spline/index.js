@@ -114,8 +114,6 @@ const eventLineageOverview = (function () {
             return null;
         }
 
-        console.log("startEvent", startEvent);
-
         const startSource = db._query(aql`
             FOR ds IN 2 OUTBOUND ${startEvent} progressOf, affects 
                 LIMIT 1
@@ -218,27 +216,30 @@ router
                 RETURN FIRST(FOR p IN progress FILTER p._key == ${eventKey} RETURN p)
             `).next();
 
-            const targetDataSource = db._query(aql`
-                WITH progress, progressOf, executionPlan, affects, dataSource
-                RETURN FIRST(FOR ds IN 2 OUTBOUND ${executionEvent} progressOf, affects RETURN ds)
-            `).next();
+            if (executionEvent) {
+                const targetDataSource = executionEvent && db._query(aql`
+                    WITH progress, progressOf, executionPlan, affects, dataSource
+                    RETURN FIRST(FOR ds IN 2 OUTBOUND ${executionEvent} progressOf, affects RETURN ds)
+                `).next();
 
-            const lineageGraph = eventLineageOverview(executionEvent, maxDepth);
-            const lineageOverview = lineageGraph && {
-                "info": {
-                    "timestamp": executionEvent.timestamp,
-                    "applicationId": executionEvent.extra.appId,
-                    "targetDataSourceId": targetDataSource._key
-                },
-                "graph": {
-                    "depthRequested": maxDepth,
-                    "depthComputed": lineageGraph.depth || -1,
-                    "nodes": lineageGraph.vertices,
-                    "edges": lineageGraph.edges
+                const lineageGraph = eventLineageOverview(executionEvent, maxDepth);
+                const lineageOverview = lineageGraph && {
+                    "info": {
+                        "timestamp": executionEvent.timestamp,
+                        "applicationId": executionEvent.extra.appId,
+                        "targetDataSourceId": targetDataSource._key
+                    },
+                    "graph": {
+                        "depthRequested": maxDepth,
+                        "depthComputed": lineageGraph.depth || -1,
+                        "nodes": lineageGraph.vertices,
+                        "edges": lineageGraph.edges
+                    }
                 }
+                res.send(lineageOverview);
+            } else {
+                res.status(404);
             }
-
-            res.send(lineageOverview);
         })
     .pathParam('eventKey', joi.string().min(1).required(), 'Execution Event UUID')
     .pathParam('maxDepth', joi.number().integer().min(0).required(), 'Max depth of traversing in terms of [Data Source] -> [Execution Plan] pairs')
