@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.model._
+import za.co.absa.spline.consumer.service.repo.ExecutionEventRepositoryImpl.SortFieldMap
 
 import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -64,37 +65,31 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |        && ee.timestamp >= @timestampStart
         |        && ee.timestamp <= @timestampEnd
         |
-        |    LET executionEventDetails = FIRST(
-        |        FOR v,e,p IN 2 OUTBOUND ee progressOf, executes
-        |            LET exec = p.vertices[1]
-        |            LET ope = v
-        |            RETURN {
-        |                "executionEventId" : ee._key,
-        |                "executionPlanId" : exec._key,
-        |                "frameworkName" : CONCAT(exec.systemInfo.name, " ", exec.systemInfo.version),
-        |                "applicationName" : exec.extra.appName,
-        |                "applicationId" : ee.extra.appId,
-        |                "timestamp" : ee.timestamp,
-        |                "dataSourceUri" : ope.outputSource,
-        |                "dataSourceType" : ope.extra.destinationType,
-        |                "append" : ope.append
-        |            }
-        |    )
-        |
-        |    FILTER !LENGTH(@applicationId) || @applicationId == executionEventDetails.applicationId
-        |    FILTER !LENGTH(@dataSourceUri) || @dataSourceUri == executionEventDetails.dataSourceUri
+        |    FILTER !LENGTH(@applicationId) || @applicationId == ee.extra.appId
+        |    FILTER !LENGTH(@dataSourceUri) || @dataSourceUri == ee.execPlanDetails.dataSourceUri
         |    FILTER !LENGTH(@searchTerm)
-        |        || executionEventDetails.timestamp == @searchTerm
-        |        || CONTAINS(LOWER(executionEventDetails.frameworkName), @searchTerm)
-        |        || CONTAINS(LOWER(executionEventDetails.applicationName), @searchTerm)
-        |        || CONTAINS(LOWER(executionEventDetails.applicationId), @searchTerm)
-        |        || CONTAINS(LOWER(executionEventDetails.dataSourceUri), @searchTerm)
-        |        || CONTAINS(LOWER(executionEventDetails.dataSourceType), @searchTerm)
+        |        || ee.timestamp == @searchTerm
+        |        || CONTAINS(LOWER(ee.execPlanDetails.frameworkName), @searchTerm)
+        |        || CONTAINS(LOWER(ee.execPlanDetails.applicationName), @searchTerm)
+        |        || CONTAINS(LOWER(ee.extra.appId), @searchTerm)
+        |        || CONTAINS(LOWER(ee.execPlanDetails.dataSourceUri), @searchTerm)
+        |        || CONTAINS(LOWER(ee.execPlanDetails.dataSourceType), @searchTerm)
         |
-        |    SORT executionEventDetails.@sortField @sortOrder
+        |    SORT ee.@sortField @sortOrder
         |    LIMIT @pageOffset*@pageSize, @pageSize
         |
-        |    RETURN executionEventDetails
+        |    RETURN {
+        |        "executionEventId" : ee._key,
+        |        "executionPlanId" : ee.execPlanDetails.executionPlanId,
+        |        "frameworkName" : ee.execPlanDetails.frameworkName,
+        |        "applicationName" : ee.execPlanDetails.applicationName,
+        |        "applicationId" : ee.extra.appId,
+        |        "timestamp" : ee.timestamp,
+        |        "dataSourceUri" : ee.execPlanDetails.dataSourceUri,
+        |        "dataSourceType" : ee.execPlanDetails.dataSourceType,
+        |        "append" : ee.execPlanDetails.append
+        |    }
+        |
         |""".stripMargin,
       Map(
         "asAtTime" -> (asAtTime: java.lang.Long),
@@ -102,7 +97,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         "timestampEnd" -> (timestampEnd: java.lang.Long),
         "pageOffset" -> (pageRequest.page - 1: Integer),
         "pageSize" -> (pageRequest.size: Integer),
-        "sortField" -> sortRequest.sortField,
+        "sortField" -> SortFieldMap.getOrElse(sortRequest.sortField, sortRequest.sortField),
         "sortOrder" -> sortRequest.sortOrder,
         "searchTerm" -> StringUtils.lowerCase(searchTerm),
         "applicationId" -> applicationId,
@@ -123,3 +118,17 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         totalDateRange)
   }
 }
+
+object ExecutionEventRepositoryImpl {
+  val SortFieldMap = Map(
+    "executionEventId" -> "_key",
+    "executionPlanId" -> List("execPlanDetails", "executionPlanId"),
+    "frameworkName" -> List("execPlanDetails", "frameworkName"),
+    "applicationName" -> List("execPlanDetails", "applicationName"),
+    "applicationId" -> List("extra", "appId"),
+    "dataSourceUri" -> List("execPlanDetails", "dataSourceUri"),
+    "dataSourceType" -> List("execPlanDetails", "dataSourceType"),
+    "append" -> List("execPlanDetails", "append")
+  )
+}
+

@@ -30,6 +30,27 @@ case class Edge(
   def this() = this(null, null)
 }
 
+case class DBVersion(
+  version: String,
+  status: String
+) extends ArangoDocument {
+  def this() = this(null, null)
+}
+
+object DBVersion {
+  def apply(version: String, status: Status.Type): DBVersion = DBVersion(version, status.toString)
+
+  object Status extends Enumeration {
+
+    type Type = Value
+
+    val Current: Status.Type = Value("current")
+    val Preparing: Status.Type = Value("preparing")
+    val Upgraded: Status.Type = Value("upgraded")
+  }
+
+}
+
 /**
   * Represents a named location WHERE data can be read from or written to.
   * It can be anything that can serve as a data input or output for a data pipeline.
@@ -63,5 +84,18 @@ case class Progress(
   timestamp: Long,
   error: Option[Any],
   extra: Map[String, Any],
-  override val _key: String
+  override val _key: String,
+  execPlanDetails: ExecPlanDetails
 ) extends Vertex
+
+/**
+  * These values are copied from other entities for performance optimization.
+  */
+case class ExecPlanDetails(
+  executionPlanId: String,
+  frameworkName: String,
+  applicationName: String,
+  dataSourceUri: String,
+  dataSourceType: String,
+  append: Boolean
+)
