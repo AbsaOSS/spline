@@ -22,7 +22,7 @@
         <groupId>za.co.absa.spline</groupId>
         <artifactId>parent-pom</artifactId>
         <relativePath>../build/parent-pom/pom.xml</relativePath>
-        <version>0.5.4-SNAPSHOT</version>
+        <version>0.5.4</version>
     </parent>
 
     <artifactId>rest-gateway</artifactId>
