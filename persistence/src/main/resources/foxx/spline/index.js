@@ -115,6 +115,7 @@ const eventLineageOverview = (function () {
         }
 
         const startSource = db._query(aql`
+            WITH progress, progressOf, executionPlan, affects, dataSource
             FOR ds IN 2 OUTBOUND ${startEvent} progressOf, affects 
                 LIMIT 1
                 RETURN {
@@ -132,6 +133,8 @@ const eventLineageOverview = (function () {
 
         const collectPartialGraphForEvent = event => {
             const partialGraph = db._query(aql`
+                WITH progress, progressOf, executionPlan, affects, depends, dataSource
+
                 LET exec = FIRST(FOR ex IN 1 OUTBOUND ${event} progressOf RETURN ex)
                 LET affectedDsEdge = FIRST(FOR v, e IN 1 OUTBOUND exec affects RETURN e)
                 LET rdsWithInEdges = (FOR ds, e IN 1 OUTBOUND exec depends RETURN [ds, e])
