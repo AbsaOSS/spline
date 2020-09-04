@@ -27,6 +27,7 @@ const joi = require('joi');
 
 const observedWritesByRead =
     (readEvent) => readEvent && db._query(aql`
+        WITH progress, progressOf, executionPlan, executes, operation, depends, writesTo, dataSource
         LET readTime = ${readEvent}.timestamp
         FOR rds IN 2 OUTBOUND ${readEvent} progressOf, depends
             LET maybeObservedOverwrite = SLICE(
@@ -128,9 +129,6 @@ const eventLineageOverview = (function () {
 
         const graphBuilder = new GraphBuilder([startSource]);
 
-        const findObservedWritesByRead = event =>
-            db._query(aql`RETURN SPLINE::OBSERVED_WRITES_BY_READ(${event})`).next();
-
         const collectPartialGraphForEvent = event => {
             const partialGraph = db._query(aql`
                 WITH progress, progressOf, executionPlan, affects, depends, dataSource
@@ -177,7 +175,7 @@ const eventLineageOverview = (function () {
         const traverse = memoize(e => e._id, (event, depth) => {
             let remainingDepth = depth - 1;
             if (depth > 1) {
-                findObservedWritesByRead(event)
+                observedWritesByRead(event)
                     .forEach(writeEvent => {
                         const remainingDepth_i = traverse(writeEvent, depth - 1);
                         remainingDepth = Math.min(remainingDepth, remainingDepth_i);
