@@ -52,6 +52,9 @@ class ArangoManagerImpl(
   extends ArangoManager
     with Logging {
 
+  import ArangoManagerImpl._
+  import com.arangodb.internal.ArangoDatabaseImplicits._
+
   def initialize(onExistsAction: OnDBExistsAction): Future[Boolean] =
     db.exists.toScala.flatMap { exists =>
       if (exists && onExistsAction == Skip)
@@ -61,6 +64,7 @@ class ArangoManagerImpl(
         _ <- db.create().toScala
         _ <- createCollections(db)
         _ <- createAQLUserFunctions(db)
+        _ <- createFoxxServices(db)
         _ <- createIndices(db)
         _ <- createGraphs(db)
         _ <- createViews(db)
@@ -110,12 +114,34 @@ class ArangoManagerImpl(
 
   private def createAQLUserFunctions(db: ArangoDatabaseAsync) = Future.sequence(
     new PathMatchingResourcePatternResolver(getClass.getClassLoader)
-      .getResources("classpath:AQLFunctions/*.js").toSeq
+      .getResources(s"$AQLFunctionsLocation/*.js").toSeq
       .map(res => {
-        val functionName = s"SPLINE::${FilenameUtils.removeExtension(res.getFilename).toUpperCase}"
+        val functionName = s"$AQLFunctionsPrefix::${FilenameUtils.removeExtension(res.getFilename).toUpperCase}"
         val functionBody = ARM.using(Source.fromURL(res.getURL))(_.getLines.mkString)
         db.createAqlFunction(functionName, functionBody, new AqlFunctionCreateOptions()).toScala
       }))
+
+  private def createFoxxServices(db: ArangoDatabaseAsync): Future[_] = {
+    val mountPrefix = "/spline"
+    // fixme: discover foxx services
+    
+    db.foxxRegister(
+      mountPrefix,
+      """
+        |'use strict';
+        |const {db, aql} = require('@arangodb');
+        |const createRouter = require('@arangodb/foxx/router');
+        |const joi = require('joi');
+        |
+        |const router = createRouter();
+        |module.context.use(router);
+        |router
+        |    .get('/test', (req, res) => {res.send({answer: 42})})
+        |    .response(['application/json'], 'Ultimate answer')
+        |    .summary('Answer to the ultimate question of life, the universe, and everything')
+        |    .description('Test service');
+        |""".stripMargin)
+  }
 
   private def createViews(db: ArangoDatabaseAsync) = {
     Future.traverse(ReflectionUtils.objectsOf[ViewDef]) { viewDef =>
@@ -125,4 +151,9 @@ class ArangoManagerImpl(
       } yield Unit
     }
   }
+}
+
+object ArangoManagerImpl {
+  private val AQLFunctionsLocation = "classpath:AQLFunctions"
+  private val AQLFunctionsPrefix = "SPLINE"
 }

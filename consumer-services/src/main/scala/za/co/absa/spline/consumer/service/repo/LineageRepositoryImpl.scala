@@ -19,12 +19,12 @@ import java.util.concurrent.CompletionException
 
 import com.arangodb.ArangoDBException
 import com.arangodb.async.ArangoDatabaseAsync
-import com.arangodb.internal.ArangoDatabaseImplicits.InternalArangoDatabaseOps
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.model.LineageOverview
 
 import scala.PartialFunction.cond
+import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.concurrent.{ExecutionContext, Future}
 
 @Repository
@@ -32,7 +32,10 @@ class LineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Lineag
 
   override def lineageOverviewForExecutionEvent(eventId: String, maxDepth: Int)(implicit ec: ExecutionContext): Future[LineageOverview] =
     db
-      .foxxGet[LineageOverview](s"/spline/events/$eventId/lineage-overview/$maxDepth")
+      .route(s"/spline/events/$eventId/lineage-overview/$maxDepth")
+      .get()
+      .toScala
+      .map(resp => db.util().deserialize(resp.getBody, classOf[LineageOverview]))
       .recover({
         case ce: CompletionException
           if cond(ce.getCause)({ case ae: ArangoDBException => ae.getResponseCode == 404 }) =>

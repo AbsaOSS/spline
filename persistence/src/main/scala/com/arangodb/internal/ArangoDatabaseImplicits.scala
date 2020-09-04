@@ -17,13 +17,12 @@
 package com.arangodb.internal {
 
 
-  import java.net.URI
-
   import com.arangodb.async.ArangoDatabaseAsync
+  import com.arangodb.async.internal.ArangoExecutorAsync
   import com.arangodb.async.internal.velocystream.VstCommunicationAsync
-  import com.arangodb.async.internal.{ArangoDatabaseAsyncImpl, ArangoExecutorAsync}
   import com.arangodb.internal.velocystream.ConnectionParams
   import org.apache.commons.io.IOUtils
+  import org.apache.http.HttpException
   import org.apache.http.auth.UsernamePasswordCredentials
   import org.apache.http.client.methods.HttpPost
   import org.apache.http.entity.StringEntity
@@ -32,42 +31,47 @@ package com.arangodb.internal {
   import za.co.absa.commons.lang.ARM.managed
   import za.co.absa.commons.reflect.ReflectionUtils
 
-  import scala.compat.java8.FutureConverters.CompletionStageOps
-  import scala.concurrent.{ExecutionContext, Future}
-  import scala.reflect.ClassTag
+  import scala.concurrent.Future
 
   /**
    * A set of workarounds for the ArangoDB Java Driver
    */
   object ArangoDatabaseImplicits {
 
-    implicit class InternalArangoDatabaseOps(val db: ArangoDatabaseAsync) extends AnyVal {
+    class HttpStatusException(val status: Int, message: String) extends HttpException(message)
 
-      /**
-       * @see [[https://github.com/arangodb/arangodb-java-driver/issues/357]]
-       */
-      def foxxGet[A: ClassTag](path: String)(implicit ec: ExecutionContext): Future[A] = {
-        import com.arangodb.async.internal.ArangoDatabaseAsyncImplImplicits._
-        val resType = implicitly[ClassTag[A]].runtimeClass
-        db.asInstanceOf[ArangoDatabaseAsyncImpl]
-          .route(new URI(path))
-          .get()
-          .toScala
-          .map(resp =>
-            db.util().deserialize(resp.getBody, resType): A)
-      }
+    implicit class InternalArangoDatabaseOps(val db: ArangoDatabaseAsync) extends AnyVal {
 
       /**
        * @see [[https://github.com/arangodb/arangodb-java-driver/issues/353]]
        */
-      def adminExecute(script: String): Future[Unit] = {
+      def adminExecute(script: String): Future[Unit] =
+        try {
+          post("_admin/execute", script)
+        }
+        catch {
+          case e: HttpStatusException if e.status == 404 =>
+            sys.error("" +
+              "'/_admin/execute' endpoint is unreachable. " +
+              "Make sure ArangoDB server is running with '--javascript.allow-admin-execute' option. " +
+              "See https://www.arangodb.com/docs/stable/programs-arangod-javascript.html#javascript-code-execution")
+        }
+
+      /**
+       * @see [[https://github.com/arangodb/arangodb-java-driver/issues/353]]
+       */
+      def foxxRegister(mountPrefix: String, script: String): Future[Unit] =
+        post(s"_api/foxx?mount=$mountPrefix", script)
+
+      @throws[HttpStatusException]
+      private def post(path: String, script: String): Future[Unit] = {
         val executor = db.asInstanceOf[ArangoExecuteable[_ <: ArangoExecutorAsync]].executor
         val dbName = db.name
         val comm = ReflectionUtils.extractFieldValue[VstCommunicationAsync](executor, "communication")
         val ConnectionParams(host, port, maybeUser, maybePassword) = comm
 
         val request = {
-          val postReq = new HttpPost(s"http://$host:$port/_db/$dbName/_admin/execute")
+          val postReq = new HttpPost(s"http://$host:$port/_db/$dbName/$path")
           postReq.setEntity(new StringEntity(script))
           maybeUser.foreach(user => {
             val credentials = new UsernamePasswordCredentials(user, maybePassword.orNull)
@@ -89,15 +93,10 @@ package com.arangodb.internal {
           }
 
         respStatusLine.getStatusCode match {
-          case 200 =>
+          case 200 | 201 | 204 =>
             Future.successful({})
-          case 404 =>
-            sys.error("" +
-              "'/_admin/execute' endpoint isn't reachable. " +
-              "Make sure ArangoDB server is running with '--javascript.allow-admin-execute' option. " +
-              "See https://www.arangodb.com/docs/stable/programs-arangod-javascript.html#javascript-code-execution")
           case _ =>
-            sys.error(s"ArangoDB response: $respStatusLine. $respBody")
+            throw new HttpStatusException(respStatusLine.getStatusCode, s"ArangoDB response: $respStatusLine. $respBody")
         }
       }
     }
