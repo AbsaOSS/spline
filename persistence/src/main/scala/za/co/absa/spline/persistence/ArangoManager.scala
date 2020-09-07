@@ -18,6 +18,7 @@ package za.co.absa.spline.persistence
 
 import com.arangodb.async.ArangoDatabaseAsync
 import com.arangodb.entity.EdgeDefinition
+import com.arangodb.internal.ArangoDatabaseImplicits._
 import com.arangodb.model._
 import org.apache.commons.io.FilenameUtils
 import org.slf4s.Logging
@@ -53,7 +54,6 @@ class ArangoManagerImpl(
     with Logging {
 
   import ArangoManagerImpl._
-  import com.arangodb.internal.ArangoDatabaseImplicits._
 
   def initialize(onExistsAction: OnDBExistsAction): Future[Boolean] =
     db.exists.toScala.flatMap { exists =>
@@ -75,8 +75,10 @@ class ArangoManagerImpl(
   override def upgrade(): Future[Unit] = {
     for {
       currentVersion <- dbVersionManager.currentVersion
-      migrationDone <- migrator.migrate(currentVersion, appDBVersion)
-    } yield migrationDone
+      _ <- deleteFoxxServices(db)
+      _ <- migrator.migrate(currentVersion, appDBVersion)
+      _ <- createFoxxServices(db)
+    } yield {}
   }
 
   private def deleteDbIfRequested(db: ArangoDatabaseAsync, dropIfExists: Boolean) =
@@ -117,30 +119,32 @@ class ArangoManagerImpl(
       .getResources(s"$AQLFunctionsLocation/*.js").toSeq
       .map(res => {
         val functionName = s"$AQLFunctionsPrefix::${FilenameUtils.removeExtension(res.getFilename).toUpperCase}"
-        val functionBody = ARM.using(Source.fromURL(res.getURL))(_.getLines.mkString)
+        val functionBody = ARM.using(Source.fromURL(res.getURL))(_.getLines.mkString("\n"))
         db.createAqlFunction(functionName, functionBody, new AqlFunctionCreateOptions()).toScala
       }))
 
   private def createFoxxServices(db: ArangoDatabaseAsync): Future[_] = {
-    val mountPrefix = "/spline"
-    // fixme: discover foxx services
-    
-    db.foxxRegister(
-      mountPrefix,
-      """
-        |'use strict';
-        |const {db, aql} = require('@arangodb');
-        |const createRouter = require('@arangodb/foxx/router');
-        |const joi = require('joi');
-        |
-        |const router = createRouter();
-        |module.context.use(router);
-        |router
-        |    .get('/test', (req, res) => {res.send({answer: 42})})
-        |    .response(['application/json'], 'Ultimate answer')
-        |    .summary('Answer to the ultimate question of life, the universe, and everything')
-        |    .description('Test service');
-        |""".stripMargin)
+    val serviceDefs = new PathMatchingResourcePatternResolver(getClass.getClassLoader)
+      .getResources(s"$FoxxSourcesLocation/*").toSeq
+      .map(res => {
+        val serviceName = res.getFilename
+        val indexJsResource = res.createRelative(s"$serviceName/index.js")
+        val indexJsContent = ARM.using(Source.fromURL(indexJsResource.getURL))(_.getLines.mkString("\n"))
+        serviceName -> indexJsContent
+      })
+    Future.traverse(serviceDefs) {
+      case (name, script) => db.foxxInstall(s"/$name", script)
+    }
+  }
+
+  private def deleteFoxxServices(db: ArangoDatabaseAsync): Future[_] = {
+    db.foxxList().flatMap(srvDefs =>
+      Future.sequence(for {
+        srvDef <- srvDefs
+        srvMount = srvDef("mount").toString if !(srvMount.startsWith("/_"))
+      } yield db.foxxUninstall(srvMount)
+      ).map(_ => {})
+    )
   }
 
   private def createViews(db: ArangoDatabaseAsync) = {
@@ -156,4 +160,5 @@ class ArangoManagerImpl(
 object ArangoManagerImpl {
   private val AQLFunctionsLocation = "classpath:AQLFunctions"
   private val AQLFunctionsPrefix = "SPLINE"
+  private val FoxxSourcesLocation = "classpath:foxx"
 }

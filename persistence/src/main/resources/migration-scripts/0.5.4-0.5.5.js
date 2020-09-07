@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-const {db, aql} = require("@arangodb");
 const udfs = require("@arangodb/aql/functions");
 
-console.log("Remove SPLINE AQL UDFs");
+console.log("[Spline] Remove SPLINE AQL UDFs. See https://github.com/AbsaOSS/spline/issues/761");
 
 udfs.unregister("SPLINE::OBSERVED_WRITES_BY_READ");
 udfs.unregister("SPLINE::EVENT_LINEAGE_OVERVIEW");
 
-// TODO: register Spline Foxx services
-
-console.log("Done");
+console.log("[Spline] Migration done. Version 0.5.5");

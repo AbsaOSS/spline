@@ -35,7 +35,7 @@ class LineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Lineag
       .route(s"/spline/events/$eventId/lineage-overview/$maxDepth")
       .get()
       .toScala
-      .map(resp => db.util().deserialize(resp.getBody, classOf[LineageOverview]))
+      .map(resp => db.util().deserialize[LineageOverview](resp.getBody, classOf[LineageOverview]))
       .recover({
         case ce: CompletionException
           if cond(ce.getCause)({ case ae: ArangoDBException => ae.getResponseCode == 404 }) =>
