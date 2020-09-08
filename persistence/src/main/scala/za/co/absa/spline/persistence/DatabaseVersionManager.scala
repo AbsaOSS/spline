@@ -56,6 +56,7 @@ class DatabaseVersionManager(db: ArangoDatabaseAsync)(implicit ec: ExecutionCont
       .flatMap(exists =>
         if (exists) db.queryOptional[String](
           s"""
+             |WITH ${DBVersion.name}
              |FOR v IN ${DBVersion.name}
              |    FILTER v.status == '$status'
              |    RETURN v.version

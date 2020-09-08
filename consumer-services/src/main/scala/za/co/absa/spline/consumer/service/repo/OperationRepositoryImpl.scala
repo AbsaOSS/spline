@@ -31,6 +31,7 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
   override def findById(operationId: Operation.Id)(implicit ec: ExecutionContext): Future[OperationDetails] = {
     db.queryOne[OperationDetails](
       """
+        |WITH executionPlan, executes, operation, follows
         |FOR ope IN operation
         |    FILTER ope._key == @operationId
         |

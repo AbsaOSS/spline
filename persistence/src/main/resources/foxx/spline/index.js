@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,54 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-(function () {
-    'use strict';
 
+'use strict';
+const {db, aql} = require('@arangodb');
+const createRouter = require('@arangodb/foxx/router');
+const joi = require('joi');
+
+///////////////////////////////////////////////////////////////////////////////
+//  function observedWritesByRead(
+//      readEvent: za.co.absa.spline.persistence.model.Progress
+//  ): za.co.absa.spline.persistence.model.Progress[]
+///////////////////////////////////////////////////////////////////////////////
+
+const observedWritesByRead =
+    (readEvent) => readEvent && db._query(aql`
+        WITH progress, progressOf, executionPlan, executes, operation, depends, writesTo, dataSource
+        LET readTime = ${readEvent}.timestamp
+        FOR rds IN 2 OUTBOUND ${readEvent} progressOf, depends
+            LET maybeObservedOverwrite = SLICE(
+                (FOR wo IN 1 INBOUND rds writesTo
+                    FILTER !wo.append
+                    FOR e IN 2 INBOUND wo executes, progressOf
+                        FILTER e.timestamp < readTime
+                        SORT e.timestamp DESC
+                        LIMIT 1
+                        RETURN e
+                ), 0, 1)
+            LET observedAppends = (
+                FOR wo IN 1 INBOUND rds writesTo
+                    FILTER wo.append
+                    FOR e IN 2 INBOUND wo executes, progressOf
+                        FILTER e.timestamp > maybeObservedOverwrite[0].timestamp
+                           AND e.timestamp < readTime
+                        SORT e.timestamp ASC
+                        RETURN e
+                )
+            LET allObservedEvents = APPEND(maybeObservedOverwrite, observedAppends)
+            FOR e IN allObservedEvents RETURN e
+    `).toArray();
+
+
+///////////////////////////////////////////////////////////////////////////////
+//  function eventLineageOverview(
+//      event: za.co.absa.spline.persistence.model.Progress,
+//      maxDepth: number
+//  ): za.co.absa.spline.consumer.service.model.LineageOverview
+///////////////////////////////////////////////////////////////////////////////
+
+const eventLineageOverview = (function () {
     class DistinctCollector {
         constructor(keyFn, initialValues) {
             this.keyFn = keyFn;
@@ -66,30 +111,28 @@
     }
 
     return (startEvent, maxDepth) => {
-        const {db, aql} = require('@arangodb');
-
         if (!startEvent || maxDepth < 0) {
             return null;
         }
 
         const startSource = db._query(aql`
-            RETURN FIRST(
-                FOR ds IN 2 OUTBOUND ${startEvent} progressOf, affects 
-                    RETURN {
-                        "_id": ds._key,
-                        "_class": "za.co.absa.spline.consumer.service.model.DataSourceNode",
-                        "name": ds.uri
-                    }
-            )`
+            WITH progress, progressOf, executionPlan, affects, dataSource
+            FOR ds IN 2 OUTBOUND ${startEvent} progressOf, affects 
+                LIMIT 1
+                RETURN {
+                    "_id": ds._key,
+                    "_class": "za.co.absa.spline.consumer.service.model.DataSourceNode",
+                    "name": ds.uri
+                }
+            `
         ).next();
 
         const graphBuilder = new GraphBuilder([startSource]);
 
-        const findObservedWritesByRead = event =>
-            db._query(aql`RETURN SPLINE::OBSERVED_WRITES_BY_READ(${event})`).next();
-
         const collectPartialGraphForEvent = event => {
             const partialGraph = db._query(aql`
+                WITH progress, progressOf, executionPlan, affects, depends, dataSource
+
                 LET exec = FIRST(FOR ex IN 1 OUTBOUND ${event} progressOf RETURN ex)
                 LET affectedDsEdge = FIRST(FOR v, e IN 1 OUTBOUND exec affects RETURN e)
                 LET rdsWithInEdges = (FOR ds, e IN 1 OUTBOUND exec depends RETURN [ds, e])
@@ -132,7 +175,7 @@
         const traverse = memoize(e => e._id, (event, depth) => {
             let remainingDepth = depth - 1;
             if (depth > 1) {
-                findObservedWritesByRead(event)
+                observedWritesByRead(event)
                     .forEach(writeEvent => {
                         const remainingDepth_i = traverse(writeEvent, depth - 1);
                         remainingDepth = Math.min(remainingDepth, remainingDepth_i);
@@ -153,4 +196,54 @@
             edges: resultedGraph.edges
         }
     }
-})()
+})();
+
+
+///////////////////////////////////////////////////////////////////////////////
+//  ROUTE DEFINITION
+///////////////////////////////////////////////////////////////////////////////
+
+const router = createRouter();
+module.context.use(router);
+router
+    .get('/events/:eventKey/lineage-overview/:maxDepth',
+        (req, res) => {
+
+            const eventKey = req.pathParams.eventKey;
+            const maxDepth = req.pathParams.maxDepth;
+
+            const executionEvent = db._query(aql`
+                WITH progress
+                RETURN FIRST(FOR p IN progress FILTER p._key == ${eventKey} RETURN p)
+            `).next();
+
+            if (executionEvent) {
+                const targetDataSource = executionEvent && db._query(aql`
+                    WITH progress, progressOf, executionPlan, affects, dataSource
+                    RETURN FIRST(FOR ds IN 2 OUTBOUND ${executionEvent} progressOf, affects RETURN ds)
+                `).next();
+
+                const lineageGraph = eventLineageOverview(executionEvent, maxDepth);
+                const lineageOverview = lineageGraph && {
+                    "info": {
+                        "timestamp": executionEvent.timestamp,
+                        "applicationId": executionEvent.extra.appId,
+                        "targetDataSourceId": targetDataSource._key
+                    },
+                    "graph": {
+                        "depthRequested": maxDepth,
+                        "depthComputed": lineageGraph.depth || -1,
+                        "nodes": lineageGraph.vertices,
+                        "edges": lineageGraph.edges
+                    }
+                }
+                res.send(lineageOverview);
+            } else {
+                res.status(404);
+            }
+        })
+    .pathParam('eventKey', joi.string().min(1).required(), 'Execution Event UUID')
+    .pathParam('maxDepth', joi.number().integer().min(0).required(), 'Max depth of traversing in terms of [Data Source] -> [Execution Plan] pairs')
+    .response(['application/json'], 'Lineage overview graph')
+    .summary('Execution event end-to-end lineage overview')
+    .description('Builds a lineage of the data produced by the given execution event');
