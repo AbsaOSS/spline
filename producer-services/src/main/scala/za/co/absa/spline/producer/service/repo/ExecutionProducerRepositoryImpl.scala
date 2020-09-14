@@ -45,6 +45,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
   override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
     val eventuallyExists = db.queryOne[Boolean](
       s"""
+         |WITH ${NodeDef.ExecutionPlan.name}
          |FOR ex IN ${NodeDef.ExecutionPlan.name}
          |    FILTER ex._key == @key
          |    COLLECT WITH COUNT INTO cnt
@@ -60,6 +61,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 
     val eventualPersistedDSes = db.queryAs[DataSource](
       s"""
+         |WITH ${NodeDef.DataSource.name}
          |FOR ds IN ${NodeDef.DataSource.name}
          |    FILTER ds.uri IN [${referencedDSURIs.map(wrap(_, '"')).mkString(", ")}]
          |    RETURN ds
@@ -78,6 +80,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
   override def insertExecutionEvents(events: Array[apiModel.ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
     val allReferencesConsistentFuture = db.queryOne[Boolean](
       """
+        |WITH executionPlan
         |LET cnt = FIRST(
         |    FOR ep IN executionPlan
         |        FILTER ep._key IN @keys
@@ -91,6 +94,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 
     val eventualExecPlanDetails = db.queryAs[Map[String, Any]](
       """
+        |WITH executionPlan, executes, operation
         |FOR ep IN executionPlan
         |    FILTER ep._key IN @keys
         |

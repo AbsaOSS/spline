@@ -44,6 +44,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
 
     val eventualTotalDateRange = db.queryOne[Array[Long]](
       """
+        |WITH progress
         |FOR ee IN progress
         |    FILTER ee._created <= @asAtTime
         |    COLLECT AGGREGATE
@@ -60,6 +61,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
 
     val eventualArangoCursorAsync = db.queryAs[ExecutionEventInfo](
       """
+        |WITH progress
         |FOR ee IN progress
         |    FILTER ee._created <= @asAtTime
         |        && ee.timestamp >= @timestampStart

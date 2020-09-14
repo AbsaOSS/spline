@@ -35,6 +35,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
   override def findById(execId: Id)(implicit ec: ExecutionContext): Future[LineageDetailed] = {
     db.queryOne[LineageDetailed](
       """
+        |WITH executionPlan, executes, operation, follows
         |LET exec = FIRST(FOR ex IN executionPlan FILTER ex._key == @execId RETURN ex)
         |LET writeOp = FIRST(FOR v IN 1 OUTBOUND exec executes RETURN v)
         |
@@ -98,6 +99,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
   override def loadExecutionPlanAsDAG(execId: Id)(implicit ec: ExecutionContext): Future[ExecutionPlanDAG] = {
     db.queryOne[ExecutionPlanDagPO](
       """
+        |WITH executionPlan, executes, operation, follows
         |FOR ex IN executionPlan
         |    FILTER ex._key == @execId
         |    LET parts = (

@@ -77,7 +77,7 @@ class Migrator(
     log.info(s"Upgrading to version: ${version.asString}")
     log.trace(s"Applying script: \n$script")
 
-    import com.arangodb.internal.InternalArangoDatabaseImplicits._
+    import com.arangodb.internal.ArangoDatabaseImplicits._
 
     for {
       _ <- db.adminExecute(

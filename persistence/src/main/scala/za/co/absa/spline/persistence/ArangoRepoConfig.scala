@@ -47,7 +47,7 @@ class ArangoRepoConfig extends InitializingBean with Logging {
     if (requiredDBVersion != currentDBVersion)
       sys.error("" +
         s"Database version ${currentDBVersion.asString} is out of date, version ${requiredDBVersion.asString} is required. " +
-        s"Please execute 'java -jar admin-cli-${SplineBuildInfo.Version}.jar db-upgrade' to upgrade the database.")
+        s"Please execute 'java -jar admin-${SplineBuildInfo.Version}.jar db-upgrade' to upgrade the database.")
   }
 
   @Bean def arangoDatabaseFacade: ArangoDatabaseFacade = new ArangoDatabaseFacade(Database.connectionURL)

@@ -88,6 +88,7 @@ class TxBuilder {
             s"""
                |  o._key && _db._collection("$colName").exists(o._key) ||
                |  o._from && o._to && _db._query(`
+               |    WITH $colName
                |    FOR e IN $colName
                |        FILTER e._from == @o._from && e._to == @o._to
                |        LIMIT 1
@@ -104,6 +105,7 @@ class TxBuilder {
         val filter = uq.filter.replace(UpdateQuery.DocWildcard, doc)
         s"""
            |_db._query(`
+           |  WITH $colName
            |  FOR $doc IN $colName
            |      FILTER $filter
            |      UPDATE $doc._key WITH @b IN $colName
