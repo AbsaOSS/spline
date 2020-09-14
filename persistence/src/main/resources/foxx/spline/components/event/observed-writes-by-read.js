@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-'use strict';
-const {db, aql} = require('@arangodb');
+'use strict'
+const {db, aql} = require('@arangodb')
 
 /**
  * Returns a list of execution events which writes are visible from any read of the given execution event
@@ -48,9 +48,9 @@ function observedWritesByRead(readEvent) {
                 )
             LET allObservedEvents = APPEND(maybeObservedOverwrite, observedAppends)
             FOR e IN allObservedEvents RETURN e
-    `).toArray();
+    `).toArray()
 }
 
 module.exports = {
     observedWritesByRead
-};
+}

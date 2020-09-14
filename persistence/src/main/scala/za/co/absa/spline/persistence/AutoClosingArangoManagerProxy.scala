@@ -16,35 +16,39 @@
 
 package za.co.absa.spline.persistence
 
+import java.lang.reflect.{InvocationHandler, Method, Proxy}
+
 import com.arangodb.async.ArangoDatabaseAsync
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-class AutoClosingArangoManagerProxy(
-  managerProvider: ArangoDatabaseAsync => ArangoManager,
-  arangoFacadeProvider: () => ArangoDatabaseFacade)
-  (implicit val ex: ExecutionContext)
-  extends ArangoManager {
+object AutoClosingArangoManagerProxy {
 
-  override def initialize(onExistsAction: OnDBExistsAction): Future[Boolean] =
-    withManager(_.initialize(onExistsAction))
+  def create(
+    managerProvider: ArangoDatabaseAsync => ArangoManager,
+    arangoFacadeProvider: () => ArangoDatabaseFacade)
+    (implicit ex: ExecutionContext): ArangoManager = {
 
-  override def upgrade(): Future[Unit] =
-    withManager(_.upgrade())
-
-  def execute(actions: AuxiliaryDBAction*): Future[Unit] =
-    withManager(_.execute(actions: _*))
-
-  private def withManager[A](fn: ArangoManager => Future[A]): Future[A] = {
-    val dbFacade = arangoFacadeProvider()
-
-    (Try(fn(managerProvider(dbFacade.db))) match {
-      case Failure(e) => Future.failed(e)
-      case Success(v) => v
-    }) andThen {
-      case _ => dbFacade.destroy()
+    val handler: InvocationHandler = (_: Any, method: Method, args: Array[AnyRef]) => {
+      val dbFacade = arangoFacadeProvider()
+      (Try {
+        val underlyingManager = managerProvider(dbFacade.db)
+        method
+          .invoke(underlyingManager, args: _*)
+          .asInstanceOf[Future[_]]
+      } match {
+        case Failure(e) => Future.failed(e)
+        case Success(v) => v
+      }) andThen {
+        case _ => dbFacade.destroy()
+      }
     }
-  }
 
+    Proxy.newProxyInstance(
+      getClass.getClassLoader,
+      Array(classOf[ArangoManager]),
+      handler
+    ).asInstanceOf[ArangoManager]
+  }
 }
