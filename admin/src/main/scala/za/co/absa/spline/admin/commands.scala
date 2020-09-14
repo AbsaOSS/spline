@@ -16,6 +16,8 @@ package za.co.absa.spline.admin
  * limitations under the License.
  */
 
+import java.time.ZonedDateTime
+
 import za.co.absa.spline.persistence.AuxiliaryDBAction
 
 import scala.concurrent.duration._
@@ -63,6 +65,17 @@ case class DBUpgrade(
 ) extends DBCommand {
   protected override type Self = DBUpgrade
   protected override val selfCopy: (String, Duration, Boolean) => Self = copy
+}
+
+case class DBPrune(
+  override val dbUrl: String = null,
+  override val timeout: Duration = DBCommand.defaultTimeout,
+  override val insecure: Boolean = DBCommand.defaultInsecure,
+  retentionPeriod: Option[Duration] = None,
+  thresholdDate: Option[ZonedDateTime] = None
+) extends DBCommand {
+  protected override type Self = DBPrune
+  protected override val selfCopy: (String, Duration, Boolean) => DBPrune = copy(_, _, _)
 }
 
 case class DBExec(
