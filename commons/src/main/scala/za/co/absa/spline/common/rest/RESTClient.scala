@@ -19,12 +19,7 @@ package za.co.absa.spline.common.rest
 import scala.concurrent.Future
 
 trait RESTClient {
-  @throws[HttpStatusException]
   def get(path: String): Future[String]
-
-  @throws[HttpStatusException]
   def delete(path: String): Future[Unit]
-
-  @throws[HttpStatusException]
   def post(path: String, body: String): Future[Unit]
 }
