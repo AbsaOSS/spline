@@ -50,8 +50,7 @@ class RESTClientApacheHttpImpl(
       }
   }.map(_ => {})
 
-  @throws[HttpStatusException]
-  private def execHttp(method: URI => HttpRequestBase): Future[String] = {
+  private def execHttp(method: URI => HttpRequestBase): Future[String] = Future {
     val request = {
       val req = method(uri)
       maybeCredentials.foreach(credentials => {
@@ -79,7 +78,7 @@ class RESTClientApacheHttpImpl(
 
     respStatusLine.getStatusCode match {
       case 200 | 201 | 204 =>
-        Future.successful(respBody)
+        respBody
       case _ =>
         throw new HttpStatusException(respStatusLine.getStatusCode, s"ArangoDB response: $respStatusLine. $respBody")
     }

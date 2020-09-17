@@ -53,10 +53,7 @@ package com.arangodb.internal {
        * @see [[https://github.com/arangodb/arangodb-java-driver/issues/353]]
        */
       def adminExecute(script: String)(implicit ec: ExecutionContext): Future[Unit] =
-        try {
-          restClient.post("_admin/execute", script)
-        }
-        catch {
+        restClient.post("_admin/execute", script).recover {
           case e: HttpStatusException if e.status == 404 =>
             sys.error("" +
               "'/_admin/execute' endpoint is unreachable. " +
