@@ -33,17 +33,15 @@ class Migrator(
   dbVersionManager: DatabaseVersionManager)
   (implicit ec: ExecutionContext) extends Logging {
 
-  def migrate(verFrom: SemanticVersion, verTo: SemanticVersion): Future[Unit] = {
+  def migrate(verFrom: SemanticVersion, verTo: SemanticVersion): Future[Boolean] = {
     val eventualMigrationChain =
       for {
         dbVersionExists <- db.collection(DBVersion.name).exists.toScala
         maybePreparingVersion <- dbVersionManager.preparingVersion
-        currentVersion <-
-          if (dbVersionExists) dbVersionManager.currentVersion
+        _ <-
+          if (dbVersionExists) Future.successful({})
           else dbVersionManager.insertDbVersion(DatabaseVersionManager.BaselineVersion)
       } yield {
-        log.info(s"Current database version: ${currentVersion.asString}")
-        log.info(s"Target database version: ${verTo.asString}")
         maybePreparingVersion.foreach(prepVersion =>
           sys.error("" +
             s"Incomplete upgrade to version: ${prepVersion.asString} detected." +
@@ -54,23 +52,23 @@ class Migrator(
             " or wait until the ongoing upgrade has finished.")
         )
         val migrationChain = scriptRepository.findMigrationChain(verFrom, verTo)
-        if (migrationChain.isEmpty)
-          log.info(s"The database is up-to-date")
-        else {
-          log.info(s"The database is ${migrationChain.length} versions behind. Migration will be performed.")
-          log.debug(s"Migration scripts to apply: $migrationChain")
-        }
         migrationChain
       }
 
-    eventualMigrationChain.flatMap(migrationChain =>
-      migrationChain.foldLeft(Future.successful({})) {
-        case (prevMigrationEvidence, scr) => prevMigrationEvidence.flatMap(_ => {
-          log.debug(s"Applying script: $scr")
-          executeMigration(scr.script, scr.verTo)
-        })
+    eventualMigrationChain.flatMap(migrationChain => {
+      if (migrationChain.nonEmpty) {
+        log.info(s"The database is ${migrationChain.length} versions behind. Migration will be performed.")
+        log.debug(s"Migration scripts to apply: $migrationChain")
       }
-    )
+      migrationChain
+        .foldLeft(Future.successful({})) {
+          case (prevMigrationEvidence, scr) => prevMigrationEvidence.flatMap(_ => {
+            log.debug(s"Applying script: $scr")
+            executeMigration(scr.script, scr.verTo)
+          })
+        }
+        .map(_ => migrationChain.nonEmpty)
+    })
   }
 
   private def executeMigration(script: String, version: SemanticVersion): Future[Unit] = {
