@@ -16,70 +16,15 @@
 
 package za.co.absa.spline.common.rest
 
-import java.net.URI
+import scala.concurrent.Future
 
-import org.apache.commons.io.IOUtils
-import org.apache.http.auth.Credentials
-import org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPost, HttpRequestBase}
-import org.apache.http.entity.StringEntity
-import org.apache.http.impl.auth.BasicScheme
-import org.apache.http.impl.client.HttpClients
-import za.co.absa.commons.lang.ARM
-import za.co.absa.commons.lang.ARM.managed
-
-import scala.concurrent.{ExecutionContext, Future}
-
-class RESTClient(uri: URI, maybeCredentials: Option[Credentials]) {
+trait RESTClient {
   @throws[HttpStatusException]
-  def get(path: String): Future[String] = execHttp {
-    baseUri => new HttpGet(s"$baseUri/$path")
-  }
+  def get(path: String): Future[String]
 
   @throws[HttpStatusException]
-  def delete(path: String)(implicit ec: ExecutionContext): Future[Unit] = execHttp {
-    baseUri => new HttpDelete(s"$baseUri/$path")
-  }.map(_ => {})
+  def delete(path: String): Future[Unit]
 
   @throws[HttpStatusException]
-  def post(path: String, body: String)(implicit ec: ExecutionContext): Future[Unit] = execHttp {
-    baseUri =>
-      new HttpPost(s"$baseUri/$path") {
-        setEntity(new StringEntity(body))
-      }
-  }.map(_ => {})
-
-  @throws[HttpStatusException]
-  private def execHttp(method: URI => HttpRequestBase): Future[String] = {
-    val request = {
-      val req = method(uri)
-      maybeCredentials.foreach(credentials => {
-        val authHeader = new BasicScheme().authenticate(credentials, req, null)
-        req.addHeader(authHeader)
-      })
-      req
-    }
-
-    val (respStatusLine, respBody) =
-      for {
-        httpClient <- managed(HttpClients.createDefault)
-        response <- managed(httpClient.execute(request))
-      } yield {
-        val maybeBody = Option(response.getEntity)
-          .map(e => {
-            val encoding = Option(e.getContentEncoding).map(_.getValue).getOrElse("UTF-8")
-            ARM.using(e.getContent) {
-              inputStream =>
-                IOUtils.toString(inputStream, encoding)
-            }
-          })
-        (response.getStatusLine, maybeBody.orNull)
-      }
-
-    respStatusLine.getStatusCode match {
-      case 200 | 201 | 204 =>
-        Future.successful(respBody)
-      case _ =>
-        throw new HttpStatusException(respStatusLine.getStatusCode, s"ArangoDB response: $respStatusLine. $respBody")
-    }
-  }
+  def post(path: String, body: String): Future[Unit]
 }

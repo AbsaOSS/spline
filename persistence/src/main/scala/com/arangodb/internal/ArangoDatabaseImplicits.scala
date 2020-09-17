@@ -23,7 +23,7 @@ package com.arangodb.internal {
   import com.arangodb.async.internal.{ArangoExecutorAsync, ArangoExecutorAsyncExtractor}
   import com.arangodb.internal.velocystream.VstCommunicationExtractor
   import org.apache.http.auth.UsernamePasswordCredentials
-  import za.co.absa.spline.common.rest.{HttpStatusException, RESTClient}
+  import za.co.absa.spline.common.rest.{HttpStatusException, RESTClient, RESTClientApacheHttpImpl}
 
   import scala.concurrent.{ExecutionContext, Future}
 
@@ -32,7 +32,7 @@ package com.arangodb.internal {
    */
   object ArangoDatabaseImplicits {
 
-    implicit class InternalArangoDatabaseOps(val db: ArangoDatabaseAsync) extends AnyVal {
+    implicit class InternalArangoDatabaseOps(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) {
 
       /**
        * @see [[https://github.com/arangodb/arangodb-java-driver/issues/353]]
@@ -45,7 +45,7 @@ package com.arangodb.internal {
         val port = hostDescription.getPort
         val maybeCredentials = Option(user).map(user => new UsernamePasswordCredentials(user, password))
 
-        new RESTClient(new URI(s"http://$host:$port/_db/${db.name}"), maybeCredentials)
+        new RESTClientApacheHttpImpl(new URI(s"http://$host:$port/_db/${db.name}"), maybeCredentials)
       }
 
 
