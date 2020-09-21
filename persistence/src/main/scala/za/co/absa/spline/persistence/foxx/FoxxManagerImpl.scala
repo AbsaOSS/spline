@@ -16,9 +16,14 @@
 
 package za.co.absa.spline.persistence.foxx
 
+import java.io.{ByteArrayOutputStream, File}
+import java.util.zip.{ZipEntry, ZipOutputStream}
+
+import org.apache.commons.io.FileUtils
 import org.json4s.DefaultFormats
 import org.json4s.jackson.JsonMethods.parse
 import org.slf4s.Logging
+import za.co.absa.commons.lang.ARM
 import za.co.absa.spline.common.rest.RESTClient
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -27,10 +32,24 @@ class FoxxManagerImpl(restClient: RESTClient)(implicit ec: ExecutionContext)
   extends FoxxManager
     with Logging {
 
-  override def install(mountPrefix: String, script: String): Future[Unit] = {
-    log.debug(s"Install Foxx service: $mountPrefix")
-    log.trace(s"Source code:\n$script")
-    restClient.post(s"_api/foxx?mount=$mountPrefix", script)
+  override def install(mountPrefix: String, assets: Array[(String, String)]): Future[Unit] = {
+    log.debug(s"Prepare Foxx service.zip: $mountPrefix")
+
+    val baos = new ByteArrayOutputStream()
+    ARM.using(new ZipOutputStream(baos)) {
+      zip => {
+        for ((path, content) <- assets) {
+          log.debug(s"Next zip entry: $path")
+          log.trace(s"Entry content:\n$content")
+          zip.putNextEntry(new ZipEntry(path))
+          zip.write(content.getBytes("UTF-8"))
+          zip.closeEntry()
+        }
+      }
+    }
+
+    FileUtils.writeByteArrayToFile(new File(s"/tmp/aaa-$mountPrefix.zip"), baos.toByteArray)
+    restClient.post(s"_api/foxx?mount=$mountPrefix", baos.toByteArray)
   }
 
   override def uninstall(mountPrefix: String): Future[Unit] = {

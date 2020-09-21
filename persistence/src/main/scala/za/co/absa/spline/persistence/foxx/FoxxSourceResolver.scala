@@ -18,8 +18,6 @@ package za.co.absa.spline.persistence.foxx
 
 import java.io.File
 
-import org.json4s.DefaultFormats
-import org.json4s.jackson.JsonMethods.parse
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import za.co.absa.commons.lang.ARM
 
@@ -27,12 +25,14 @@ import scala.io.Source
 
 object FoxxSourceResolver {
   type ServiceName = String
-  type ServiceScript = String
+  type AssetContent = String
+  type AssetPath = String
+  type Assets = (AssetPath, AssetContent)
+  type Service = (ServiceName, Array[Assets])
 
   private final val ManifestFilename = "manifest.json"
-  private final val MainProperty = "main"
 
-  def lookupSources(baseResourceLocation: String): Seq[(ServiceName, ServiceScript)] = {
+  def lookupSources(baseResourceLocation: String): Array[Service] = {
     // Although the code below might look a bit redundant it's actually not.
     // This has to work in both inside and outside a JAR, but:
     //   - ResourcePatternResolver.getResources("classpath:foo/*") doesn't behave consistently
@@ -40,14 +40,20 @@ object FoxxSourceResolver {
     //   - Resource.getFile doesn't work within a JAR
     //
     new PathMatchingResourcePatternResolver(getClass.getClassLoader)
-      .getResources(s"$baseResourceLocation/*/$ManifestFilename").toSeq
+      .getResources(s"$baseResourceLocation/*/$ManifestFilename")
       .map(manifestResource => {
-        val serviceName = new File(manifestResource.getURL.getPath).getParentFile.getName
-        val manifestContent = ARM.using(Source.fromURL(manifestResource.getURL))(_.mkString)
-        val manifestJson = parse(manifestContent).extract(DefaultFormats, manifest[Map[String, Any]])
-        val mainJsResource = manifestResource.createRelative(manifestJson(MainProperty).toString)
-        val mainJsContent = ARM.using(Source.fromURL(mainJsResource.getURL))(_.getLines.mkString("\n"))
-        serviceName -> mainJsContent
+        val serviceBase = new File(manifestResource.getURL.getPath).getParentFile
+        val serviceName = serviceBase.getName
+        val assets = new PathMatchingResourcePatternResolver(getClass.getClassLoader)
+          .getResources(s"$baseResourceLocation/$serviceName/**/*")
+          .filter(_.isReadable)
+          .map(r => {
+            val assetUrl = r.getURL
+            val assetPath = assetUrl.getPath.substring(serviceBase.getPath.length + 1)
+            val content = ARM.using(Source.fromURL(assetUrl))(_.getLines.mkString("\n"))
+            assetPath -> content
+          })
+        serviceName -> assets
       })
   }
 

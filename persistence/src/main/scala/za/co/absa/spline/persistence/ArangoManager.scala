@@ -17,13 +17,13 @@
 package za.co.absa.spline.persistence
 
 import com.arangodb.async.ArangoDatabaseAsync
-import com.arangodb.entity.EdgeDefinition
+import com.arangodb.entity.{EdgeDefinition, IndexType}
 import com.arangodb.model._
 import org.apache.commons.io.FilenameUtils
 import org.slf4s.Logging
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import za.co.absa.commons.lang.ARM
-import za.co.absa.commons.reflect.ReflectionUtils
+import za.co.absa.commons.reflect.EnumerationMacros.sealedInstancesOf
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Skip}
 import za.co.absa.spline.persistence.foxx.{FoxxManager, FoxxSourceResolver}
@@ -31,6 +31,7 @@ import za.co.absa.spline.persistence.migration.Migrator
 import za.co.absa.spline.persistence.model.{CollectionDef, GraphDef, ViewDef}
 
 import scala.collection.JavaConverters._
+import scala.collection.immutable._
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.io.Source
@@ -42,6 +43,7 @@ trait ArangoManager {
    */
   def initialize(onExistsAction: OnDBExistsAction): Future[Boolean]
   def upgrade(): Future[Unit]
+  def execute(actions: AuxiliaryDBAction*): Future[Unit]
 }
 
 class ArangoManagerImpl(
@@ -94,6 +96,23 @@ class ArangoManagerImpl(
       })
   }
 
+  override def execute(actions: AuxiliaryDBAction*): Future[Unit] = {
+    actions.foldLeft(Future.successful()) {
+      case (prevFuture, nextAction) =>
+        prevFuture.flatMap(_ => (nextAction match {
+          case AuxiliaryDBAction.FoxxReinstall =>
+            for {
+              _ <- deleteFoxxServices()
+              _ <- createFoxxServices()
+            } yield {}
+          case AuxiliaryDBAction.IndicesDelete => deleteIndices(db)
+          case AuxiliaryDBAction.IndicesCreate => createIndices(db)
+          case AuxiliaryDBAction.ViewsDelete => deleteViews(db)
+          case AuxiliaryDBAction.ViewsCreate => createViews(db)
+        }).map(_ => {}))
+    }
+  }
+
   private def deleteDbIfRequested(db: ArangoDatabaseAsync, dropIfExists: Boolean) =
     for {
       exists <- db.exists.toScala
@@ -109,24 +128,34 @@ class ArangoManagerImpl(
   private def createCollections(db: ArangoDatabaseAsync) = {
     log.debug(s"Create collections")
     Future.sequence(
-      for (colDef <- ReflectionUtils.objectsOf[CollectionDef])
+      for (colDef <- sealedInstancesOf[CollectionDef])
         yield db.createCollection(colDef.name, new CollectionCreateOptions().`type`(colDef.collectionType)).toScala)
   }
 
   private def createGraphs(db: ArangoDatabaseAsync) = {
     log.debug(s"Create graphs")
     Future.sequence(
-      for (graphDef <- ReflectionUtils.objectsOf[GraphDef]) yield {
+      for (graphDef <- sealedInstancesOf[GraphDef]) yield {
         val edgeDefs = graphDef.edgeDefs.map(e => new EdgeDefinition collection e.name from e.from.name to e.to.name)
         db.createGraph(graphDef.name, edgeDefs.asJava).toScala
       })
+  }
+
+  private def deleteIndices(db: ArangoDatabaseAsync) = {
+    for {
+      cols <- db.getCollections.toScala.map(_.asScala.filter(!_.getIsSystem))
+      eventualIndices = cols.map(col => db.collection(col.getName).getIndexes.toScala.map(_.asScala))
+      allIndices <- Future.reduceLeft(Iterable(eventualIndices.toSeq: _*))(_ ++ _)
+      userIndices = allIndices.filter(idx => idx.getType != IndexType.primary && idx.getType != IndexType.edge)
+      _ <- Future.traverse(userIndices)(idx => db.deleteIndex(idx.getId).toScala)
+    } yield {}
   }
 
   private def createIndices(db: ArangoDatabaseAsync) = {
     log.debug(s"Create indices")
     Future.sequence(
       for {
-        colDef <- ReflectionUtils.objectsOf[CollectionDef]
+        colDef <- sealedInstancesOf[CollectionDef]
         idxDef <- colDef.indexDefs
       } yield {
         val dbCol = db.collection(colDef.name)
@@ -157,9 +186,9 @@ class ArangoManagerImpl(
   private def createFoxxServices(): Future[_] = {
     log.debug(s"Lookup Foxx services to install")
     val serviceDefs = FoxxSourceResolver.lookupSources(FoxxSourcesLocation)
-    log.debug(s"Found Foxx services: ${serviceDefs.map(_._1)}")
-    Future.traverse(serviceDefs) {
-      case (name, script) => foxxManager.install(s"/$name", script)
+    log.debug(s"Found Foxx services: ${serviceDefs.map(_._1) mkString ", "}")
+    Future.traverse(serviceDefs.toSeq) {
+      case (name, assets) => foxxManager.install(s"/$name", assets)
     }
   }
 
@@ -174,9 +203,21 @@ class ArangoManagerImpl(
     )
   }
 
+  private def deleteViews(db: ArangoDatabaseAsync) = {
+    Future.traverse(sealedInstancesOf[ViewDef])(viewDef => {
+      val view = db.view(viewDef.name)
+      view.exists().toScala.flatMap { exists =>
+        if (exists)
+          view.drop().toScala
+        else
+          Future.successful[Unit]()
+      }
+    })
+  }
+
   private def createViews(db: ArangoDatabaseAsync) = {
     log.debug(s"Create views")
-    Future.traverse(ReflectionUtils.objectsOf[ViewDef]) { viewDef =>
+    Future.traverse(sealedInstancesOf[ViewDef]) { viewDef =>
       for {
         _ <- db.createArangoSearch(viewDef.name, null).toScala
         _ <- db.arangoSearch(viewDef.name).updateProperties(viewDef.properties).toScala

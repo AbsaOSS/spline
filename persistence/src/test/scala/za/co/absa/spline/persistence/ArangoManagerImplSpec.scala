@@ -78,7 +78,7 @@ class ArangoManagerImplSpec
       inOrder verify foxxMgrMock uninstall "aaa"
       inOrder verify foxxMgrMock uninstall "bbb"
       inOrder verify migratorMock migrate(semver"1.2.3", semver"4.5.6")
-      inOrder verify foxxMgrMock install(ArgumentMatchers.eq("/spline"), ArgumentMatchers.anyString)
+      inOrder verify foxxMgrMock install(ArgumentMatchers.eq("/spline"), ArgumentMatchers.any())
       Assertions.succeed
     }
   }

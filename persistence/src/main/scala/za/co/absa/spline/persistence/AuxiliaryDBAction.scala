@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.common.rest
+package za.co.absa.spline.persistence
 
-import scala.concurrent.Future
+sealed trait AuxiliaryDBAction
 
-trait RESTClient {
-  def get(path: String): Future[String]
-  def delete(path: String): Future[Unit]
-  def post(path: String, body: String): Future[Unit]
-  def post(path: String, body: Array[Byte]): Future[Unit]
+object AuxiliaryDBAction {
+
+  case object FoxxReinstall extends AuxiliaryDBAction
+
+  case object IndicesDelete extends AuxiliaryDBAction
+
+  case object IndicesCreate extends AuxiliaryDBAction
+
+  case object ViewsDelete extends AuxiliaryDBAction
+
+  case object ViewsCreate extends AuxiliaryDBAction
+
 }
