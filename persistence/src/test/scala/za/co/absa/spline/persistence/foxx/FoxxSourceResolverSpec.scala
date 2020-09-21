@@ -37,11 +37,22 @@ class FoxxSourceResolverSpec extends AnyFlatSpec with Matchers {
     val barServiceDir = new File(tmpDir, "bar")
     FileUtils.writeStringToFile(new File(barServiceDir, "manifest.json"), """{"main": "bbb.js"}""", "UTF-8")
     FileUtils.writeStringToFile(new File(barServiceDir, "bbb.js"), "say('Hello Bar');", "UTF-8")
+    FileUtils.writeStringToFile(new File(barServiceDir, "baz/zzz.js"), "say('zzz');", "UTF-8")
 
-    FoxxSourceResolver.lookupSources(tmpDir.toURI.toString) should contain theSameElementsAs Seq(
-      ("foo", "say('Hello Foo');"),
-      ("bar", "say('Hello Bar');"),
-    )
+    (FoxxSourceResolver
+      .lookupSources(tmpDir.toURI.toString)
+      .map({ case (sn, assets) => sn -> assets.toSet })
+
+      should contain theSameElementsAs Set(
+
+      ("foo", Set(
+        "manifest.json" -> """{"main": "hello.js"}""",
+        "hello.js" -> "say('Hello Foo');")),
+      ("bar", Set(
+        "manifest.json" -> """{"main": "bbb.js"}""",
+        "bbb.js" -> "say('Hello Bar');",
+        "baz/zzz.js" -> "say('zzz');")),
+    ))
   }
 
 }

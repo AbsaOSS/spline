@@ -186,9 +186,9 @@ class ArangoManagerImpl(
   private def createFoxxServices(): Future[_] = {
     log.debug(s"Lookup Foxx services to install")
     val serviceDefs = FoxxSourceResolver.lookupSources(FoxxSourcesLocation)
-    log.debug(s"Found Foxx services: ${serviceDefs.map(_._1)}")
-    Future.traverse(serviceDefs) {
-      case (name, script) => foxxManager.install(s"/$name", script)
+    log.debug(s"Found Foxx services: ${serviceDefs.map(_._1) mkString ", "}")
+    Future.traverse(serviceDefs.toSeq) {
+      case (name, assets) => foxxManager.install(s"/$name", assets)
     }
   }
 

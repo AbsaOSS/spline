@@ -19,7 +19,7 @@ package za.co.absa.spline.persistence.foxx
 import scala.concurrent.Future
 
 trait FoxxManager {
-  def install(mountPrefix: String, script: String): Future[Unit]
+  def install(mountPrefix: String, assets: Array[(String, String)]): Future[Unit]
   def uninstall(mountPrefix: String): Future[Unit]
   def list(): Future[Seq[Map[String, Any]]]
 }

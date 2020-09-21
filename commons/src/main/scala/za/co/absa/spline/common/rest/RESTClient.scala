@@ -22,4 +22,5 @@ trait RESTClient {
   def get(path: String): Future[String]
   def delete(path: String): Future[Unit]
   def post(path: String, body: String): Future[Unit]
+  def post(path: String, body: Array[Byte]): Future[Unit]
 }

@@ -21,7 +21,7 @@ import java.net.URI
 import org.apache.commons.io.IOUtils
 import org.apache.http.auth.Credentials
 import org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPost, HttpRequestBase}
-import org.apache.http.entity.StringEntity
+import org.apache.http.entity.{AbstractHttpEntity, ByteArrayEntity, StringEntity}
 import org.apache.http.impl.auth.BasicScheme
 import org.apache.http.impl.client.HttpClients
 import za.co.absa.commons.lang.ARM
@@ -43,10 +43,16 @@ class RESTClientApacheHttpImpl(
     baseUri => new HttpDelete(s"$baseUri/$path")
   }.map(_ => {})
 
-  override def post(path: String, body: String): Future[Unit] = execHttp {
+  override def post(path: String, body: String): Future[Unit] =
+    post(path, new StringEntity(body))
+
+  override def post(path: String, body: Array[Byte]): Future[Unit] =
+    post(path, new ByteArrayEntity(body))
+
+  private def post(path: String, entity: AbstractHttpEntity): Future[Unit] = execHttp {
     baseUri =>
       new HttpPost(s"$baseUri/$path") {
-        setEntity(new StringEntity(body))
+        setEntity(entity)
       }
   }.map(_ => {})
 
