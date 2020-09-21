@@ -16,10 +16,9 @@
 
 package za.co.absa.spline.persistence.foxx
 
-import java.io.{ByteArrayOutputStream, File}
+import java.io.ByteArrayOutputStream
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
-import org.apache.commons.io.FileUtils
 import org.json4s.DefaultFormats
 import org.json4s.jackson.JsonMethods.parse
 import org.slf4s.Logging
@@ -48,7 +47,6 @@ class FoxxManagerImpl(restClient: RESTClient)(implicit ec: ExecutionContext)
       }
     }
 
-    FileUtils.writeByteArrayToFile(new File(s"/tmp/aaa-$mountPrefix.zip"), baos.toByteArray)
     restClient.post(s"_api/foxx?mount=$mountPrefix", baos.toByteArray)
   }
 
