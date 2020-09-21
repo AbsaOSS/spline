@@ -16,6 +16,8 @@ package za.co.absa.spline.admin
  * limitations under the License.
  */
 
+import za.co.absa.spline.persistence.AuxiliaryDBAction
+
 import scala.concurrent.duration._
 
 sealed trait Command
@@ -51,7 +53,7 @@ case class DBInit(
   skip: Boolean = false
 ) extends DBCommand {
   protected override type Self = DBInit
-  protected override val selfCopy: (String, Duration, Boolean) => DBInit = copy(_, _, _)
+  protected override val selfCopy: (String, Duration, Boolean) => Self = copy(_, _, _)
 }
 
 case class DBUpgrade(
@@ -60,5 +62,17 @@ case class DBUpgrade(
   override val insecure: Boolean = DBCommand.defaultInsecure
 ) extends DBCommand {
   protected override type Self = DBUpgrade
-  protected override val selfCopy: (String, Duration, Boolean) => DBUpgrade = copy
+  protected override val selfCopy: (String, Duration, Boolean) => Self = copy
+}
+
+case class DBExec(
+  override val dbUrl: String = null,
+  override val timeout: Duration = DBCommand.defaultTimeout,
+  override val insecure: Boolean = DBCommand.defaultInsecure,
+  actions: Seq[AuxiliaryDBAction] = Nil,
+) extends DBCommand {
+  protected override type Self = DBExec
+  protected override val selfCopy: (String, Duration, Boolean) => Self = copy(_, _, _)
+
+  def addAction(action: AuxiliaryDBAction): DBExec = copy(actions = actions :+ action)
 }

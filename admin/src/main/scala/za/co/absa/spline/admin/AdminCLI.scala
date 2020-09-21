@@ -24,6 +24,7 @@ import scopt.{OptionDef, OptionParser}
 import za.co.absa.spline.admin.AdminCLI.AdminCLIConfig
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.persistence.ArangoConnectionURL.{ArangoDbScheme, ArangoSecureDbScheme}
+import za.co.absa.spline.persistence.AuxiliaryDBAction._
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManagerFactory, ArangoManagerFactoryImpl}
 
@@ -90,6 +91,28 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
         text "Upgrade Spline database"
         children (dbCommandOptions: _*))
 
+      (cmd("db-exec")
+        action ((_, c) => c.copy(cmd = DBExec()))
+        text "Auxiliary actions mainly intended for development, testing etc."
+        children (dbCommandOptions: _*)
+        children(
+        opt[Unit]("foxx-reinstall")
+          text "Reinstall Foxx services "
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _)) => c.copy(cmd.addAction(FoxxReinstall)) },
+        opt[Unit]("indices-delete")
+          text "Delete indices"
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _)) => c.copy(cmd.addAction(IndicesDelete)) },
+        opt[Unit]("indices-create")
+          text "Create indices"
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _)) => c.copy(cmd.addAction(IndicesCreate)) },
+        opt[Unit]("views-delete")
+          text "Delete views"
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _)) => c.copy(cmd.addAction(ViewsDelete)) },
+        opt[Unit]("views-create")
+          text "Create views"
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _)) => c.copy(cmd.addAction(ViewsCreate)) },
+      ))
+
       checkConfig {
         case AdminCLIConfig(null, _) =>
           failure("No command given")
@@ -127,6 +150,10 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
       case DBUpgrade(url, timeout, _) =>
         val dbManager = dbManagerFactory.create(ArangoConnectionURL(url))
         Await.result(dbManager.upgrade(), timeout)
+
+      case DBExec(url, timeout, _, actions) =>
+        val dbManager = dbManagerFactory.create(ArangoConnectionURL(url))
+        Await.result(dbManager.execute(actions: _*), timeout)
     }
 
     println(ansi"%green{DONE}")

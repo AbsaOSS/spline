@@ -71,6 +71,10 @@ class AdminCLISpec
       arangoManagerMock.upgrade())
       thenReturn Future.successful({}))
 
+    (when(
+      arangoManagerMock.execute(any()))
+      thenReturn Future.successful({}))
+
     it should "when called with wrong options, print welcome message" in {
       captureStdErr {
         captureExitStatus(cli.exec(Array("db-init"))) should be(1)
@@ -121,6 +125,27 @@ class AdminCLISpec
           cli.exec(Array("db-upgrade", "arangodb://foo/bar"))
         }
       }
+    }
+
+    behavior of "DB-exec"
+
+    it should "call no action" in {
+      cli.exec(Array("db-exec", "arangodb://foo/bar"))
+      verify(arangoManagerMock).execute()
+    }
+
+    it should "call DB Manager actions in order" in {
+      cli.exec(Array(
+        "db-exec",
+        "arangodb://foo/bar",
+        "--indices-delete",
+        "--views-delete",
+        "--foxx-reinstall",
+        "--views-create",
+        "--indices-create"))
+
+      import za.co.absa.spline.persistence.AuxiliaryDBAction._
+      verify(arangoManagerMock).execute(IndicesDelete, ViewsDelete, FoxxReinstall, ViewsCreate, IndicesCreate)
     }
   }
 }
