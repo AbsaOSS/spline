@@ -17,6 +17,7 @@
 package za.co.absa.spline.producer.service.repo
 
 
+import java.util.UUID
 import java.util.UUID.randomUUID
 import java.{lang => jl}
 
@@ -79,67 +80,63 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
   })
 
   override def insertExecutionEvents(events: Array[ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
-    val allReferencesConsistentFuture = db.queryOne[Boolean](
-      """
-        |WITH executionPlan
-        |LET cnt = FIRST(
-        |    FOR ep IN executionPlan
-        |        FILTER ep._key IN @keys
-        |        COLLECT WITH COUNT INTO cnt
-        |        RETURN cnt
-        |    )
-        |RETURN cnt == LENGTH(@keys)
-        |""".stripMargin,
+    val eventualExecPlanDetails = db.queryStream[Map[String, Any]](
+      s"""
+         |WITH executionPlan, executes, operation
+         |FOR ep IN executionPlan
+         |    FILTER ep._key IN @keys
+         |
+         |    LET writeOp = FIRST(FOR v IN 1 OUTBOUND ep executes RETURN v)
+         |
+         |    RETURN {
+         |        "${ExecutionPlanDetails.ExecutionPlanId}" : ep._key,
+         |        "${ExecutionPlanDetails.FrameworkName}" : CONCAT(ep.systemInfo.name, " ", ep.systemInfo.version),
+         |        "${ExecutionPlanDetails.ApplicationName}" : ep.extra.appName,
+         |        "${ExecutionPlanDetails.DataSourceUri}" : writeOp.outputSource,
+         |        "${ExecutionPlanDetails.DataSourceType}" : writeOp.extra.destinationType,
+         |        "${ExecutionPlanDetails.Append}" : writeOp.append
+         |    }
+         |""".stripMargin,
       Map("keys" -> events.map(_.planId))
     )
 
-    val eventualExecPlanDetails = db.queryAs[Map[String, Any]](
-      """
-        |WITH executionPlan, executes, operation
-        |FOR ep IN executionPlan
-        |    FILTER ep._key IN @keys
-        |
-        |    LET writeOp = FIRST(FOR v IN 1 OUTBOUND ep executes RETURN v)
-        |
-        |    RETURN {
-        |        "executionPlanId" : ep._key,
-        |        "frameworkName" : CONCAT(ep.systemInfo.name, " ", ep.systemInfo.version),
-        |        "applicationName" : ep.extra.appName,
-        |        "dataSourceUri" : writeOp.outputSource,
-        |        "dataSourceType" : writeOp.extra.destinationType,
-        |        "append" : writeOp.append
-        |    }
-        |""".stripMargin,
-      Map("keys" -> events.map(_.planId))
-    ).map(_.streamRemaining().toScala.toArray)
-
     for {
-      refConsistent <- allReferencesConsistentFuture
-      if refConsistent
-      execPlanDetails <- eventualExecPlanDetails
-      res <- buildTranscation(events, execPlanDetails).execute(db)
+      execPlansDetails <- eventualExecPlanDetails
+      res <- buildTransaction(events, execPlansDetails.toArray).execute(db)
     } yield res
   })
 
-  private def buildTranscation(
+  private def buildTransaction(
     events: Array[apiModel.ExecutionEvent],
-    execPlanDetails: Array[Map[String, Any]]
+    execPlansDetails: Array[Map[String, Any]]
   ): ArangoTx = {
-   val progressNodes = (events zip execPlanDetails).map{ case (e, pd) =>
-     Progress(
-       e.timestamp,
-       e.error,
-       e.extra,
-       createEventKey(e),
-       ExecPlanDetails(
-         pd("executionPlanId").asInstanceOf[String],
-         pd("frameworkName").asInstanceOf[String],
-         pd("applicationName").asInstanceOf[String],
-         pd("dataSourceUri").asInstanceOf[String],
-         pd("dataSourceType").asInstanceOf[String],
-         pd("append").asInstanceOf[Boolean]
-       )
-     )}
+    val referredPlanIds = events.iterator.map(_.planId).toSet
+    if (referredPlanIds.size != execPlansDetails.length) {
+      val existingIds = execPlansDetails.map(pd => UUID.fromString(pd(ExecutionPlanDetails.ExecutionPlanId).toString))
+      val missingIds = referredPlanIds -- existingIds
+      throw new InconsistentEntityException(
+        s"Unresolved execution plan IDs: ${missingIds mkString ", "}")
+    }
+
+    val progressNodes = events
+      .zip(execPlansDetails)
+      .map {
+        case (e, pd) =>
+          Progress(
+            e.timestamp,
+            e.error,
+            e.extra,
+            createEventKey(e),
+            ExecPlanDetails(
+              pd(ExecutionPlanDetails.ExecutionPlanId).asInstanceOf[String],
+              pd(ExecutionPlanDetails.FrameworkName).asInstanceOf[String],
+              pd(ExecutionPlanDetails.ApplicationName).asInstanceOf[String],
+              pd(ExecutionPlanDetails.DataSourceUri).asInstanceOf[String],
+              pd(ExecutionPlanDetails.DataSourceType).asInstanceOf[String],
+              pd(ExecutionPlanDetails.Append).asInstanceOf[Boolean]
+            )
+          )
+      }
 
     val progressEdges = progressNodes
       .zip(events)
@@ -189,6 +186,15 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 object ExecutionProducerRepositoryImpl {
 
   import za.co.absa.commons.json.DefaultJacksonJsonSerDe._
+
+  private object ExecutionPlanDetails {
+    val ExecutionPlanId = "executionPlanId"
+    val FrameworkName = "frameworkName"
+    val ApplicationName = "applicationName"
+    val DataSourceUri = "dataSourceUri"
+    val DataSourceType = "dataSourceType"
+    val Append = "append"
+  }
 
   private[repo] def createEventKey(e: ExecutionEvent) =
     s"${e.planId}:${jl.Long.toString(e.timestamp, 36)}"
