@@ -16,11 +16,15 @@
 
 package za.co.absa.spline.admin
 
+import ch.qos.logback.classic.{Level, Logger}
 import org.backuity.ansi.AnsiFormatter.FormattedHelper
+import org.slf4j.Logger.ROOT_LOGGER_NAME
+import org.slf4j.LoggerFactory
 import scopt.{OptionDef, OptionParser}
 import za.co.absa.spline.admin.AdminCLI.AdminCLIConfig
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.persistence.ArangoConnectionURL.{ArangoDbScheme, ArangoSecureDbScheme}
+import za.co.absa.spline.persistence.AuxiliaryDBAction._
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManagerFactory, ArangoManagerFactoryImpl}
 
@@ -31,7 +35,9 @@ object AdminCLI extends App {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
-  case class AdminCLIConfig(cmd: Command = null)
+  case class AdminCLIConfig(
+    cmd: Command = null,
+    logLevel: Level = Level.INFO)
 
   private val dbManagerFactory = new ArangoManagerFactoryImpl()
   new AdminCLI(dbManagerFactory).exec(args)
@@ -47,16 +53,22 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
       help("help").text("prints this usage text")
 
       def dbCommandOptions: Seq[OptionDef[_, AdminCLIConfig]] = Seq(
-        opt[String]('t', "timeout")
-          text s"Timeout in format `<length><unit>` or `Inf` for infinity. Default is ${DBInit().timeout}"
-          action { case (s, c@AdminCLIConfig(cmd: DBCommand)) => c.copy(cmd.timeout = Duration(s)) },
         opt[Unit]('k', "insecure")
           text s"Allow insecure server connections when using SSL; disallowed by default"
-          action { case (_, c@AdminCLIConfig(cmd: DBCommand)) => c.copy(cmd.insecure = true) },
+          action { case (_, c@AdminCLIConfig(cmd: DBCommand, _)) => c.copy(cmd.insecure = true) },
+        {
+          val logLevels = classOf[Level].getFields.collect { case f if f.getType == f.getDeclaringClass => f.getName }
+          val logLevelsString = logLevels.mkString(", ")
+
+          (opt[String]('l', "log-level")
+            text s"Log level ($logLevelsString). Default is ${AdminCLIConfig().logLevel}"
+            validate (l => if (logLevels.contains(l.toUpperCase)) success else failure(s"<log-level> should be one of: $logLevelsString"))
+            action ((str, conf) => conf.copy(logLevel = Level.valueOf(str))))
+        },
         arg[String]("<db_url>")
           required()
           text s"ArangoDB connection string in the format: $ArangoDbScheme|$ArangoSecureDbScheme://[user[:password]@]host[:port]/database"
-          action { case (url, c@AdminCLIConfig(cmd: DBCommand)) => c.copy(cmd.dbUrl = url) })
+          action { case (url, c@AdminCLIConfig(cmd: DBCommand, _)) => c.copy(cmd.dbUrl = url) })
 
       (cmd("db-init")
         action ((_, c) => c.copy(cmd = DBInit()))
@@ -65,10 +77,10 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
         children(
         opt[Unit]('f', "force")
           text "Re-create the database if one already exists"
-          action { case (_, c@AdminCLIConfig(cmd: DBInit)) => c.copy(cmd.copy(force = true)) },
+          action { case (_, c@AdminCLIConfig(cmd: DBInit, _)) => c.copy(cmd.copy(force = true)) },
         opt[Unit]('s', "skip")
           text "Skip existing database. Don't throw error, just end"
-          action { case (_, c@AdminCLIConfig(cmd: DBInit)) => c.copy(cmd.copy(skip = true)) }
+          action { case (_, c@AdminCLIConfig(cmd: DBInit, _)) => c.copy(cmd.copy(skip = true)) }
       ))
 
       (cmd("db-upgrade")
@@ -76,39 +88,69 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
         text "Upgrade Spline database"
         children (dbCommandOptions: _*))
 
+      (cmd("db-exec")
+        action ((_, c) => c.copy(cmd = DBExec()))
+        text "Auxiliary actions mainly intended for development, testing etc."
+        children (dbCommandOptions: _*)
+        children(
+        opt[Unit]("foxx-reinstall")
+          text "Reinstall Foxx services "
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _)) => c.copy(cmd.addAction(FoxxReinstall)) },
+        opt[Unit]("indices-delete")
+          text "Delete indices"
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _)) => c.copy(cmd.addAction(IndicesDelete)) },
+        opt[Unit]("indices-create")
+          text "Create indices"
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _)) => c.copy(cmd.addAction(IndicesCreate)) },
+        opt[Unit]("views-delete")
+          text "Delete views"
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _)) => c.copy(cmd.addAction(ViewsDelete)) },
+        opt[Unit]("views-create")
+          text "Create views"
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _)) => c.copy(cmd.addAction(ViewsCreate)) },
+      ))
+
       checkConfig {
-        case AdminCLIConfig(null) =>
+        case AdminCLIConfig(null, _) =>
           failure("No command given")
-        case AdminCLIConfig(cmd: DBCommand) if cmd.dbUrl == null =>
+        case AdminCLIConfig(cmd: DBCommand, _) if cmd.dbUrl == null =>
           failure("DB connection string is required")
-        case AdminCLIConfig(cmd: DBCommand) if cmd.dbUrl.startsWith(ArangoSecureDbScheme) && !cmd.insecure =>
+        case AdminCLIConfig(cmd: DBCommand, _) if cmd.dbUrl.startsWith(ArangoSecureDbScheme) && !cmd.insecure =>
           failure("At the moment, only unsecure SSL is supported; when using the secure scheme, please add the -k option to skip server certificate verification altogether")
-        case AdminCLIConfig(cmd: DBInit) if cmd.force && cmd.skip =>
+        case AdminCLIConfig(cmd: DBInit, _) if cmd.force && cmd.skip =>
           failure("Options '--force' and '--skip' cannot be used together")
         case _ =>
           success
       }
     }
 
-    val command = cliParser
+    val conf = cliParser
       .parse(args, AdminCLIConfig())
       .getOrElse(sys.exit(1))
-      .cmd
 
-    command match {
-      case DBInit(url, timeout, _, force, skip) =>
+    LoggerFactory
+      .getLogger(ROOT_LOGGER_NAME)
+      .asInstanceOf[Logger]
+      .setLevel(conf.logLevel)
+
+    conf.cmd match {
+      case DBInit(url, _, force, skip) =>
         val onExistsAction = (force, skip) match {
           case (true, false) => Drop
           case (false, true) => Skip
           case (false, false) => Fail
         }
         val dbManager = dbManagerFactory.create(ArangoConnectionURL(url))
-        val wasInitialized = Await.result(dbManager.initialize(onExistsAction), timeout)
+        val wasInitialized = Await.result(dbManager.initialize(onExistsAction), Duration.Inf)
         if (!wasInitialized) println(ansi"%yellow{Skipped. DB is already initialized}")
 
-      case DBUpgrade(url, timeout, _) =>
+      case DBUpgrade(url, _) =>
         val dbManager = dbManagerFactory.create(ArangoConnectionURL(url))
-        Await.result(dbManager.upgrade(), timeout)
+        Await.result(dbManager.upgrade(), Duration.Inf)
+
+      case DBExec(url, _, actions) =>
+        val dbManager = dbManagerFactory.create(ArangoConnectionURL(url))
+        Await.result(dbManager.execute(actions: _*), Duration.Inf)
     }
 
     println(ansi"%green{DONE}")

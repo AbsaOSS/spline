@@ -17,6 +17,8 @@
 package za.co.absa.spline.persistence
 
 import com.arangodb.async.ArangoDatabaseAsync
+import com.arangodb.internal.ArangoDatabaseImplicits.InternalArangoDatabaseOps
+import za.co.absa.spline.persistence.foxx.FoxxManagerImpl
 import za.co.absa.spline.persistence.migration.{MigrationScriptRepository, Migrator}
 
 import scala.concurrent.ExecutionContext
@@ -33,7 +35,14 @@ class ArangoManagerFactoryImpl()(implicit ec: ExecutionContext) extends ArangoMa
     def dbManagerFactory(db: ArangoDatabaseAsync): ArangoManagerImpl = {
       val versionManager = new DatabaseVersionManager(db)
       val migrator = new Migrator(db, scriptRepo, versionManager)
-      new ArangoManagerImpl(db, versionManager, migrator, scriptRepo.latestToVersion)
+      val foxxManager = new FoxxManagerImpl(db.restClient)
+      new ArangoManagerImpl(
+        db,
+        versionManager,
+        migrator,
+        foxxManager,
+        scriptRepo.latestToVersion
+      )
     }
 
     def dbFacadeFactory(): ArangoDatabaseFacade =

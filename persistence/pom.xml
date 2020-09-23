@@ -22,7 +22,7 @@
         <groupId>za.co.absa.spline</groupId>
         <artifactId>parent-pom</artifactId>
         <relativePath>../build/parent-pom/pom.xml</relativePath>
-        <version>0.5.4</version>
+        <version>0.5.5</version>
     </parent>
 
     <artifactId>persistence</artifactId>
@@ -34,13 +34,16 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.10</version>
         </dependency>
 
         <dependency>
@@ -65,7 +68,7 @@
         <dependency>
             <groupId>com.arangodb</groupId>
             <artifactId>arangodb-java-driver</artifactId>
-            <version>6.6.3</version>
+            <version>6.7.4</version>
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>

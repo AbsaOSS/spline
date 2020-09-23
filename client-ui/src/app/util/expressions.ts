@@ -74,7 +74,7 @@ export function getText(expr: IExpression, attributeList: AttributeVM[]): string
         }
         case ExpressionType.Generic: {
             const leafText = renderAsGenericLeafExpr(expr as IGenericLeaf, attributeList)
-            const childrenTexts = (expr as IGeneric).children.map(child => getText(child, attributeList))
+            const childrenTexts = _.map((expr as IGeneric).children, child => getText(child, attributeList))
             return leafText + _.join(childrenTexts, ", ")
         }
     }

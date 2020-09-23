@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-(readEvent) => {
-    'use strict';
-    const {db, aql} = require('@arangodb');
 
+'use strict';
+const {db, aql} = require('@arangodb');
+
+/**
+ * Returns a list of execution events which writes are visible from any read of the given execution event
+ *
+ * @param readEvent za.co.absa.spline.persistence.model.Progress
+ * @returns za.co.absa.spline.persistence.model.Progress[]
+ */
+function observedWritesByRead(readEvent) {
     return readEvent && db._query(aql`
+        WITH progress, progressOf, executionPlan, executes, operation, depends, writesTo, dataSource
         LET readTime = ${readEvent}.timestamp
         FOR rds IN 2 OUTBOUND ${readEvent} progressOf, depends
             LET maybeObservedOverwrite = SLICE(
@@ -40,5 +48,9 @@
                 )
             LET allObservedEvents = APPEND(maybeObservedOverwrite, observedAppends)
             FOR e IN allObservedEvents RETURN e
-    `).toArray()
+    `).toArray();
 }
+
+module.exports = {
+    observedWritesByRead
+};

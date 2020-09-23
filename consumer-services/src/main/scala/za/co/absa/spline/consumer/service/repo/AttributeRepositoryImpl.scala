@@ -30,6 +30,7 @@ class AttributeRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Attr
   def findAttributesByPrefix(search: String, limit: Int)(implicit ec: ExecutionContext): Future[Array[FoundAttribute]] = {
     val result = db.queryStream[FoundAttribute](
       """
+        |WITH progress, progressOf, executionPlan, affects, dataSource
         |FOR exec IN attributeSearchView
         |    SEARCH STARTS_WITH(exec.extra.attributes.name, @searchTerm)
         |
