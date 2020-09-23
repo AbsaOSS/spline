@@ -33,6 +33,9 @@ class AutoClosingArangoManagerProxy(
   override def upgrade(): Future[Unit] =
     withManager(_.upgrade())
 
+  def execute(actions: AuxiliaryDBAction*): Future[Unit] =
+    withManager(_.execute(actions: _*))
+
   private def withManager[A](fn: ArangoManager => Future[A]): Future[A] = {
     val dbFacade = arangoFacadeProvider()
 
