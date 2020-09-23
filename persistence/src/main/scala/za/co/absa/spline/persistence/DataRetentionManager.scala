@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-'use strict'
-const createRouter = require('@arangodb/foxx/router')
+package za.co.absa.spline.persistence
 
-const rootRouter = createRouter()
-module.context.use(rootRouter)
+import com.arangodb.async.ArangoDatabaseAsync
+import com.arangodb.internal.ArangoDatabaseImplicits.InternalArangoDatabaseOps
 
-const componentRouteMapping = {
-    "/admin": require("./components/admin"),
-    "/events": require("./components/event"),
-}
+import scala.concurrent.{ExecutionContext, Future}
 
-for (const [path, component] of Object.entries(componentRouteMapping)) {
-    const subRouter = createRouter()
-    rootRouter.use(path, subRouter)
-    component.controller(subRouter)
+class DataRetentionManager(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) {
+
+  def pruneBefore(timestamp: Long): Future[Unit] = {
+    db.restClient.delete(s"spline/admin/data/before/$timestamp")
+  }
+
 }

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-"use strict";
-const {db, aql} = require('@arangodb');
-const {memoize} = require('../utils/common');
-const {GraphBuilder} = require('../utils/graph');
-const {observedWritesByRead} = require('./observed-writes-by-read');
+"use strict"
+const {db, aql} = require('@arangodb')
+const {memoize} = require('../../utils/common')
+const {GraphBuilder} = require('../../utils/graph')
+const {observedWritesByRead} = require('./observed-writes-by-read')
 
 /**
  * Return a high-level lineage overview of the given write event.
@@ -33,14 +33,14 @@ function lineageOverview(eventKey, maxDepth) {
     const executionEvent = db._query(aql`
         WITH progress
         RETURN FIRST(FOR p IN progress FILTER p._key == ${eventKey} RETURN p)
-    `).next();
+    `).next()
 
     const targetDataSource = executionEvent && db._query(aql`
         WITH progress, progressOf, executionPlan, affects, dataSource
         RETURN FIRST(FOR ds IN 2 OUTBOUND ${executionEvent} progressOf, affects RETURN ds)
-    `).next();
+    `).next()
 
-    const lineageGraph = eventLineageOverviewGraph(executionEvent, maxDepth);
+    const lineageGraph = eventLineageOverviewGraph(executionEvent, maxDepth)
 
     return lineageGraph && {
         "info": {
@@ -59,7 +59,7 @@ function lineageOverview(eventKey, maxDepth) {
 
 function eventLineageOverviewGraph(startEvent, maxDepth) {
     if (!startEvent || maxDepth < 0) {
-        return null;
+        return null
     }
 
     const startSource = db._query(aql`
@@ -72,9 +72,9 @@ function eventLineageOverviewGraph(startEvent, maxDepth) {
                 "name": ds.uri
             }
         `
-    ).next();
+    ).next()
 
-    const graphBuilder = new GraphBuilder([startSource]);
+    const graphBuilder = new GraphBuilder([startSource])
 
     const collectPartialGraphForEvent = event => {
         const partialGraph = db._query(aql`
@@ -114,28 +114,28 @@ function eventLineageOverviewGraph(startEvent, maxDepth) {
             )
             
             RETURN {vertices, edges}
-        `).next();
+        `).next()
 
-        graphBuilder.add(partialGraph);
-    };
+        graphBuilder.add(partialGraph)
+    }
 
     const traverse = memoize(e => e._id, (event, depth) => {
-        let remainingDepth = depth - 1;
+        let remainingDepth = depth - 1
         if (depth > 1) {
             observedWritesByRead(event)
                 .forEach(writeEvent => {
-                    const remainingDepth_i = traverse(writeEvent, depth - 1);
-                    remainingDepth = Math.min(remainingDepth, remainingDepth_i);
+                    const remainingDepth_i = traverse(writeEvent, depth - 1)
+                    remainingDepth = Math.min(remainingDepth, remainingDepth_i)
                 })
         }
 
-        collectPartialGraphForEvent(event);
+        collectPartialGraphForEvent(event)
 
-        return remainingDepth;
-    });
+        return remainingDepth
+    })
 
-    const remainingDepth = maxDepth > 0 ? traverse(startEvent, maxDepth) : 0;
-    const resultedGraph = graphBuilder.graph();
+    const remainingDepth = maxDepth > 0 ? traverse(startEvent, maxDepth) : 0
+    const resultedGraph = graphBuilder.graph()
 
     return {
         depth: maxDepth - remainingDepth,

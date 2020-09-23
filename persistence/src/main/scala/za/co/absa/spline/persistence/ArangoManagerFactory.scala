@@ -16,6 +16,8 @@
 
 package za.co.absa.spline.persistence
 
+import java.time.Clock
+
 import com.arangodb.async.ArangoDatabaseAsync
 import com.arangodb.internal.ArangoDatabaseImplicits.InternalArangoDatabaseOps
 import za.co.absa.spline.persistence.foxx.FoxxManagerImpl
@@ -34,13 +36,17 @@ class ArangoManagerFactoryImpl()(implicit ec: ExecutionContext) extends ArangoMa
 
     def dbManagerFactory(db: ArangoDatabaseAsync): ArangoManagerImpl = {
       val versionManager = new DatabaseVersionManager(db)
+      val drManager = new DataRetentionManager(db)
       val migrator = new Migrator(db, scriptRepo, versionManager)
       val foxxManager = new FoxxManagerImpl(db.restClient)
+      val clock = Clock.systemDefaultZone
       new ArangoManagerImpl(
         db,
         versionManager,
+        drManager,
         migrator,
         foxxManager,
+        clock,
         scriptRepo.latestToVersion
       )
     }
@@ -48,7 +54,7 @@ class ArangoManagerFactoryImpl()(implicit ec: ExecutionContext) extends ArangoMa
     def dbFacadeFactory(): ArangoDatabaseFacade =
       new ArangoDatabaseFacade(connectionURL)
 
-    new AutoClosingArangoManagerProxy(dbManagerFactory, dbFacadeFactory)
+    AutoClosingArangoManagerProxy.create(dbManagerFactory, dbFacadeFactory)
   }
 
 }

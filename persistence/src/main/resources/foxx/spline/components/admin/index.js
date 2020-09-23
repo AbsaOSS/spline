@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-'use strict'
-const createRouter = require('@arangodb/foxx/router')
+"use strict"
 
-const rootRouter = createRouter()
-module.context.use(rootRouter)
+const joi = require('joi')
+const {pruneBefore} = require('./prune-database')
 
-const componentRouteMapping = {
-    "/admin": require("./components/admin"),
-    "/events": require("./components/event"),
-}
-
-for (const [path, component] of Object.entries(componentRouteMapping)) {
-    const subRouter = createRouter()
-    rootRouter.use(path, subRouter)
-    component.controller(subRouter)
+module.exports.controller = function (router) {
+    router.delete('/data/before/:timestamp',
+        (req) => {
+            const timestamp = req.pathParams.timestamp
+            pruneBefore(timestamp)
+        })
+        .pathParam('timestamp', joi.number().integer().min(0).required(), 'Data retention threshold [timestamp in millis]')
+        .summary('Prune database')
+        .description('Garbage collect the data older than the given timestamp')
 }
