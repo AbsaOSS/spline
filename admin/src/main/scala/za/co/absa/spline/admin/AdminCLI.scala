@@ -54,9 +54,6 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
       help("help").text("prints this usage text")
 
       def dbCommandOptions: Seq[OptionDef[_, AdminCLIConfig]] = Seq(
-        opt[String]('t', "timeout")
-          text s"Timeout in format <length><unit> or `Inf` for infinity. Default is ${DBInit().timeout}"
-          action { case (s, c@AdminCLIConfig(cmd: DBCommand, _)) => c.copy(cmd.timeout = Duration(s)) },
         opt[Unit]('k', "insecure")
           text s"Allow insecure server connections when using SSL; disallowed by default"
           action { case (_, c@AdminCLIConfig(cmd: DBCommand, _)) => c.copy(cmd.insecure = true) },
@@ -158,31 +155,31 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
       .setLevel(conf.logLevel)
 
     conf.cmd match {
-      case DBInit(url, timeout, _, force, skip) =>
+      case DBInit(url, _, force, skip) =>
         val onExistsAction = (force, skip) match {
           case (true, false) => Drop
           case (false, true) => Skip
           case (false, false) => Fail
         }
         val dbManager = dbManagerFactory.create(ArangoConnectionURL(url))
-        val wasInitialized = Await.result(dbManager.initialize(onExistsAction), timeout)
+        val wasInitialized = Await.result(dbManager.initialize(onExistsAction), Duration.Inf)
         if (!wasInitialized) println(ansi"%yellow{Skipped. DB is already initialized}")
 
-      case DBUpgrade(url, timeout, _) =>
+      case DBUpgrade(url, _) =>
         val dbManager = dbManagerFactory.create(ArangoConnectionURL(url))
-        Await.result(dbManager.upgrade(), timeout)
+        Await.result(dbManager.upgrade(), Duration.Inf)
 
-      case DBPrune(url, timeout, _, Some(retentionPeriod), _) =>
+      case DBPrune(url, _, Some(retentionPeriod), _) =>
         val dbManager = dbManagerFactory.create(ArangoConnectionURL(url))
-        Await.result(dbManager.prune(retentionPeriod), timeout)
+        Await.result(dbManager.prune(retentionPeriod), Duration.Inf)
 
-      case DBPrune(url, timeout, _, _, Some(dateTime)) =>
+      case DBPrune(url, _, _, Some(dateTime)) =>
         val dbManager = dbManagerFactory.create(ArangoConnectionURL(url))
-        Await.result(dbManager.prune(dateTime), timeout)
+        Await.result(dbManager.prune(dateTime), Duration.Inf)
 
-      case DBExec(url, timeout, _, actions) =>
+      case DBExec(url, _, actions) =>
         val dbManager = dbManagerFactory.create(ArangoConnectionURL(url))
-        Await.result(dbManager.execute(actions: _*), timeout)
+        Await.result(dbManager.execute(actions: _*), Duration.Inf)
     }
 
     println(ansi"%green{DONE}")
