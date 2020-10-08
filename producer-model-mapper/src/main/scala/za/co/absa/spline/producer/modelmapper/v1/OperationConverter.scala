@@ -25,8 +25,8 @@ class OperationConverter(maybeExpressionConverter: Option[ExpressionConverter], 
   override type To = OperationLike
 
   override def convert(op1: From): To = {
-    val exprParams: Map[String, Seq[ExpressionLike.Id]] = op1.params.flatMap({
-      case (k, v) => maybeAsExpression(v).map(k -> _)
+    val exprParams: Map[String, Array[ExpressionLike.Id]] = op1.params.flatMap({
+      case (k, v) => maybeAsExpression(v).map(k -> _.toArray)
     })
     val nonExprParams = op1.params.filterKeys(!exprParams.keySet(_))
     val output = maybeOutputConverter.flatMap(_.convert(op1)).getOrElse(Nil)
