@@ -17,11 +17,6 @@
 
 echo "Generating REST API documentation"
 
-:: Install required Node version
-
-:: TODO: Implement `install-node` script for Windows. See: https://github.com/AbsaOSS/spline/issues/499
-:: ../build/install-node.cmd
-
 :: Install NPM dependencies
 npm ci --no-color
 
