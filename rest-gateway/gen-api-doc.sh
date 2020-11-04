@@ -17,9 +17,6 @@
 
 echo "Generating REST API documentation"
 
-# Install required Node version
-. ../build/install-node.sh
-
 # Install NPM dependencies
 npm ci --no-color
 

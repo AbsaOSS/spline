@@ -54,9 +54,9 @@
 
         <module>commons</module>
 
+        <module>persistence</module>
         <module>producer-services</module>
         <module>consumer-services</module>
-        <module>persistence</module>
 
         <module>producer-model</module>
         <module>producer-rest-core</module>
@@ -64,9 +64,6 @@
         <module>rest-gateway</module>
 
         <module>admin</module>
-
-        <module>client-ui</module>
-        <module>client-web</module>
     </modules>
 
     <profiles>

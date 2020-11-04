@@ -66,15 +66,6 @@
             <url>https://github.com/wajda</url>
         </developer>
         <developer>
-            <id>leborgneromain</id>
-            <name>Romain Leborgne</name>
-            <roles>
-                <role>Front-end developer</role>
-            </roles>
-            <timezone>Europe/Prague</timezone>
-            <url>https://github.com/leborgneromain</url>
-        </developer>
-        <developer>
             <id>oleksandr-korchak</id>
             <name>Oleksandr Korchak</name>
             <roles>
