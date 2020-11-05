@@ -180,6 +180,41 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
       case NonFatal(_) => Future.successful(false)
     }
   }
+
+  override def getDataSources(value: String, access: Optional[String])(implicit ec: ExecutionContext): Future[Array[String]] ={
+    val readResult = db.queryStream[String](
+      """
+        FOR d in dataSource
+        |FOR dp in depends
+        |FILTER dp._from == @planId AND dp._to == d._id
+        |RETURN d.uri
+        |""".stripMargin
+      .stripMargin,
+    Map("planId" -> "executionPlan".concat("/").concat(value)
+    )
+    )
+
+    val writeResult = db.queryStream[String](
+      """
+        FOR d in dataSource
+        |FOR aff in affects
+        |FILTER aff._from == @planId AND aff._to == d._id
+        |RETURN d.uri
+        |""".stripMargin
+        .stripMargin,
+      Map("planId" -> "executionPlan".concat("/").concat(value)
+      )
+    )
+
+    val totalResult = readResult.zip(writeResult).map{case(listOne,listTwo) => listOne + listTwo}
+
+    if(access.isEmpty)
+      totalResult.map(_.toArray)
+    else if(access.equals("read"))
+      readResult.map(_.toArray)
+    else
+      writeResult.map(_.toArray)
+  }
 }
 
 object ExecutionProducerRepositoryImpl {
