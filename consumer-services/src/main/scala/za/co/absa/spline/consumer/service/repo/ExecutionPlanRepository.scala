@@ -26,4 +26,7 @@ trait ExecutionPlanRepository {
   def findById(execId: Id)(implicit ec: ExecutionContext): Future[LineageDetailed]
 
   def loadExecutionPlanAsDAG(execId: Id)(implicit ec: ExecutionContext): Future[ExecutionPlanDAG]
+
+  def getDataSources(value: String, access: Option[String])(implicit ec: ExecutionContext): Future[Array[String]]
+
 }
