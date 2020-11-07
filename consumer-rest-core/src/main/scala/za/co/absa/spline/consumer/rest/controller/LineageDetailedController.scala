@@ -65,6 +65,16 @@ class LineageDetailedController @Autowired()(
 
       AttributeLineageAndImpact(maybeAttrLineage, attrImpact)
     })
+
+  @GetMapping(value = Array("/execution-plans/{plan_id}/data-sources"))
+  @ResponseStatus(HttpStatus.OK)
+  def getAffectsByDataSrc(@PathVariable("plan_id") planId: String
+    @ApiParam(value= "access")
+    @RequestParam("access")access: Option[String]
+  ): Future[Array[String]] = {
+    import scala.concurrent.ExecutionContext.Implicits._
+    repo.getDataSources(planId, access)
+  }
 }
 
 object LineageDetailedController {
