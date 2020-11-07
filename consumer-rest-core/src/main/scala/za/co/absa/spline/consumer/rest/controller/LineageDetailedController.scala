@@ -20,11 +20,12 @@ import java.util.UUID
 
 import io.swagger.annotations._
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.rest.controller.LineageDetailedController.AttributeLineageAndImpact
 import za.co.absa.spline.consumer.service.attrresolver.AttributeDependencyResolver
 import za.co.absa.spline.consumer.service.internal.AttributeDependencySolver
-import za.co.absa.spline.consumer.service.model.{AttributeGraph, ExecutionPlanInfo, LineageDetailed}
+import za.co.absa.spline.consumer.service.model.{AttributeGraph, DataSourceActionType, ExecutionPlanInfo, LineageDetailed}
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepository
 
 import scala.concurrent.Future
@@ -65,6 +66,17 @@ class LineageDetailedController @Autowired()(
 
       AttributeLineageAndImpact(maybeAttrLineage, attrImpact)
     })
+
+  @GetMapping(value = Array("execution-plans/{plan_id}/data-sources"))
+  @ResponseStatus(HttpStatus.OK)
+  def execPlanDataSources(
+    @PathVariable("plan_id") planId: String,
+    @ApiParam(value = "access")
+    @RequestParam(name = "access", required = false) access: String
+  ): Future[Array[String]] = {
+    val dataSourceActionTypeOption = DataSourceActionType.findValueOf(access)
+    repo.getDataSources(planId, dataSourceActionTypeOption)
+  }
 }
 
 object LineageDetailedController {
