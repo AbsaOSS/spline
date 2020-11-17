@@ -21,6 +21,7 @@ import java.util.UUID
 import io.swagger.annotations._
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
+import org.springframework.http.HttpStatus
 import za.co.absa.spline.consumer.rest.controller.LineageDetailedController.AttributeLineageAndImpact
 import za.co.absa.spline.consumer.service.attrresolver.AttributeDependencyResolver
 import za.co.absa.spline.consumer.service.internal.AttributeDependencySolver
