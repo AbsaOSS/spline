@@ -160,7 +160,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
       )
     )
 
-    val totalResult = readResult.zip(writeResult).map{case(listOne,listTwo) => listOne + listTwo}
+    val totalResult = readResult.zip(writeResult).map{case(listOne,listTwo) => listOne ++ listTwo}
 
     if(access.isEmpty)
       totalResult.map(_.toArray)

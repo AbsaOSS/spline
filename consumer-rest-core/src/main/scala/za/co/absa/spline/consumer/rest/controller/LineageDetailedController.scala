@@ -68,7 +68,7 @@ class LineageDetailedController @Autowired()(
 
   @GetMapping(value = Array("execution-plans/{plan_id}/data-sources"))
   @ResponseStatus(HttpStatus.OK)
-  def getAffectsByDataSrc(@PathVariable("plan_id") planId: String
+  def getAffectsByDataSrc(@PathVariable("plan_id") planId: String,
     @ApiParam(value= "access")
     @RequestParam("access")access: Option[String]
   ): Future[Array[String]] = {
