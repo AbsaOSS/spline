@@ -17,6 +17,7 @@
 package za.co.absa.spline.consumer.service.repo
 
 import za.co.absa.spline.consumer.service.internal.model.ExecutionPlanDAG
+import za.co.absa.spline.consumer.service.model.AccessValue.AccessValue
 import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
 import za.co.absa.spline.consumer.service.model.LineageDetailed
 
@@ -27,5 +28,5 @@ trait ExecutionPlanRepository {
 
   def loadExecutionPlanAsDAG(execId: Id)(implicit ec: ExecutionContext): Future[ExecutionPlanDAG]
 
-  def getDataSources(value: String, access: Option[String])(implicit ec: ExecutionContext): Future[Array[String]]
+  def getDataSources(value: String, access: Option[AccessValue])(implicit ec: ExecutionContext): Future[Array[String]]
 }
