@@ -5,5 +5,4 @@ object AccessValue extends Enumeration {
 
   val read = Value("read")
   val write = Value("write")
-  val default = Value("default")
 }
