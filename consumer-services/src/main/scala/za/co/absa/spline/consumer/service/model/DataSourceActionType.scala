@@ -16,9 +16,13 @@
 
 package za.co.absa.spline.consumer.service.model
 
-object AccessValue extends Enumeration {
-  type AccessValue = Value
+sealed trait DataSourceActionType
 
-  val read = Value("read")
-  val write = Value("write")
+object DataSourceActionType {
+
+  case object Read extends DataSourceActionType
+
+  case object Write extends DataSourceActionType
+
+  val values = Seq(Read, Write)
 }

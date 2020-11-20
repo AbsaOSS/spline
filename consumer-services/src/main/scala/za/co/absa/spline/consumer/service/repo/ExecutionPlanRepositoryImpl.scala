@@ -20,9 +20,9 @@ import com.arangodb.async.ArangoDatabaseAsync
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.internal.model.{ExecutionPlanDAG, VersionInfo}
-import za.co.absa.spline.consumer.service.model.AccessValue.AccessValue
+import za.co.absa.spline.consumer.service.model.DataSourceActionType.{Read, Write}
 import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
-import za.co.absa.spline.consumer.service.model.{AccessValue, LineageDetailed}
+import za.co.absa.spline.consumer.service.model.{ DataSourceActionType, LineageDetailed }
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepositoryImpl.ExecutionPlanDagPO
 import za.co.absa.spline.persistence.model.{Edge, Operation}
 
@@ -136,33 +136,37 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     }
   }
 
-  override def getDataSources(value: String, access: Option[AccessValue])(implicit ec: ExecutionContext): Future[Array[String]] = {
-    val readResult = db.queryStream[String](
-      """
-        |FOR ds IN 1..1
-        |OUTBOUND DOCUMENT('executionPlan', @planId) depends
-        |RETURN ds.uri
-        |""".stripMargin,
-      Map("planId" -> s"executionPlan/$value")
-    )
+  override def getDataSources(execPlanId: String, access: Option[DataSourceActionType])(implicit ec: ExecutionContext): Future[Array[String]] =  {
+    access
+      .map({
+        case Read =>  db.queryStream[String](
+          """
+            |FOR ds IN 1..1
+            |OUTBOUND DOCUMENT('executionPlan', @planId) depends
+            |RETURN ds.uri
+            |""".stripMargin,
+          Map("planId" -> execPlanId)
+        ).map(_.toArray)
 
-    val writeResult = db.queryStream[String](
-      """
-        |FOR ds IN 1..1
-        |OUTBOUND DOCUMENT('executionPlan', @planId) affects
-        |RETURN ds.uri
-        |""".stripMargin,
-      Map("planId" -> s"executionPlan/$value")
-    )
-
-    val totalResult = readResult.zip(writeResult).map{ case(listOne,listTwo) => listOne ++ listTwo }
-
-    if (access.isEmpty)
-      totalResult.map(_.toArray)
-    else if (access.get.equals(AccessValue.read))
-      readResult.map(_.toArray)
-    else
-      writeResult.map(_.toArray)
+        case Write => db.queryStream[String](
+          """
+            |FOR ds IN 1..1
+            |OUTBOUND DOCUMENT('executionPlan', @planId) affects
+            |RETURN ds.uri
+            |""".stripMargin,
+          Map("planId" -> execPlanId)
+        ).map(_.toArray)
+      })
+      .getOrElse({
+        db.queryStream[String](
+          """
+            |FOR ds IN 1..1
+            |OUTBOUND DOCUMENT('executionPlan', @planId) affects, depends
+            |RETURN ds.uri
+            |""".stripMargin,
+          Map("planId" -> execPlanId)
+        ).map(_.toArray)
+      })
   }
 }
 

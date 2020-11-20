@@ -25,8 +25,7 @@ import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.rest.controller.LineageDetailedController.AttributeLineageAndImpact
 import za.co.absa.spline.consumer.service.attrresolver.AttributeDependencyResolver
 import za.co.absa.spline.consumer.service.internal.AttributeDependencySolver
-import za.co.absa.spline.consumer.service.model.AccessValue.AccessValue
-import za.co.absa.spline.consumer.service.model.{AccessValue, AttributeGraph, ExecutionPlanInfo, LineageDetailed}
+import za.co.absa.spline.consumer.service.model.{AttributeGraph, DataSourceActionType, ExecutionPlanInfo, LineageDetailed}
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepository
 
 import scala.concurrent.Future
@@ -68,8 +67,8 @@ class LineageDetailedController @Autowired()(
       AttributeLineageAndImpact(maybeAttrLineage, attrImpact)
     })
 
-  def loadAccess(access: String): Option[AccessValue] = {
-    AccessValue.values.find(_.toString == access)
+  def loadAccess(access: String): Option[DataSourceActionType] = {
+    DataSourceActionType.values.find(_.toString == access)
   }
 
   @GetMapping(value = Array("execution-plans/{plan_id}/data-sources"))
@@ -80,8 +79,8 @@ class LineageDetailedController @Autowired()(
     @RequestParam(name = "access", required = false) access: String
   ): Future[Array[String]] = {
 
-    val param = loadAccess(access)
-    repo.getDataSources(planId, param)
+    val dataSourceActionTypeOption = loadAccess(access)
+    repo.getDataSources(planId, dataSourceActionTypeOption)
   }
 }
 
