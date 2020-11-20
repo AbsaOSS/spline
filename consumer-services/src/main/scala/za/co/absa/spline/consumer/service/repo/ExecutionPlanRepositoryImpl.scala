@@ -22,7 +22,7 @@ import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.internal.model.{ExecutionPlanDAG, VersionInfo}
 import za.co.absa.spline.consumer.service.model.DataSourceActionType.{Read, Write}
 import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
-import za.co.absa.spline.consumer.service.model.{ DataSourceActionType, LineageDetailed }
+import za.co.absa.spline.consumer.service.model.{DataSourceActionType, LineageDetailed}
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepositoryImpl.ExecutionPlanDagPO
 import za.co.absa.spline.persistence.model.{Edge, Operation}
 
