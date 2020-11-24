@@ -15,14 +15,19 @@
  */
 
 package za.co.absa.spline.consumer.service.model
+import za.co.absa.commons.reflect.EnumerationMacros
 
-sealed trait DataSourceActionType
+sealed abstract class DataSourceActionType(val name: String)
 
 object DataSourceActionType {
 
-  case object Read extends DataSourceActionType
+  case object Read extends DataSourceActionType("read")
 
-  case object Write extends DataSourceActionType
+  case object Write extends DataSourceActionType("write")
 
-  val values = Seq(Read, Write)
+
+  val values: Set[DataSourceActionType] = EnumerationMacros.sealedInstancesOf[DataSourceActionType]
+
+  def findValueOf(name: String): Option[DataSourceActionType] =
+    DataSourceActionType.values.find(_.name.equalsIgnoreCase(name))
 }

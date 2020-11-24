@@ -168,6 +168,39 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         ).map(_.toArray)
       })
   }
+
+  override def getExecutionPlan(dsId: String, access: Option[DataSourceActionType])(implicit ec: ExecutionContext): Future[Array[String]] =  {
+    access
+      .map({
+        case Read =>  db.queryStream[String](
+          """
+            |FOR execPlan IN 1..1
+            |INBOUND DOCUMENT('dataSource', @dsId) depends
+            |RETURN execPlan.extra.appName
+            |""".stripMargin,
+          Map("dsId" -> dsId)
+        ).map(_.toArray)
+
+        case Write => db.queryStream[String](
+          """
+            |FOR execPlan IN 1..1
+            |INBOUND DOCUMENT('dataSource', @dsId) affects
+            |RETURN execPlan.extra.appName
+            |""".stripMargin,
+          Map("dsId" -> dsId)
+        ).map(_.toArray)
+      })
+      .getOrElse({
+        db.queryStream[String](
+          """
+            |FOR execPlan IN 1..1
+            |INBOUND DOCUMENT('dataSource', @dsId) affects, depends
+            |RETURN execPlan.extra.appName
+            |""".stripMargin,
+          Map("dsId" -> dsId)
+        ).map(_.toArray)
+      })
+  }
 }
 
 object ExecutionPlanRepositoryImpl {
