@@ -67,10 +67,6 @@ class LineageDetailedController @Autowired()(
       AttributeLineageAndImpact(maybeAttrLineage, attrImpact)
     })
 
-  def loadAccess(access: String): Option[DataSourceActionType] = {
-    DataSourceActionType.values.find(_.toString == access)
-  }
-
   @GetMapping(value = Array("execution-plans/{plan_id}/data-sources"))
   @ResponseStatus(HttpStatus.OK)
   def execPlanDataSources(
