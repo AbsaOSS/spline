@@ -15,6 +15,7 @@
  */
 
 package za.co.absa.spline.consumer.service.model
+
 import za.co.absa.commons.reflect.EnumerationMacros
 
 sealed abstract class DataSourceActionType(val name: String)
