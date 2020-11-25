@@ -2,7 +2,7 @@
 version: '3'
 services:
   arangodb:
-    image: arangodb:3.7.1
+    image: arangodb:3.7.3
     environment:
       ARANGO_NO_AUTH: 1
 
