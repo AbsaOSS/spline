@@ -169,33 +169,43 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
       })
   }
 
-  override def getExecutionPlan(dsId: String, access: Option[DataSourceActionType])(implicit ec: ExecutionContext): Future[Array[String]] =  {
+  override def getExecutionPlan(
+   dsId: String,
+   access: Option[DataSourceActionType],
+   field: String)
+  (implicit ec: ExecutionContext): Future[Array[String]] =  {
+    val fieldVal = field match {
+      case name => "execPlan.extra.appName"
+      case id => "execPlan._id"
+      case _  => "execPlan.extra"
+    }
+
     access
       .map({
         case Read =>  db.queryStream[String](
-          """
+          s"""
             |FOR execPlan IN 1..1
             |INBOUND DOCUMENT('dataSource', @dsId) depends
-            |RETURN execPlan.extra.appName
+            |RETURN $fieldVal
             |""".stripMargin,
           Map("dsId" -> dsId)
         ).map(_.toArray)
 
         case Write => db.queryStream[String](
-          """
+          s"""
             |FOR execPlan IN 1..1
             |INBOUND DOCUMENT('dataSource', @dsId) affects
-            |RETURN execPlan.extra.appName
+            |RETURN $fieldVal
             |""".stripMargin,
           Map("dsId" -> dsId)
         ).map(_.toArray)
       })
       .getOrElse({
         db.queryStream[String](
-          """
+          s"""
             |FOR execPlan IN 1..1
             |INBOUND DOCUMENT('dataSource', @dsId) affects, depends
-            |RETURN execPlan.extra.appName
+            |RETURN $fieldVal
             |""".stripMargin,
           Map("dsId" -> dsId)
         ).map(_.toArray)
