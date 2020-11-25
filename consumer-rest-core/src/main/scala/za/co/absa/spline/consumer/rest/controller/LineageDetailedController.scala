@@ -81,15 +81,12 @@ class LineageDetailedController @Autowired()(
   @GetMapping(value = Array("data-sources"))
   @ResponseStatus(HttpStatus.OK)
   def dataSourcesExecPlan(
-    @ApiParam(value = "ds_id")
-    @RequestParam(name = "ds_id", required = true) dsId: String,
-    @ApiParam(value = "access")
-    @RequestParam(name = "access", required = false) access: String,
-    @ApiParam(value = "field")
-    @RequestParam(name = "field", required = false) field: String
+    @ApiParam(value = "ds_rel")
+    @RequestParam(name = "ds_rel", required = true) datasourceRelation: Array[String],
+    @ApiParam(value = "fields")
+    @RequestParam(name = "fields", required = true) fields: Array[String]
   ): Future[Array[String]] = {
-    val dataSourceActionTypeOption = DataSourceActionType.findValueOf(access)
-    repo.getExecutionPlan(dsId, dataSourceActionTypeOption, field)
+    repo.getExecutionPlan(datasourceRelation, fields)
   }
 }
 

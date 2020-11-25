@@ -29,5 +29,5 @@ trait ExecutionPlanRepository {
 
   def getDataSources(execPlanId: String, access: Option[DataSourceActionType])(implicit ec: ExecutionContext): Future[Array[String]]
 
-  def getExecutionPlan(dsId: String, access: Option[DataSourceActionType], field: String)(implicit ec: ExecutionContext): Future[Array[String]]
+  def getExecutionPlan(datasourceRelation: Array[String], fields: Array[String])(implicit ec: ExecutionContext): Future[Array[String]]
 }
