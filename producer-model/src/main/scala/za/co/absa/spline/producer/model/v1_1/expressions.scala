@@ -29,6 +29,25 @@ object ExpressionLike {
   type Id = String
 }
 
+/**
+ * The class is designed for representing expression IDs in untyped or weakly typed data structures,
+ * when expression IDs need to be distinguished from other arbitrary values.
+ * It can be thought of as an alternative to a type hint.
+ *
+ * @param `@@exprId` expression ID
+ */
+case class ExpressionRef(`@@exprId`: ExpressionLike.Id)
+
+/**
+ * Represents a functional expression that computes a value based on the given input.
+ *
+ * @param id       expression ID
+ * @param name     expression name
+ * @param dataType output data type
+ * @param childIds input expression IDs
+ * @param params   optional static expression parameters (don't confuse with input parameters)
+ * @param extra    optional metadata
+ */
 case class FunctionalExpression(
   override val id: Id,
   override val dataType: Option[DataType],
@@ -38,6 +57,16 @@ case class FunctionalExpression(
   params: Map[String, Any],
 ) extends ExpressionLike
 
+/**
+ * An expression that defines an attribute (in operation output).
+ * It's basically a named reference to an expression that produces values for the given attribute.
+ *
+ * @param id expression ID
+ * @param name attribute name
+ * @param dataType value data type
+ * @param childIds reference to an expression that produces values for the attribute
+ * @param extra optional metadata
+ */
 case class Attribute(
   override val id: Attribute.Id,
   override val dataType: Option[DataType],
@@ -50,6 +79,13 @@ object Attribute {
   type Id = ExpressionLike.Id
 }
 
+/**
+ * Literal expression
+ * @param id expression ID
+ * @param value literal value
+ * @param dataType value data type
+ * @param extra optional metadata
+ */
 case class Literal(
   override val id: Id,
   override val dataType: Option[DataType],

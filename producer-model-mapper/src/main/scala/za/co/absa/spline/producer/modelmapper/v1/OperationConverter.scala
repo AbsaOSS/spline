@@ -26,9 +26,10 @@ class OperationConverter(maybeExpressionConverter: Option[ExpressionConverter], 
 
   override def convert(op1: From): To = {
     val exprParams: Map[String, Array[ExpressionLike.Id]] = op1.params.flatMap({
-      case (k, v) => maybeAsExpression(v).map(k -> _.toArray)
+      case (k, v) => maybeAsExpression(v).map(k -> _.toArray) // todo: wrap with ExpressionRef recursively
     })
     val nonExprParams = op1.params.filterKeys(!exprParams.keySet(_))
+    val convertedParams = exprParams ++ nonExprParams
     val output = maybeOutputConverter.flatMap(_.convert(op1)).getOrElse(Nil)
 
 
@@ -38,11 +39,11 @@ class OperationConverter(maybeExpressionConverter: Option[ExpressionConverter], 
 
     op1 match {
       case wop1: v1.WriteOperation =>
-        WriteOperation(wop1.outputSource, wop1.append, id, childIds, nonExprParams, exprParams, extra)
+        WriteOperation(wop1.outputSource, wop1.append, id, childIds, convertedParams, extra)
       case rop1: v1.ReadOperation =>
-        ReadOperation(rop1.inputSources, id, output, nonExprParams, exprParams, extra)
+        ReadOperation(rop1.inputSources, id, output, convertedParams, extra)
       case _: v1.DataOperation =>
-        DataOperation(id, childIds, output, nonExprParams, exprParams, extra)
+        DataOperation(id, childIds, output, convertedParams, extra)
     }
   }
 

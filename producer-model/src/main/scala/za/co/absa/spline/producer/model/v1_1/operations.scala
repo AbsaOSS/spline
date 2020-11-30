@@ -23,7 +23,6 @@ sealed trait OperationLike {
   val childIds: Seq[Id]
   val output: Seq[ExpressionLike.Id]
   val params: Map[String, Any]
-  val expressions: Map[String, Array[ExpressionLike.Id]]
   val extra: Map[String, Any]
 }
 
@@ -37,7 +36,6 @@ case class DataOperation(
   override val childIds: Seq[Id] = Seq.empty,
   override val output: Seq[Attribute.Id],
   override val params: Map[String, Any] = Map.empty,
-  override val expressions: Map[String, Array[ExpressionLike.Id]] = Map.empty,
   override val extra: Map[String, Any] = Map.empty
 ) extends OperationLike
 
@@ -46,7 +44,6 @@ case class ReadOperation(
   override val id: Id,
   override val output: Seq[Attribute.Id],
   override val params: Map[String, Any] = Map.empty,
-  override val expressions: Map[String, Array[ExpressionLike.Id]] = Map.empty,
   override val extra: Map[String, Any] = Map.empty
 ) extends OperationLike {
   override val childIds: Seq[Id] = Seq.empty
@@ -58,7 +55,6 @@ case class WriteOperation(
   override val id: Id,
   override val childIds: Seq[Id],
   override val params: Map[String, Any] = Map.empty,
-  override val expressions: Map[String, Array[ExpressionLike.Id]] = Map.empty,
   override val extra: Map[String, Any] = Map.empty
 ) extends OperationLike {
   override val output: Seq[Attribute.Id] = Nil
