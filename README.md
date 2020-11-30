@@ -1,5 +1,6 @@
-**Spline** (from **Sp**ark **line**age) project helps people get insight into data processing performed by **Apache Spark &trade;**
+Spline - an open-source data lineage tracking solution for data processing frameworks like Apache Spark and others.
 
+---
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/za.co.absa.spline/package-pom/badge.svg)](https://search.maven.org/search?q=g:za.co.absa.spline)
 [![TeamCity build (develop)](https://teamcity.jetbrains.com/app/rest/builds/aggregated/strob:%28locator:%28buildType:%28id:OpenSourceProjects_AbsaOSSSpline_AutomaticBuildsWithTests_Spark24%29,branch:develop%29%29/statusIcon.svg)](https://teamcity.jetbrains.com/viewType.html?buildTypeId=OpenSourceProjects_AbsaOSSSpline_AutomaticBuildsWithTests_Spark24&branch=develop&tab=buildTypeStatusDiv)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5469c979319541bca9a6752059bb4ec4)](https://app.codacy.com/app/ABSA_OSS/spline?utm_source=github.com&utm_medium=referral&utm_content=AbsaOSS/spline&utm_campaign=Badge_Grade_Dashboard)
@@ -8,18 +9,9 @@
 [![SonarCloud Reliability](https://sonarcloud.io/api/project_badges/measure?project=AbsaOSS_spline&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=AbsaOSS_spline)
 [![SonarCloud Security](https://sonarcloud.io/api/project_badges/measure?project=AbsaOSS_spline&metric=security_rating)](https://sonarcloud.io/dashboard?id=AbsaOSS_spline)
 
-The project consists of three main parts:
--  [Spark Agent](https://github.com/AbsaOSS/spline-spark-agent) that sits on a driver capturing the data lineage from Spark jobs by analyzing the execution plans
-
--  [Rest Gateway](https://github.com/AbsaOSS/spline) that receives the lineage data from agent and stores it in the database
-
--  [Web UI](https://github.com/AbsaOSS/spline-ui) application that visualizes the stored data lineages
-
-![Spline diagram](https://user-images.githubusercontent.com/5530211/70050339-fd93f580-15ce-11ea-88b2-4d79ee30d494.png)
-
-Spline is aimed to be used with Spark 2.3+ but also provides limited support for Spark 2.2.
-
-For documentation and examples please visit [Spline GitHub Pages](https://absaoss.github.io/spline/).
+For documentation and examples please visit:
+- [Spline GitHub Pages](https://absaoss.github.io/spline/)
+- [Getting Started](https://github.com/AbsaOSS/spline-getting-started)
 
 ---
 
