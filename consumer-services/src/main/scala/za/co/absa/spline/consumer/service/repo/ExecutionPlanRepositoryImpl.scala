@@ -26,7 +26,6 @@ import za.co.absa.spline.consumer.service.model.{DataSourceActionType, LineageDe
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepositoryImpl.ExecutionPlanDagPO
 import za.co.absa.spline.persistence.model.{Edge, Operation}
 
-import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
 @Repository
