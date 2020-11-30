@@ -16,17 +16,8 @@
 
 package za.co.absa.spline.consumer.service.repo
 
-import za.co.absa.spline.consumer.service.internal.model.ExecutionPlanDAG
-import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
-import za.co.absa.spline.consumer.service.model.{DataSourceActionType, LineageDetailed}
-
 import scala.concurrent.{ExecutionContext, Future}
 
-trait ExecutionPlanRepository {
-  def findById(execId: Id)(implicit ec: ExecutionContext): Future[LineageDetailed]
-
-  def loadExecutionPlanAsDAG(execId: Id)(implicit ec: ExecutionContext): Future[ExecutionPlanDAG]
-
-  def getDataSources(execPlanId: String, access: Option[DataSourceActionType])(implicit ec: ExecutionContext): Future[Array[String]]
-
+trait ExecutionPlanDetailsRepository {
+  def getExecutionPlan(datasourceRelation: Array[String], fields: Array[String])(implicit ec: ExecutionContext): Future[Array[Map[String, Any]]]
 }

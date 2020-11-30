@@ -169,65 +169,6 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         ).map(_.toArray)
       })
   }
-
-  /*
-   * StringBuilder used for building each part of query required for intersection
-   * Using ListBuffer for adding each query string
-   * each datasource is provided as read/write:datasource id
-   * for ex : ds_rel=read:1111,write:2222
-   * fields=name,id
-   */
-  override def getExecutionPlan(
-   datasourceRelation: Array[String],
-   fields: Array[String])
-  (implicit ec: ExecutionContext): Future[Array[String]] =  {
-
-    val queryBuilderForExecutionPlan = StringBuilder.newBuilder
-    var fieldValuesBuilder = new ListBuffer[String]()
-    var queryDataSourceList = new ListBuffer[String]()
-
-    queryBuilderForExecutionPlan.append("FOR execPlan IN INTERSECTION ( ")
-    for (dsRel <- datasourceRelation) {
-
-          val dsRelPair = dsRel.split(":")
-          if(!dsRelPair.isEmpty && dsRelPair.size == 2) {
-            val dsAccessType = dsRelPair(0)
-            val dsId = dsRelPair(1)
-
-            dsAccessType match {
-              case "read" =>
-                val readQuery =
-                  s"""
-                    |(FOR execPlan IN 1..1
-                    |INBOUND DOCUMENT('dataSource','$dsId') depends
-                    |RETURN execPlan)
-                   """.stripMargin
-                queryDataSourceList += readQuery
-
-              case "write" =>
-                val writeQuery =
-                  s"""
-                    |(FOR execPlan IN 1..1
-                    |INBOUND DOCUMENT('dataSource','$dsId') affects
-                    |RETURN execPlan)
-                     """.stripMargin
-                queryDataSourceList += writeQuery
-            }
-          }
-       }
-
-    queryBuilderForExecutionPlan.append(queryDataSourceList.mkString(","))
-    for (field <- fields) {
-      field match{
-        case "name" => fieldValuesBuilder += "name: execPlan.extra.appName"
-        case "id" => fieldValuesBuilder += "id : execPlan._id"
-        case _  => fieldValuesBuilder += "extra : execPlan.extra"
-      }
-    }
-
-    queryBuilderForExecutionPlan.append(s") RETURN { ${fieldValuesBuilder.mkString(",")} }")
-    db.queryStream[String](queryBuilderForExecutionPlan.toString()).map(_.toArray)
-  }
 }
 
 object ExecutionPlanRepositoryImpl {

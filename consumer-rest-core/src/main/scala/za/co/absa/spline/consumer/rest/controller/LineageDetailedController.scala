@@ -26,14 +26,16 @@ import za.co.absa.spline.consumer.rest.controller.LineageDetailedController.Attr
 import za.co.absa.spline.consumer.service.attrresolver.AttributeDependencyResolver
 import za.co.absa.spline.consumer.service.internal.AttributeDependencySolver
 import za.co.absa.spline.consumer.service.model.{AttributeGraph, DataSourceActionType, ExecutionPlanInfo, LineageDetailed}
-import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepository
+import za.co.absa.spline.consumer.service.repo.{ExecutionPlanDetailsRepository, ExecutionPlanRepository}
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
 
 @RestController
 @Api(tags = Array("lineage"))
 class LineageDetailedController @Autowired()(
-  val repo: ExecutionPlanRepository) {
+  val repo: ExecutionPlanRepository,
+  val execPlanDetailRepo: ExecutionPlanDetailsRepository) {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
@@ -78,6 +80,19 @@ class LineageDetailedController @Autowired()(
     repo.getDataSources(planId, dataSourceActionTypeOption)
   }
 
+  def dsRelValidate(dsRel: String): Try[Unit] = {
+    val dataSourceRelRegex = """^(read|write):[0-9]+$""".r
+
+    dsRel match {
+      case dataSourceRelRegex( a) => Success(())
+      case _ => Failure(new IllegalArgumentException("not valid"))
+    }
+  }
+
+  def datasourceRelListIsValid(dataSourceRelList: Array[String]): Boolean = {
+    dataSourceRelList.map(dsRelValidate(_)).forall(_.isSuccess)
+  }
+
   @GetMapping(value = Array("data-sources"))
   @ResponseStatus(HttpStatus.OK)
   def dataSourcesExecPlan(
@@ -85,9 +100,12 @@ class LineageDetailedController @Autowired()(
     @RequestParam(name = "ds_rel", required = true) datasourceRelation: Array[String],
     @ApiParam(value = "fields")
     @RequestParam(name = "fields", required = true) fields: Array[String]
-  ): Future[Array[String]] = {
-    repo.getExecutionPlan(datasourceRelation, fields)
+  ): Future[Array[Map[String, Any]]] = {
+    if(!datasourceRelListIsValid(datasourceRelation))
+      HttpStatus.BAD_REQUEST
+    execPlanDetailRepo.getExecutionPlan(datasourceRelation, fields)
   }
+
 }
 
 object LineageDetailedController {
