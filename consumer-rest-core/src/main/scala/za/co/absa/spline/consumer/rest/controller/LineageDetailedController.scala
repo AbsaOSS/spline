@@ -81,7 +81,7 @@ class LineageDetailedController @Autowired()(
   }
 
   def dsRelValidate(dsRel: String): Try[Unit] = {
-    val dataSourceRelRegex = """^(read|write):[0-9]+$""".r
+    val dataSourceRelRegex = """(read|write):([0-9]+)""".r
 
     dsRel match {
       case dataSourceRelRegex( a) => Success(())
