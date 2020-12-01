@@ -29,7 +29,6 @@ import za.co.absa.spline.consumer.service.model.{AttributeGraph, DataSourceActio
 import za.co.absa.spline.consumer.service.repo.{ExecutionPlanDetailsRepository, ExecutionPlanRepository, InvalidInputException}
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
 
 @RestController
 @Api(tags = Array("lineage"))
@@ -80,19 +79,6 @@ class LineageDetailedController @Autowired()(
     repo.getDataSources(planId, dataSourceActionTypeOption)
   }
 
-  def dsRelValidate(dsRel: String): Try[Unit] = {
-    val dataSourceRelRegex = """(read|write):([0-9]+)""".r
-
-    dsRel match {
-      case dataSourceRelRegex( a) => Success(())
-      case _ => Failure(new IllegalArgumentException("not valid"))
-    }
-  }
-
-  def datasourceRelListIsValid(dataSourceRelList: Array[String]): Boolean = {
-    dataSourceRelList.map(dsRelValidate(_)).forall(_.isSuccess)
-  }
-
   @GetMapping(value = Array("data-sources"))
   def dataSourcesExecPlan(
     @ApiParam(value = "ds_rel")
@@ -101,7 +87,7 @@ class LineageDetailedController @Autowired()(
     @ApiParam(value = "fields")
     @RequestParam(name = "fields", required = true) fields: Array[String]
   ): Future[Array[Map[String, Any]]] = {
-    if(!datasourceRelListIsValid(datasourceRelation))
+    if(!InputValidation.getInputs(datasourceRelation))
     throw new InvalidInputException("Input must be comma separated of strings of access type followed by datasource id. For ex: read:1111")
     else execPlanDetailRepo.getExecutionPlan(datasourceRelation, fields)
   }
