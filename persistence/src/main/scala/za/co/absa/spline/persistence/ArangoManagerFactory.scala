@@ -17,7 +17,6 @@
 package za.co.absa.spline.persistence
 
 import com.arangodb.async.ArangoDatabaseAsync
-import com.arangodb.internal.ArangoDatabaseImplicits.InternalArangoDatabaseOps
 import za.co.absa.spline.persistence.foxx.FoxxManagerImpl
 import za.co.absa.spline.persistence.migration.{MigrationScriptRepository, Migrator}
 
@@ -28,6 +27,8 @@ trait ArangoManagerFactory {
 }
 
 class ArangoManagerFactoryImpl()(implicit ec: ExecutionContext) extends ArangoManagerFactory {
+
+  import ArangoImplicits._
 
   override def create(connectionURL: ArangoConnectionURL): ArangoManager = {
     val scriptRepo = MigrationScriptRepository

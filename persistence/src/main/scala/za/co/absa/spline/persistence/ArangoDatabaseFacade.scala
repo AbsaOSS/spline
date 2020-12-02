@@ -70,7 +70,7 @@ object ArangoDatabaseFacade {
 
   private def warmUpDb(db: ArangoDatabaseAsync): Unit = {
     withWorkaroundForArangoAsyncBug {
-      db.getInfo.get()
+      db.exists.get
     }
   }
 

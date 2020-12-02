@@ -22,7 +22,7 @@ import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 import za.co.absa.spline.persistence.model.DBVersion.Status
 import za.co.absa.spline.persistence.model.NodeDef.DBVersion
 import za.co.absa.spline.persistence.tx._
-import za.co.absa.spline.persistence.{DatabaseVersionManager, model}
+import za.co.absa.spline.persistence.{ArangoImplicits, DatabaseVersionManager, model}
 
 import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.concurrent.{ExecutionContext, Future}
@@ -75,7 +75,7 @@ class Migrator(
     log.info(s"Upgrading to version: ${version.asString}")
     log.trace(s"Applying script: \n$script")
 
-    import com.arangodb.internal.ArangoDatabaseImplicits._
+    import ArangoImplicits._
 
     for {
       _ <- db.adminExecute(
