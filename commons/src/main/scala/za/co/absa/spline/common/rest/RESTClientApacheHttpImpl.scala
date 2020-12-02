@@ -21,11 +21,14 @@ import java.net.URI
 import org.apache.commons.io.IOUtils
 import org.apache.http.auth.Credentials
 import org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPost, HttpRequestBase}
+import org.apache.http.conn.ssl.{NoopHostnameVerifier, SSLConnectionSocketFactory, TrustSelfSignedStrategy}
 import org.apache.http.entity.{AbstractHttpEntity, ByteArrayEntity, StringEntity}
 import org.apache.http.impl.auth.BasicScheme
 import org.apache.http.impl.client.HttpClients
+import org.apache.http.ssl.SSLContextBuilder
 import za.co.absa.commons.lang.ARM
 import za.co.absa.commons.lang.ARM.managed
+import za.co.absa.spline.common.rest.RESTClientApacheHttpImpl.createClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -68,7 +71,7 @@ class RESTClientApacheHttpImpl(
 
     val (respStatusLine, respBody) =
       for {
-        httpClient <- managed(HttpClients.createDefault)
+        httpClient <- managed(createClient)
         response <- managed(httpClient.execute(request))
       } yield {
         val maybeBody = Option(response.getEntity)
@@ -88,5 +91,23 @@ class RESTClientApacheHttpImpl(
       case _ =>
         throw new HttpStatusException(respStatusLine.getStatusCode, s"ArangoDB response: $respStatusLine. $respBody")
     }
+  }
+}
+
+object RESTClientApacheHttpImpl {
+  private def createClient = {
+    val sslContext = SSLContextBuilder
+      .create()
+      .loadTrustMaterial(TrustSelfSignedStrategy.INSTANCE)
+      .build()
+
+    val sslSocketFactory = new SSLConnectionSocketFactory(
+      sslContext,
+      NoopHostnameVerifier.INSTANCE)
+
+    HttpClients
+      .custom()
+      .setSSLSocketFactory(sslSocketFactory)
+      .build()
   }
 }

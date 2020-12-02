@@ -26,11 +26,11 @@ import org.apache.commons.lang3.StringUtils.wrap
 import org.slf4s.Logging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
+import za.co.absa.commons.json.DefaultJacksonJsonSerDe
 import za.co.absa.spline.persistence.model._
 import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, TxBuilder}
 import za.co.absa.spline.persistence.{ArangoImplicits, Persister, model => dbModel}
 import za.co.absa.spline.producer.model._
-import za.co.absa.spline.producer.service.repo.ExecutionProducerRepositoryImpl._
 import za.co.absa.spline.producer.{model => apiModel}
 
 import scala.compat.java8.FutureConverters._
@@ -43,6 +43,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
   with Logging {
 
   import ArangoImplicits._
+  import ExecutionProducerRepositoryImpl._
 
   override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
     val eventuallyExists = db.queryOne[Boolean](
@@ -183,9 +184,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
   }
 }
 
-object ExecutionProducerRepositoryImpl {
-
-  import za.co.absa.commons.json.DefaultJacksonJsonSerDe._
+object ExecutionProducerRepositoryImpl extends DefaultJacksonJsonSerDe {
 
   private object ExecutionPlanDetails {
     val ExecutionPlanId = "executionPlanId"

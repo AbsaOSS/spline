@@ -32,7 +32,7 @@ class ArangoManagerFactoryImpl()(implicit ec: ExecutionContext) extends ArangoMa
   override def create(connectionURL: ArangoConnectionURL): ArangoManager = {
     val scriptRepo = MigrationScriptRepository
 
-    def dbManagerFactory(db: ArangoDatabaseAsync): ArangoManagerImpl = {
+    def dbManager(db: ArangoDatabaseAsync): ArangoManager = {
       val versionManager = new DatabaseVersionManager(db)
       val migrator = new Migrator(db, scriptRepo, versionManager)
       val foxxManager = new FoxxManagerImpl(db.restClient)
@@ -45,10 +45,10 @@ class ArangoManagerFactoryImpl()(implicit ec: ExecutionContext) extends ArangoMa
       )
     }
 
-    def dbFacadeFactory(): ArangoDatabaseFacade =
+    def dbFacade(): ArangoDatabaseFacade =
       new ArangoDatabaseFacade(connectionURL)
 
-    new AutoClosingArangoManagerProxy(dbManagerFactory, dbFacadeFactory)
+    new AutoClosingArangoManagerProxy(dbManager, dbFacade)
   }
 
 }

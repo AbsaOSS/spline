@@ -20,8 +20,9 @@ package com.arangodb.internal {
   import java.net.URI
 
   import com.arangodb.async.ArangoDatabaseAsync
-  import com.arangodb.async.internal.{ArangoExecutorAsync, ArangoExecutorAsyncExtractor}
-  import com.arangodb.internal.velocystream.VstCommunicationExtractor
+  import com.arangodb.async.internal.{ArangoExecutorAsync, ArangoExecutorAsyncDestructor}
+  import com.arangodb.internal.velocystream.VstCommunicationDestructor
+  import com.arangodb.internal.velocystream.VstCommunicationDestructor.ConnectionParams
   import org.apache.http.auth.UsernamePasswordCredentials
   import za.co.absa.spline.common.rest.{HttpStatusException, RESTClient, RESTClientApacheHttpImpl}
 
@@ -39,13 +40,14 @@ package com.arangodb.internal {
        */
       def restClient: RESTClient = {
         val asyncExecutable = db.asInstanceOf[ArangoExecuteable[ArangoExecutorAsync]]
-        val ArangoExecutorAsyncExtractor(vstComm) = asyncExecutable.executor
-        val VstCommunicationExtractor(hostDescription, user, password) = vstComm
+        val ArangoExecutorAsyncDestructor(vstComm) = asyncExecutable.executor
+        val VstCommunicationDestructor(ConnectionParams(hostDescription, user, password, secured)) = vstComm
+        val scheme = if (secured) "https" else "http"
         val host = hostDescription.getHost
         val port = hostDescription.getPort
         val maybeCredentials = Option(user).map(user => new UsernamePasswordCredentials(user, password))
 
-        new RESTClientApacheHttpImpl(new URI(s"http://$host:$port/_db/${db.name}"), maybeCredentials)
+        new RESTClientApacheHttpImpl(new URI(s"$scheme://$host:$port/_db/${db.name}"), maybeCredentials)
       }
 
 
