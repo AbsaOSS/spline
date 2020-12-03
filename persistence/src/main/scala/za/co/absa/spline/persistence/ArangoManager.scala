@@ -97,7 +97,7 @@ class ArangoManagerImpl(
   }
 
   override def execute(actions: AuxiliaryDBAction*): Future[Unit] = {
-    actions.foldLeft(Future.successful()) {
+    actions.foldLeft(Future.successful(())) {
       case (prevFuture, nextAction) =>
         prevFuture.flatMap(_ => (nextAction match {
           case AuxiliaryDBAction.FoxxReinstall =>
@@ -210,7 +210,7 @@ class ArangoManagerImpl(
         if (exists)
           view.drop().toScala
         else
-          Future.successful[Unit]()
+          Future.successful(())
       }
     })
   }
