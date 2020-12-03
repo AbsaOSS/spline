@@ -28,42 +28,53 @@
   <artifactId>client-ui</artifactId>
   <name>${project.artifactId}</name>
 
+  <dependencies>
+    <dependency>
+      <groupId>za.co.absa.spline</groupId>
+      <artifactId>consumer-rest-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
   <build>
     <plugins>
       <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>gen-swagger-json</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <includePluginDependencies>true</includePluginDependencies>
+              <executableDependency>
+                <groupId>za.co.absa.spline</groupId>
+                <artifactId>rest-api-doc-generator</artifactId>
+              </executableDependency>
+              <mainClass>za.co.absa.spline.swagger.SwaggerDocGenCLI</mainClass>
+              <arguments>
+                <argument>-o</argument>
+                <argument>${project.basedir}/src/app/generated/swagger.json</argument>
+                <argument>za.co.absa.spline.consumer.rest.ConsumerRESTConfig</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
         <dependencies>
           <dependency>
             <groupId>za.co.absa.spline</groupId>
             <artifactId>rest-api-doc-generator</artifactId>
             <version>${project.version}</version>
           </dependency>
-          <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>consumer-rest-core</artifactId>
-            <version>${project.version}</version>
-          </dependency>
         </dependencies>
+      </plugin>
 
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
         <executions>
-          <execution>
-            <id>gen-swagger-json</id>
-            <phase>process-classes</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <property name="plugin_classpath" refid="maven.plugin.classpath" />
-                <java classpath="${plugin_classpath}" classname="za.co.absa.spline.swagger.SwaggerDocGenCLI">
-                  <arg value="-o" />
-                  <arg value="${project.basedir}/src/app/generated/swagger.json" />
-                  <arg value="za.co.absa.spline.consumer.rest.ConsumerRESTConfig" />
-                </java>
-              </target>
-            </configuration>
-          </execution>
-
           <execution>
             <phase>prepare-package</phase>
             <goals>
