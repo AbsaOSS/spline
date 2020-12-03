@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.persistence
 
-import javax.annotation.PostConstruct
+import org.springframework.beans.factory.InitializingBean
 import org.springframework.beans.factory.annotation.Autowired
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.persistence.migration.MigrationScriptRepository
@@ -24,10 +24,10 @@ import za.co.absa.spline.persistence.migration.MigrationScriptRepository
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-class DatabaseVersionChecker @Autowired()(dbVersionManager: DatabaseVersionManager) {
+class DatabaseVersionChecker @Autowired()(dbVersionManager: DatabaseVersionManager)
+  extends InitializingBean {
 
-  @PostConstruct
-  def checkDbVersion(): Unit = {
+  override def afterPropertiesSet(): Unit = {
     val requiredDBVersion = MigrationScriptRepository.latestToVersion
     val currentDBVersion = Await.result(dbVersionManager.currentVersion, Duration.Inf)
 
