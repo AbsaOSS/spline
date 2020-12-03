@@ -51,11 +51,12 @@
             <configuration>
               <includePluginDependencies>true</includePluginDependencies>
               <executableDependency>
-                <groupId>za.co.absa.spline</groupId>
+                <groupId>za.co.absa.utils</groupId>
                 <artifactId>rest-api-doc-generator</artifactId>
               </executableDependency>
-              <mainClass>za.co.absa.spline.swagger.SwaggerDocGenCLI</mainClass>
+              <mainClass>za.co.absa.rapidgen.RapidGenCLI</mainClass>
               <arguments>
+                <argument>swagger</argument>
                 <argument>-o</argument>
                 <argument>${project.basedir}/src/app/generated/swagger.json</argument>
                 <argument>za.co.absa.spline.consumer.rest.ConsumerRESTConfig</argument>
@@ -65,9 +66,9 @@
         </executions>
         <dependencies>
           <dependency>
-            <groupId>za.co.absa.spline</groupId>
+            <groupId>za.co.absa.utils</groupId>
             <artifactId>rest-api-doc-generator</artifactId>
-            <version>${project.version}</version>
+            <version>1.0.2</version>
           </dependency>
         </dependencies>
       </plugin>
