@@ -34,13 +34,13 @@ class InternalArangoDatabaseOps(db: ArangoDatabaseAsync)(implicit ec: ExecutionC
   def restClient: RESTClient = {
     val asyncExecutable = db.asInstanceOf[ArangoExecuteable[ArangoExecutorAsync]]
     val ArangoExecutorAsyncDestructor(vstComm) = asyncExecutable.executor
-    val VstCommunicationDestructor(ConnectionParams(hostDescription, user, password, secured)) = vstComm
-    val scheme = if (secured) "https" else "http"
+    val VstCommunicationDestructor(ConnectionParams(hostDescription, user, password, maybeSslContext)) = vstComm
+    val scheme = if (maybeSslContext.isDefined) "https" else "http"
     val host = hostDescription.getHost
     val port = hostDescription.getPort
     val maybeCredentials = Option(user).map(user => new UsernamePasswordCredentials(user, password))
 
-    new RESTClientApacheHttpImpl(new URI(s"$scheme://$host:$port/_db/${db.name}"), maybeCredentials)
+    new RESTClientApacheHttpImpl(new URI(s"$scheme://$host:$port/_db/${db.name}"), maybeCredentials, maybeSslContext)
   }
 
 

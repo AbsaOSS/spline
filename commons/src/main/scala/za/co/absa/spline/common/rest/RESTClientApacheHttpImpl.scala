@@ -16,27 +16,28 @@
 
 package za.co.absa.spline.common.rest
 
-import java.net.URI
-
 import org.apache.commons.io.IOUtils
 import org.apache.http.auth.Credentials
 import org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPost, HttpRequestBase}
-import org.apache.http.conn.ssl.{NoopHostnameVerifier, SSLConnectionSocketFactory, TrustSelfSignedStrategy}
+import org.apache.http.conn.ssl.NoopHostnameVerifier
 import org.apache.http.entity.{AbstractHttpEntity, ByteArrayEntity, StringEntity}
 import org.apache.http.impl.auth.BasicScheme
 import org.apache.http.impl.client.HttpClients
-import org.apache.http.ssl.SSLContextBuilder
 import za.co.absa.commons.lang.ARM
 import za.co.absa.commons.lang.ARM.managed
-import za.co.absa.spline.common.rest.RESTClientApacheHttpImpl.createClient
 
+import java.net.URI
+import javax.net.ssl.SSLContext
 import scala.concurrent.{ExecutionContext, Future}
 
 class RESTClientApacheHttpImpl(
   uri: URI,
-  maybeCredentials: Option[Credentials])
+  maybeCredentials: Option[Credentials],
+  maybeSslContext: Option[SSLContext])
   (implicit ec: ExecutionContext)
   extends RESTClient {
+
+  import za.co.absa.commons.lang.OptionImplicits._
 
   override def get(path: String): Future[String] = execHttp {
     baseUri => new HttpGet(s"$baseUri/$path")
@@ -92,22 +93,12 @@ class RESTClientApacheHttpImpl(
         throw new HttpStatusException(respStatusLine.getStatusCode, s"ArangoDB response: $respStatusLine. $respBody")
     }
   }
-}
 
-object RESTClientApacheHttpImpl {
   private def createClient = {
-    val sslContext = SSLContextBuilder
-      .create()
-      .loadTrustMaterial(TrustSelfSignedStrategy.INSTANCE)
-      .build()
-
-    val sslSocketFactory = new SSLConnectionSocketFactory(
-      sslContext,
-      NoopHostnameVerifier.INSTANCE)
-
     HttpClients
       .custom()
-      .setSSLSocketFactory(sslSocketFactory)
+      .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+      .optionally(_.setSSLContext(_: SSLContext), maybeSslContext)
       .build()
   }
 }

@@ -20,22 +20,32 @@ import com.arangodb.internal.net.{AccessType, HostDescription, HostHandler, Host
 import com.arangodb.internal.velocystream.internal.VstConnection
 import za.co.absa.commons.reflect.ReflectionUtils.extractFieldValue
 
-object VstCommunicationDestructor {
-  private final val HostHandlerField = "hostHandler"
-  private final val UseSslField = "useSsl"
+import javax.net.ssl.SSLContext
 
-  case class ConnectionParams(hostDescription: HostDescription, user: String, password: String, secured: Boolean)
+object VstCommunicationDestructor {
+
+  private object Fields {
+    final val HostHandler = "hostHandler"
+    final val SslContext = "sslContext"
+  }
+
+  case class ConnectionParams(
+    hostDescription: HostDescription,
+    user: String,
+    password: String,
+    sslContext: Option[SSLContext]
+  )
 
   def unapply(comm: VstCommunication[_, _]): Option[ConnectionParams] = {
-    val hostHandler = extractFieldValue[VstCommunication[_, _], HostHandler](comm, HostHandlerField)
+    val hostHandler = extractFieldValue[VstCommunication[_, _], HostHandler](comm, Fields.HostHandler)
     val host = hostHandler.get(null, AccessType.WRITE).asInstanceOf[HostImpl]
-    val secured = extractFieldValue[VstConnection, Boolean](host.connection, UseSslField)
+    val sslContext = extractFieldValue[VstConnection, SSLContext](host.connection, Fields.SslContext)
 
     val connParams = ConnectionParams(
       host.getDescription,
       comm.user,
       comm.password,
-      secured
+      Option(sslContext)
     )
 
     Some(connParams)
