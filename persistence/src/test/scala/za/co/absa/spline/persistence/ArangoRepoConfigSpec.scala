@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.swagger
+package za.co.absa.spline.persistence
 
-import java.io.File
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import za.co.absa.commons.scalatest.EnvFixture
 
-case class SwaggerDocGenConfig(
-  maybeOutputFile: Option[File] = None,
-  restContextClass: Option[Class[_]] = None)
+class ArangoRepoConfigSpec
+  extends AnyFlatSpec
+    with Matchers
+    with EnvFixture {
+
+  it should "support commas in the database connection string" in {
+    setEnv("spline.database.connectionUrl", "arangodb://host.a:1,host.b:2/dbname")
+    ArangoRepoConfig.Database.connectionURL.hosts shouldEqual Seq(("host.a", 1), ("host.b", 2))
+  }
+}
