@@ -28,15 +28,16 @@
         <nav id="navbar" class="collapse navbar-collapse nav-collapse ">
           <ul class="nav navbar-nav">
             {% assign links = site.data.navigation %}
-            {% for link in links %}
-            {% assign class = nil %}
-            {% if page.url contains link.url %}
-            {% assign class = 'active' %}
-            {% assign defaultVersion = site.version %}
-            {% endif %}
-            {% assign docVersionSplited = page.url | split: '.html' %}
-            {% assign docVersion = docVersionSplited[0] | replace_first: "/", "" | replace_first: "blog", "" %}
-            {% if link.sublinks %}
+            {%    for link in links %}
+            {%      assign class = nil %}
+            {%      assign urls = link.sublinks | map: "url" | push: link.url %}
+            {%      if urls contains page.url %}
+            {%        assign class = 'active' %}
+            {%        assign defaultVersion = site.version %}
+            {%      endif %}
+            {%      assign docVersionSplited = page.url | split: '.html' %}
+            {%      assign docVersion = docVersionSplited[0] | replace_first: "/", "" | replace_first: "blog", "" %}
+            {%      if link.sublinks %}
             <li class="dropdown {{ class }}">
               {% if link.title == 'Documentation' %}
               <a class="no-decoration inactiveLink" href="{{ site.url }}{{ site.baseurl }}{{ link.url }}"
