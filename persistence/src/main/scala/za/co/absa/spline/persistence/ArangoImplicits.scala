@@ -16,7 +16,8 @@
 
 package za.co.absa.spline.persistence
 
-import com.arangodb.async.{ArangoCursorAsync, ArangoDatabaseAsync}
+import com.arangodb.async.{ArangoCollectionAsync, ArangoCursorAsync, ArangoDatabaseAsync}
+import com.arangodb.internal.InternalArangoDatabaseOps
 import com.arangodb.model.AqlQueryOptions
 
 import scala.collection.JavaConverters._
@@ -26,7 +27,23 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object ArangoImplicits {
 
-  implicit class ArangoDatabaseAsyncScalaWrapper(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) {
+  implicit class ArangoCollectionAsyncScalaWrapper(col: ArangoCollectionAsync)(implicit ec: ExecutionContext) {
+    /**
+     * The method returns `true` if the given collection exists in the database.
+     * It returns `false` if the database exists, but the collection does not.
+     * If the database don't exist it returns a failure.
+     *
+     * @return `true` if the collection exists; `false` if it doesn't exist; a failure if the database doesn't exist.
+     */
+    def existsCollection(): Future[Boolean] = {
+      col.db.getInfo.toScala.flatMap(_ =>
+        col.exists().toScala.map(Boolean.box(_)))
+    }
+  }
+
+  implicit class ArangoDatabaseAsyncScalaWrapper(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext)
+    extends InternalArangoDatabaseOps(db) {
+
     def queryOne[T: Manifest](
       queryString: String,
       bindVars: Map[String, AnyRef] = Map.empty,

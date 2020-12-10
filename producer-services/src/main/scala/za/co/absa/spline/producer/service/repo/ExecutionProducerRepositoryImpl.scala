@@ -17,21 +17,20 @@
 package za.co.absa.spline.producer.service.repo
 
 
-import java.util.UUID
-import java.util.UUID.randomUUID
-import java.{lang => jl}
-
 import com.arangodb.async.ArangoDatabaseAsync
 import org.apache.commons.lang3.StringUtils.wrap
 import org.slf4s.Logging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
+import za.co.absa.commons.json.DefaultJacksonJsonSerDe
 import za.co.absa.spline.persistence.model._
 import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, TxBuilder}
 import za.co.absa.spline.persistence.{ArangoImplicits, Persister, model => dbModel}
 import za.co.absa.spline.producer.model.{v1_1 => apiModel}
-import za.co.absa.spline.producer.service.repo.ExecutionProducerRepositoryImpl._
 
+import java.util.UUID
+import java.util.UUID.randomUUID
+import java.{lang => jl}
 import scala.compat.java8.FutureConverters._
 import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -42,6 +41,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
   with Logging {
 
   import ArangoImplicits._
+  import ExecutionProducerRepositoryImpl._
 
   override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
     val eventuallyExists = db.queryOne[Boolean](
@@ -182,9 +182,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
   }
 }
 
-object ExecutionProducerRepositoryImpl {
-
-  import za.co.absa.commons.json.DefaultJacksonJsonSerDe._
+object ExecutionProducerRepositoryImpl extends DefaultJacksonJsonSerDe {
 
   private object ExecutionPlanDetails {
     val ExecutionPlanId = "executionPlanId"
@@ -247,7 +245,7 @@ object ExecutionProducerRepositoryImpl {
           params = r.params,
           extra = r.extra,
           outputSchema = executionPlan.expressions.flatMap(_.mappingByOperation.get(r.id)),
-          _key = s"${executionPlan.id}:${r.id.toString}"
+          _key = s"${executionPlan.id}:${r.id}"
         )
       case w: apiModel.WriteOperation =>
         dbModel.Write(
@@ -256,14 +254,14 @@ object ExecutionProducerRepositoryImpl {
           params = w.params,
           extra = w.extra,
           outputSchema = maybeSchemaFinder.flatMap(_.findSchemaOf(w)),
-          _key = s"${executionPlan.id}:${w.id.toString}"
+          _key = s"${executionPlan.id}:${w.id}"
         )
       case t: apiModel.DataOperation =>
         dbModel.Transformation(
           params = t.params,
           extra = t.extra,
           outputSchema = maybeSchemaFinder.flatMap(_.findSchemaOf(t)),
-          _key = s"${executionPlan.id}:${t.id.toString}"
+          _key = s"${executionPlan.id}:${t.id}"
         )
     }
   }

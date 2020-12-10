@@ -51,7 +51,9 @@ class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL) extends Disposabl
     arangoBuilder.build
   }
 
-  val db: ArangoDatabaseAsync = {
+  // The val is lazy to not prevent a facade instance from being created.
+  // It allows connection to be re-attempted later and the {{shutdown()}} method to be called.
+  lazy val db: ArangoDatabaseAsync = {
     val db = arango.db(dbName)
     warmUpDb(db)
     db

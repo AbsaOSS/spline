@@ -21,33 +21,16 @@ import org.slf4s.Logging
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.context.annotation.{Bean, Configuration}
 import za.co.absa.commons.config.ConfTyped
-import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.common.config.DefaultConfigurationStack
-import za.co.absa.spline.persistence.migration.MigrationScriptRepository
-
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits._
-import scala.concurrent.duration.Duration
-
 
 @Configuration
 class ArangoRepoConfig extends InitializingBean with Logging {
 
   import za.co.absa.spline.persistence.ArangoRepoConfig._
+  import scala.concurrent.ExecutionContext.Implicits._
 
   override def afterPropertiesSet(): Unit = {
-    log.info(s"Connecting to ${Database.connectionURL.asString}")
-    ArangoDatabaseFacade.withWorkaroundForArangoAsyncBug {
-      arangoDatabase.getInfo.get()
-    }
-
-    val requiredDBVersion = MigrationScriptRepository.latestToVersion
-    val currentDBVersion = Await.result(databaseVersionManager.currentVersion, Duration.Inf)
-
-    if (requiredDBVersion != currentDBVersion)
-      sys.error("" +
-        s"Database version ${currentDBVersion.asString} is out of date, version ${requiredDBVersion.asString} is required. " +
-        s"Please execute 'java -jar admin-${SplineBuildInfo.Version}.jar db-upgrade' to upgrade the database.")
+    log.info(s"Spline database URL: ${Database.connectionURL.asString}")
   }
 
   @Bean def arangoDatabaseFacade: ArangoDatabaseFacade = new ArangoDatabaseFacade(Database.connectionURL)
@@ -55,6 +38,8 @@ class ArangoRepoConfig extends InitializingBean with Logging {
   @Bean def arangoDatabase: ArangoDatabaseAsync = arangoDatabaseFacade.db
 
   @Bean def databaseVersionManager: DatabaseVersionManager = new DatabaseVersionManager(arangoDatabase)
+
+  @Bean def databaseVersionChecker: DatabaseVersionChecker = new DatabaseVersionChecker(databaseVersionManager)
 }
 
 object ArangoRepoConfig extends DefaultConfigurationStack with ConfTyped {

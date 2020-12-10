@@ -19,7 +19,7 @@ package com.arangodb.async.internal
 import com.arangodb.internal.velocystream.VstCommunication
 import za.co.absa.commons.reflect.ReflectionUtils
 
-object ArangoExecutorAsyncExtractor {
+object ArangoExecutorAsyncDestructor {
   private final val CommunicationField = "communication"
 
   def unapply(executor: ArangoExecutorAsync): Option[VstCommunication[_, _]] = {

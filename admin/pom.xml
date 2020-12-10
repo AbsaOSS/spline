@@ -71,9 +71,10 @@
                     </descriptorRefs>
                     <appendAssemblyId>false</appendAssemblyId>
                     <archive>
-                        <manifest>
-                            <mainClass>za.co.absa.spline.admin.AdminCLI</mainClass>
-                        </manifest>
+                        <manifestEntries>
+                            <Main-Class>za.co.absa.spline.admin.AdminCLI</Main-Class>
+                            <Add-Opens>java.base/sun.net.www.protocol.jar</Add-Opens>
+                        </manifestEntries>
                     </archive>
                 </configuration>
                 <executions>

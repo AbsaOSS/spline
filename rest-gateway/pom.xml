@@ -77,11 +77,12 @@
                         <configuration>
                             <includePluginDependencies>true</includePluginDependencies>
                             <executableDependency>
-                                <groupId>za.co.absa.spline</groupId>
+                                <groupId>za.co.absa.utils</groupId>
                                 <artifactId>rest-api-doc-generator</artifactId>
                             </executableDependency>
-                            <mainClass>za.co.absa.spline.swagger.SwaggerDocGenCLI</mainClass>
+                            <mainClass>za.co.absa.rapidgen.RapidGenCLI</mainClass>
                             <arguments>
+                                <argument>swagger</argument>
                                 <argument>-o</argument>
                                 <argument>${swagger.docs.path}/consumer.swagger.json</argument>
                                 <argument>za.co.absa.spline.consumer.rest.ConsumerRESTConfig</argument>
@@ -97,11 +98,12 @@
                         <configuration>
                             <includePluginDependencies>true</includePluginDependencies>
                             <executableDependency>
-                                <groupId>za.co.absa.spline</groupId>
+                                <groupId>za.co.absa.utils</groupId>
                                 <artifactId>rest-api-doc-generator</artifactId>
                             </executableDependency>
-                            <mainClass>za.co.absa.spline.swagger.SwaggerDocGenCLI</mainClass>
+                            <mainClass>za.co.absa.rapidgen.RapidGenCLI</mainClass>
                             <arguments>
+                                <argument>swagger</argument>
                                 <argument>-o</argument>
                                 <argument>${swagger.docs.path}/producer.swagger.json</argument>
                                 <argument>za.co.absa.spline.producer.rest.ProducerRESTConfig</argument>
@@ -111,9 +113,9 @@
                 </executions>
                 <dependencies>
                     <dependency>
-                        <groupId>za.co.absa.spline</groupId>
+                        <groupId>za.co.absa.utils</groupId>
                         <artifactId>rest-api-doc-generator</artifactId>
-                        <version>0.5.0</version>
+                        <version>1.0.2</version>
                     </dependency>
                 </dependencies>
             </plugin>
