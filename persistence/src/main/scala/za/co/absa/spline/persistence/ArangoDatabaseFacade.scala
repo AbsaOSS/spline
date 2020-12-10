@@ -16,18 +16,23 @@
 
 package za.co.absa.spline.persistence
 
+import com.arangodb.async.{ArangoDBAsync, ArangoDatabaseAsync}
+import com.arangodb.velocypack.module.scala.VPackScalaModule
+import org.slf4s.Logging
+import org.springframework.beans.factory.DisposableBean
+import za.co.absa.commons.lang.OptionImplicits.AnyWrapper
+import za.co.absa.commons.version.Version
+import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
+
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import java.util.concurrent.ExecutionException
-
-import com.arangodb.async.{ArangoDBAsync, ArangoDatabaseAsync}
-import com.arangodb.velocypack.module.scala.VPackScalaModule
 import javax.net.ssl._
-import org.springframework.beans.factory.DisposableBean
-import za.co.absa.commons.lang.OptionImplicits.AnyWrapper
-import za.co.absa.spline.persistence.ArangoDatabaseFacade._
+import scala.concurrent.blocking
 
 class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL) extends DisposableBean {
+
+  import za.co.absa.spline.persistence.ArangoDatabaseFacade._
 
   private val ArangoConnectionURL(_, maybeUser, maybePassword, hostsWithPorts, dbName) = connectionURL
 
@@ -66,12 +71,36 @@ class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL) extends Disposabl
   }
 }
 
-object ArangoDatabaseFacade {
+object ArangoDatabaseFacade extends Logging {
+
+  import za.co.absa.commons.version.Version._
+
+  val MinArangoVerRequired: SemanticVersion = semver"3.6.0"
+  val MinArangoVerRecommended: SemanticVersion = semver"3.7.3"
 
   private def warmUpDb(db: ArangoDatabaseAsync): Unit = {
-    withWorkaroundForArangoAsyncBug {
-      db.exists.get
-    }
+    val arangoVer = Version.asSemVer(
+      withWorkaroundForArangoAsyncBug {
+        blocking {
+          db.arango
+            .getVersion
+            .get
+            .getVersion
+        }
+      })
+
+    // check ArangoDb server version requirements
+    if (arangoVer < MinArangoVerRequired)
+      sys.error(s"" +
+        s"Unsupported ArangoDB server version ${arangoVer.asString}. " +
+        s"Required version: ${MinArangoVerRequired.asString} or later. " +
+        s"Recommended version: ${MinArangoVerRecommended.asString} or later.")
+
+    if (arangoVer < MinArangoVerRecommended)
+      log.warn(s"WARNING: " +
+        s"The ArangoDB server version ${arangoVer.asString} might contain a bug that can cause Spline malfunction. " +
+        s"It's highly recommended to upgrade to ArangoDB ${MinArangoVerRecommended.asString} or later. " +
+        s"See: https://github.com/arangodb/arangodb/issues/12693")
   }
 
   private def createSslContext(): SSLContext = {
