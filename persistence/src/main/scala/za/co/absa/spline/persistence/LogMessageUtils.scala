@@ -16,17 +16,28 @@
 
 package za.co.absa.spline.persistence
 
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import za.co.absa.commons.scalatest.EnvFixture
+import org.apache.commons.lang3.StringUtils
 
-class ArangoRepoConfigSpec
-  extends AnyFlatSpec
-    with Matchers
-    with EnvFixture {
+object LogMessageUtils {
+  private val separatorLine = StringUtils.repeat("=", 80)
 
-  it should "support commas in the database connection string" in {
-    setEnv("spline.database.connectionUrl", "arangodb://host.a:1,host.b:2/dbname")
-    ArangoRepoConfig.Database.ConnectionURL.hosts shouldEqual Seq(("host.a", 1), ("host.b", 2))
+  def createQueryLogMessage(queryString: String): String = {
+    if (ArangoRepoConfig.Database.LogFullQueryOnError) {
+      s"""
+         |$separatorLine
+         |${queryString.trim}
+         |$separatorLine"""
+        .stripMargin
+    } else {
+      val fifth = queryString.length / 5
+      val truncatedQuery = StringUtils.truncate(queryString.trim, fifth * 2, fifth)
+      s"""
+         |$separatorLine
+         |...
+         |${truncatedQuery.trim}
+         |...
+         |$separatorLine"""
+        .stripMargin
+    }
   }
 }

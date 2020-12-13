@@ -16,17 +16,5 @@
 
 package za.co.absa.spline.persistence
 
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import za.co.absa.commons.scalatest.EnvFixture
-
-class ArangoRepoConfigSpec
-  extends AnyFlatSpec
-    with Matchers
-    with EnvFixture {
-
-  it should "support commas in the database connection string" in {
-    setEnv("spline.database.connectionUrl", "arangodb://host.a:1,host.b:2/dbname")
-    ArangoRepoConfig.Database.ConnectionURL.hosts shouldEqual Seq(("host.a", 1), ("host.b", 2))
-  }
-}
+class DatabaseException(query: String, cause: Throwable)
+  extends RuntimeException(s"Query execution failed: $query", cause)
