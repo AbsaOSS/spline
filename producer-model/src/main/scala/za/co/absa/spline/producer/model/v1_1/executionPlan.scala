@@ -41,9 +41,9 @@ case class Operations(
 }
 
 case class Expressions(
-  attributes: Seq[Attribute],
-  functions: Seq[FunctionalExpression],
-  constants: Seq[Literal]
+  attributes: Seq[Attribute] = Nil,
+  functions: Seq[FunctionalExpression] = Nil,
+  constants: Seq[Literal] = Nil
 ) {
   def all: Seq[ExpressionLike] = attributes ++ functions ++ constants
 }
