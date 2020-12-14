@@ -43,17 +43,10 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
         |
         |    LET output = ope.outputSchema == null ? [] : [ope.outputSchema]
         |
-        |    LET pairAttributesDataTypes = FIRST(
-        |        FOR v IN 1..9999
-        |            INBOUND ope follows, executes
-        |            FILTER IS_SAME_COLLECTION("executionPlan", v)
-        |            RETURN { "attributes":  v.extra.attributes, "dataTypes" : v.extra.dataTypes }
-        |    )
-        |
         |    LET schemas = (
         |        FOR s in APPEND(inputs, output)
         |            LET attributeList = (
-        |                FOR a IN pairAttributesDataTypes.attributes
+        |                FOR a IN []                                 // <<<<<<---- attrs ----!!!!!!!!!!!!---------
         |                    FILTER CONTAINS(s, a.id)
         |                    RETURN a
         |            )
@@ -61,15 +54,18 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
         |    )
         |
         |    LET dataTypesFormatted = (
-        |        FOR d IN pairAttributesDataTypes.dataTypes
-        |            RETURN MERGE(
-        |                KEEP(d,  "id", "name", "fields", "nullable", "elementDataTypeId"),
-        |                {
-        |                    "_class": d._typeHint == "dt.Simple" ?  "za.co.absa.spline.persistence.model.SimpleDataType"
-        |                            : d._typeHint == "dt.Array"  ?  "za.co.absa.spline.persistence.model.ArrayDataType"
-        |                            :                               "za.co.absa.spline.persistence.model.StructDataType"
-        |                }
-        |            )
+        |        FOR v IN 1..9999
+        |            INBOUND ope follows, executes
+        |            FILTER IS_SAME_COLLECTION("executionPlan", v)
+        |            FOR d IN v.extra.dataTypes
+        |                RETURN MERGE(
+        |                    KEEP(d,  "id", "name", "fields", "nullable", "elementDataTypeId"),
+        |                    {
+        |                        "_class": d._typeHint == "dt.Simple" ?  "za.co.absa.spline.persistence.model.SimpleDataType"
+        |                                : d._typeHint == "dt.Array"  ?  "za.co.absa.spline.persistence.model.ArrayDataType"
+        |                                :                               "za.co.absa.spline.persistence.model.StructDataType"
+        |                    }
+        |                )
         |    )
         |
         |    RETURN {
@@ -83,7 +79,7 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
         |                    "outputSource": ope.outputSource,
         |                    "append"      : ope.append
         |                },
-        |                ope.params,
+        |                ope.params,                                // <<<<<<---- exprs ----!!!!!!!!!!!!---------
         |                ope.extra
         |            )
         |        },
