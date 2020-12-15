@@ -61,9 +61,9 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
         |                RETURN MERGE(
         |                    KEEP(d,  "id", "name", "fields", "nullable", "elementDataTypeId"),
         |                    {
-        |                        "_class": d._typeHint == "dt.Simple" ?  "za.co.absa.spline.persistence.model.SimpleDataType"
-        |                                : d._typeHint == "dt.Array"  ?  "za.co.absa.spline.persistence.model.ArrayDataType"
-        |                                :                               "za.co.absa.spline.persistence.model.StructDataType"
+        |                        "_class": d._typeHint == "dt.Simple" ?  "za.co.absa.spline.consumer.service.model.SimpleDataType"
+        |                                : d._typeHint == "dt.Array"  ?  "za.co.absa.spline.consumer.service.model.ArrayDataType"
+        |                                :                               "za.co.absa.spline.consumer.service.model.StructDataType"
         |                    }
         |                )
         |    )

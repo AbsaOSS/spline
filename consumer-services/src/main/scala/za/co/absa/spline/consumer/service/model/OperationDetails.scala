@@ -25,9 +25,9 @@ case class OperationDetails
 (
   operation: Operation,
   @ApiModelProperty(value = "Array of the used DataTypes in the schemas")
-  dataTypes: Array[persistence.DataType],
+  dataTypes: Array[DataType],
   @ApiModelProperty(value = "Array of all the schemas")
-  schemas: Array[Array[persistence.Attribute]],
+  schemas: Array[Array[Attribute]],
   @ApiModelProperty(value = "Array of indexes of the schemas Array. The schemas at these indexes represent the input schemas")
   inputs: Array[Integer],
   @ApiModelProperty(value = "Index of the schemas Array. The schema at this index represents the output schemas")

@@ -19,8 +19,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.{As, Id}
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator
 import com.fasterxml.jackson.databind.{JavaType, ObjectMapper}
-import za.co.absa.spline.consumer.service.model.LineageOverviewNode
-import za.co.absa.spline.persistence.model.DataType
+import za.co.absa.spline.consumer.service.model.{DataType, LineageOverviewNode}
 
 class ConsumerTypeResolver extends DefaultTypeResolverBuilder(
   ObjectMapper.DefaultTyping.OBJECT_AND_NON_CONCRETE,

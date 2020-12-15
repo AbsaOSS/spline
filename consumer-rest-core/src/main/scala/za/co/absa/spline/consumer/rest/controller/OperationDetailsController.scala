@@ -52,7 +52,7 @@ class OperationDetailsController @Autowired()
     operationDetails.copy(dataTypes = reducedDt)
   }
 
-  private def reducedDataTypes(dataTypes: Array[persistence.DataType], schemas: Array[Array[persistence.Attribute]]): Array[persistence.DataType] = {
+  private def reducedDataTypes(dataTypes: Array[DataType], schemas: Array[Array[Attribute]]): Array[DataType] = {
     val dataTypesIdToKeep = schemas.flatten.map(attributeRef => attributeRef.dataTypeId).toSet
     val dataTypesSet = dataTypes.toSet
     dataTypesFilter(dataTypesSet, dataTypesIdToKeep).toArray
@@ -60,7 +60,7 @@ class OperationDetailsController @Autowired()
 
 
   @tailrec
-  private def dataTypesFilter(dataTypes: Set[persistence.DataType], dataTypesIdToKeep: Set[String]): Set[persistence.DataType] = {
+  private def dataTypesFilter(dataTypes: Set[DataType], dataTypesIdToKeep: Set[String]): Set[DataType] = {
     val dt = dataTypes.filter(dataType => dataTypesIdToKeep.contains(dataType.id))
     if (getAllIds(dt).size != dataTypesIdToKeep.size) {
       dataTypesFilter(dataTypes, getAllIds(dt))
@@ -69,11 +69,11 @@ class OperationDetailsController @Autowired()
     }
   }
 
-  private def getAllIds(dataTypes: Set[persistence.DataType]): Set[String] = {
+  private def getAllIds(dataTypes: Set[DataType]): Set[String] = {
     dataTypes.flatMap {
-      case dt@(_: persistence.SimpleDataType) => Set(dt.id)
-      case dt@(adt: persistence.ArrayDataType) => Set(dt.id, adt.elementDataTypeId)
-      case dt@(sdt: persistence.StructDataType) => sdt.fields.map(attributeRef => attributeRef.dataTypeId).toSet ++ Set(dt.id)
+      case dt@(_: SimpleDataType) => Set(dt.id)
+      case dt@(adt: ArrayDataType) => Set(dt.id, adt.elementDataTypeId)
+      case dt@(sdt: StructDataType) => sdt.fields.map(attributeRef => attributeRef.dataTypeId).toSet ++ Set(dt.id)
     }
   }
 }

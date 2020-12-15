@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.model
+package za.co.absa.spline.consumer.service.model
 
 sealed trait DataType {
   def id: String
