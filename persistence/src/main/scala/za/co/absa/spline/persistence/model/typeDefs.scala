@@ -32,14 +32,47 @@ sealed trait CollectionDef {
   def indexDefs: Seq[IndexDef] = Nil
 }
 
-sealed abstract class EdgeDef(override val name: String, val from: NodeDef, val to: NodeDef) extends GraphElementDef {
+sealed abstract class EdgeDef(override val name: String, val froms: Seq[NodeDef], val tos: Seq[NodeDef])
+  extends GraphElementDef {
   this: CollectionDef =>
   override def collectionType = CollectionType.EDGES
-
-  def edge(fromKey: Any, toKey: Any): Edge = Edge(s"${from.name}/$fromKey", s"${to.name}/$toKey")
 }
 
-sealed abstract class NodeDef(override val name: String) extends GraphElementDef {
+sealed abstract class Edge11Def(name: String, val from: NodeDef, val to: NodeDef)
+  extends EdgeDef(name, Seq(from), Seq(to)) {
+  this: CollectionDef =>
+  // todo: think about making keys strong typed
+  def edge(fromKey: Any, toKey: Any): Edge =
+    Edge(s"${from.name}/$fromKey", s"${to.name}/$toKey", None)
+
+  def edge(fromKey: Any, toKey: Any, index: Int): Edge = Edge(s"${from.name}/$fromKey", s"${to.name}/$toKey", Some(index))
+}
+
+sealed abstract class Edge12Def(name: String, val from: NodeDef, val to1: NodeDef, val to2: NodeDef)
+  extends EdgeDef(name, Seq(from), Seq(to1, to2)) {
+  this: CollectionDef =>
+
+  protected def edgeTo1(fromKey: Any, toKey: Any): Edge = Edge(s"${from.name}/$fromKey", s"${to1.name}/$toKey", None)
+
+  protected def edgeTo1(fromKey: Any, toKey: Any, index: Int): Edge = Edge(s"${from.name}/$fromKey", s"${to1.name}/$toKey", Some(index))
+
+  protected def edgeTo2(fromKey: Any, toKey: Any): Edge = Edge(s"${from.name}/$fromKey", s"${to2.name}/$toKey", None)
+
+  protected def edgeTo2(fromKey: Any, toKey: Any, index: Int): Edge = Edge(s"${from.name}/$fromKey", s"${to2.name}/$toKey", Some(index))
+}
+
+sealed trait EdgeToAttrOrExprOps {
+  this: Edge12Def =>
+
+  def edgeToAttr(from: Any, to: Any): Edge = edgeTo1(from, to)
+  def edgeToAttr(from: Any, to: Any, index: Int): Edge = edgeTo1(from, to, index)
+
+  def edgeToExpr(from: Any, to: Any): Edge = edgeTo2(from, to)
+  def edgeToExpr(from: Any, to: Any, index: Int): Edge = edgeTo2(from, to, index)
+}
+
+sealed abstract class NodeDef(override val name: String)
+  extends GraphElementDef {
   this: CollectionDef =>
   override def collectionType = CollectionType.DOCUMENT
 }
@@ -64,19 +97,33 @@ object EdgeDef {
 
   import za.co.absa.spline.persistence.model.NodeDef._
 
-  object Follows extends EdgeDef("follows", Operation, Operation) with CollectionDef
+  object Follows extends Edge11Def("follows", Operation, Operation) with CollectionDef
 
-  object WritesTo extends EdgeDef("writesTo", Operation, DataSource) with CollectionDef
+  object WritesTo extends Edge11Def("writesTo", Operation, DataSource) with CollectionDef
 
-  object ReadsFrom extends EdgeDef("readsFrom", Operation, DataSource) with CollectionDef
+  object ReadsFrom extends Edge11Def("readsFrom", Operation, DataSource) with CollectionDef
 
-  object Executes extends EdgeDef("executes", ExecutionPlan, Operation) with CollectionDef
+  object Executes extends Edge11Def("executes", ExecutionPlan, Operation) with CollectionDef
 
-  object Depends extends EdgeDef("depends", ExecutionPlan, DataSource) with CollectionDef
+  object Depends extends Edge11Def("depends", ExecutionPlan, DataSource) with CollectionDef
 
-  object Affects extends EdgeDef("affects", ExecutionPlan, DataSource) with CollectionDef
+  object Affects extends Edge11Def("affects", ExecutionPlan, DataSource) with CollectionDef
 
-  object ProgressOf extends EdgeDef("progressOf", Progress, ExecutionPlan) with CollectionDef
+  object ProgressOf extends Edge11Def("progressOf", Progress, ExecutionPlan) with CollectionDef
+
+  object Emits extends Edge11Def("emits", Operation, Schema) with CollectionDef
+
+  object Produces extends Edge11Def("produces", Operation, Attribute) with CollectionDef
+
+  object ConsistsOf extends Edge11Def("consistsOf", Schema, Attribute) with CollectionDef
+
+  object ComputedBy extends Edge11Def("computedBy", Attribute, Expression) with CollectionDef
+
+  object DerivesFrom extends Edge11Def("derivesFrom", Attribute, Attribute) with CollectionDef
+
+  object Takes extends Edge12Def("takes", Expression, Attribute, Expression) with EdgeToAttrOrExprOps with CollectionDef
+
+  object Uses extends Edge12Def("uses", Operation, Attribute, Expression) with EdgeToAttrOrExprOps with CollectionDef
 
 }
 
@@ -115,6 +162,12 @@ object NodeDef {
       IndexDef(Seq("execPlanDetails.dataSourceType"), new PersistentIndexOptions),
       IndexDef(Seq("execPlanDetails.append"), new PersistentIndexOptions))
   }
+
+  object Schema extends NodeDef("schema") with CollectionDef
+
+  object Attribute extends NodeDef("attribute") with CollectionDef
+
+  object Expression extends NodeDef("expression") with CollectionDef
 
 }
 

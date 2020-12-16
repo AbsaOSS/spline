@@ -17,11 +17,8 @@
 package za.co.absa.spline.producer.modelmapper.v1
 
 import za.co.absa.commons.lang.Converter
-import za.co.absa.spline.producer.model.v1_1
 
-trait ExpressionConverter extends Converter {
-  override type From = TypesV1.ExprDef
-  override type To = v1_1.ExpressionLike
-
-  def isExpression(obj: Any): Boolean
+trait ObjectConverter extends Converter {
+  override type From = Any
+  override type To = Any
 }

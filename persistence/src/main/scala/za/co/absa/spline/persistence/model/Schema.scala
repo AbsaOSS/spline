@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 ABSA Group Limited
+ * Copyright 2019 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.modelmapper.v1
+package za.co.absa.spline.persistence.model
 
-import za.co.absa.commons.lang.Converter
-import za.co.absa.spline.producer.model.v1_1
-
-trait ExpressionConverter extends Converter {
-  override type From = TypesV1.ExprDef
-  override type To = v1_1.ExpressionLike
-
-  def isExpression(obj: Any): Boolean
+case class Schema(
+  override val _key: String
+) extends Vertex {
+  def this() = this(null)
 }

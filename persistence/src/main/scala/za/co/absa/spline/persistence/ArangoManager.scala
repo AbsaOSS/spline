@@ -136,7 +136,11 @@ class ArangoManagerImpl(
     log.debug(s"Create graphs")
     Future.sequence(
       for (graphDef <- sealedInstancesOf[GraphDef]) yield {
-        val edgeDefs = graphDef.edgeDefs.map(e => new EdgeDefinition collection e.name from e.from.name to e.to.name)
+        val edgeDefs = graphDef.edgeDefs.map(e =>
+          (new EdgeDefinition)
+            .collection(e.name)
+            .from(e.froms.map(_.name): _*)
+            .to(e.tos.map(_.name): _*))
         db.createGraph(graphDef.name, edgeDefs.asJava).toScala
       })
   }

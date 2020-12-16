@@ -26,13 +26,18 @@ import scala.util.Try
 
 class SparkSplineExecutionPlanComponentConverterFactory(agentVersion: String, plan1: v1.ExecutionPlan) extends ExecutionPlanComponentConverterFactory {
 
-  override lazy val expressionConverter: Option[ExpressionConverter with CachingConverter] = Some(_expressionConverter)
+  override def expressionConverter: Option[ExpressionConverter with CachingConverter] = Some(_expressionConverter)
 
-  override lazy val outputConverter: Option[OperationOutputConverter] = {
-    Some(new SparkSplineOperationOutputConverter(_expressionConverter, attrDefinitions, operationOutputById, maybeADR))
-  }
+  override def attributeConverter: Option[AttributeConverter with CachingConverter] = Some(_attributeConverter)
 
-  private val _expressionConverter = new SparkSplineExpressionConverter with CachingConverter
+  override def outputConverter: Option[OperationOutputConverter] = Some(_outputConverter)
+
+  override def objectConverter: ObjectConverter = new SparkSplineObjectConverter(AttributeRefConverter, _expressionConverter)
+
+  private val _expressionConverter = new SparkSplineExpressionConverter(AttributeRefConverter) with CachingConverter // todo: cache key => exprDef.id
+  private val _attributeConverter = new SparkSplineAttributeConverter with CachingConverter // todo: cache key => attr.id or attrRef.refId
+  private val _outputConverter = new SparkSplineOperationOutputConverter(_attributeConverter, attrDefinitions, operationOutputById, maybeADR)
+
   private val operationSchemaFinder = {
     val allOperations = plan1.operations.all
     new RecursiveSchemaFinder(
@@ -41,9 +46,11 @@ class SparkSplineExecutionPlanComponentConverterFactory(agentVersion: String, pl
     )
   }
 
-  private def attrDefinitions = plan1.extraInfo(FieldNamesV1.PlanExtraInfo.Attributes).asInstanceOf[Seq[Map[String, Any]]]
+  private def attrDefinitions = plan1.extraInfo(FieldNamesV1.PlanExtraInfo.Attributes).asInstanceOf[Seq[TypesV1.AttrDef]]
 
-  private def operationOutputById = plan1.operations.all.map(op => op.id -> operationSchemaFinder.findSchemaByOpId(op.id).getOrElse(Nil)).toMap
+  private def operationOutputById =
+    plan1.operations.all.map(op =>
+      op.id -> operationSchemaFinder.findSchemaForOpId(op.id).map(_._1).getOrElse(Nil)).toMap
 
   private def maybeADR = if (isSplinePrior04) None else Some(SparkSpline04AttributeDependencyResolver)
 

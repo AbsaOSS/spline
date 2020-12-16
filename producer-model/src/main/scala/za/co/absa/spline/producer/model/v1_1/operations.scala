@@ -21,19 +21,20 @@ import za.co.absa.spline.producer.model.v1_1.OperationLike.Id
 sealed trait OperationLike {
   val id: Id
   val childIds: Seq[Id]
-  val output: Seq[ExpressionLike.Id]
+  val output: OperationLike.Schema
   val params: Map[String, Any]
   val extra: Map[String, Any]
 }
 
 object OperationLike {
   type Id = String
+  type Schema = Seq[Attribute.Id]
 }
 
 
 case class DataOperation(
   override val id: Id,
-  override val childIds: Seq[Id] = Seq.empty,
+  override val childIds: Seq[Id] = Nil,
   override val output: Seq[Attribute.Id],
   override val params: Map[String, Any] = Map.empty,
   override val extra: Map[String, Any] = Map.empty
@@ -46,7 +47,7 @@ case class ReadOperation(
   override val params: Map[String, Any] = Map.empty,
   override val extra: Map[String, Any] = Map.empty
 ) extends OperationLike {
-  override val childIds: Seq[Id] = Seq.empty
+  override val childIds: Seq[Id] = Nil
 }
 
 case class WriteOperation(

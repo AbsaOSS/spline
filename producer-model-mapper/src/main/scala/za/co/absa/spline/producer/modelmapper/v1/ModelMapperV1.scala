@@ -31,22 +31,29 @@ object ModelMapperV1 extends ModelMapper {
 
     val epccf = ExecutionPlanComponentConverterFactory.forPlan(plan1)
 
+    val maybeAttributesConverter = epccf.attributeConverter
     val maybeExpressionConverter = epccf.expressionConverter
     val maybeOutputConverter = epccf.outputConverter
-    val operationConverter = new OperationConverter(maybeExpressionConverter, maybeOutputConverter) with CachingConverter
+    val objectConverter = epccf.objectConverter
+
+    val operationConverter = new OperationConverter(objectConverter, maybeOutputConverter) with CachingConverter
 
     plan1.operations.all.foreach(operationConverter.convert)
 
     val operations = asOperationsObject(operationConverter.values)
+    val attributes = maybeAttributesConverter.map(_.values).getOrElse(Nil)
+
     val maybeExpressions =
       for {
         expressionConverter <- maybeExpressionConverter
-        expressions = expressionConverter.values if expressions.nonEmpty
+        expressions = expressionConverter.values
+        if expressions.nonEmpty
       } yield asExpressionsObject(expressions)
 
     ExecutionPlan(
       id = plan1.id,
       operations = operations,
+      attributes = attributes,
       expressions = maybeExpressions,
       systemInfo = NameAndVersion(plan1.systemInfo.name, plan1.systemInfo.version),
       agentInfo = plan1.agentInfo.map(ai => NameAndVersion(ai.name, ai.version)),
@@ -76,15 +83,13 @@ object ModelMapperV1 extends ModelMapper {
   }
 
   private def asExpressionsObject(exprs: Seq[ExpressionLike]) = {
-    val (attrs, funcs, consts) =
-      exprs.foldLeft((Seq.empty[Attribute], Seq.empty[FunctionalExpression], Seq.empty[Literal])) {
-        case (z, a: Attribute) if a.name.nonEmpty => z.copy(_1 = a +: z._1)
-        case (z, f: FunctionalExpression) => z.copy(_2 = f +: z._2)
-        case (z, c: Literal) => z.copy(_3 = c +: z._3)
+    val (funcs, consts) =
+      exprs.foldLeft((Seq.empty[FunctionalExpression], Seq.empty[Literal])) {
+        case (z, f: FunctionalExpression) => z.copy(_1 = f +: z._1)
+        case (z, c: Literal) => z.copy(_2 = c +: z._2)
         case (z, _) => z
       }
     Expressions(
-      attributes = attrs,
       functions = funcs,
       constants = consts
     )

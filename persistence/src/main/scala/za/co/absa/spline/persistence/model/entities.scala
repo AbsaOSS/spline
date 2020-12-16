@@ -25,9 +25,10 @@ trait Vertex extends ArangoDocument {
 
 case class Edge(
   _from: String,
-  _to: String
+  _to: String,
+  index: Option[Int]
 ) extends ArangoDocument {
-  def this() = this(null, null)
+  def this() = this(null, null, None)
 }
 
 case class DBVersion(
@@ -61,6 +62,10 @@ case class DataSource(
   override val _key: String
 ) extends Vertex {
   def this() = this(null, null)
+}
+
+object DataSource {
+  type Key = String
 }
 
 /**

@@ -16,18 +16,13 @@
 
 package za.co.absa.spline.producer.modelmapper.v1
 
-import za.co.absa.spline.producer.model.{v1_1 => modelV11}
-import za.co.absa.spline.producer.modelmapper.v1.AttributeDependencyResolver.AttributeId
+import za.co.absa.spline.producer.modelmapper.v1.TypesV1.AttrId
 import za.co.absa.spline.producer.{model => modelV1}
 
 trait AttributeDependencyResolver {
   def resolve(
     op: modelV1.OperationLike,
-    inputSchema: => Seq[AttributeId],
-    outputSchema: => Seq[AttributeId]
-  ): Map[AttributeId, Set[modelV11.ExpressionLike.Id]]
-}
-
-object AttributeDependencyResolver {
-  type AttributeId = modelV11.Attribute.Id
+    inputSchema: => Seq[AttrId],
+    outputSchema: => Seq[AttrId]
+  ): Map[AttrId, Set[AttrId]]
 }

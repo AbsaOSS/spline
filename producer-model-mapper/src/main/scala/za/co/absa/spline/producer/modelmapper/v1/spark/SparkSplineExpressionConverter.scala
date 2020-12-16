@@ -16,70 +16,42 @@
 
 package za.co.absa.spline.producer.modelmapper.v1.spark
 
+import za.co.absa.spline.producer.model.v1_1.{AttrOrExprRef, ExpressionLike, FunctionalExpression, Literal}
+import za.co.absa.spline.producer.modelmapper.v1.TypesV1.ExprDef
+import za.co.absa.spline.producer.modelmapper.v1.{ExpressionConverter, FieldNamesV1, TypesV1}
+
 import java.util.UUID
 
-import za.co.absa.spline.producer.model.v1_1.{Attribute, ExpressionLike, FunctionalExpression, Literal}
-import za.co.absa.spline.producer.modelmapper.v1.spark.SparkSplineExpressionConverter.{ExprDef, Extras, Params}
-import za.co.absa.spline.producer.modelmapper.v1.{ExpressionConverter, FieldNamesV1}
-
-object SparkSplineExpressionConverter {
-  type ExprDef = Map[String, Any]
-  type Params = Map[String, Any]
-  type Extras = Map[String, Any]
-}
-
-class SparkSplineExpressionConverter extends ExpressionConverter {
+class SparkSplineExpressionConverter(
+  attrRefConverter: AttributeRefConverter
+) extends ExpressionConverter {
 
   import za.co.absa.commons.lang.OptionImplicits._
 
   override def isExpression(obj: Any): Boolean = PartialFunction.cond(obj) {
-    case exprDef: ExprDef
+    case exprDef: TypesV1.ExprDef
       if exprDef.contains(FieldNamesV1.ExpressionDef.TypeHint) =>
-      exprDef(FieldNamesV1.ExpressionDef.TypeHint).toString.startsWith("expr.")
+      val typeHint = exprDef(FieldNamesV1.ExpressionDef.TypeHint).toString
+      typeHint.startsWith("expr.") && typeHint != "expr.AttrRef"
   }
 
-  override def convert(exprDef: ExprDef): ExpressionLike = {
-    exprDef
-      .get(FieldNamesV1.ExpressionDef.TypeHint)
-      .map({
-        case "expr.Literal" => toLiteral(exprDef)
-        case "expr.AttrRef" => toAttributeReference(exprDef)
-        case "expr.Alias" => toFunctionalExpression(exprDef, _ => "alias", _.find({ case (k, _) => k == FieldNamesV1.ExpressionDef.Alias }))
-        case "expr.Binary" => toFunctionalExpression(exprDef, _ (FieldNamesV1.ExpressionDef.Symbol))
-        case "expr.UDF" => toFunctionalExpression(exprDef, _ (FieldNamesV1.ExpressionDef.Name))
-        case "expr.Generic" | "expr.GenericLeaf" | "expr.UntypedExpression" => toFunctionalExpression(
+  override def convert(exprDef: TypesV1.ExprDef): ExpressionLike = {
+    exprDef(FieldNamesV1.ExpressionDef.TypeHint) match {
+      case "expr.Literal" => toLiteral(exprDef)
+      case "expr.Alias" => toFunctionalExpression(exprDef, _ => "alias", _.find({ case (k, _) => k == FieldNamesV1.ExpressionDef.Alias }))
+      case "expr.Binary" => toFunctionalExpression(exprDef, _ (FieldNamesV1.ExpressionDef.Symbol))
+      case "expr.UDF" => toFunctionalExpression(exprDef, _ (FieldNamesV1.ExpressionDef.Name))
+      case "expr.Generic" | "expr.GenericLeaf" | "expr.UntypedExpression" =>
+        toFunctionalExpression(
           exprDef,
           _ (FieldNamesV1.ExpressionDef.Name),
           _ (FieldNamesV1.ExpressionDef.Params),
           _.find({ case (k, _) => k == FieldNamesV1.ExpressionDef.ExprType }).toMap
         )
-      })
-      .getOrElse(toAttribute(exprDef))
+    }
   }
 
-  private def toAttributeReference(refDef: ExprDef): Attribute = Attribute(
-    id = refDef(FieldNamesV1.ExpressionDef.RefId).toString,
-    name = "",
-    childIds = Nil,
-    dataType = None,
-    extra = Map.empty
-  )
-
-  private def toAttribute(attrDef: ExprDef): Attribute = {
-    val childIds = attrDef.get(FieldNamesV1.AttributeDef.Dependencies).map(_.asInstanceOf[Seq[Attribute.Id]]).getOrElse(Nil)
-    val attrId = attrDef(FieldNamesV1.AttributeDef.Id).toString
-    val attrName = attrDef(FieldNamesV1.AttributeDef.Name).toString
-    val maybeDataType = attrDef.get(FieldNamesV1.AttributeDef.DataTypeId)
-    Attribute(
-      id = attrId,
-      name = attrName,
-      childIds = childIds,
-      dataType = maybeDataType,
-      extra = Map.empty
-    )
-  }
-
-  private def toLiteral(exprDef: ExprDef) = Literal(
+  private def toLiteral(exprDef: TypesV1.ExprDef) = Literal(
     id = newId,
     dataType = exprDef.get(FieldNamesV1.ExpressionDef.DataTypeId).map(_.toString),
     value = exprDef.get(FieldNamesV1.ExpressionDef.Value),
@@ -87,26 +59,33 @@ class SparkSplineExpressionConverter extends ExpressionConverter {
   )
 
   private def toFunctionalExpression(
-    exprDef: ExprDef,
-    getName: ExprDef => Any,
-    getParams: ExprDef => Any = _ => Map.empty,
-    getExtras: ExprDef => Any = _ => Map.empty
+    exprDef: TypesV1.ExprDef,
+    getName: TypesV1.ExprDef => Any,
+    getParams: TypesV1.ExprDef => Any = _ => Map.empty,
+    getExtras: TypesV1.ExprDef => Any = _ => Map.empty
   ): FunctionalExpression = {
 
-    val childIds = exprDef
+    val children = exprDef
       .get(FieldNamesV1.ExpressionDef.Children)
       .orElse(exprDef.get(FieldNamesV1.ExpressionDef.Child).toList.asOption)
       .getOrElse(Nil)
       .asInstanceOf[Seq[ExprDef]]
-      .map(this.convert(_).id)
+
+    val childRefs = children.map {
+      exprDef =>
+        if (attrRefConverter.isAttrRef(exprDef))
+          attrRefConverter.convert(exprDef)
+        else
+          AttrOrExprRef.exprRef(this.convert(exprDef).id)
+    }
 
     FunctionalExpression(
       id = newId,
       dataType = exprDef.get(FieldNamesV1.ExpressionDef.DataTypeId).map(_.toString),
       name = getName(exprDef).toString,
-      childIds = childIds,
-      params = getParams(exprDef).asInstanceOf[Params],
-      extra = getExtras(exprDef).asInstanceOf[Extras]
+      childIds = childRefs,
+      params = getParams(exprDef).asInstanceOf[TypesV1.Params],
+      extra = getExtras(exprDef).asInstanceOf[TypesV1.Extras]
     )
   }
 

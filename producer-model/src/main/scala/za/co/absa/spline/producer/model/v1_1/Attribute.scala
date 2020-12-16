@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.model
-
-case class Schema(
-  attributes: Array[Attribute]
-)
+package za.co.absa.spline.producer.model.v1_1
 
 case class Attribute(
-  id: String,
+  id: Attribute.Id,
+  dataType: Option[Any],
+  // todo: rename it to "childRefs" ??
+  childIds: Seq[Attribute.ChildRef] = Nil,
+  extra: Map[String, Any] = Map.empty,
   name: String,
-  dataTypeId: String) {
-  def this() = this(null, null, null)
+)
+
+object Attribute {
+  type Id = ExpressionLike.Id
+  type ChildRef = AttrOrExprRef
 }

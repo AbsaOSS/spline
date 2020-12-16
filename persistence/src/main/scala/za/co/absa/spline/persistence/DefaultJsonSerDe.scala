@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.modelmapper.v1
+package za.co.absa.spline.persistence
 
-import za.co.absa.commons.lang.Converter
-import za.co.absa.spline.producer.model.v1_1
+import za.co.absa.commons.json.DefaultJacksonJsonSerDe
 
-trait ExpressionConverter extends Converter {
-  override type From = TypesV1.ExprDef
-  override type To = v1_1.ExpressionLike
-
-  def isExpression(obj: Any): Boolean
-}
+object DefaultJsonSerDe extends DefaultJacksonJsonSerDe

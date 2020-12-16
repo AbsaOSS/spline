@@ -23,17 +23,22 @@ import za.co.absa.spline.producer.{model => v1}
 import scala.PartialFunction.condOpt
 
 trait ExecutionPlanComponentConverterFactory {
+  def attributeConverter: Option[AttributeConverter with CachingConverter]
   def expressionConverter: Option[ExpressionConverter with CachingConverter]
   def outputConverter: Option[OperationOutputConverter]
+  def objectConverter: ObjectConverter
 }
 
 object ExecutionPlanComponentConverterFactory {
 
   object EmptyFactory extends ExecutionPlanComponentConverterFactory {
+    override def attributeConverter: Option[AttributeConverter with CachingConverter] = None
 
     override def expressionConverter: Option[ExpressionConverter with CachingConverter] = None
 
     override def outputConverter: Option[OperationOutputConverter] = None
+
+    override def objectConverter: ObjectConverter = identity
   }
 
   def forPlan(plan1: v1.ExecutionPlan): ExecutionPlanComponentConverterFactory = {

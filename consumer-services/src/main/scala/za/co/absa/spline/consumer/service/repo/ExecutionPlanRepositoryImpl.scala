@@ -195,12 +195,12 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
 object ExecutionPlanRepositoryImpl {
 
   case class AnyOperation(
-    override val params: Map[String, Any],
-    override val extra: Map[String, Any],
-    override val outputSchema: Option[Array[String]],
-    override val _key: String,
-    override val _type: String
-  ) extends Operation {
+    params: Map[String, Any],
+    extra: Map[String, Any],
+    outputSchema: Option[Array[String]],
+    _key: String,
+    _type: String
+  ) {
     def this() = this(null, null, null, null, null)
   }
 

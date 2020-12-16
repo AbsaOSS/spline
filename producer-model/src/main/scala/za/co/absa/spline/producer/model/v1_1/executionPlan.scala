@@ -22,6 +22,7 @@ case class ExecutionPlan(
   id: UUID = UUID.randomUUID(),
 
   operations: Operations,
+  attributes: Seq[Attribute] = Nil,
   expressions: Option[Expressions],
 
   // Information about a data framework in use (e.g. Spark, StreamSets etc)
@@ -37,15 +38,14 @@ case class Operations(
   reads: Seq[ReadOperation] = Nil,
   other: Seq[DataOperation] = Nil
 ) {
-  def all: Seq[OperationLike] = reads ++ other :+ write
+  lazy val all: Seq[OperationLike] = reads ++ other :+ write
 }
 
 case class Expressions(
-  attributes: Seq[Attribute] = Nil,
   functions: Seq[FunctionalExpression] = Nil,
   constants: Seq[Literal] = Nil
 ) {
-  def all: Seq[ExpressionLike] = attributes ++ functions ++ constants
+  lazy val all: Seq[ExpressionLike] = functions ++ constants
 }
 
 case class NameAndVersion(name: String, version: String)

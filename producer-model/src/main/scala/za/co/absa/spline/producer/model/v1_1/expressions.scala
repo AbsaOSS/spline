@@ -16,27 +16,19 @@
 
 package za.co.absa.spline.producer.model.v1_1
 
-import za.co.absa.spline.producer.model.v1_1.ExpressionLike.Id
-
 sealed trait ExpressionLike {
-  def id: Id
+  def id: ExpressionLike.Id
   def dataType: Option[Any]
-  def childIds: Seq[ExpressionLike.Id]
+
+  // todo: rename it to "childRefs" ??
+  def childIds: Seq[ExpressionLike.ChildRef]
   def extra: Map[String, Any]
 }
 
 object ExpressionLike {
   type Id = String
+  type ChildRef = AttrOrExprRef
 }
-
-/**
- * The class is designed for representing expression IDs in untyped or weakly typed data structures,
- * when expression IDs need to be distinguished from other arbitrary values.
- * It can be thought of as an alternative to a type hint.
- *
- * @param `@@exprId` expression ID
- */
-case class ExpressionRef(`@@exprId`: ExpressionLike.Id)
 
 /**
  * Represents a functional expression that computes a value based on the given input.
@@ -44,40 +36,18 @@ case class ExpressionRef(`@@exprId`: ExpressionLike.Id)
  * @param id       expression ID
  * @param name     expression name
  * @param dataType output data type
- * @param childIds input expression IDs
+ * @param childIds input expression (or attribute) IDs
  * @param params   optional static expression parameters (don't confuse with input parameters)
  * @param extra    optional metadata
  */
 case class FunctionalExpression(
-  override val id: Id,
+  override val id: ExpressionLike.Id,
   override val dataType: Option[Any],
-  override val childIds: Seq[ExpressionLike.Id] = Nil,
+  override val childIds: Seq[ExpressionLike.ChildRef] = Nil,
   override val extra: Map[String, Any] = Map.empty,
   name: String,
   params: Map[String, Any] = Map.empty,
 ) extends ExpressionLike
-
-/**
- * An expression that defines an attribute (in operation output).
- * It's basically a named reference to an expression that produces values for the given attribute.
- *
- * @param id       expression ID
- * @param name     attribute name
- * @param dataType value data type
- * @param childIds reference to an expression that produces values for the attribute
- * @param extra    optional metadata
- */
-case class Attribute(
-  override val id: Attribute.Id,
-  override val dataType: Option[Any],
-  override val childIds: Seq[ExpressionLike.Id] = Nil,
-  override val extra: Map[String, Any] = Map.empty,
-  name: String,
-) extends ExpressionLike
-
-object Attribute {
-  type Id = ExpressionLike.Id
-}
 
 /**
  * Literal expression
@@ -88,10 +58,10 @@ object Attribute {
  * @param extra    optional metadata
  */
 case class Literal(
-  override val id: Id,
+  override val id: ExpressionLike.Id,
   override val dataType: Option[Any],
   override val extra: Map[String, Any] = Map.empty,
   value: Any,
 ) extends ExpressionLike {
-  override def childIds: Seq[ExpressionLike.Id] = Nil
+  override def childIds: Seq[ExpressionLike.ChildRef] = Nil
 }

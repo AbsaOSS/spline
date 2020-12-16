@@ -17,23 +17,26 @@
 package za.co.absa.spline.producer.modelmapper.v1.spark
 
 import za.co.absa.spline.producer.model.v1_1
-import za.co.absa.spline.producer.modelmapper.v1.{AttributeDependencyResolver, ExpressionConverter, FieldNamesV1, OperationOutputConverter}
+import za.co.absa.spline.producer.modelmapper.v1.{AttributeConverter, AttributeDependencyResolver, ExpressionConverter, FieldNamesV1, OperationOutputConverter, TypesV1}
 import za.co.absa.spline.producer.{model => v1}
 
 class SparkSplineOperationOutputConverter(
-  expressionConverter: ExpressionConverter,
-  attributeDefs: Seq[Map[String, Any]],
+  attributeConverter: AttributeConverter,
+  attributeDefs: Seq[TypesV1.AttrDef],
   operationOutputById: Map[Int, Seq[v1_1.Attribute.Id]],
   maybeAttrDepResolver: Option[AttributeDependencyResolver]
 ) extends OperationOutputConverter {
 
-  private val attrDefsById = attributeDefs.groupBy(_ (FieldNamesV1.AttributeDef.Id).toString).mapValues(_.head)
+  private val attrDefsById: Map[TypesV1.AttrId, TypesV1.AttrDef] =
+    attributeDefs
+      .groupBy(_ (FieldNamesV1.AttributeDef.Id).toString)
+      .mapValues(_.head)
 
-  override def convert(op1: v1.OperationLike): Option[Output] =
+  override def convert(op1: v1.OperationLike): Option[TypesV1.Schema] =
     for (schema <- op1.schema)
       yield {
-        val inputAttrIds: Seq[String] = op1.childIds.flatMap(operationOutputById)
-        val outputAttrIds = schema.asInstanceOf[Seq[String]]
+        val inputAttrIds: Seq[TypesV1.AttrId] = op1.childIds.flatMap(operationOutputById)
+        val outputAttrIds = schema.asInstanceOf[Seq[TypesV1.AttrId]]
         val createdAttrIds = outputAttrIds.filterNot(inputAttrIds.toSet)
         val attrDependenciesById = maybeAttrDepResolver
           .map(_.resolve(op1, inputAttrIds, outputAttrIds))
@@ -47,8 +50,8 @@ class SparkSplineOperationOutputConverter(
         outputAttrIds
       }
 
-  private def convertAttribute(attrId: v1_1.Attribute.Id, dependencies: Seq[v1_1.Attribute.Id]) = {
+  private def convertAttribute(attrId: TypesV1.AttrId, dependencies: Seq[TypesV1.AttrId]) = {
     val attrDefWithDependencies = attrDefsById(attrId) + (FieldNamesV1.AttributeDef.Dependencies -> dependencies)
-    expressionConverter.convert(attrDefWithDependencies).id
+    attributeConverter.convert(attrDefWithDependencies).id
   }
 }

@@ -16,19 +16,19 @@
 
 package za.co.absa.spline.producer.modelmapper.v1.spark
 
-import za.co.absa.spline.producer.model.v1_1.ExpressionLike
 import za.co.absa.spline.producer.model.{OperationLike => OperationLikeV1}
-import za.co.absa.spline.producer.modelmapper.v1.AttributeDependencyResolver.AttributeId
+import za.co.absa.spline.producer.modelmapper.v1.TypesV1.{AttrId, ExprDef, Schema}
 import za.co.absa.spline.producer.modelmapper.v1.{AttributeDependencyResolver, FieldNamesV1}
 
 import scala.collection.JavaConverters._
 
 object SparkSpline04AttributeDependencyResolver extends AttributeDependencyResolver {
+
   override def resolve(
     op: OperationLikeV1,
-    inputSchema: => Seq[AttributeId],
-    outputSchema: => Seq[AttributeId]
-  ): Map[AttributeId, Set[ExpressionLike.Id]] =
+    inputSchema: => Schema,
+    outputSchema: => Schema
+  ): Map[AttrId, Set[AttrId]] =
     op.extra(FieldNamesV1.OperationExtraInfo.Name) match {
       case "Project" => resolveExpressionList(asScalaListOfMaps(op.params("projectList")), outputSchema)
       case "Aggregate" => resolveExpressionList(asScalaListOfMaps(op.params("aggregateExpressions")), outputSchema)
@@ -37,7 +37,7 @@ object SparkSpline04AttributeDependencyResolver extends AttributeDependencyResol
       case _ => Map.empty
     }
 
-  private def resolveExpressionList(exprs: Seq[Map[String, Any]], schema: Seq[AttributeId]): Map[AttributeId, Set[ExpressionLike.Id]] = {
+  private def resolveExpressionList(exprs: Seq[ExprDef], schema: Schema): Map[AttrId, Set[AttrId]] = {
     assume(schema.length == exprs.length)
     exprs
       .zip(schema)
@@ -45,20 +45,20 @@ object SparkSpline04AttributeDependencyResolver extends AttributeDependencyResol
       .toMap
   }
 
-  private def resolveSubqueryAlias(inputSchema: Seq[AttributeId], outputSchema: Seq[AttributeId]): Map[AttributeId, Set[AttributeId]] =
+  private def resolveSubqueryAlias(inputSchema: Schema, outputSchema: Schema): Map[AttrId, Set[AttrId]] =
     inputSchema
       .zip(outputSchema)
       .map { case (inAtt, outAtt) => outAtt -> Set(inAtt) }
       .toMap
 
-  private def resolveGenerator(op: OperationLikeV1): Map[AttributeId, Set[AttributeId]] = {
+  private def resolveGenerator(op: OperationLikeV1): Map[AttrId, Set[AttrId]] = {
     val expression = asScalaMap[String, Any](op.params("generator"))
     val dependencies = expressionDependencies(expression)
     val keyId = asScalaListOfMaps[String, String](op.params("generatorOutput")).head("refId")
     Map(keyId -> dependencies)
   }
 
-  private def expressionDependencies(expr: Map[String, Any]): Set[AttributeId] = expr("_typeHint") match {
+  private def expressionDependencies(expr: ExprDef): Set[AttrId] = expr("_typeHint") match {
     case "expr.AttrRef" =>
       Set(expr("refId").asInstanceOf[String])
     case "expr.Alias" =>
