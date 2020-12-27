@@ -38,14 +38,14 @@ case class Operations(
   reads: Seq[ReadOperation] = Nil,
   other: Seq[DataOperation] = Nil
 ) {
-  lazy val all: Seq[OperationLike] = reads ++ other :+ write
+  def all: Seq[OperationLike] = reads ++ other :+ write
 }
 
 case class Expressions(
   functions: Seq[FunctionalExpression] = Nil,
   constants: Seq[Literal] = Nil
 ) {
-  lazy val all: Seq[ExpressionLike] = functions ++ constants
+  def all: Seq[ExpressionLike] = functions ++ constants
 }
 
 case class NameAndVersion(name: String, version: String)

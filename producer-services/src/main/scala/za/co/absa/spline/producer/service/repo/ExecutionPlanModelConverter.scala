@@ -97,7 +97,7 @@ object ExecutionPlanModelConverter {
           attrFrom <- ep.attributes
           refFrom = AttrOrExprRef.attrRef(attrFrom.id)
           refTo <- this._attrDepGraph.get(refFrom).outerNodeTraverser
-          if refTo.isAttribute
+          if AttrOrExprRef.isAttribute(refTo)
         } yield {
           EdgeDef.DerivesFrom.edge(
             KeyUtils.asAttributeKey(refFrom.refId, ep),
@@ -196,7 +196,7 @@ object ExecutionPlanModelConverter {
 
         for (ref: am.AttrOrExprRef <- getRefs(op.params)) {
           this._pmUses :+= (
-            if (ref.isAttribute)
+            if (AttrOrExprRef.isAttribute(ref))
               EdgeDef.Uses.edgeToAttr(opKey, KeyUtils.asAttributeKey(ref.refId, ep))
             else
               EdgeDef.Uses.edgeToAttr(opKey, KeyUtils.asExpressionKey(ref.refId, ep))
@@ -278,7 +278,7 @@ object ExecutionPlanModelConverter {
         )
         attr.childIds.foreach(ref => {
           this._attrDepGraph += AttrOrExprRef.attrRef(attr.id) ~> ref
-          if (ref.isExpression)
+          if (AttrOrExprRef.isExpression(ref))
             this._pmComputedBy :+= EdgeDef.ComputedBy.edge(attrKey, KeyUtils.asExpressionKey(ref.refId, ep))
         })
       }
