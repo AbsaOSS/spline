@@ -94,7 +94,7 @@ object ExecutionPlanModelConverter {
 
       val pmDerivesFrom =
         for {
-          attrFrom <- ep.attributes
+          attrFrom <- ep.attributes if attrFrom.childIds.nonEmpty
           refFrom = AttrOrExprRef.attrRef(attrFrom.id)
           refTo <- this._attrDepGraph.get(refFrom).outerNodeTraverser
           if AttrOrExprRef.isAttribute(refTo)
@@ -235,11 +235,9 @@ object ExecutionPlanModelConverter {
             KeyUtils.asSchemaKey(originOpId, ep))
         }
 
-        this._pmFollows ++= op.childIds.map {
-          childId =>
-            EdgeDef.Follows.edge(
-              opKey,
-              KeyUtils.asOperationKey(childId, ep))
+        this._pmFollows ++= op.childIds.zipWithIndex map {
+          case (childId, i) =>
+            EdgeDef.Follows.edge(opKey, KeyUtils.asOperationKey(childId, ep), i)
         }
       })
 
@@ -280,11 +278,12 @@ object ExecutionPlanModelConverter {
           // TODO: fill attribute details
           attrKey
         )
-        attr.childIds.foreach(ref => {
-          this._attrDepGraph += AttrOrExprRef.attrRef(attr.id) ~> ref
-          if (AttrOrExprRef.isExpression(ref))
-            this._pmComputedBy :+= EdgeDef.ComputedBy.edge(attrKey, KeyUtils.asExpressionKey(ref.refId, ep))
-        })
+        attr.childIds.zipWithIndex.foreach {
+          case (ref, i) =>
+            this._attrDepGraph += AttrOrExprRef.attrRef(attr.id) ~> ref
+            if (AttrOrExprRef.isExpression(ref))
+              this._pmComputedBy :+= EdgeDef.ComputedBy.edge(attrKey, KeyUtils.asExpressionKey(ref.refId, ep), i)
+        }
       }
       this
     }
