@@ -171,14 +171,18 @@ object ExecutionPlanModelConverter {
         ep.id,
         pmDataSourceByURI(ep.operations.write.outputSource)._key)
 
-    private def getRefs(obj: Map[String, Any]): Iterable[am.AttrOrExprRef] = {
-      obj.values.flatMap({
+    private def collectRefs(obj: Map[String, Any]): Iterable[am.AttrOrExprRef] = {
+      def fromVal(v: Any): Iterable[am.AttrOrExprRef] = v match {
         case m: Map[String, _] =>
           am.AttrOrExprRef
             .fromMap(m)
             .map(Seq(_))
-            .getOrElse(getRefs(m))
-      })
+            .getOrElse(collectRefs(m))
+        case xs: Seq[_] => xs.flatMap(fromVal)
+        case _ => Nil
+      }
+
+      obj.values.flatMap(fromVal)
     }
 
     def addOperations(operations: Seq[am.OperationLike]): this.type = {
@@ -194,7 +198,7 @@ object ExecutionPlanModelConverter {
           case t: am.DataOperation => toTransformOperation(t)
         })
 
-        for (ref: am.AttrOrExprRef <- getRefs(op.params)) {
+        for (ref: am.AttrOrExprRef <- collectRefs(op.params)) {
           this._pmUses :+= (
             if (AttrOrExprRef.isAttribute(ref))
               EdgeDef.Uses.edgeToAttr(opKey, KeyUtils.asAttributeKey(ref.refId, ep))

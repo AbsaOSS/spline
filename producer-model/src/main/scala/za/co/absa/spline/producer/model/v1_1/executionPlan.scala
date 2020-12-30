@@ -23,7 +23,7 @@ case class ExecutionPlan(
 
   operations: Operations,
   attributes: Seq[Attribute] = Nil,
-  expressions: Option[Expressions],
+  expressions: Option[Expressions] = None,
 
   // Information about a data framework in use (e.g. Spark, StreamSets etc)
   systemInfo: NameAndVersion,

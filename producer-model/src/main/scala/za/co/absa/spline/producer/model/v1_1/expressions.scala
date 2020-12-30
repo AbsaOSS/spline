@@ -18,6 +18,8 @@ package za.co.absa.spline.producer.model.v1_1
 
 sealed trait ExpressionLike {
   def id: ExpressionLike.Id
+
+  // todo: data types aren't properly modeled yet. Shouldn't we hide them under extras then?
   def dataType: Option[Any]
 
   // todo: rename it to "childRefs" ??
@@ -42,7 +44,7 @@ object ExpressionLike {
  */
 case class FunctionalExpression(
   override val id: ExpressionLike.Id,
-  override val dataType: Option[Any],
+  override val dataType: Option[Any] = None,
   override val childIds: Seq[ExpressionLike.ChildRef] = Nil,
   override val extra: Map[String, Any] = Map.empty,
   name: String,
@@ -59,7 +61,7 @@ case class FunctionalExpression(
  */
 case class Literal(
   override val id: ExpressionLike.Id,
-  override val dataType: Option[Any],
+  override val dataType: Option[Any] = None,
   override val extra: Map[String, Any] = Map.empty,
   value: Any,
 ) extends ExpressionLike {

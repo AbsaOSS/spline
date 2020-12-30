@@ -18,7 +18,7 @@ package za.co.absa.spline.producer.model.v1_1
 
 case class Attribute(
   id: Attribute.Id,
-  dataType: Option[Any],
+  dataType: Option[Any] = None,
   // todo: rename it to "childRefs" ??
   childIds: Seq[Attribute.ChildRef] = Nil,
   extra: Map[String, Any] = Map.empty,

@@ -21,26 +21,26 @@ package za.co.absa.spline.producer.model.v1_1
  * when expression IDs need to be distinguished from other arbitrary values.
  * It can be thought of as an alternative to a type hint.
  *
- * @param `@@attrId` attribute ID
- * @param `@@exprId` expression ID
+ * @param __attrId attribute ID
+ * @param __exprId expression ID
  */
 
 case class AttrOrExprRef(
-  `@@attrId`: Option[Attribute.Id],
-  `@@exprId`: Option[ExpressionLike.Id]) {
+  __attrId: Option[Attribute.Id],
+  __exprId: Option[ExpressionLike.Id]) {
 
   require(
-    `@@attrId`.isDefined ^ `@@exprId`.isDefined,
-    s"Either `@@attrId` or `@@exprId` should be defined. Was: ${`@@attrId`}, ${`@@exprId`}")
+    __attrId.isDefined ^ __exprId.isDefined,
+    s"Either `__attrId` or `__exprId` should be defined. Was: ${__attrId}, ${__exprId}")
 
-  def refId: ExpressionLike.Id = (`@@attrId` orElse `@@exprId`).get
+  def refId: ExpressionLike.Id = (__attrId orElse __exprId).get
 }
 
 object AttrOrExprRef {
 
-  def isAttribute(ref: AttrOrExprRef): Boolean = ref.`@@attrId`.isDefined
+  def isAttribute(ref: AttrOrExprRef): Boolean = ref.__attrId.isDefined
 
-  def isExpression(ref: AttrOrExprRef): Boolean = ref.`@@exprId`.isDefined
+  def isExpression(ref: AttrOrExprRef): Boolean = ref.__exprId.isDefined
 
   def attrRef(attrId: Attribute.Id): AttrOrExprRef = AttrOrExprRef(Option(attrId), None)
 
@@ -49,8 +49,8 @@ object AttrOrExprRef {
   def fromMap(obj: Map[String, Any]): Option[AttrOrExprRef] = {
     if (obj.size != 1) None
     else obj.head match {
-      case ("@@attrId", attrId: Attribute.Id) => Some(attrRef(attrId))
-      case ("@@exprId", exprId: ExpressionLike.Id) => Some(exprRef(exprId))
+      case ("__attrId", attrId: Attribute.Id) => Some(attrRef(attrId))
+      case ("__exprId", exprId: ExpressionLike.Id) => Some(exprRef(exprId))
       case _ => None
     }
   }
