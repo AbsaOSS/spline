@@ -39,7 +39,7 @@ object VstCommunicationDestructor {
   def unapply(comm: VstCommunication[_, _]): Option[ConnectionParams] = {
     val hostHandler = extractFieldValue[VstCommunication[_, _], HostHandler](comm, Fields.HostHandler)
     val host = hostHandler.get(null, AccessType.WRITE).asInstanceOf[HostImpl]
-    val sslContext = extractFieldValue[VstConnection, SSLContext](host.connection, Fields.SslContext)
+    val sslContext = extractFieldValue[VstConnection[_], SSLContext](host.connection, Fields.SslContext)
 
     val connParams = ConnectionParams(
       host.getDescription,

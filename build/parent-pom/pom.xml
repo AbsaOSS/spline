@@ -452,4 +452,15 @@
         </dependencies>
     </dependencyManagement>
 
+    <repositories>
+        <repository>
+            <id>java-velocypack-module-scala-mvn-repo</id>
+            <url>https://raw.github.com/wajda/java-velocypack-module-scala/mvn-repo/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
+
 </project>
