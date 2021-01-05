@@ -104,6 +104,11 @@ object ExecutionPlanModelConverter {
             KeyUtils.asAttributeKey(refTo.refId, ep))
         }
 
+      val pmTransientDataSources = {
+        val persistentDSUris = persistedDSKeyByURI.keys
+        (pmDataSourceByURI -- persistentDSUris).values.toSeq
+      }
+
       ExecutionPlanPersistentModel(
         // plan
         executionPlan = pmExecutionPlan,
@@ -121,7 +126,7 @@ object ExecutionPlanModelConverter {
         produces = _pmProduces,
 
         // data source
-        dataSources = pmDataSourceByURI.values.toSeq,
+        dataSources = pmTransientDataSources,
 
         // schema
         schemas = _pmSchemas,
