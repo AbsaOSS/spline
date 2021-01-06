@@ -87,9 +87,15 @@ object GraphDef {
 
   import za.co.absa.spline.persistence.model.EdgeDef._
 
-  object LineageOverviewGraphDef extends GraphDef("overview", ProgressOf, Depends, Affects)
+  object OverviewGraphDef extends GraphDef("overviewGraph", ProgressOf, Depends, Affects)
 
-  object ExecutionPlanGraphDef extends GraphDef("execPlan", Executes, Follows, ReadsFrom, WritesTo)
+  object OperationsGraphDef extends GraphDef("operationsGraph", Executes, Follows, ReadsFrom, WritesTo)
+
+  object SchemasGraphDef extends GraphDef("schemasGraph", Emits, ConsistsOf)
+
+  object AttributesGraphDef extends GraphDef("attributesGraph", Produces, DerivesFrom)
+
+  object WxpressionsGraphDef extends GraphDef("expressionsGraph", ComputedBy, Takes)
 
 }
 

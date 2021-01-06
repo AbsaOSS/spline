@@ -19,27 +19,41 @@ package za.co.absa.spline.persistence.model
 // todo: do we really need this hierarchy here as well as for operations?
 
 sealed trait Expression extends Vertex {
-  //  def this() = this(null, null, null)
-  def _type: String
+  def _type: String // todo: rename: remove underscore to avoid collision with arangodb property name domain
+  def dataType: Option[Any]
+  def extra: Map[String, Any]
 }
 
 case class Attribute(
-  override val _key: String
+  override val _key: String,
+  override val dataType: Option[Any],
+  override val extra: Map[String, Any],
+  name: String,
 ) extends Expression {
-  //  def this() = this(null, null, null)
+  def this() = this(null, null, null, null)
+
   def _type: String = "Attr"
 }
 
 case class FunctionalExpression(
-  override val _key: String
+  override val _key: String,
+  override val dataType: Option[Any],
+  override val extra: Map[String, Any],
+  name: String,
+  params: Map[String, Any],
 ) extends Expression {
-  //  def this() = this(null, null, null)
+  def this() = this(null, null, null, null, null)
+
   def _type: String = "Func"
 }
 
 case class LiteralExpression(
-  override val _key: String
+  override val _key: String,
+  override val dataType: Option[Any],
+  override val extra: Map[String, Any],
+  value: Any,
 ) extends Expression {
-  //  def this() = this(null, null, null)
+  def this() = this(null, null, null, null)
+
   def _type: String = "Lit"
 }

@@ -280,8 +280,10 @@ object ExecutionPlanModelConverter {
       for (attr <- attributes) {
         val attrKey = KeyUtils.asAttributeKey(attr, ep)
         this._pmAttributes :+= pm.Attribute(
-          // TODO: fill attribute details
-          attrKey
+          _key = attrKey,
+          dataType = attr.dataType,
+          extra = attr.extra,
+          name = attr.name
         )
         attr.childIds.zipWithIndex.foreach {
           case (ref, i) =>
@@ -297,14 +299,19 @@ object ExecutionPlanModelConverter {
       expressions.foreach {
         case expr: am.Literal =>
           this._pmExpressions :+= pm.LiteralExpression(
-            // TODO: fill expr details
-            KeyUtils.asExpressionKey(expr, ep)
+            KeyUtils.asExpressionKey(expr, ep),
+            expr.dataType,
+            expr.extra,
+            expr.value
           )
         case expr: am.FunctionalExpression =>
           val exprKey = KeyUtils.asExpressionKey(expr, ep)
           this._pmExpressions :+= pm.FunctionalExpression(
-            // TODO: fill expr details
-            exprKey
+            exprKey,
+            expr.dataType,
+            expr.extra,
+            expr.name,
+            expr.params,
           )
           expr.childIds.zipWithIndex.foreach({
             case (ref, i) =>
