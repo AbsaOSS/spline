@@ -27,5 +27,11 @@
 
     <artifactId>producer-model-v1.1</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>za.co.absa.commons</groupId>
+            <artifactId>commons_${scala.compat.version}</artifactId>
+        </dependency>
+    </dependencies>
     
 </project>

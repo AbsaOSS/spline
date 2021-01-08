@@ -16,18 +16,16 @@
 
 package za.co.absa.spline.producer.model
 
-import scala.collection.mutable
+import za.co.absa.commons.lang.Converter
 
 class RecursiveSchemaFinder[Id, Scm](
   schemaMapping: Id => Option[Scm],
   childIds: Id => Seq[Id]
-) {
+) extends Converter {
+  override type From = Id
+  override type To = Option[(Scm, Id)]
 
-  private val schemaByOperationIdCollector = mutable.Map.empty[Id, Option[(Scm, Id)]]
-
-  // TODO: what about Abstract Converter + memoization?
-
-  private def doFindSchema(opId: Id) = schemaMapping(opId)
+  override def convert(opId: From): To = schemaMapping(opId)
     .map(schema => (schema, opId))
     .orElse {
       // We assume that the graph is consistent in terms of schema definitions.
@@ -35,11 +33,10 @@ class RecursiveSchemaFinder[Id, Scm](
       // Or if the schema is None because it's the same as the input's schema than EVERY input has the same schema by definition.
       // In either case it's enough to only traverse any of the inputs to resolve a schema if one is defined in the DAG.
       val maybeChildId = childIds(opId).headOption
-      maybeChildId.flatMap(childId => findSchemaForOpId(childId))
+      maybeChildId.flatMap(childId => this.convert(childId))
     }
 
-  // todo: looks like Scm it's used, only Id
-  def findSchemaForOpId(opId: Id): Option[(Scm, Id)] = {
-    schemaByOperationIdCollector.getOrElseUpdate(opId, doFindSchema(opId))
-  }
+  def findSchemaForOpId(opId: Id): Option[Scm] = this.convert(opId).map(_._1)
+
+  def findSchemaOriginForOpId(opId: Id): Option[Id] = this.convert(opId).map(_._2)
 }

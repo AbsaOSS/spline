@@ -48,14 +48,14 @@ class SparkSplineExecutionPlanComponentConverterFactory(agentVersion: String, pl
     new RecursiveSchemaFinder(
       allOperations.map(op => op.id -> op.schema.asInstanceOf[Option[Seq[String]]]).toMap,
       allOperations.map(op => op.id -> op.childIds).toMap
-    )
+    ) with CachingConverter
   }
 
   private def attrDefinitions = plan1.extraInfo(FieldNamesV1.PlanExtraInfo.Attributes).asInstanceOf[Seq[TypesV1.AttrDef]]
 
   private def operationOutputById =
     plan1.operations.all.map(op =>
-      op.id -> operationSchemaFinder.findSchemaForOpId(op.id).map(_._1).getOrElse(Nil)).toMap
+      op.id -> operationSchemaFinder.findSchemaForOpId(op.id).getOrElse(Nil)).toMap
 
   private def maybeADR = if (isSplinePrior04) None else Some(SparkSpline04AttributeDependencyResolver)
 

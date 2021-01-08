@@ -18,6 +18,7 @@ package za.co.absa.spline.producer.service.repo
 
 import scalax.collection.Graph
 import scalax.collection.GraphEdge.DiEdge
+import za.co.absa.commons.lang.CachingConverter
 import za.co.absa.spline.persistence.model.EdgeDef
 import za.co.absa.spline.persistence.{DefaultJsonSerDe, model => pm}
 import za.co.absa.spline.producer.model.v1_1.AttrOrExprRef
@@ -193,7 +194,8 @@ object ExecutionPlanModelConverter {
     def addOperations(operations: Seq[am.OperationLike]): this.type = {
       val schemaFinder = new RecursiveSchemaFinder(
         operations.map(op => op.id -> op.output.asOption).toMap,
-        operations.map(op => op.id -> op.childIds).toMap)
+        operations.map(op => op.id -> op.childIds).toMap
+      ) with CachingConverter
 
       operations.foreach(op => {
         val opKey = KeyUtils.asOperationKey(op, ep)
@@ -224,7 +226,7 @@ object ExecutionPlanModelConverter {
           // todo: can it be flat set already?
           val inSchemas: Seq[am.OperationLike.Schema] = for {
             childId <- op.childIds
-            (inSchema, _) <- schemaFinder.findSchemaForOpId(childId).toSeq
+            inSchema <- schemaFinder.findSchemaForOpId(childId).toSeq
           } yield inSchema
 
           for (attrIdIntroducedByTheOp <- op.output.toSet -- inSchemas.toSet.flatten) {
@@ -234,7 +236,7 @@ object ExecutionPlanModelConverter {
           }
         }
 
-        for ((_, originOpId) <- schemaFinder.findSchemaForOpId(op.id)) {
+        for (originOpId <- schemaFinder.findSchemaOriginForOpId(op.id)) {
           this._pmEmits :+= EdgeDef.Emits.edge(
             opKey,
             KeyUtils.asSchemaKey(originOpId, ep))
