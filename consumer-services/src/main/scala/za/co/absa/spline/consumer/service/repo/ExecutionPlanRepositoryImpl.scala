@@ -24,7 +24,7 @@ import za.co.absa.spline.consumer.service.model.DataSourceActionType.{Read, Writ
 import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
 import za.co.absa.spline.consumer.service.model.{AttributeGraph, DataSourceActionType, LineageDetailed}
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepositoryImpl.ExecutionPlanDagPO
-import za.co.absa.spline.persistence.model.{Edge, Operation}
+import za.co.absa.spline.persistence.model.Edge
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -55,7 +55,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |
         |LET inputs = FLATTEN(
         |    FOR op IN ops
-        |        FILTER op._type == "Read"
+        |        FILTER op.type == "Read"
         |        RETURN op.inputSources[* RETURN {
         |            "source"    : CURRENT,
         |            "sourceType": op.extra.sourceType
@@ -64,7 +64,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |
         |LET output = FIRST(
         |    ops[*
-        |        FILTER CURRENT._type == "Write"
+        |        FILTER CURRENT.type == "Write"
         |        RETURN {
         |            "source"    : CURRENT.outputSource,
         |            "sourceType": CURRENT.extra.destinationType
@@ -75,7 +75,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |    "graph": {
         |        "nodes": ops[* RETURN {
         |                "_id"  : CURRENT._key,
-        |                "_type": CURRENT._type,
+        |                "type": CURRENT.type,
         |                "name" : CURRENT.extra.name
         |            }],
         |        "edges": edges[* RETURN {
@@ -158,10 +158,10 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
       ))
   }
 
-  override def getDataSources(execPlanId: String, access: Option[DataSourceActionType])(implicit ec: ExecutionContext): Future[Array[String]] =  {
+  override def getDataSources(execPlanId: String, access: Option[DataSourceActionType])(implicit ec: ExecutionContext): Future[Array[String]] = {
     access
       .map({
-        case Read =>  db.queryStream[String](
+        case Read => db.queryStream[String](
           """
             |FOR ds IN 1..1
             |OUTBOUND DOCUMENT('executionPlan', @planId) depends
@@ -199,7 +199,7 @@ object ExecutionPlanRepositoryImpl {
     extra: Map[String, Any],
     outputSchema: Option[Array[String]],
     _key: String,
-    _type: String
+    `type`: String
   ) {
     def this() = this(null, null, null, null, null)
   }

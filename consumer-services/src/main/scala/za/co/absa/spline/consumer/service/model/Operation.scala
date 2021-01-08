@@ -25,7 +25,7 @@ case class Operation
   @ApiModelProperty(value = "Operation Id")
   _id: OperationID,
   @ApiModelProperty(value = "Type of the operation", example = "Read / Transformation / Write")
-  _type: String,
+  `type`: String,
   @ApiModelProperty(value = "Name of the operation")
   name: String,
   @ApiModelProperty(value = "Properties of the operation")

@@ -19,7 +19,7 @@ package za.co.absa.spline.persistence.model
 sealed trait Operation extends Vertex {
   def params: Map[String, Any]
   def extra: Map[String, Any]
-  def _type: String
+  def `type`: String
 }
 
 case class Read(
@@ -29,7 +29,7 @@ case class Read(
   override val _key: String,
 ) extends Operation {
   def this() = this(null, null, null, null)
-  override val _type: String = "Read"
+  override val `type`: String = "Read"
 }
 
 case class Write(
@@ -40,7 +40,7 @@ case class Write(
   override val _key: String,
 ) extends Operation {
   def this() = this(null, false, null, null, null)
-  override val _type: String = "Write"
+  override val `type`: String = "Write"
 }
 
 case class Transformation(
@@ -49,5 +49,5 @@ case class Transformation(
   override val _key: String,
 ) extends Operation {
   def this() = this(null, null, null)
-  override val _type: String = "Transformation"
+  override val `type`: String = "Transformation"
 }

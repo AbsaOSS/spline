@@ -150,7 +150,7 @@ object NodeDef {
 
   object Operation extends NodeDef("operation") with CollectionDef {
     override def indexDefs: Seq[IndexDef] = Seq(
-      IndexDef(Seq("_type"), new PersistentIndexOptions),
+      IndexDef(Seq("type"), new PersistentIndexOptions),
       IndexDef(Seq("outputSource"), new PersistentIndexOptions().sparse(true)),
       IndexDef(Seq("append"), new PersistentIndexOptions().sparse(true))
     )
