@@ -21,15 +21,6 @@ import za.co.absa.spline.producer.modelmapper.v1.{AttributeConverter, FieldNames
 
 class SparkSplineAttributeConverter extends AttributeConverter {
 
-  override def isAttribute(obj: Any): Boolean = PartialFunction.cond(obj) {
-    case attrDef: TypesV1.AttrDef =>
-      Seq(
-        FieldNamesV1.AttributeDef.Id,
-        FieldNamesV1.AttributeDef.Name,
-        FieldNamesV1.AttributeDef.DataTypeId
-      ).forall(attrDef.contains)
-  }
-
   override def convert(attrDef: TypesV1.AttrDef): v1_1.Attribute = {
     val childIds = attrDef
       .getOrElse(FieldNamesV1.AttributeDef.Dependencies, Nil)

@@ -22,6 +22,4 @@ import za.co.absa.spline.producer.model.v1_1
 trait AttributeConverter extends Converter {
   override type From = TypesV1.AttrDef
   override type To = v1_1.Attribute
-
-  def isAttribute(obj: Any): Boolean
 }

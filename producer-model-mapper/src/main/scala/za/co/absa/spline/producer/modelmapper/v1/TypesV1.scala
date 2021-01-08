@@ -16,8 +16,6 @@
 
 package za.co.absa.spline.producer.modelmapper.v1
 
-import za.co.absa.spline.producer.model.v1_1
-
 object TypesV1 {
   type AttrId = String
   type ExprId = String

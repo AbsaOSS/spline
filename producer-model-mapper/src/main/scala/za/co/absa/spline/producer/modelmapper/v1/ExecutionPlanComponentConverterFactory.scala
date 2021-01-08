@@ -17,14 +17,15 @@
 package za.co.absa.spline.producer.modelmapper.v1
 
 import za.co.absa.commons.lang.CachingConverter
+import za.co.absa.spline.producer.model.v1_1
 import za.co.absa.spline.producer.modelmapper.v1.spark.SparkSplineExecutionPlanComponentConverterFactory
 import za.co.absa.spline.producer.{model => v1}
 
 import scala.PartialFunction.condOpt
 
 trait ExecutionPlanComponentConverterFactory {
-  def attributeConverter: Option[AttributeConverter with CachingConverter]
-  def expressionConverter: Option[ExpressionConverter with CachingConverter]
+  def attributeConverter: Option[CachingConverter {type To = v1_1.Attribute}]
+  def expressionConverter: Option[CachingConverter {type To = v1_1.ExpressionLike}]
   def outputConverter: Option[OperationOutputConverter]
   def objectConverter: ObjectConverter
 }

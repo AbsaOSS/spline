@@ -18,7 +18,8 @@ package za.co.absa.spline.producer.modelmapper.v1.spark
 
 import za.co.absa.commons.lang.CachingConverter
 import za.co.absa.commons.version.Version._
-import za.co.absa.spline.producer.model.RecursiveSchemaFinder
+import za.co.absa.spline.producer.model.{RecursiveSchemaFinder, v1_1}
+import za.co.absa.spline.producer.modelmapper.v1.TypesV1.AttrDef
 import za.co.absa.spline.producer.modelmapper.v1._
 import za.co.absa.spline.producer.{model => v1}
 
@@ -26,16 +27,20 @@ import scala.util.Try
 
 class SparkSplineExecutionPlanComponentConverterFactory(agentVersion: String, plan1: v1.ExecutionPlan) extends ExecutionPlanComponentConverterFactory {
 
-  override def expressionConverter: Option[ExpressionConverter with CachingConverter] = Some(_expressionConverter)
+  override def expressionConverter: Option[CachingConverter {type To = v1_1.ExpressionLike}] = Some(_expressionConverter)
 
-  override def attributeConverter: Option[AttributeConverter with CachingConverter] = Some(_attributeConverter)
+  override def attributeConverter: Option[CachingConverter {type To = v1_1.Attribute}] = Some(_attributeConverter)
 
   override def outputConverter: Option[OperationOutputConverter] = Some(_outputConverter)
 
   override def objectConverter: ObjectConverter = new SparkSplineObjectConverter(AttributeRefConverter, _expressionConverter)
 
-  private val _expressionConverter = new SparkSplineExpressionConverter(AttributeRefConverter) with CachingConverter // todo: cache key => exprDef.id
-  private val _attributeConverter = new SparkSplineAttributeConverter with CachingConverter // todo: cache key => attr.id or attrRef.refId
+  private val _expressionConverter = new SparkSplineExpressionConverter(AttributeRefConverter) with CachingConverter
+
+  private val _attributeConverter = new SparkSplineAttributeConverter with CachingConverter {
+    override protected def keyOf(attrDef: AttrDef): Key = attrDef(FieldNamesV1.AttributeDef.Id)
+  }
+
   private val _outputConverter = new SparkSplineOperationOutputConverter(_attributeConverter, attrDefinitions, operationOutputById, maybeADR)
 
   private val operationSchemaFinder = {
