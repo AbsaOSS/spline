@@ -432,6 +432,12 @@
                 <version>1.4.0</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.scala-graph</groupId>
+                <artifactId>graph-core_${scala.compat.version}</artifactId>
+                <version>1.13.1</version>
+            </dependency>
+
             <!-- Test scope dependencies -->
 
             <dependency>

@@ -45,6 +45,10 @@
             <artifactId>producer-model</artifactId>
             <version>0.5.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.scala-graph</groupId>
+            <artifactId>graph-core_${scala.compat.version}</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

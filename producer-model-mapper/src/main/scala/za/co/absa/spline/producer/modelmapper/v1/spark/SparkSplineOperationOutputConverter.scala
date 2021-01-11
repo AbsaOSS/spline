@@ -17,7 +17,7 @@
 package za.co.absa.spline.producer.modelmapper.v1.spark
 
 import za.co.absa.spline.producer.model.v1_1
-import za.co.absa.spline.producer.modelmapper.v1.{AttributeConverter, AttributeDependencyResolver, ExpressionConverter, FieldNamesV1, OperationOutputConverter, TypesV1}
+import za.co.absa.spline.producer.modelmapper.v1._
 import za.co.absa.spline.producer.{model => v1}
 
 class SparkSplineOperationOutputConverter(
@@ -32,22 +32,19 @@ class SparkSplineOperationOutputConverter(
       .groupBy(_ (FieldNamesV1.AttributeDef.Id).toString)
       .mapValues(_.head)
 
-  override def convert(op1: v1.OperationLike): Option[TypesV1.Schema] =
+  override def convert(op1: v1.OperationLike): Option[v1_1.OperationLike.Schema] =
     for (schema <- op1.schema)
       yield {
         val inputAttrIds: Seq[TypesV1.AttrId] = op1.childIds.flatMap(operationOutputById)
         val outputAttrIds = schema.asInstanceOf[Seq[TypesV1.AttrId]]
-        val createdAttrIds = outputAttrIds.filterNot(inputAttrIds.toSet)
+
         val attrDependenciesById = maybeAttrDepResolver
           .map(_.resolve(op1, inputAttrIds, outputAttrIds))
           .getOrElse(Map.empty)
+          .withDefaultValue(Nil)
 
-        // todo: remove side effect
-        createdAttrIds.foreach(attrId =>
-          convertAttribute(attrId, attrDependenciesById(attrId).toSeq)
-        )
-
-        outputAttrIds
+        outputAttrIds.map(attrId =>
+          convertAttribute(attrId, attrDependenciesById(attrId).toSeq))
       }
 
   private def convertAttribute(attrId: TypesV1.AttrId, dependencies: Seq[TypesV1.AttrId]) = {

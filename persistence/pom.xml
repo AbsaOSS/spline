@@ -49,7 +49,6 @@
         <dependency>
             <groupId>org.scala-graph</groupId>
             <artifactId>graph-core_${scala.compat.version}</artifactId>
-            <version>1.13.1</version>
         </dependency>
 
         <!-- Spring -->

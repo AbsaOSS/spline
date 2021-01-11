@@ -20,8 +20,6 @@ import za.co.absa.spline.producer.model.{OperationLike => OperationLikeV1}
 import za.co.absa.spline.producer.modelmapper.v1.TypesV1.{AttrId, ExprDef, Schema}
 import za.co.absa.spline.producer.modelmapper.v1.{AttributeDependencyResolver, FieldNamesV1}
 
-import scala.collection.JavaConverters._
-
 object SparkSpline04AttributeDependencyResolver extends AttributeDependencyResolver {
 
   override def resolve(
@@ -30,8 +28,8 @@ object SparkSpline04AttributeDependencyResolver extends AttributeDependencyResol
     outputSchema: => Schema
   ): Map[AttrId, Set[AttrId]] =
     op.extra(FieldNamesV1.OperationExtraInfo.Name) match {
-      case "Project" => resolveExpressionList(asScalaListOfMaps(op.params("projectList")), outputSchema)
-      case "Aggregate" => resolveExpressionList(asScalaListOfMaps(op.params("aggregateExpressions")), outputSchema)
+      case "Project" => resolveExpressionList(op.params("projectList").asInstanceOf[Seq[Map[String, _]]], outputSchema)
+      case "Aggregate" => resolveExpressionList(op.params("aggregateExpressions").asInstanceOf[Seq[Map[String, _]]], outputSchema)
       case "SubqueryAlias" => resolveSubqueryAlias(inputSchema, outputSchema)
       case "Generate" => resolveGenerator(op)
       case _ => Map.empty
@@ -52,9 +50,9 @@ object SparkSpline04AttributeDependencyResolver extends AttributeDependencyResol
       .toMap
 
   private def resolveGenerator(op: OperationLikeV1): Map[AttrId, Set[AttrId]] = {
-    val expression = asScalaMap[String, Any](op.params("generator"))
+    val expression = op.params("generator").asInstanceOf[Map[String, _]]
     val dependencies = expressionDependencies(expression)
-    val keyId = asScalaListOfMaps[String, String](op.params("generatorOutput")).head("refId")
+    val keyId = op.params("generatorOutput").asInstanceOf[Seq[Map[String, String]]].head("refId")
     Map(keyId -> dependencies)
   }
 
@@ -62,19 +60,12 @@ object SparkSpline04AttributeDependencyResolver extends AttributeDependencyResol
     case "expr.AttrRef" =>
       Set(expr("refId").asInstanceOf[String])
     case "expr.Alias" =>
-      expressionDependencies(asScalaMap[String, Any](expr("child")))
+      expressionDependencies(expr("child").asInstanceOf[Map[String, Any]])
     case _ =>
-      val children = expr.getOrElse("children", java.util.Collections.EMPTY_LIST)
-      asScalaListOfMaps[String, Any](children)
+      val children = expr.getOrElse("children", Nil)
+      children
+        .asInstanceOf[Seq[Map[String, Any]]]
         .toSet
         .flatMap(expressionDependencies)
   }
-
-  private def asScalaMap[K, V](javaMap: Any) =
-    javaMap.asInstanceOf[java.util.Map[K, V]].asScala.toMap
-
-  private def asScalaListOfMaps[K, V](javaList: Any): Seq[Map[K, V]] =
-    javaList.asInstanceOf[java.util.List[java.util.Map[K, V]]].asScala.map(_.asScala.toMap)
-
-
 }

@@ -17,6 +17,9 @@
 package za.co.absa.spline.producer.modelmapper.v1
 
 
+import scalax.collection.Graph
+import scalax.collection.GraphEdge.DiEdge
+import scalax.collection.GraphPredef.EdgeAssoc
 import za.co.absa.commons.lang.CachingConverter
 import za.co.absa.spline.producer.model.v1_1._
 import za.co.absa.spline.producer.modelmapper.ModelMapper
@@ -38,7 +41,7 @@ object ModelMapperV1 extends ModelMapper {
 
     val operationConverter = new OperationConverter(objectConverter, maybeOutputConverter) with CachingConverter
 
-    plan1.operations.all.foreach(operationConverter.convert)
+    sortInDependencyOrder(plan1.operations.all).foreach(operationConverter.convert)
 
     val operations = asOperationsObject(operationConverter.values)
     val attributes = maybeAttributesConverter.map(_.values).getOrElse(Nil)
@@ -67,6 +70,21 @@ object ModelMapperV1 extends ModelMapper {
     error = event.error,
     extra = event.extra
   )
+
+  private def sortInDependencyOrder(ops: Seq[v1.OperationLike]): Seq[v1.OperationLike] = {
+    val opById = ops.map(op => op.id -> op).toMap
+    val opEdges: Seq[DiEdge[v1.OperationLike]] =
+      for {
+        op <- ops
+        childId <- op.childIds
+      } yield opById(childId) ~> op
+
+    Graph
+      .from(edges = opEdges)
+      .topologicalSort match {
+      case Right(res) => res.toOuter.toSeq
+    }
+  }
 
   private def asOperationsObject(ops: Seq[OperationLike]) = {
     val (Some(write), reads, others) =

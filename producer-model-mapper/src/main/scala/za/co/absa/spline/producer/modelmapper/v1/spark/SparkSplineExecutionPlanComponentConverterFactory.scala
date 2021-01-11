@@ -35,14 +35,6 @@ class SparkSplineExecutionPlanComponentConverterFactory(agentVersion: String, pl
 
   override def objectConverter: ObjectConverter = new SparkSplineObjectConverter(AttributeRefConverter, _expressionConverter)
 
-  private val _expressionConverter = new SparkSplineExpressionConverter(AttributeRefConverter) with CachingConverter
-
-  private val _attributeConverter = new SparkSplineAttributeConverter with CachingConverter {
-    override protected def keyOf(attrDef: AttrDef): Key = attrDef(FieldNamesV1.AttributeDef.Id)
-  }
-
-  private val _outputConverter = new SparkSplineOperationOutputConverter(_attributeConverter, attrDefinitions, operationOutputById, maybeADR)
-
   private val operationSchemaFinder = {
     val allOperations = plan1.operations.all
     new RecursiveSchemaFinder(
@@ -51,11 +43,21 @@ class SparkSplineExecutionPlanComponentConverterFactory(agentVersion: String, pl
     ) with CachingConverter
   }
 
-  private def attrDefinitions = plan1.extraInfo(FieldNamesV1.PlanExtraInfo.Attributes).asInstanceOf[Seq[TypesV1.AttrDef]]
+  private val _expressionConverter = new SparkSplineExpressionConverter(AttributeRefConverter) with CachingConverter
 
-  private def operationOutputById =
-    plan1.operations.all.map(op =>
-      op.id -> operationSchemaFinder.findSchemaForOpId(op.id).getOrElse(Nil)).toMap
+  private val _attributeConverter = new SparkSplineAttributeConverter with CachingConverter {
+    override protected def keyOf(attrDef: AttrDef): Key = attrDef(FieldNamesV1.AttributeDef.Id)
+  }
+
+  private val _outputConverter = {
+    val operationOutputById =
+      plan1.operations.all
+        .map(op => op.id -> operationSchemaFinder.findSchemaForOpId(op.id).getOrElse(Nil))
+        .toMap
+    new SparkSplineOperationOutputConverter(_attributeConverter, attrDefinitions, operationOutputById, maybeADR)
+  }
+
+  private def attrDefinitions = plan1.extraInfo(FieldNamesV1.PlanExtraInfo.Attributes).asInstanceOf[Seq[TypesV1.AttrDef]]
 
   private def maybeADR = if (isSplinePrior04) None else Some(SparkSpline04AttributeDependencyResolver)
 

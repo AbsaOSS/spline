@@ -22,5 +22,5 @@ import za.co.absa.spline.producer.{model => v1}
 
 trait OperationOutputConverter extends Converter {
   override type From = v1.OperationLike
-  override type To = Option[TypesV1.Schema]
+  override type To = Option[v1_1.OperationLike.Schema]
 }

@@ -38,7 +38,7 @@ class SparkSplineExpressionConverter(
   override def convert(exprDef: TypesV1.ExprDef): ExpressionLike = {
     exprDef(FieldNamesV1.ExpressionDef.TypeHint) match {
       case "expr.Literal" => toLiteral(exprDef)
-      case "expr.Alias" => toFunctionalExpression(exprDef, _ => "alias", _.find({ case (k, _) => k == FieldNamesV1.ExpressionDef.Alias }))
+      case "expr.Alias" => toFunctionalExpression(exprDef, _ => "alias", _.filterKeys(FieldNamesV1.ExpressionDef.Alias.==))
       case "expr.Binary" => toFunctionalExpression(exprDef, _ (FieldNamesV1.ExpressionDef.Symbol))
       case "expr.UDF" => toFunctionalExpression(exprDef, _ (FieldNamesV1.ExpressionDef.Name))
       case "expr.Generic" | "expr.GenericLeaf" | "expr.UntypedExpression" =>
