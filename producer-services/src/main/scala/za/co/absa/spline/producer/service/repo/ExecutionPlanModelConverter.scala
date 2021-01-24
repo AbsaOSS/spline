@@ -31,6 +31,7 @@ object ExecutionPlanModelConverter {
   import DefaultJsonSerDe._
   import scalax.collection.GraphPredef._
   import za.co.absa.commons.lang.OptionImplicits._
+  import za.co.absa.spline.common.OptionImplicitsExtra._
 
   def toPersistentModel(
     ep: am.ExecutionPlan,
@@ -39,7 +40,7 @@ object ExecutionPlanModelConverter {
     new EPPMBuilder(ep, persistedDSKeyByURI)
       .addOperations(ep.operations.all)
       .addAttributes(ep.attributes)
-      .optionally(_.addExpressions(_: Seq[am.ExpressionLike]), ep.expressions.map(_.all)) // todo: improve optionally type inference
+      .having(ep.expressions.map(_.all))(_ addExpressions _)
       .build()
   }
 
