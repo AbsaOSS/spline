@@ -71,20 +71,22 @@ object ModelMapperV1 extends ModelMapper {
     extra = event.extra
   )
 
-  private def sortInDependencyOrder(ops: Seq[v1.OperationLike]): Seq[v1.OperationLike] = {
-    val opById = ops.map(op => op.id -> op).toMap
-    val opEdges: Seq[DiEdge[v1.OperationLike]] =
-      for {
-        op <- ops
-        childId <- op.childIds
-      } yield opById(childId) ~> op
+  private def sortInDependencyOrder(ops: Seq[v1.OperationLike]): Seq[v1.OperationLike] =
+    if (ops.length < 2) ops
+    else {
+      val opById = ops.map(op => op.id -> op).toMap
+      val opEdges: Seq[DiEdge[v1.OperationLike]] =
+        for {
+          op <- ops
+          childId <- op.childIds
+        } yield opById(childId) ~> op
 
-    Graph
-      .from(edges = opEdges)
-      .topologicalSort match {
-      case Right(res) => res.toOuter.toSeq
+      Graph
+        .from(edges = opEdges)
+        .topologicalSort match {
+        case Right(res) => res.toOuter.toSeq
+      }
     }
-  }
 
   private def asOperationsObject(ops: Seq[OperationLike]) = {
     val (Some(write), reads, others) =
