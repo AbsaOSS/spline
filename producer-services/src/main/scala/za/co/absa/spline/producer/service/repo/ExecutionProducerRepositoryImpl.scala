@@ -18,7 +18,6 @@ package za.co.absa.spline.producer.service.repo
 
 
 import com.arangodb.async.ArangoDatabaseAsync
-import org.apache.commons.lang3.StringUtils.wrap
 import org.slf4s.Logging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -62,9 +61,10 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
       s"""
          |WITH ${NodeDef.DataSource.name}
          |FOR ds IN ${NodeDef.DataSource.name}
-         |    FILTER ds.uri IN [${referencedDSURIs.map(wrap(_, '"')).mkString(", ") /*todo: can't we use var binding instead?*/}]
+         |    FILTER ds.uri IN @refURIs
          |    RETURN ds
-         |    """.stripMargin
+         |    """.stripMargin,
+      Map("refURIs" -> referencedDSURIs.toArray)
     ).map(_.streamRemaining.toScala.map(ds => ds.uri -> ds._key).toMap)
 
     for {
