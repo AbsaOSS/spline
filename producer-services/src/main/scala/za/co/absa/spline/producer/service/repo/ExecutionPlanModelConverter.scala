@@ -140,53 +140,6 @@ object ExecutionPlanModelConverter {
       )
     }
 
-    //////////////////////////////////////////////////////////////////////////
-
-    // todo: all getXXX, pmXXX and toXXX could be static
-
-    private def pmReadsFrom: Seq[pm.Edge] =
-      for {
-        ro <- ep.operations.reads
-        ds <- ro.inputSources
-      } yield {
-        EdgeDef.ReadsFrom.edge(
-          KeyUtils.asOperationKey(ro, ep),
-          pmDataSourceByURI(ds)._key)
-      }
-
-    private def pmWritesTo: pm.Edge = {
-      EdgeDef.WritesTo.edge(
-        KeyUtils.asOperationKey(ep.operations.write, ep),
-        pmDataSourceByURI(ep.operations.write.outputSource)._key)
-    }
-
-    private def pmDepends: Seq[pm.Edge] =
-      for {
-        ro <- ep.operations.reads
-        ds <- ro.inputSources
-      } yield EdgeDef.Depends.edge(
-        ep.id,
-        pmDataSourceByURI(ds)._key)
-
-    private def pmAffects: pm.Edge =
-      EdgeDef.Affects.edge(
-        ep.id,
-        pmDataSourceByURI(ep.operations.write.outputSource)._key)
-
-    private def collectRefs(obj: Map[String, Any]): Iterable[am.AttrOrExprRef] = {
-      def fromVal(v: Any): Iterable[am.AttrOrExprRef] = v match {
-        case m: Map[String, _] =>
-          am.AttrOrExprRef
-            .fromMap(m)
-            .map(Seq(_))
-            .getOrElse(collectRefs(m))
-        case xs: Seq[_] => xs.flatMap(fromVal)
-        case _ => Nil
-      }
-
-      obj.values.flatMap(fromVal)
-    }
-
     def addOperations(operations: Seq[am.OperationLike]): this.type = {
       val schemaFinder = new RecursiveSchemaFinder(
         operations.map(op => op.id -> op.output.asOption).toMap,
@@ -243,33 +196,6 @@ object ExecutionPlanModelConverter {
       this
     }
 
-    private def toTransformOperation(t: am.DataOperation) = {
-      pm.Transformation(
-        params = t.params,
-        extra = t.extra,
-        _key = KeyUtils.asOperationKey(t, ep)
-      )
-    }
-
-    private def toWriteOperation(w: am.WriteOperation) = {
-      pm.Write(
-        outputSource = w.outputSource,
-        append = w.append,
-        params = w.params,
-        extra = w.extra,
-        _key = KeyUtils.asOperationKey(w, ep)
-      )
-    }
-
-    private def toReadOperation(r: am.ReadOperation) = {
-      pm.Read(
-        inputSources = r.inputSources,
-        params = r.params,
-        extra = r.extra,
-        _key = KeyUtils.asOperationKey(r, ep)
-      )
-    }
-
     def addAttributes(attributes: Seq[am.Attribute]): this.type = {
       for (attr <- attributes) {
         val attrKey = KeyUtils.asAttributeKey(attr, ep)
@@ -322,6 +248,75 @@ object ExecutionPlanModelConverter {
       this
     }
 
+    private def pmReadsFrom: Seq[pm.Edge] =
+      for {
+        ro <- ep.operations.reads
+        ds <- ro.inputSources
+      } yield {
+        EdgeDef.ReadsFrom.edge(
+          KeyUtils.asOperationKey(ro, ep),
+          pmDataSourceByURI(ds)._key)
+      }
+
+    private def pmWritesTo: pm.Edge = {
+      EdgeDef.WritesTo.edge(
+        KeyUtils.asOperationKey(ep.operations.write, ep),
+        pmDataSourceByURI(ep.operations.write.outputSource)._key)
+    }
+
+    private def pmDepends: Seq[pm.Edge] =
+      for {
+        ro <- ep.operations.reads
+        ds <- ro.inputSources
+      } yield EdgeDef.Depends.edge(
+        ep.id,
+        pmDataSourceByURI(ds)._key)
+
+    private def pmAffects: pm.Edge =
+      EdgeDef.Affects.edge(
+        ep.id,
+        pmDataSourceByURI(ep.operations.write.outputSource)._key)
+
+    private def collectRefs(obj: Map[String, Any]): Iterable[am.AttrOrExprRef] = {
+      def fromVal(v: Any): Iterable[am.AttrOrExprRef] = v match {
+        case m: Map[String, _] =>
+          am.AttrOrExprRef
+            .fromMap(m)
+            .map(Seq(_))
+            .getOrElse(collectRefs(m))
+        case xs: Seq[_] => xs.flatMap(fromVal)
+        case _ => Nil
+      }
+
+      obj.values.flatMap(fromVal)
+    }
+
+    private def toTransformOperation(t: am.DataOperation) = {
+      pm.Transformation(
+        params = t.params,
+        extra = t.extra,
+        _key = KeyUtils.asOperationKey(t, ep)
+      )
+    }
+
+    private def toWriteOperation(w: am.WriteOperation) = {
+      pm.Write(
+        outputSource = w.outputSource,
+        append = w.append,
+        params = w.params,
+        extra = w.extra,
+        _key = KeyUtils.asOperationKey(w, ep)
+      )
+    }
+
+    private def toReadOperation(r: am.ReadOperation) = {
+      pm.Read(
+        inputSources = r.inputSources,
+        params = r.params,
+        extra = r.extra,
+        _key = KeyUtils.asOperationKey(r, ep)
+      )
+    }
   }
 
 }
