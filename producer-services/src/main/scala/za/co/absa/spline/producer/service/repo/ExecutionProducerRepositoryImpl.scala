@@ -51,12 +51,6 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
          |    """.stripMargin,
       Map("key" -> executionPlan.id))
 
-    val referencedDSURIs = {
-      val readSources = executionPlan.operations.reads.flatMap(_.inputSources).toSet
-      val writeSource = executionPlan.operations.write.outputSource
-      readSources + writeSource
-    }
-
     val eventualPersistedDSKeyByURI: Future[Map[String, DataSource.Key]] = db.queryAs[DataSource](
       s"""
          |WITH ${NodeDef.DataSource.name}
@@ -64,7 +58,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
          |    FILTER ds.uri IN @refURIs
          |    RETURN ds
          |    """.stripMargin,
-      Map("refURIs" -> referencedDSURIs.toArray)
+      Map("refURIs" -> executionPlan.dataSources.toArray)
     ).map(_.streamRemaining.toScala.map(ds => ds.uri -> ds._key).toMap)
 
     for {

@@ -71,12 +71,7 @@ object ExecutionPlanModelConverter {
     private var _attrDepGraph = Graph.empty[AttrOrExprRef, DiEdge]
 
     private val pmDataSourceByURI: Map[String, pm.DataSource] = {
-      // todo: deduplicate it
-      val referencedURIs = {
-        val readSources = ep.operations.reads.flatMap(_.inputSources).toSet
-        val writeSource = ep.operations.write.outputSource
-        readSources + writeSource
-      }
+      val referencedURIs = ep.dataSources
       val persistedURIs = persistedDSKeyByURI.keys
       val transientDSKeyByURI = (referencedURIs -- persistedURIs).map(_ -> randomUUID.toString).toMap
       val dsKeyByUri = transientDSKeyByURI ++ persistedDSKeyByURI

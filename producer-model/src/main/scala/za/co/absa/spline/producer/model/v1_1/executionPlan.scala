@@ -31,7 +31,13 @@ case class ExecutionPlan(
   agentInfo: Option[NameAndVersion] = None,
   // User payload
   extraInfo: Map[String, Any] = Map.empty
-)
+) {
+  def dataSources: Set[String] = {
+    val readSources = operations.reads.flatMap(_.inputSources).toSet
+    val writeSource = operations.write.outputSource
+    readSources + writeSource
+  }
+}
 
 case class Operations(
   write: WriteOperation,
