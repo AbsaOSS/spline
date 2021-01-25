@@ -219,16 +219,12 @@ object ExecutionPlanModelConverter {
               EdgeDef.ConsistsOf.edge(schemaKey, KeyUtils.asAttributeKey(attrId, ep), i)
           }
 
-          // todo: can it be flat set already?
-          val inSchemas: Seq[am.OperationLike.Schema] = for {
-            childId <- op.childIds
-            inSchema <- schemaFinder.findSchemaForOpId(childId).toSeq
-          } yield inSchema
-
-          for (attrIdIntroducedByTheOp <- op.output.toSet -- inSchemas.toSet.flatten) {
+          val inputSchemas = op.childIds.flatMap(schemaFinder.findSchemaForOpId)
+          val createdAttrIds = inputSchemas.foldLeft(op.output.toSet)(_ -- _)
+          for (attrIdCreatedByTheOp <- createdAttrIds) {
             this._pmProduces :+= EdgeDef.Produces.edge(
               opKey,
-              KeyUtils.asAttributeKey(attrIdIntroducedByTheOp, ep))
+              KeyUtils.asAttributeKey(attrIdCreatedByTheOp, ep))
           }
         }
 
