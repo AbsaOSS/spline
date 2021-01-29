@@ -34,13 +34,13 @@ case class AttrOrExprRef(
     s"Either `__attrId` or `__exprId` should be defined. Was: ${__attrId}, ${__exprId}")
 
   def refId: ExpressionLike.Id = (__attrId orElse __exprId).get
+
+  def isAttribute: Boolean = __attrId.isDefined
+
+  def isExpression: Boolean = __exprId.isDefined
 }
 
 object AttrOrExprRef {
-
-  def isAttribute(ref: AttrOrExprRef): Boolean = ref.__attrId.isDefined
-
-  def isExpression(ref: AttrOrExprRef): Boolean = ref.__exprId.isDefined
 
   def attrRef(attrId: Attribute.Id): AttrOrExprRef = AttrOrExprRef(Option(attrId), None)
 

@@ -17,10 +17,8 @@
 package za.co.absa.spline.producer.modelmapper.v1
 
 
-import scalax.collection.Graph
-import scalax.collection.GraphEdge.DiEdge
-import scalax.collection.GraphPredef.EdgeAssoc
 import za.co.absa.commons.lang.CachingConverter
+import za.co.absa.spline.common.graph.GraphUtils._
 import za.co.absa.spline.producer.model.v1_1._
 import za.co.absa.spline.producer.modelmapper.ModelMapper
 import za.co.absa.spline.producer.{model => v1}
@@ -29,6 +27,12 @@ object ModelMapperV1 extends ModelMapper {
 
   override type P = v1.ExecutionPlan
   override type E = v1.ExecutionEvent
+
+  private implicit object OpNav extends NodeNavigation[v1.OperationLike, Int] {
+    override def id(op: v1.OperationLike): Int = op.id
+
+    override def nextIds(op: v1.OperationLike): Seq[Int] = op.childIds
+  }
 
   override def fromDTO(plan1: v1.ExecutionPlan): ExecutionPlan = {
 
@@ -41,7 +45,9 @@ object ModelMapperV1 extends ModelMapper {
 
     val operationConverter = new OperationConverter(objectConverter, maybeOutputConverter) with CachingConverter
 
-    sortInDependencyOrder(plan1.operations.all).foreach(operationConverter.convert)
+    plan1.operations.all
+      .sortedTopologically(reverse = true)
+      .foreach(operationConverter.convert)
 
     val operations = asOperationsObject(operationConverter.values)
     val attributes = maybeAttributesConverter.map(_.values).getOrElse(Nil)
@@ -71,23 +77,6 @@ object ModelMapperV1 extends ModelMapper {
     extra = event.extra
   )
 
-  private def sortInDependencyOrder(ops: Seq[v1.OperationLike]): Seq[v1.OperationLike] =
-    if (ops.length < 2) ops
-    else {
-      val opById = ops.map(op => op.id -> op).toMap
-      val opEdges: Seq[DiEdge[v1.OperationLike]] =
-        for {
-          op <- ops
-          childId <- op.childIds
-        } yield opById(childId) ~> op
-
-      Graph
-        .from(edges = opEdges)
-        .topologicalSort match {
-        case Right(res) => res.toOuter.toSeq
-      }
-    }
-
   private def asOperationsObject(ops: Seq[OperationLike]) = {
     val (Some(write), reads, others) =
       ops.foldLeft((Option.empty[WriteOperation], Seq.empty[ReadOperation], Seq.empty[DataOperation])) {
@@ -114,5 +103,4 @@ object ModelMapperV1 extends ModelMapper {
       constants = consts
     )
   }
-
 }

@@ -18,11 +18,10 @@ package za.co.absa.spline.producer.service.repo
 
 import scalax.collection.Graph
 import scalax.collection.GraphEdge.DiEdge
-import za.co.absa.commons.lang.CachingConverter
 import za.co.absa.spline.persistence.model.EdgeDef
 import za.co.absa.spline.persistence.{DefaultJsonSerDe, model => pm}
 import za.co.absa.spline.producer.model.v1_1.AttrOrExprRef
-import za.co.absa.spline.producer.model.{RecursiveSchemaFinder, v1_1 => am}
+import za.co.absa.spline.producer.model.{v1_1 => am}
 
 import java.util.UUID.randomUUID
 
@@ -30,18 +29,25 @@ object ExecutionPlanModelConverter {
 
   import DefaultJsonSerDe._
   import scalax.collection.GraphPredef._
-  import za.co.absa.commons.lang.OptionImplicits._
   import za.co.absa.spline.common.OptionImplicitsExtra._
+  import za.co.absa.spline.common.graph.GraphUtils._
 
   def toPersistentModel(
     ep: am.ExecutionPlan,
     persistedDSKeyByURI: Map[String, pm.DataSource.Key]
   ): ExecutionPlanPersistentModel = {
+    val maybeExpressions = ep.expressions.map(_.all)
     new EPPMBuilder(ep, persistedDSKeyByURI)
       .addOperations(ep.operations.all)
       .addAttributes(ep.attributes)
-      .having(ep.expressions.map(_.all))(_ addExpressions _)
+      .having(maybeExpressions)(_ addExpressions _)
       .build()
+  }
+
+  private implicit object OpNav extends NodeNavigation[am.OperationLike, am.OperationLike.Id] {
+    override def id(op: am.OperationLike): am.OperationLike.Id = op.id
+
+    override def nextIds(op: am.OperationLike): Seq[am.OperationLike.Id] = op.childIds
   }
 
   private class EPPMBuilder(
@@ -94,7 +100,7 @@ object ExecutionPlanModelConverter {
           attrFrom <- ep.attributes if attrFrom.childIds.nonEmpty
           refFrom = AttrOrExprRef.attrRef(attrFrom.id)
           refTo <- this._attrDepGraph.get(refFrom).outerNodeTraverser
-          if AttrOrExprRef.isAttribute(refTo)
+          if refTo.isAttribute
         } yield {
           EdgeDef.DerivesFrom.edge(
             KeyUtils.asAttributeKey(refFrom.refId, ep),
@@ -141,10 +147,46 @@ object ExecutionPlanModelConverter {
     }
 
     def addOperations(operations: Seq[am.OperationLike]): this.type = {
-      val schemaFinder = new RecursiveSchemaFinder(
-        operations.map(op => op.id -> op.output.asOption).toMap,
-        operations.map(op => op.id -> op.childIds).toMap
-      ) with CachingConverter
+
+      // todo: extract it to a new method or a class
+      case class SchemaInfo(oid: am.OperationLike.Id, schema: am.OperationLike.Schema, diff: Set[am.Attribute.Id])
+      val schemaInfoByOpId: Map[am.OperationLike.Id, SchemaInfo] =
+        operations
+          .sortedTopologically(reverse = true)
+          .foldLeft(Map.empty[am.OperationLike.Id, SchemaInfo]) {
+            (schemaByOpId, op) =>
+              val inSchemaInfos = op.childIds.map(schemaByOpId)
+              val outSchema = op.output
+              inSchemaInfos match {
+                case (si@SchemaInfo(oid, inSchema, _)) +: sis
+                  if sis.forall(_.oid == oid) && (outSchema.isEmpty || outSchema == inSchema) =>
+                  schemaByOpId.updated(op.id, si)
+                case _ if outSchema.nonEmpty =>
+                  val inputSchemas = inSchemaInfos.map(_.schema)
+                  val diff = inputSchemas.foldLeft(outSchema.toSet)(_ -- _)
+                  schemaByOpId.updated(op.id, SchemaInfo(op.id, outSchema, diff))
+                case _ =>
+                  throw new InconsistentEntityException(s"Cannot infer schema for operation #${op.id}: the input is either empty or ambiguous")
+              }
+          }
+
+      import za.co.absa.spline.common.CollectionImplicits._
+      val schemaInfos = schemaInfoByOpId.values.distinctBy(_.oid)
+
+      for (SchemaInfo(oid, attrs, diff) <- schemaInfos) {
+        val opKey = KeyUtils.asOperationKey(oid, ep)
+        val schemaKey = KeyUtils.asSchemaKey(oid, ep)
+        this._pmSchemas +:= pm.Schema(schemaKey)
+        this._pmConsistsOf ++= attrs.zipWithIndex map {
+          case (attrId, i) =>
+            val attrKey = KeyUtils.asAttributeKey(attrId, ep)
+            EdgeDef.ConsistsOf.edge(schemaKey, attrKey, i)
+        }
+        for (attrId <- diff) {
+          val attrKey = KeyUtils.asAttributeKey(attrId, ep)
+          this._pmProduces :+= EdgeDef.Produces.edge(opKey, attrKey)
+        }
+      }
 
       operations.foreach(op => {
         val opKey = KeyUtils.asOperationKey(op, ep)
@@ -155,37 +197,15 @@ object ExecutionPlanModelConverter {
         })
 
         for (ref: am.AttrOrExprRef <- collectRefs(op.params)) {
-          this._pmUses :+= (
-            if (AttrOrExprRef.isAttribute(ref))
-              EdgeDef.Uses.edgeToAttr(opKey, KeyUtils.asAttributeKey(ref.refId, ep))
-            else
-              EdgeDef.Uses.edgeToAttr(opKey, KeyUtils.asExpressionKey(ref.refId, ep))
-            )
+          val refKey =
+            if (ref.isAttribute) KeyUtils.asAttributeKey(ref.refId, ep)
+            else KeyUtils.asExpressionKey(ref.refId, ep)
+          this._pmUses :+= EdgeDef.Uses.edgeToAttr(opKey, refKey)
         }
 
-        if (op.output.nonEmpty) {
-          val schemaKey = KeyUtils.asSchemaKey(op, ep)
-          // todo: reuse schema if all attrs are the same (by id) and are in the same order
-          this._pmSchemas +:= pm.Schema(schemaKey)
-          this._pmConsistsOf ++= op.output.zipWithIndex map {
-            case (attrId, i) =>
-              EdgeDef.ConsistsOf.edge(schemaKey, KeyUtils.asAttributeKey(attrId, ep), i)
-          }
-
-          val inputSchemas = op.childIds.flatMap(schemaFinder.findSchemaForOpId)
-          val createdAttrIds = inputSchemas.foldLeft(op.output.toSet)(_ -- _)
-          for (attrIdCreatedByTheOp <- createdAttrIds) {
-            this._pmProduces :+= EdgeDef.Produces.edge(
-              opKey,
-              KeyUtils.asAttributeKey(attrIdCreatedByTheOp, ep))
-          }
-        }
-
-        for (originOpId <- schemaFinder.findSchemaOriginForOpId(op.id)) {
-          this._pmEmits :+= EdgeDef.Emits.edge(
-            opKey,
-            KeyUtils.asSchemaKey(originOpId, ep))
-        }
+        this._pmEmits :+= EdgeDef.Emits.edge(
+          opKey,
+          KeyUtils.asSchemaKey(schemaInfoByOpId(op.id).oid, ep))
 
         this._pmFollows ++= op.childIds.zipWithIndex map {
           case (childId, i) =>
@@ -208,7 +228,7 @@ object ExecutionPlanModelConverter {
         attr.childIds.zipWithIndex.foreach {
           case (ref, i) =>
             this._attrDepGraph += AttrOrExprRef.attrRef(attr.id) ~> ref
-            if (AttrOrExprRef.isExpression(ref))
+            if (ref.isExpression)
               this._pmComputedBy :+= EdgeDef.ComputedBy.edge(attrKey, KeyUtils.asExpressionKey(ref.refId, ep), i)
         }
       }

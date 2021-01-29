@@ -23,7 +23,7 @@ import za.co.absa.spline.producer.{model => v1}
 class SparkSplineOperationOutputConverter(
   attributeConverter: AttributeConverter,
   attributeDefs: Seq[TypesV1.AttrDef],
-  operationOutputById: Map[Int, Seq[v1_1.Attribute.Id]],
+  operationOutputById: Int => v1_1.OperationLike.Schema,
   maybeAttrDepResolver: Option[AttributeDependencyResolver]
 ) extends OperationOutputConverter {
 

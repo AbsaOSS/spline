@@ -18,9 +18,9 @@ package za.co.absa.spline.producer.modelmapper.v1.spark
 
 import za.co.absa.commons.lang.CachingConverter
 import za.co.absa.commons.version.Version._
-import za.co.absa.spline.producer.model.{RecursiveSchemaFinder, v1_1}
+import za.co.absa.spline.producer.model.v1_1
 import za.co.absa.spline.producer.modelmapper.v1.TypesV1.AttrDef
-import za.co.absa.spline.producer.modelmapper.v1._
+import za.co.absa.spline.producer.modelmapper.v1.{RecursiveSchemaFinder, _}
 import za.co.absa.spline.producer.{model => v1}
 
 import scala.util.Try
@@ -35,13 +35,7 @@ class SparkSplineExecutionPlanComponentConverterFactory(agentVersion: String, pl
 
   override def objectConverter: ObjectConverter = new SparkSplineObjectConverter(AttributeRefConverter, _expressionConverter)
 
-  private val operationSchemaFinder = {
-    val allOperations = plan1.operations.all
-    new RecursiveSchemaFinder(
-      allOperations.map(op => op.id -> op.schema.asInstanceOf[Option[Seq[String]]]).toMap,
-      allOperations.map(op => op.id -> op.childIds).toMap
-    ) with CachingConverter
-  }
+  private val operationSchemaFinder = new RecursiveSchemaFinder(plan1.operations.all) with CachingConverter
 
   private val _expressionConverter = new SparkSplineExpressionConverter(AttributeRefConverter) with CachingConverter
 
@@ -49,13 +43,13 @@ class SparkSplineExecutionPlanComponentConverterFactory(agentVersion: String, pl
     override protected def keyOf(attrDef: AttrDef): Key = attrDef(FieldNamesV1.AttributeDef.Id)
   }
 
-  private val _outputConverter = {
-    val operationOutputById =
-      plan1.operations.all
-        .map(op => op.id -> operationSchemaFinder.findSchemaForOpId(op.id).getOrElse(Nil))
-        .toMap
-    new SparkSplineOperationOutputConverter(_attributeConverter, attrDefinitions, operationOutputById, maybeADR)
-  }
+  private val _outputConverter =
+    new SparkSplineOperationOutputConverter(
+      _attributeConverter,
+      attrDefinitions,
+      operationSchemaFinder.findSchemaForOpId,
+      maybeADR
+    )
 
   private def attrDefinitions = plan1.extraInfo(FieldNamesV1.PlanExtraInfo.Attributes).asInstanceOf[Seq[TypesV1.AttrDef]]
 
