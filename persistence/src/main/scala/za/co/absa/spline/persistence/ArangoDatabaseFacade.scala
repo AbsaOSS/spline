@@ -42,8 +42,8 @@ class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL) extends Disposabl
     val arangoBuilder = new ArangoDBAsync.Builder()
       .registerModule(new VPackScalaModule)
       .useSsl(isSecure)
-      .optionally(_.user(_: String), maybeUser)
-      .optionally(_.password(_: String), maybePassword)
+      .having(maybeUser)(_ user _)
+      .having(maybePassword)(_ password _)
 
     // set SSL Context
     if (isSecure) arangoBuilder.sslContext(createSslContext())

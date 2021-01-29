@@ -29,7 +29,7 @@ object ExecutionPlanModelConverter {
 
   import DefaultJsonSerDe._
   import scalax.collection.GraphPredef._
-  import za.co.absa.spline.common.OptionImplicitsExtra._
+  import za.co.absa.commons.lang.OptionImplicits._
   import za.co.absa.spline.common.graph.GraphUtils._
 
   def toPersistentModel(

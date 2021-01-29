@@ -16,12 +16,12 @@
 
 package za.co.absa.spline.common.config
 
-import java.util
-
-import javax.naming.InitialContext
 import org.apache.commons.configuration._
+import za.co.absa.commons.config.UpperSnakeCaseEnvironmentConfiguration
 import za.co.absa.spline.common.config.DefaultConfigurationStack.jndiConfigurationIfAvailable
 
+import java.util
+import javax.naming.InitialContext
 import scala.util.Try
 
 abstract class DefaultConfigurationStack extends CompositeConfiguration(util.Arrays.asList(
