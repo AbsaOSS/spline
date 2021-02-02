@@ -22,7 +22,7 @@ import scala.language.higherKinds
 
 object CollectionImplicits {
 
-  implicit class SeqOps[A, M[X] <: Iterable[X]](val xs: M[A]) extends AnyVal {
+  implicit class NodeSeqOps[A, M[X] <: Iterable[X]](val xs: M[A]) extends AnyVal {
 
     def distinctBy[B](f: A => B)(implicit cbf: CanBuildFrom[M[A], A, M[A]]): M[A] = {
       val seen = mutable.Set.empty[B]

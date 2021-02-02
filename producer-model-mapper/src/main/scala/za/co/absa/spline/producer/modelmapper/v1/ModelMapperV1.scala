@@ -29,6 +29,7 @@ object ModelMapperV1 extends ModelMapper {
   override type E = v1.ExecutionEvent
 
   private implicit object OpNav extends NodeNavigation[v1.OperationLike, Int] {
+
     override def id(op: v1.OperationLike): Int = op.id
 
     override def nextIds(op: v1.OperationLike): Seq[Int] = op.childIds

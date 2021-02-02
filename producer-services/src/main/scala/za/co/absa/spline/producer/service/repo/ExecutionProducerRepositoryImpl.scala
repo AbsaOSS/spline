@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2021 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package za.co.absa.spline.producer.service.repo
 
-
 import com.arangodb.async.ArangoDatabaseAsync
 import org.slf4s.Logging
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,6 +25,8 @@ import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, TxBuilder}
 import za.co.absa.spline.persistence.{ArangoImplicits, Persister}
 import za.co.absa.spline.producer.model.v1_1.ExecutionEvent
 import za.co.absa.spline.producer.model.{v1_1 => apiModel}
+import za.co.absa.spline.producer.service.model.{ExecutionPlanPersistentModel, ExecutionPlanPersistentModelBuilder}
+import za.co.absa.spline.producer.service.{InconsistentEntityException, KeyUtils}
 
 import java.util.UUID
 import scala.compat.java8.FutureConverters._
@@ -128,7 +129,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
     persistedDSKeyByURI: Map[String, DataSource.Key]
   ) = {
     val eppm: ExecutionPlanPersistentModel =
-      ExecutionPlanModelConverter.toPersistentModel(executionPlan, persistedDSKeyByURI)
+      ExecutionPlanPersistentModelBuilder.toPersistentModel(executionPlan, persistedDSKeyByURI)
 
     new TxBuilder()
       // execution plan

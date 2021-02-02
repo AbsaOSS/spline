@@ -17,10 +17,10 @@
 package za.co.absa.spline.producer.service.repo
 
 import java.util.UUID
-
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import za.co.absa.spline.producer.model.v1_1.ExecutionEvent
+import za.co.absa.spline.producer.service.KeyUtils
 
 class KeyUtilsSpec extends AnyFlatSpec with Matchers {
 

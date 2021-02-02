@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 ABSA Group Limited
+ * Copyright 2021 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.service.repo
+package za.co.absa.spline.producer.service
 
 import za.co.absa.spline.producer.model.v1_1._
 
 import java.util.UUID
-
 
 object KeyUtils {
 

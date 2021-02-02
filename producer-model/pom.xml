@@ -29,8 +29,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>za.co.absa.commons</groupId>
-            <artifactId>commons_${scala.compat.version}</artifactId>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>commons</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
     

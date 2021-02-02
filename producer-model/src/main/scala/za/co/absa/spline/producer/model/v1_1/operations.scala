@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.producer.model.v1_1
 
+import za.co.absa.spline.common.graph.GraphUtils.NodeNavigation
 import za.co.absa.spline.producer.model.v1_1.OperationLike.Id
 
 sealed trait OperationLike {
@@ -29,6 +30,14 @@ sealed trait OperationLike {
 object OperationLike {
   type Id = String
   type Schema = Seq[Attribute.Id]
+
+  implicit object OpNav extends NodeNavigation[OperationLike, OperationLike.Id] {
+
+    override def id(op: OperationLike): Id = op.id
+
+    override def nextIds(op: OperationLike): Seq[Id] = op.childIds
+  }
+
 }
 
 
