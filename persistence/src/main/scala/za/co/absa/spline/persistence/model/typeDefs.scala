@@ -95,7 +95,7 @@ object GraphDef {
 
   object AttributesGraphDef extends GraphDef("attributesGraph", Produces, DerivesFrom)
 
-  object WxpressionsGraphDef extends GraphDef("expressionsGraph", ComputedBy, Takes)
+  object ExpressionsGraphDef extends GraphDef("expressionsGraph", ComputedBy, Takes)
 
 }
 
