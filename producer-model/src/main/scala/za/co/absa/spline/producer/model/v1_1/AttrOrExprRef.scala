@@ -16,9 +16,9 @@
 
 package za.co.absa.spline.producer.model.v1_1
 
-/** TODO: update the doc
- * The class is designed for representing expression IDs in untyped or weakly typed data structures,
- * when expression IDs need to be distinguished from other arbitrary values.
+/**
+ * Represents expression or attribute ID in untyped or weakly typed data structures,
+ * where the former has to be distinguished from any other arbitrary value.
  * It can be thought of as an alternative to a type hint.
  *
  * @param __attrId attribute ID
