@@ -27,7 +27,7 @@ object GraphUtils {
     def nextIds(n: Node): Seq[Id]
   }
 
-  implicit class SeqOps[A](val xs: Seq[A]) extends AnyVal {
+  implicit class NodeSeqOps[A](val xs: Seq[A]) extends AnyVal {
     def sortedTopologically[B](reverse: Boolean = false)(implicit nav: NodeNavigation[A, B]): Seq[A] =
       if (xs.length < 2) xs
       else {
