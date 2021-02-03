@@ -25,8 +25,8 @@ import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, TxBuilder}
 import za.co.absa.spline.persistence.{ArangoImplicits, Persister}
 import za.co.absa.spline.producer.model.v1_1.ExecutionEvent
 import za.co.absa.spline.producer.model.{v1_1 => apiModel}
-import za.co.absa.spline.producer.service.model.{ExecutionPlanPersistentModel, ExecutionPlanPersistentModelBuilder}
-import za.co.absa.spline.producer.service.{InconsistentEntityException, KeyUtils}
+import za.co.absa.spline.producer.service.model.{ExecutionEventKeyCreator, ExecutionPlanPersistentModel, ExecutionPlanPersistentModelBuilder}
+import za.co.absa.spline.producer.service.InconsistentEntityException
 
 import java.util.UUID
 import scala.compat.java8.FutureConverters._
@@ -193,7 +193,7 @@ object ExecutionProducerRepositoryImpl {
   }
 
   private def createProgress(e: ExecutionEvent, planDetails: Map[String, Any]) = {
-    val key = KeyUtils.asExecutionEventKey(e)
+    val key = new ExecutionEventKeyCreator(e).executionEventKey
     val epd = ExecPlanDetails(
       planDetails(ExecutionPlanDetails.ExecutionPlanId).asInstanceOf[String],
       planDetails(ExecutionPlanDetails.FrameworkName).asInstanceOf[String],
