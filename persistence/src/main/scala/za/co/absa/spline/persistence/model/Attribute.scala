@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2021 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,11 @@
 
 package za.co.absa.spline.persistence.model
 
-sealed trait Expression extends Vertex {
-  def `type`: String
-  def dataType: Option[Any]
-  def extra: Map[String, Any]
-}
-
-case class FunctionalExpression(
+case class Attribute(
   override val _key: String,
-  override val dataType: Option[Any],
-  override val extra: Map[String, Any],
+  dataType: Option[Any],
+  extra: Map[String, Any],
   name: String,
-  params: Map[String, Any],
-) extends Expression {
-  def this() = this(null, null, null, null, null)
-
-  def `type`: String = "Func"
-}
-
-case class LiteralExpression(
-  override val _key: String,
-  override val dataType: Option[Any],
-  override val extra: Map[String, Any],
-  value: Any,
-) extends Expression {
+) extends Vertex {
   def this() = this(null, null, null, null)
-
-  def `type`: String = "Lit"
 }
