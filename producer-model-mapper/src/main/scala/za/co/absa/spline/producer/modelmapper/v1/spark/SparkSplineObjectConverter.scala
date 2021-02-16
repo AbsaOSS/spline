@@ -24,7 +24,7 @@ class SparkSplineObjectConverter(
 ) extends ObjectConverter {
 
   override def convert(obj: Any): Any = obj match {
-    case exprDef: TypesV1.ExprDef if attrRefConverter.isAttrRef(exprDef) => attrRefConverter.convert(exprDef)
+    case attrDef: TypesV1.AttrDef if attrRefConverter.isAttrRef(attrDef) => attrRefConverter.convert(attrDef)
     case exprDef: TypesV1.ExprDef if expressionConverter.isExpression(exprDef) => expressionConverter.convert(exprDef)
     case arr: Seq[_] => arr.map(this.convert)
     case m: Map[_, _] => m.mapValues(this.convert)
