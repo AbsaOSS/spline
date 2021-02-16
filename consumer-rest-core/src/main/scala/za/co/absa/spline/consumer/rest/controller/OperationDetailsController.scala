@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.service.model._
 import za.co.absa.spline.consumer.service.repo.OperationRepository
-import za.co.absa.spline.persistence.{model => persistence}
 
 import scala.annotation.tailrec
 import scala.concurrent.Future

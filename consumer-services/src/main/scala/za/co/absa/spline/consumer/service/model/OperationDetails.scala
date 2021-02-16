@@ -18,7 +18,6 @@ package za.co.absa.spline.consumer.service.model
 
 
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
-import za.co.absa.spline.persistence.{model => persistence}
 
 @ApiModel(description = "Information Details of an Operation containing the input and output schemas with the description of the dataTypes")
 case class OperationDetails
