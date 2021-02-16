@@ -17,9 +17,23 @@
 package za.co.absa.spline.producer.model.v1_1
 
 /**
- * Represents expression or attribute ID in untyped or weakly typed data structures,
- * where the former has to be distinguished from any other arbitrary value.
- * It can be thought of as an alternative to a type hint.
+ * A wrapper class that holds either Attribute ID or Expression ID in one of the corresponding optional properties
+ * (the other property is respectively `None`).
+ *
+ * The class is designed to support (de-)serialization as well as data structures where
+ * Expression ID and Attribute ID are mixed with other potentially arbitrary data type, so that
+ * from the context of that data structure it's hard to tell if a given value represents one of
+ * those references (and which one if so) or any other value with different semantics.
+ *
+ * It can be seen as an alternative to a `_typeHint` property, but instead of a separate discriminator property
+ * holding an enum value, here the value property name serves as a discriminator.
+ *
+ * The assumption is that there is no object with a single property named as `__attrId` or `__exprId`
+ * that is not a representation of this class.
+ *
+ * E.g. JSON object `{ __attrId: 42 }` represents a reference to an attribute with ID 42, while
+ * `{ _attrId: 42 }` or `{ __attrId: 42, foo: 1 }` represent arbitrary key-value pairs.
+ *
  *
  * @param __attrId attribute ID
  * @param __exprId expression ID
