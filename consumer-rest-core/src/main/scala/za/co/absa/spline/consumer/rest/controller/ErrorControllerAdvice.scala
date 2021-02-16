@@ -23,7 +23,6 @@ import org.springframework.http.converter.HttpMessageConversionException
 import org.springframework.web.bind.annotation.{ControllerAdvice, ExceptionHandler}
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException
 import za.co.absa.commons.error.ErrorRef
-import za.co.absa.spline.common.logging.ErrorMsg
 import za.co.absa.spline.common.webmvc.NonStandardResponseEntity
 import za.co.absa.spline.consumer.rest.controller.ErrorControllerAdvice._
 
@@ -39,7 +38,7 @@ class ErrorControllerAdvice {
     classOf[TypeMismatchException],
     classOf[HttpMessageConversionException]
   ))
-  def badRequest(e: Exception): ResponseEntity[_] = new ResponseEntity(ErrorMsg(e.getMessage), BAD_REQUEST)
+  def badRequest(e: Exception): ResponseEntity[_] = new ResponseEntity(e.getMessage, BAD_REQUEST)
 
   @ExceptionHandler(Array(
     classOf[AsyncRequestTimeoutException]

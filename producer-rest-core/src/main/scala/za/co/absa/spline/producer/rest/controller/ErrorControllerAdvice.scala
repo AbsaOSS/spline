@@ -22,7 +22,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageConversionException
 import org.springframework.web.bind.annotation.{ControllerAdvice, ExceptionHandler}
 import za.co.absa.commons.error.ErrorRef
-import za.co.absa.spline.common.logging.ErrorMsg
 import za.co.absa.spline.producer.service.InconsistentEntityException
 
 @ControllerAdvice(basePackageClasses = Array(classOf[_package]))
@@ -38,7 +37,7 @@ class ErrorControllerAdvice {
     classOf[HttpMessageConversionException],
     classOf[InconsistentEntityException],
   ))
-  def badRequest(e: Exception): ResponseEntity[_] = new ResponseEntity(ErrorMsg(e.getMessage), BAD_REQUEST)
+  def badRequest(e: Exception): ResponseEntity[_] = new ResponseEntity(e.getMessage, BAD_REQUEST)
 
   @ExceptionHandler
   def serverError(e: Throwable): ResponseEntity[_] = new ResponseEntity(ErrorRef(e), INTERNAL_SERVER_ERROR)

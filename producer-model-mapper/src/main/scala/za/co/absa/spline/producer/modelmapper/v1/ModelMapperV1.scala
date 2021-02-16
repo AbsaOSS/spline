@@ -17,8 +17,8 @@
 package za.co.absa.spline.producer.modelmapper.v1
 
 
+import za.co.absa.commons.graph.GraphImplicits._
 import za.co.absa.commons.lang.CachingConverter
-import za.co.absa.spline.common.graph.GraphUtils._
 import za.co.absa.spline.producer.model.v1_1._
 import za.co.absa.spline.producer.modelmapper.ModelMapper
 import za.co.absa.spline.producer.{model => v1}
@@ -28,11 +28,11 @@ object ModelMapperV1 extends ModelMapper {
   override type P = v1.ExecutionPlan
   override type E = v1.ExecutionEvent
 
-  private implicit object OpNav extends NodeNavigation[v1.OperationLike, Int] {
+  private implicit object OpNav extends DAGNodeIdMapping[v1.OperationLike, Int] {
 
-    override def id(op: v1.OperationLike): Int = op.id
+    override def selfId(op: v1.OperationLike): Int = op.id
 
-    override def nextIds(op: v1.OperationLike): Seq[Int] = op.childIds
+    override def refIds(op: v1.OperationLike): Seq[Int] = op.childIds
   }
 
   override def fromDTO(plan1: v1.ExecutionPlan): ExecutionPlan = {
