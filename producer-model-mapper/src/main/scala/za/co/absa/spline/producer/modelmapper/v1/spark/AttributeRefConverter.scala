@@ -30,10 +30,10 @@ trait AttributeRefConverter extends Converter {
 object AttributeRefConverter extends AttributeRefConverter {
 
   override def isAttrRef(obj: Any): Boolean = PartialFunction.cond(obj) {
-    case attrRef: TypesV1.ExprDef
-      if attrRef.contains(FieldNamesV1.ExpressionDef.TypeHint) =>
-      val typeHint = attrRef(FieldNamesV1.ExpressionDef.TypeHint)
-      typeHint == "expr.AttrRef"
+    case attrRef: TypesV1.ExprDef => attrRef
+      .get(FieldNamesV1.ExpressionDef.TypeHint)
+      .map(_.toString)
+      .contains("expr.AttrRef")
   }
 
   override def convert(attrRef: TypesV1.ExprDef): v1_1.AttrOrExprRef = {

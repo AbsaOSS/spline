@@ -29,10 +29,10 @@ class SparkSplineExpressionConverter(
   import za.co.absa.commons.lang.OptionImplicits._
 
   override def isExpression(obj: Any): Boolean = PartialFunction.cond(obj) {
-    case exprDef: TypesV1.ExprDef
-      if exprDef.contains(FieldNamesV1.ExpressionDef.TypeHint) =>
-      val typeHint = exprDef(FieldNamesV1.ExpressionDef.TypeHint).toString
-      typeHint.startsWith("expr.") && typeHint != "expr.AttrRef"
+    case exprDef: TypesV1.ExprDef => exprDef
+      .get(FieldNamesV1.ExpressionDef.TypeHint)
+      .map(_.toString)
+      .exists(typeHint => typeHint.startsWith("expr.") && typeHint != "expr.AttrRef")
   }
 
   override def convert(exprDef: TypesV1.ExprDef): ExpressionLike = {
