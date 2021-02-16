@@ -38,15 +38,15 @@ class SparkSplineExpressionConverter(
   override def convert(exprDef: TypesV1.ExprDef): ExpressionLike = {
     exprDef(FieldNamesV1.ExpressionDef.TypeHint) match {
       case "expr.Literal" => toLiteral(exprDef)
-      case "expr.Alias" => toFunctionalExpression(exprDef, _ => "alias", _.filterKeys(FieldNamesV1.ExpressionDef.Alias.==))
-      case "expr.Binary" => toFunctionalExpression(exprDef, _ (FieldNamesV1.ExpressionDef.Symbol))
-      case "expr.UDF" => toFunctionalExpression(exprDef, _ (FieldNamesV1.ExpressionDef.Name))
+      case "expr.Alias" => toFunctionalExpression(exprDef, "alias", exprDef.filterKeys(FieldNamesV1.ExpressionDef.Alias.==))
+      case "expr.Binary" => toFunctionalExpression(exprDef, exprDef(FieldNamesV1.ExpressionDef.Symbol))
+      case "expr.UDF" => toFunctionalExpression(exprDef, exprDef(FieldNamesV1.ExpressionDef.Name))
       case "expr.Generic" | "expr.GenericLeaf" | "expr.UntypedExpression" =>
         toFunctionalExpression(
           exprDef,
-          _ (FieldNamesV1.ExpressionDef.Name),
-          _ (FieldNamesV1.ExpressionDef.Params),
-          _.find({ case (k, _) => k == FieldNamesV1.ExpressionDef.ExprType }).toMap
+          exprDef(FieldNamesV1.ExpressionDef.Name),
+          exprDef(FieldNamesV1.ExpressionDef.Params).asInstanceOf[ExpressionLike.Params],
+          exprDef.find({ case (k, _) => k == FieldNamesV1.ExpressionDef.ExprType }).toMap
         )
     }
   }
@@ -60,9 +60,9 @@ class SparkSplineExpressionConverter(
 
   private def toFunctionalExpression(
     exprDef: TypesV1.ExprDef,
-    getName: TypesV1.ExprDef => Any,
-    getParams: TypesV1.ExprDef => Any = _ => Map.empty,
-    getExtras: TypesV1.ExprDef => Any = _ => Map.empty
+    name: Any,
+    params: ExpressionLike.Params = Map.empty,
+    extras: ExpressionLike.Extras = Map.empty
   ): FunctionalExpression = {
 
     val children = exprDef
@@ -82,10 +82,10 @@ class SparkSplineExpressionConverter(
     FunctionalExpression(
       id = newId,
       dataType = exprDef.get(FieldNamesV1.ExpressionDef.DataTypeId).map(_.toString),
-      name = getName(exprDef).toString,
+      name = name.toString,
       childIds = childRefs,
-      params = getParams(exprDef).asInstanceOf[TypesV1.Params],
-      extra = getExtras(exprDef).asInstanceOf[TypesV1.Extras]
+      params = params,
+      extra = extras
     )
   }
 
