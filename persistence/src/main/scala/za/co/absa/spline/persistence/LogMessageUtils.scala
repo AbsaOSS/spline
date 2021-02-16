@@ -19,7 +19,7 @@ package za.co.absa.spline.persistence
 import org.apache.commons.lang3.StringUtils
 
 object LogMessageUtils {
-  private val separatorLine = StringUtils.repeat("=", 80)
+  private val separatorLine = "=" * 80
 
   def createQueryLogMessage(queryString: String): String = {
     if (ArangoRepoConfig.Database.LogFullQueryOnError) {
