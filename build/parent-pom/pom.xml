@@ -37,7 +37,7 @@
         <json4s.version>3.6.7</json4s.version>
         <spring.version>5.2.2.RELEASE</spring.version>
         <springfox-swagger.version>2.9.2</springfox-swagger.version>
-        <jackson.version>2.10.1</jackson.version>
+        <jackson.version>2.12.1</jackson.version>
         <json4s-32.version>3.2.11</json4s-32.version>
         <json4s-35.version>3.5.3</json4s-35.version>
     </properties>
