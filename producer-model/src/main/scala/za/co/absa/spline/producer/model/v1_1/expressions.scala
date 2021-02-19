@@ -48,9 +48,9 @@ case class FunctionalExpression(
   override val id: ExpressionLike.Id,
   override val dataType: Option[Any] = None,
   override val childIds: Seq[ExpressionLike.ChildRef] = Nil,
-  override val extra: ExpressionLike.Extras = Map.empty,
+  override val extra: Map[String, Any] = Map.empty,
   name: String,
-  params: ExpressionLike.Params = Map.empty,
+  params: Map[String, Any] = Map.empty,
 ) extends ExpressionLike
 
 /**
@@ -64,7 +64,7 @@ case class FunctionalExpression(
 case class Literal(
   override val id: ExpressionLike.Id,
   override val dataType: Option[Any] = None,
-  override val extra: ExpressionLike.Extras = Map.empty,
+  override val extra: Map[String, Any] = Map.empty,
   value: Any,
 ) extends ExpressionLike {
   override def childIds: Seq[ExpressionLike.ChildRef] = Nil
