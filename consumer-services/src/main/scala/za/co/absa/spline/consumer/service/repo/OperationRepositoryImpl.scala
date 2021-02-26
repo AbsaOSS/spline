@@ -38,19 +38,20 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
         |    LET inputs = (
         |        FOR v IN 1..1
         |            OUTBOUND ope follows
-        |            RETURN v.outputSchema
+        |            RETURN v
         |    )
         |
-        |    LET output = ope.outputSchema == null ? [] : [ope.outputSchema]
-        |
         |    LET schemas = (
-        |        FOR s in APPEND(inputs, output)
-        |            LET attributeList = (
-        |                FOR a IN []                                 // <<<<<<---- attrs ----!!!!!!!!!!!!---------
-        |                    FILTER CONTAINS(s, a.id)
-        |                    RETURN a
+        |        FOR op IN APPEND(inputs, ope)
+        |            LET schema = (
+        |                FOR attr IN 2 OUTBOUND op emits, consistsOf
+        |                    RETURN {
+        |                        "id": attr._key,
+        |                        "name": attr.name,
+        |                        "dataTypeId": attr.dataType
+        |                    }
         |            )
-        |            RETURN attributeList
+        |            RETURN schema
         |    )
         |
         |    LET dataTypesFormatted = (
