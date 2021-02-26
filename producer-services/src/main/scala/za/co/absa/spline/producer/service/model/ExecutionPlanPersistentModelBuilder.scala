@@ -261,11 +261,8 @@ class ExecutionPlanPersistentModelBuilder private(
 
   private def collectRefs(obj: Map[String, Any]): Iterable[am.AttrOrExprRef] = {
     def fromVal(v: Any): Iterable[am.AttrOrExprRef] = v match {
-      case m: Map[String, _] =>
-        am.AttrOrExprRef
-          .fromMap(m)
-          .map(Seq(_))
-          .getOrElse(collectRefs(m))
+      case ref: am.AttrOrExprRef => Seq(ref)
+      case m: Map[String, _] => collectRefs(m)
       case xs: Seq[_] => xs.flatMap(fromVal)
       case _ => Nil
     }
