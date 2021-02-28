@@ -159,10 +159,12 @@ class ExecutionPlanPersistentModelBuilder private(
       })
 
       for (ref: am.AttrOrExprRef <- collectRefs(op.params)) {
-        val refKey =
-          if (ref.isAttribute) keyCreator.asAttributeKey(ref.refId)
-          else keyCreator.asExpressionKey(ref.refId)
-        this._pmUses :+= EdgeDef.Uses.edgeToAttr(opKey, refKey)
+        this._pmUses :+= {
+          if (ref.isAttribute)
+            EdgeDef.Uses.edgeToAttr(opKey, keyCreator.asAttributeKey(ref.refId))
+          else
+            EdgeDef.Uses.edgeToExpr(opKey, keyCreator.asExpressionKey(ref.refId))
+        }
       }
 
       this._pmEmits :+= EdgeDef.Emits.edge(
