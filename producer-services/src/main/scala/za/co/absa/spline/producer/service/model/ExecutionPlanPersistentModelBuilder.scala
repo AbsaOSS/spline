@@ -158,7 +158,7 @@ class ExecutionPlanPersistentModelBuilder private(
         case t: am.DataOperation => toTransformOperation(t)
       })
 
-      for ((ref: am.AttrOrExprRef, path: JSONPath) <- collectRefsWithPaths(op.params, "$.params")) {
+      for ((ref: am.AttrOrExprRef, path: JSONPath) <- collectRefsWithPaths(op.params, "$['params']")) {
         this._pmUses :+= {
           if (ref.isAttribute)
             EdgeDef.Uses.edgeToAttr(opKey, keyCreator.asAttributeKey(ref.refId), path)
