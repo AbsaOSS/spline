@@ -158,12 +158,12 @@ class ExecutionPlanPersistentModelBuilder private(
         case t: am.DataOperation => toTransformOperation(t)
       })
 
-      for (ref: am.AttrOrExprRef <- collectRefs(op.params)) {
+      for ((ref: am.AttrOrExprRef, path: JSONPath) <- collectRefsWithPaths(op.params, "$.params")) {
         this._pmUses :+= {
           if (ref.isAttribute)
-            EdgeDef.Uses.edgeToAttr(opKey, keyCreator.asAttributeKey(ref.refId))
+            EdgeDef.Uses.edgeToAttr(opKey, keyCreator.asAttributeKey(ref.refId), path)
           else
-            EdgeDef.Uses.edgeToExpr(opKey, keyCreator.asExpressionKey(ref.refId))
+            EdgeDef.Uses.edgeToExpr(opKey, keyCreator.asExpressionKey(ref.refId), path)
         }
       }
 
@@ -215,6 +215,7 @@ class ExecutionPlanPersistentModelBuilder private(
           expr.dataType,
           expr.extra,
           expr.name,
+          expr.childIds.length,
           expr.params,
         )
         expr.childIds.zipWithIndex.foreach({
@@ -261,15 +262,15 @@ class ExecutionPlanPersistentModelBuilder private(
       ep.id,
       pmDataSourceByURI(ep.operations.write.outputSource)._key)
 
-  private def collectRefs(obj: Map[String, Any]): Iterable[am.AttrOrExprRef] = {
-    def fromVal(v: Any): Iterable[am.AttrOrExprRef] = v match {
-      case ref: am.AttrOrExprRef => Seq(ref)
-      case m: Map[String, _] => collectRefs(m)
-      case xs: Seq[_] => xs.flatMap(fromVal)
+  private def collectRefsWithPaths(obj: Map[String, Any], pathPrefix: JSONPath): Iterable[(am.AttrOrExprRef, JSONPath)] = {
+    def fromVal(v: Any, p: JSONPath): Iterable[(am.AttrOrExprRef, JSONPath)] = v match {
+      case ref: am.AttrOrExprRef => Seq(ref -> p)
+      case m: Map[String, _] => collectRefsWithPaths(m, p)
+      case xs: Seq[_] => xs.zipWithIndex.flatMap { case (x, i) => fromVal(x, s"$p[$i]") }
       case _ => Nil
     }
 
-    obj.values.flatMap(fromVal)
+    obj.flatMap { case (k, v) => fromVal(v, s"$pathPrefix['$k']") }
   }
 
   private def toTransformOperation(t: am.DataOperation) = {
@@ -314,6 +315,8 @@ object ExecutionPlanPersistentModelBuilder {
       .having(maybeExpressions)(_ addExpressions _)
       .build()
   }
+
+  private type JSONPath = String
 
   private case class SchemaInfo(oid: am.OperationLike.Id, schema: am.OperationLike.Schema, diff: Set[am.Attribute.Id])
 

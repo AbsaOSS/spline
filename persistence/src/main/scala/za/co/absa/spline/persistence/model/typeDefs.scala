@@ -43,32 +43,31 @@ sealed abstract class Edge11Def(name: String, val from: NodeDef, val to: NodeDef
   this: CollectionDef =>
   // todo: think about making keys strong typed
   def edge(fromKey: Any, toKey: Any): Edge =
-    Edge(s"${from.name}/$fromKey", s"${to.name}/$toKey", None)
+    Edge(s"${from.name}/$fromKey", s"${to.name}/$toKey", None, None)
 
-  def edge(fromKey: Any, toKey: Any, index: Int): Edge = Edge(s"${from.name}/$fromKey", s"${to.name}/$toKey", Some(index))
+  def edge(fromKey: Any, toKey: Any, index: Int): Edge =
+    Edge(s"${from.name}/$fromKey", s"${to.name}/$toKey", Some(index), None)
 }
 
 sealed abstract class Edge12Def(name: String, val from: NodeDef, val to1: NodeDef, val to2: NodeDef)
   extends EdgeDef(name, Seq(from), Seq(to1, to2)) {
   this: CollectionDef =>
 
-  protected def edgeTo1(fromKey: Any, toKey: Any): Edge = Edge(s"${from.name}/$fromKey", s"${to1.name}/$toKey", None)
+  protected def edgeTo1(fromKey: Any, toKey: Any, index: Option[Int] = None, path: Option[String] = None): Edge =
+    Edge(s"${from.name}/$fromKey", s"${to1.name}/$toKey", index, path)
 
-  protected def edgeTo1(fromKey: Any, toKey: Any, index: Int): Edge = Edge(s"${from.name}/$fromKey", s"${to1.name}/$toKey", Some(index))
-
-  protected def edgeTo2(fromKey: Any, toKey: Any): Edge = Edge(s"${from.name}/$fromKey", s"${to2.name}/$toKey", None)
-
-  protected def edgeTo2(fromKey: Any, toKey: Any, index: Int): Edge = Edge(s"${from.name}/$fromKey", s"${to2.name}/$toKey", Some(index))
+  protected def edgeTo2(fromKey: Any, toKey: Any, index: Option[Int] = None, path: Option[String] = None): Edge =
+    Edge(s"${from.name}/$fromKey", s"${to2.name}/$toKey", index, path)
 }
 
 sealed trait EdgeToAttrOrExprOps {
   this: Edge12Def =>
 
-  def edgeToAttr(from: Any, to: Any): Edge = edgeTo1(from, to)
-  def edgeToAttr(from: Any, to: Any, index: Int): Edge = edgeTo1(from, to, index)
+  def edgeToAttr(from: Any, to: Any, path: String): Edge = edgeTo1(from, to, None, Some(path))
+  def edgeToAttr(from: Any, to: Any, index: Int): Edge = edgeTo1(from, to, Some(index), None)
 
-  def edgeToExpr(from: Any, to: Any): Edge = edgeTo2(from, to)
-  def edgeToExpr(from: Any, to: Any, index: Int): Edge = edgeTo2(from, to, index)
+  def edgeToExpr(from: Any, to: Any, path: String): Edge = edgeTo2(from, to, None, Some(path))
+  def edgeToExpr(from: Any, to: Any, index: Int): Edge = edgeTo2(from, to, Some(index), None)
 }
 
 sealed abstract class NodeDef(override val name: String)
