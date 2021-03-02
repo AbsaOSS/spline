@@ -136,24 +136,22 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     }
   }
 
-  override def execPlanAttributeLineage(planId: Id, attrId: String)(implicit ec: ExecutionContext): Future[AttributeGraph] = {
+  override def execPlanAttributeLineage(attrId: String)(implicit ec: ExecutionContext): Future[AttributeGraph] = {
     db.queryOne[AttributeGraph](
       """
         |???
         |""".stripMargin,
       Map(
-        "planId" -> planId,
         "attrId" -> attrId,
       ))
   }
 
-  override def execPlanAttributeImpact(planId: Id, attrId: String)(implicit ec: ExecutionContext): Future[AttributeGraph] = {
+  override def execPlanAttributeImpact(attrId: String)(implicit ec: ExecutionContext): Future[AttributeGraph] = {
     db.queryOne[AttributeGraph](
       """
         |???
         |""".stripMargin,
       Map(
-        "planId" -> planId,
         "attrId" -> attrId,
       ))
   }

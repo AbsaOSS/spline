@@ -48,14 +48,12 @@ class LineageDetailedController @Autowired()(
   @ApiOperation(
     value = "Get graph of attributes that depends on attribute with provided id")
   def attributeLineageAndImpact(
-    @ApiParam(value = "Execution plan ID")
-    @RequestParam("execId") execPlanId: ExecutionPlanInfo.Id,
     @ApiParam(value = "Attribute ID")
     @RequestParam("attributeId") attributeId: String
   ): Future[AttributeLineageAndImpact] =
     Future.sequence(Seq(
-      repo.execPlanAttributeLineage(execPlanId, attributeId),
-      repo.execPlanAttributeImpact(execPlanId, attributeId),
+      repo.execPlanAttributeLineage(attributeId),
+      repo.execPlanAttributeImpact(attributeId),
     )).map({
       case Seq(lin, imp) => AttributeLineageAndImpact(Some(lin), imp)
     })
