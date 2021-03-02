@@ -84,8 +84,7 @@ class ExecutionPlanPersistentModelBuilder private(
       for {
         attrFrom <- ep.attributes if attrFrom.childIds.nonEmpty
         refFrom = AttrOrExprRef.attrRef(attrFrom.id)
-        refTo <- this._attrDepGraph.get(refFrom).outerNodeTraverser
-        if refTo.isAttribute
+        refTo <- findAncestorAttributeRefs(refFrom)
       } yield {
         EdgeDef.DerivesFrom.edge(
           keyCreator.asAttributeKey(refFrom.refId),
@@ -271,6 +270,15 @@ class ExecutionPlanPersistentModelBuilder private(
     }
 
     obj.flatMap { case (k, v) => fromVal(v, s"$pathPrefix['$k']") }
+  }
+
+  private def findAncestorAttributeRefs(attrRef: AttrOrExprRef) = {
+    this._attrDepGraph // given the attribute dependency DAG (consisting of attribute and expression references)
+      .get(attrRef.ensuring(_.isAttribute)) // starting on the given attribute reference
+      .outerNodeTraverser // traverse the nodes (expression & attribute refs)
+      .withMaxWeight(1, e => if (e.toOuter.from.isAttribute) 1 else 0) // to the nearest reachable attribute refs
+      .filter(_.isAttribute) // collecting visited attribute refs
+      .tail // except for the starting one
   }
 
   private def toTransformOperation(t: am.DataOperation) = {
