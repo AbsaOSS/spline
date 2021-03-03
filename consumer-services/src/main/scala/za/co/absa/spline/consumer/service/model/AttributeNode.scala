@@ -30,7 +30,7 @@ case class AttributeNode
   originOpId: OperationID,
 
   @ApiModelProperty(value = "Operation Ids which the attribute passes through")
-  transOpIds: Set[OperationID]
+  transOpIds: Seq[OperationID]
 
 ) extends Graph.Node {
   def this() = this(null, null, null)

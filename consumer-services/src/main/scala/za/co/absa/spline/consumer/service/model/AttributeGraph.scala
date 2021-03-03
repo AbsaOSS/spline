@@ -27,6 +27,8 @@ case class AttributeGraph(
 ) extends Graph {
   override type Node = AttributeNode
   override type Edge = AttributeTransition
+
+  def this() = this(null, null)
 }
 
 object AttributeGraph {
