@@ -225,7 +225,27 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
   override def execPlanAttributeImpact(attrId: String)(implicit ec: ExecutionContext): Future[AttributeGraph] = {
     db.queryOne[AttributeGraph](
       """
-        |???
+        |WITH attribute, operation, produces, emits, schema, consistsOf
+        |LET theAttr = DOCUMENT("attribute", @attrId)
+        |LET originId = FIRST(
+        |    FOR op IN 1
+        |        INBOUND theAttr produces
+        |        RETURN op._id
+        |)
+        |LET transOpIds = (
+        |    FOR op IN 2
+        |        INBOUND theAttr consistsOf, emits
+        |        FILTER op._id != originId
+        |        RETURN op._key
+        |)
+        |RETURN {
+        |    nodes: [{
+        |       "_id": theAttr._key,
+        |       "originOpId": FIRST(FOR op IN INBOUND theAttr produces RETURN op._key),
+        |       "transOpIds": transOpIds
+        |    }],
+        |    edges: [],
+        |}
         |""".stripMargin,
       Map(
         "attrId" -> attrId,
