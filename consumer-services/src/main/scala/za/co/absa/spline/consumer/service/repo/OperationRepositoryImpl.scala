@@ -41,15 +41,17 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
         |    FILTER ope._key == @operationId
         |
         |    LET inputs = (
-        |        FOR v IN 1..1
+        |        FOR v, e IN 1..1
         |            OUTBOUND ope follows
+        |            SORT e.index
         |            RETURN v
         |    )
         |
         |    LET schemas = (
         |        FOR op IN APPEND(inputs, ope)
         |            LET schema = (
-        |                FOR attr IN 2 OUTBOUND op emits, consistsOf
+        |                FOR attr, e IN 2 OUTBOUND op emits, consistsOf
+        |                    SORT e.index
         |                    RETURN {
         |                        "id": attr._key,
         |                        "name": attr.name,
