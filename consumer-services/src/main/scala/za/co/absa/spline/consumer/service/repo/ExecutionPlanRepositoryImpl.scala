@@ -36,22 +36,40 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
   override def findById(execId: Id)(implicit ec: ExecutionContext): Future[LineageDetailed] = {
     db.queryOne[LineageDetailed](
       """
-        |WITH executionPlan, executes, operation, follows
+        |WITH executionPlan, executes, operation, follows, emits, schema, consistsOf, attribute
         |LET exec = FIRST(FOR ex IN executionPlan FILTER ex._key == @execId RETURN ex)
         |LET writeOp = FIRST(FOR v IN 1 OUTBOUND exec executes RETURN v)
         |
         |LET opsWithInboundEdges = (
-        |    FOR vi, ei IN 0..99999
+        |    FOR opi, ei IN 0..99999
         |        OUTBOUND writeOp follows
-        |        COLLECT v = vi INTO edgesByVertex
+        |        COLLECT op = opi INTO edgesByVertex
+        |        LET schemaId = FIRST(
+        |            FOR schema IN 1
+        |                OUTBOUND op emits
+        |                RETURN schema._id
+        |        )
         |        RETURN {
-        |            "op": v,
-        |            "es": UNIQUE(edgesByVertex[* FILTER NOT_NULL(CURRENT.ei)].ei)
+        |            "op"  : op,
+        |            "es"  : UNIQUE(edgesByVertex[* FILTER NOT_NULL(CURRENT.ei)].ei),
+        |            "sid" : schemaId
         |        }
         |    )
         |
         |LET ops = opsWithInboundEdges[*].op
         |LET edges = opsWithInboundEdges[*].es[**]
+        |LET schemaIds = UNIQUE(opsWithInboundEdges[*].sid)
+        |
+        |LET attributes = (
+        |    FOR sid IN schemaIds
+        |        FOR a IN 1
+        |            OUTBOUND sid consistsOf
+        |            RETURN DISTINCT {
+        |                "id"   : a._key,
+        |                "name" : a.name,
+        |                "dataTypeId" : a.dataType
+        |            }
+        |)
         |
         |LET inputs = FLATTEN(
         |    FOR op IN ops
@@ -87,7 +105,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |        "_id"       : exec._key,
         |        "systemInfo": exec.systemInfo,
         |        "agentInfo" : exec.agentInfo,
-        |        "extra"     : exec.extra,
+        |        "extra"     : MERGE(exec.extra, { attributes }),
         |        "inputs"    : inputs,
         |        "output"    : output
         |    }
