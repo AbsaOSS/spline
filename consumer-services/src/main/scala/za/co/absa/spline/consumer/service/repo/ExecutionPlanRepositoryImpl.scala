@@ -157,7 +157,65 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
   override def execPlanAttributeLineage(attrId: String)(implicit ec: ExecutionContext): Future[AttributeGraph] = {
     db.queryOne[AttributeGraph](
       """
-        |???
+        |WITH attribute, derivesFrom, operation, follows, produces, emits, schema, consistsOf
+        |LET theAttr = DOCUMENT("attribute", @attrId)
+        |LET theOriginId = FIRST(
+        |    FOR op IN 1
+        |        INBOUND theAttr produces
+        |        RETURN op._id
+        |)
+        |
+        |LET opIdsPrecedingTheOrigin = (
+        |    FOR op IN 1..9999
+        |        OUTBOUND theOriginId follows
+        |        RETURN DISTINCT op._id
+        |)
+        |
+        |LET attrsWithEdges = (
+        |    FOR v, e IN 1..999
+        |        OUTBOUND theAttr derivesFrom
+        |        LET attr = {
+        |            "_id": v._id,
+        |            "name": v.name
+        |        }
+        |        LET edge = {
+        |            "source": PARSE_IDENTIFIER(e._from).key,
+        |            "target": PARSE_IDENTIFIER(e._to).key
+        |        }
+        |        RETURN [attr, edge]
+        |)
+        |
+        |LET nodes = (
+        |    FOR a IN UNIQUE(attrsWithEdges[*][0])
+        |        LET originId = FIRST(
+        |            FOR op IN 1
+        |                INBOUND a produces
+        |                RETURN op._id
+        |        )
+        |        LET transOpIds = (
+        |            FOR op IN 2
+        |                INBOUND a consistsOf, emits
+        |                FILTER op._id != originId
+        |                FILTER op._id IN opIdsPrecedingTheOrigin
+        |                RETURN op._key
+        |        )
+        |        RETURN MERGE(a, {
+        |            "_id"        : PARSE_IDENTIFIER(a._id).key,
+        |            "originOpId" : PARSE_IDENTIFIER(originId).key,
+        |            "transOpIds" : transOpIds
+        |        })
+        |)
+        |
+        |LET edges = UNIQUE(attrsWithEdges[*][1])
+        |
+        |RETURN {
+        |    "nodes" : PUSH(nodes, {
+        |        "_id": @attrId,
+        |        "originOpId": PARSE_IDENTIFIER(theOriginId).key,
+        |        "transOpIds": []
+        |    }),
+        |    edges,
+        |}
         |""".stripMargin,
       Map(
         "attrId" -> attrId,
