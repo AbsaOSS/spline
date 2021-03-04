@@ -184,15 +184,8 @@ object ViewDef {
 
   object AttributeSearchView extends ViewDef("attributeSearchView",
     (new ArangoSearchPropertiesOptions)
-      .link(CollectionLink.on(NodeDef.ExecutionPlan.name)
+      .link(CollectionLink.on(NodeDef.Attribute.name)
         .analyzers("text_en", "identity")
-        .includeAllFields(false)
-        .fields(FieldLink.on("extra")
-          .fields(FieldLink.on("attributes")
-            .fields(FieldLink.on("name"))
-          )
-        )
-      )
-  )
+        .fields(FieldLink.on("name"))))
 
 }
