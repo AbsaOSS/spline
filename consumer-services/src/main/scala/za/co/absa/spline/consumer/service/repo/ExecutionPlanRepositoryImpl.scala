@@ -24,7 +24,7 @@ import za.co.absa.spline.consumer.service.model.DataSourceActionType.{Read, Writ
 import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
 import za.co.absa.spline.consumer.service.model.{AttributeGraph, DataSourceActionType, LineageDetailed}
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepositoryImpl.ExecutionPlanDagPO
-import za.co.absa.spline.persistence.model.Edge
+import za.co.absa.spline.persistence.model.{Edge, EdgeDef, NodeDef}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -278,7 +278,8 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     access
       .map({
         case Read => db.queryStream[String](
-          """
+          s"""
+            |WITH ${NodeDef.DataSource.name}, ${EdgeDef.Depends.name}
             |FOR ds IN 1..1
             |OUTBOUND DOCUMENT('executionPlan', @planId) depends
             |RETURN ds.uri
@@ -287,7 +288,8 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         ).map(_.toArray)
 
         case Write => db.queryStream[String](
-          """
+          s"""
+            |WITH ${NodeDef.DataSource.name}, ${EdgeDef.Affects.name}
             |FOR ds IN 1..1
             |OUTBOUND DOCUMENT('executionPlan', @planId) affects
             |RETURN ds.uri
@@ -297,7 +299,8 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
       })
       .getOrElse({
         db.queryStream[String](
-          """
+          s"""
+            |WITH ${NodeDef.DataSource.name}, ${EdgeDef.Depends.name}, ${EdgeDef.Affects.name}
             |FOR ds IN 1..1
             |OUTBOUND DOCUMENT('executionPlan', @planId) affects, depends
             |RETURN ds.uri
