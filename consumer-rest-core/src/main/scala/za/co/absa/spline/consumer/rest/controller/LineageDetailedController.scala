@@ -26,14 +26,15 @@ import za.co.absa.spline.consumer.rest.controller.LineageDetailedController.Attr
 import za.co.absa.spline.consumer.service.attrresolver.AttributeDependencyResolver
 import za.co.absa.spline.consumer.service.internal.AttributeDependencySolver
 import za.co.absa.spline.consumer.service.model.{AttributeGraph, DataSourceActionType, ExecutionPlanInfo, LineageDetailed}
-import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepository
+import za.co.absa.spline.consumer.service.repo.{ExecutionPlanDetailsRepository, ExecutionPlanRepository, InvalidInputException}
 
 import scala.concurrent.Future
 
 @RestController
 @Api(tags = Array("lineage"))
 class LineageDetailedController @Autowired()(
-  val repo: ExecutionPlanRepository) {
+  val repo: ExecutionPlanRepository,
+  val execPlanDetailRepo: ExecutionPlanDetailsRepository) {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
@@ -77,6 +78,20 @@ class LineageDetailedController @Autowired()(
     val dataSourceActionTypeOption = DataSourceActionType.findValueOf(access)
     repo.getDataSources(planId, dataSourceActionTypeOption)
   }
+
+  @GetMapping(value = Array("data-sources"))
+  def dataSourcesExecPlan(
+    @ApiParam(value = "ds_rel")
+    @RequestParam(name = "ds_rel", required = true)
+    datasourceRelation: Array[String],
+    @ApiParam(value = "fields")
+    @RequestParam(name = "fields", required = true) fields: Array[String]
+  ): Future[Array[Map[String, Any]]] = {
+    if(!InputValidation.getInputs(datasourceRelation))
+    throw new InvalidInputException("Input must be comma separated of strings of access type followed by datasource id. For ex: read:1111")
+    else execPlanDetailRepo.getExecutionPlan(datasourceRelation, fields)
+  }
+
 }
 
 object LineageDetailedController {
