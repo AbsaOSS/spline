@@ -22,7 +22,7 @@ import za.co.absa.commons.version.Version._
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 import za.co.absa.spline.persistence.DatabaseVersionManager._
 import za.co.absa.spline.persistence.model.DBVersion.Status
-import za.co.absa.spline.persistence.model.NodeDef.DBVersion
+import za.co.absa.spline.persistence.model.CollectionDef.DBVersion
 
 import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.concurrent.{ExecutionContext, Future}

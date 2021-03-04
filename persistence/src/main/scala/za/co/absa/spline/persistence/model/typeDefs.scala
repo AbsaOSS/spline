@@ -134,12 +134,6 @@ object EdgeDef {
 
 object NodeDef {
 
-  object DBVersion extends CollectionDef {
-    override def collectionType = CollectionType.DOCUMENT
-
-    override def name: String = "dbVersion"
-  }
-
   object DataSource extends NodeDef("dataSource") with CollectionDef {
     override def indexDefs: Seq[IndexDef] = Seq(
       IndexDef(Seq("uri"), (new PersistentIndexOptions).unique(true)))
@@ -173,6 +167,16 @@ object NodeDef {
   object Attribute extends NodeDef("attribute") with CollectionDef
 
   object Expression extends NodeDef("expression") with CollectionDef
+
+}
+
+object CollectionDef {
+
+  object DBVersion extends CollectionDef {
+    override def collectionType = CollectionType.DOCUMENT
+
+    override def name: String = "dbVersion"
+  }
 
 }
 

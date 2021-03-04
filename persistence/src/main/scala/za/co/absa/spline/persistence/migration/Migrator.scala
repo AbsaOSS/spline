@@ -20,7 +20,7 @@ import com.arangodb.async.ArangoDatabaseAsync
 import org.slf4s.Logging
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 import za.co.absa.spline.persistence.model.DBVersion.Status
-import za.co.absa.spline.persistence.model.NodeDef.DBVersion
+import za.co.absa.spline.persistence.model.CollectionDef.DBVersion
 import za.co.absa.spline.persistence.tx._
 import za.co.absa.spline.persistence.{ArangoImplicits, DatabaseVersionManager, model}
 
