@@ -15,7 +15,6 @@
  */
 package za.co.absa.spline.consumer.rest.controller
 
-import java.util.UUID.randomUUID
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.scalatest.funsuite.AsyncFunSuite
@@ -23,9 +22,10 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.spline.consumer.service.model
 import za.co.absa.spline.consumer.service.model._
-import za.co.absa.spline.consumer.service.repo.OperationRepository
+import za.co.absa.spline.consumer.service.repo.{ExpressionRepository, OperationRepository}
 
-import scala.concurrent.{ExecutionContext, Future}
+import java.util.UUID.randomUUID
+import scala.concurrent.Future
 
 class OperationDetailsControllerTest extends AsyncFunSuite with MockitoSugar with Matchers {
 
@@ -302,10 +302,13 @@ class OperationDetailsControllerTest extends AsyncFunSuite with MockitoSugar wit
   )
 
   test("testOperation") {
-    val operationRepoMock = mock[OperationRepository]
-    val operationDetailsController = new OperationDetailsController(operationRepoMock)
+    val opRepoMock = mock[OperationRepository]
+    val expRepoMock = mock[ExpressionRepository]
 
-    when(operationRepoMock.findById(any())(any())).thenReturn(Future.successful(operationDetails))
+    val operationDetailsController = new OperationDetailsController(opRepoMock, expRepoMock)
+
+    when(opRepoMock.findById(any())(any())).thenReturn(Future.successful(operationDetails))
+    when(expRepoMock.expressionGraphUsedByOperation(any())(any())).thenReturn(Future.successful(ExpressionGraph(Array.empty, Array.empty)))
 
     val res = operationDetailsController.operation("2141834d-abd6-4be4-80b9-01661b842ab9")
 

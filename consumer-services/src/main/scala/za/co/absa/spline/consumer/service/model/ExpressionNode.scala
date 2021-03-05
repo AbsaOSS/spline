@@ -17,18 +17,35 @@
 package za.co.absa.spline.consumer.service.model
 
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
-import za.co.absa.spline.consumer.service.model.AttributeGraph.AttributeId
 
-@ApiModel(description="Link between nodes")
-case class AttributeTransition
+@ApiModel(description = "Expression Node")
+case class ExpressionNode
 (
-  @ApiModelProperty(value = "Source Node")
-  source: AttributeId,
+  @ApiModelProperty(value = "Expression Id")
+  _id: ExpressionNode.Id,
 
-  @ApiModelProperty(value = "Target Node")
-  target: AttributeId
-) extends Graph.Edge {
-  def this() = this(null, null)
+  @ApiModelProperty(value = "Expression data type")
+  dataType: Option[String],
 
-  override type JointId = AttributeId
+  @ApiModelProperty(value = "Expression name")
+  name: String,
+
+  @ApiModelProperty(value = "Literal expression value")
+  value: Option[Any],
+
+  @ApiModelProperty(value = "Expression parameters")
+  params: Map[String, Any],
+
+  @ApiModelProperty(value = "Expression extras")
+  extra: Map[String, Any],
+
+
+) extends Graph.Node {
+  def this() = this(null, null, null, null, null, null)
+
+  override type Id = ExpressionNode.Id
+}
+
+object ExpressionNode {
+  type Id = String
 }
