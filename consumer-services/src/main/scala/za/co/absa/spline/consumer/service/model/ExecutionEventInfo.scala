@@ -41,3 +41,7 @@ case class ExecutionEventInfo
   def this() = this(null, null, null, null, null, 0, null, null, false)
 }
 
+object ExecutionEventInfo {
+  type Id = String
+}
+

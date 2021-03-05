@@ -22,3 +22,7 @@ case class Attribute(
   dataTypeId: String) {
   def this() = this(null, null, null)
 }
+
+object Attribute {
+  type Id = String
+}

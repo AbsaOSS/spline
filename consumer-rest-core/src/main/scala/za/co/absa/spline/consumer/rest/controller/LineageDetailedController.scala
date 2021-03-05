@@ -61,7 +61,7 @@ class LineageDetailedController @Autowired()(
   @GetMapping(value = Array("execution-plans/{plan_id}/data-sources"))
   @ResponseStatus(HttpStatus.OK)
   def execPlanDataSources(
-    @PathVariable("plan_id") planId: String,
+    @PathVariable("plan_id") planId: ExecutionPlanInfo.Id,
     @ApiParam(value = "access")
     @RequestParam(name = "access", required = false) access: String
   ): Future[Array[String]] = {

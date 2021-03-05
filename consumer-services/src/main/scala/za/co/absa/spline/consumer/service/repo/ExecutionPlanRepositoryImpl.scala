@@ -21,8 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.internal.model.{ExecutionPlanDAG, VersionInfo}
 import za.co.absa.spline.consumer.service.model.DataSourceActionType.{Read, Write}
-import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
-import za.co.absa.spline.consumer.service.model.{AttributeGraph, DataSourceActionType, LineageDetailed}
+import za.co.absa.spline.consumer.service.model.{Attribute, AttributeGraph, DataSourceActionType, ExecutionPlanInfo, LineageDetailed}
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepositoryImpl.ExecutionPlanDagPO
 import za.co.absa.spline.persistence.model.{Edge, EdgeDef, NodeDef}
 
@@ -33,7 +32,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
 
   import za.co.absa.spline.persistence.ArangoImplicits._
 
-  override def findById(execId: Id)(implicit ec: ExecutionContext): Future[LineageDetailed] = {
+  override def findById(execId: ExecutionPlanInfo.Id)(implicit ec: ExecutionContext): Future[LineageDetailed] = {
     db.queryOne[LineageDetailed](
       """
         |WITH executionPlan, executes, operation, follows, emits, schema, consistsOf, attribute
@@ -115,7 +114,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     ).filter(null.!=)
   }
 
-  override def loadExecutionPlanAsDAG(execId: Id)(implicit ec: ExecutionContext): Future[ExecutionPlanDAG] = {
+  override def loadExecutionPlanAsDAG(execId: ExecutionPlanInfo.Id)(implicit ec: ExecutionContext): Future[ExecutionPlanDAG] = {
     db.queryOne[ExecutionPlanDagPO](
       """
         |WITH executionPlan, executes, operation, follows
@@ -154,7 +153,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     }
   }
 
-  override def execPlanAttributeLineage(attrId: String)(implicit ec: ExecutionContext): Future[AttributeGraph] = {
+  override def execPlanAttributeLineage(attrId: Attribute.Id)(implicit ec: ExecutionContext): Future[AttributeGraph] = {
     db.queryOne[AttributeGraph](
       """
         |WITH attribute, derivesFrom, operation, follows, produces, emits, schema, consistsOf
@@ -224,7 +223,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
       ))
   }
 
-  override def execPlanAttributeImpact(attrId: String)(implicit ec: ExecutionContext): Future[AttributeGraph] = {
+  override def execPlanAttributeImpact(attrId: Attribute.Id)(implicit ec: ExecutionContext): Future[AttributeGraph] = {
     db.queryOne[AttributeGraph](
       """
         |WITH attribute, derivesFrom, operation, produces, emits, schema, consistsOf
@@ -274,7 +273,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
       ))
   }
 
-  override def getDataSources(execPlanId: String, access: Option[DataSourceActionType])(implicit ec: ExecutionContext): Future[Array[String]] = {
+  override def getDataSources(execPlanId: ExecutionPlanInfo.Id, access: Option[DataSourceActionType])(implicit ec: ExecutionContext): Future[Array[String]] = {
     access
       .map({
         case Read => db.queryStream[String](

@@ -17,13 +17,14 @@
 package za.co.absa.spline.consumer.service.internal.model
 
 import za.co.absa.spline.consumer.service.internal.model.ExecutionPlanDAG._
+import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepositoryImpl.AnyOperation
 import za.co.absa.spline.persistence.model.Edge
 
 import java.util.UUID
 
 class ExecutionPlanDAG(
-  val id: UUID,
+  val id: ExecutionPlanInfo.Id,
   val systemInfo: VersionInfo,
   val agentInfo: VersionInfo,
   val operations: Array[_ <: AnyOperation],
