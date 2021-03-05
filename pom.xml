@@ -64,6 +64,8 @@
         <module>consumer-rest-core</module>
         <module>rest-gateway</module>
 
+        <module>producer-kafka</module>
+
         <module>admin</module>
     </modules>
 
