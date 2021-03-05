@@ -199,20 +199,22 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |                FILTER op._id IN opIdsPrecedingTheOrigin
         |                RETURN op._key
         |        )
-        |        RETURN MERGE(a, {
+        |        RETURN {
         |            "_id"        : PARSE_IDENTIFIER(a._id).key,
+        |            "name"       : a.name,
         |            "originOpId" : PARSE_IDENTIFIER(originId).key,
         |            "transOpIds" : transOpIds
-        |        })
+        |        }
         |)
         |
         |LET edges = UNIQUE(attrsWithEdges[*][1])
         |
         |RETURN {
         |    "nodes" : PUSH(nodes, {
-        |        "_id": @attrId,
-        |        "originOpId": PARSE_IDENTIFIER(theOriginId).key,
-        |        "transOpIds": []
+        |        "_id"        : @attrId,
+        |        "name"       : theAttr.name,
+        |        "originOpId" : PARSE_IDENTIFIER(theOriginId).key,
+        |        "transOpIds" : []
         |    }),
         |    edges,
         |}
@@ -231,10 +233,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |LET attrsWithEdges = (
         |    FOR v, e IN 0..999
         |        INBOUND theAttr derivesFrom
-        |        LET attr = {
-        |            "_id": v._id,
-        |            "name": v.name
-        |        }
+        |        LET attr = KEEP(v, ["_id", "name"])
         |        LET edge = e && {
         |            "source": PARSE_IDENTIFIER(e._from).key,
         |            "target": PARSE_IDENTIFIER(e._to).key
@@ -255,11 +254,12 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |                FILTER op._id != originId
         |                RETURN op._key
         |        )
-        |        RETURN MERGE(a, {
+        |        RETURN {
         |            "_id"        : PARSE_IDENTIFIER(a._id).key,
+        |            "name"       : a.name,
         |            "originOpId" : PARSE_IDENTIFIER(originId).key,
         |            "transOpIds" : transOpIds
-        |        })
+        |        }
         |)
         |
         |LET edges = UNIQUE(SHIFT(attrsWithEdges)[*][1])

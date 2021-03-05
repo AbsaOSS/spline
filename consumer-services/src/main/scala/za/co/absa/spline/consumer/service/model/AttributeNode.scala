@@ -26,6 +26,9 @@ case class AttributeNode
   @ApiModelProperty(value = "Attribute Id")
   _id: AttributeId,
 
+  @ApiModelProperty(value = "Attribute name")
+  name: String,
+
   @ApiModelProperty(value = "Operation Id in which the attribute was created")
   originOpId: OperationID,
 
@@ -33,7 +36,7 @@ case class AttributeNode
   transOpIds: Seq[OperationID]
 
 ) extends Graph.Node {
-  def this() = this(null, null, null)
+  def this() = this(null, null, null, null)
 
   override type Id = AttributeId
 }
