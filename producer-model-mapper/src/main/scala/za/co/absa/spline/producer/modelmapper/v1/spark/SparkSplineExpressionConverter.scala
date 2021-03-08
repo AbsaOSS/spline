@@ -45,7 +45,7 @@ class SparkSplineExpressionConverter(
         toFunctionalExpression(
           exprDef,
           exprDef(FieldNamesV1.ExpressionDef.Name),
-          exprDef(FieldNamesV1.ExpressionDef.Params).asInstanceOf[ExpressionLike.Params],
+          exprDef.getOrElse(FieldNamesV1.ExpressionDef.Params, Map.empty).asInstanceOf[ExpressionLike.Params],
           exprDef.find({ case (k, _) => k == FieldNamesV1.ExpressionDef.ExprType }).toMap
         )
     }

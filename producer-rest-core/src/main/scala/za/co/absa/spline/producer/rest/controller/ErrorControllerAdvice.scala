@@ -30,7 +30,7 @@ class ErrorControllerAdvice {
   @ExceptionHandler(Array(
     classOf[NoSuchElementException]
   ))
-  def notFound: ResponseEntity[_] = new ResponseEntity(NOT_FOUND)
+  def notFound(e: Exception): ResponseEntity[_] = new ResponseEntity(e.getMessage, NOT_FOUND)
 
   @ExceptionHandler(Array(
     classOf[TypeMismatchException],
