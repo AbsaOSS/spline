@@ -43,12 +43,6 @@ class ExecutionPlansController @Autowired()(
       """
         Saves an Execution Plan and returns its new UUID.
 
-        In most cases, if `id` is provided by the client it will be used and returned
-        to the client. However, in the future Spline server could recognize duplicated
-        execution plans, in which case the method will return UUID of already existing
-        execution plan. In all the future interactions with the Spline API, the client
-        must use this UUID instead of the original UUID to refer the given Execution Plan.
-
         Payload format:
 
         {
