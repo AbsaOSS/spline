@@ -16,42 +16,56 @@
 
 package za.co.absa.spline.producer.model.v1_1
 
-import za.co.absa.spline.producer.model.v1_1.ExpressionLike.Id
-
 sealed trait ExpressionLike {
-  def id: Id
-  def dataType: Option[DataType]
-  def childIds: Seq[ExpressionLike.Id]
+  def id: ExpressionLike.Id
+
+  // todo: data types aren't properly modeled yet. Shouldn't we hide them under extras then?
+  def dataType: Option[Any]
+
+  // todo: rename it to "childRefs" ??
+  def childIds: Seq[ExpressionLike.ChildRef]
   def extra: Map[String, Any]
 }
 
 object ExpressionLike {
   type Id = String
+  type ChildRef = AttrOrExprRef
+  type Params = Map[String, Any]
+  type Extras = Map[String, Any]
 }
 
+/**
+ * Represents a functional expression that computes a value based on the given input.
+ *
+ * @param id       expression ID
+ * @param name     expression name
+ * @param dataType output data type
+ * @param childIds input expression (or attribute) IDs
+ * @param params   optional static expression parameters (don't confuse with input parameters)
+ * @param extra    optional metadata
+ */
 case class FunctionalExpression(
-  override val id: Id,
-  override val dataType: Option[DataType],
-  override val childIds: Seq[ExpressionLike.Id],
-  override val extra: Map[String, Any],
+  override val id: ExpressionLike.Id,
+  override val dataType: Option[Any] = None,
+  override val childIds: Seq[ExpressionLike.ChildRef] = Nil,
+  override val extra: Map[String, Any] = Map.empty,
   name: String,
-  args: Seq[ExpressionLike.Id],
-  params: Map[String, Any],
+  params: Map[String, Any] = Map.empty,
 ) extends ExpressionLike
 
-case class Attribute(
-  override val id: Id,
-  override val dataType: Option[DataType],
-  override val childIds: Seq[ExpressionLike.Id],
-  override val extra: Map[String, Any],
-  name: String,
-) extends ExpressionLike
-
+/**
+ * Literal expression
+ *
+ * @param id       expression ID
+ * @param value    literal value
+ * @param dataType value data type
+ * @param extra    optional metadata
+ */
 case class Literal(
-  override val id: Id,
-  override val dataType: Option[DataType],
-  override val extra: Map[String, Any],
+  override val id: ExpressionLike.Id,
+  override val dataType: Option[Any] = None,
+  override val extra: Map[String, Any] = Map.empty,
   value: Any,
 ) extends ExpressionLike {
-  override def childIds: Seq[ExpressionLike.Id] = Nil
+  override def childIds: Seq[ExpressionLike.ChildRef] = Nil
 }

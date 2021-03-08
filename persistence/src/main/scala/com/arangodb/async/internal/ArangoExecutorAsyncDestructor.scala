@@ -17,14 +17,15 @@
 package com.arangodb.async.internal
 
 import com.arangodb.internal.velocystream.VstCommunication
+import com.arangodb.internal.velocystream.internal.VstConnection
 import za.co.absa.commons.reflect.ReflectionUtils
 
 object ArangoExecutorAsyncDestructor {
   private final val CommunicationField = "communication"
 
-  def unapply(executor: ArangoExecutorAsync): Option[VstCommunication[_, _]] = {
+  def unapply(executor: ArangoExecutorAsync): Option[VstCommunication[_, _ <: VstConnection[_]]] = {
     Option(
-      ReflectionUtils.extractFieldValue[ArangoExecutorAsync, VstCommunication[_, _]](executor, CommunicationField)
+      ReflectionUtils.extractFieldValue[ArangoExecutorAsync, VstCommunication[_, _ <: VstConnection[_]]](executor, CommunicationField)
     )
   }
 }

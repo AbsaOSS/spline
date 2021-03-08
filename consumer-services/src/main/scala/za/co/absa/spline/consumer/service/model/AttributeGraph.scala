@@ -23,12 +23,10 @@ case class AttributeGraph(
   @ApiModelProperty(value = "Array of attribute nodes representing an operation where attribute was created")
   nodes: Array[AttributeNode],
   @ApiModelProperty(value = "Link representing dependency of one attribute on another")
-  edges: Array[AttributeTransition]
+  edges: Array[AttributeEdge]
 ) extends Graph {
   override type Node = AttributeNode
-  override type Edge = AttributeTransition
-}
+  override type Edge = AttributeEdge
 
-object AttributeGraph {
-  type AttributeId = String
+  def this() = this(null, null)
 }

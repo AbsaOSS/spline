@@ -17,15 +17,20 @@
 package za.co.absa.spline.consumer.service.repo
 
 import za.co.absa.spline.consumer.service.internal.model.ExecutionPlanDAG
-import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
-import za.co.absa.spline.consumer.service.model.{DataSourceActionType, LineageDetailed}
+import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo
+import za.co.absa.spline.consumer.service.model.{Attribute, AttributeGraph, DataSourceActionType, LineageDetailed}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ExecutionPlanRepository {
-  def findById(execId: Id)(implicit ec: ExecutionContext): Future[LineageDetailed]
 
-  def loadExecutionPlanAsDAG(execId: Id)(implicit ec: ExecutionContext): Future[ExecutionPlanDAG]
+  def execPlanAttributeLineage(attrId: Attribute.Id)(implicit ec: ExecutionContext): Future[AttributeGraph]
 
-  def getDataSources(execPlanId: String, access: Option[DataSourceActionType])(implicit ec: ExecutionContext): Future[Array[String]]
+  def execPlanAttributeImpact(attrId: Attribute.Id)(implicit ec: ExecutionContext): Future[AttributeGraph]
+
+  def findById(execId: ExecutionPlanInfo.Id)(implicit ec: ExecutionContext): Future[LineageDetailed]
+
+  def loadExecutionPlanAsDAG(execId: ExecutionPlanInfo.Id)(implicit ec: ExecutionContext): Future[ExecutionPlanDAG]
+
+  def getDataSources(execPlanId: ExecutionPlanInfo.Id, access: Option[DataSourceActionType])(implicit ec: ExecutionContext): Future[Array[String]]
 }

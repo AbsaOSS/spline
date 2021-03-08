@@ -16,26 +16,22 @@
 
 package za.co.absa.spline.consumer.rest.controller
 
-import java.util.UUID
-
 import io.swagger.annotations._
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.rest.controller.LineageDetailedController.AttributeLineageAndImpact
-import za.co.absa.spline.consumer.service.attrresolver.AttributeDependencyResolver
-import za.co.absa.spline.consumer.service.internal.AttributeDependencySolver
 import za.co.absa.spline.consumer.service.model.{AttributeGraph, DataSourceActionType, ExecutionPlanInfo, LineageDetailed}
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepository
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @RestController
 @Api(tags = Array("lineage"))
 class LineageDetailedController @Autowired()(
   val repo: ExecutionPlanRepository) {
 
-  import scala.concurrent.ExecutionContext.Implicits._
+  import ExecutionContext.Implicits.global
 
   @GetMapping(Array("lineage-detailed"))
   @ApiOperation(
@@ -52,25 +48,20 @@ class LineageDetailedController @Autowired()(
   @ApiOperation(
     value = "Get graph of attributes that depends on attribute with provided id")
   def attributeLineageAndImpact(
-    @ApiParam(value = "Execution plan ID")
-    @RequestParam("execId") execId: ExecutionPlanInfo.Id,
     @ApiParam(value = "Attribute ID")
-    @RequestParam("attributeId") attributeId: UUID
-  ): Future[AttributeLineageAndImpact] = repo
-    .loadExecutionPlanAsDAG(execId)
-    .map(execPlan => {
-      val solver = AttributeDependencySolver(execPlan)
-      val maybeDependencyResolver = AttributeDependencyResolver.forSystemAndAgent(execPlan.systemInfo, execPlan.agentInfo)
-      val maybeAttrLineage = maybeDependencyResolver.map(solver.lineage(attributeId.toString, _))
-      val attrImpact = solver.impact(attributeId.toString, maybeDependencyResolver)
-
-      AttributeLineageAndImpact(maybeAttrLineage, attrImpact)
+    @RequestParam("attributeId") attributeId: String
+  ): Future[AttributeLineageAndImpact] =
+    Future.sequence(Seq(
+      repo.execPlanAttributeLineage(attributeId),
+      repo.execPlanAttributeImpact(attributeId),
+    )).map({
+      case Seq(lin, imp) => AttributeLineageAndImpact(Some(lin), imp)
     })
 
   @GetMapping(value = Array("execution-plans/{plan_id}/data-sources"))
   @ResponseStatus(HttpStatus.OK)
   def execPlanDataSources(
-    @PathVariable("plan_id") planId: String,
+    @PathVariable("plan_id") planId: ExecutionPlanInfo.Id,
     @ApiParam(value = "access")
     @RequestParam(name = "access", required = false) access: String
   ): Future[Array[String]] = {

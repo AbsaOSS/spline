@@ -22,7 +22,7 @@ import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation._
 import springfox.documentation.annotations.ApiIgnore
 import za.co.absa.spline.producer.model.ExecutionEvent
-import za.co.absa.spline.producer.rest.modelmapper.ModelMapperV1
+import za.co.absa.spline.producer.modelmapper.v1.ModelMapperV1
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 
 import scala.concurrent.{ExecutionContext, Future}

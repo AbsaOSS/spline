@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2021 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,19 @@
 
 package za.co.absa.spline.producer.service.repo
 
-
 import com.arangodb.async.ArangoDatabaseAsync
-import org.apache.commons.lang3.StringUtils.wrap
 import org.slf4s.Logging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import za.co.absa.commons.json.DefaultJacksonJsonSerDe
 import za.co.absa.spline.persistence.model._
 import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, TxBuilder}
-import za.co.absa.spline.persistence.{ArangoImplicits, Persister, model => dbModel}
+import za.co.absa.spline.persistence.{ArangoImplicits, Persister}
+import za.co.absa.spline.producer.model.v1_1.ExecutionEvent
 import za.co.absa.spline.producer.model.{v1_1 => apiModel}
+import za.co.absa.spline.producer.service.model.{ExecutionEventKeyCreator, ExecutionPlanPersistentModel, ExecutionPlanPersistentModelBuilder}
+import za.co.absa.spline.producer.service.InconsistentEntityException
 
 import java.util.UUID
-import java.util.UUID.randomUUID
-import java.{lang => jl}
 import scala.compat.java8.FutureConverters._
 import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -44,7 +42,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
   import ExecutionProducerRepositoryImpl._
 
   override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
-    val eventuallyExists = db.queryOne[Boolean](
+    val planAlreadyExistsFuture = db.queryOne[Boolean](
       s"""
          |WITH ${NodeDef.ExecutionPlan.name}
          |FOR ex IN ${NodeDef.ExecutionPlan.name}
@@ -54,27 +52,22 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
          |    """.stripMargin,
       Map("key" -> executionPlan.id))
 
-    val referencedDSURIs = {
-      val readSources = executionPlan.operations.reads.flatMap(_.inputSources).toSet
-      val writeSource = executionPlan.operations.write.outputSource
-      readSources + writeSource
-    }
-
-    val eventualPersistedDSes = db.queryAs[DataSource](
+    val eventualPersistedDSKeyByURI: Future[Map[String, DataSource.Key]] = db.queryAs[DataSource](
       s"""
          |WITH ${NodeDef.DataSource.name}
          |FOR ds IN ${NodeDef.DataSource.name}
-         |    FILTER ds.uri IN [${referencedDSURIs.map(wrap(_, '"')).mkString(", ")}]
+         |    FILTER ds.uri IN @refURIs
          |    RETURN ds
-         |    """.stripMargin
+         |    """.stripMargin,
+      Map("refURIs" -> executionPlan.dataSources.toArray)
     ).map(_.streamRemaining.toScala.map(ds => ds.uri -> ds._key).toMap)
 
     for {
-      persistedDSes: Map[String, String] <- eventualPersistedDSes
-      alreadyExists: Boolean <- eventuallyExists
+      persistedDSKeyByURI <- eventualPersistedDSKeyByURI
+      planAlreadyExists <- planAlreadyExistsFuture
       _ <-
-        if (alreadyExists) Future.successful(Unit)
-        else createInsertTransaction(executionPlan, referencedDSURIs, persistedDSes).execute(db).map(_ => true)
+        if (planAlreadyExists) Future.successful(Unit) // nothing more to do
+        else createInsertTransaction(executionPlan, persistedDSKeyByURI).execute(db).map(_ => true)
     } yield Unit
   })
 
@@ -119,27 +112,11 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 
     val progressNodes = events
       .zip(execPlansDetails)
-      .map {
-        case (e, pd) =>
-          Progress(
-            e.timestamp,
-            e.error,
-            e.extra,
-            createEventKey(e),
-            ExecPlanDetails(
-              pd(ExecutionPlanDetails.ExecutionPlanId).asInstanceOf[String],
-              pd(ExecutionPlanDetails.FrameworkName).asInstanceOf[String],
-              pd(ExecutionPlanDetails.ApplicationName).asInstanceOf[String],
-              pd(ExecutionPlanDetails.DataSourceUri).asInstanceOf[String],
-              pd(ExecutionPlanDetails.DataSourceType).asInstanceOf[String],
-              pd(ExecutionPlanDetails.Append).asInstanceOf[Boolean]
-            )
-          )
-      }
+      .map { case (e, pd) => createProgress(e, pd) }
 
     val progressEdges = progressNodes
       .zip(events)
-      .map({ case (p, e) => EdgeDef.ProgressOf.edge(p._key, e.planId) })
+      .map { case (p, e) => EdgeDef.ProgressOf.edge(p._key, e.planId) }
 
     new TxBuilder()
       .addQuery(InsertQuery(NodeDef.Progress, progressNodes: _*).copy(ignoreExisting = true))
@@ -149,21 +126,43 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 
   private def createInsertTransaction(
     executionPlan: apiModel.ExecutionPlan,
-    referencedDSURIs: Set[String],
-    persistedDSes: Map[String, String]
+    persistedDSKeyByURI: Map[String, DataSource.Key]
   ) = {
-    val transientDSes: Map[String, String] = (referencedDSURIs -- persistedDSes.keys).map(_ -> randomUUID.toString).toMap
-    val referencedDSes = transientDSes ++ persistedDSes
+    val eppm: ExecutionPlanPersistentModel =
+      ExecutionPlanPersistentModelBuilder.toPersistentModel(executionPlan, persistedDSKeyByURI)
+
     new TxBuilder()
-      .addQuery(InsertQuery(NodeDef.Operation, createOperations(executionPlan): _*))
-      .addQuery(InsertQuery(EdgeDef.Follows, createFollows(executionPlan): _*))
-      .addQuery(InsertQuery(NodeDef.DataSource, createDataSources(transientDSes): _*))
-      .addQuery(InsertQuery(EdgeDef.WritesTo, createWriteTo(executionPlan, referencedDSes)))
-      .addQuery(InsertQuery(EdgeDef.ReadsFrom, createReadsFrom(executionPlan, referencedDSes): _*))
-      .addQuery(InsertQuery(EdgeDef.Executes, createExecutes(executionPlan)))
-      .addQuery(InsertQuery(NodeDef.ExecutionPlan, createExecution(executionPlan)))
-      .addQuery(InsertQuery(EdgeDef.Depends, createExecutionDepends(executionPlan, referencedDSes): _*))
-      .addQuery(InsertQuery(EdgeDef.Affects, createExecutionAffects(executionPlan, referencedDSes)))
+      // execution plan
+      .addQuery(InsertQuery(NodeDef.ExecutionPlan, eppm.executionPlan))
+      .addQuery(InsertQuery(EdgeDef.Executes, eppm.executes))
+      .addQuery(InsertQuery(EdgeDef.Depends, eppm.depends))
+      .addQuery(InsertQuery(EdgeDef.Affects, eppm.affects))
+
+      // operation
+      .addQuery(InsertQuery(NodeDef.Operation, eppm.operations))
+      .addQuery(InsertQuery(EdgeDef.Follows, eppm.follows))
+      .addQuery(InsertQuery(EdgeDef.ReadsFrom, eppm.readsFrom))
+      .addQuery(InsertQuery(EdgeDef.WritesTo, eppm.writesTo))
+      .addQuery(InsertQuery(EdgeDef.Emits, eppm.emits))
+      .addQuery(InsertQuery(EdgeDef.Uses, eppm.uses))
+      .addQuery(InsertQuery(EdgeDef.Produces, eppm.produces))
+
+      // data source
+      .addQuery(InsertQuery(NodeDef.DataSource, eppm.dataSources))
+
+      // schema
+      .addQuery(InsertQuery(NodeDef.Schema, eppm.schemas))
+      .addQuery(InsertQuery(EdgeDef.ConsistsOf, eppm.consistsOf))
+
+      // attribute
+      .addQuery(InsertQuery(NodeDef.Attribute, eppm.attributes))
+      .addQuery(InsertQuery(EdgeDef.ComputedBy, eppm.computedBy))
+      .addQuery(InsertQuery(EdgeDef.DerivesFrom, eppm.derivesFrom))
+
+      // expression
+      .addQuery(InsertQuery(NodeDef.Expression, eppm.expressions))
+      .addQuery(InsertQuery(EdgeDef.Takes, eppm.takes))
+
       .buildTx
   }
 
@@ -182,7 +181,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
   }
 }
 
-object ExecutionProducerRepositoryImpl extends DefaultJacksonJsonSerDe {
+object ExecutionProducerRepositoryImpl {
 
   private object ExecutionPlanDetails {
     val ExecutionPlanId = "executionPlanId"
@@ -193,84 +192,16 @@ object ExecutionProducerRepositoryImpl extends DefaultJacksonJsonSerDe {
     val Append = "append"
   }
 
-  private[repo] def createEventKey(e: apiModel.ExecutionEvent) =
-    s"${e.planId}:${jl.Long.toString(e.timestamp, 36)}"
-
-  private def createExecutes(executionPlan: apiModel.ExecutionPlan) = EdgeDef.Executes.edge(
-    executionPlan.id,
-    s"${executionPlan.id}:${executionPlan.operations.write.id}")
-
-  private def createExecution(executionPlan: apiModel.ExecutionPlan): dbModel.ExecutionPlan =
-    dbModel.ExecutionPlan(
-      systemInfo = executionPlan.systemInfo.toJsonAs[Map[String, Any]],
-      agentInfo = executionPlan.agentInfo.map(_.toJsonAs[Map[String, Any]]).orNull,
-      extra = executionPlan.extraInfo,
-      _key = executionPlan.id.toString)
-
-  private def createReadsFrom(plan: apiModel.ExecutionPlan, dsUriToKey: String => String): Seq[Edge] = for {
-    ro <- plan.operations.reads
-    ds <- ro.inputSources
-  } yield EdgeDef.ReadsFrom.edge(
-    s"${plan.id}:${ro.id}",
-    dsUriToKey(ds))
-
-  private def createWriteTo(executionPlan: apiModel.ExecutionPlan, dsUriToKey: String => String) = EdgeDef.WritesTo.edge(
-    s"${executionPlan.id}:${executionPlan.operations.write.id}",
-    dsUriToKey(executionPlan.operations.write.outputSource))
-
-  private def createExecutionDepends(plan: apiModel.ExecutionPlan, dsUriToKey: String => String): Seq[Edge] = for {
-    ro <- plan.operations.reads
-    ds <- ro.inputSources
-  } yield EdgeDef.Depends.edge(
-    plan.id,
-    dsUriToKey(ds))
-
-  private def createExecutionAffects(executionPlan: apiModel.ExecutionPlan, dsUriToKey: String => String) = EdgeDef.Affects.edge(
-    executionPlan.id,
-    dsUriToKey(executionPlan.operations.write.outputSource))
-
-  private def createDataSources(dsUriToKey: Map[String, String]): Seq[DataSource] = dsUriToKey
-    .map({ case (uri, key) => DataSource(uri, key) })
-    .toVector
-
-  private def createOperations(executionPlan: apiModel.ExecutionPlan): Seq[dbModel.Operation] = {
-    val allOperations = executionPlan.operations.all
-    val maybeSchemaFinder = executionPlan.expressions.map(attrs =>
-      new RecursiveSchemaFinder(allOperations, attrs.mappingByOperation))
-
-    allOperations.map {
-      case r: apiModel.ReadOperation =>
-        dbModel.Read(
-          inputSources = r.inputSources,
-          params = r.params,
-          extra = r.extra,
-          outputSchema = executionPlan.expressions.flatMap(_.mappingByOperation.get(r.id)),
-          _key = s"${executionPlan.id}:${r.id}"
-        )
-      case w: apiModel.WriteOperation =>
-        dbModel.Write(
-          outputSource = w.outputSource,
-          append = w.append,
-          params = w.params,
-          extra = w.extra,
-          outputSchema = maybeSchemaFinder.flatMap(_.findSchemaOf(w)),
-          _key = s"${executionPlan.id}:${w.id}"
-        )
-      case t: apiModel.DataOperation =>
-        dbModel.Transformation(
-          params = t.params,
-          extra = t.extra,
-          outputSchema = maybeSchemaFinder.flatMap(_.findSchemaOf(t)),
-          _key = s"${executionPlan.id}:${t.id}"
-        )
-    }
+  private def createProgress(e: ExecutionEvent, planDetails: Map[String, Any]) = {
+    val key = new ExecutionEventKeyCreator(e).executionEventKey
+    val epd = ExecPlanDetails(
+      planDetails(ExecutionPlanDetails.ExecutionPlanId).asInstanceOf[String],
+      planDetails(ExecutionPlanDetails.FrameworkName).asInstanceOf[String],
+      planDetails(ExecutionPlanDetails.ApplicationName).asInstanceOf[String],
+      planDetails(ExecutionPlanDetails.DataSourceUri).asInstanceOf[String],
+      planDetails(ExecutionPlanDetails.DataSourceType).asInstanceOf[String],
+      planDetails(ExecutionPlanDetails.Append).asInstanceOf[Boolean]
+    )
+    Progress(e.timestamp, e.error, e.extra, key, epd)
   }
-
-  private def createFollows(executionPlan: apiModel.ExecutionPlan): Seq[Edge] =
-    for {
-      operation <- executionPlan.operations.all
-      childId <- operation.childIds
-    } yield EdgeDef.Follows.edge(
-      s"${executionPlan.id}:${operation.id}",
-      s"${executionPlan.id}:$childId")
 }

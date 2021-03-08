@@ -22,7 +22,8 @@ case class ExecutionPlan(
   id: UUID = UUID.randomUUID(),
 
   operations: Operations,
-  expressions: Option[Expressions],
+  attributes: Seq[Attribute] = Nil,
+  expressions: Option[Expressions] = None,
 
   // Information about a data framework in use (e.g. Spark, StreamSets etc)
   systemInfo: NameAndVersion,
@@ -30,7 +31,13 @@ case class ExecutionPlan(
   agentInfo: Option[NameAndVersion] = None,
   // User payload
   extraInfo: Map[String, Any] = Map.empty
-)
+) {
+  def dataSources: Set[String] = {
+    val readSources = operations.reads.flatMap(_.inputSources).toSet
+    val writeSource = operations.write.outputSource
+    readSources + writeSource
+  }
+}
 
 case class Operations(
   write: WriteOperation,
@@ -41,12 +48,10 @@ case class Operations(
 }
 
 case class Expressions(
-  attributes: Seq[Attribute],
-  functions: Seq[FunctionalExpression],
-  constants: Seq[Literal],
-  mappingByOperation: Map[OperationLike.Id, Array[ExpressionLike.Id]]
+  functions: Seq[FunctionalExpression] = Nil,
+  constants: Seq[Literal] = Nil
 ) {
-  def all: Seq[ExpressionLike] = attributes ++ functions ++ constants
+  def all: Seq[ExpressionLike] = functions ++ constants
 }
 
 case class NameAndVersion(name: String, version: String)

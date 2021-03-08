@@ -30,10 +30,10 @@ class ArangoRepoConfig extends InitializingBean with Logging {
   import scala.concurrent.ExecutionContext.Implicits._
 
   override def afterPropertiesSet(): Unit = {
-    log.info(s"Spline database URL: ${Database.connectionURL.asString}")
+    log.info(s"Spline database URL: ${Database.ConnectionURL.asString}")
   }
 
-  @Bean def arangoDatabaseFacade: ArangoDatabaseFacade = new ArangoDatabaseFacade(Database.connectionURL)
+  @Bean def arangoDatabaseFacade: ArangoDatabaseFacade = new ArangoDatabaseFacade(Database.ConnectionURL)
 
   @Bean def arangoDatabase: ArangoDatabaseAsync = arangoDatabaseFacade.db
 
@@ -49,8 +49,13 @@ object ArangoRepoConfig extends DefaultConfigurationStack with ConfTyped {
   override val rootPrefix: String = "spline"
 
   object Database extends Conf("database") {
-    val connectionURL: ArangoConnectionURL = ArangoConnectionURL(
-      ArangoRepoConfig.this.getRequiredStringArray(Prop("connectionUrl")).mkString(","))
+    private val conf = ArangoRepoConfig.this
+
+    val ConnectionURL: ArangoConnectionURL = ArangoConnectionURL(
+      conf.getRequiredStringArray(Prop("connectionUrl")).mkString(","))
+
+    val LogFullQueryOnError: Boolean =
+      conf.getBoolean(Prop("logFullQueryOnError"), false)
   }
 
 }

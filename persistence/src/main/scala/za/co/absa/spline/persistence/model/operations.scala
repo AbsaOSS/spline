@@ -16,22 +16,20 @@
 
 package za.co.absa.spline.persistence.model
 
-trait Operation extends Vertex {
+sealed trait Operation extends Vertex {
   def params: Map[String, Any]
   def extra: Map[String, Any]
-  def outputSchema: Option[Any]
-  def _type: String
+  def `type`: String
 }
 
 case class Read(
   inputSources: Seq[String],
   override val params: Map[String, Any],
   override val extra: Map[String, Any],
-  override val outputSchema: Option[Any],
   override val _key: String,
 ) extends Operation {
-  def this() = this(null, null, null, null, null)
-  override val _type: String = "Read"
+  def this() = this(null, null, null, null)
+  override val `type`: String = "Read"
 }
 
 case class Write(
@@ -39,19 +37,17 @@ case class Write(
   append: Boolean,
   override val params: Map[String, Any],
   override val extra: Map[String, Any],
-  override val outputSchema: Option[Any],
   override val _key: String,
 ) extends Operation {
-  def this() = this(null, false, null, null, null, null)
-  override val _type: String = "Write"
+  def this() = this(null, false, null, null, null)
+  override val `type`: String = "Write"
 }
 
 case class Transformation(
   override val params: Map[String, Any],
   override val extra: Map[String, Any],
-  override val outputSchema: Option[Any],
   override val _key: String,
 ) extends Operation {
-  def this() = this(null, null, null, null)
-  override val _type: String = "Transformation"
+  def this() = this(null, null, null)
+  override val `type`: String = "Transformation"
 }

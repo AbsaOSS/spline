@@ -36,7 +36,7 @@ case class ArangoConnectionURL(scheme: String, user: Option[String], password: O
 
     new StringBuilder()
       .append(s"$scheme://")
-      .optionally(_.append(_: String).append("@"), userInfo.nonBlankOption)
+      .having(userInfo.nonBlankOption)(_ append _ append "@")
       .append(commaSeparatedHostsString)
       .append(s"/$dbName")
       .result()

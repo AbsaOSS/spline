@@ -32,12 +32,18 @@
 
     <dependencies>
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>commons</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>commons</artifactId>
+            <artifactId>producer-services</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>producer-model-mapper</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -46,14 +52,8 @@
             <version>0.5.1</version>
         </dependency>
         <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>producer-model-v1.1</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>producer-services</artifactId>
-            <version>${project.version}</version>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -67,6 +67,17 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>1.8.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>1.9.6</version>
+        </dependency>
+
         <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-annotations</artifactId>

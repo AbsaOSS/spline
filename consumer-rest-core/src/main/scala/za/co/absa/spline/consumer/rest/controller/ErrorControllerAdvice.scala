@@ -22,7 +22,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageConversionException
 import org.springframework.web.bind.annotation.{ControllerAdvice, ExceptionHandler}
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException
-import za.co.absa.spline.common.logging.{ErrorCode, ErrorMsg}
+import za.co.absa.commons.error.ErrorRef
 import za.co.absa.spline.common.webmvc.NonStandardResponseEntity
 import za.co.absa.spline.consumer.rest.controller.ErrorControllerAdvice._
 
@@ -32,28 +32,28 @@ class ErrorControllerAdvice {
   @ExceptionHandler(Array(
     classOf[NoSuchElementException]
   ))
-  def notFound(e: Exception): ResponseEntity[_] = new ResponseEntity(ErrorCode(e), NOT_FOUND)
+  def notFound(e: Exception): ResponseEntity[_] = new ResponseEntity(ErrorRef(e), NOT_FOUND)
 
   @ExceptionHandler(Array(
     classOf[TypeMismatchException],
     classOf[HttpMessageConversionException]
   ))
-  def badRequest(e: Exception): ResponseEntity[_] = new ResponseEntity(ErrorMsg(e.getMessage), BAD_REQUEST)
+  def badRequest(e: Exception): ResponseEntity[_] = new ResponseEntity(e.getMessage, BAD_REQUEST)
 
   @ExceptionHandler(Array(
     classOf[AsyncRequestTimeoutException]
   ))
-  def asyncTimeout(e: Exception): ResponseEntity[_] = NonStandardResponseEntity(ASYNC_TIMEOUT, ErrorCode(e))
+  def asyncTimeout(e: Exception): ResponseEntity[_] = NonStandardResponseEntity(ASYNC_TIMEOUT, ErrorRef(e))
 
   @ExceptionHandler
-  def serverError(e: Throwable): ResponseEntity[_] = new ResponseEntity(ErrorCode(e), INTERNAL_SERVER_ERROR)
+  def serverError(e: Throwable): ResponseEntity[_] = new ResponseEntity(ErrorRef(e), INTERNAL_SERVER_ERROR)
 }
 
 object ErrorControllerAdvice {
   /**
-    * This could probably be replaced by the standard 503 response code.
-    * See: https://github.com/AbsaOSS/spline/issues/474
-    */
+   * This could probably be replaced by the standard 503 response code.
+   * See: https://github.com/AbsaOSS/spline/issues/474
+   */
   private val ASYNC_TIMEOUT = 598
 
 }

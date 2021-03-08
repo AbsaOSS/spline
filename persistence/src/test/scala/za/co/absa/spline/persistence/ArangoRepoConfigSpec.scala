@@ -27,6 +27,6 @@ class ArangoRepoConfigSpec
 
   it should "support commas in the database connection string" in {
     setEnv("spline.database.connectionUrl", "arangodb://host.a:1,host.b:2/dbname")
-    ArangoRepoConfig.Database.connectionURL.hosts shouldEqual Seq(("host.a", 1), ("host.b", 2))
+    ArangoRepoConfig.Database.ConnectionURL.hosts shouldEqual Seq(("host.a", 1), ("host.b", 2))
   }
 }

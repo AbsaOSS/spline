@@ -38,8 +38,6 @@
         <spring.version>5.2.2.RELEASE</spring.version>
         <springfox-swagger.version>2.9.2</springfox-swagger.version>
         <jackson.version>2.12.1</jackson.version>
-        <json4s-32.version>3.2.11</json4s-32.version>
-        <json4s-35.version>3.5.3</json4s-35.version>
     </properties>
 
     <build>
@@ -280,7 +278,7 @@
             <dependency>
                 <groupId>za.co.absa.commons</groupId>
                 <artifactId>commons_${scala.compat.version}</artifactId>
-                <version>0.0.19</version>
+                <version>0.0.22</version>
             </dependency>
 
             <!-- Apache Commons -->
@@ -432,6 +430,12 @@
                 <version>1.4.0</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.scala-graph</groupId>
+                <artifactId>graph-core_${scala.compat.version}</artifactId>
+                <version>1.12.5</version>
+            </dependency>
+
             <!-- Test scope dependencies -->
 
             <dependency>
@@ -451,5 +455,16 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <repositories>
+        <repository>
+            <id>java-velocypack-module-scala-mvn-repo</id>
+            <url>https://raw.github.com/wajda/java-velocypack-module-scala/mvn-repo/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
 
 </project>

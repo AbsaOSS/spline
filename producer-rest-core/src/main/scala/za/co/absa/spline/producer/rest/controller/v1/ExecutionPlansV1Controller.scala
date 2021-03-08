@@ -16,17 +16,18 @@
 
 package za.co.absa.spline.producer.rest.controller.v1
 
-import java.util.UUID
-
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation._
 import springfox.documentation.annotations.ApiIgnore
 import za.co.absa.spline.producer.model.ExecutionPlan
-import za.co.absa.spline.producer.rest.modelmapper.ModelMapperV1
+import za.co.absa.spline.producer.modelmapper.v1.ModelMapperV1
+import za.co.absa.spline.producer.service.InconsistentEntityException
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 
+import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 
 @ApiIgnore
 @RestController
@@ -39,7 +40,12 @@ class ExecutionPlansV1Controller @Autowired()(
   @PostMapping(Array("/execution-plans"))
   @ResponseStatus(HttpStatus.CREATED)
   def executionPlan(@RequestBody planV1: ExecutionPlan): Future[UUID] = {
-    val plan = ModelMapperV1.fromDTO(planV1)
+    val plan =
+      try {
+        ModelMapperV1.fromDTO(planV1)
+      } catch {
+        case NonFatal(e) => throw new InconsistentEntityException(e.getMessage)
+      }
     repo
       .insertExecutionPlan(plan)
       .map(_ => plan.id)

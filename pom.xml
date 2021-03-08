@@ -59,6 +59,7 @@
         <module>consumer-services</module>
 
         <module>producer-model</module>
+        <module>producer-model-mapper</module>
         <module>producer-rest-core</module>
         <module>consumer-rest-core</module>
         <module>rest-gateway</module>

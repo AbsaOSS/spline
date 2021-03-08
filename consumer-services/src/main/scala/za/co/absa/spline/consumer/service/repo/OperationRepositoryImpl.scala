@@ -31,51 +31,50 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
   override def findById(operationId: Operation.Id)(implicit ec: ExecutionContext): Future[OperationDetails] = {
     db.queryOne[OperationDetails](
       """
-        |WITH executionPlan, executes, operation, follows
+        |WITH executionPlan, executes, operation, follows, emits, schema, consistsOf, uses, takes, attribute, expression
         |FOR ope IN operation
         |    FILTER ope._key == @operationId
         |
         |    LET inputs = (
-        |        FOR v IN 1..1
+        |        FOR v, e IN 1..1
         |            OUTBOUND ope follows
-        |            RETURN v.outputSchema
-        |    )
-        |
-        |    LET output = ope.outputSchema == null ? [] : [ope.outputSchema]
-        |
-        |    LET pairAttributesDataTypes = FIRST(
-        |        FOR v IN 1..9999
-        |            INBOUND ope follows, executes
-        |            FILTER IS_SAME_COLLECTION("executionPlan", v)
-        |            RETURN { "attributes":  v.extra.attributes, "dataTypes" : v.extra.dataTypes }
+        |            SORT e.index
+        |            RETURN v
         |    )
         |
         |    LET schemas = (
-        |        FOR s in APPEND(inputs, output)
-        |            LET attributeList = (
-        |                FOR a IN pairAttributesDataTypes.attributes
-        |                    FILTER CONTAINS(s, a.id)
-        |                    RETURN a
+        |        FOR op IN APPEND(inputs, ope)
+        |            LET schema = (
+        |                FOR attr, e IN 2 OUTBOUND op emits, consistsOf
+        |                    SORT e.index
+        |                    RETURN {
+        |                        "id": attr._key,
+        |                        "name": attr.name,
+        |                        "dataTypeId": attr.dataType
+        |                    }
         |            )
-        |            RETURN attributeList
+        |            RETURN schema
         |    )
         |
         |    LET dataTypesFormatted = (
-        |        FOR d IN pairAttributesDataTypes.dataTypes
-        |            RETURN MERGE(
-        |                KEEP(d,  "id", "name", "fields", "nullable", "elementDataTypeId"),
-        |                {
-        |                    "_class": d._typeHint == "dt.Simple" ?  "za.co.absa.spline.persistence.model.SimpleDataType"
-        |                            : d._typeHint == "dt.Array"  ?  "za.co.absa.spline.persistence.model.ArrayDataType"
-        |                            :                               "za.co.absa.spline.persistence.model.StructDataType"
-        |                }
-        |            )
+        |        FOR v IN 1..9999
+        |            INBOUND ope follows, executes
+        |            FILTER IS_SAME_COLLECTION("executionPlan", v)
+        |            FOR d IN v.extra.dataTypes
+        |                RETURN MERGE(
+        |                    KEEP(d,  "id", "name", "fields", "nullable", "elementDataTypeId"),
+        |                    {
+        |                        "_class": d._typeHint == "dt.Simple" ?  "za.co.absa.spline.consumer.service.model.SimpleDataType"
+        |                                : d._typeHint == "dt.Array"  ?  "za.co.absa.spline.consumer.service.model.ArrayDataType"
+        |                                :                               "za.co.absa.spline.consumer.service.model.StructDataType"
+        |                    }
+        |                )
         |    )
         |
         |    RETURN {
         |        "operation": {
         |            "_id"       : ope._key,
-        |            "_type"     : ope._type,
+        |            "type"      : ope.type,
         |            "name"      : ope.extra.name,
         |            "properties": MERGE(
         |                {

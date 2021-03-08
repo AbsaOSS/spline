@@ -17,23 +17,29 @@
 package za.co.absa.spline.consumer.service.model
 
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
-import za.co.absa.spline.consumer.service.model.AttributeGraph.AttributeId
 import za.co.absa.spline.consumer.service.model.LineageDetailed.OperationID
 
-@ApiModel(description = "Attribute Dependency Node")
+@ApiModel(description = "Attribute Node")
 case class AttributeNode
 (
   @ApiModelProperty(value = "Attribute Id")
-  _id: AttributeId,
+  _id: AttributeNode.Id,
+
+  @ApiModelProperty(value = "Attribute name")
+  name: String,
 
   @ApiModelProperty(value = "Operation Id in which the attribute was created")
   originOpId: OperationID,
 
   @ApiModelProperty(value = "Operation Ids which the attribute passes through")
-  transOpIds: Set[OperationID]
+  transOpIds: Seq[OperationID]
 
 ) extends Graph.Node {
-  def this() = this(null, null, null)
+  def this() = this(null, null, null, null)
 
-  override type Id = AttributeId
+  override type Id = AttributeNode.Id
+}
+
+object AttributeNode {
+  type Id = String
 }

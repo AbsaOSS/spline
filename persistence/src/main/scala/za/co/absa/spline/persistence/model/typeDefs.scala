@@ -32,14 +32,46 @@ sealed trait CollectionDef {
   def indexDefs: Seq[IndexDef] = Nil
 }
 
-sealed abstract class EdgeDef(override val name: String, val from: NodeDef, val to: NodeDef) extends GraphElementDef {
+sealed abstract class EdgeDef(override val name: String, val froms: Seq[NodeDef], val tos: Seq[NodeDef])
+  extends GraphElementDef {
   this: CollectionDef =>
   override def collectionType = CollectionType.EDGES
-
-  def edge(fromKey: Any, toKey: Any): Edge = Edge(s"${from.name}/$fromKey", s"${to.name}/$toKey")
 }
 
-sealed abstract class NodeDef(override val name: String) extends GraphElementDef {
+sealed abstract class Edge11Def(name: String, val from: NodeDef, val to: NodeDef)
+  extends EdgeDef(name, Seq(from), Seq(to)) {
+  this: CollectionDef =>
+  // todo: think about making keys strong typed
+  def edge(fromKey: Any, toKey: Any): Edge =
+    Edge(s"${from.name}/$fromKey", s"${to.name}/$toKey", None, None)
+
+  def edge(fromKey: Any, toKey: Any, index: Int): Edge =
+    Edge(s"${from.name}/$fromKey", s"${to.name}/$toKey", Some(index), None)
+}
+
+sealed abstract class Edge12Def(name: String, val from: NodeDef, val to1: NodeDef, val to2: NodeDef)
+  extends EdgeDef(name, Seq(from), Seq(to1, to2)) {
+  this: CollectionDef =>
+
+  protected def edgeTo1(fromKey: Any, toKey: Any, index: Option[Int] = None, path: Option[String] = None): Edge =
+    Edge(s"${from.name}/$fromKey", s"${to1.name}/$toKey", index, path)
+
+  protected def edgeTo2(fromKey: Any, toKey: Any, index: Option[Int] = None, path: Option[String] = None): Edge =
+    Edge(s"${from.name}/$fromKey", s"${to2.name}/$toKey", index, path)
+}
+
+sealed trait EdgeToAttrOrExprOps {
+  this: Edge12Def =>
+
+  def edgeToAttr(from: Any, to: Any, path: String): Edge = edgeTo1(from, to, None, Some(path))
+  def edgeToAttr(from: Any, to: Any, index: Int): Edge = edgeTo1(from, to, Some(index), None)
+
+  def edgeToExpr(from: Any, to: Any, path: String): Edge = edgeTo2(from, to, None, Some(path))
+  def edgeToExpr(from: Any, to: Any, index: Int): Edge = edgeTo2(from, to, Some(index), None)
+}
+
+sealed abstract class NodeDef(override val name: String)
+  extends GraphElementDef {
   this: CollectionDef =>
   override def collectionType = CollectionType.DOCUMENT
 }
@@ -54,9 +86,15 @@ object GraphDef {
 
   import za.co.absa.spline.persistence.model.EdgeDef._
 
-  object LineageOverviewGraphDef extends GraphDef("overview", ProgressOf, Depends, Affects)
+  object OverviewGraphDef extends GraphDef("overviewGraph", ProgressOf, Depends, Affects)
 
-  object ExecutionPlanGraphDef extends GraphDef("execPlan", Executes, Follows, ReadsFrom, WritesTo)
+  object OperationsGraphDef extends GraphDef("operationsGraph", Executes, Follows, ReadsFrom, WritesTo)
+
+  object SchemasGraphDef extends GraphDef("schemasGraph", Emits, ConsistsOf)
+
+  object AttributesGraphDef extends GraphDef("attributesGraph", Produces, DerivesFrom)
+
+  object ExpressionsGraphDef extends GraphDef("expressionsGraph", ComputedBy, Takes)
 
 }
 
@@ -64,29 +102,37 @@ object EdgeDef {
 
   import za.co.absa.spline.persistence.model.NodeDef._
 
-  object Follows extends EdgeDef("follows", Operation, Operation) with CollectionDef
+  object Follows extends Edge11Def("follows", Operation, Operation) with CollectionDef
 
-  object WritesTo extends EdgeDef("writesTo", Operation, DataSource) with CollectionDef
+  object WritesTo extends Edge11Def("writesTo", Operation, DataSource) with CollectionDef
 
-  object ReadsFrom extends EdgeDef("readsFrom", Operation, DataSource) with CollectionDef
+  object ReadsFrom extends Edge11Def("readsFrom", Operation, DataSource) with CollectionDef
 
-  object Executes extends EdgeDef("executes", ExecutionPlan, Operation) with CollectionDef
+  object Executes extends Edge11Def("executes", ExecutionPlan, Operation) with CollectionDef
 
-  object Depends extends EdgeDef("depends", ExecutionPlan, DataSource) with CollectionDef
+  object Depends extends Edge11Def("depends", ExecutionPlan, DataSource) with CollectionDef
 
-  object Affects extends EdgeDef("affects", ExecutionPlan, DataSource) with CollectionDef
+  object Affects extends Edge11Def("affects", ExecutionPlan, DataSource) with CollectionDef
 
-  object ProgressOf extends EdgeDef("progressOf", Progress, ExecutionPlan) with CollectionDef
+  object ProgressOf extends Edge11Def("progressOf", Progress, ExecutionPlan) with CollectionDef
+
+  object Emits extends Edge11Def("emits", Operation, Schema) with CollectionDef
+
+  object Produces extends Edge11Def("produces", Operation, Attribute) with CollectionDef
+
+  object ConsistsOf extends Edge11Def("consistsOf", Schema, Attribute) with CollectionDef
+
+  object ComputedBy extends Edge11Def("computedBy", Attribute, Expression) with CollectionDef
+
+  object DerivesFrom extends Edge11Def("derivesFrom", Attribute, Attribute) with CollectionDef
+
+  object Takes extends Edge12Def("takes", Expression, Attribute, Expression) with EdgeToAttrOrExprOps with CollectionDef
+
+  object Uses extends Edge12Def("uses", Operation, Attribute, Expression) with EdgeToAttrOrExprOps with CollectionDef
 
 }
 
 object NodeDef {
-
-  object DBVersion extends CollectionDef {
-    override def collectionType = CollectionType.DOCUMENT
-
-    override def name: String = "dbVersion"
-  }
 
   object DataSource extends NodeDef("dataSource") with CollectionDef {
     override def indexDefs: Seq[IndexDef] = Seq(
@@ -97,7 +143,7 @@ object NodeDef {
 
   object Operation extends NodeDef("operation") with CollectionDef {
     override def indexDefs: Seq[IndexDef] = Seq(
-      IndexDef(Seq("_type"), new PersistentIndexOptions),
+      IndexDef(Seq("type"), new PersistentIndexOptions),
       IndexDef(Seq("outputSource"), new PersistentIndexOptions().sparse(true)),
       IndexDef(Seq("append"), new PersistentIndexOptions().sparse(true))
     )
@@ -116,21 +162,30 @@ object NodeDef {
       IndexDef(Seq("execPlanDetails.append"), new PersistentIndexOptions))
   }
 
+  object Schema extends NodeDef("schema") with CollectionDef
+
+  object Attribute extends NodeDef("attribute") with CollectionDef
+
+  object Expression extends NodeDef("expression") with CollectionDef
+
+}
+
+object CollectionDef {
+
+  object DBVersion extends CollectionDef {
+    override def collectionType = CollectionType.DOCUMENT
+
+    override def name: String = "dbVersion"
+  }
+
 }
 
 object ViewDef {
 
   object AttributeSearchView extends ViewDef("attributeSearchView",
     (new ArangoSearchPropertiesOptions)
-      .link(CollectionLink.on(NodeDef.ExecutionPlan.name)
+      .link(CollectionLink.on(NodeDef.Attribute.name)
         .analyzers("text_en", "identity")
-        .includeAllFields(false)
-        .fields(FieldLink.on("extra")
-          .fields(FieldLink.on("attributes")
-            .fields(FieldLink.on("name"))
-          )
-        )
-      )
-  )
+        .fields(FieldLink.on("name"))))
 
 }

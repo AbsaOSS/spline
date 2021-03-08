@@ -21,10 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.internal.model.{ExecutionPlanDAG, VersionInfo}
 import za.co.absa.spline.consumer.service.model.DataSourceActionType.{Read, Write}
-import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
-import za.co.absa.spline.consumer.service.model.{DataSourceActionType, LineageDetailed}
+import za.co.absa.spline.consumer.service.model.{Attribute, AttributeGraph, DataSourceActionType, ExecutionPlanInfo, LineageDetailed}
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepositoryImpl.ExecutionPlanDagPO
-import za.co.absa.spline.persistence.model.{Edge, Operation}
+import za.co.absa.spline.persistence.model.{Edge, EdgeDef, NodeDef}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -33,29 +32,47 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
 
   import za.co.absa.spline.persistence.ArangoImplicits._
 
-  override def findById(execId: Id)(implicit ec: ExecutionContext): Future[LineageDetailed] = {
+  override def findById(execId: ExecutionPlanInfo.Id)(implicit ec: ExecutionContext): Future[LineageDetailed] = {
     db.queryOne[LineageDetailed](
       """
-        |WITH executionPlan, executes, operation, follows
+        |WITH executionPlan, executes, operation, follows, emits, schema, consistsOf, attribute
         |LET exec = FIRST(FOR ex IN executionPlan FILTER ex._key == @execId RETURN ex)
         |LET writeOp = FIRST(FOR v IN 1 OUTBOUND exec executes RETURN v)
         |
         |LET opsWithInboundEdges = (
-        |    FOR vi, ei IN 0..99999
+        |    FOR opi, ei IN 0..99999
         |        OUTBOUND writeOp follows
-        |        COLLECT v = vi INTO edgesByVertex
+        |        COLLECT op = opi INTO edgesByVertex
+        |        LET schemaId = FIRST(
+        |            FOR schema IN 1
+        |                OUTBOUND op emits
+        |                RETURN schema._id
+        |        )
         |        RETURN {
-        |            "op": v,
-        |            "es": UNIQUE(edgesByVertex[* FILTER NOT_NULL(CURRENT.ei)].ei)
+        |            "op"  : op,
+        |            "es"  : UNIQUE(edgesByVertex[* FILTER NOT_NULL(CURRENT.ei)].ei),
+        |            "sid" : schemaId
         |        }
         |    )
         |
         |LET ops = opsWithInboundEdges[*].op
         |LET edges = opsWithInboundEdges[*].es[**]
+        |LET schemaIds = UNIQUE(opsWithInboundEdges[*].sid)
+        |
+        |LET attributes = (
+        |    FOR sid IN schemaIds
+        |        FOR a IN 1
+        |            OUTBOUND sid consistsOf
+        |            RETURN DISTINCT {
+        |                "id"   : a._key,
+        |                "name" : a.name,
+        |                "dataTypeId" : a.dataType
+        |            }
+        |)
         |
         |LET inputs = FLATTEN(
         |    FOR op IN ops
-        |        FILTER op._type == "Read"
+        |        FILTER op.type == "Read"
         |        RETURN op.inputSources[* RETURN {
         |            "source"    : CURRENT,
         |            "sourceType": op.extra.sourceType
@@ -64,7 +81,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |
         |LET output = FIRST(
         |    ops[*
-        |        FILTER CURRENT._type == "Write"
+        |        FILTER CURRENT.type == "Write"
         |        RETURN {
         |            "source"    : CURRENT.outputSource,
         |            "sourceType": CURRENT.extra.destinationType
@@ -75,7 +92,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |    "graph": {
         |        "nodes": ops[* RETURN {
         |                "_id"  : CURRENT._key,
-        |                "_type": CURRENT._type,
+        |                "type": CURRENT.type,
         |                "name" : CURRENT.extra.name
         |            }],
         |        "edges": edges[* RETURN {
@@ -87,7 +104,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |        "_id"       : exec._key,
         |        "systemInfo": exec.systemInfo,
         |        "agentInfo" : exec.agentInfo,
-        |        "extra"     : exec.extra,
+        |        "extra"     : MERGE(exec.extra, { attributes }),
         |        "inputs"    : inputs,
         |        "output"    : output
         |    }
@@ -97,7 +114,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     ).filter(null.!=)
   }
 
-  override def loadExecutionPlanAsDAG(execId: Id)(implicit ec: ExecutionContext): Future[ExecutionPlanDAG] = {
+  override def loadExecutionPlanAsDAG(execId: ExecutionPlanInfo.Id)(implicit ec: ExecutionContext): Future[ExecutionPlanDAG] = {
     db.queryOne[ExecutionPlanDagPO](
       """
         |WITH executionPlan, executes, operation, follows
@@ -136,11 +153,132 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     }
   }
 
-  override def getDataSources(execPlanId: String, access: Option[DataSourceActionType])(implicit ec: ExecutionContext): Future[Array[String]] =  {
+  override def execPlanAttributeLineage(attrId: Attribute.Id)(implicit ec: ExecutionContext): Future[AttributeGraph] = {
+    db.queryOne[AttributeGraph](
+      """
+        |WITH attribute, derivesFrom, operation, follows, produces, emits, schema, consistsOf
+        |LET theAttr = DOCUMENT("attribute", @attrId)
+        |LET theOriginId = FIRST(
+        |    FOR op IN 1
+        |        INBOUND theAttr produces
+        |        RETURN op._id
+        |)
+        |
+        |LET opIdsPrecedingTheOrigin = (
+        |    FOR op IN 1..9999
+        |        OUTBOUND theOriginId follows
+        |        RETURN DISTINCT op._id
+        |)
+        |
+        |LET attrsWithEdges = (
+        |    FOR v, e IN 1..999
+        |        OUTBOUND theAttr derivesFrom
+        |        LET attr = {
+        |            "_id": v._id,
+        |            "name": v.name
+        |        }
+        |        LET edge = {
+        |            "source": PARSE_IDENTIFIER(e._from).key,
+        |            "target": PARSE_IDENTIFIER(e._to).key
+        |        }
+        |        RETURN [attr, edge]
+        |)
+        |
+        |LET nodes = (
+        |    FOR a IN UNIQUE(attrsWithEdges[*][0])
+        |        LET originId = FIRST(
+        |            FOR op IN 1
+        |                INBOUND a produces
+        |                RETURN op._id
+        |        )
+        |        LET transOpIds = (
+        |            FOR op IN 2
+        |                INBOUND a consistsOf, emits
+        |                FILTER op._id != originId
+        |                FILTER op._id IN opIdsPrecedingTheOrigin
+        |                RETURN op._key
+        |        )
+        |        RETURN {
+        |            "_id"        : PARSE_IDENTIFIER(a._id).key,
+        |            "name"       : a.name,
+        |            "originOpId" : PARSE_IDENTIFIER(originId).key,
+        |            "transOpIds" : transOpIds
+        |        }
+        |)
+        |
+        |LET edges = UNIQUE(attrsWithEdges[*][1])
+        |
+        |RETURN {
+        |    "nodes" : PUSH(nodes, {
+        |        "_id"        : @attrId,
+        |        "name"       : theAttr.name,
+        |        "originOpId" : PARSE_IDENTIFIER(theOriginId).key,
+        |        "transOpIds" : []
+        |    }),
+        |    edges,
+        |}
+        |""".stripMargin,
+      Map(
+        "attrId" -> attrId,
+      ))
+  }
+
+  override def execPlanAttributeImpact(attrId: Attribute.Id)(implicit ec: ExecutionContext): Future[AttributeGraph] = {
+    db.queryOne[AttributeGraph](
+      """
+        |WITH attribute, derivesFrom, operation, produces, emits, schema, consistsOf
+        |LET theAttr = DOCUMENT("attribute", @attrId)
+        |
+        |LET attrsWithEdges = (
+        |    FOR v, e IN 0..999
+        |        INBOUND theAttr derivesFrom
+        |        LET attr = KEEP(v, ["_id", "name"])
+        |        LET edge = e && {
+        |            "source": PARSE_IDENTIFIER(e._from).key,
+        |            "target": PARSE_IDENTIFIER(e._to).key
+        |        }
+        |        RETURN [attr, edge]
+        |)
+        |
+        |LET nodes = (
+        |    FOR a IN UNIQUE(attrsWithEdges[*][0])
+        |        LET originId = FIRST(
+        |            FOR op IN 1
+        |                INBOUND a produces
+        |                RETURN op._id
+        |        )
+        |        LET transOpIds = (
+        |            FOR op IN 2
+        |                INBOUND a consistsOf, emits
+        |                FILTER op._id != originId
+        |                RETURN op._key
+        |        )
+        |        RETURN {
+        |            "_id"        : PARSE_IDENTIFIER(a._id).key,
+        |            "name"       : a.name,
+        |            "originOpId" : PARSE_IDENTIFIER(originId).key,
+        |            "transOpIds" : transOpIds
+        |        }
+        |)
+        |
+        |LET edges = UNIQUE(SHIFT(attrsWithEdges)[*][1])
+        |
+        |RETURN {
+        |    nodes,
+        |    edges,
+        |}
+        |""".stripMargin,
+      Map(
+        "attrId" -> attrId,
+      ))
+  }
+
+  override def getDataSources(execPlanId: ExecutionPlanInfo.Id, access: Option[DataSourceActionType])(implicit ec: ExecutionContext): Future[Array[String]] = {
     access
       .map({
-        case Read =>  db.queryStream[String](
-          """
+        case Read => db.queryStream[String](
+          s"""
+            |WITH ${NodeDef.DataSource.name}, ${EdgeDef.Depends.name}
             |FOR ds IN 1..1
             |OUTBOUND DOCUMENT('executionPlan', @planId) depends
             |RETURN ds.uri
@@ -149,7 +287,8 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         ).map(_.toArray)
 
         case Write => db.queryStream[String](
-          """
+          s"""
+            |WITH ${NodeDef.DataSource.name}, ${EdgeDef.Affects.name}
             |FOR ds IN 1..1
             |OUTBOUND DOCUMENT('executionPlan', @planId) affects
             |RETURN ds.uri
@@ -159,7 +298,8 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
       })
       .getOrElse({
         db.queryStream[String](
-          """
+          s"""
+            |WITH ${NodeDef.DataSource.name}, ${EdgeDef.Depends.name}, ${EdgeDef.Affects.name}
             |FOR ds IN 1..1
             |OUTBOUND DOCUMENT('executionPlan', @planId) affects, depends
             |RETURN ds.uri
@@ -173,12 +313,12 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
 object ExecutionPlanRepositoryImpl {
 
   case class AnyOperation(
-    override val params: Map[String, Any],
-    override val extra: Map[String, Any],
-    override val outputSchema: Option[Array[String]],
-    override val _key: String,
-    override val _type: String
-  ) extends Operation {
+    params: Map[String, Any],
+    extra: Map[String, Any],
+    outputSchema: Option[Array[String]],
+    _key: String,
+    `type`: String
+  ) {
     def this() = this(null, null, null, null, null)
   }
 

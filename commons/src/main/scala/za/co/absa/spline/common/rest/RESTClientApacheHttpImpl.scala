@@ -98,7 +98,7 @@ class RESTClientApacheHttpImpl(
     HttpClients
       .custom()
       .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-      .optionally(_.setSSLContext(_: SSLContext), maybeSslContext)
+      .having(maybeSslContext)(_ setSSLContext _)
       .build()
   }
 }

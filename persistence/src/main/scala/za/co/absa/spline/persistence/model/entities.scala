@@ -25,9 +25,11 @@ trait Vertex extends ArangoDocument {
 
 case class Edge(
   _from: String,
-  _to: String
+  _to: String,
+  index: Option[Int], // 0-based number reflecting the position among sibling edges of the same type sharing the same {{_from}}
+  path: Option[String] // JSONPath (by S. Gössner) of the exact property in {{_from}} that points the {{_to}}
 ) extends ArangoDocument {
-  def this() = this(null, null)
+  def this() = this(null, null, None, None)
 }
 
 case class DBVersion(
@@ -61,6 +63,10 @@ case class DataSource(
   override val _key: String
 ) extends Vertex {
   def this() = this(null, null)
+}
+
+object DataSource {
+  type Key = String
 }
 
 /**

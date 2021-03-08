@@ -82,6 +82,10 @@
             <artifactId>springfox-swagger2</artifactId>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>org.scala-graph</groupId>
+            <artifactId>graph-core_${scala.compat.version}</artifactId>
+        </dependency>
 
         <!-- test scope -->
 

@@ -19,7 +19,9 @@ package za.co.absa.spline.persistence
 import com.arangodb.async.{ArangoCollectionAsync, ArangoCursorAsync, ArangoDatabaseAsync}
 import com.arangodb.internal.InternalArangoDatabaseOps
 import com.arangodb.model.AqlQueryOptions
+import za.co.absa.spline.persistence.LogMessageUtils.createQueryLogMessage
 
+import java.util.concurrent.CompletionException
 import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters._
 import scala.compat.java8.StreamConverters.RichStream
@@ -81,7 +83,13 @@ object ArangoImplicits {
       options: AqlQueryOptions = null
     ): Future[ArangoCursorAsync[T]] = {
       val resultType = implicitly[Manifest[T]].runtimeClass.asInstanceOf[Class[T]]
-      db.query(queryString, bindVars.asJava, options, resultType).toScala
+      db.query(queryString, bindVars.asJava, options, resultType)
+        .toScala
+        .recover {
+          case e: CompletionException =>
+            val queryMsg = createQueryLogMessage(queryString)
+            throw new DatabaseException(queryMsg, e.getCause)
+        }
     }
   }
 
