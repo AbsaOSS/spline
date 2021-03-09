@@ -74,7 +74,8 @@ class OperationDetailsController @Autowired()
 
     val operandMapping: Map[NodeId, Seq[NodeId]] = takes
       .groupBy(_.source)
-      .mapValues(_.sortBy(_.index).map(_.target))
+      .mapValues(_.sortBy(_.index).map(_.target).toSeq)
+      .view.force // see: https://github.com/scala/bug/issues/4776
 
     val nodeToExprConverter = new NodeToExprAssemblyConverter(nodeById, operandMapping) with CachingConverter {
       override protected def keyOf(node: ExpressionNode): Key = node._id
