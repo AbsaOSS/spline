@@ -18,7 +18,8 @@ package za.co.absa.spline.producer.modelmapper.v1.spark
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import za.co.absa.spline.producer.model.v1_1.Literal
+import za.co.absa.spline.producer.model.v1_1.{AttrOrExprRef, FunctionalExpression, Literal}
+import za.co.absa.spline.producer.modelmapper.v1.TypesV1.ExprDef
 
 class SparkSplineExpressionConverterSpec extends AnyFlatSpec with Matchers {
 
@@ -41,7 +42,7 @@ class SparkSplineExpressionConverterSpec extends AnyFlatSpec with Matchers {
     lit.asInstanceOf[Literal].extra should be(empty)
   }
 
-  it should "support missing values" in {
+  it should "support missing Literal.value" in {
     val converter = new SparkSplineExpressionConverter(null)
 
     val lit = converter.convert(Map("_typeHint" -> "expr.Literal"))
@@ -49,5 +50,115 @@ class SparkSplineExpressionConverterSpec extends AnyFlatSpec with Matchers {
     lit should be(a[Literal])
     assert(lit.asInstanceOf[Literal].value == null)
     assert(lit.asInstanceOf[Literal].dataType.isEmpty)
+  }
+
+  it should "convert Binary expression" in {
+    val converter = new SparkSplineExpressionConverter(new AttributeRefConverter {
+      override def isAttrRef(obj: Any): Boolean = false
+
+      override def convert(arg: ExprDef): AttrOrExprRef = null
+    })
+
+    val binExpr = converter.convert(Map(
+      "_typeHint" -> "expr.Binary",
+      "dataTypeId" -> "d32cfc1f-e90f-4ece-93f5-15193534c855",
+      "symbol" -> "+",
+      "children" -> Seq(
+        Map("_typeHint" -> "expr.Literal"),
+        Map("_typeHint" -> "expr.Literal"),
+      )
+    ))
+
+    binExpr should be(a[FunctionalExpression])
+    binExpr.asInstanceOf[FunctionalExpression].id should not be empty
+    binExpr.asInstanceOf[FunctionalExpression].childIds should have length 2
+    binExpr.asInstanceOf[FunctionalExpression].name should equal("+")
+    binExpr.asInstanceOf[FunctionalExpression].dataType should equal(Some("d32cfc1f-e90f-4ece-93f5-15193534c855"))
+    binExpr.asInstanceOf[FunctionalExpression].params should be(empty)
+    binExpr.asInstanceOf[FunctionalExpression].extra should equal(Map(
+      "_typeHint" -> "expr.Binary",
+      "symbol" -> "+"
+    ))
+  }
+
+  it should "convert Alias expression" in {
+    val converter = new SparkSplineExpressionConverter(new AttributeRefConverter {
+      override def isAttrRef(obj: Any): Boolean = false
+
+      override def convert(arg: ExprDef): AttrOrExprRef = null
+    })
+
+    val aliasExpr = converter.convert(Map(
+      "_typeHint" -> "expr.Alias",
+      "dataTypeId" -> "d32cfc1f-e90f-4ece-93f5-15193534c855",
+      "alias" -> "foo",
+      "child" -> Map("_typeHint" -> "expr.Literal"),
+    ))
+
+    aliasExpr should be(a[FunctionalExpression])
+    aliasExpr.asInstanceOf[FunctionalExpression].id should not be empty
+    aliasExpr.asInstanceOf[FunctionalExpression].childIds should have length 1
+    aliasExpr.asInstanceOf[FunctionalExpression].name should equal("alias")
+    aliasExpr.asInstanceOf[FunctionalExpression].dataType should equal(Some("d32cfc1f-e90f-4ece-93f5-15193534c855"))
+    aliasExpr.asInstanceOf[FunctionalExpression].params should equal(Map(
+      "name" -> "foo"
+    ))
+    aliasExpr.asInstanceOf[FunctionalExpression].extra should equal(Map(
+      "_typeHint" -> "expr.Alias"
+    ))
+  }
+
+  it should "convert UDF expression" in {
+    val converter = new SparkSplineExpressionConverter(new AttributeRefConverter {
+      override def isAttrRef(obj: Any): Boolean = false
+
+      override def convert(arg: ExprDef): AttrOrExprRef = null
+    })
+
+    val udfExpr = converter.convert(Map(
+      "_typeHint" -> "expr.UDF",
+      "dataTypeId" -> "d32cfc1f-e90f-4ece-93f5-15193534c855",
+      "name" -> "foo"
+    ))
+
+    udfExpr should be(a[FunctionalExpression])
+    udfExpr.asInstanceOf[FunctionalExpression].id should not be empty
+    udfExpr.asInstanceOf[FunctionalExpression].childIds should be(empty)
+    udfExpr.asInstanceOf[FunctionalExpression].name should equal("foo")
+    udfExpr.asInstanceOf[FunctionalExpression].dataType should equal(Some("d32cfc1f-e90f-4ece-93f5-15193534c855"))
+    udfExpr.asInstanceOf[FunctionalExpression].params should be(empty)
+    udfExpr.asInstanceOf[FunctionalExpression].extra should equal(Map(
+      "_typeHint" -> "expr.UDF"
+    ))
+  }
+
+  it should "convert Generic expression" in {
+    val converter = new SparkSplineExpressionConverter(new AttributeRefConverter {
+      override def isAttrRef(obj: Any): Boolean = false
+
+      override def convert(arg: ExprDef): AttrOrExprRef = null
+    })
+
+    val genExpr = converter.convert(Map(
+      "_typeHint" -> "expr.Generic",
+      "dataTypeId" -> "d32cfc1f-e90f-4ece-93f5-15193534c855",
+      "name" -> "foo",
+      "exprType" -> "bar",
+      "params" -> Map("a" -> 111, "b" -> 222)
+    ))
+
+    genExpr should be(a[FunctionalExpression])
+    genExpr.asInstanceOf[FunctionalExpression].id should not be empty
+    genExpr.asInstanceOf[FunctionalExpression].childIds should be(empty)
+    genExpr.asInstanceOf[FunctionalExpression].name should equal("foo")
+    genExpr.asInstanceOf[FunctionalExpression].dataType should equal(Some("d32cfc1f-e90f-4ece-93f5-15193534c855"))
+    genExpr.asInstanceOf[FunctionalExpression].params should equal(Map(
+      "a" -> 111,
+      "b" -> 222
+    ))
+    genExpr.asInstanceOf[FunctionalExpression].extra should equal(Map(
+      "_typeHint" -> "expr.Generic",
+      "simpleClassName" -> "bar",
+    ))
   }
 }
