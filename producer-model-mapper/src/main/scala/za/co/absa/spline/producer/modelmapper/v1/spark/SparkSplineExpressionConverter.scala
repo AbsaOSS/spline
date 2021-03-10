@@ -54,7 +54,7 @@ class SparkSplineExpressionConverter(
   private def toLiteral(exprDef: TypesV1.ExprDef) = Literal(
     id = newId,
     dataType = exprDef.get(FieldNamesV1.ExpressionDef.DataTypeId).map(_.toString),
-    value = exprDef.get(FieldNamesV1.ExpressionDef.Value),
+    value = exprDef.get(FieldNamesV1.ExpressionDef.Value).orNull,
     extra = Map.empty
   )
 
