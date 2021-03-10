@@ -17,7 +17,7 @@ package za.co.absa.spline.consumer.service.model
 
 import io.swagger.annotations.ApiModelProperty
 
-case class ExecutionEventInfo
+case class WriteEventInfo
 (
   @ApiModelProperty(value = "Id of the execution event")
   executionEventId: String,
@@ -41,7 +41,7 @@ case class ExecutionEventInfo
   def this() = this(null, null, null, null, null, 0, null, null, false)
 }
 
-object ExecutionEventInfo {
+object WriteEventInfo {
   type Id = String
 }
 

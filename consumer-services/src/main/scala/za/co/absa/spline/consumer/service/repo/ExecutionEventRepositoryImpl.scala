@@ -59,7 +59,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         "asAtTime" -> (asAtTime: java.lang.Long)
       ))
 
-    val eventualArangoCursorAsync = db.queryAs[ExecutionEventInfo](
+    val eventualArangoCursorAsync = db.queryAs[WriteEventInfo](
       """
         |WITH progress
         |FOR ee IN progress

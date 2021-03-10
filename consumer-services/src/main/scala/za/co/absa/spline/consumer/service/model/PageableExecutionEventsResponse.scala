@@ -20,7 +20,7 @@ import io.swagger.annotations.ApiModelProperty
 
 case class PageableExecutionEventsResponse(
   @ApiModelProperty(value = "Array of Execution events")
-  override val items: Array[ExecutionEventInfo],
+  override val items: Array[WriteEventInfo],
   @ApiModelProperty(value = "Total number of executionEvents in the result set")
   override val totalCount: Long,
   @ApiModelProperty(value = "Page number")
@@ -29,4 +29,4 @@ case class PageableExecutionEventsResponse(
   override val pageSize: Int,
   @ApiModelProperty(value = "Total date range (min and max timestamp) of the result set")
   totalDateRange: Array[Long]
-) extends Pageable[ExecutionEventInfo]
+) extends Pageable[WriteEventInfo]

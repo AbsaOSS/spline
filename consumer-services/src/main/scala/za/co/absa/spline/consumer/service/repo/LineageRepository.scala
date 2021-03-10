@@ -15,12 +15,12 @@
  */
 package za.co.absa.spline.consumer.service.repo
 
-import za.co.absa.spline.consumer.service.model.{ExecutionEventInfo, LineageOverview}
+import za.co.absa.spline.consumer.service.model.{WriteEventInfo, LineageOverview}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait LineageRepository {
 
-  def lineageOverviewForExecutionEvent(eventId: ExecutionEventInfo.Id, maxDepth: Int)
+  def lineageOverviewForExecutionEvent(eventId: WriteEventInfo.Id, maxDepth: Int)
     (implicit ec: ExecutionContext): Future[LineageOverview]
 }
