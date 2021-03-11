@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.model._
-import za.co.absa.spline.consumer.service.repo.ExecutionEventRepositoryImpl.SortFieldMap
 
 import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -65,43 +64,46 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
           |WITH progress, progressOf, executionPlan, affects, dataSource
           |FOR ds IN dataSource
           |    FILTER ds._created <= @asAtTime
-          |    FILTER !LENGTH(@dataSourceUri) || @dataSourceUri == ds.uri
+          |    FILTER NOT @dataSourceUri
+          |            OR @dataSourceUri == ds.uri
           |
           |    // last write event or null
           |    LET lwe = FIRST(
           |        FOR we IN 2
           |            INBOUND ds affects, progressOf
           |            FILTER we.timestamp >= @timestampStart
-          |                && we.timestamp <= @timestampEnd
+          |               AND we.timestamp <= @timestampEnd
           |
-          |            FILTER !LENGTH(@applicationId) || @applicationId == we.extra.appId
-          |            FILTER !LENGTH(@searchTerm)
-          |                || we.timestamp == @searchTerm
-          |                || CONTAINS(LOWER(ds.uri), @searchTerm)
-          |                || CONTAINS(LOWER(we.execPlanDetails.frameworkName), @searchTerm)
-          |                || CONTAINS(LOWER(we.execPlanDetails.applicationName), @searchTerm)
-          |                || CONTAINS(LOWER(we.extra.appId), @searchTerm)
-          |                || CONTAINS(LOWER(we.execPlanDetails.dataSourceType), @searchTerm)
+          |            FILTER NOT @applicationId
+          |                    OR @applicationId == we.extra.appId
+          |
+          |            FILTER NOT @searchTerm
+          |                    OR @searchTerm == we.timestamp
+          |                    OR CONTAINS(LOWER(ds.uri), @searchTerm)
+          |                    OR CONTAINS(LOWER(we.execPlanDetails.frameworkName), @searchTerm)
+          |                    OR CONTAINS(LOWER(we.execPlanDetails.applicationName), @searchTerm)
+          |                    OR CONTAINS(LOWER(we.extra.appId), @searchTerm)
+          |                    OR CONTAINS(LOWER(we.execPlanDetails.dataSourceType), @searchTerm)
           |
           |            SORT we.timestamp DESC
           |            RETURN we
           |    )
           |
+          |    FILTER NOT IS_NULL(lwe)
+          |        OR NOT @searchTerm
+          |        OR CONTAINS(LOWER(ds.uri), @searchTerm)
+          |
           |    LET resItem = {
           |        "executionEventId" : lwe._key,
-          |        "executionPlanId" : lwe.execPlanDetails.executionPlanId,
-          |        "frameworkName" : lwe.execPlanDetails.frameworkName,
-          |        "applicationName" : lwe.execPlanDetails.applicationName,
-          |        "applicationId" : lwe.extra.appId,
-          |        "timestamp" : lwe.timestamp || 0,
-          |        "dataSourceUri" : ds.uri,
-          |        "dataSourceType" : lwe.execPlanDetails.dataSourceType,
-          |        "append" : lwe.execPlanDetails.append || false
+          |        "executionPlanId"  : lwe.execPlanDetails.executionPlanId,
+          |        "frameworkName"    : lwe.execPlanDetails.frameworkName,
+          |        "applicationName"  : lwe.execPlanDetails.applicationName,
+          |        "applicationId"    : lwe.extra.appId,
+          |        "timestamp"        : lwe.timestamp || 0,
+          |        "dataSourceUri"    : ds.uri,
+          |        "dataSourceType"   : lwe.execPlanDetails.dataSourceType,
+          |        "append"           : lwe.execPlanDetails.append || false
           |    }
-          |
-          |    FILTER lwe != null
-          |        || !LENGTH(@searchTerm)
-          |        || CONTAINS(LOWER(ds.uri), @searchTerm)
           |
           |    SORT resItem.@sortField @sortOrder
           |    LIMIT @pageOffset*@pageSize, @pageSize
@@ -114,7 +116,7 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
           "timestampEnd" -> (writeTimestampEnd: java.lang.Long),
           "pageOffset" -> (pageRequest.page - 1: Integer),
           "pageSize" -> (pageRequest.size: Integer),
-          "sortField" -> SortFieldMap.getOrElse(sortRequest.sortField, sortRequest.sortField),
+          "sortField" -> sortRequest.sortField,
           "sortOrder" -> sortRequest.sortOrder,
           "searchTerm" -> StringUtils.lowerCase(searchTerm),
           "applicationId" -> writeApplicationId,
@@ -134,7 +136,5 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
           pageRequest.size,
           totalDateRange)
     }
-
-
   }
 }
