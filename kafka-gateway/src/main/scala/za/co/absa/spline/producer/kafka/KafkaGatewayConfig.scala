@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.producer.kafka
 
-import com.fasterxml.jackson.databind.{ObjectMapper, PropertyNamingStrategy}
+import com.fasterxml.jackson.databind.{ObjectMapper, PropertyNamingStrategies, PropertyNamingStrategy}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.twitter.finatra.FinatraInternalModules
 import org.apache.commons.configuration.ConfigurationConverter
@@ -32,6 +32,8 @@ import org.springframework.kafka.listener.ContainerProperties.AckMode
 import org.springframework.kafka.support.JacksonUtils
 import org.springframework.kafka.support.converter.Jackson2JavaTypeMapper.TypePrecedence
 import org.springframework.kafka.support.converter.{ByteArrayJsonMessageConverter, DefaultJackson2JavaTypeMapper, RecordMessageConverter}
+import za.co.absa.commons.config.ConfTyped
+import za.co.absa.commons.config.ConfigurationImplicits.ConfigurationOptionalWrapper
 import za.co.absa.spline.common.config.DefaultConfigurationStack
 
 import java.util.concurrent.TimeUnit
@@ -41,39 +43,37 @@ import scala.concurrent.duration.{Duration, DurationInt}
 @EnableKafka
 @Configuration
 @ComponentScan(basePackageClasses = Array(classOf[listener._package]))
-class ProducerKafkaConfig {
-
-  import ProducerKafkaConfig._
+class KafkaGatewayConfig {
 
   @Bean
-  def kafkaListenerContainerFactory: ConcurrentKafkaListenerContainerFactory[_, _] = {
-    val factory = new ConcurrentKafkaListenerContainerFactory[String, AnyRef]()
-    factory.setConcurrency(1)
-    factory.setConsumerFactory(consumerFactory)
-    factory.setMessageConverter(messageConverter)
-    factory.getContainerProperties.setAckMode(AckMode.MANUAL)
-    factory
-  }
+  def kafkaListenerContainerFactory: ConcurrentKafkaListenerContainerFactory[_, _] =
+    new ConcurrentKafkaListenerContainerFactory[String, AnyRef] {
+      setConcurrency(1)
+      setConsumerFactory(consumerFactory)
+      setMessageConverter(messageConverter)
+      getContainerProperties.setAckMode(AckMode.BATCH)
+    }
 
   private def consumerFactory: ConsumerFactory[String, AnyRef] = {
-    new DefaultKafkaConsumerFactory(consumerConfigsMerged.asJava);
+    new DefaultKafkaConsumerFactory(consumerConfigsMerged.asJava)
   }
 
   private val consumerConfigsMerged: Map[String, AnyRef] = {
-    consumerConfig ++ Map[String, AnyRef](
+    KafkaGatewayConfig.Kafka.ConsumerConfig ++ Map[String, AnyRef](
       ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG -> classOf[StringDeserializer].getName,
       ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG -> classOf[ByteArrayDeserializer].getName,
     )
   }
 
   private def messageConverter: RecordMessageConverter = {
-    val typeMapper = new DefaultJackson2JavaTypeMapper
-    typeMapper.setTypePrecedence(TypePrecedence.TYPE_ID)
-    typeMapper.setIdClassMapping(typeMappings.asJava)
+    val typeMapper = new DefaultJackson2JavaTypeMapper {
+      setTypePrecedence(TypePrecedence.TYPE_ID)
+      setIdClassMapping(typeMappings.asJava)
+    }
 
-    val converter = new ByteArrayJsonMessageConverter(objectMapper)
-    converter.setTypeMapper(typeMapper)
-    converter
+    new ByteArrayJsonMessageConverter(objectMapper) {
+      setTypeMapper(typeMapper)
+    }
   }
 
   private val typeMappings = Map[String, Class[_]](
@@ -84,12 +84,12 @@ class ProducerKafkaConfig {
   private val objectMapper: ObjectMapper =
     JacksonUtils.enhancedObjectMapper()
       .registerModule(DefaultScalaModule)
-      .setPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CAMEL_CASE)
+      .setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE)
       .registerModule(FinatraInternalModules.caseClassModule)
 
   @Bean
   def propertySourcesPlaceholderConfigurer: PropertySourcesPlaceholderConfigurer = {
-    val properties = ConfigurationConverter.getProperties(ProducerKafkaConfig)
+    val properties = ConfigurationConverter.getProperties(KafkaGatewayConfig)
 
     val sources = new MutablePropertySources()
     sources.addLast(new PropertiesPropertySource("spline-property-source", properties))
@@ -100,28 +100,25 @@ class ProducerKafkaConfig {
   }
 }
 
-object ProducerKafkaConfig extends DefaultConfigurationStack {
+object KafkaGatewayConfig extends DefaultConfigurationStack with ConfTyped {
 
-  import za.co.absa.commons.config.ConfigurationImplicits._
+  override val rootPrefix: String = "spline"
+  private val conf = this
 
-  val ConsumerKey = "spline.kafka.consumer"
-  val PlanTimeoutKey = "spline.kafka.insertPlanTimeout"
-  val EventTimeoutKey = "spline.kafka.insertEventTimeout"
+  object Kafka extends Conf("kafka") {
+    val ConsumerConfig: Map[String, AnyRef] = ConfigurationConverter
+      .getMap(subset(Prop("consumer")))
+      .asScala.toMap
+      .asInstanceOf[Map[String, AnyRef]]
 
-  val conf = this
+    val PlanTimeout: Duration = conf
+      .getOptionalLong(Prop("insertPlanTimeout"))
+      .map(Duration(_, TimeUnit.MILLISECONDS))
+      .getOrElse(1.minute)
 
-  val consumerConfig = ConfigurationConverter
-    .getMap(subset(ConsumerKey))
-    .asScala.toMap
-    .asInstanceOf[Map[String,  AnyRef]]
-
-  val planTimeout = conf
-    .getOptionalLong(PlanTimeoutKey)
-    .map(Duration(_, TimeUnit.MILLISECONDS))
-    .getOrElse(1.minute)
-
-  val eventTimeout = conf
-    .getOptionalLong(EventTimeoutKey)
-    .map(Duration(_, TimeUnit.MILLISECONDS))
-    .getOrElse(10.seconds)
+    val EventTimeout: Duration = conf
+      .getOptionalLong(Prop("insertEventTimeout"))
+      .map(Duration(_, TimeUnit.MILLISECONDS))
+      .getOrElse(10.seconds)
+  }
 }

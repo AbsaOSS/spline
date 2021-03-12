@@ -2,6 +2,7 @@
 Consumes execution plans and events via kafka and stores them to arangoDB
 
 ---
+### Configuration
 All mandatory configs that needs to be provided are in the example bellow.
 In addition to this the Kafka consumer can be [configured the standard way](https://kafka.apache.org/documentation/#consumerconfigs). 
 Everything that start with prefix `spline.kafka.consumer.` will be send to consumer as a config (with the prefix removed)
@@ -16,6 +17,10 @@ example properties provided via VM options
 -Dspline.kafka.consumer.group.id=spline-group
 -Dspline.kafka.topic=spline-topic
 ```
+
+### Error recovery
+Currently, all received messages are acknowledged. Errors during message processing are logged. 
+The consumer is idempotent so if needed it can be rewind back, and the failed messages can be re-ingested. 
 
 ---
 For general Spline documentation and examples please visit:

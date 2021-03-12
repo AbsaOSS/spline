@@ -30,7 +30,7 @@ object AppInitializer extends WebApplicationInitializer {
       .addListener(new ContextLoaderListener(new AnnotationConfigWebApplicationContext {
         setAllowBeanDefinitionOverriding(false)
         register(
-          classOf[ProducerKafkaConfig],
+          classOf[KafkaGatewayConfig],
           classOf[ProducerServicesConfig],
           classOf[ArangoRepoConfig])
       }))

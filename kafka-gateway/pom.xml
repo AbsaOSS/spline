@@ -27,7 +27,7 @@
         <relativePath>../build/parent-pom/pom.xml</relativePath>
     </parent>
 
-    <artifactId>producer-kafka</artifactId>
+    <artifactId>kafka-gateway</artifactId>
     <packaging>war</packaging>
 
     <dependencies>

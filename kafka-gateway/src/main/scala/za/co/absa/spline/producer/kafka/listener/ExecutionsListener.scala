@@ -19,16 +19,18 @@ package za.co.absa.spline.producer.kafka.listener
 import org.slf4s.Logging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.kafka.annotation.{KafkaHandler, KafkaListener}
-import org.springframework.kafka.support.{Acknowledgment, KafkaHeaders}
+import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.handler.annotation.Header
 import org.springframework.stereotype.Component
-import za.co.absa.spline.producer.kafka.ProducerKafkaConfig
+import za.co.absa.commons.annotation.Unstable
+import za.co.absa.spline.producer.kafka.KafkaGatewayConfig
 import za.co.absa.spline.producer.model.v1_1.{ExecutionEvent, ExecutionPlan}
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.util.control.NonFatal
 
+@Unstable
 @Component
 @KafkaListener(topics = Array("${spline.kafka.topic}"))
 class ExecutionsListener @Autowired()(val repo: ExecutionProducerRepository) extends Logging {
@@ -38,13 +40,11 @@ class ExecutionsListener @Autowired()(val repo: ExecutionProducerRepository) ext
   @KafkaHandler
   def listenExecutionPlan(
     plan: ExecutionPlan,
-    ack: Acknowledgment,
     @Header(KafkaHeaders.OFFSET) offset: Long,
     @Header(KafkaHeaders.RECEIVED_TOPIC) topic: String,
   ): Unit = {
     try {
-      Await.result(repo.insertExecutionPlan(plan), ProducerKafkaConfig.planTimeout)
-      ack.acknowledge()
+      Await.result(repo.insertExecutionPlan(plan), KafkaGatewayConfig.Kafka.PlanTimeout)
     } catch {
       case NonFatal(e) => log.error(
         s"Error while inserting execution plan id:${plan.id} from topic:$topic on offset:$offset", e)
@@ -54,13 +54,11 @@ class ExecutionsListener @Autowired()(val repo: ExecutionProducerRepository) ext
   @KafkaHandler
   def listenExecutionEvent(
     event: ExecutionEvent,
-    ack: Acknowledgment,
     @Header(KafkaHeaders.OFFSET) offset: Long,
     @Header(KafkaHeaders.RECEIVED_TOPIC) topic: String,
   ): Unit = {
     try {
-      Await.result(repo.insertExecutionEvents(Array(event)), ProducerKafkaConfig.eventTimeout)
-      ack.acknowledge()
+      Await.result(repo.insertExecutionEvents(Array(event)), KafkaGatewayConfig.Kafka.EventTimeout)
     } catch {
       case NonFatal(e) => log.error(
         s"Error while inserting execution event for planId:${event.planId} and timestamp: ${event.timestamp} " +
