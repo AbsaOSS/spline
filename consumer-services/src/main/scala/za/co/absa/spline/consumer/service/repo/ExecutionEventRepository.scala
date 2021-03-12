@@ -15,11 +15,18 @@
  */
 package za.co.absa.spline.consumer.service.repo
 
-import za.co.absa.spline.consumer.service.model.{PageRequest, PageableExecutionEventsResponse, SortRequest}
+import za.co.absa.spline.consumer.service.model.{PageRequest, SortRequest, WriteEventInfo}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ExecutionEventRepository {
+
+  def getTimestampRange(
+    asAtTime: Long,
+    searchTerm: String,
+    applicationId: String,
+    dataSourceUri: String)
+    (implicit ec: ExecutionContext): Future[(Long, Long)]
 
   def findByTimestampRange(
     asAtTime: Long,
@@ -30,5 +37,5 @@ trait ExecutionEventRepository {
     searchTerm: String,
     applicationId: String,
     dataSourceUri: String)
-    (implicit ec: ExecutionContext): Future[PageableExecutionEventsResponse]
+    (implicit ec: ExecutionContext): Future[(Seq[WriteEventInfo], Long)]
 }

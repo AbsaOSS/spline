@@ -19,14 +19,17 @@ import io.swagger.annotations.{Api, ApiOperation, ApiParam}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.service.model._
-import za.co.absa.spline.consumer.service.repo.DataSourceRepository
+import za.co.absa.spline.consumer.service.repo.{DataSourceRepository, ExecutionEventRepository}
 
 import java.lang.System.currentTimeMillis
 import scala.concurrent.Future
 
 @RestController
 @Api(tags = Array("data-sources"))
-class DataSourcesController @Autowired()(val repo: DataSourceRepository) {
+class DataSourcesController @Autowired()(
+  val dataSourceRepo: DataSourceRepository,
+  val execEventsRepo: ExecutionEventRepository
+) {
 
   import scala.concurrent.ExecutionContext.Implicits._
 
@@ -73,15 +76,34 @@ class DataSourcesController @Autowired()(val repo: DataSourceRepository) {
     val pageRequest = PageRequest(pageNum, pageSize)
     val sortRequest = SortRequest(sortField, sortOrder)
 
-    repo.find(
-      asAtTime,
-      writeTimestampStart,
-      writeTimestampEnd,
-      pageRequest,
-      sortRequest,
-      searchTerm,
-      writeApplicationId,
-      dataSourceUri
-    )
+    val eventualDateRange =
+      execEventsRepo.getTimestampRange(
+        asAtTime,
+        searchTerm,
+        writeApplicationId,
+        dataSourceUri)
+
+    val eventualEventsWithCount =
+      dataSourceRepo.find(
+        asAtTime,
+        writeTimestampStart,
+        writeTimestampEnd,
+        pageRequest,
+        sortRequest,
+        searchTerm,
+        writeApplicationId,
+        dataSourceUri)
+
+    for {
+      (totalDateFrom, totalDateTo) <- eventualDateRange
+      (events, totalCount) <- eventualEventsWithCount
+    } yield {
+      PageableDataSourcesResponse(
+        events.toArray,
+        totalCount,
+        pageRequest.page,
+        pageRequest.size,
+        Array(totalDateFrom, totalDateTo))
+    }
   }
 }

@@ -15,7 +15,7 @@
  */
 package za.co.absa.spline.consumer.service.repo
 
-import za.co.absa.spline.consumer.service.model.{PageRequest, PageableDataSourcesResponse, SortRequest}
+import za.co.absa.spline.consumer.service.model.{PageRequest, SortRequest, WriteEventInfo}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -30,5 +30,5 @@ trait DataSourceRepository {
     searchTerm: String,
     writeApplicationId: String,
     dataSourceUri: String)
-    (implicit ec: ExecutionContext): Future[PageableDataSourcesResponse]
+    (implicit ec: ExecutionContext): Future[(Seq[WriteEventInfo], Long)]
 }

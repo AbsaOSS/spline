@@ -15,14 +15,13 @@
  */
 package za.co.absa.spline.consumer.rest.controller
 
-import java.lang.System.currentTimeMillis
-
 import io.swagger.annotations.{Api, ApiOperation, ApiParam}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.service.model._
 import za.co.absa.spline.consumer.service.repo.ExecutionEventRepository
 
+import java.lang.System.currentTimeMillis
 import scala.concurrent.Future
 
 @RestController
@@ -74,15 +73,35 @@ class ExecutionEventsController @Autowired()(val repo: ExecutionEventRepository)
     val pageRequest = PageRequest(pageNum, pageSize)
     val sortRequest = SortRequest(sortField, sortOrder)
 
-    repo.findByTimestampRange(
-      asAtTime,
-      timestampStart,
-      timestampEnd,
-      pageRequest,
-      sortRequest,
-      searchTerm,
-      applicationId,
-      dataSourceUri
-    )
+    val eventualDateRange =
+      repo.getTimestampRange(
+        asAtTime,
+        searchTerm,
+        applicationId,
+        dataSourceUri)
+
+    val eventualEventsWithCount =
+      repo.findByTimestampRange(
+        asAtTime,
+        timestampStart,
+        timestampEnd,
+        pageRequest,
+        sortRequest,
+        searchTerm,
+        applicationId,
+        dataSourceUri)
+
+    for {
+      (totalDateFrom, totalDateTo) <- eventualDateRange
+      (events, totalCount) <- eventualEventsWithCount
+    } yield {
+      PageableExecutionEventsResponse(
+        events.toArray,
+        totalCount,
+        pageRequest.page,
+        pageRequest.size,
+        Array(totalDateFrom, totalDateTo))
+    }
+
   }
 }
