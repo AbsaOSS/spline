@@ -18,7 +18,7 @@ package za.co.absa.spline.consumer.service.model
 
 import io.swagger.annotations.ApiModelProperty
 
-case class PageableExecutionEventsResponse(
+case class PageableDataSourcesResponse(
   @ApiModelProperty(value = "Array of Execution events")
   override val items: Array[WriteEventInfo],
   @ApiModelProperty(value = "Total number of executionEvents in the result set")

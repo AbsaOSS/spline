@@ -20,7 +20,7 @@ import com.arangodb.ArangoDBException
 import com.arangodb.async.ArangoDatabaseAsync
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import za.co.absa.spline.consumer.service.model.{ExecutionEventInfo, LineageOverview}
+import za.co.absa.spline.consumer.service.model.{WriteEventInfo, LineageOverview}
 
 import scala.PartialFunction.cond
 import scala.compat.java8.FutureConverters.CompletionStageOps
@@ -29,7 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Repository
 class LineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends LineageRepository {
 
-  override def lineageOverviewForExecutionEvent(eventId: ExecutionEventInfo.Id, maxDepth: Int)(implicit ec: ExecutionContext): Future[LineageOverview] =
+  override def lineageOverviewForExecutionEvent(eventId: WriteEventInfo.Id, maxDepth: Int)(implicit ec: ExecutionContext): Future[LineageOverview] =
     db
       .route(s"/spline/events/$eventId/lineage-overview/$maxDepth")
       .get()
