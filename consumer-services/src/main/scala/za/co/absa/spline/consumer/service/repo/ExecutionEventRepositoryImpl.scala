@@ -104,6 +104,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |        "applicationName"  : ee.execPlanDetails.applicationName,
         |        "applicationId"    : ee.extra.appId,
         |        "timestamp"        : ee.timestamp,
+        |        "dataSourceName"   : REGEX_MATCHES(ee.execPlanDetails.dataSourceUri, "([^/]+)/*$")[1],
         |        "dataSourceUri"    : ee.execPlanDetails.dataSourceUri,
         |        "dataSourceType"   : ee.execPlanDetails.dataSourceType,
         |        "append"           : ee.execPlanDetails.append

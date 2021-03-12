@@ -31,14 +31,16 @@ case class WriteEventInfo
   applicationId: String,
   @ApiModelProperty(value = "When the execution was triggered")
   timestamp: Long,
-  @ApiModelProperty(value = "Output file uri")
+  @ApiModelProperty(value = "Output data source name")
+  dataSourceName: String,
+  @ApiModelProperty(value = "Output data source URI")
   dataSourceUri: String,
-  @ApiModelProperty(value = "Type of the output file")
+  @ApiModelProperty(value = "Output data source (or data) type")
   dataSourceType: String,
   @ApiModelProperty(value = "Write mode - (true=Append; false=Override)")
   append: Boolean
 ) {
-  def this() = this(null, null, null, null, null, 0, null, null, false)
+  def this() = this(null, null, null, null, null, 0, null, null, null, false)
 }
 
 object WriteEventInfo {
