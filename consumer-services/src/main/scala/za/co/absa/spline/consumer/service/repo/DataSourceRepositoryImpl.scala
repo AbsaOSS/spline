@@ -81,6 +81,7 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         |        "applicationName"  : lwe.execPlanDetails.applicationName,
         |        "applicationId"    : lwe.extra.appId,
         |        "timestamp"        : lwe.timestamp || 0,
+        |        "dataSourceName"   : REGEX_MATCHES(ds.uri, "([^/]+)/*$")[1],
         |        "dataSourceUri"    : ds.uri,
         |        "dataSourceType"   : lwe.execPlanDetails.dataSourceType,
         |        "append"           : lwe.execPlanDetails.append || false
