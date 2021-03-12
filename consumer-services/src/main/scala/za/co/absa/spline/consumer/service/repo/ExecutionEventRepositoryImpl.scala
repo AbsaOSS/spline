@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.model._
+import za.co.absa.spline.persistence.ArangoImplicits._
 
 import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -28,8 +29,47 @@ import scala.concurrent.{ExecutionContext, Future}
 @Repository
 class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExecutionEventRepository {
 
-  override def findByTimestampRange
-  (
+  override def getTimestampRange(
+    asAtTime: Long,
+    searchTerm: String,
+    applicationId: String,
+    dataSourceUri: String
+  )(implicit ec: ExecutionContext): Future[(Long, Long)] = {
+    db.queryOne[Array[Long]](
+      """
+        |WITH progress
+        |FOR ee IN progress
+        |    FILTER ee._created <= @asAtTime
+        |
+        |    FILTER NOT @applicationId OR @applicationId == ee.extra.appId
+        |    FILTER NOT @dataSourceUri OR @dataSourceUri == ee.execPlanDetails.dataSourceUri
+        |    FILTER NOT @searchTerm
+        |            OR @searchTerm == ee.timestamp
+        |            OR CONTAINS(LOWER(ee.execPlanDetails.frameworkName), @searchTerm)
+        |            OR CONTAINS(LOWER(ee.execPlanDetails.applicationName), @searchTerm)
+        |            OR CONTAINS(LOWER(ee.extra.appId), @searchTerm)
+        |            OR CONTAINS(LOWER(ee.execPlanDetails.dataSourceUri), @searchTerm)
+        |            OR CONTAINS(LOWER(ee.execPlanDetails.dataSourceType), @searchTerm)
+        |
+        |    COLLECT AGGREGATE
+        |        minTimestamp = MIN(ee.timestamp),
+        |        maxTimestamp = MAX(ee.timestamp)
+        |
+        |    RETURN [
+        |        minTimestamp || DATE_NOW(),
+        |        maxTimestamp || DATE_NOW()
+        |    ]
+        |""".stripMargin,
+      Map(
+        "asAtTime" -> (asAtTime: java.lang.Long),
+        "searchTerm" -> StringUtils.lowerCase(searchTerm),
+        "applicationId" -> applicationId,
+        "dataSourceUri" -> dataSourceUri
+      )
+    ).map { case Array(from, to) => from -> to }
+  }
+
+  override def findByTimestampRange(
     asAtTime: Long,
     timestampStart: Long,
     timestampEnd: Long,
@@ -38,27 +78,8 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
     searchTerm: String,
     applicationId: String,
     dataSourceUri: String
-  )(implicit ec: ExecutionContext): Future[PageableExecutionEventsResponse] = {
-    import za.co.absa.spline.persistence.ArangoImplicits._
-
-    val eventualTotalDateRange = db.queryOne[Array[Long]](
-      """
-        |WITH progress
-        |FOR ee IN progress
-        |    FILTER ee._created <= @asAtTime
-        |    COLLECT AGGREGATE
-        |        minTimestamp = MIN(ee.timestamp),
-        |        maxTimestamp = MAX(ee.timestamp)
-        |    RETURN [
-        |        minTimestamp || DATE_NOW(),
-        |        maxTimestamp || DATE_NOW()
-        |    ]
-        |""".stripMargin,
-      Map(
-        "asAtTime" -> (asAtTime: java.lang.Long)
-      ))
-
-    val eventualArangoCursorAsync = db.queryAs[WriteEventInfo](
+  )(implicit ec: ExecutionContext): Future[(Seq[WriteEventInfo], Long)] = {
+    db.queryAs[WriteEventInfo](
       """
         |WITH progress
         |FOR ee IN progress
@@ -106,17 +127,11 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         "dataSourceUri" -> dataSourceUri
       ),
       new AqlQueryOptions().fullCount(true)
-    )
-
-    for {
-      arangoCursorAsync <- eventualArangoCursorAsync
-      totalDateRange <- eventualTotalDateRange
-    } yield
-      PageableExecutionEventsResponse(
-        arangoCursorAsync.streamRemaining().toScala.toArray,
-        arangoCursorAsync.getStats.getFullCount,
-        pageRequest.page,
-        pageRequest.size,
-        totalDateRange)
+    ).map {
+      arangoCursorAsync =>
+        val items = arangoCursorAsync.streamRemaining().toScala
+        val totalCount = arangoCursorAsync.getStats.getFullCount
+        items -> totalCount
+    }
   }
 }
