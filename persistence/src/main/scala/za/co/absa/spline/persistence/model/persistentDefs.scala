@@ -53,20 +53,20 @@ sealed abstract class Edge12Def(name: String, val from: NodeDef, val to1: NodeDe
   extends EdgeDef(name, Seq(from), Seq(to1, to2)) {
   this: CollectionDef =>
 
-  protected def edgeTo1(fromKey: Any, toKey: Any, index: Option[Int] = None, path: Option[String] = None): Edge =
+  protected def edgeTo1(fromKey: Any, toKey: Any, index: Option[Int] = None, path: Option[Edge.FromPath] = None): Edge =
     Edge(s"${from.name}/$fromKey", s"${to1.name}/$toKey", index, path)
 
-  protected def edgeTo2(fromKey: Any, toKey: Any, index: Option[Int] = None, path: Option[String] = None): Edge =
+  protected def edgeTo2(fromKey: Any, toKey: Any, index: Option[Int] = None, path: Option[Edge.FromPath] = None): Edge =
     Edge(s"${from.name}/$fromKey", s"${to2.name}/$toKey", index, path)
 }
 
 sealed trait EdgeToAttrOrExprOps {
   this: Edge12Def =>
 
-  def edgeToAttr(from: Any, to: Any, path: String): Edge = edgeTo1(from, to, None, Some(path))
+  def edgeToAttr(from: Any, to: Any, path: Edge.FromPath): Edge = edgeTo1(from, to, None, Some(path))
   def edgeToAttr(from: Any, to: Any, index: Int): Edge = edgeTo1(from, to, Some(index), None)
 
-  def edgeToExpr(from: Any, to: Any, path: String): Edge = edgeTo2(from, to, None, Some(path))
+  def edgeToExpr(from: Any, to: Any, path: Edge.FromPath): Edge = edgeTo2(from, to, None, Some(path))
   def edgeToExpr(from: Any, to: Any, index: Int): Edge = edgeTo2(from, to, Some(index), None)
 }
 
