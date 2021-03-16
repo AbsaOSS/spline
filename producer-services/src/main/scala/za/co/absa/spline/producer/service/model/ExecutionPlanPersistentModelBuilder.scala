@@ -269,7 +269,7 @@ class ExecutionPlanPersistentModelBuilder private(
       case _ => Nil
     }
 
-    obj.flatMap { case (k, v) => fromVal(v, s"$pathPrefix['$k']") }
+    obj.toSeq.flatMap { case (k, v) => fromVal(v, s"$pathPrefix['$k']") }
   }
 
   private def findAncestorAttributeRefs(attrRef: AttrOrExprRef) = {
