@@ -52,7 +52,8 @@ class SparkSplineExpressionConverter(
     id = newId,
     dataType = exprDef.get(FieldNamesV1.ExpressionDef.DataTypeId).map(_.toString),
     value = exprDef.get(FieldNamesV1.ExpressionDef.Value).orNull,
-    extra = Map.empty
+    extra = exprDef.filterKeys(FieldNamesV1.ExpressionDef.TypeHint.==)
+      ++ exprDef.get(FieldNamesV1.ExpressionDef.ExprType).map("simpleClassName" -> _)
   )
 
   private def toFunctionalExpression(exprDef: TypesV1.ExprDef, name: Any): FunctionalExpression = {
@@ -78,12 +79,12 @@ class SparkSplineExpressionConverter(
 
       params = Map.empty
         ++ exprDef.getOrElse(FieldNamesV1.ExpressionDef.Params, Map.empty).asInstanceOf[ExpressionLike.Params]
-        ++ exprDef.get(FieldNamesV1.ExpressionDef.Alias).map("name" -> _).toMap,
+        ++ exprDef.get(FieldNamesV1.ExpressionDef.Alias).map("name" -> _),
 
       extra = exprDef.filterKeys(Set(
         FieldNamesV1.ExpressionDef.TypeHint,
         FieldNamesV1.ExpressionDef.Symbol,
-      )) ++ exprDef.get(FieldNamesV1.ExpressionDef.ExprType).map("simpleClassName" -> _).toMap
+      )) ++ exprDef.get(FieldNamesV1.ExpressionDef.ExprType).map("simpleClassName" -> _)
     )
   }
 

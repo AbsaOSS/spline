@@ -19,6 +19,7 @@ package za.co.absa.spline.producer.modelmapper.v1.spark
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import za.co.absa.spline.producer.model.v1_1.{AttrOrExprRef, FunctionalExpression, Literal}
+import za.co.absa.spline.producer.modelmapper.v1.FieldNamesV1
 import za.co.absa.spline.producer.modelmapper.v1.TypesV1.ExprDef
 
 class SparkSplineExpressionConverterSpec extends AnyFlatSpec with Matchers {
@@ -39,7 +40,7 @@ class SparkSplineExpressionConverterSpec extends AnyFlatSpec with Matchers {
     lit.asInstanceOf[Literal].value should be(a[String])
     lit.asInstanceOf[Literal].value should equal("foo")
     lit.asInstanceOf[Literal].dataType should equal(Some("d32cfc1f-e90f-4ece-93f5-15193534c855"))
-    lit.asInstanceOf[Literal].extra should be(empty)
+    lit.asInstanceOf[Literal].extra should equal(Map("_typeHint" -> "expr.Literal"))
   }
 
   it should "support missing Literal.value" in {
