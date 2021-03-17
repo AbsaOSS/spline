@@ -18,6 +18,7 @@ package za.co.absa.spline.consumer.service.model
 
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
 import za.co.absa.spline.consumer.service.model.ExpressionEdge.ExpressionEdgeType
+import za.co.absa.spline.persistence.model.Edge
 
 @ApiModel(description = "`Uses` or `Takes` edge")
 case class ExpressionEdge
@@ -32,7 +33,7 @@ case class ExpressionEdge
   `type`: ExpressionEdgeType,
 
   @ApiModelProperty(value = "JSONPath of inside 'source' entity where this edge is logically attached to (if applicable)")
-  path: String,
+  path: Edge.FromPath,
 
   @ApiModelProperty(value = "0-based order (if applicable)")
   index: Int

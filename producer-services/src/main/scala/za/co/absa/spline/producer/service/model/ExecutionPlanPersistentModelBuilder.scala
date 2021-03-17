@@ -23,7 +23,7 @@ import za.co.absa.commons.graph.GraphImplicits._
 import za.co.absa.commons.lang.CollectionImplicits._
 import za.co.absa.commons.lang.OptionImplicits._
 import za.co.absa.spline.persistence.DefaultJsonSerDe._
-import za.co.absa.spline.persistence.model.EdgeDef
+import za.co.absa.spline.persistence.model.{Edge, EdgeDef}
 import za.co.absa.spline.persistence.{model => pm}
 import za.co.absa.spline.producer.model.v1_1.AttrOrExprRef
 import za.co.absa.spline.producer.model.v1_1.OperationLike.Id
@@ -157,7 +157,7 @@ class ExecutionPlanPersistentModelBuilder private(
         case t: am.DataOperation => toTransformOperation(t)
       })
 
-      for ((ref: am.AttrOrExprRef, path: JSONPath) <- collectRefsWithPaths(op.params, "$['params']")) {
+      for ((ref: am.AttrOrExprRef, path: Edge.FromPath) <- collectRefsWithPaths(op.params, "$['params']")) {
         this._pmUses :+= {
           if (ref.isAttribute)
             EdgeDef.Uses.edgeToAttr(opKey, keyCreator.asAttributeKey(ref.refId), path)
@@ -261,15 +261,15 @@ class ExecutionPlanPersistentModelBuilder private(
       ep.id,
       pmDataSourceByURI(ep.operations.write.outputSource)._key)
 
-  private def collectRefsWithPaths(obj: Map[String, Any], pathPrefix: JSONPath): Iterable[(am.AttrOrExprRef, JSONPath)] = {
-    def fromVal(v: Any, p: JSONPath): Iterable[(am.AttrOrExprRef, JSONPath)] = v match {
+  private def collectRefsWithPaths(obj: Map[String, Any], pathPrefix: Edge.FromPath): Iterable[(am.AttrOrExprRef, Edge.FromPath)] = {
+    def fromVal(v: Any, p: Edge.FromPath): Iterable[(am.AttrOrExprRef, Edge.FromPath)] = v match {
       case ref: am.AttrOrExprRef => Seq(ref -> p)
       case m: Map[String, _] => collectRefsWithPaths(m, p)
       case xs: Seq[_] => xs.zipWithIndex.flatMap { case (x, i) => fromVal(x, s"$p[$i]") }
       case _ => Nil
     }
 
-    obj.flatMap { case (k, v) => fromVal(v, s"$pathPrefix['$k']") }
+    obj.toSeq.flatMap { case (k, v) => fromVal(v, s"$pathPrefix['$k']") }
   }
 
   private def findAncestorAttributeRefs(attrRef: AttrOrExprRef) = {
@@ -323,8 +323,6 @@ object ExecutionPlanPersistentModelBuilder {
       .having(maybeExpressions)(_ addExpressions _)
       .build()
   }
-
-  private type JSONPath = String
 
   private case class SchemaInfo(oid: am.OperationLike.Id, schema: am.OperationLike.Schema, diff: Set[am.Attribute.Id])
 
