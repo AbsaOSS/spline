@@ -16,18 +16,19 @@
 
 package za.co.absa.spline.producer.modelmapper.v1.spark
 
+import za.co.absa.spline.producer.model.v1_1.AttrOrExprRef.exprRef
 import za.co.absa.spline.producer.modelmapper.v1.{ExpressionConverter, ObjectConverter, TypesV1}
 
 class SparkSplineObjectConverter(
   attrRefConverter: AttributeRefConverter,
-  expressionConverter: ExpressionConverter,
+  exprConverter: ExpressionConverter,
 ) extends ObjectConverter {
 
   override def convert(obj: Any): Any = obj match {
     case attrDef: TypesV1.AttrDef if attrRefConverter.isAttrRef(attrDef) => attrRefConverter.convert(attrDef)
-    case exprDef: TypesV1.ExprDef if expressionConverter.isExpression(exprDef) => expressionConverter.convert(exprDef)
+    case exprDef: TypesV1.ExprDef if exprConverter.isExpression(exprDef) => exprRef(exprConverter.convert(exprDef).id)
     case arr: Seq[_] => arr.map(this.convert)
-    case m: Map[_, _] => m.mapValues(this.convert)
+    case m: Map[_, _] => m.mapValues(this.convert).view.force // see: https://github.com/scala/bug/issues/4776
     case _ => obj
   }
 }

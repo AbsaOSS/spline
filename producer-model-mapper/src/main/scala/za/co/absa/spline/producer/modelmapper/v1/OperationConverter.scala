@@ -28,8 +28,14 @@ class OperationConverter(
   override type To = v1_1.OperationLike
 
   override def convert(op1: From): To = {
-    val convertedParams = op1.params.mapValues(objectConverter.convert)
-    val output = maybeOutputConverter.flatMap(_.convert(op1)).getOrElse(Nil)
+    val convertedParams = op1
+      .params
+      .mapValues(objectConverter.convert)
+      .view.force // see: https://github.com/scala/bug/issues/4776
+
+    val output = maybeOutputConverter
+      .flatMap(_.convert(op1))
+      .getOrElse(Nil)
 
     val id = op1.id.toString
     val childIds = op1.childIds.map(_.toString)

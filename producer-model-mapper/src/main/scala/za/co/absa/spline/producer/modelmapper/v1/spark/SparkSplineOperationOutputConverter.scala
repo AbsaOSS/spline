@@ -31,6 +31,7 @@ class SparkSplineOperationOutputConverter(
     attributeDefs
       .groupBy(_ (FieldNamesV1.AttributeDef.Id).toString)
       .mapValues(_.head)
+      .view.force // see: https://github.com/scala/bug/issues/4776
 
   override def convert(op1: v1.OperationLike): Option[v1_1.OperationLike.Schema] =
     for (schema <- op1.schema)

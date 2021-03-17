@@ -38,33 +38,25 @@ class SparkSplineExpressionConverter(
   override def convert(exprDef: TypesV1.ExprDef): ExpressionLike = {
     exprDef(FieldNamesV1.ExpressionDef.TypeHint) match {
       case "expr.Literal" => toLiteral(exprDef)
-      case "expr.Alias" => toFunctionalExpression(exprDef, "alias", exprDef.filterKeys(FieldNamesV1.ExpressionDef.Alias.==))
+      case "expr.Alias" => toFunctionalExpression(exprDef, "alias")
       case "expr.Binary" => toFunctionalExpression(exprDef, exprDef(FieldNamesV1.ExpressionDef.Symbol))
       case "expr.UDF" => toFunctionalExpression(exprDef, exprDef(FieldNamesV1.ExpressionDef.Name))
-      case "expr.Generic" | "expr.GenericLeaf" | "expr.UntypedExpression" =>
-        toFunctionalExpression(
-          exprDef,
-          exprDef(FieldNamesV1.ExpressionDef.Name),
-          exprDef(FieldNamesV1.ExpressionDef.Params).asInstanceOf[ExpressionLike.Params],
-          exprDef.find({ case (k, _) => k == FieldNamesV1.ExpressionDef.ExprType }).toMap
-        )
+      case "expr.Generic"
+           | "expr.GenericLeaf"
+           | "expr.UntypedExpression" =>
+        toFunctionalExpression(exprDef, exprDef(FieldNamesV1.ExpressionDef.Name))
     }
   }
 
   private def toLiteral(exprDef: TypesV1.ExprDef) = Literal(
     id = newId,
     dataType = exprDef.get(FieldNamesV1.ExpressionDef.DataTypeId).map(_.toString),
-    value = exprDef.get(FieldNamesV1.ExpressionDef.Value),
-    extra = Map.empty
+    value = exprDef.get(FieldNamesV1.ExpressionDef.Value).orNull,
+    extra = exprDef.filterKeys(FieldNamesV1.ExpressionDef.TypeHint.==)
+      ++ exprDef.get(FieldNamesV1.ExpressionDef.ExprType).map("simpleClassName" -> _)
   )
 
-  private def toFunctionalExpression(
-    exprDef: TypesV1.ExprDef,
-    name: Any,
-    params: ExpressionLike.Params = Map.empty,
-    extras: ExpressionLike.Extras = Map.empty
-  ): FunctionalExpression = {
-
+  private def toFunctionalExpression(exprDef: TypesV1.ExprDef, name: Any): FunctionalExpression = {
     val children = exprDef
       .get(FieldNamesV1.ExpressionDef.Children)
       .orElse(exprDef.get(FieldNamesV1.ExpressionDef.Child).toList.asOption)
@@ -84,8 +76,15 @@ class SparkSplineExpressionConverter(
       dataType = exprDef.get(FieldNamesV1.ExpressionDef.DataTypeId).map(_.toString),
       name = name.toString,
       childIds = childRefs,
-      params = params,
-      extra = extras
+
+      params = Map.empty
+        ++ exprDef.getOrElse(FieldNamesV1.ExpressionDef.Params, Map.empty).asInstanceOf[ExpressionLike.Params]
+        ++ exprDef.get(FieldNamesV1.ExpressionDef.Alias).map("name" -> _),
+
+      extra = exprDef.filterKeys(Set(
+        FieldNamesV1.ExpressionDef.TypeHint,
+        FieldNamesV1.ExpressionDef.Symbol,
+      )) ++ exprDef.get(FieldNamesV1.ExpressionDef.ExprType).map("simpleClassName" -> _)
     )
   }
 

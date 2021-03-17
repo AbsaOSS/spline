@@ -93,6 +93,7 @@ object ExecutionPlansControllerDeserFixAspect extends Logging {
 
   private def fixMap(obj: Map[String, Any]): Map[String, Any] = {
     obj.mapValues(fixValue)
+      .view.force // see: https://github.com/scala/bug/issues/4776
   }
 
   private def fixValue(v: Any): Any = v match {

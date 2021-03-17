@@ -67,7 +67,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
       planAlreadyExists <- planAlreadyExistsFuture
       _ <-
         if (planAlreadyExists) Future.successful(Unit) // nothing more to do
-        else createInsertTransaction(executionPlan, persistedDSKeyByURI).execute(db).map(_ => true)
+        else createInsertTransaction(executionPlan, persistedDSKeyByURI).execute(db)
     } yield Unit
   })
 

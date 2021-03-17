@@ -47,8 +47,13 @@ class ExecutionPlanDAG(
       op._key -> precedingOps(op).flatMap(p => outputSchemaArray(p._key))
     }).toMap
 
-  val outputSchemaSet: Map[OperationId, Set[AttributeId]] = outputSchemaArray.mapValues(_.toSet)
-  val inputSchemaSet: Map[OperationId, Set[AttributeId]] = inputSchemaArray.mapValues(_.toSet)
+  val outputSchemaSet: Map[OperationId, Set[AttributeId]] = outputSchemaArray
+    .mapValues(_.toSet)
+    .view.force // see: https://github.com/scala/bug/issues/4776
+
+  val inputSchemaSet: Map[OperationId, Set[AttributeId]] = inputSchemaArray
+    .mapValues(_.toSet)
+    .view.force // see: https://github.com/scala/bug/issues/4776
 
   def precedingOps(op: AnyOperation): Array[AnyOperation] =
     outboundEdges(op._key)
