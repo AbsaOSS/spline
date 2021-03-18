@@ -57,18 +57,16 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
         |    )
         |
         |    LET dataTypesFormatted = (
-        |        FOR v IN 1..9999
-        |            INBOUND ope follows, executes
-        |            FILTER IS_SAME_COLLECTION("executionPlan", v)
-        |            FOR d IN v.extra.dataTypes
-        |                RETURN MERGE(
-        |                    KEEP(d,  "id", "name", "fields", "nullable", "elementDataTypeId"),
-        |                    {
-        |                        "_class": d._typeHint == "dt.Simple" ?  "za.co.absa.spline.consumer.service.model.SimpleDataType"
-        |                                : d._typeHint == "dt.Array"  ?  "za.co.absa.spline.consumer.service.model.ArrayDataType"
-        |                                :                               "za.co.absa.spline.consumer.service.model.StructDataType"
-        |                    }
-        |                )
+        |        LET execPlan = DOCUMENT(ope._parentId)
+        |        FOR d IN execPlan.extra.dataTypes
+        |            RETURN MERGE(
+        |                KEEP(d,  "id", "name", "fields", "nullable", "elementDataTypeId"),
+        |                {
+        |                    "_class": d._typeHint == "dt.Simple" ?  "za.co.absa.spline.consumer.service.model.SimpleDataType"
+        |                            : d._typeHint == "dt.Array"  ?  "za.co.absa.spline.consumer.service.model.ArrayDataType"
+        |                            :                               "za.co.absa.spline.consumer.service.model.StructDataType"
+        |                }
+        |            )
         |    )
         |
         |    RETURN {
