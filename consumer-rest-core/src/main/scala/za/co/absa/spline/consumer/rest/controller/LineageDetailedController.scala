@@ -22,14 +22,16 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.rest.controller.LineageDetailedController.AttributeLineageAndImpact
 import za.co.absa.spline.consumer.service.model.{AttributeGraph, DataSourceActionType, ExecutionPlanInfo, LineageDetailed}
-import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepository
+import za.co.absa.spline.consumer.service.repo.{DataSourceRepository, ExecutionPlanRepository}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @RestController
 @Api(tags = Array("lineage"))
 class LineageDetailedController @Autowired()(
-  val repo: ExecutionPlanRepository) {
+  val epRepo: ExecutionPlanRepository,
+  val dsRepo: DataSourceRepository,
+) {
 
   import ExecutionContext.Implicits.global
 
@@ -41,7 +43,7 @@ class LineageDetailedController @Autowired()(
     @ApiParam(value = "Execution plan ID")
     @RequestParam("execId") execId: ExecutionPlanInfo.Id
   ): Future[LineageDetailed] = {
-    repo.findById(execId)
+    epRepo.findById(execId)
   }
 
   @GetMapping(Array("attribute-lineage-and-impact"))
@@ -52,8 +54,8 @@ class LineageDetailedController @Autowired()(
     @RequestParam("attributeId") attributeId: String
   ): Future[AttributeLineageAndImpact] =
     Future.sequence(Seq(
-      repo.execPlanAttributeLineage(attributeId),
-      repo.execPlanAttributeImpact(attributeId),
+      epRepo.execPlanAttributeLineage(attributeId),
+      epRepo.execPlanAttributeImpact(attributeId),
     )).map({
       case Seq(lin, imp) => AttributeLineageAndImpact(Some(lin), imp)
     })
@@ -66,7 +68,7 @@ class LineageDetailedController @Autowired()(
     @RequestParam(name = "access", required = false) access: String
   ): Future[Array[String]] = {
     val dataSourceActionTypeOption = DataSourceActionType.findValueOf(access)
-    repo.getDataSources(planId, dataSourceActionTypeOption)
+    dsRepo.findByUsage(planId, dataSourceActionTypeOption)
   }
 }
 

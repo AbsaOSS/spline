@@ -15,7 +15,7 @@
  */
 package za.co.absa.spline.consumer.service.repo
 
-import za.co.absa.spline.consumer.service.model.{PageRequest, SortRequest, WriteEventInfo}
+import za.co.absa.spline.consumer.service.model._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -31,4 +31,10 @@ trait DataSourceRepository {
     writeApplicationId: String,
     dataSourceUri: String)
     (implicit ec: ExecutionContext): Future[(Seq[WriteEventInfo], Long)]
+
+  def findByUsage(
+    execPlanId: ExecutionPlanInfo.Id,
+    access: Option[DataSourceActionType])
+    (implicit ec: ExecutionContext): Future[Array[String]]
+
 }
