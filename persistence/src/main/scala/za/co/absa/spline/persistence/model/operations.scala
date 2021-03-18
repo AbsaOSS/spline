@@ -26,9 +26,11 @@ case class Read(
   inputSources: Seq[String],
   override val params: Map[String, Any],
   override val extra: Map[String, Any],
-  override val _key: String,
+  override val _key: ArangoDocument.Key,
+  override val _parentId: Option[ArangoDocument.Id]
 ) extends Operation {
-  def this() = this(null, null, null, null)
+  def this() = this(null, null, null, null, null)
+
   override val `type`: String = "Read"
 }
 
@@ -37,17 +39,21 @@ case class Write(
   append: Boolean,
   override val params: Map[String, Any],
   override val extra: Map[String, Any],
-  override val _key: String,
+  override val _key: ArangoDocument.Key,
+  override val _parentId: Option[ArangoDocument.Id]
 ) extends Operation {
-  def this() = this(null, false, null, null, null)
+  def this() = this(null, false, null, null, null, null)
+
   override val `type`: String = "Write"
 }
 
 case class Transformation(
   override val params: Map[String, Any],
   override val extra: Map[String, Any],
-  override val _key: String,
+  override val _key: ArangoDocument.Key,
+  override val _parentId: Option[ArangoDocument.Id]
 ) extends Operation {
-  def this() = this(null, null, null)
+  def this() = this(null, null, null, null)
+
   override val `type`: String = "Transformation"
 }

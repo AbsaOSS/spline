@@ -16,20 +16,35 @@
 package za.co.absa.spline.persistence.model
 
 trait ArangoDocument {
-  val _created: Long = System.currentTimeMillis
+  // entity creation time (don't confuse with the event time)
+  val _created: ArangoDocument.Timestamp = System.currentTimeMillis
+  // Arango ID of the parent (aggregate) entity, if the document is an aggregate component.
+  val _parentId: Option[ArangoDocument.Id]
+}
+
+object ArangoDocument {
+  type Id = String
+  type Key = String
+  type Timestamp = Long
+}
+
+trait RootEntity {
+  this: ArangoDocument =>
+  override val _parentId: Option[ArangoDocument.Id] = None
 }
 
 trait Vertex extends ArangoDocument {
-  def _key: String
+  def _key: ArangoDocument.Key
 }
 
 case class Edge(
-  _from: String,
-  _to: String,
+  _from: ArangoDocument.Id,
+  _to: ArangoDocument.Id,
+  override val _parentId: Option[ArangoDocument.Id],
   index: Option[Edge.Index],
   path: Option[Edge.FromPath]
 ) extends ArangoDocument {
-  def this() = this(null, null, null, null)
+  def this() = this(null, null, null, null, null)
 }
 
 object Edge {
@@ -40,7 +55,7 @@ object Edge {
 case class DBVersion(
   version: String,
   status: String
-) extends ArangoDocument {
+) extends ArangoDocument with RootEntity {
   def this() = this(null, null)
 }
 
@@ -64,14 +79,15 @@ object DBVersion {
   * E.g. file or directory on a filesystem, table in the database, topic in Kafka etc.
   */
 case class DataSource(
-  uri: String,
-  override val _key: String
-) extends Vertex {
+  uri: DataSource.Uri,
+  override val _key: DataSource.Key
+) extends Vertex with RootEntity {
   def this() = this(null, null)
 }
 
 object DataSource {
-  type Key = String
+  type Key = ArangoDocument.Key
+  type Uri = String
 }
 
 /**
@@ -83,8 +99,8 @@ case class ExecutionPlan(
   systemInfo: Map[String, Any],
   agentInfo: Map[String, Any],
   extra: Map[String, Any],
-  override val _key: String
-) extends Vertex
+  override val _key: ArangoDocument.Key
+) extends Vertex with RootEntity
 
 /**
   * Represents a moment in time WHEN a particular execution plan is executed.
@@ -97,16 +113,16 @@ case class Progress(
   extra: Map[String, Any],
   override val _key: String,
   execPlanDetails: ExecPlanDetails
-) extends Vertex
+) extends Vertex with RootEntity
 
 /**
   * These values are copied from other entities for performance optimization.
   */
 case class ExecPlanDetails(
-  executionPlanId: String,
+  executionPlanId: ArangoDocument.Key,
   frameworkName: String,
   applicationName: String,
-  dataSourceUri: String,
+  dataSourceUri: DataSource.Uri,
   dataSourceType: String,
   append: Boolean
 )

@@ -35,9 +35,11 @@ import java.util.UUID.randomUUID
 
 class ExecutionPlanPersistentModelBuilder private(
   ep: am.ExecutionPlan,
-  persistedDSKeyByURI: Map[String, pm.DataSource.Key]
+  persistedDSKeyByURI: Map[pm.DataSource.Uri, pm.DataSource.Key]
 ) {
   private val keyCreator = new ExecutionPlanKeyCreator(ep)
+  private val epPKey: pm.ArangoDocument.Id = ep.id.toString
+  private val epPID: pm.ArangoDocument.Id = pm.NodeDef.ExecutionPlan.id(epPKey)
 
   // operation
   private var _pmOperations: Seq[pm.Operation] = Vector.empty
@@ -78,7 +80,7 @@ class ExecutionPlanPersistentModelBuilder private(
       extra = ep.extraInfo,
       _key = ep.id.toString)
 
-    val pmExecutes = EdgeDef.Executes.edge(ep.id, keyCreator.asOperationKey(ep.operations.write.id))
+    val pmExecutes = EdgeDef.Executes.edge(ep.id, keyCreator.asOperationKey(ep.operations.write.id), epPKey)
 
     val pmDerivesFrom =
       for {
@@ -88,7 +90,9 @@ class ExecutionPlanPersistentModelBuilder private(
       } yield {
         EdgeDef.DerivesFrom.edge(
           keyCreator.asAttributeKey(refFrom.refId),
-          keyCreator.asAttributeKey(refTo.refId))
+          keyCreator.asAttributeKey(refTo.refId),
+          epPKey
+        )
       }
 
     val pmTransientDataSources = {
@@ -137,15 +141,15 @@ class ExecutionPlanPersistentModelBuilder private(
     for (SchemaInfo(oid, attrs, diff) <- schemaInfos) {
       val opKey = keyCreator.asOperationKey(oid)
       val schemaKey = keyCreator.asSchemaKey(oid)
-      this._pmSchemas +:= pm.Schema(schemaKey)
+      this._pmSchemas +:= pm.Schema(schemaKey, Some(epPID))
       this._pmConsistsOf ++= attrs.zipWithIndex map {
         case (attrId, i) =>
           val attrKey = keyCreator.asAttributeKey(attrId)
-          EdgeDef.ConsistsOf.edge(schemaKey, attrKey, i)
+          EdgeDef.ConsistsOf.edge(schemaKey, attrKey, epPKey, i)
       }
       for (attrId <- diff) {
         val attrKey = keyCreator.asAttributeKey(attrId)
-        this._pmProduces :+= EdgeDef.Produces.edge(opKey, attrKey)
+        this._pmProduces :+= EdgeDef.Produces.edge(opKey, attrKey, epPKey)
       }
     }
 
@@ -160,19 +164,21 @@ class ExecutionPlanPersistentModelBuilder private(
       for ((ref: am.AttrOrExprRef, path: Edge.FromPath) <- collectRefsWithPaths(op.params, "$['params']")) {
         this._pmUses :+= {
           if (ref.isAttribute)
-            EdgeDef.Uses.edgeToAttr(opKey, keyCreator.asAttributeKey(ref.refId), path)
+            EdgeDef.Uses.edgeToAttr(opKey, keyCreator.asAttributeKey(ref.refId), epPKey, path)
           else
-            EdgeDef.Uses.edgeToExpr(opKey, keyCreator.asExpressionKey(ref.refId), path)
+            EdgeDef.Uses.edgeToExpr(opKey, keyCreator.asExpressionKey(ref.refId), epPKey, path)
         }
       }
 
       this._pmEmits :+= EdgeDef.Emits.edge(
         opKey,
-        keyCreator.asSchemaKey(schemaInfoByOpId(op.id).oid))
+        keyCreator.asSchemaKey(schemaInfoByOpId(op.id).oid),
+        epPKey
+      )
 
       this._pmFollows ++= op.childIds.zipWithIndex map {
         case (childId, i) =>
-          EdgeDef.Follows.edge(opKey, keyCreator.asOperationKey(childId), i)
+          EdgeDef.Follows.edge(opKey, keyCreator.asOperationKey(childId), epPKey, i)
       }
     })
 
@@ -184,6 +190,7 @@ class ExecutionPlanPersistentModelBuilder private(
       val attrKey = keyCreator.asAttributeKey(attr.id)
       this._pmAttributes :+= pm.Attribute(
         _key = attrKey,
+        _parentId = Some(epPID),
         dataType = attr.dataType,
         extra = attr.extra,
         name = attr.name
@@ -192,7 +199,7 @@ class ExecutionPlanPersistentModelBuilder private(
         case (ref, i) =>
           this._attrDepGraph += AttrOrExprRef.attrRef(attr.id) ~> ref
           if (ref.isExpression)
-            this._pmComputedBy :+= EdgeDef.ComputedBy.edge(attrKey, keyCreator.asExpressionKey(ref.refId), i)
+            this._pmComputedBy :+= EdgeDef.ComputedBy.edge(attrKey, keyCreator.asExpressionKey(ref.refId), epPKey, i)
       }
     }
     this
@@ -202,29 +209,31 @@ class ExecutionPlanPersistentModelBuilder private(
     expressions.foreach {
       case expr: am.Literal =>
         this._pmExpressions :+= pm.LiteralExpression(
-          keyCreator.asExpressionKey(expr.id),
-          expr.dataType,
-          expr.extra,
-          expr.value
+          _key = keyCreator.asExpressionKey(expr.id),
+          _parentId = Some(epPID),
+          dataType = expr.dataType,
+          extra = expr.extra,
+          value = expr.value
         )
       case expr: am.FunctionalExpression =>
         val exprKey = keyCreator.asExpressionKey(expr.id)
         this._pmExpressions :+= pm.FunctionalExpression(
-          exprKey,
-          expr.dataType,
-          expr.extra,
-          expr.name,
-          expr.childIds.length,
-          expr.params,
+          _key = exprKey,
+          _parentId = Some(epPID),
+          dataType = expr.dataType,
+          extra = expr.extra,
+          name = expr.name,
+          arity = expr.childIds.length,
+          params = expr.params,
         )
         expr.childIds.zipWithIndex.foreach({
           case (ref, i) =>
             this._attrDepGraph += AttrOrExprRef.exprRef(expr.id) ~> ref
             this._pmTakes :+= (ref match {
               case AttrOrExprRef(Some(attrId), _) =>
-                EdgeDef.Takes.edgeToAttr(exprKey, keyCreator.asAttributeKey(attrId), i)
+                EdgeDef.Takes.edgeToAttr(exprKey, keyCreator.asAttributeKey(attrId), epPKey, i)
               case AttrOrExprRef(_, Some(exprId)) =>
-                EdgeDef.Takes.edgeToExpr(exprKey, keyCreator.asExpressionKey(exprId), i)
+                EdgeDef.Takes.edgeToExpr(exprKey, keyCreator.asExpressionKey(exprId), epPKey, i)
             })
         })
     }
@@ -239,13 +248,17 @@ class ExecutionPlanPersistentModelBuilder private(
     } yield {
       EdgeDef.ReadsFrom.edge(
         keyCreator.asOperationKey(ro.id),
-        pmDataSourceByURI(ds)._key)
+        pmDataSourceByURI(ds)._key,
+        epPKey
+      )
     }
 
   private def pmWritesTo: pm.Edge = {
     EdgeDef.WritesTo.edge(
       keyCreator.asOperationKey(ep.operations.write.id),
-      pmDataSourceByURI(ep.operations.write.outputSource)._key)
+      pmDataSourceByURI(ep.operations.write.outputSource)._key,
+      epPKey
+    )
   }
 
   private def pmDepends: Seq[pm.Edge] =
@@ -254,12 +267,16 @@ class ExecutionPlanPersistentModelBuilder private(
       ds <- ro.inputSources
     } yield EdgeDef.Depends.edge(
       ep.id,
-      pmDataSourceByURI(ds)._key)
+      pmDataSourceByURI(ds)._key,
+      epPKey
+    )
 
   private def pmAffects: pm.Edge =
     EdgeDef.Affects.edge(
       ep.id,
-      pmDataSourceByURI(ep.operations.write.outputSource)._key)
+      pmDataSourceByURI(ep.operations.write.outputSource)._key,
+      epPKey
+    )
 
   private def collectRefsWithPaths(obj: Map[String, Any], pathPrefix: Edge.FromPath): Iterable[(am.AttrOrExprRef, Edge.FromPath)] = {
     def fromVal(v: Any, p: Edge.FromPath): Iterable[(am.AttrOrExprRef, Edge.FromPath)] = v match {
@@ -285,7 +302,8 @@ class ExecutionPlanPersistentModelBuilder private(
     pm.Transformation(
       params = t.params,
       extra = t.extra,
-      _key = keyCreator.asOperationKey(t.id)
+      _key = keyCreator.asOperationKey(t.id),
+      _parentId = Some(epPID)
     )
   }
 
@@ -295,7 +313,8 @@ class ExecutionPlanPersistentModelBuilder private(
       append = w.append,
       params = w.params,
       extra = w.extra,
-      _key = keyCreator.asOperationKey(w.id)
+      _key = keyCreator.asOperationKey(w.id),
+      _parentId = Some(epPID)
     )
   }
 
@@ -304,7 +323,8 @@ class ExecutionPlanPersistentModelBuilder private(
       inputSources = r.inputSources,
       params = r.params,
       extra = r.extra,
-      _key = keyCreator.asOperationKey(r.id)
+      _key = keyCreator.asOperationKey(r.id),
+      _parentId = Some(epPID)
     )
   }
 }
@@ -314,7 +334,7 @@ object ExecutionPlanPersistentModelBuilder {
 
   def toPersistentModel(
     ep: am.ExecutionPlan,
-    persistedDSKeyByURI: Map[String, pm.DataSource.Key]
+    persistedDSKeyByURI: Map[pm.DataSource.Uri, pm.DataSource.Key]
   ): ExecutionPlanPersistentModel = {
     val maybeExpressions = ep.expressions.map(_.all)
     new ExecutionPlanPersistentModelBuilder(ep, persistedDSKeyByURI)

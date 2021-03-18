@@ -17,7 +17,8 @@
 package za.co.absa.spline.persistence.model
 
 case class Schema(
-  override val _key: String
+  override val _key: ArangoDocument.Key,
+  override val _parentId: Option[ArangoDocument.Id]
 ) extends Vertex {
-  def this() = this(null)
+  def this() = this(null, null)
 }
