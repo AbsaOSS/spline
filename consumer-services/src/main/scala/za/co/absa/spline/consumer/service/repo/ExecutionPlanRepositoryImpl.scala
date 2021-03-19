@@ -35,12 +35,12 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |LET execPlan = DOCUMENT("executionPlan", @execPlanId)
         |LET ops = (
         |    FOR op IN operation
-        |        FILTER op._parentId == execPlan._id
+        |        FILTER op._belongsTo == execPlan._id
         |        RETURN op
         |    )
         |LET edges = (
         |    FOR f IN follows
-        |        FILTER f._parentId == execPlan._id
+        |        FILTER f._belongsTo == execPlan._id
         |        RETURN f
         |    )
         |LET schemaIds = (

@@ -24,7 +24,7 @@ sealed trait Expression extends Vertex {
 
 case class FunctionalExpression(
   override val _key: ArangoDocument.Key,
-  override val _parentId: Option[ArangoDocument.Id],
+  override val _belongsTo: Option[ArangoDocument.Id],
   override val dataType: Option[Any],
   override val extra: Map[String, Any],
   name: String,
@@ -38,7 +38,7 @@ case class FunctionalExpression(
 
 case class LiteralExpression(
   override val _key: ArangoDocument.Key,
-  override val _parentId: Option[ArangoDocument.Id],
+  override val _belongsTo: Option[ArangoDocument.Id],
   override val dataType: Option[Any],
   override val extra: Map[String, Any],
   value: Any,

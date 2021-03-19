@@ -38,50 +38,50 @@ sealed abstract class EdgeDef(override val name: String, val froms: Seq[NodeDef]
   override def collectionType = CollectionType.EDGES
 }
 
-sealed abstract class Edge11Def(name: String, val from: NodeDef, val to: NodeDef, val parent: Option[CollectionDef])
+sealed abstract class Edge11Def(name: String, val from: NodeDef, val to: NodeDef, val belongsTo: Option[CollectionDef])
   extends EdgeDef(name, Seq(from), Seq(to)) {
   this: CollectionDef =>
 
-  def this(name: String, from: NodeDef, to: NodeDef, parent: CollectionDef) = this(name, from, to, Option(parent))
+  def this(name: String, from: NodeDef, to: NodeDef, belongTo: CollectionDef) = this(name, from, to, Option(belongTo))
 
   // todo: think about making keys strong typed
   def edge(fromKey: Any, toKey: Any): Edge = {
-    assert(parent.isEmpty, s"parent is defined for '$name', but no parent ID is provided")
+    assert(belongsTo.isEmpty, s"'belongsTo' is defined for '$name', but no aggregate ID is provided")
     Edge(s"${from.name}/$fromKey", s"${to.name}/$toKey", None, None, None)
   }
 
-  def edge(fromKey: Any, toKey: Any, parentKey: ArangoDocument.Key): Edge = {
-    assert(parent.nonEmpty, s"parent is undefined for '$name', but parent ID is provided")
-    Edge(s"${from.name}/$fromKey", s"${to.name}/$toKey", parent.map(p => s"${p.name}/$parentKey"), None, None)
+  def edge(fromKey: Any, toKey: Any, belongsToKey: ArangoDocument.Key): Edge = {
+    assert(belongsTo.nonEmpty, s"`belongsTo` is undefined for '$name', but aggregate ID is provided")
+    Edge(s"${from.name}/$fromKey", s"${to.name}/$toKey", belongsTo.map(p => s"${p.name}/$belongsToKey"), None, None)
   }
 
-  def edge(fromKey: Any, toKey: Any, parentKey: ArangoDocument.Key, index: Int): Edge = {
-    assert(parent.nonEmpty, s"parent is undefined for '$name', but parent ID is provided")
-    Edge(s"${from.name}/$fromKey", s"${to.name}/$toKey", parent.map(p => s"${p.name}/$parentKey"), Some(index), None)
+  def edge(fromKey: Any, toKey: Any, belongsToKey: ArangoDocument.Key, index: Int): Edge = {
+    assert(belongsTo.nonEmpty, s"`belongsTo` is undefined for '$name', but aggregate ID is provided")
+    Edge(s"${from.name}/$fromKey", s"${to.name}/$toKey", belongsTo.map(p => s"${p.name}/$belongsToKey"), Some(index), None)
   }
 }
 
-sealed abstract class Edge12Def(name: String, val from: NodeDef, val to1: NodeDef, val to2: NodeDef, val parent: Option[CollectionDef])
+sealed abstract class Edge12Def(name: String, val from: NodeDef, val to1: NodeDef, val to2: NodeDef, val belongsTo: Option[CollectionDef])
   extends EdgeDef(name, Seq(from), Seq(to1, to2)) {
   this: CollectionDef =>
 
-  def this(name: String, from: NodeDef, to1: NodeDef, to2: NodeDef, parent: CollectionDef) = this(name, from, to1, to2, Option(parent))
+  def this(name: String, from: NodeDef, to1: NodeDef, to2: NodeDef, belongsTo: CollectionDef) = this(name, from, to1, to2, Option(belongsTo))
 
-  protected def edgeTo1(fromKey: Any, toKey: Any, parentKey: ArangoDocument.Key, index: Option[Int] = None, path: Option[Edge.FromPath] = None): Edge =
-    Edge(s"${from.name}/$fromKey", s"${to1.name}/$toKey", parent.map(p => s"${p.name}/$parentKey"), index, path)
+  protected def edgeTo1(fromKey: Any, toKey: Any, belongsToKey: ArangoDocument.Key, index: Option[Int] = None, path: Option[Edge.FromPath] = None): Edge =
+    Edge(s"${from.name}/$fromKey", s"${to1.name}/$toKey", belongsTo.map(p => s"${p.name}/$belongsToKey"), index, path)
 
-  protected def edgeTo2(fromKey: Any, toKey: Any, parentKey: ArangoDocument.Key, index: Option[Int] = None, path: Option[Edge.FromPath] = None): Edge =
-    Edge(s"${from.name}/$fromKey", s"${to2.name}/$toKey", parent.map(p => s"${p.name}/$parentKey"), index, path)
+  protected def edgeTo2(fromKey: Any, toKey: Any, belongsToKey: ArangoDocument.Key, index: Option[Int] = None, path: Option[Edge.FromPath] = None): Edge =
+    Edge(s"${from.name}/$fromKey", s"${to2.name}/$toKey", belongsTo.map(p => s"${p.name}/$belongsToKey"), index, path)
 }
 
 sealed trait EdgeToAttrOrExprOps {
   this: Edge12Def =>
 
-  def edgeToAttr(from: Any, to: Any, parentKey: ArangoDocument.Key, path: Edge.FromPath): Edge = edgeTo1(from, to, parentKey, None, Some(path))
-  def edgeToAttr(from: Any, to: Any, parentKey: ArangoDocument.Key, index: Int): Edge = edgeTo1(from, to, parentKey, Some(index), None)
+  def edgeToAttr(from: Any, to: Any, belongsToKey: ArangoDocument.Key, path: Edge.FromPath): Edge = edgeTo1(from, to, belongsToKey, None, Some(path))
+  def edgeToAttr(from: Any, to: Any, belongsToKey: ArangoDocument.Key, index: Int): Edge = edgeTo1(from, to, belongsToKey, Some(index), None)
 
-  def edgeToExpr(from: Any, to: Any, parentKey: ArangoDocument.Key, path: Edge.FromPath): Edge = edgeTo2(from, to, parentKey, None, Some(path))
-  def edgeToExpr(from: Any, to: Any, parentKey: ArangoDocument.Key, index: Int): Edge = edgeTo2(from, to, parentKey, Some(index), None)
+  def edgeToExpr(from: Any, to: Any, belongsToKey: ArangoDocument.Key, path: Edge.FromPath): Edge = edgeTo2(from, to, belongsToKey, None, Some(path))
+  def edgeToExpr(from: Any, to: Any, belongsToKey: ArangoDocument.Key, index: Int): Edge = edgeTo2(from, to, belongsToKey, Some(index), None)
 }
 
 sealed abstract class NodeDef(override val name: String)
@@ -118,7 +118,7 @@ object EdgeDef {
 
   object Follows extends Edge11Def("follows", Operation, Operation, ExecutionPlan) with CollectionDef {
     override def indexDefs: Seq[IndexDef] = Seq(
-      IndexDef(Seq("_parentId"), new PersistentIndexOptions),
+      IndexDef(Seq("_belongsTo"), new PersistentIndexOptions),
     )
   }
 
@@ -164,7 +164,7 @@ object NodeDef {
 
   object Operation extends NodeDef("operation") with CollectionDef {
     override def indexDefs: Seq[IndexDef] = Seq(
-      IndexDef(Seq("_parentId"), new PersistentIndexOptions),
+      IndexDef(Seq("_belongsTo"), new PersistentIndexOptions),
       IndexDef(Seq("type"), new PersistentIndexOptions),
       IndexDef(Seq("outputSource"), new PersistentIndexOptions().sparse(true)),
       IndexDef(Seq("append"), new PersistentIndexOptions().sparse(true))

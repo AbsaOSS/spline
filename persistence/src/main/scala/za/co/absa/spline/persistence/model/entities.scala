@@ -19,11 +19,11 @@ trait ArangoDocument {
   // entity creation time (don't confuse with the event time)
   val _created: ArangoDocument.Timestamp = System.currentTimeMillis
 
-  // Arango ID of the parent (aggregate) entity, if this document is an aggregate component.
+  // Arango ID of the parent/aggregate entity, if this document is an aggregate component.
   // It is useful for cases beyond the graph model when edges cannot be used for the same purpose.
   // E.g. to bind a sub-graph (including edges) or a set of arbitrary documents (that aren't nodes)
   // into a logical aggregate represented by another document.
-  val _parentId: Option[ArangoDocument.Id]
+  val _belongsTo: Option[ArangoDocument.Id]
 }
 
 object ArangoDocument {
@@ -34,7 +34,7 @@ object ArangoDocument {
 
 trait RootEntity {
   this: ArangoDocument =>
-  override val _parentId: Option[ArangoDocument.Id] = None
+  override val _belongsTo: Option[ArangoDocument.Id] = None
 }
 
 trait Vertex extends ArangoDocument {
@@ -44,7 +44,7 @@ trait Vertex extends ArangoDocument {
 case class Edge(
   _from: ArangoDocument.Id,
   _to: ArangoDocument.Id,
-  override val _parentId: Option[ArangoDocument.Id],
+  override val _belongsTo: Option[ArangoDocument.Id],
   index: Option[Edge.Index],
   path: Option[Edge.FromPath]
 ) extends ArangoDocument {

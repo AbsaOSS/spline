@@ -190,7 +190,7 @@ class ExecutionPlanPersistentModelBuilder private(
       val attrKey = keyCreator.asAttributeKey(attr.id)
       this._pmAttributes :+= pm.Attribute(
         _key = attrKey,
-        _parentId = Some(epPID),
+        _belongsTo = Some(epPID),
         dataType = attr.dataType,
         extra = attr.extra,
         name = attr.name
@@ -210,7 +210,7 @@ class ExecutionPlanPersistentModelBuilder private(
       case expr: am.Literal =>
         this._pmExpressions :+= pm.LiteralExpression(
           _key = keyCreator.asExpressionKey(expr.id),
-          _parentId = Some(epPID),
+          _belongsTo = Some(epPID),
           dataType = expr.dataType,
           extra = expr.extra,
           value = expr.value
@@ -219,7 +219,7 @@ class ExecutionPlanPersistentModelBuilder private(
         val exprKey = keyCreator.asExpressionKey(expr.id)
         this._pmExpressions :+= pm.FunctionalExpression(
           _key = exprKey,
-          _parentId = Some(epPID),
+          _belongsTo = Some(epPID),
           dataType = expr.dataType,
           extra = expr.extra,
           name = expr.name,
@@ -303,7 +303,7 @@ class ExecutionPlanPersistentModelBuilder private(
       params = t.params,
       extra = t.extra,
       _key = keyCreator.asOperationKey(t.id),
-      _parentId = Some(epPID)
+      _belongsTo = Some(epPID)
     )
   }
 
@@ -314,7 +314,7 @@ class ExecutionPlanPersistentModelBuilder private(
       params = w.params,
       extra = w.extra,
       _key = keyCreator.asOperationKey(w.id),
-      _parentId = Some(epPID)
+      _belongsTo = Some(epPID)
     )
   }
 
@@ -324,7 +324,7 @@ class ExecutionPlanPersistentModelBuilder private(
       params = r.params,
       extra = r.extra,
       _key = keyCreator.asOperationKey(r.id),
-      _parentId = Some(epPID)
+      _belongsTo = Some(epPID)
     )
   }
 }

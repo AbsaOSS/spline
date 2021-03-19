@@ -18,7 +18,7 @@ package za.co.absa.spline.persistence.model
 
 case class Attribute(
   override val _key: ArangoDocument.Key,
-  override val _parentId: Option[ArangoDocument.Id],
+  override val _belongsTo: Option[ArangoDocument.Id],
   dataType: Option[Any],
   extra: Map[String, Any],
   name: String,
