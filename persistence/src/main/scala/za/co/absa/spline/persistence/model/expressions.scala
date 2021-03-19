@@ -23,25 +23,27 @@ sealed trait Expression extends Vertex {
 }
 
 case class FunctionalExpression(
-  override val _key: String,
+  override val _key: ArangoDocument.Key,
+  override val _belongsTo: Option[ArangoDocument.Id],
   override val dataType: Option[Any],
   override val extra: Map[String, Any],
   name: String,
   arity: Int,
   params: Map[String, Any],
 ) extends Expression {
-  def this() = this(null, null, null, null, -1, null)
+  def this() = this(null, null, null, null, null, -1, null)
 
   val `type`: String = "Func"
 }
 
 case class LiteralExpression(
-  override val _key: String,
+  override val _key: ArangoDocument.Key,
+  override val _belongsTo: Option[ArangoDocument.Id],
   override val dataType: Option[Any],
   override val extra: Map[String, Any],
   value: Any,
 ) extends Expression {
-  def this() = this(null, null, null, null)
+  def this() = this(null, null, null, null, null)
 
   val `type`: String = "Lit"
 }

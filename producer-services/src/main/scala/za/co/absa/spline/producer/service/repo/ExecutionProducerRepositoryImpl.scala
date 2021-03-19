@@ -52,7 +52,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
          |    """.stripMargin,
       Map("key" -> executionPlan.id))
 
-    val eventualPersistedDSKeyByURI: Future[Map[String, DataSource.Key]] = db.queryAs[DataSource](
+    val eventualPersistedDSKeyByURI: Future[Map[DataSource.Uri, DataSource.Key]] = db.queryAs[DataSource](
       s"""
          |WITH ${NodeDef.DataSource.name}
          |FOR ds IN ${NodeDef.DataSource.name}
@@ -126,7 +126,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 
   private def createInsertTransaction(
     executionPlan: apiModel.ExecutionPlan,
-    persistedDSKeyByURI: Map[String, DataSource.Key]
+    persistedDSKeyByURI: Map[DataSource.Uri, DataSource.Key]
   ) = {
     val eppm: ExecutionPlanPersistentModel =
       ExecutionPlanPersistentModelBuilder.toPersistentModel(executionPlan, persistedDSKeyByURI)
