@@ -35,7 +35,7 @@ class ExpressionRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Exp
         |WITH operation, uses, expression, takes, attribute
         |LET op = DOCUMENT("operation", @operationId)
         |LET ps = (
-        |    FOR v, e IN 1..999
+        |    FOR v, e IN 1..9999
         |        OUTBOUND op uses, takes
         |        RETURN [
         |            UNSET(

@@ -32,29 +32,23 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     db.queryOne[LineageDetailed](
       """
         |WITH executionPlan, executes, operation, follows, emits, schema, consistsOf, attribute
-        |LET exec = FIRST(FOR ex IN executionPlan FILTER ex._key == @execId RETURN ex)
-        |LET writeOp = FIRST(FOR v IN 1 OUTBOUND exec executes RETURN v)
-        |
-        |LET opsWithInboundEdges = (
-        |    FOR opi, ei IN 0..99999
-        |        OUTBOUND writeOp follows
-        |        COLLECT op = opi INTO edgesByVertex
-        |        LET schemaId = FIRST(
-        |            FOR schema IN 1
-        |                OUTBOUND op emits
-        |                RETURN schema._id
-        |        )
-        |        RETURN {
-        |            "op"  : op,
-        |            "es"  : UNIQUE(edgesByVertex[* FILTER NOT_NULL(CURRENT.ei)].ei),
-        |            "sid" : schemaId
-        |        }
+        |LET execPlan = DOCUMENT("executionPlan", @execPlanId)
+        |LET ops = (
+        |    FOR op IN operation
+        |        FILTER op._parentId == execPlan._id
+        |        RETURN op
         |    )
-        |
-        |LET ops = opsWithInboundEdges[*].op
-        |LET edges = opsWithInboundEdges[*].es[**]
-        |LET schemaIds = UNIQUE(opsWithInboundEdges[*].sid)
-        |
+        |LET edges = (
+        |    FOR f IN follows
+        |        FILTER f._parentId == execPlan._id
+        |        RETURN f
+        |    )
+        |LET schemaIds = (
+        |    FOR op IN ops
+        |        FOR schema IN 1
+        |            OUTBOUND op emits
+        |            RETURN DISTINCT schema._id
+        |    )
         |LET attributes = (
         |    FOR sid IN schemaIds
         |        FOR a IN 1
@@ -64,8 +58,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |                "name" : a.name,
         |                "dataTypeId" : a.dataType
         |            }
-        |)
-        |
+        |    )
         |LET inputs = FLATTEN(
         |    FOR op IN ops
         |        FILTER op.type == "Read"
@@ -74,7 +67,6 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |            "sourceType": op.extra.sourceType
         |        }]
         |    )
-        |
         |LET output = FIRST(
         |    ops[*
         |        FILTER CURRENT.type == "Write"
@@ -83,8 +75,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |            "sourceType": CURRENT.extra.destinationType
         |        }]
         |    )
-        |
-        |RETURN exec && {
+        |RETURN execPlan && {
         |    "graph": {
         |        "nodes": ops[* RETURN {
         |                "_id"  : CURRENT._key,
@@ -97,16 +88,16 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |            }]
         |    },
         |    "executionPlan": {
-        |        "_id"       : exec._key,
-        |        "systemInfo": exec.systemInfo,
-        |        "agentInfo" : exec.agentInfo,
-        |        "extra"     : MERGE(exec.extra, { attributes }),
+        |        "_id"       : execPlan._key,
+        |        "systemInfo": execPlan.systemInfo,
+        |        "agentInfo" : execPlan.agentInfo,
+        |        "extra"     : MERGE(execPlan.extra, { attributes }),
         |        "inputs"    : inputs,
         |        "output"    : output
         |    }
         |}
         |""".stripMargin,
-      Map("execId" -> execId)
+      Map("execPlanId" -> execId)
     ).filter(null.!=)
   }
 
@@ -128,7 +119,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |)
         |
         |LET attrsWithEdges = (
-        |    FOR v, e IN 1..999
+        |    FOR v, e IN 1..9999
         |        OUTBOUND theAttr derivesFrom
         |        LET attr = {
         |            "_id": v._id,
@@ -187,7 +178,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |LET theAttr = DOCUMENT("attribute", @attrId)
         |
         |LET attrsWithEdges = (
-        |    FOR v, e IN 0..999
+        |    FOR v, e IN 0..9999
         |        INBOUND theAttr derivesFrom
         |        LET attr = KEEP(v, ["_id", "name"])
         |        LET edge = e && {
