@@ -26,7 +26,6 @@ import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
-import java.util.concurrent.ExecutionException
 import javax.net.ssl._
 import scala.concurrent.blocking
 
@@ -65,9 +64,7 @@ class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL) extends Disposabl
   }
 
   override def destroy(): Unit = {
-    withWorkaroundForArangoAsyncBug {
-      arango.shutdown()
-    }
+    arango.shutdown()
   }
 }
 
@@ -80,14 +77,13 @@ object ArangoDatabaseFacade extends Logging {
 
   private def warmUpDb(db: ArangoDatabaseAsync): Unit = {
     val arangoVer = Version.asSemVer(
-      withWorkaroundForArangoAsyncBug {
-        blocking {
-          db.arango
-            .getVersion
-            .get
-            .getVersion
-        }
-      })
+      blocking {
+        db.arango
+          .getVersion
+          .get
+          .getVersion
+      }
+    )
 
     // check ArangoDb server version requirements
     if (arangoVer < MinArangoVerRequired)
@@ -122,16 +118,4 @@ object ArangoDatabaseFacade extends Logging {
     }
   }
 
-  def withWorkaroundForArangoAsyncBug[A](body: => A): A = {
-    try {
-      body
-    } catch {
-      // The first call sometime fails with a CCE due to a bug in ArangoDB Java Driver
-      // see: https://github.com/arangodb/arangodb-java-driver-async/issues/21
-      case _: ClassCastException => body
-      case ee: ExecutionException
-        if ee.getCause.isInstanceOf[ClassCastException] => body
-    }
-  }
 }
-
