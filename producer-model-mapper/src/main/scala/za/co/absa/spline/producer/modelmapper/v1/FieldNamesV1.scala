@@ -23,6 +23,7 @@ object FieldNamesV1 {
   }
 
   object PlanExtraInfo {
+    val AppName = "appName"
     val Attributes = "attributes"
   }
 

@@ -100,11 +100,16 @@ object DataSource {
   * from the inputs to the output.
   */
 case class ExecutionPlan(
+  name: Option[ExecutionPlan.Name],
   systemInfo: Map[String, Any],
   agentInfo: Map[String, Any],
   extra: Map[String, Any],
   override val _key: ArangoDocument.Key
 ) extends Vertex with RootEntity
+
+object ExecutionPlan {
+  type Name = String
+}
 
 /**
   * Represents a moment in time WHEN a particular execution plan is executed.

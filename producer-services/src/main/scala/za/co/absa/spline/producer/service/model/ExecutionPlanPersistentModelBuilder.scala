@@ -75,10 +75,11 @@ class ExecutionPlanPersistentModelBuilder private(
 
   def build(): ExecutionPlanPersistentModel = {
     val pmExecutionPlan = pm.ExecutionPlan(
+      name = ep.name,
+      _key = ep.id.toString,
       systemInfo = ep.systemInfo.toJsonAs[Map[String, Any]],
       agentInfo = ep.agentInfo.map(_.toJsonAs[Map[String, Any]]).orNull,
-      extra = ep.extraInfo,
-      _key = ep.id.toString)
+      extra = ep.extraInfo)
 
     val pmExecutes = EdgeDef.Executes.edge(ep.id, keyCreator.asOperationKey(ep.operations.write.id), epPKey)
 
