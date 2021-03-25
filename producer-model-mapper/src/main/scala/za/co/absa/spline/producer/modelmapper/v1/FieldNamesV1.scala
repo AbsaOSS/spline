@@ -22,6 +22,10 @@ object FieldNamesV1 {
     val Spline = "spline"
   }
 
+  object EventExtraInfo {
+    val DurationNs = "durationNs"
+  }
+
   object PlanExtraInfo {
     val AppName = "appName"
     val Attributes = "attributes"

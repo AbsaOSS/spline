@@ -29,6 +29,7 @@ class ExecutionEventKeyCreatorSpec extends AnyFlatSpec with Matchers {
     val testEvent = ExecutionEvent(
       planId = UUID.fromString("00000000-0000-0000-0000-000000000000"),
       timestamp = 1234567890,
+      durationNs = None,
       error = None,
       extra = Map.empty)
 

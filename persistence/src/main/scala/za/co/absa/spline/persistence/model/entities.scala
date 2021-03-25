@@ -118,11 +118,16 @@ object ExecutionPlan {
   */
 case class Progress(
   timestamp: Long,
+  durationNs: Option[Progress.JobDurationInNanos],
   error: Option[Any],
   extra: Map[String, Any],
-  override val _key: String,
+  override val _key: ArangoDocument.Key,
   execPlanDetails: ExecPlanDetails
 ) extends Vertex with RootEntity
+
+object Progress {
+  type JobDurationInNanos = Long
+}
 
 /**
   * These values are copied from other entities for performance optimization.

@@ -202,6 +202,6 @@ object ExecutionProducerRepositoryImpl {
       planDetails(ExecutionPlanDetails.DataSourceType).asInstanceOf[String],
       planDetails(ExecutionPlanDetails.Append).asInstanceOf[Boolean]
     )
-    Progress(e.timestamp, e.error, e.extra, key, epd)
+    Progress(e.timestamp, e.durationNs, e.error, e.extra, key, epd)
   }
 }
