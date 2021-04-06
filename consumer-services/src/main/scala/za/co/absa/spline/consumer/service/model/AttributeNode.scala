@@ -17,7 +17,6 @@
 package za.co.absa.spline.consumer.service.model
 
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
-import za.co.absa.spline.consumer.service.model.LineageDetailed.OperationID
 
 @ApiModel(description = "Attribute Node")
 case class AttributeNode
@@ -29,10 +28,10 @@ case class AttributeNode
   name: String,
 
   @ApiModelProperty(value = "Operation Id in which the attribute was created")
-  originOpId: OperationID,
+  originOpId: Operation.Id,
 
   @ApiModelProperty(value = "Operation Ids which the attribute passes through")
-  transOpIds: Seq[OperationID]
+  transOpIds: Seq[Operation.Id]
 
 ) extends Graph.Node {
   def this() = this(null, null, null, null)

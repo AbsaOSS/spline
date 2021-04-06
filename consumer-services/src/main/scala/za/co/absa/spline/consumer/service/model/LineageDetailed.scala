@@ -28,7 +28,3 @@ case class LineageDetailed(
 ) {
   def this() = this(null, null)
 }
-
-object LineageDetailed {
-  type OperationID = String
-}
