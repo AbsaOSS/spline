@@ -17,13 +17,46 @@
 package za.co.absa.spline.persistence.model
 
 sealed trait Operation extends Vertex {
+  def name: Option[Operation.Name]
   def params: Map[String, Any]
   def extra: Map[String, Any]
-  def `type`: String
+  def `type`: Operation.Type
+}
+
+object Operation {
+  type Name = String
+  type Type = String
 }
 
 case class Read(
   inputSources: Seq[String],
+  override val name: Option[Operation.Name],
+  override val params: Map[String, Any],
+  override val extra: Map[String, Any],
+  override val _key: ArangoDocument.Key,
+  override val _belongsTo: Option[ArangoDocument.Id]
+) extends Operation {
+  def this() = this(null, null, null, null, null, null)
+
+  override val `type`: Operation.Type = "Read"
+}
+
+case class Write(
+  outputSource: String,
+  append: Boolean,
+  override val name: Option[Operation.Name],
+  override val params: Map[String, Any],
+  override val extra: Map[String, Any],
+  override val _key: ArangoDocument.Key,
+  override val _belongsTo: Option[ArangoDocument.Id]
+) extends Operation {
+  def this() = this(null, false, null, null, null, null, null)
+
+  override val `type`: Operation.Type = "Write"
+}
+
+case class Transformation(
+  override val name: Option[Operation.Name],
   override val params: Map[String, Any],
   override val extra: Map[String, Any],
   override val _key: ArangoDocument.Key,
@@ -31,29 +64,5 @@ case class Read(
 ) extends Operation {
   def this() = this(null, null, null, null, null)
 
-  override val `type`: String = "Read"
-}
-
-case class Write(
-  outputSource: String,
-  append: Boolean,
-  override val params: Map[String, Any],
-  override val extra: Map[String, Any],
-  override val _key: ArangoDocument.Key,
-  override val _belongsTo: Option[ArangoDocument.Id]
-) extends Operation {
-  def this() = this(null, false, null, null, null, null)
-
-  override val `type`: String = "Write"
-}
-
-case class Transformation(
-  override val params: Map[String, Any],
-  override val extra: Map[String, Any],
-  override val _key: ArangoDocument.Key,
-  override val _belongsTo: Option[ArangoDocument.Id]
-) extends Operation {
-  def this() = this(null, null, null, null)
-
-  override val `type`: String = "Transformation"
+  override val `type`: Operation.Type = "Transformation"
 }

@@ -73,7 +73,7 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
         |        "operation": {
         |            "_id"       : ope._key,
         |            "type"      : ope.type,
-        |            "name"      : ope.extra.name,
+        |            "name"      : ope.name,
         |            "properties": MERGE(
         |                {
         |                    "inputSources": ope.inputSources,

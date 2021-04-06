@@ -301,6 +301,7 @@ class ExecutionPlanPersistentModelBuilder private(
 
   private def toTransformOperation(t: am.DataOperation) = {
     pm.Transformation(
+      name = t.name,
       params = t.params,
       extra = t.extra,
       _key = keyCreator.asOperationKey(t.id),
@@ -312,6 +313,7 @@ class ExecutionPlanPersistentModelBuilder private(
     pm.Write(
       outputSource = w.outputSource,
       append = w.append,
+      name = w.name,
       params = w.params,
       extra = w.extra,
       _key = keyCreator.asOperationKey(w.id),
@@ -322,6 +324,7 @@ class ExecutionPlanPersistentModelBuilder private(
   private def toReadOperation(r: am.ReadOperation) = {
     pm.Read(
       inputSources = r.inputSources,
+      name = r.name,
       params = r.params,
       extra = r.extra,
       _key = keyCreator.asOperationKey(r.id),

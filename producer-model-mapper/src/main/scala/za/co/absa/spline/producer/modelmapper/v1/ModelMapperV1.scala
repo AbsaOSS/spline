@@ -43,9 +43,10 @@ object ModelMapperV1 extends ModelMapper {
     val maybeExpressionConverter = epccf.expressionConverter
     val maybeOutputConverter = epccf.outputConverter
     val objectConverter = epccf.objectConverter
-    val planNameExtractor = epccf.execPlanNameExtractor
+    val execPlanNameExtractor = epccf.execPlanNameExtractor
+    val operationNameExtractor = epccf.operationNameExtractor
 
-    val operationConverter = new OperationConverter(objectConverter, maybeOutputConverter) with CachingConverter
+    val operationConverter = new OperationConverter(objectConverter, maybeOutputConverter, operationNameExtractor) with CachingConverter
 
     plan1.operations.all
       .sortedTopologically(reverse = true)
@@ -63,7 +64,7 @@ object ModelMapperV1 extends ModelMapper {
 
     ExecutionPlan(
       id = plan1.id,
-      name = planNameExtractor(plan1),
+      name = execPlanNameExtractor(plan1),
       operations = operations,
       attributes = attributes,
       expressions = maybeExpressions,

@@ -22,12 +22,13 @@ import za.co.absa.spline.producer.{model => v1}
 
 class OperationConverter(
   objectConverter: ObjectConverter,
-  maybeOutputConverter: Option[OperationOutputConverter]
+  maybeOutputConverter: Option[OperationOutputConverter],
+  operationNameExtractor: v1.OperationLike => Option[v1_1.OperationLike.Name],
 ) extends Converter {
   override type From = v1.OperationLike
   override type To = v1_1.OperationLike
 
-  override def convert(op1: From): To = {
+  override def convert(op1: v1.OperationLike): v1_1.OperationLike = {
     val convertedParams = op1
       .params
       .mapValues(objectConverter.convert)
@@ -38,16 +39,39 @@ class OperationConverter(
       .getOrElse(Nil)
 
     val id = op1.id.toString
+    val maybeName = operationNameExtractor(op1)
     val childIds = op1.childIds.map(_.toString)
     val extra = op1.extra
 
     op1 match {
       case wop1: v1.WriteOperation =>
-        v1_1.WriteOperation(wop1.outputSource, wop1.append, id, childIds, convertedParams, extra)
+        v1_1.WriteOperation(
+          outputSource = wop1.outputSource,
+          append = wop1.append,
+          id = id,
+          name = maybeName,
+          childIds = childIds,
+          params = convertedParams,
+          extra = extra
+        )
       case rop1: v1.ReadOperation =>
-        v1_1.ReadOperation(rop1.inputSources, id, output, convertedParams, extra)
+        v1_1.ReadOperation(
+          inputSources = rop1.inputSources,
+          id = id,
+          name = maybeName,
+          output = output,
+          params = convertedParams,
+          extra = extra
+        )
       case _: v1.DataOperation =>
-        v1_1.DataOperation(id, childIds, output, convertedParams, extra)
+        v1_1.DataOperation(
+          id = id,
+          name = maybeName,
+          childIds = childIds,
+          output = output,
+          params = convertedParams,
+          extra = extra
+        )
     }
   }
 }
