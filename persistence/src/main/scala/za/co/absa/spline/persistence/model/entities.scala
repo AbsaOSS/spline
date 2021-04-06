@@ -133,7 +133,7 @@ object Progress {
   * These values are copied from other entities for performance optimization.
   */
 case class ExecPlanDetails(
-  executionPlanId: ArangoDocument.Key,
+  executionPlanKey: ArangoDocument.Key,
   frameworkName: String,
   applicationName: String,
   dataSourceUri: DataSource.Uri,
