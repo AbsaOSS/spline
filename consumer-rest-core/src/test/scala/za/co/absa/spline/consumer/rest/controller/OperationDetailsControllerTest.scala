@@ -31,7 +31,7 @@ class OperationDetailsControllerTest extends AsyncFunSuite with MockitoSugar wit
 
   private val operation: Operation = new Operation(
     _id = "2141834d-abd6-4be4-80b9-01661b842ab9",
-    `type` = "Transformation",
+    _type = "Transformation",
     name = Some("Project"),
     properties = null
   )

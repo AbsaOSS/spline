@@ -79,7 +79,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |    "graph": {
         |        "nodes": ops[* RETURN {
         |                "_id"  : CURRENT._key,
-        |                "type" : CURRENT.type,
+        |                "_type": CURRENT.type,
         |                "name" : CURRENT.name
         |            }],
         |        "edges": edges[* RETURN {
