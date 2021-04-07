@@ -171,11 +171,13 @@ class ExecutionPlanPersistentModelBuilder private(
         }
       }
 
-      this._pmEmits :+= EdgeDef.Emits.edge(
-        opKey,
-        keyCreator.asSchemaKey(schemaInfoByOpId(op.id).oid),
-        epPKey
-      )
+      for (schemaInfo <- schemaInfoByOpId.get(op.id)) {
+        this._pmEmits :+= EdgeDef.Emits.edge(
+          opKey,
+          keyCreator.asSchemaKey(schemaInfo.oid),
+          epPKey
+        )
+      }
 
       this._pmFollows ++= op.childIds.zipWithIndex map {
         case (childId, i) =>
