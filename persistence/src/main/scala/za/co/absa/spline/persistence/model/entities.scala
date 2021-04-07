@@ -139,4 +139,6 @@ case class ExecPlanDetails(
   dataSourceUri: DataSource.Uri,
   dataSourceType: String,
   append: Boolean
-)
+) {
+  def this() = this(null, null, null, null, null, false)
+}
