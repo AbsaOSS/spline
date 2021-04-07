@@ -63,7 +63,7 @@ class JsonPath(tokens: Seq[Token]) {
 
 object JsonPath {
 
-  // fixme: too many Any's. Need to do something with it... one day... probably
+  // fixme: too many Any's. Need to do something with it (perhaps proper algebraic types in Scala 3 will solve it)
   private type Token = Any // String (property) or Int (index)
   private type Target = Any // Map[String, Any] or Seq[Any]
   private type Value = Any

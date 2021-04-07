@@ -56,6 +56,8 @@ class ExecutionPlansController @Autowired()(
             write: {
               // Operation ID (should be unique in the scope of the current execution plan)
               id: <string>,
+              // [Optional] Operation name
+              name: <string>,
               // Destination URI, where the data has been written to
               outputSource: <URI>,
               // Shows if the write operation appended or replaced the data in the target destination
@@ -74,6 +76,8 @@ class ExecutionPlansController @Autowired()(
               {
                 // Operation ID (see above)
                 id: <string>,
+                // [Optional] Operation name
+                name: <string>,
                 // Source URIs, where the data has been read from
                 inputSources: [<URI>],
                 // [Optional] Custom info about the operation
@@ -89,6 +93,8 @@ class ExecutionPlansController @Autowired()(
               {
                 // Operation ID (see above)
                 id: <string>,
+                // [Optional] Operation name
+                name: <string>,
                 // Array of preceding operations IDs (see above)
                 childIds: [<string>],
                 // [Optional] Custom info about the operation
@@ -109,8 +115,8 @@ class ExecutionPlansController @Autowired()(
                 id: <string>,
                 // Attribute name
                 name: <string>,
-                // [Optional] IDs of other expressions (attributes, functions or constants) that this attribute is computed from
-                childIds: [<string>],
+                // [Optional] References to other attributes, expressions or constants that this attribute is computed from
+                childRefs: [<attr_or_expr_ref>],
                 // [Optional] Custom info
                 extra: {...}
               }
@@ -122,10 +128,8 @@ class ExecutionPlansController @Autowired()(
                 id: <string>,
                 // Function name
                 name: <string>,
-                // [Optional] IDs of child expressions (attributes, functions or constants)
-                childIds: [<string>],
-                // [Optional] Arguments' expression IDs
-                args: [<string>],
+                // [Optional] References to operands (expressions, constants or attributes)
+                childRefs: [<attr_or_expr_ref>],
                 // [Optional] Named expression parameters
                 params: {...},
                 // [Optional] Custom meta info
