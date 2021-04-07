@@ -85,7 +85,7 @@ class ExecutionPlanPersistentModelBuilder private(
 
     val pmDerivesFrom =
       for {
-        attrFrom <- ep.attributes if attrFrom.childIds.nonEmpty
+        attrFrom <- ep.attributes if attrFrom.childRefs.nonEmpty
         refFrom = AttrOrExprRef.attrRef(attrFrom.id)
         refTo <- findAncestorAttributeRefs(refFrom)
       } yield {
@@ -196,7 +196,7 @@ class ExecutionPlanPersistentModelBuilder private(
         extra = attr.extra,
         name = attr.name
       )
-      attr.childIds.zipWithIndex.foreach {
+      attr.childRefs.zipWithIndex.foreach {
         case (ref, i) =>
           this._attrDepGraph += AttrOrExprRef.attrRef(attr.id) ~> ref
           if (ref.isExpression)
@@ -224,10 +224,10 @@ class ExecutionPlanPersistentModelBuilder private(
           dataType = expr.dataType,
           extra = expr.extra,
           name = expr.name,
-          arity = expr.childIds.length,
+          arity = expr.childRefs.length,
           params = expr.params,
         )
-        expr.childIds.zipWithIndex.foreach({
+        expr.childRefs.zipWithIndex.foreach({
           case (ref, i) =>
             this._attrDepGraph += AttrOrExprRef.exprRef(expr.id) ~> ref
             this._pmTakes :+= (ref match {

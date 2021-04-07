@@ -75,7 +75,7 @@ class SparkSplineExpressionConverter(
       id = newId,
       dataType = exprDef.get(FieldNamesV1.ExpressionDef.DataTypeId).map(_.toString),
       name = name.toString,
-      childIds = childRefs,
+      childRefs = childRefs,
 
       params = Map.empty
         ++ exprDef.getOrElse(FieldNamesV1.ExpressionDef.Params, Map.empty).asInstanceOf[ExpressionLike.Params]
