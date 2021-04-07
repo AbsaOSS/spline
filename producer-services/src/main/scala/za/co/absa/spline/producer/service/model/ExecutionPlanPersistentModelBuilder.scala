@@ -25,8 +25,8 @@ import za.co.absa.commons.lang.OptionImplicits._
 import za.co.absa.spline.persistence.DefaultJsonSerDe._
 import za.co.absa.spline.persistence.model.{Edge, EdgeDef}
 import za.co.absa.spline.persistence.{model => pm}
-import za.co.absa.spline.producer.model.v1_1.AttrOrExprRef
 import za.co.absa.spline.producer.model.v1_1.OperationLike.Id
+import za.co.absa.spline.producer.model.v1_1.{AttrOrExprRef, OperationLike}
 import za.co.absa.spline.producer.model.{v1_1 => am}
 import za.co.absa.spline.producer.service.model.ExecutionPlanPersistentModelBuilder._
 import za.co.absa.spline.producer.service.{InconsistentEntityException, model}
@@ -348,27 +348,52 @@ object ExecutionPlanPersistentModelBuilder {
       .build()
   }
 
-  private case class SchemaInfo(oid: am.OperationLike.Id, schema: am.OperationLike.Schema, diff: Set[am.Attribute.Id])
+  private[model] case class SchemaInfo(oid: am.OperationLike.Id, schema: am.OperationLike.Schema, diff: Set[am.Attribute.Id])
 
-  private def getSchemaInfos(operations: Seq[am.OperationLike]): Map[Id, SchemaInfo] = {
-    operations
-      .sortedTopologically(reverse = true)
-      .foldLeft(Map.empty[Id, SchemaInfo]) {
-        (schemaByOpId, op) =>
-          val inSchemaInfos = op.childIds.map(schemaByOpId)
-          val outSchema = op.output
-          inSchemaInfos match {
-            case (si@SchemaInfo(oid, inSchema, _)) +: sis
-              if sis.forall(_.oid == oid) && (outSchema.isEmpty || outSchema == inSchema) =>
-              schemaByOpId.updated(op.id, si)
-            case _ if outSchema.nonEmpty =>
-              val inputSchemas = inSchemaInfos.map(_.schema)
-              val diff = inputSchemas.foldLeft(outSchema.toSet)(_ -- _)
-              schemaByOpId.updated(op.id, SchemaInfo(op.id, outSchema, diff))
-            case _ =>
-              throw new InconsistentEntityException(s"Cannot infer schema for operation #${op.id}: the input is either empty or ambiguous")
-          }
+  private[model] def getSchemaInfos(operations: Seq[am.OperationLike]): Map[Id, SchemaInfo] = {
+    require(operations.nonEmpty)
+
+    // check for schema definition consistency on the terminal operations level
+    val (maybeSchemaAgnosticTermOp, maybeSchemaAwareAnyOp) =
+      operations.foldLeft((None: Option[OperationLike], None: Option[OperationLike])) {
+        case ((None, maybeSchemaAwareOp), op) if op.output.isEmpty && op.childIds.isEmpty =>
+          Some(op) -> maybeSchemaAwareOp
+        case ((maybeSchemaAgnosticTerminalOp, None), op) if op.output.nonEmpty =>
+          maybeSchemaAgnosticTerminalOp -> Some(op)
+        case (z, _) => z
       }
+
+    (maybeSchemaAgnosticTermOp, maybeSchemaAwareAnyOp) match {
+      case (Some(schemaAgnosticTermOp), Some(schemaAwareAnyOp)) =>
+        throw new InconsistentEntityException(s"" +
+          s"At least one operation defines output schema [#${schemaAwareAnyOp.id}], " +
+          s"while some terminal input operations lack of it [#${schemaAgnosticTermOp.id}]")
+      case (None, None) =>
+        // the graph cannot be neither schema aware nor schema agnostic
+        // it's can only be caused by lack of terminal input operations in a graph
+        throw new InconsistentEntityException(s"Operation DAG must have terminal nodes")
+      case (_, None) =>
+        // the operation graph is schema agnostic
+        Map.empty
+      case (None, _) => operations
+        .sortedTopologically(reverse = true)
+        .foldLeft(Map.empty[Id, SchemaInfo]) {
+          (schemaByOpId, op) =>
+            val inSchemaInfos = op.childIds.map(schemaByOpId)
+            val outSchema = op.output
+            inSchemaInfos match {
+              case (si@SchemaInfo(oid, inSchema, _)) +: sis
+                if sis.forall(_.oid == oid) && (outSchema.isEmpty || outSchema == inSchema) =>
+                schemaByOpId.updated(op.id, si)
+              case _ if outSchema.nonEmpty =>
+                val inputSchemas = inSchemaInfos.map(_.schema)
+                val diff = inputSchemas.foldLeft(outSchema.toSet)(_ -- _)
+                schemaByOpId.updated(op.id, SchemaInfo(op.id, outSchema, diff))
+              case _ =>
+                throw new InconsistentEntityException(s"Cannot infer schema for operation #${op.id}: the input schema is ambiguous")
+            }
+        }
+    }
   }
 
 }
