@@ -99,7 +99,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |
         |    LET resItem = {
         |        "executionEventId" : ee._key,
-        |        "executionPlanId"  : ee.execPlanDetails.executionPlanId,
+        |        "executionPlanId"  : ee.execPlanDetails.executionPlanKey,
         |        "frameworkName"    : ee.execPlanDetails.frameworkName,
         |        "applicationName"  : ee.execPlanDetails.applicationName,
         |        "applicationId"    : ee.extra.appId,

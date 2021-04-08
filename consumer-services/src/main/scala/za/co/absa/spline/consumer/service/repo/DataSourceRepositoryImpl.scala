@@ -79,7 +79,7 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         |
         |    LET resItem = {
         |        "executionEventId" : lwe._key,
-        |        "executionPlanId"  : lwe.execPlanDetails.executionPlanId,
+        |        "executionPlanId"  : lwe.execPlanDetails.executionPlanKey,
         |        "frameworkName"    : lwe.execPlanDetails.frameworkName,
         |        "applicationName"  : lwe.execPlanDetails.applicationName,
         |        "applicationId"    : lwe.extra.appId,
