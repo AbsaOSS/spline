@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.kafka.listener
+package za.co.absa.spline.gateway.kafka.listener
 
 import org.slf4s.Logging
 import org.springframework.beans.factory.annotation.Autowired
@@ -23,7 +23,7 @@ import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.handler.annotation.Header
 import org.springframework.stereotype.Component
 import za.co.absa.commons.annotation.Unstable
-import za.co.absa.spline.producer.kafka.KafkaGatewayConfig
+import za.co.absa.spline.gateway.kafka.KafkaGatewayConfig
 import za.co.absa.spline.producer.model.v1_1.{ExecutionEvent, ExecutionPlan}
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 

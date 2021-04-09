@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.kafka
+package za.co.absa.spline.gateway.kafka
 
 import org.springframework.web.WebApplicationInitializer
 import org.springframework.web.context.ContextLoaderListener
