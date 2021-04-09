@@ -54,7 +54,7 @@ class ExecutionEventsController @Autowired()(
             duration: <number>,
             // [Optional] Additional info about the error (in case there was an error during the execution)
             error: {...},
-            // Any other extra information related to the given execution event
+            // [Optional] Any other extra information related to the given execution event
             extra: {...}
           },
           ...
