@@ -20,9 +20,9 @@ import io.swagger.annotations.ApiModelProperty
 case class WriteEventInfo
 (
   @ApiModelProperty(value = "Id of the execution event")
-  executionEventId: String,
+  executionEventId: WriteEventInfo.Id,
   @ApiModelProperty(value = "Id of the execution plan")
-  executionPlanId: String,
+  executionPlanId: ExecutionPlanInfo.Id,
   @ApiModelProperty(value = "Name of the framework that triggered this execution event")
   frameworkName: String,
   @ApiModelProperty(value = "Name of the application/job")
@@ -30,7 +30,9 @@ case class WriteEventInfo
   @ApiModelProperty(value = "Id of the application/job")
   applicationId: String,
   @ApiModelProperty(value = "When the execution was triggered")
-  timestamp: Long,
+  timestamp: WriteEventInfo.Timestamp,
+  @ApiModelProperty(value = "When the execution was triggered")
+  durationNs: WriteEventInfo.DurationNs,
   @ApiModelProperty(value = "Output data source name")
   dataSourceName: String,
   @ApiModelProperty(value = "Output data source URI")
@@ -40,10 +42,12 @@ case class WriteEventInfo
   @ApiModelProperty(value = "Write mode - (true=Append; false=Override)")
   append: Boolean
 ) {
-  def this() = this(null, null, null, null, null, 0, null, null, null, false)
+  def this() = this(null, null, null, null, null, 0, 0, null, null, null, false)
 }
 
 object WriteEventInfo {
   type Id = String
+  type Timestamp = Long
+  type DurationNs = Long
 }
 

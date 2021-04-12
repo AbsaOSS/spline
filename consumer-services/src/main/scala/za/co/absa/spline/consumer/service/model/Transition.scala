@@ -17,17 +17,16 @@
 package za.co.absa.spline.consumer.service.model
 
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
-import za.co.absa.spline.consumer.service.model.LineageDetailed.OperationID
 
 @ApiModel(description="Link between operations")
 case class Transition
 (
   @ApiModelProperty(value = "Source Operation")
-  source: OperationID,
+  source: Operation.Id,
   @ApiModelProperty(value = "Target Operation")
-  target: OperationID
+  target: Operation.Id
 ) extends Graph.Edge {
   def this() = this(null, null)
 
-  override type JointId = OperationID
+  override type JointId = Operation.Id
 }

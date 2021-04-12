@@ -100,11 +100,16 @@ object DataSource {
   * from the inputs to the output.
   */
 case class ExecutionPlan(
+  name: Option[ExecutionPlan.Name],
   systemInfo: Map[String, Any],
   agentInfo: Map[String, Any],
   extra: Map[String, Any],
   override val _key: ArangoDocument.Key
 ) extends Vertex with RootEntity
+
+object ExecutionPlan {
+  type Name = String
+}
 
 /**
   * Represents a moment in time WHEN a particular execution plan is executed.
@@ -113,20 +118,27 @@ case class ExecutionPlan(
   */
 case class Progress(
   timestamp: Long,
+  durationNs: Option[Progress.JobDurationInNanos],
   error: Option[Any],
   extra: Map[String, Any],
-  override val _key: String,
+  override val _key: ArangoDocument.Key,
   execPlanDetails: ExecPlanDetails
 ) extends Vertex with RootEntity
+
+object Progress {
+  type JobDurationInNanos = Long
+}
 
 /**
   * These values are copied from other entities for performance optimization.
   */
 case class ExecPlanDetails(
-  executionPlanId: ArangoDocument.Key,
+  executionPlanKey: ArangoDocument.Key,
   frameworkName: String,
   applicationName: String,
   dataSourceUri: DataSource.Uri,
   dataSourceType: String,
   append: Boolean
-)
+) {
+  def this() = this(null, null, null, null, null, false)
+}

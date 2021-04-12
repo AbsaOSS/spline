@@ -79,8 +79,8 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |    "graph": {
         |        "nodes": ops[* RETURN {
         |                "_id"  : CURRENT._key,
-        |                "type": CURRENT.type,
-        |                "name" : CURRENT.extra.name
+        |                "_type": CURRENT.type,
+        |                "name" : CURRENT.name || CURRENT.type
         |            }],
         |        "edges": edges[* RETURN {
         |                "source": PARSE_IDENTIFIER(CURRENT._to).key,
@@ -91,7 +91,11 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |        "_id"       : execPlan._key,
         |        "systemInfo": execPlan.systemInfo,
         |        "agentInfo" : execPlan.agentInfo,
-        |        "extra"     : MERGE(execPlan.extra, { attributes }),
+        |        "extra"     : MERGE(
+        |                         execPlan.extra,
+        |                         { attributes },
+        |                         { "appName"  : execPlan.name || execPlan._key }
+        |                      ),
         |        "inputs"    : inputs,
         |        "output"    : output
         |    }

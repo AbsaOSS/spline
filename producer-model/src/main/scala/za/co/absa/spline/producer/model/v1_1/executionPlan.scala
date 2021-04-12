@@ -20,6 +20,7 @@ import java.util.UUID
 
 case class ExecutionPlan(
   id: UUID = UUID.randomUUID(),
+  name: Option[ExecutionPlan.Name],
 
   operations: Operations,
   attributes: Seq[Attribute] = Nil,
@@ -32,11 +33,16 @@ case class ExecutionPlan(
   // User payload
   extraInfo: Map[String, Any] = Map.empty
 ) {
-  def dataSources: Set[String] = {
+  def dataSources: Set[ExecutionPlan.DataSourceUri] = {
     val readSources = operations.reads.flatMap(_.inputSources).toSet
     val writeSource = operations.write.outputSource
     readSources + writeSource
   }
+}
+
+object ExecutionPlan {
+  type Name = String
+  type DataSourceUri = String
 }
 
 case class Operations(

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.kafka
+package za.co.absa.spline.gateway.kafka
 
 import com.fasterxml.jackson.databind.{ObjectMapper, PropertyNamingStrategies, PropertyNamingStrategy}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule

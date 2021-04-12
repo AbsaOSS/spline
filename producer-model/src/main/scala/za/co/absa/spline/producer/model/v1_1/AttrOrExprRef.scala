@@ -34,7 +34,6 @@ package za.co.absa.spline.producer.model.v1_1
  * E.g. JSON object `{ __attrId: 42 }` represents a reference to an attribute with ID 42, while
  * `{ _attrId: 42 }` or `{ __attrId: 42, foo: 1 }` represent arbitrary key-value pairs.
  *
- *
  * @param __attrId attribute ID
  * @param __exprId expression ID
  */
@@ -46,15 +45,17 @@ case class AttrOrExprRef(
   require(
     __attrId.isDefined ^ __exprId.isDefined,
     s"Either `__attrId` or `__exprId` should be defined. Was: ${__attrId}, ${__exprId}")
-
-  def refId: ExpressionLike.Id = (__attrId orElse __exprId).get
-
-  def isAttribute: Boolean = __attrId.isDefined
-
-  def isExpression: Boolean = __exprId.isDefined
 }
 
 object AttrOrExprRef {
+
+  implicit class AttrOrExprOps(val ref: AttrOrExprRef) extends AnyVal {
+    def refId: ExpressionLike.Id = (ref.__attrId orElse ref.__exprId).get
+
+    def isAttribute: Boolean = ref.__attrId.isDefined
+
+    def isExpression: Boolean = ref.__exprId.isDefined
+  }
 
   def attrRef(attrId: Attribute.Id): AttrOrExprRef = AttrOrExprRef(Option(attrId), None)
 

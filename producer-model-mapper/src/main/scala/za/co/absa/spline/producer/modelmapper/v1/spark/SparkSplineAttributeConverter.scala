@@ -22,7 +22,7 @@ import za.co.absa.spline.producer.modelmapper.v1.{AttributeConverter, FieldNames
 class SparkSplineAttributeConverter extends AttributeConverter {
 
   override def convert(attrDef: TypesV1.AttrDef): v1_1.Attribute = {
-    val childIds = attrDef
+    val childRefs = attrDef
       .getOrElse(FieldNamesV1.AttributeDef.Dependencies, Nil)
       .asInstanceOf[Seq[TypesV1.AttrId]]
       .map(v1_1.AttrOrExprRef.attrRef)
@@ -35,7 +35,7 @@ class SparkSplineAttributeConverter extends AttributeConverter {
     v1_1.Attribute(
       id = attrId,
       name = attrName,
-      childIds = childIds,
+      childRefs = childRefs,
       dataType = maybeDataType,
       extra = Map.empty
     )

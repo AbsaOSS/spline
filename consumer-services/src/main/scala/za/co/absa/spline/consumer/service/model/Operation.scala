@@ -17,25 +17,25 @@
 package za.co.absa.spline.consumer.service.model
 
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
-import za.co.absa.spline.consumer.service.model.LineageDetailed.OperationID
 
 @ApiModel(description = "Operation")
 case class Operation
 (
   @ApiModelProperty(value = "Operation Id")
-  _id: OperationID,
+  _id: Operation.Id,
   @ApiModelProperty(value = "Type of the operation", example = "Read / Transformation / Write")
-  `type`: String,
+  _type: Operation.Type,
   @ApiModelProperty(value = "Name of the operation")
-  name: String,
+  name: Option[String],
   @ApiModelProperty(value = "Properties of the operation")
   properties: Map[String, Any]
 ) extends Graph.Node {
-  override type Id = OperationID
+  override type Id = Operation.Id
 
   def this() = this(null, null, null, null)
 }
 
 object Operation {
   type Id = String
+  type Type = String // Read / Transformation / Write
 }

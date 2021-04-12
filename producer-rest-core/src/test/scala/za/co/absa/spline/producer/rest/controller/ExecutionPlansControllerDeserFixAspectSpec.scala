@@ -118,6 +118,7 @@ object ExecutionPlansControllerDeserFixAspectSpec {
 
     ExecutionPlan(
       id = planId,
+      name = None,
       operations = Operations(
         write = WriteOperation(
           id = "1",
@@ -160,22 +161,22 @@ object ExecutionPlansControllerDeserFixAspectSpec {
         Attribute(
           id = "attr1",
           name = "attr1",
-          childIds = Nil,
+          childRefs = Nil,
           extra = sampleMapWithRefs),
         Attribute(
           id = "attr2",
           name = "attr2",
-          childIds = Nil,
+          childRefs = Nil,
           extra = sampleMapWithRefs),
         Attribute(
           id = "attr3",
           name = "attr3",
-          childIds = Seq(AttrOrExprRef.attrRef("attr1")),
+          childRefs = Seq(AttrOrExprRef.attrRef("attr1")),
           extra = sampleMapWithRefs),
         Attribute(
           id = "attr4",
           name = "attr4",
-          childIds = Seq(AttrOrExprRef.exprRef("expr1")),
+          childRefs = Seq(AttrOrExprRef.exprRef("expr1")),
           extra = sampleMapWithRefs)
       ),
       expressions = Some(
@@ -184,7 +185,7 @@ object ExecutionPlansControllerDeserFixAspectSpec {
             FunctionalExpression(
               id = "expr1",
               name = "expr1",
-              childIds = Seq(AttrOrExprRef.attrRef("attr2"), AttrOrExprRef.exprRef("expr2")),
+              childRefs = Seq(AttrOrExprRef.attrRef("attr2"), AttrOrExprRef.exprRef("expr2")),
               params = sampleMapWithRefs,
               extra = sampleMapWithRefs
             )),

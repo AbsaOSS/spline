@@ -98,7 +98,7 @@ function eventLineageOverviewGraph(startEvent, maxDepth) {
                         : MERGE(KEEP(vert, ["systemInfo", "agentInfo"]), {
                             "_id": vert._key,
                             "_class": "za.co.absa.spline.consumer.service.model.ExecutionNode",
-                            "name": vert.extra.appName
+                            "name": vert.name || ""
                         })
             )
             

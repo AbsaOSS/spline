@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.kafka
+package za.co.absa.spline.gateway.kafka
 
 package object listener {
   trait _package

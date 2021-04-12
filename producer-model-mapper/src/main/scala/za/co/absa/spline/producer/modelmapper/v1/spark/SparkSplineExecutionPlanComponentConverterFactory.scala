@@ -27,6 +27,10 @@ import scala.util.Try
 
 class SparkSplineExecutionPlanComponentConverterFactory(agentVersion: String, plan1: v1.ExecutionPlan) extends ExecutionPlanComponentConverterFactory {
 
+  override def execPlanNameExtractor: v1.ExecutionPlan => Option[v1_1.ExecutionPlan.Name] = _.extraInfo.get(FieldNamesV1.PlanExtraInfo.AppName).map(_.toString)
+
+  override def operationNameExtractor: v1.OperationLike => Option[v1_1.OperationLike.Name] = _.extra.get(FieldNamesV1.OperationExtraInfo.Name).map(_.toString)
+
   override def expressionConverter: Option[CachingConverter {type To = v1_1.ExpressionLike}] = Some(_expressionConverter)
 
   override def attributeConverter: Option[CachingConverter {type To = v1_1.Attribute}] = Some(_attributeConverter)

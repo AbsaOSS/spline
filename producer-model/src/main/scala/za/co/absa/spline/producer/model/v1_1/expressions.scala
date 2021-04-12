@@ -22,8 +22,7 @@ sealed trait ExpressionLike {
   // todo: data types aren't properly modeled yet. Shouldn't we hide them under extras then?
   def dataType: Option[Any]
 
-  // todo: rename it to "childRefs" ??
-  def childIds: Seq[ExpressionLike.ChildRef]
+  def childRefs: Seq[ExpressionLike.ChildRef]
   def extra: Map[String, Any]
 }
 
@@ -40,14 +39,14 @@ object ExpressionLike {
  * @param id       expression ID
  * @param name     expression name
  * @param dataType output data type
- * @param childIds input expression (or attribute) IDs
+ * @param childRefs input expression (or attribute) IDs
  * @param params   optional static expression parameters (don't confuse with input parameters)
  * @param extra    optional metadata
  */
 case class FunctionalExpression(
   override val id: ExpressionLike.Id,
   override val dataType: Option[Any] = None,
-  override val childIds: Seq[ExpressionLike.ChildRef] = Nil,
+  override val childRefs: Seq[ExpressionLike.ChildRef] = Nil,
   override val extra: Map[String, Any] = Map.empty,
   name: String,
   params: Map[String, Any] = Map.empty,
@@ -67,5 +66,5 @@ case class Literal(
   override val extra: Map[String, Any] = Map.empty,
   value: Any,
 ) extends ExpressionLike {
-  override def childIds: Seq[ExpressionLike.ChildRef] = Nil
+  override def childRefs: Seq[ExpressionLike.ChildRef] = Nil
 }

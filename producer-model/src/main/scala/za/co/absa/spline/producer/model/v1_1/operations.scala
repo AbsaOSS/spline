@@ -20,15 +20,17 @@ import za.co.absa.commons.graph.GraphImplicits.DAGNodeIdMapping
 import za.co.absa.spline.producer.model.v1_1.OperationLike.Id
 
 sealed trait OperationLike {
-  val id: Id
-  val childIds: Seq[Id]
-  val output: OperationLike.Schema
-  val params: Map[String, Any]
-  val extra: Map[String, Any]
+  def id: Id
+  def name: Option[Id]
+  def childIds: Seq[Id]
+  def output: OperationLike.Schema
+  def params: Map[String, Any]
+  def extra: Map[String, Any]
 }
 
 object OperationLike {
   type Id = String
+  type Name = String
   type Schema = Seq[Attribute.Id]
 
   implicit object OpNav extends DAGNodeIdMapping[OperationLike, OperationLike.Id] {
@@ -43,8 +45,9 @@ object OperationLike {
 
 case class DataOperation(
   override val id: Id,
+  override val name: Option[OperationLike.Name] = None,
   override val childIds: Seq[Id] = Nil,
-  override val output: Seq[Attribute.Id],
+  override val output: Seq[Attribute.Id] = Nil,
   override val params: Map[String, Any] = Map.empty,
   override val extra: Map[String, Any] = Map.empty
 ) extends OperationLike
@@ -52,21 +55,22 @@ case class DataOperation(
 case class ReadOperation(
   inputSources: Seq[String],
   override val id: Id,
-  override val output: Seq[Attribute.Id],
+  override val name: Option[OperationLike.Name] = None,
+  override val output: Seq[Attribute.Id] = Nil,
   override val params: Map[String, Any] = Map.empty,
   override val extra: Map[String, Any] = Map.empty
 ) extends OperationLike {
-  override val childIds: Seq[Id] = Nil
+  override def childIds: Seq[Id] = Nil
 }
 
 case class WriteOperation(
   outputSource: String,
   append: Boolean,
   override val id: Id,
+  override val name: Option[OperationLike.Name] = None,
   override val childIds: Seq[Id],
   override val params: Map[String, Any] = Map.empty,
   override val extra: Map[String, Any] = Map.empty
 ) extends OperationLike {
-  override val output: Seq[Attribute.Id] = Nil
-
+  override def output: Seq[Attribute.Id] = Nil
 }

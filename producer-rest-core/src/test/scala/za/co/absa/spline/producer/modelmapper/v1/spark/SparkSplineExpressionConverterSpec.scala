@@ -72,7 +72,7 @@ class SparkSplineExpressionConverterSpec extends AnyFlatSpec with Matchers {
 
     binExpr should be(a[FunctionalExpression])
     binExpr.asInstanceOf[FunctionalExpression].id should not be empty
-    binExpr.asInstanceOf[FunctionalExpression].childIds should have length 2
+    binExpr.asInstanceOf[FunctionalExpression].childRefs should have length 2
     binExpr.asInstanceOf[FunctionalExpression].name should equal("+")
     binExpr.asInstanceOf[FunctionalExpression].dataType should equal(Some("d32cfc1f-e90f-4ece-93f5-15193534c855"))
     binExpr.asInstanceOf[FunctionalExpression].params should be(empty)
@@ -98,7 +98,7 @@ class SparkSplineExpressionConverterSpec extends AnyFlatSpec with Matchers {
 
     aliasExpr should be(a[FunctionalExpression])
     aliasExpr.asInstanceOf[FunctionalExpression].id should not be empty
-    aliasExpr.asInstanceOf[FunctionalExpression].childIds should have length 1
+    aliasExpr.asInstanceOf[FunctionalExpression].childRefs should have length 1
     aliasExpr.asInstanceOf[FunctionalExpression].name should equal("alias")
     aliasExpr.asInstanceOf[FunctionalExpression].dataType should equal(Some("d32cfc1f-e90f-4ece-93f5-15193534c855"))
     aliasExpr.asInstanceOf[FunctionalExpression].params should equal(Map(
@@ -124,7 +124,7 @@ class SparkSplineExpressionConverterSpec extends AnyFlatSpec with Matchers {
 
     udfExpr should be(a[FunctionalExpression])
     udfExpr.asInstanceOf[FunctionalExpression].id should not be empty
-    udfExpr.asInstanceOf[FunctionalExpression].childIds should be(empty)
+    udfExpr.asInstanceOf[FunctionalExpression].childRefs should be(empty)
     udfExpr.asInstanceOf[FunctionalExpression].name should equal("foo")
     udfExpr.asInstanceOf[FunctionalExpression].dataType should equal(Some("d32cfc1f-e90f-4ece-93f5-15193534c855"))
     udfExpr.asInstanceOf[FunctionalExpression].params should be(empty)
@@ -150,7 +150,7 @@ class SparkSplineExpressionConverterSpec extends AnyFlatSpec with Matchers {
 
     genExpr should be(a[FunctionalExpression])
     genExpr.asInstanceOf[FunctionalExpression].id should not be empty
-    genExpr.asInstanceOf[FunctionalExpression].childIds should be(empty)
+    genExpr.asInstanceOf[FunctionalExpression].childRefs should be(empty)
     genExpr.asInstanceOf[FunctionalExpression].name should equal("foo")
     genExpr.asInstanceOf[FunctionalExpression].dataType should equal(Some("d32cfc1f-e90f-4ece-93f5-15193534c855"))
     genExpr.asInstanceOf[FunctionalExpression].params should equal(Map(

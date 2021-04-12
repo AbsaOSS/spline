@@ -43,8 +43,10 @@ object ModelMapperV1 extends ModelMapper {
     val maybeExpressionConverter = epccf.expressionConverter
     val maybeOutputConverter = epccf.outputConverter
     val objectConverter = epccf.objectConverter
+    val execPlanNameExtractor = epccf.execPlanNameExtractor
+    val operationNameExtractor = epccf.operationNameExtractor
 
-    val operationConverter = new OperationConverter(objectConverter, maybeOutputConverter) with CachingConverter
+    val operationConverter = new OperationConverter(objectConverter, maybeOutputConverter, operationNameExtractor) with CachingConverter
 
     plan1.operations.all
       .sortedTopologically(reverse = true)
@@ -62,6 +64,7 @@ object ModelMapperV1 extends ModelMapper {
 
     ExecutionPlan(
       id = plan1.id,
+      name = execPlanNameExtractor(plan1),
       operations = operations,
       attributes = attributes,
       expressions = maybeExpressions,
@@ -71,12 +74,26 @@ object ModelMapperV1 extends ModelMapper {
     )
   }
 
-  override def fromDTO(event: v1.ExecutionEvent): ExecutionEvent = ExecutionEvent(
-    planId = event.planId,
-    timestamp = event.timestamp,
-    error = event.error,
-    extra = event.extra
-  )
+  override def fromDTO(event: v1.ExecutionEvent): ExecutionEvent = {
+    // Strictly speaking I should not have been doing this, and instead resolve a linked exec plan,
+    // look at its `agentInfo` property, find a proper conversion rule and use that one for conversion.
+    // But realistically speaking I don't believe there are many enough non-Spline v1 agents out there,
+    // for the risk of misinterpreting the "durationNs" property in extras to be practically possible.
+    // So I'm going to make a shortcut here for sake of performance and simplicity.
+    val durationNs = event.extra.get(FieldNamesV1.EventExtraInfo.DurationNs).
+      flatMap(PartialFunction.condOpt(_) {
+        case num: Long => num
+        case str: String if str.forall(_.isDigit) => str.toLong
+      })
+
+    ExecutionEvent(
+      planId = event.planId,
+      timestamp = event.timestamp,
+      durationNs = durationNs,
+      error = event.error,
+      extra = event.extra
+    )
+  }
 
   private def asOperationsObject(ops: Seq[OperationLike]) = {
     val (Some(write), reads, others) =

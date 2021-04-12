@@ -58,7 +58,7 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
         |
         |    LET dataTypesFormatted = (
         |        LET execPlan = DOCUMENT(ope._belongsTo)
-        |        FOR d IN execPlan.extra.dataTypes
+        |        FOR d IN execPlan.extra.dataTypes || []
         |            RETURN MERGE(
         |                KEEP(d,  "id", "name", "fields", "nullable", "elementDataTypeId"),
         |                {
@@ -72,8 +72,8 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
         |    RETURN {
         |        "operation": {
         |            "_id"       : ope._key,
-        |            "type"      : ope.type,
-        |            "name"      : ope.extra.name,
+        |            "_type"     : ope.type,
+        |            "name"      : ope.name || ope.type,
         |            "properties": MERGE(
         |                {
         |                    "inputSources": ope.inputSources,

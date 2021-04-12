@@ -26,6 +26,8 @@ case class ExecutionPlanInfo
 (
   @ApiModelProperty(value = "Execution plan Id")
   _id: Id,
+  @ApiModelProperty(value = "Name of the execution plan (script / application / job)")
+  name: Option[String],
   @ApiModelProperty(value = "Name and version of the system or framework that created this execution plan")
   systemInfo: Map[String, Any],
   @ApiModelProperty(value = "Name and version of the Spline agent that collected this execution plan")
@@ -37,7 +39,7 @@ case class ExecutionPlanInfo
   @ApiModelProperty(value = "Write destination")
   output: DataSourceInfo
 ) {
-  def this() = this(null, null, null, null, null, null)
+  def this() = this(null, null, null, null, null, null, null)
 }
 
 object ExecutionPlanInfo {
