@@ -95,11 +95,11 @@ function eventLineageOverviewGraph(startEvent, maxDepth) {
                             "_class": "za.co.absa.spline.consumer.service.model.DataSourceNode",
                             "name": vert.uri
                         }
-                        : {
+                        : MERGE(KEEP(vert, ["systemInfo", "agentInfo"]), {
                             "_id": vert._key,
                             "_class": "za.co.absa.spline.consumer.service.model.ExecutionNode",
                             "name": vert.name || ""
-                        }
+                        })
             )
             
             LET edges = (

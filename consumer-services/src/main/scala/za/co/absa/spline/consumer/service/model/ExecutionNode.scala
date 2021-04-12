@@ -18,9 +18,19 @@ package za.co.absa.spline.consumer.service.model
 case class ExecutionNode
 (
   override val _id: String,
-  override val name: String
+  override val name: String,
+  systemInfo: ExecutionNode.NameAndVersion,
+  agentInfo: Option[ExecutionNode.NameAndVersion],
 ) extends LineageOverviewNode {
   override type Id = String
 
-  def this() = this(null, null)
+  def this() = this(null, null, null, null)
+}
+
+object ExecutionNode {
+
+  case class NameAndVersion(name: String, version: String) {
+    def this() = this(null, null)
+  }
+
 }
