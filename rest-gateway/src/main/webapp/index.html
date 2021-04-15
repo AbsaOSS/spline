@@ -51,10 +51,13 @@
                 <div class="card-body">
                     <dl class="row">
                         <dt class="col-sm-4">Version</dt>
-                        <dd class="col-sm-8" id="spline-version">&nbsp;</dd>
-
-                        <dt class="col-sm-4">Timestamp</dt>
-                        <dd class="col-sm-8" id="spline-timestamp">&nbsp;</dd>
+                        <dd class="col-sm-8">
+                            <div id="spline-version">&nbsp;</div>
+                            <h6 class="text-muted">
+                                <small class="d-block"><span id="spline-timestamp" title="build date">&nbsp;</span></small>
+                                <small class="d-block text-truncate"><span id="spline-revision" title="revision number">&nbsp;</span></small>
+                            </h6>
+                        </dd>
 
                         <dt class="col-sm-4">Status</dt>
                         <dd class="col-sm-8"><span class="badge badge-pill" id="spline-status">&nbsp;</span></dd>
@@ -122,6 +125,9 @@
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"
         integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
         crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"
+        integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ=="
+        crossorigin="anonymous"></script>
 <script>
     const baseUrl =
         document.location.origin +
@@ -146,7 +152,8 @@
         $.get(`${baseUrl}/about/version`)
             .done(data => {
                 document.querySelector('#spline-version').textContent = data.build.version
-                document.querySelector('#spline-timestamp').textContent = data.build.timestamp
+                document.querySelector('#spline-revision').textContent = data.build.revision
+                document.querySelector('#spline-timestamp').textContent = data.build.timestamp && moment(data.build.timestamp).format("ll")
             })
 
         $.ajax(`${baseUrl}/producer/status`, {method: 'HEAD'})
