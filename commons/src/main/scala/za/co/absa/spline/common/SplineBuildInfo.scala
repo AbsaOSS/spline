@@ -21,4 +21,6 @@ import za.co.absa.commons.buildinfo.{BuildInfo, PropMapping}
 /**
  * By using 'spline-build.properties' we should avoid name conflicts with libraries properties.
  */
-object SplineBuildInfo extends BuildInfo("/spline-build", PropMapping.Default)
+object SplineBuildInfo extends BuildInfo("/spline-build", PropMapping.Default) {
+  lazy val Revision: String = BuildProps.getProperty("build.revision")
+}
