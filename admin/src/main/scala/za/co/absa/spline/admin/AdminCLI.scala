@@ -48,7 +48,7 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
   def exec(args: Array[String]): Unit = {
 
     val cliParser: OptionParser[AdminCLIConfig] = new OptionParser[AdminCLIConfig]("Spline Admin CLI") {
-      head("Spline Admin Command Line Interface", SplineBuildInfo.Version)
+      head("Spline Admin Command Line Interface", SplineBuildInfo.Version, s"(rev. ${SplineBuildInfo.Revision.take(7)})")
 
       help("help").text("prints this usage text")
 
