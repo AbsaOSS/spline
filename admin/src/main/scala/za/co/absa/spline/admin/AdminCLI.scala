@@ -39,6 +39,29 @@ object AdminCLI extends App {
     cmd: Command = null,
     logLevel: Level = Level.INFO)
 
+  implicit class OptionParserOps(val p: OptionParser[AdminCLIConfig]) extends AnyVal {
+    def placeNewLine(): Unit = p.note("")
+
+    def dbCommandOptions: Seq[OptionDef[_, AdminCLIConfig]] = Seq(
+      p.opt[Unit]('k', "insecure")
+        text s"Allow insecure server connections when using SSL; disallowed by default"
+        action { case (_, c@AdminCLIConfig(cmd: DBCommand, _)) => c.copy(cmd.insecure = true) },
+      {
+        val logLevels = classOf[Level].getFields.collect { case f if f.getType == f.getDeclaringClass => f.getName }
+        val logLevelsString = logLevels.mkString(", ")
+
+        (p.opt[String]('l', "log-level")
+          text s"Log level ($logLevelsString). Default is ${AdminCLIConfig().logLevel}"
+          validate (l => if (logLevels.contains(l.toUpperCase)) p.success else p.failure(s"<log-level> should be one of: $logLevelsString"))
+          action ((str, conf) => conf.copy(logLevel = Level.valueOf(str))))
+      },
+      p.arg[String]("<db_url>")
+        required()
+        text s"ArangoDB connection string in the format: $ArangoDbScheme|$ArangoSecureDbScheme://[user[:password]@]host[:port]/database"
+        action { case (url, c@AdminCLIConfig(cmd: DBCommand, _)) => c.copy(cmd.dbUrl = url) }
+    )
+  }
+
   private val dbManagerFactory = new ArangoManagerFactoryImpl()
   new AdminCLI(dbManagerFactory).exec(args)
 }
@@ -48,50 +71,46 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
   def exec(args: Array[String]): Unit = {
 
     val cliParser: OptionParser[AdminCLIConfig] = new OptionParser[AdminCLIConfig]("Spline Admin CLI") {
-      head("Spline Admin Command Line Interface", SplineBuildInfo.Version, s"(rev. ${SplineBuildInfo.Revision.take(7)})")
+
+      import AdminCLI._
+
+      head(
+        s"""
+           |Spline Admin Tool
+           |Version: ${SplineBuildInfo.Version} (rev. ${SplineBuildInfo.Revision.take(7)})
+           |""".stripMargin
+      )
 
       help("help").text("prints this usage text")
+      version('v', "version").text("prints version info")
 
-      def dbCommandOptions: Seq[OptionDef[_, AdminCLIConfig]] = Seq(
-        opt[Unit]('k', "insecure")
-          text s"Allow insecure server connections when using SSL; disallowed by default"
-          action { case (_, c@AdminCLIConfig(cmd: DBCommand, _)) => c.copy(cmd.insecure = true) },
-        {
-          val logLevels = classOf[Level].getFields.collect { case f if f.getType == f.getDeclaringClass => f.getName }
-          val logLevelsString = logLevels.mkString(", ")
-
-          (opt[String]('l', "log-level")
-            text s"Log level ($logLevelsString). Default is ${AdminCLIConfig().logLevel}"
-            validate (l => if (logLevels.contains(l.toUpperCase)) success else failure(s"<log-level> should be one of: $logLevelsString"))
-            action ((str, conf) => conf.copy(logLevel = Level.valueOf(str))))
-        },
-        arg[String]("<db_url>")
-          required()
-          text s"ArangoDB connection string in the format: $ArangoDbScheme|$ArangoSecureDbScheme://[user[:password]@]host[:port]/database"
-          action { case (url, c@AdminCLIConfig(cmd: DBCommand, _)) => c.copy(cmd.dbUrl = url) })
+      this.placeNewLine()
 
       (cmd("db-init")
         action ((_, c) => c.copy(cmd = DBInit()))
         text "Initialize Spline database"
-        children (dbCommandOptions: _*)
         children(
         opt[Unit]('f', "force")
           text "Re-create the database if one already exists"
           action { case (_, c@AdminCLIConfig(cmd: DBInit, _)) => c.copy(cmd.copy(force = true)) },
         opt[Unit]('s', "skip")
           text "Skip existing database. Don't throw error, just end"
-          action { case (_, c@AdminCLIConfig(cmd: DBInit, _)) => c.copy(cmd.copy(skip = true)) }
-      ))
+          action { case (_, c@AdminCLIConfig(cmd: DBInit, _)) => c.copy(cmd.copy(skip = true)) })
+        children (this.dbCommandOptions: _*)
+        )
+
+      this.placeNewLine()
 
       (cmd("db-upgrade")
         action ((_, c) => c.copy(cmd = DBUpgrade()))
         text "Upgrade Spline database"
-        children (dbCommandOptions: _*))
+        children (this.dbCommandOptions: _*))
+
+      this.placeNewLine()
 
       (cmd("db-exec")
         action ((_, c) => c.copy(cmd = DBExec()))
         text "Auxiliary actions mainly intended for development, testing etc."
-        children (dbCommandOptions: _*)
         children(
         opt[Unit]("foxx-reinstall")
           text "Reinstall Foxx services "
@@ -107,8 +126,9 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
           action { case (_, c@AdminCLIConfig(cmd: DBExec, _)) => c.copy(cmd.addAction(ViewsDelete)) },
         opt[Unit]("views-create")
           text "Create views"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _)) => c.copy(cmd.addAction(ViewsCreate)) },
-      ))
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _)) => c.copy(cmd.addAction(ViewsCreate)) })
+        children (this.dbCommandOptions: _*)
+        )
 
       checkConfig {
         case AdminCLIConfig(null, _) =>
