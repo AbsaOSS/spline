@@ -46,6 +46,8 @@
         <dependency>
             <groupId>org.backuity</groupId>
             <artifactId>ansi-interpolator_${scala.compat.version}</artifactId>
+            <!-- the library is only used at compile time -->
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
