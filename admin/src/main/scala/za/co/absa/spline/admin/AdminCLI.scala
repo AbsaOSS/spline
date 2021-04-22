@@ -17,11 +17,11 @@
 package za.co.absa.spline.admin
 
 import ch.qos.logback.classic.{Level, Logger}
-import org.backuity.ansi.AnsiFormatter.FormattedHelper
 import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
 import scopt.{OptionDef, OptionParser}
 import za.co.absa.spline.admin.AdminCLI.AdminCLIConfig
+import za.co.absa.spline.common.ConsoleUtils._
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.persistence.ArangoConnectionURL.{ArangoDbScheme, ArangoSecureDbScheme}
 import za.co.absa.spline.persistence.AuxiliaryDBAction._
