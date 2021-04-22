@@ -57,7 +57,7 @@ class ScalaFutureMethodReturnValueHandlerSpec extends AnyFlatSpec with MockitoSu
 
 object ScalaFutureMethodReturnValueHandlerSpec extends MockitoSugar {
 
-  private abstract class SubFuture extends Future[Any]
+  abstract class SubFuture extends Future[Any]
 
   private def mockWith[A <: AnyRef : ClassTag, B](call: A => B, retVal: B): A = {
     val aMock = mock[A]
