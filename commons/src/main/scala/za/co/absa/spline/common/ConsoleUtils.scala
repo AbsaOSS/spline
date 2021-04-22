@@ -44,7 +44,7 @@ object ConsoleUtils {
 
   def stripAnsiEscapeSequences(s: String): String = {
     val csiSequencePattern = "\u001b\\[.*?[\\x40-\\x7E]"
-    s.replaceAll(sciSequencePattern, "")
+    s.replaceAll(csiSequencePattern, "")
   }
 
 }
