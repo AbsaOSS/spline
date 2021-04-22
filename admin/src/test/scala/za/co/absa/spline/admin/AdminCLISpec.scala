@@ -24,6 +24,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.commons.scalatest.{ConsoleStubs, SystemExitFixture}
+import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManager, ArangoManagerFactory, OnDBExistsAction}
 
@@ -50,6 +51,13 @@ class AdminCLISpec
       val msg = captureStdErr(captureExitStatus(cli.exec(Array.empty)) should be(1))
       msg should include("Try --help for more information")
     }
+
+    for (arg <- Seq("-v", "--version"))
+      it should s"when called with $arg, print the version info" in {
+        val msg = captureStdOut(captureExitStatus(cli.exec(Array(arg))) should be(0))
+        msg should include(SplineBuildInfo.Version)
+        msg should include(SplineBuildInfo.Revision.take(7))
+      }
   }
 
 
