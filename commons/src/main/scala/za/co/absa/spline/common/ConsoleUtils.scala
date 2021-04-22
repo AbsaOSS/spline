@@ -21,6 +21,10 @@ import org.backuity.ansi.AnsiFormatter
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 
+/**
+ * See: https://github.com/backuity/ansi-interpolator/pull/2
+ * TODO: This class can be removed when the above ansi-interpolator issue is resolved
+ */
 object ConsoleUtils {
 
   implicit class AnsiInterpolator(val sc: StringContext) extends AnyVal {
