@@ -14,16 +14,17 @@
 # limitations under the License.
 #
 
-FROM tomcat:9.0.45-jdk11-corretto
+FROM adoptopenjdk/openjdk11:jdk-11.0.10_9-alpine-slim
+
+ARG version
 
 LABEL \
     vendor="ABSA" \
-    copyright="2019 ABSA Group Limited" \
+    copyright="2021 ABSA Group Limited" \
     license="Apache License, version 2.0" \
-    name="Spline REST Gateway Server"
+    name="Spline Admin Tool"
 
-EXPOSE 8080
-EXPOSE 8009
+COPY target/admin-$version.jar ./admin.jar
 
-RUN rm -rf /usr/local/tomcat/webapps/*
-COPY target/*.war /usr/local/tomcat/webapps/ROOT.war
+ENTRYPOINT ["java", "-jar", "admin.jar"]
+CMD ["--help"]
