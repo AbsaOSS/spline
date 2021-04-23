@@ -56,7 +56,7 @@ class AdminCLISpec
       it should s"when called with $arg, print the version info" in {
         val msg = captureStdOut(captureExitStatus(cli.exec(Array(arg))) should be(0))
         msg should include(SplineBuildInfo.Version)
-        msg should include(SplineBuildInfo.Revision.take(7))
+        msg should include(SplineBuildInfo.Revision)
       }
   }
 
