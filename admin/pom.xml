@@ -28,6 +28,10 @@
     <artifactId>admin</artifactId>
     <packaging>jar</packaging>
 
+    <properties>
+        <dockerfile.repositoryUrl><!-- defined externally --></dockerfile.repositoryUrl>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
@@ -87,6 +91,17 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>dockerfile-maven-plugin</artifactId>
+                <configuration>
+                    <skip>false</skip>
+                    <buildArgs>
+                        <version>${project.version}</version>
+                    </buildArgs>
+                    <repository>${dockerfile.repositoryUrl}/spline-admin</repository>
+                </configuration>
             </plugin>
         </plugins>
     </build>
