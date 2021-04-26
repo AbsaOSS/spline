@@ -31,10 +31,7 @@ LABEL \
     license="Apache License, version 2.0" \
     name="Spline Admin Tool"
 
-ENV ADMIN_COMMAND="db-init"
-ENV ARANGODB_URL="arangodb://localhost:8529/spline"
-ENV EXTRA_ARGS="-s"
-
 COPY target/admin-$VERSION.jar ./admin.jar
 
-ENTRYPOINT java -jar admin.jar $ADMIN_COMMAND $ARANGODB_URL $EXTRA_ARGS
+ENTRYPOINT ["java", "-jar", "admin.jar" ]
+CMD ["--help"]
