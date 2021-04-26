@@ -29,7 +29,8 @@
     <packaging>jar</packaging>
 
     <properties>
-        <dockerfile.repositoryUrl><!-- defined externally --></dockerfile.repositoryUrl>
+        <dockerfile.spline-admin.repository>absaoss/spline-admin</dockerfile.spline-admin.repository>
+        <dockerfile.tag>${project.version}</dockerfile.tag>
     </properties>
 
     <dependencies>
@@ -98,9 +99,12 @@
                 <configuration>
                     <skip>false</skip>
                     <buildArgs>
-                        <version>${project.version}</version>
+                        <DOCKER_BASE_ARTIFACT>${dockerfile.base.artifact}</DOCKER_BASE_ARTIFACT>
+                        <DOCKER_BASE_TAG>${dockerfile.base.tag}</DOCKER_BASE_TAG>
+                        <VERSION>${project.version}</VERSION>
                     </buildArgs>
-                    <repository>${dockerfile.repositoryUrl}/spline-admin</repository>
+                    <repository>${dockerfile.spline-admin.repository}</repository>
+                    <tag>${dockerfile.tag}</tag>
                 </configuration>
             </plugin>
         </plugins>
