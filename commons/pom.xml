@@ -131,6 +131,7 @@
                 <configuration>
                     <revisionOnScmFailure>unknown</revisionOnScmFailure>
                     <timestampFormat>{0,date,${maven.build.timestamp.format}}</timestampFormat>
+                    <shortRevisionLength>7</shortRevisionLength>
                 </configuration>
             </plugin>
         </plugins>

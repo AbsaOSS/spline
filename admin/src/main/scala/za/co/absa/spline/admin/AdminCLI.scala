@@ -77,7 +77,7 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
       head(
         s"""
            |Spline Admin Tool
-           |Version: ${SplineBuildInfo.Version} (rev. ${SplineBuildInfo.Revision.take(7)})
+           |Version: ${SplineBuildInfo.Version} (rev. ${SplineBuildInfo.Revision})
            |""".stripMargin
       )
 
