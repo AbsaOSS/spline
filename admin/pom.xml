@@ -29,7 +29,8 @@
     <packaging>jar</packaging>
 
     <properties>
-        <dockerfile.spline-admin.repository>absaoss/spline-admin</dockerfile.spline-admin.repository>
+        <dockerfile.repositoryUrl><!-- defined externally --></dockerfile.repositoryUrl>
+        <dockerfile.spline-admin.repository>${dockerfile.repositoryUrl}/spline-admin</dockerfile.spline-admin.repository>
         <dockerfile.tag>${project.version}</dockerfile.tag>
     </properties>
 
