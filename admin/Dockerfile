@@ -14,9 +14,7 @@
 # limitations under the License.
 #
 # Run image using:
-# $> docker run --rm -it \
-# -e ARANGODB_URL=arangodb://User:Password@ArangoURL:8529/YOUR-Spline-DB-Name \
-# absaoss/spline-admin:latest
+# $> docker run --rm -it absaoss/spline-admin:latest
 
 ARG DOCKER_BASE_ARTIFACT=adoptopenjdk/openjdk11
 ARG DOCKER_BASE_TAG=jdk-11.0.10_9-alpine-slim
@@ -33,5 +31,5 @@ LABEL \
 
 COPY target/admin-$VERSION.jar ./admin.jar
 
-ENTRYPOINT ["java", "-jar", "admin.jar" ]
+ENTRYPOINT ["java", "-jar", "admin.jar"]
 CMD ["--help"]
