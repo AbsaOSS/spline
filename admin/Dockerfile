@@ -13,10 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# Run image using:
+# $> docker run --rm -it \
+# -e ARANGODB_URL=arangodb://User:Password@ArangoURL:8529/YOUR-Spline-DB-Name \
+# absaoss/spline-admin:latest
 
-FROM adoptopenjdk/openjdk11:jdk-11.0.10_9-alpine-slim
+ARG DOCKER_BASE_ARTIFACT=adoptopenjdk/openjdk11
+ARG DOCKER_BASE_TAG=jdk-11.0.10_9-alpine-slim
 
-ARG version
+FROM $DOCKER_BASE_ARTIFACT:$DOCKER_BASE_TAG
+
+ARG VERSION
 
 LABEL \
     vendor="ABSA" \
@@ -24,7 +31,7 @@ LABEL \
     license="Apache License, version 2.0" \
     name="Spline Admin Tool"
 
-COPY target/admin-$version.jar ./admin.jar
+COPY target/admin-$VERSION.jar ./admin.jar
 
-ENTRYPOINT ["java", "-jar", "admin.jar"]
+ENTRYPOINT ["java", "-jar", "admin.jar" ]
 CMD ["--help"]
