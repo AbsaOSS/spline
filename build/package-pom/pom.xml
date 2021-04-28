@@ -54,10 +54,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <dockerfile.versionTagPrefix><!-- defined externally --></dockerfile.versionTagPrefix>
-        <dockerfile.versionTagName>${dockerfile.versionTagPrefix}${project.version}</dockerfile.versionTagName>
+        <dockerfile.versionTagSuffix><!-- defined externally --></dockerfile.versionTagSuffix>
+        <dockerfile.versionTagName>${dockerfile.versionTagPrefix}${project.version}${dockerfile.versionTagSuffix}</dockerfile.versionTagName>
 
         <dockerfile.latestTagPrefix><!-- defined externally --></dockerfile.latestTagPrefix>
-        <dockerfile.latestTagName>${dockerfile.latestTagPrefix}latest</dockerfile.latestTagName>
+        <dockerfile.latestTagSuffix><!-- defined externally --></dockerfile.latestTagSuffix>
+        <dockerfile.latestTagName>${dockerfile.latestTagPrefix}latest${dockerfile.latestTagSuffix}</dockerfile.latestTagName>
 
         <dockerfile.imageName><!-- defined in submodules --></dockerfile.imageName>
         <!-- Either ${dockerfile.repositoryUrl} or ${dockerfile.repositoryUrl} is required to be explicitly provided in the `mvn` command -->
