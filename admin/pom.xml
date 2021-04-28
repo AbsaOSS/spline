@@ -29,9 +29,7 @@
     <packaging>jar</packaging>
 
     <properties>
-        <dockerfile.repositoryUrl><!-- defined externally --></dockerfile.repositoryUrl>
-        <dockerfile.repository>${dockerfile.repositoryUrl}/spline-admin</dockerfile.repository>
-        <dockerfile.tag>${project.version}</dockerfile.tag>
+        <dockerfile.imageName>spline-admin</dockerfile.imageName>
     </properties>
 
     <dependencies>
@@ -100,12 +98,8 @@
                 <configuration>
                     <skip>false</skip>
                     <buildArgs>
-                        <DOCKER_BASE_ARTIFACT>${dockerfile.base.artifact}</DOCKER_BASE_ARTIFACT>
-                        <DOCKER_BASE_TAG>${dockerfile.base.tag}</DOCKER_BASE_TAG>
                         <VERSION>${project.version}</VERSION>
                     </buildArgs>
-                    <repository>${dockerfile.repository}</repository>
-                    <tag>${dockerfile.tag}</tag>
                 </configuration>
             </plugin>
         </plugins>

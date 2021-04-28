@@ -13,13 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 # Run image using:
 # $> docker run --rm -it absaoss/spline-admin:latest
 
-ARG DOCKER_BASE_ARTIFACT=adoptopenjdk/openjdk11
-ARG DOCKER_BASE_TAG=jdk-11.0.10_9-alpine-slim
+ARG DOCKER_BASE_IMAGE_PREFIX=
 
-FROM $DOCKER_BASE_ARTIFACT:$DOCKER_BASE_TAG
+FROM "$DOCKER_BASE_IMAGE_PREFIX"adoptopenjdk/openjdk11:jdk-11.0.10_9-alpine-slim
 
 ARG VERSION
 

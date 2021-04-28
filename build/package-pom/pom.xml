@@ -52,6 +52,19 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <dockerfile.versionTagPrefix><!-- defined externally --></dockerfile.versionTagPrefix>
+        <dockerfile.versionTagName>${dockerfile.versionTagPrefix}${project.version}</dockerfile.versionTagName>
+
+        <dockerfile.latestTagPrefix><!-- defined externally --></dockerfile.latestTagPrefix>
+        <dockerfile.latestTagName>${dockerfile.latestTagPrefix}latest</dockerfile.latestTagName>
+
+        <dockerfile.imageName><!-- defined in submodules --></dockerfile.imageName>
+        <!-- Either ${dockerfile.repositoryUrl} or ${dockerfile.repositoryUrl} is required to be explicitly provided in the `mvn` command -->
+        <dockerfile.repositoryUrl><!-- defined externally --></dockerfile.repositoryUrl>
+        <dockerfile.repository>${dockerfile.repositoryUrl}/${dockerfile.imageName}</dockerfile.repository>
+        <!-- [Optional] The prefix for the base images in Dockerfile (mainly used in custom CI/CD pipelines to pull images from alternative locations) -->
+        <dockerfile.baseImagePrefix><!-- defined externally --></dockerfile.baseImagePrefix>
     </properties>
 
     <developers>
@@ -194,7 +207,7 @@
                                     <goal>push</goal>
                                 </goals>
                                 <configuration>
-                                    <tag>${project.version}</tag>
+                                    <tag>${dockerfile.versionTagName}</tag>
                                 </configuration>
                             </execution>
                             <execution>
@@ -204,14 +217,17 @@
                                     <goal>push</goal>
                                 </goals>
                                 <configuration>
-                                    <tag>latest</tag>
+                                    <tag>${dockerfile.latestTagName}</tag>
                                 </configuration>
                             </execution>
                         </executions>
                         <configuration>
                             <skip>true</skip>
                             <!-- Dockerfile plugin requires <repository> to be non-empty even if <skip> is true -->
-                            <repository>placeholder/DO_NOT_REMOVE</repository>
+                            <repository>${dockerfile.repository}</repository>
+                            <buildArgs combine.children="append">
+                                <DOCKER_BASE_IMAGE_PREFIX>${dockerfile.baseImagePrefix}</DOCKER_BASE_IMAGE_PREFIX>
+                            </buildArgs>
                             <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
                         </configuration>
                     </plugin>

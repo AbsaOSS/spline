@@ -14,7 +14,9 @@
 # limitations under the License.
 #
 
-FROM tomcat:9.0.45-jdk11-corretto
+ARG DOCKER_BASE_IMAGE_PREFIX=
+
+FROM "$DOCKER_BASE_IMAGE_PREFIX"tomcat:9.0.45-jdk11-corretto
 
 LABEL \
     vendor="ABSA" \
