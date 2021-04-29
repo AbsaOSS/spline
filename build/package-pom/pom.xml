@@ -62,9 +62,15 @@
         <dockerfile.latestTagName>${dockerfile.latestTagPrefix}latest${dockerfile.latestTagSuffix}</dockerfile.latestTagName>
 
         <dockerfile.imageName><!-- defined in submodules --></dockerfile.imageName>
-        <!-- Either ${dockerfile.repositoryUrl} or ${dockerfile.repositoryUrl} is required to be explicitly provided in the `mvn` command -->
+        <!--
+            One of `dockerfile.repositoryUrl`, `dockerfile.repositoryPrefix` or `dockerfile.repository`
+            properties is required to be explicitly provided in the `mvn` command,
+            so that the resulted `dockerfile.repository` property has a correct value.
+        -->
         <dockerfile.repositoryUrl><!-- defined externally --></dockerfile.repositoryUrl>
-        <dockerfile.repository>${dockerfile.repositoryUrl}/${dockerfile.imageName}</dockerfile.repository>
+        <dockerfile.repositoryPrefix>${dockerfile.repositoryUrl}/</dockerfile.repositoryPrefix>
+        <dockerfile.repositorySuffix><!-- defined externally --></dockerfile.repositorySuffix>
+        <dockerfile.repository>${dockerfile.repositoryPrefix}${dockerfile.imageName}${dockerfile.repositorySuffix}</dockerfile.repository>
         <!-- [Optional] The prefix for the base images in Dockerfile (mainly used in custom CI/CD pipelines to pull images from alternative locations) -->
         <dockerfile.baseImagePrefix><!-- defined externally --></dockerfile.baseImagePrefix>
     </properties>
