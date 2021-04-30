@@ -20,9 +20,9 @@ FROM "$DOCKER_BASE_IMAGE_PREFIX"tomcat:9.0.45-jdk11-corretto
 
 LABEL \
     vendor="ABSA" \
-    copyright="2019 ABSA Group Limited" \
+    copyright="2021 ABSA Group Limited" \
     license="Apache License, version 2.0" \
-    name="Spline REST Gateway Server"
+    name="Spline Kafka Gateway Server"
 
 EXPOSE 8080
 EXPOSE 8009

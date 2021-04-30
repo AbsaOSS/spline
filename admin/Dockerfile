@@ -14,18 +14,22 @@
 # limitations under the License.
 #
 
+# Run image using:
+# $> docker run --rm -it absaoss/spline-admin:latest
+
 ARG DOCKER_BASE_IMAGE_PREFIX=
 
-FROM "$DOCKER_BASE_IMAGE_PREFIX"tomcat:9.0.45-jdk11-corretto
+FROM "$DOCKER_BASE_IMAGE_PREFIX"adoptopenjdk/openjdk11:jdk-11.0.10_9-alpine-slim
+
+ARG VERSION
 
 LABEL \
     vendor="ABSA" \
-    copyright="2019 ABSA Group Limited" \
+    copyright="2021 ABSA Group Limited" \
     license="Apache License, version 2.0" \
-    name="Spline REST Gateway Server"
+    name="Spline Admin Tool"
 
-EXPOSE 8080
-EXPOSE 8009
+COPY target/admin-$VERSION.jar ./admin.jar
 
-RUN rm -rf /usr/local/tomcat/webapps/*
-COPY target/*.war /usr/local/tomcat/webapps/ROOT.war
+ENTRYPOINT ["java", "-jar", "admin.jar"]
+CMD ["--help"]

@@ -52,6 +52,27 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <dockerfile.versionTagPrefix><!-- defined externally --></dockerfile.versionTagPrefix>
+        <dockerfile.versionTagSuffix><!-- defined externally --></dockerfile.versionTagSuffix>
+        <dockerfile.versionTagName>${dockerfile.versionTagPrefix}${project.version}${dockerfile.versionTagSuffix}</dockerfile.versionTagName>
+
+        <dockerfile.latestTagPrefix><!-- defined externally --></dockerfile.latestTagPrefix>
+        <dockerfile.latestTagSuffix><!-- defined externally --></dockerfile.latestTagSuffix>
+        <dockerfile.latestTagName>${dockerfile.latestTagPrefix}latest${dockerfile.latestTagSuffix}</dockerfile.latestTagName>
+
+        <dockerfile.imageName><!-- defined in submodules --></dockerfile.imageName>
+        <!--
+            One of `dockerfile.repositoryUrl`, `dockerfile.repositoryPrefix` or `dockerfile.repository`
+            properties is required to be explicitly provided in the `mvn` command,
+            so that the resulted `dockerfile.repository` property has a correct value.
+        -->
+        <dockerfile.repositoryUrl><!-- defined externally --></dockerfile.repositoryUrl>
+        <dockerfile.repositoryPrefix>${dockerfile.repositoryUrl}/</dockerfile.repositoryPrefix>
+        <dockerfile.repositorySuffix><!-- defined externally --></dockerfile.repositorySuffix>
+        <dockerfile.repository>${dockerfile.repositoryPrefix}${dockerfile.imageName}${dockerfile.repositorySuffix}</dockerfile.repository>
+        <!-- [Optional] The prefix for the base images in Dockerfile (mainly used in custom CI/CD pipelines to pull images from alternative locations) -->
+        <dockerfile.baseImagePrefix><!-- defined externally --></dockerfile.baseImagePrefix>
     </properties>
 
     <developers>
@@ -131,6 +152,13 @@
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <configuration>
+                            <skip>false</skip>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
                         <executions>
                             <execution>
@@ -183,6 +211,13 @@
                             <autoDropAfterRelease>true</autoDropAfterRelease>
                         </configuration>
                     </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>docker</id>
+            <build>
+                <plugins>
                     <plugin>
                         <groupId>com.spotify</groupId>
                         <artifactId>dockerfile-maven-plugin</artifactId>
@@ -194,7 +229,7 @@
                                     <goal>push</goal>
                                 </goals>
                                 <configuration>
-                                    <tag>${project.version}</tag>
+                                    <tag>${dockerfile.versionTagName}</tag>
                                 </configuration>
                             </execution>
                             <execution>
@@ -204,14 +239,17 @@
                                     <goal>push</goal>
                                 </goals>
                                 <configuration>
-                                    <tag>latest</tag>
+                                    <tag>${dockerfile.latestTagName}</tag>
                                 </configuration>
                             </execution>
                         </executions>
                         <configuration>
                             <skip>true</skip>
                             <!-- Dockerfile plugin requires <repository> to be non-empty even if <skip> is true -->
-                            <repository>placeholder/DO_NOT_REMOVE</repository>
+                            <repository>${dockerfile.repository}</repository>
+                            <buildArgs combine.children="append">
+                                <DOCKER_BASE_IMAGE_PREFIX>${dockerfile.baseImagePrefix}</DOCKER_BASE_IMAGE_PREFIX>
+                            </buildArgs>
                             <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
                         </configuration>
                     </plugin>
@@ -221,6 +259,15 @@
     </profiles>
 
     <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+        </plugins>
         <pluginManagement>
             <plugins>
                 <plugin>
