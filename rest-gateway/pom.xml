@@ -32,7 +32,7 @@
         <swagger.docs.path>${project.build.directory}/api/docs</swagger.docs.path>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssX</maven.build.timestamp.format>
-        <dockerfile.repositoryUrl><!-- defined externally --></dockerfile.repositoryUrl>
+        <dockerfile.imageName>spline-rest-server</dockerfile.imageName>
     </properties>
 
     <dependencies>
@@ -164,7 +164,6 @@
                 <artifactId>dockerfile-maven-plugin</artifactId>
                 <configuration>
                     <skip>false</skip>
-                    <repository>${dockerfile.repositoryUrl}/spline-rest-server</repository>
                 </configuration>
             </plugin>
         </plugins>
