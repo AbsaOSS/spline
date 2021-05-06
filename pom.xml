@@ -23,6 +23,13 @@
 
     <packaging>pom</packaging>
 
+    <scm>
+        <url>${scm.url}</url>
+        <connection>${scm.connection}</connection>
+        <developerConnection>${scm.developerConnection}</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
     <parent>
         <groupId>za.co.absa.spline</groupId>
         <artifactId>package-pom</artifactId>

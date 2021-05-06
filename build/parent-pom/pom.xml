@@ -27,6 +27,13 @@
     <artifactId>parent-pom</artifactId>
     <packaging>pom</packaging>
 
+    <scm>
+        <url>${scm.url}</url>
+        <connection>${scm.connection}</connection>
+        <developerConnection>${scm.developerConnection}</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
     <version>0.6.0-SNAPSHOT</version>
 
     <properties>
