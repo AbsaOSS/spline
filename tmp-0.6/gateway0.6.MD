@@ -23,8 +23,7 @@ Once your database is running you should be able to see ArangoDB web interface a
 
 Then we have to initialize Spline database. Create collections, indices, views etc.
 ```shell
-docker run absaoss/spline-admin:0.6.0 ??? 
-// TODO
+docker run -it --rm absaoss/spline-admin:0.6.0 db-init arangodb://localhost/spline
 ```
 Now you should be able to see Spline documents like `affects` or `attribute` in web interface at http://localhost:8529/_db/spline/
 
@@ -78,5 +77,4 @@ Spline is looking for configuration properties in those sources:
 
 `spline.kafka.consumer`
 - prefix for standard kafka consumer properties. Kafka gateway uses standard Kafka consumer inside, so any of it's [confiuration properties](https://kafka.apache.org/documentation/#consumerconfigs) can be used after this prefix. For example `spline.kafka.consumer.bootstrap.servers` or `spline.kafka.consumer.group.id`.
-
 
