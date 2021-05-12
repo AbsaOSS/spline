@@ -49,20 +49,20 @@ pyspark \
 ```
 
 ## Configuration
-Agent is looking for configuration properties in those sources:
+The agent looks for configuration properties in the following sources:
 - Hadoop configuration (core-site.xml)
 - Spark configuration
 - JVM system properties
 - `spline.properties` file on classpath
 
-File in agent `spline.default.properties` contains default values for properties as well as some additional properties docuemntation.
+The file `spline.default.properties` (in the agent source code) contains default values for properties as well as some additional documentation.
 It's good idea to look in the file to see what properties are available.
 
 ### Properties
 
 `spline.mode`
 - `DISABLED` Lineage tracking is completely disabled and Spline is unhooked from Spark.
-- `REQUIRED` If Spline fails to initialize itself (e.g. wrong configuration, no db connection etc) the Spark application aborts with an error.
+- `REQUIRED` If Spline fails to initialize itself (e.g. wrong configuration, no db connection etc) the Spark application aborts with an error. (**Note**: that only concerns Spline initialization routine. If the error happens during lineage capturing, or in the Spline dispatcher, then the target Spark job will have already been finished by that time, and the resulted data will have been persisted, regardless of the `spline.mode` settings. The Spline agent doesn't do any automated rollbacks).
 - `BEST_EFFORT` (default) Spline will try to initialize itself, but if fails it switches to DISABLED mode allowing the Spark application to proceed normally without Lineage tracking.
 
 `spline.lineageDispatcher` 
@@ -76,7 +76,7 @@ It's good idea to look in the file to see what properties are available.
  - Optional comma separated list of user lineage filters. More info in **Post Processing Lineage Filters** chapter.
 
 ## Lineage Dispatchers
-Lineage Dispatchers is a class that is usually (but not always) responsible for sending the converted lineage to gateway. By default `HttpLineageDispatcher` is used.
+The `LineageDispatcher` trait is responsible for sending out the captured lineage information. By default, the `HttpLineageDispatcher` is used, that sends the lineage data to the Spline REST endpoint (see Spline Producer API).
 
 Available dispacthers:
 - `HttpLineageDispatcher` - sends the lineage via http 
@@ -111,13 +111,23 @@ spline.lineageDispatcher.my-dispatcher.prop2=value2
 ## Post Processing Lineage Filters
 Filters can be used to enrich the lineage with your own custom data or to remove unwanted data like passwords. All filters are aplied after the Spark plan is converted to Spline DTOs, but before the dispatcher is called.
 
-The filter must implement `LineageFilter` class and have a constructor with a single parameter of type `org.apache.commons.configuration.Configuration`. For an example you can take a look at `DataSourceUriLineageFilter`. You can use the Configuration instance to acces configuration params and make the filter configurable that way. `LineageFilter`'s methods will provide you not only with lineage DTOs, but also wtih `HarvestingContext` object containing the original Spark plan.
-
-To use the filter you must set it via a property. For example:
+The procedure how filters are registered and configured is similar to the `LineageDispatcher` registration and configuration procedure.
+A custom filter class must implement `za.co.absa.spline.harvester.postprocessing.PostProcessingFilter` trait and declare a constructor with a single parameter of type `org.apache.commons.configuration.Configuration`.
+Then register and configure it like this: 
+```properties
+spline.postProcessingFilter.className=my-filter
+spline.postProcessingFilter.my-filter.className=my.awesome.CustomFilter
+spline.postProcessingFilter.my-filter.prop1=value1
+spline.postProcessingFilter.my-filter.prop2=value2
 ```
-spline.postprocessingFilter.classNames=za.co.absa.spline.harvester.postprocessing.DataSourceUriLineageFilter
+
+Use pre-registered `CompositePostProcessingFilter` to chain up multiple filters:
+```properties
+spline.postProcessingFilter=composite
+spline.postProcessingFilter.composite.filters=myFilter1,myFilter2
 ```
 
+(see `spline.default.properties` for details and examples)
 ## Supported Spark commands
 The latest agent supports the following 
 data formats and providers out of the box:
@@ -224,5 +234,4 @@ When one of these commands occurs spline will let you know.
 
 
 \*) `SaveIntoDataSourceCommand` is produced at the same time, and it's already implemented.
-
 

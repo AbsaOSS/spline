@@ -53,16 +53,20 @@ The server exposes the following REST API:
   - Consumer API Swagger documentation: [/docs/consumer.html](http://localhost:8080/docs/consumer.html) 
 
 ## Configuration
-Spline is looking for configuration properties in those sources:
+Spline is looking for configuration properties in the following sources (order by precedence):
+- Naming and directory context (via JNDI) if available
 - JVM system properties
-- `spline.properties` file on classpath
+- System environment variables
+
+Please adhere to the naming convention of each configuration source type. E.g. the property `foo.barBaz` would be looked up as `foo.barBaz` in the JVM options, as `foo/barBaz` in the JNDI, and as `FOO_BAR_BAZ` in the environment variables.
+For each source the 
 
 ### Persistance Properties
 `spline.database.connectionUrl`
 - Url of Arango database.
 
 `spline.database.logFullQueryOnError` (default false)
-- Will log the full arango query when se t to true.
+- Will log the full AQL query when set to true.
 
 ### Consumer Properties
 `spline.adaptive_timeout.min` (default 3s)
@@ -73,8 +77,7 @@ Spline is looking for configuration properties in those sources:
 
 ### Kafka Gateway Properties
 `spline.kafka.topic`
-- Topic from which the gateway will consume messages.
+- A topic from which the gateway will consume messages.
 
 `spline.kafka.consumer`
 - prefix for standard kafka consumer properties. Kafka gateway uses standard Kafka consumer inside, so any of it's [confiuration properties](https://kafka.apache.org/documentation/#consumerconfigs) can be used after this prefix. For example `spline.kafka.consumer.bootstrap.servers` or `spline.kafka.consumer.group.id`.
-
