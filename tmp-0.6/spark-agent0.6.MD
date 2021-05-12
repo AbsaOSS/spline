@@ -3,7 +3,7 @@
 Spark Agent goals are to:
 1) capture lineages of executed Spark jobs
 2) convert them to Spline lineage format
-3) send them to Spline Geatway (using Producer API)
+3) send them to Spline Gateway (using Producer API)
 
 To do this the agent needs to have a listener registered in Spark and also to know the connection to the gateway.
 
@@ -18,11 +18,11 @@ To do this the agent needs to have a listener registered in Spark and also to kn
 
 
 ## Artifacts
-- `agent-core_{{SPARK_VERSION}}` is a classic maven library that you can use with any compatible Spark version. This is required if you want to have acces to agent classes or use **programatic initialization**. 
-- `spark-{{SCALA_VERSION}}-spline-agent-bundle_{{SPARK_VERSION}}` is a fat jar containing all dependencies inside omitting the ones already provided by Spark. You can use the bundle in Spark via `--packages` flag. If you also activate the agent via **codeless initialization** your own code doesn't have to have any dependency on the agent it will be used directly by Spark.
+- `agent-core` is a classic maven library that you can use with any compatible Spark version. This is required if you want to have access to agent classes or use **programmatic initialization**. 
+- `spark-{{SPARK_VERSION}}-spline-agent-bundle` is a fat jar containing all dependencies inside omitting the ones already provided by Spark. You can use the bundle in Spark via `--packages` flag. If you also activate the agent via **codeless initialization** your own code doesn't have to have any dependency on the agent it will be used directly by Spark.
 
 ## Initialization
-Initialization is a process of creating agents objects and registering a listener in Spark that will call the agent after each job execution.
+Initialization is a process of creating agent's objects and registering a listener in Spark that will call the agent after each job execution.
 ### Programatic Initialization
 
 Initialization done in code via calling `enableLineageTracking()` function.
@@ -62,13 +62,13 @@ It's good idea to look in the file to see what properties are available.
 
 `spline.mode`
 - `DISABLED` Lineage tracking is completely disabled and Spline is unhooked from Spark.
-- `REQUIRED` If Spline fails to initialize itself (e.g. wrong configuration, no db connection etc) the Spark application aborts with an error. (**Note**: that only concerns Spline initialization routine. If the error happens during lineage capturing, or in the Spline dispatcher, then the target Spark job will have already been finished by that time, and the resulted data will have been persisted, regardless of the `spline.mode` settings. The Spline agent doesn't do any automated rollbacks).
-- `BEST_EFFORT` (default) Spline will try to initialize itself, but if fails it switches to DISABLED mode allowing the Spark application to proceed normally without Lineage tracking.
+- `REQUIRED` If Spline fails to initialize itself (e.g., wrong configuration, no db connection) the Spark application aborts with an error. (**Note**: that only concerns Spline initialization routine. If the error happens during lineage capturing, or in the Spline dispatcher, then the target Spark job have already been finished by that time, and the resulted data have been persisted, regardless of the `spline.mode` settings. The Spline agent doesn't do any automated rollbacks).
+- `BEST_EFFORT` (default) Spline will try to initialize itself, but if it fails it switches to DISABLED mode allowing the Spark application to proceed normally without Lineage tracking.
 
 `spline.lineageDispatcher` 
 - Name of lineage dispatcher in use. More info in **Lineage Dispatchers** chapter.
 
-`spline.IWDStrategy.default.onMissingMetrics` - behaviour when info whether the data was actually written is missing
+`spline.IWDStrategy.default.onMissingMetrics` - behavior when info, whether the data was actually written, is missing
 - `CAPTURE_LINEAGE`
 - `IGNORE_LINEAGE` (default)
 
@@ -85,9 +85,9 @@ Available dispacthers:
 - `LoggingLineageDispatcher` - logs the lineahge using logger
 - `CompositeLineageDispatcher` - allows combining multiple dispatchers
 
-Each dispatcher can have different configuration parameters. To make the configs clearly separated each dispacther has it's own namespace in which all it's parameters are defined. I will explain it on an kafka examples.
+Each dispatcher can have different configuration parameters. To make the configs clearly separated each dispatcher has it's own namespace in which all it's parameters are defined. I will explain it on an kafka examples.
 
-Defining dispacther
+Defining dispatcher
 ```
 spline.lineageDispatcher=kafka
 ```
@@ -100,7 +100,7 @@ spline.lineageDispatcher.kafka.producer.bootstrap.servers=localhost:9092
 ```
 
 ### Creating your own dispatcher
-There is also possibility to create your own dispatcher. It must implement `LineageDispatcher` trait and have a constructor with a single parameter of type `org.apache.commons.configuration.Configuration`. To use it you must define name and class and also all other parameters you need. For example:
+There is also a possibility to create your own dispatcher. It must implement `LineageDispatcher` trait and have a constructor with a single parameter of type `org.apache.commons.configuration.Configuration`. To use it you must define name and class and also all other parameters you need. For example:
 ```
 spline.lineageDispatcher=my-dispatcher
 spline.lineageDispatcher.my-dispatcher.className=org.example.spline.MyDispatcherImpl
@@ -109,7 +109,7 @@ spline.lineageDispatcher.my-dispatcher.prop2=value2
 ```
 
 ## Post Processing Lineage Filters
-Filters can be used to enrich the lineage with your own custom data or to remove unwanted data like passwords. All filters are aplied after the Spark plan is converted to Spline DTOs, but before the dispatcher is called.
+Filters can be used to enrich the lineage with your own custom data or to remove unwanted data like passwords. All filters are applied after the Spark plan is converted to Spline DTOs, but before the dispatcher is called.
 
 The procedure how filters are registered and configured is similar to the `LineageDispatcher` registration and configuration procedure.
 A custom filter class must implement `za.co.absa.spline.harvester.postprocessing.PostProcessingFilter` trait and declare a constructor with a single parameter of type `org.apache.commons.configuration.Configuration`.

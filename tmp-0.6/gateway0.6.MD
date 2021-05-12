@@ -1,8 +1,8 @@
 # Spline Server 0.6
 
 ## Artifacts
-- `rest-gateway-0.6.0.war` The heart of spline. It recives the lineage data from agents via **producer API** and store it in the ArangoDB. It also provides **consumer API** for reading and querying the lineages by UI or another applications.
-- `kafka-gateway-0.6.0.war` Alternative to producer API using kafka instead of http. This is supposed to run toggether with the gateway when kafka based comunication is desired.
+- `rest-gateway-0.6.0.war` The heart of spline. It receives the lineage data from agents via **producer API** and store it in the ArangoDB. It also provides **consumer API** for reading and querying the lineages by UI or another applications.
+- `kafka-gateway-0.6.0.war` Alternative to producer API using kafka instead of http. This is supposed to run together with the gateway when kafka based communication is desired.
 - `admin-0.6.0.jar` Helper tool for creating database objects.
 
 All artifacts are available in maven central repository and also like a self contained docker containers in docker hub.
@@ -21,11 +21,11 @@ docker run -p 8529:8529 -e ARANGO_NO_AUTH=1 arangodb/arangodb:3.7.10
 ```
 Once your database is running you should be able to see ArangoDB web interface at http://localhost:8529.
 
-Then we have to initialize Spline database. Create collections, indices, views etc.
+Then we have to initialize Spline database. Create collections, indices, views, etc.
 ```shell
 docker run -it --rm absaoss/spline-admin:0.6.0 db-init arangodb://localhost/spline
 ```
-Now you should be able to see Spline documents like `affects` or `attribute` in web interface at http://localhost:8529/_db/spline/
+Now you should be able to see Spline documents like `affects` or `attribute` in the web interface at http://localhost:8529/_db/spline/
 
 ### 2) Start Spline Server
 ```shell
@@ -41,7 +41,7 @@ docker container run \
 Open the server root URL in you browser:
 http://localhost:8080/
 
-You should see a dashboard with the updating server status information, server version, exposed API and some other useful info. 
+You should see a dashboard with updating server status information, server version, exposed API and some other useful info. 
 
 The server exposes the following REST API:
   - Producer API (`/producer/*`) 
@@ -58,8 +58,7 @@ Spline is looking for configuration properties in the following sources (order b
 - JVM system properties
 - System environment variables
 
-Please adhere to the naming convention of each configuration source type. E.g. the property `foo.barBaz` would be looked up as `foo.barBaz` in the JVM options, as `foo/barBaz` in the JNDI, and as `FOO_BAR_BAZ` in the environment variables.
-For each source the 
+Please adhere to the naming convention of each configuration source type. For example, the property `foo.barBaz` would be looked up as `foo.barBaz` in the JVM options, as `foo/barBaz` in the JNDI, and as `FOO_BAR_BAZ` in the environment variables.
 
 ### Persistance Properties
 `spline.database.connectionUrl`
@@ -67,13 +66,6 @@ For each source the
 
 `spline.database.logFullQueryOnError` (default false)
 - Will log the full AQL query when set to true.
-
-### Consumer Properties
-`spline.adaptive_timeout.min` (default 3s)
-- TODO
-
-`spline.adaptive_timeout.duration_factor` (default 1.5)
-- TODO
 
 ### Kafka Gateway Properties
 `spline.kafka.topic`
