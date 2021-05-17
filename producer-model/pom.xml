@@ -33,6 +33,11 @@
             <artifactId>commons</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.github.cerveada</groupId>
+            <artifactId>finatra-json-annotations_${scala.compat.version}</artifactId>
+        </dependency>
     </dependencies>
     
 </project>

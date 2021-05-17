@@ -16,6 +16,9 @@
 
 package za.co.absa.spline.producer.model.v1_1
 
+import com.twitter.finatra.json.annotations.NullValueAllowed
+
+
 sealed trait ExpressionLike {
   def id: ExpressionLike.Id
 
@@ -64,7 +67,7 @@ case class Literal(
   override val id: ExpressionLike.Id,
   override val dataType: Option[Any] = None,
   override val extra: Map[String, Any] = Map.empty,
-  value: Any,
+  @NullValueAllowed() value: Any,
 ) extends ExpressionLike {
   override def childRefs: Seq[ExpressionLike.ChildRef] = Nil
 }
