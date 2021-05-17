@@ -16,9 +16,9 @@
 
 package za.co.absa.spline.gateway.kafka
 
-import com.fasterxml.jackson.databind.{ObjectMapper, PropertyNamingStrategies, PropertyNamingStrategy}
+import com.fasterxml.jackson.databind.{ObjectMapper, PropertyNamingStrategies}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import com.twitter.finatra.FinatraInternalModules
+import com.twitter.finatra.jackson.FinatraInternalModules
 import org.apache.commons.configuration.ConfigurationConverter
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, StringDeserializer}

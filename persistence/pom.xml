@@ -60,9 +60,9 @@
         <!-- ArangoDB -->
 
         <dependency>
-            <groupId>com.arangodb</groupId>
+            <groupId>com.github.wajda.com.arangodb</groupId>
             <artifactId>arangodb-java-driver</artifactId>
-            <version>6.9.1</version>
+            <version>6.12.1.1</version>
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
@@ -89,5 +89,16 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>java-velocypack-module-scala-mvn-repo</id>
+            <url>https://raw.githubusercontent.com/wajda/arangodb-java-driver/mvn-repo/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
 
 </project>

@@ -83,8 +83,13 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>com.twitter</groupId>
+            <groupId>com.github.cerveada</groupId>
             <artifactId>finatra-jackson_${scala.compat.version}</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.github.cerveada</groupId>
+            <artifactId>finatra-json-annotations_${scala.compat.version}</artifactId>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -129,6 +134,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <scmConnectionUrl>scm:git:</scmConnectionUrl>
                     <revisionOnScmFailure>unknown</revisionOnScmFailure>
                     <timestampFormat>{0,date,${maven.build.timestamp.format}}</timestampFormat>
                     <shortRevisionLength>7</shortRevisionLength>
