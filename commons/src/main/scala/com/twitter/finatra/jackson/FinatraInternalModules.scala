@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.twitter.finatra
+package com.twitter.finatra.jackson
 
 import com.fasterxml.jackson.module.scala.JacksonModule
-import com.twitter.finatra.json.internal.caseclass.jackson.CaseClassModule
+import com.twitter.finatra.jackson.caseclass.CaseClassJacksonModule
 
 /**
   * This object serves the only purpose - to make access to some of the com.twitter.finatra Jackson modules,
@@ -25,5 +25,8 @@ import com.twitter.finatra.json.internal.caseclass.jackson.CaseClassModule
   */
 object FinatraInternalModules {
 
-  def caseClassModule: JacksonModule = CaseClassModule
+  def caseClassModule: JacksonModule = new CaseClassJacksonModule(
+    ScalaObjectMapper.DefaultInjectableTypes,
+    Some(ScalaObjectMapper.DefaultValidator)
+  )
 }
