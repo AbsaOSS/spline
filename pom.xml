@@ -59,30 +59,6 @@
     <build>
         <plugins>
 
-            <!-- disable deployment for the POM (there is no need for it) -->
-
-            <plugin>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>none</phase>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>deploy</goal>
-                        </goals>
-                        <phase>none</phase>
-                    </execution>
-                </executions>
-            </plugin>
-
             <!-- customize RAT plugin -->
 
             <plugin>
