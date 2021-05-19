@@ -9,9 +9,23 @@ Spline - an open-source data lineage tracking solution for data processing frame
 [![SonarCloud Reliability](https://sonarcloud.io/api/project_badges/measure?project=AbsaOSS_spline&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=AbsaOSS_spline)
 [![SonarCloud Security](https://sonarcloud.io/api/project_badges/measure?project=AbsaOSS_spline&metric=security_rating)](https://sonarcloud.io/dashboard?id=AbsaOSS_spline)
 
-For documentation and examples please visit:
-- [Spline GitHub Pages](https://absaoss.github.io/spline/)
-- [Getting Started](https://github.com/AbsaOSS/spline-getting-started)
+### Documentation
+
+See [Spline GitHub Pages](https://absaoss.github.io/spline/)
+
+### Getting started
+
+See [Getting Started](https://github.com/AbsaOSS/spline-getting-started)
+
+### Build project
+
+```shell
+mvn install
+```
+
+### Build Docker containers
+
+See [Building Docker](https://github.com/AbsaOSS/spline-getting-started/blob/main/building-docker.md)
 
 ---
 
