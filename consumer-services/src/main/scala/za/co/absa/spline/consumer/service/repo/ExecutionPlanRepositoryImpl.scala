@@ -91,6 +91,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |        "_id"       : execPlan._key,
         |        "systemInfo": execPlan.systemInfo,
         |        "agentInfo" : execPlan.agentInfo,
+        |        "name"      : execPlan.name || execPlan._key,
         |        "extra"     : MERGE(
         |                         execPlan.extra,
         |                         { attributes },
