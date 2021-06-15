@@ -33,7 +33,7 @@
             {%      assign urls = link.sublinks | map: "url" | push: link.url %}
             {%      if urls contains page.url %}
             {%        assign class = 'active' %}
-            {%        assign defaultVersion = site.version %}
+            {%        assign defaultVersion = site.version_series %}
             {%      endif %}
             {%      assign docVersionSplited = page.url | split: '.html' %}
             {%      assign docVersion = docVersionSplited[0] | replace_first: "/", "" | replace_first: "blog", "" %}
