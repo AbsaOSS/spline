@@ -19,11 +19,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>za.co.absa.spline</groupId>
-        <artifactId>package-pom</artifactId>
-        <version>0.6.1</version>
+        <groupId>za.co.absa</groupId>
+        <artifactId>root-pom</artifactId>
+        <version>1.0.0</version>
     </parent>
 
+    <groupId>za.co.absa.spline</groupId>
     <artifactId>parent-pom</artifactId>
     <packaging>pom</packaging>
 
@@ -54,6 +55,7 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
+                <version>4.5.0</version>
                 <configuration>
                     <scalaVersion>${scala.version}</scalaVersion>
                     <args>
@@ -94,6 +96,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
                 <configuration>
                     <skipTests>true</skipTests>
                 </configuration>
@@ -102,6 +105,7 @@
             <plugin>
                 <groupId>com.github.cerveada</groupId>
                 <artifactId>scalatest-maven-plugin</artifactId>
+                <version>2.0.1</version>
                 <configuration>
                     <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
                     <junitxml>.</junitxml>
