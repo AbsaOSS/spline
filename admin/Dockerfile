@@ -21,7 +21,7 @@ ARG DOCKER_BASE_IMAGE_PREFIX=
 
 FROM "$DOCKER_BASE_IMAGE_PREFIX"adoptopenjdk/openjdk11:jdk-11.0.10_9-alpine-slim
 
-ARG VERSION
+ARG PROJECT_BUILD_FINAL_NAME
 
 LABEL \
     vendor="ABSA" \
@@ -29,7 +29,7 @@ LABEL \
     license="Apache License, version 2.0" \
     name="Spline Admin Tool"
 
-COPY target/admin-$VERSION.jar ./admin.jar
+COPY target/$PROJECT_BUILD_FINAL_NAME.jar ./admin.jar
 
 ENTRYPOINT ["java", "-jar", "admin.jar"]
 CMD ["--help"]
