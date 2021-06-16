@@ -21,10 +21,7 @@ ARG DOCKER_BASE_IMAGE_PREFIX
 
 FROM "$DOCKER_BASE_IMAGE_PREFIX"adoptopenjdk:11-jre
 
-ARG VERSION
-ARG IMAGE_NAME
-
-ENV IMAGE_NAME=$IMAGE_NAME
+ARG PROJECT_BUILD_FINAL_NAME
 
 LABEL \
     vendor="ABSA" \
@@ -40,7 +37,7 @@ RUN apt-get update \
 
 USER 1001
 
-COPY target/admin-$VERSION.jar ./admin.jar
+COPY target/$PROJECT_BUILD_FINAL_NAME.jar ./admin.jar
 COPY entrypoint.sh .
 
 ENTRYPOINT ["tini", "-g", "--", "sh", "./entrypoint.sh"]
