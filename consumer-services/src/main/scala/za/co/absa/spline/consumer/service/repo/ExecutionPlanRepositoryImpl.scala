@@ -118,13 +118,13 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |)
         |
         |LET opIdsPrecedingTheOrigin = (
-        |    FOR op IN 1..9999
+        |    FOR op IN 1..999999
         |        OUTBOUND theOriginId follows
         |        RETURN DISTINCT op._id
         |)
         |
         |LET attrsWithEdges = (
-        |    FOR v, e IN 1..9999
+        |    FOR v, e IN 1..999999
         |        OUTBOUND theAttr derivesFrom
         |        LET attr = {
         |            "_id": v._id,
@@ -183,7 +183,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |LET theAttr = DOCUMENT("attribute", @attrId)
         |
         |LET attrsWithEdges = (
-        |    FOR v, e IN 0..9999
+        |    FOR v, e IN 0..999999
         |        INBOUND theAttr derivesFrom
         |        LET attr = KEEP(v, ["_id", "name"])
         |        LET edge = e && {

@@ -192,6 +192,7 @@ db._collections()
 console.log("Upgrade data");
 
 db._query(aql`
+    WITH progress, progressOf, executionPlan, executes, operation
     FOR ee IN progress
         LET executionEventDetails = FIRST(
             FOR v,e,p IN 2 OUTBOUND ee progressOf, executes
