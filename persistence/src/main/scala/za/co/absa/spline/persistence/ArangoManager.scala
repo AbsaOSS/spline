@@ -100,11 +100,8 @@ class ArangoManagerImpl(
     actions.foldLeft(Future.successful(())) {
       case (prevFuture, nextAction) =>
         prevFuture.flatMap(_ => (nextAction match {
-          case AuxiliaryDBAction.FoxxReinstall =>
-            for {
-              _ <- deleteFoxxServices()
-              _ <- createFoxxServices()
-            } yield {}
+          case AuxiliaryDBAction.CheckDBAccess => checkDBAccess(db)
+          case AuxiliaryDBAction.FoxxReinstall => reinstallFoxxServices()
           case AuxiliaryDBAction.IndicesDelete => deleteIndices(db)
           case AuxiliaryDBAction.IndicesCreate => createIndices(db)
           case AuxiliaryDBAction.ViewsDelete => deleteViews(db)
@@ -113,7 +110,18 @@ class ArangoManagerImpl(
     }
   }
 
-  private def deleteDbIfRequested(db: ArangoDatabaseAsync, dropIfExists: Boolean) =
+  private def checkDBAccess(db: ArangoDatabaseAsync) = {
+    db.exists.toScala
+  }
+
+  private def reinstallFoxxServices() = {
+    for {
+      _ <- deleteFoxxServices()
+      _ <- createFoxxServices()
+    } yield {}
+  }
+
+  private def deleteDbIfRequested(db: ArangoDatabaseAsync, dropIfExists: Boolean) = {
     for {
       exists <- db.exists.toScala
       _ <- if (exists && !dropIfExists)
@@ -124,6 +132,7 @@ class ArangoManagerImpl(
       }
       else Future.successful(Unit)
     } yield Unit
+  }
 
   private def createCollections(db: ArangoDatabaseAsync) = {
     log.debug(s"Create collections")

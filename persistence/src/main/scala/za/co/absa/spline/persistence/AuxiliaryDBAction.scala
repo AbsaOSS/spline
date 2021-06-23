@@ -20,6 +20,8 @@ sealed trait AuxiliaryDBAction
 
 object AuxiliaryDBAction {
 
+  case object CheckDBAccess extends AuxiliaryDBAction
+
   case object FoxxReinstall extends AuxiliaryDBAction
 
   case object IndicesDelete extends AuxiliaryDBAction

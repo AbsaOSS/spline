@@ -116,6 +116,9 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
         action ((_, c) => c.copy(cmd = DBExec()))
         text "Auxiliary actions mainly intended for development, testing etc."
         children(
+        opt[Unit]("check-access")
+          text "Check access to the database"
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(CheckDBAccess)) },
         opt[Unit]("foxx-reinstall")
           text "Reinstall Foxx services"
           action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(FoxxReinstall)) },
