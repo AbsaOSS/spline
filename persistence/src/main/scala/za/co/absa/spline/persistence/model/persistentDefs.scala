@@ -176,7 +176,7 @@ object NodeDef {
       IndexDef(Seq("timestamp"), new PersistentIndexOptions),
       IndexDef(Seq("_created"), new PersistentIndexOptions),
       IndexDef(Seq("extra.appId"), new PersistentIndexOptions().sparse(true)),
-      IndexDef(Seq("execPlanDetails.executionPlanId"), new PersistentIndexOptions),
+      IndexDef(Seq("execPlanDetails.executionPlanKey"), new PersistentIndexOptions),
       IndexDef(Seq("execPlanDetails.frameworkName"), new PersistentIndexOptions),
       IndexDef(Seq("execPlanDetails.applicationName"), new PersistentIndexOptions),
       IndexDef(Seq("execPlanDetails.dataSourceUri"), new PersistentIndexOptions),
