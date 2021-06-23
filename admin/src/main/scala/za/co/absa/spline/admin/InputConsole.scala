@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 ABSA Group Limited
+ * Copyright 2021 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence
+package za.co.absa.spline.admin
 
-sealed trait AuxiliaryDBAction
+import java.io.Console
 
-object AuxiliaryDBAction {
+trait InputConsole {
+  def readLine(msg: String): String
+  def readPassword(msg: String): String
+}
 
-  case object CheckDBAccess extends AuxiliaryDBAction
+object InputConsole {
 
-  case object FoxxReinstall extends AuxiliaryDBAction
+  def systemConsoleIfAvailable(): Option[InputConsole] = Option(System.console()).map(new SystemConsole(_))
 
-  case object IndicesDelete extends AuxiliaryDBAction
+  class SystemConsole(console: Console) extends InputConsole {
 
-  case object IndicesCreate extends AuxiliaryDBAction
+    override def readLine(msg: String): String = console.readLine(msg)
 
-  case object ViewsDelete extends AuxiliaryDBAction
-
-  case object ViewsCreate extends AuxiliaryDBAction
-
+    override def readPassword(msg: String): String = new String(console.readPassword(msg))
+  }
 }

@@ -23,7 +23,6 @@ import scopt.{OptionDef, OptionParser}
 import za.co.absa.spline.admin.AdminCLI.AdminCLIConfig
 import za.co.absa.spline.common.ConsoleUtils._
 import za.co.absa.spline.common.SplineBuildInfo
-import za.co.absa.spline.persistence.ArangoConnectionURL.{ArangoDbScheme, ArangoSecureDbScheme}
 import za.co.absa.spline.persistence.AuxiliaryDBAction._
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManagerFactory, ArangoManagerFactoryImpl}
@@ -37,32 +36,28 @@ object AdminCLI extends App {
 
   case class AdminCLIConfig(
     cmd: Command = null,
-    logLevel: Level = Level.INFO)
+    logLevel: Level = Level.INFO,
+    untrusted: Boolean = false,
+  )
 
   implicit class OptionParserOps(val p: OptionParser[AdminCLIConfig]) extends AnyVal {
     def placeNewLine(): Unit = p.note("")
 
     def dbCommandOptions: Seq[OptionDef[_, AdminCLIConfig]] = Seq(
-      p.opt[Unit]('k', "insecure")
-        text s"Allow insecure server connections when using SSL; disallowed by default"
-        action { case (_, c@AdminCLIConfig(cmd: DBCommand, _)) => c.copy(cmd.insecure = true) },
-      {
-        val logLevels = classOf[Level].getFields.collect { case f if f.getType == f.getDeclaringClass => f.getName }
-        val logLevelsString = logLevels.mkString(", ")
-
-        (p.opt[String]('l', "log-level")
-          text s"Log level ($logLevelsString). Default is ${AdminCLIConfig().logLevel}"
-          validate (l => if (logLevels.contains(l.toUpperCase)) p.success else p.failure(s"<log-level> should be one of: $logLevelsString"))
-          action ((str, conf) => conf.copy(logLevel = Level.valueOf(str))))
-      },
       p.arg[String]("<db_url>")
         required()
-        text s"ArangoDB connection string in the format: $ArangoDbScheme|$ArangoSecureDbScheme://[user[:password]@]host[:port]/database"
-        action { case (url, c@AdminCLIConfig(cmd: DBCommand, _)) => c.copy(cmd.dbUrl = url) }
+        text s"ArangoDB connection string in the format: ${ArangoConnectionURL.HumanReadableFormat}"
+        action { case (url, c@AdminCLIConfig(cmd: DBCommand, _, _)) => c.copy(cmd.dbUrl = ArangoConnectionURL(url)) }
     )
   }
 
-  private val dbManagerFactory = new ArangoManagerFactoryImpl()
+  private val dbManagerFactoryImpl = new ArangoManagerFactoryImpl()
+  private val maybeConsole = InputConsole.systemConsoleIfAvailable()
+
+  val dbManagerFactory = maybeConsole
+    .map(console => new InteractiveArangoManagerFactoryProxy(dbManagerFactoryImpl, new UserInteractor(console)))
+    .getOrElse(dbManagerFactoryImpl)
+
   new AdminCLI(dbManagerFactory).exec(args)
 }
 
@@ -81,8 +76,23 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
            |""".stripMargin
       )
 
-      help("help").text("prints this usage text")
-      version('v', "version").text("prints version info")
+      help("help").text("Print this usage text.")
+      version('v', "version").text("Print version info.")
+
+      {
+        val logLevels = classOf[Level].getFields.collect { case f if f.getType == f.getDeclaringClass => f.getName }
+        val logLevelsString = logLevels.mkString(", ")
+
+        (opt[String]('l', "log-level")
+          text s"Log level ($logLevelsString). Default is ${AdminCLIConfig().logLevel}."
+          validate (l => if (logLevels.contains(l.toUpperCase)) success else failure(s"<log-level> should be one of: $logLevelsString"))
+          action ((str, conf) => conf.copy(logLevel = Level.valueOf(str))))
+      }
+
+      // FIXME: rename 'insecure' to 'untrusted'. See https://github.com/AbsaOSS/spline/issues/906
+      (opt[Unit]('k', "insecure")
+        text s"Allow untrusted server connections when using SSL; disallowed by default."
+        action { case (_, conf) => conf.copy(untrusted = true) })
 
       this.placeNewLine()
 
@@ -91,11 +101,11 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
         text "Initialize Spline database"
         children(
         opt[Unit]('f', "force")
-          text "Re-create the database if one already exists"
-          action { case (_, c@AdminCLIConfig(cmd: DBInit, _)) => c.copy(cmd.copy(force = true)) },
+          text "Re-create the database if one already exists."
+          action { case (_, c@AdminCLIConfig(cmd: DBInit, _, _)) => c.copy(cmd.copy(force = true)) },
         opt[Unit]('s', "skip")
-          text "Skip existing database. Don't throw error, just end"
-          action { case (_, c@AdminCLIConfig(cmd: DBInit, _)) => c.copy(cmd.copy(skip = true)) })
+          text "Skip existing database. Don't throw error, just end."
+          action { case (_, c@AdminCLIConfig(cmd: DBInit, _, _)) => c.copy(cmd.copy(skip = true)) })
         children (this.dbCommandOptions: _*)
         )
 
@@ -112,32 +122,35 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
         action ((_, c) => c.copy(cmd = DBExec()))
         text "Auxiliary actions mainly intended for development, testing etc."
         children(
+        opt[Unit]("check-access")
+          text "Check access to the database"
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(CheckDBAccess)) },
         opt[Unit]("foxx-reinstall")
-          text "Reinstall Foxx services "
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _)) => c.copy(cmd.addAction(FoxxReinstall)) },
+          text "Reinstall Foxx services"
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(FoxxReinstall)) },
         opt[Unit]("indices-delete")
           text "Delete indices"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _)) => c.copy(cmd.addAction(IndicesDelete)) },
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(IndicesDelete)) },
         opt[Unit]("indices-create")
           text "Create indices"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _)) => c.copy(cmd.addAction(IndicesCreate)) },
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(IndicesCreate)) },
         opt[Unit]("views-delete")
           text "Delete views"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _)) => c.copy(cmd.addAction(ViewsDelete)) },
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(ViewsDelete)) },
         opt[Unit]("views-create")
           text "Create views"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _)) => c.copy(cmd.addAction(ViewsCreate)) })
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(ViewsCreate)) })
         children (this.dbCommandOptions: _*)
         )
 
       checkConfig {
-        case AdminCLIConfig(null, _) =>
+        case AdminCLIConfig(null, _, _) =>
           failure("No command given")
-        case AdminCLIConfig(cmd: DBCommand, _) if cmd.dbUrl == null =>
+        case AdminCLIConfig(cmd: DBCommand, _, _) if cmd.dbUrl == null =>
           failure("DB connection string is required")
-        case AdminCLIConfig(cmd: DBCommand, _) if cmd.dbUrl.startsWith(ArangoSecureDbScheme) && !cmd.insecure =>
-          failure("At the moment, only unsecure SSL is supported; when using the secure scheme, please add the -k option to skip server certificate verification altogether")
-        case AdminCLIConfig(cmd: DBInit, _) if cmd.force && cmd.skip =>
+        case AdminCLIConfig(cmd: DBCommand, _, isUntrusted) if cmd.dbUrl.isSecure && !isUntrusted =>
+          failure("At the moment, only untrusted SSL is supported; when using the secure scheme, please add the -k option to skip server certificate verification altogether.")
+        case AdminCLIConfig(cmd: DBInit, _, _) if cmd.force && cmd.skip =>
           failure("Options '--force' and '--skip' cannot be used together")
         case _ =>
           success
@@ -154,22 +167,22 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
       .setLevel(conf.logLevel)
 
     conf.cmd match {
-      case DBInit(url, _, force, skip) =>
+      case DBInit(url, force, skip) =>
         val onExistsAction = (force, skip) match {
           case (true, false) => Drop
           case (false, true) => Skip
           case (false, false) => Fail
         }
-        val dbManager = dbManagerFactory.create(ArangoConnectionURL(url))
+        val dbManager = dbManagerFactory.create(url)
         val wasInitialized = Await.result(dbManager.initialize(onExistsAction), Duration.Inf)
         if (!wasInitialized) println(ansi"%yellow{Skipped. DB is already initialized}")
 
-      case DBUpgrade(url, _) =>
-        val dbManager = dbManagerFactory.create(ArangoConnectionURL(url))
+      case DBUpgrade(url) =>
+        val dbManager = dbManagerFactory.create(url)
         Await.result(dbManager.upgrade(), Duration.Inf)
 
-      case DBExec(url, _, actions) =>
-        val dbManager = dbManagerFactory.create(ArangoConnectionURL(url))
+      case DBExec(url, actions) =>
+        val dbManager = dbManagerFactory.create(url)
         Await.result(dbManager.execute(actions: _*), Duration.Inf)
     }
 

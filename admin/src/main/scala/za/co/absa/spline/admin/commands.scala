@@ -16,57 +16,52 @@ package za.co.absa.spline.admin
  * limitations under the License.
  */
 
-import za.co.absa.spline.persistence.AuxiliaryDBAction
-
-import scala.concurrent.duration._
+import za.co.absa.spline.admin.DBCommand._
+import za.co.absa.spline.persistence.{ArangoConnectionURL, AuxiliaryDBAction}
 
 sealed trait Command
 
 sealed trait DBCommand extends Command {
-  def dbUrl: String
-
-  def insecure: Boolean
-
-  def timeout_=(t: Duration): Self = selfCopy(dbUrl, insecure)
-
-  def dbUrl_=(url: String): Self = selfCopy(url, insecure)
-
-  def insecure_=(b: Boolean): Self = selfCopy(dbUrl, b)
+  def dbUrl: Url
+  def dbUrl_= : Url => Self = selfCopy(_)
 
   protected type Self <: DBCommand
 
-  protected def selfCopy: (String, Boolean) => Self
+  protected def selfCopy: DBCommandProps => Self
 }
 
+//noinspection ScalaUnnecessaryParentheses
 object DBCommand {
-  val defaultInsecure: Boolean = false
+  type Url = ArangoConnectionURL
+
+  type DBCommandProps = (Url)
+
+  def unapply(cmd: DBCommand): Option[DBCommandProps] = Some((cmd.dbUrl))
 }
 
 case class DBInit(
-  override val dbUrl: String = null,
-  override val insecure: Boolean = DBCommand.defaultInsecure,
+  override val dbUrl: Url = null,
   force: Boolean = false,
   skip: Boolean = false
 ) extends DBCommand {
   protected override type Self = DBInit
-  protected override val selfCopy: (String, Boolean) => Self = copy(_, _)
+  protected override val selfCopy: DBCommandProps => Self = copy(_)
 }
 
+//noinspection ConvertibleToMethodValue
 case class DBUpgrade(
-  override val dbUrl: String = null,
-  override val insecure: Boolean = DBCommand.defaultInsecure
+  override val dbUrl: Url = null,
 ) extends DBCommand {
   protected override type Self = DBUpgrade
-  protected override val selfCopy: (String, Boolean) => Self = copy
+  protected override val selfCopy: DBCommandProps => Self = copy(_)
 }
 
 case class DBExec(
-  override val dbUrl: String = null,
-  override val insecure: Boolean = DBCommand.defaultInsecure,
+  override val dbUrl: Url = null,
   actions: Seq[AuxiliaryDBAction] = Nil,
 ) extends DBCommand {
   protected override type Self = DBExec
-  protected override val selfCopy: (String, Boolean) => Self = copy(_, _)
+  protected override val selfCopy: DBCommandProps => Self = copy(_)
 
   def addAction(action: AuxiliaryDBAction): DBExec = copy(actions = actions :+ action)
 }
