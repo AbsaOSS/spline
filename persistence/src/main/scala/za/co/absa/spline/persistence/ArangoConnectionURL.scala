@@ -16,12 +16,11 @@
 
 package za.co.absa.spline.persistence
 
-import java.net.MalformedURLException
-
 import org.apache.commons.lang3.StringUtils.trimToNull
 import za.co.absa.commons.lang.OptionImplicits.StringWrapper
 import za.co.absa.spline.persistence.ArangoConnectionURL.ArangoSecureDbScheme
 
+import java.net.MalformedURLException
 import scala.util.matching.Regex
 
 case class ArangoConnectionURL(scheme: String, user: Option[String], password: Option[String], hosts: Seq[(String, Int)], dbName: String) {
@@ -47,8 +46,8 @@ case class ArangoConnectionURL(scheme: String, user: Option[String], password: O
 
 object ArangoConnectionURL {
 
-  val ArangoDbScheme = "arangodb"
-  val ArangoSecureDbScheme = "arangodbs"
+  private[persistence] val ArangoDbScheme = "arangodb"
+  private[persistence] val ArangoSecureDbScheme = "arangodbs"
   private val DefaultPort = 8529
 
   private val ArangoConnectionUrlRegex = {
@@ -62,6 +61,8 @@ object ArangoConnectionURL {
     }
     new Regex(s"$scheme://(?:$user(?::$password)?@)?$hostList/$dbName")
   }
+
+  val HumanReadableFormat = s"$ArangoDbScheme|$ArangoSecureDbScheme://[user[:password]@]host[:port]/database"
 
   def apply(url: String): ArangoConnectionURL = try {
     val ArangoConnectionUrlRegex(scheme, user, password, commaSeparatedHostWithPortList, dbName) = url
