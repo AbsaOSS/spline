@@ -23,6 +23,7 @@ import scopt.{OptionDef, OptionParser}
 import za.co.absa.spline.admin.AdminCLI.AdminCLIConfig
 import za.co.absa.spline.common.ConsoleUtils._
 import za.co.absa.spline.common.SplineBuildInfo
+import za.co.absa.spline.common.security.TLSUtils
 import za.co.absa.spline.persistence.AuxiliaryDBAction._
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManagerFactory, ArangoManagerFactoryImpl}
@@ -37,7 +38,7 @@ object AdminCLI extends App {
   case class AdminCLIConfig(
     cmd: Command = null,
     logLevel: Level = Level.INFO,
-    untrusted: Boolean = false,
+    disableSslValidation: Boolean = false,
   )
 
   implicit class OptionParserOps(val p: OptionParser[AdminCLIConfig]) extends AnyVal {
@@ -89,10 +90,10 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
           action ((str, conf) => conf.copy(logLevel = Level.valueOf(str))))
       }
 
-      // FIXME: rename 'insecure' to 'untrusted'. See https://github.com/AbsaOSS/spline/issues/906
+      // FIXME: rename 'insecure' to 'disable-ssl-validation'. See https://github.com/AbsaOSS/spline/issues/906
       (opt[Unit]('k', "insecure")
         text s"Allow untrusted server connections when using SSL; disallowed by default."
-        action { case (_, conf) => conf.copy(untrusted = true) })
+        action { case (_, conf) => conf.copy(disableSslValidation = true) })
 
       this.placeNewLine()
 
@@ -148,8 +149,6 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
           failure("No command given")
         case AdminCLIConfig(cmd: DBCommand, _, _) if cmd.dbUrl == null =>
           failure("DB connection string is required")
-        case AdminCLIConfig(cmd: DBCommand, _, isUntrusted) if cmd.dbUrl.isSecure && !isUntrusted =>
-          failure("At the moment, only untrusted SSL is supported; when using the secure scheme, please add the -k option to skip server certificate verification altogether.")
         case AdminCLIConfig(cmd: DBInit, _, _) if cmd.force && cmd.skip =>
           failure("Options '--force' and '--skip' cannot be used together")
         case _ =>
@@ -166,6 +165,10 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
       .asInstanceOf[Logger]
       .setLevel(conf.logLevel)
 
+    val sslCtxOpt =
+      if (!conf.disableSslValidation) None
+      else Some(TLSUtils.TrustingAllSSLContext)
+
     conf.cmd match {
       case DBInit(url, force, skip) =>
         val onExistsAction = (force, skip) match {
@@ -173,16 +176,16 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
           case (false, true) => Skip
           case (false, false) => Fail
         }
-        val dbManager = dbManagerFactory.create(url)
+        val dbManager = dbManagerFactory.create(url, sslCtxOpt)
         val wasInitialized = Await.result(dbManager.initialize(onExistsAction), Duration.Inf)
         if (!wasInitialized) println(ansi"%yellow{Skipped. DB is already initialized}")
 
       case DBUpgrade(url) =>
-        val dbManager = dbManagerFactory.create(url)
+        val dbManager = dbManagerFactory.create(url, sslCtxOpt)
         Await.result(dbManager.upgrade(), Duration.Inf)
 
       case DBExec(url, actions) =>
-        val dbManager = dbManagerFactory.create(url)
+        val dbManager = dbManagerFactory.create(url, sslCtxOpt)
         Await.result(dbManager.execute(actions: _*), Duration.Inf)
     }
 

@@ -20,17 +20,18 @@ import com.arangodb.async.ArangoDatabaseAsync
 import za.co.absa.spline.persistence.foxx.FoxxManagerImpl
 import za.co.absa.spline.persistence.migration.{MigrationScriptRepository, Migrator}
 
+import javax.net.ssl.SSLContext
 import scala.concurrent.ExecutionContext
 
 trait ArangoManagerFactory {
-  def create(connectionURL: ArangoConnectionURL): ArangoManager
+  def create(connectionURL: ArangoConnectionURL, maybeSSLContext: Option[SSLContext]): ArangoManager
 }
 
 class ArangoManagerFactoryImpl()(implicit ec: ExecutionContext) extends ArangoManagerFactory {
 
   import ArangoImplicits._
 
-  override def create(connectionURL: ArangoConnectionURL): ArangoManager = {
+  override def create(connectionURL: ArangoConnectionURL, maybeSSLContext: Option[SSLContext]): ArangoManager = {
     val scriptRepo = MigrationScriptRepository
 
     def dbManager(db: ArangoDatabaseAsync): ArangoManager = {
@@ -47,7 +48,7 @@ class ArangoManagerFactoryImpl()(implicit ec: ExecutionContext) extends ArangoMa
     }
 
     def dbFacade(): ArangoDatabaseFacade =
-      new ArangoDatabaseFacade(connectionURL)
+      new ArangoDatabaseFacade(connectionURL, maybeSSLContext)
 
     new AutoClosingArangoManagerProxy(dbManager, dbFacade)
   }

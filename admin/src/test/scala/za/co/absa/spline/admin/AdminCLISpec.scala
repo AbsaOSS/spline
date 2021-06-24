@@ -25,9 +25,11 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.commons.scalatest.{ConsoleStubs, SystemExitFixture}
 import za.co.absa.spline.common.SplineBuildInfo
+import za.co.absa.spline.common.security.TLSUtils
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManager, ArangoManagerFactory, OnDBExistsAction}
 
+import javax.net.ssl.SSLContext
 import scala.concurrent.Future
 
 class AdminCLISpec
@@ -66,9 +68,10 @@ class AdminCLISpec
   {
     val connUrlCaptor: ArgumentCaptor[ArangoConnectionURL] = ArgumentCaptor.forClass(classOf[ArangoConnectionURL])
     val actionFlgCaptor: ArgumentCaptor[OnDBExistsAction] = ArgumentCaptor.forClass(classOf[OnDBExistsAction])
+    val sslCtxCaptor: ArgumentCaptor[Option[SSLContext]] = ArgumentCaptor.forClass(classOf[Option[SSLContext]])
 
     (when(
-      arangoManagerFactoryMock.create(connUrlCaptor.capture))
+      arangoManagerFactoryMock.create(connUrlCaptor.capture, sslCtxCaptor.capture))
       thenReturn arangoManagerMock)
 
     (when(
@@ -91,6 +94,17 @@ class AdminCLISpec
       captureStdErr {
         captureExitStatus(cli.exec(Array("db-upgrade", "-f"))) should be(1)
       } should include("--help")
+    }
+
+    it should "when calling with option -k, create a non-validating SSLContext" in {
+      cli.exec(Array("db-exec", "arangodbs://foo/bar", "-k"))
+      sslCtxCaptor.getValue.nonEmpty should be(true)
+      sslCtxCaptor.getValue.get should be(TLSUtils.TrustingAllSSLContext)
+    }
+
+    it should "when calling without option -k, do not create any custom SSLContext (leave default one)" in {
+      cli.exec(Array("db-exec", "arangodbs://foo/bar"))
+      sslCtxCaptor.getValue.isEmpty should be(true)
     }
 
     behavior of "DB-Init"
