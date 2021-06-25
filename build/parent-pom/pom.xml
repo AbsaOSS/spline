@@ -261,13 +261,8 @@
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.github.cerveada</groupId>
+                <groupId>com.twitter</groupId>
                 <artifactId>finatra-jackson_${scala.compat.version}</artifactId>
-                <version>${finatra.jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.cerveada</groupId>
-                <artifactId>finatra-json-annotations_${scala.compat.version}</artifactId>
                 <version>${finatra.jackson.version}</version>
             </dependency>
 
@@ -453,16 +448,5 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <repositories>
-        <repository>
-            <id>twitter-finatra-jackson-mvn-repo</id>
-            <url>https://raw.githubusercontent.com/cerveada/finatra/mvn-repo/</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
-    </repositories>
 
 </project>
