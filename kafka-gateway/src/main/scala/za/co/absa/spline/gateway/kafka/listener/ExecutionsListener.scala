@@ -27,15 +27,19 @@ import za.co.absa.spline.gateway.kafka.KafkaGatewayConfig
 import za.co.absa.spline.producer.model.v1_1.{ExecutionEvent, ExecutionPlan}
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 
+import scala.beans.BeanProperty
 import scala.concurrent.{Await, ExecutionContext}
 import scala.util.control.NonFatal
 
 @Unstable
 @Component
-@KafkaListener(topics = Array("${spline.kafka.topic}"))
+@KafkaListener(topics = Array("#{__listener.topic}"))
 class ExecutionsListener @Autowired()(val repo: ExecutionProducerRepository) extends Logging {
 
   import ExecutionContext.Implicits.global
+
+  @BeanProperty
+  val topic: String = KafkaGatewayConfig.Kafka.Topic
 
   @KafkaHandler
   def listenExecutionPlan(
