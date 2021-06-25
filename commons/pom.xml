@@ -83,13 +83,8 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>com.github.cerveada</groupId>
+            <groupId>com.twitter</groupId>
             <artifactId>finatra-jackson_${scala.compat.version}</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.github.cerveada</groupId>
-            <artifactId>finatra-json-annotations_${scala.compat.version}</artifactId>
             <optional>true</optional>
         </dependency>
         <dependency>

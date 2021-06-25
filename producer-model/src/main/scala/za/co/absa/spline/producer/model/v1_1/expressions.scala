@@ -16,8 +16,8 @@
 
 package za.co.absa.spline.producer.model.v1_1
 
-import com.twitter.finatra.json.annotations.NullValueAllowed
-
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import za.co.absa.spline.common.webmvc.jackson.NullAcceptingDeserializer
 
 sealed trait ExpressionLike {
   def id: ExpressionLike.Id
@@ -67,7 +67,8 @@ case class Literal(
   override val id: ExpressionLike.Id,
   override val dataType: Option[Any] = None,
   override val extra: Map[String, Any] = Map.empty,
-  @NullValueAllowed() value: Any,
+  @JsonDeserialize(using = classOf[NullAcceptingDeserializer])
+  value: Any,
 ) extends ExpressionLike {
   override def childRefs: Seq[ExpressionLike.ChildRef] = Nil
 }
