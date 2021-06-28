@@ -33,7 +33,7 @@ import org.springframework.kafka.support.JacksonUtils
 import org.springframework.kafka.support.converter.Jackson2JavaTypeMapper.TypePrecedence
 import org.springframework.kafka.support.converter.{ByteArrayJsonMessageConverter, DefaultJackson2JavaTypeMapper, RecordMessageConverter}
 import za.co.absa.commons.config.ConfTyped
-import za.co.absa.commons.config.ConfigurationImplicits.ConfigurationOptionalWrapper
+import za.co.absa.commons.config.ConfigurationImplicits.{ConfigurationOptionalWrapper, ConfigurationRequiredWrapper}
 import za.co.absa.spline.common.config.DefaultConfigurationStack
 
 import java.util.concurrent.TimeUnit
@@ -59,7 +59,9 @@ class KafkaGatewayConfig {
   }
 
   private val consumerConfigsMerged: Map[String, AnyRef] = {
-    KafkaGatewayConfig.Kafka.ConsumerConfig ++ Map[String, AnyRef](
+    KafkaGatewayConfig.Kafka.OtherConsumerConfig ++ Map[String, AnyRef](
+      ConsumerConfig.GROUP_ID_CONFIG -> KafkaGatewayConfig.Kafka.Consumer.GroupId,
+      ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG -> KafkaGatewayConfig.Kafka.Consumer.BootstrapServers,
       ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG -> classOf[StringDeserializer].getName,
       ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG -> classOf[ByteArrayDeserializer].getName,
     )
@@ -106,7 +108,15 @@ object KafkaGatewayConfig extends DefaultConfigurationStack with ConfTyped {
   private val conf = this
 
   object Kafka extends Conf("kafka") {
-    val ConsumerConfig: Map[String, AnyRef] = ConfigurationConverter
+
+    val Topic: String = conf.getRequiredString(Prop("topic"))
+
+    object Consumer extends Conf("consumer") {
+      val GroupId: String = conf.getRequiredString(Prop(ConsumerConfig.GROUP_ID_CONFIG))
+      val BootstrapServers: String = conf.getRequiredString(Prop(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG))
+    }
+
+    val OtherConsumerConfig: Map[String, AnyRef] = ConfigurationConverter
       .getMap(subset(Prop("consumer")))
       .asScala.toMap
       .asInstanceOf[Map[String, AnyRef]]
