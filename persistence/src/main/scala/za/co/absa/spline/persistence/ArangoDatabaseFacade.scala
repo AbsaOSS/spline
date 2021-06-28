@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.persistence
 
+import com.arangodb.ArangoDBException
 import com.arangodb.async.{ArangoDBAsync, ArangoDatabaseAsync}
 import com.arangodb.velocypack.module.scala.VPackScalaModule
 import org.slf4s.Logging
@@ -27,7 +28,8 @@ import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl._
-import scala.concurrent.blocking
+import scala.concurrent._
+import scala.util.Try
 
 class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL) extends DisposableBean {
 
@@ -64,7 +66,15 @@ class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL) extends Disposabl
   }
 
   override def destroy(): Unit = {
-    arango.shutdown()
+    try {
+      arango.shutdown()
+    } catch {
+      // this is a workaround for https://github.com/arangodb/arangodb-java-driver/issues/399
+      case _: ArangoDBException =>
+        // the second call works apparently because an ArangoDB resource that has thrown this exception on shutdown,
+        // is already closed at this point regardless the exception. So now we're closing remaining resources.
+        Try(arango.shutdown())
+    }
   }
 }
 
@@ -76,14 +86,19 @@ object ArangoDatabaseFacade extends Logging {
   val MinArangoVerRecommended: SemanticVersion = semver"3.7.3"
 
   private def warmUpDb(db: ArangoDatabaseAsync): Unit = {
-    val arangoVer = Version.asSemVer(
+    val verStr = try {
       blocking {
         db.arango
           .getVersion
           .get
           .getVersion
       }
-    )
+    } catch {
+      case ce: ExecutionException =>
+        throw ce.getCause
+    }
+
+    val arangoVer = Version.asSemVer(verStr)
 
     // check ArangoDb server version requirements
     if (arangoVer < MinArangoVerRequired)
