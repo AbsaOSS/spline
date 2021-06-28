@@ -23,6 +23,7 @@ import scopt.{OptionDef, OptionParser}
 import za.co.absa.spline.admin.AdminCLI.AdminCLIConfig
 import za.co.absa.spline.common.ConsoleUtils._
 import za.co.absa.spline.common.SplineBuildInfo
+import za.co.absa.spline.common.scala13.Option
 import za.co.absa.spline.common.security.TLSUtils
 import za.co.absa.spline.persistence.AuxiliaryDBAction._
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
@@ -165,9 +166,7 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
       .asInstanceOf[Logger]
       .setLevel(conf.logLevel)
 
-    val sslCtxOpt =
-      if (!conf.disableSslValidation) None
-      else Some(TLSUtils.TrustingAllSSLContext)
+    val sslCtxOpt = Option.when(conf.disableSslValidation)(TLSUtils.TrustingAllSSLContext)
 
     conf.cmd match {
       case DBInit(url, force, skip) =>

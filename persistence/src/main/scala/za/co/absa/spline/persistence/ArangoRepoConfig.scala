@@ -22,6 +22,7 @@ import org.springframework.beans.factory.InitializingBean
 import org.springframework.context.annotation.{Bean, Configuration}
 import za.co.absa.commons.config.ConfTyped
 import za.co.absa.spline.common.config.DefaultConfigurationStack
+import za.co.absa.spline.common.scala13.Option
 import za.co.absa.spline.common.security.TLSUtils
 
 @Configuration
@@ -35,10 +36,7 @@ class ArangoRepoConfig extends InitializingBean with Logging {
   }
 
   @Bean def arangoDatabaseFacade: ArangoDatabaseFacade = {
-    val sslCtxOpt =
-      if (!Database.DisableSSLValidation) None
-      else Some(TLSUtils.TrustingAllSSLContext)
-
+    val sslCtxOpt = Option.when(Database.DisableSSLValidation)(TLSUtils.TrustingAllSSLContext)
     new ArangoDatabaseFacade(Database.ConnectionURL, sslCtxOpt)
   }
 
