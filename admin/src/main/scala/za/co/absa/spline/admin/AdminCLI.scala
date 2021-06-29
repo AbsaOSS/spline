@@ -67,7 +67,7 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
 
   def exec(args: Array[String]): Unit = {
 
-    val cliParser: OptionParser[AdminCLIConfig] = new OptionParser[AdminCLIConfig]("Spline Admin CLI") {
+    val cliParser: OptionParser[AdminCLIConfig] = new OptionParser[AdminCLIConfig](AppConfig.Spline.CLI.Executable) {
 
       import AdminCLI._
 
