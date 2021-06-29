@@ -91,9 +91,13 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
           action ((str, conf) => conf.copy(logLevel = Level.valueOf(str))))
       }
 
-      // FIXME: rename 'insecure' to 'disable-ssl-validation'. See https://github.com/AbsaOSS/spline/issues/906
+      // FIXME: Deprecated since Spline 0.6.1. To be removed in Spline 1.0.0 - https://github.com/AbsaOSS/spline/issues/906
       (opt[Unit]('k', "insecure")
-        text s"Allow untrusted server connections when using SSL; disallowed by default."
+        text s"Deprecated. See --disable-ssl-validation"
+        action { case (_, conf) => conf.copy(disableSslValidation = true) })
+
+      (opt[Unit]("disable-ssl-validation")
+        text s"Disable validation of self-signed SSL certificates. (Don't use on production)."
         action { case (_, conf) => conf.copy(disableSslValidation = true) })
 
       this.placeNewLine()
