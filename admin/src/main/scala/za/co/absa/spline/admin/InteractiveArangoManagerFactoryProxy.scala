@@ -16,29 +16,30 @@
 
 package za.co.absa.spline.admin
 
+import com.arangodb.ArangoDBException
 import za.co.absa.spline.persistence.AuxiliaryDBAction.CheckDBAccess
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManager, ArangoManagerFactory}
 
-import scala.concurrent.Await
+import java.net.HttpURLConnection.HTTP_UNAUTHORIZED
+import scala.PartialFunction.cond
 import scala.concurrent.duration.Duration
-import scala.util.Try
+import scala.concurrent.{Await, ExecutionException}
 
 class InteractiveArangoManagerFactoryProxy(dbManagerFactory: ArangoManagerFactory, interactor: UserInteractor) extends ArangoManagerFactory {
 
   override def create(connUrl: ArangoConnectionURL): ArangoManager = {
-    Try({
+    try {
       val dbm = dbManagerFactory.create(connUrl)
       Await.result(dbm.execute(CheckDBAccess), Duration.Inf)
       dbm
-    }).recover({
-      // FIXME: this case-block is to be improved in ticket #907: https://github.com/AbsaOSS/spline/issues/907
-      case e: Exception
-        if e.getMessage.contains("Error: 401 - unauthorized")
-          && (connUrl.user.isEmpty || connUrl.password.isEmpty) =>
-
+    } catch {
+      case e: ArangoDBException if cond(e.getCause) {
+        case ee: ExecutionException if cond(ee.getCause) {
+          case ae: ArangoDBException => ae.getErrorNum == HTTP_UNAUTHORIZED
+        } => connUrl.user.isEmpty || connUrl.password.isEmpty
+      } =>
         val updatedConnUrl = interactor.credentializeConnectionUrl(connUrl)
-
         dbManagerFactory.create(updatedConnUrl)
-    }).get
+    }
   }
 }
