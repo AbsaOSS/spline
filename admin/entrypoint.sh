@@ -1,5 +1,7 @@
+#!/bin/sh
+
 #
-# Copyright 2019 ABSA Group Limited
+# Copyright 2021 ABSA Group Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,26 +16,6 @@
 # limitations under the License.
 #
 
-# Run image using:
-# $> docker run --rm -it absaoss/spline-admin:latest
+CLI_EXECUTABLE="docker run -it --rm $IMAGE_NAME"
 
-ARG DOCKER_BASE_IMAGE_PREFIX
-
-FROM "$DOCKER_BASE_IMAGE_PREFIX"adoptopenjdk/openjdk11:jdk-11.0.10_9-alpine-slim
-
-ARG VERSION
-ARG IMAGE_NAME
-
-ENV IMAGE_NAME=$IMAGE_NAME
-
-LABEL \
-    vendor="ABSA" \
-    copyright="2021 ABSA Group Limited" \
-    license="Apache License, version 2.0" \
-    name="Spline Admin Tool"
-
-COPY target/admin-$VERSION.jar ./admin.jar
-COPY entrypoint.sh .
-
-ENTRYPOINT ["sh", "./entrypoint.sh"]
-CMD ["--help"]
+java -Dspline.cli.executable="$CLI_EXECUTABLE" -jar admin.jar "$@"
