@@ -22,6 +22,8 @@ import org.springframework.beans.factory.InitializingBean
 import org.springframework.context.annotation.{Bean, Configuration}
 import za.co.absa.commons.config.ConfTyped
 import za.co.absa.spline.common.config.DefaultConfigurationStack
+import za.co.absa.spline.common.scala13.Option
+import za.co.absa.spline.common.security.TLSUtils
 
 @Configuration
 class ArangoRepoConfig extends InitializingBean with Logging {
@@ -33,7 +35,10 @@ class ArangoRepoConfig extends InitializingBean with Logging {
     log.info(s"Spline database URL: ${Database.ConnectionURL.asString}")
   }
 
-  @Bean def arangoDatabaseFacade: ArangoDatabaseFacade = new ArangoDatabaseFacade(Database.ConnectionURL)
+  @Bean def arangoDatabaseFacade: ArangoDatabaseFacade = {
+    val sslCtxOpt = Option.when(Database.DisableSSLValidation)(TLSUtils.TrustingAllSSLContext)
+    new ArangoDatabaseFacade(Database.ConnectionURL, sslCtxOpt)
+  }
 
   @Bean def arangoDatabase: ArangoDatabaseAsync = arangoDatabaseFacade.db
 
@@ -56,6 +61,9 @@ object ArangoRepoConfig extends DefaultConfigurationStack with ConfTyped {
 
     val LogFullQueryOnError: Boolean =
       conf.getBoolean(Prop("logFullQueryOnError"), false)
+
+    val DisableSSLValidation: Boolean =
+      conf.getBoolean(Prop("disableSslValidation"), true)
   }
 
 }

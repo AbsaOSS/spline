@@ -25,13 +25,11 @@ import za.co.absa.commons.lang.OptionImplicits.AnyWrapper
 import za.co.absa.commons.version.Version
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 
-import java.security.SecureRandom
-import java.security.cert.X509Certificate
 import javax.net.ssl._
 import scala.concurrent._
 import scala.util.Try
 
-class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL) extends DisposableBean {
+class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL, maybeSSLContext: Option[SSLContext]) extends DisposableBean {
 
   import za.co.absa.spline.persistence.ArangoDatabaseFacade._
 
@@ -42,12 +40,15 @@ class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL) extends Disposabl
   private val arango: ArangoDBAsync = {
     val arangoBuilder = new ArangoDBAsync.Builder()
       .registerModule(new VPackScalaModule)
-      .useSsl(isSecure)
       .having(maybeUser)(_ user _)
       .having(maybePassword)(_ password _)
 
-    // set SSL Context
-    if (isSecure) arangoBuilder.sslContext(createSslContext())
+    // enable SSL if required
+    if (isSecure) {
+      arangoBuilder
+        .useSsl(true)
+        .having(maybeSSLContext)(_ sslContext _)
+    }
 
     // enable active failover
     arangoBuilder.acquireHostList(true)
@@ -113,24 +114,4 @@ object ArangoDatabaseFacade extends Logging {
         s"It's highly recommended to upgrade to ArangoDB ${MinArangoVerRecommended.asString} or later. " +
         s"See: https://github.com/arangodb/arangodb/issues/12693")
   }
-
-  private def createSslContext(): SSLContext = {
-    val sslContext = SSLContext.getInstance("SSL")
-    sslContext.init(null, Array(TrustAll), new SecureRandom())
-    sslContext
-  }
-
-  // Bypasses both client and server validation.
-  private object TrustAll extends X509TrustManager {
-    override val getAcceptedIssuers: Array[X509Certificate] = Array.empty
-
-    override def checkClientTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {
-      // do nothing
-    }
-
-    override def checkServerTrusted(x509Certificates: Array[X509Certificate], s: String): Unit = {
-      // do nothing
-    }
-  }
-
 }

@@ -21,15 +21,16 @@ import za.co.absa.spline.persistence.AuxiliaryDBAction.CheckDBAccess
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManager, ArangoManagerFactory}
 
 import java.net.HttpURLConnection.HTTP_UNAUTHORIZED
+import javax.net.ssl.SSLContext
 import scala.PartialFunction.cond
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionException}
 
 class InteractiveArangoManagerFactoryProxy(dbManagerFactory: ArangoManagerFactory, interactor: UserInteractor) extends ArangoManagerFactory {
 
-  override def create(connUrl: ArangoConnectionURL): ArangoManager = {
+  override def create(connUrl: ArangoConnectionURL, maybeSSLContext: Option[SSLContext]): ArangoManager = {
     try {
-      val dbm = dbManagerFactory.create(connUrl)
+      val dbm = dbManagerFactory.create(connUrl, maybeSSLContext)
       Await.result(dbm.execute(CheckDBAccess), Duration.Inf)
       dbm
     } catch {
@@ -39,7 +40,7 @@ class InteractiveArangoManagerFactoryProxy(dbManagerFactory: ArangoManagerFactor
         } => connUrl.user.isEmpty || connUrl.password.isEmpty
       } =>
         val updatedConnUrl = interactor.credentializeConnectionUrl(connUrl)
-        dbManagerFactory.create(updatedConnUrl)
+        dbManagerFactory.create(updatedConnUrl, maybeSSLContext)
     }
   }
 }
