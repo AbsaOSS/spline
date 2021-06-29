@@ -14,14 +14,11 @@ A clear and concise description of what the bug is.
 Please provide versions of: Spline, Spark and Scala that were in use when the bug happened.
 
 ## Components State
-- [ ] ArangoDB running without errors
-- [ ] ArangoDB spline database initialized
-- Rest Gateway running and
-  - [ ] connects to ArangoDB
-  - [ ] there are no errors in logs
-- Spline UI running and
-  - [ ] connects to Rest Gateway consumer
-  - [ ] there are no errors in logs
+Describe the state of different Spline components (Agent, REST or Kafka Gateway, UI, ArangoDB).
+- Where the problem manifests itself?
+- Are there any errors in logs?
+- Is ArangoDB initialized and contains data?
+- Any other observations that you think might be important.
 
 ## To Reproduce
 Steps to reproduce the behavior OR commands run:
