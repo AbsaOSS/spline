@@ -222,7 +222,7 @@ db._query(aql`
             WITH { 
                 "execPlanDetails": {
                     "executionPlanKey": p.execPlanDetails.executionPlanId,
-                    "executionPlanId": null,
+                    "executionPlanId": null
                 },
                 "durationNs": p.extra.durationNs,
                 "extra": {
