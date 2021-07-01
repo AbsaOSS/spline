@@ -138,29 +138,11 @@ db._query(aql`
             UPDATE ex WITH { "_belongsTo": epId } IN executes
 `);
 
-console.log("Extract schemas from operations and fix attribute references");
+console.log("Extract 'schema' from 'operation'");
 
 db._query(aql`
     WITH operation, emits, schema, consistsOf
     FOR op IN operation   
-        LET orgnlParamsJson = JSON_STRINGIFY(op.params)
-        LET fixedParamsJson =
-            REGEX_REPLACE(
-                orgnlParamsJson,
-                '"refId":"([^"]+)"',
-                CONCAT('"refId":"', PARSE_IDENTIFIER(op._belongsTo).key, ':$1"')
-            )
-
-        UPDATE op
-            WITH {
-                "outputSchema": null,
-                "params": JSON_PARSE(fixedParamsJson)
-            }
-            IN operation
-            OPTIONS {
-                keepNull: false
-            }
-    
         COLLECT attrLocalIdSeq = op.outputSchema,
                 epId = op._belongsTo
                 INTO opsByPlanAndSchema
@@ -205,6 +187,30 @@ db._query(aql`
                     "index": i
                 }
                 INTO consistsOf
+`);
+
+console.log("Update attribute references in 'operation'");
+
+db._query(aql`
+    WITH operation
+    FOR op IN operation   
+        LET orgnlParamsJson = JSON_STRINGIFY(op.params)
+        LET fixedParamsJson =
+            REGEX_REPLACE(
+                orgnlParamsJson,
+                '"refId":"([^"]+)"',
+                CONCAT('"refId":"', PARSE_IDENTIFIER(op._belongsTo).key, ':$1"')
+            )
+            
+        UPDATE op
+            WITH {
+                "outputSchema": null,
+                "params": JSON_PARSE(fixedParamsJson)
+            }
+            IN operation
+            OPTIONS {
+                keepNull: false
+            }
 `);
 
 console.log("Update 'progress'");
