@@ -31,6 +31,8 @@ class DataSourcesController @Autowired()(
   val execEventsRepo: ExecutionEventRepository
 ) {
 
+  import za.co.absa.commons.lang.OptionImplicits._
+
   import scala.concurrent.ExecutionContext.Implicits._
 
   @GetMapping(Array("/data-sources"))
@@ -64,6 +66,9 @@ class DataSourcesController @Autowired()(
     @ApiParam(value = "Text to filter the results")
     @RequestParam(value = "searchTerm", required = false) searchTerm: String,
 
+    @ApiParam(value = "Write mode (true - append, false - overwrite")
+    @RequestParam(value = "append", required = false) append: java.lang.Boolean,
+
     @ApiParam(value = "Id of the application")
     @RequestParam(value = "applicationId", required = false) writeApplicationId: String,
 
@@ -76,12 +81,18 @@ class DataSourcesController @Autowired()(
     val pageRequest = PageRequest(pageNum, pageSize)
     val sortRequest = SortRequest(sortField, sortOrder)
 
+    val maybeSearchTerm = searchTerm.nonBlankOption
+    val maybeAppend = append.asOption.map(Boolean.unbox)
+    val maybeWriteApplicationId = writeApplicationId.nonBlankOption
+    val maybeDataSourceUri = dataSourceUri.nonBlankOption
+
     val eventualDateRange =
       execEventsRepo.getTimestampRange(
         asAtTime,
-        searchTerm,
-        writeApplicationId,
-        dataSourceUri)
+        maybeSearchTerm,
+        maybeAppend,
+        maybeWriteApplicationId,
+        maybeDataSourceUri)
 
     val eventualEventsWithCount =
       dataSourceRepo.find(
@@ -90,9 +101,10 @@ class DataSourcesController @Autowired()(
         writeTimestampEnd,
         pageRequest,
         sortRequest,
-        searchTerm,
-        writeApplicationId,
-        dataSourceUri)
+        maybeSearchTerm,
+        maybeAppend,
+        maybeWriteApplicationId,
+        maybeDataSourceUri)
 
     for {
       (totalDateFrom, totalDateTo) <- eventualDateRange

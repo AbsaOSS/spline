@@ -27,9 +27,10 @@ trait DataSourceRepository {
     writeTimestampEnd: Long,
     pageRequest: PageRequest,
     sortRequest: SortRequest,
-    searchTerm: String,
-    writeApplicationId: String,
-    dataSourceUri: String)
+    maybeSearchTerm: Option[String],
+    maybeAppend: Option[Boolean],
+    maybeWriteApplicationId: Option[String],
+    maybeDataSourceUri: Option[String])
     (implicit ec: ExecutionContext): Future[(Seq[WriteEventInfo], Long)]
 
   def findByUsage(

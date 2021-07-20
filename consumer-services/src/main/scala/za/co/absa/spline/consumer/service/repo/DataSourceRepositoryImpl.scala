@@ -38,9 +38,10 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
     writeTimestampEnd: Long,
     pageRequest: PageRequest,
     sortRequest: SortRequest,
-    searchTerm: String,
-    writeApplicationId: String,
-    dataSourceUri: String
+    maybeSearchTerm: Option[String],
+    maybeAppend: Option[Boolean],
+    maybeWriteApplicationId: Option[String],
+    maybeDataSourceUri: Option[String]
   )(implicit ec: ExecutionContext): Future[(Seq[WriteEventInfo], Long)] = {
 
     db.queryAs[WriteEventInfo](
@@ -48,8 +49,7 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         |WITH progress, progressOf, executionPlan, affects, dataSource
         |FOR ds IN dataSource
         |    FILTER ds._created <= @asAtTime
-        |    FILTER NOT @dataSourceUri
-        |            OR @dataSourceUri == ds.uri
+        |    FILTER IS_NULL(@dataSourceUri) OR @dataSourceUri == ds.uri
         |
         |    // last write event or null
         |    LET lwe = FIRST(
@@ -58,10 +58,10 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         |            FILTER we.timestamp >= @timestampStart
         |               AND we.timestamp <= @timestampEnd
         |
-        |            FILTER NOT @applicationId
-        |                    OR @applicationId == we.extra.appId
+        |            FILTER IS_NULL(@applicationId) OR @applicationId == we.extra.appId
+        |            FILTER IS_NULL(@writeAppend)   OR @writeAppend   == we.execPlanDetails.append
         |
-        |            FILTER NOT @searchTerm
+        |            FILTER IS_NULL(@searchTerm)
         |                    OR @searchTerm == we.timestamp
         |                    OR CONTAINS(LOWER(ds.uri), @searchTerm)
         |                    OR CONTAINS(LOWER(we.execPlanDetails.frameworkName), @searchTerm)
@@ -74,7 +74,7 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         |    )
         |
         |    FILTER NOT IS_NULL(lwe)
-        |        OR NOT @searchTerm
+        |        OR IS_NULL(@searchTerm)
         |        OR CONTAINS(LOWER(ds.uri), @searchTerm)
         |
         |    LET resItem = {
@@ -96,16 +96,17 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         |    RETURN resItem
         |""".stripMargin,
       Map(
-        "asAtTime" -> (asAtTime: java.lang.Long),
-        "timestampStart" -> (writeTimestampStart: java.lang.Long),
-        "timestampEnd" -> (writeTimestampEnd: java.lang.Long),
-        "pageOffset" -> (pageRequest.page - 1: Integer),
-        "pageSize" -> (pageRequest.size: Integer),
+        "asAtTime" -> Long.box(asAtTime),
+        "timestampStart" -> Long.box(writeTimestampStart),
+        "timestampEnd" -> Long.box(writeTimestampEnd),
+        "pageOffset" -> Int.box(pageRequest.page - 1),
+        "pageSize" -> Int.box(pageRequest.size),
         "sortField" -> sortRequest.sortField,
         "sortOrder" -> sortRequest.sortOrder,
-        "searchTerm" -> StringUtils.lowerCase(searchTerm),
-        "applicationId" -> writeApplicationId,
-        "dataSourceUri" -> dataSourceUri
+        "searchTerm" -> maybeSearchTerm.map(StringUtils.lowerCase).orNull,
+        "writeAppend" -> maybeAppend.map(Boolean.box).orNull,
+        "applicationId" -> maybeWriteApplicationId.orNull,
+        "dataSourceUri" -> maybeDataSourceUri.orNull
       ),
       new AqlQueryOptions().fullCount(true)
     ).map {

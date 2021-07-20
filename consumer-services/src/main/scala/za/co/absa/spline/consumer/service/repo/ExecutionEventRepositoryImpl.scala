@@ -31,9 +31,10 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
 
   override def getTimestampRange(
     asAtTime: Long,
-    searchTerm: String,
-    applicationId: String,
-    dataSourceUri: String
+    maybeSearchTerm: Option[String],
+    maybeAppend: Option[Boolean],
+    maybeApplicationId: Option[String],
+    maybeDataSourceUri: Option[String]
   )(implicit ec: ExecutionContext): Future[(Long, Long)] = {
     db.queryOne[Array[Long]](
       """
@@ -41,9 +42,11 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |FOR ee IN progress
         |    FILTER ee._created <= @asAtTime
         |
-        |    FILTER NOT @applicationId OR @applicationId == ee.extra.appId
-        |    FILTER NOT @dataSourceUri OR @dataSourceUri == ee.execPlanDetails.dataSourceUri
-        |    FILTER NOT @searchTerm
+        |    FILTER IS_NULL(@applicationId) OR @applicationId == ee.extra.appId
+        |    FILTER IS_NULL(@dataSourceUri) OR @dataSourceUri == ee.execPlanDetails.dataSourceUri
+        |    FILTER IS_NULL(@writeAppend)   OR @writeAppend   == ee.execPlanDetails.append
+        |
+        |    FILTER IS_NULL(@searchTerm)
         |            OR @searchTerm == ee.timestamp
         |            OR CONTAINS(LOWER(ee.execPlanDetails.frameworkName), @searchTerm)
         |            OR CONTAINS(LOWER(ee.execPlanDetails.applicationName), @searchTerm)
@@ -61,10 +64,11 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |    ]
         |""".stripMargin,
       Map(
-        "asAtTime" -> (asAtTime: java.lang.Long),
-        "searchTerm" -> StringUtils.lowerCase(searchTerm),
-        "applicationId" -> applicationId,
-        "dataSourceUri" -> dataSourceUri
+        "asAtTime" -> Long.box(asAtTime),
+        "searchTerm" -> maybeSearchTerm.map(StringUtils.lowerCase).orNull,
+        "writeAppend" -> maybeAppend.map(Boolean.box).orNull,
+        "applicationId" -> maybeApplicationId.orNull,
+        "dataSourceUri" -> maybeDataSourceUri.orNull
       )
     ).map { case Array(from, to) => from -> to }
   }
@@ -75,9 +79,10 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
     timestampEnd: Long,
     pageRequest: PageRequest,
     sortRequest: SortRequest,
-    searchTerm: String,
-    applicationId: String,
-    dataSourceUri: String
+    maybeSearchTerm: Option[String],
+    maybeAppend: Option[Boolean],
+    maybeApplicationId: Option[String],
+    maybeDataSourceUri: Option[String]
   )(implicit ec: ExecutionContext): Future[(Seq[WriteEventInfo], Long)] = {
     db.queryAs[WriteEventInfo](
       """
@@ -87,9 +92,11 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |       AND ee.timestamp >= @timestampStart
         |       AND ee.timestamp <= @timestampEnd
         |
-        |    FILTER NOT @applicationId OR @applicationId == ee.extra.appId
-        |    FILTER NOT @dataSourceUri OR @dataSourceUri == ee.execPlanDetails.dataSourceUri
-        |    FILTER NOT @searchTerm
+        |    FILTER IS_NULL(@applicationId) OR @applicationId == ee.extra.appId
+        |    FILTER IS_NULL(@dataSourceUri) OR @dataSourceUri == ee.execPlanDetails.dataSourceUri
+        |    FILTER IS_NULL(@writeAppend)   OR @writeAppend   == ee.execPlanDetails.append
+        |
+        |    FILTER IS_NULL(@searchTerm)
         |            OR @searchTerm == ee.timestamp
         |            OR CONTAINS(LOWER(ee.execPlanDetails.frameworkName), @searchTerm)
         |            OR CONTAINS(LOWER(ee.execPlanDetails.applicationName), @searchTerm)
@@ -116,16 +123,17 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |    RETURN resItem
         |""".stripMargin,
       Map(
-        "asAtTime" -> (asAtTime: java.lang.Long),
-        "timestampStart" -> (timestampStart: java.lang.Long),
-        "timestampEnd" -> (timestampEnd: java.lang.Long),
-        "pageOffset" -> (pageRequest.page - 1: Integer),
-        "pageSize" -> (pageRequest.size: Integer),
+        "asAtTime" -> Long.box(asAtTime),
+        "timestampStart" -> Long.box(timestampStart),
+        "timestampEnd" -> Long.box(timestampEnd),
+        "pageOffset" -> Int.box(pageRequest.page - 1),
+        "pageSize" -> Int.box(pageRequest.size),
         "sortField" -> sortRequest.sortField,
         "sortOrder" -> sortRequest.sortOrder,
-        "searchTerm" -> StringUtils.lowerCase(searchTerm),
-        "applicationId" -> applicationId,
-        "dataSourceUri" -> dataSourceUri
+        "searchTerm" -> maybeSearchTerm.map(StringUtils.lowerCase).orNull,
+        "writeAppend" -> maybeAppend.map(Boolean.box).orNull,
+        "applicationId" -> maybeApplicationId.orNull,
+        "dataSourceUri" -> maybeDataSourceUri.orNull
       ),
       new AqlQueryOptions().fullCount(true)
     ).map {
