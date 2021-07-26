@@ -23,9 +23,10 @@ trait ExecutionEventRepository {
 
   def getTimestampRange(
     asAtTime: Long,
-    searchTerm: String,
-    applicationId: String,
-    dataSourceUri: String)
+    maybeSearchTerm: Option[String],
+    maybeAppend: Option[Boolean],
+    maybeApplicationId: Option[String],
+    maybeDataSourceUri: Option[String])
     (implicit ec: ExecutionContext): Future[(Long, Long)]
 
   def findByTimestampRange(
@@ -34,8 +35,9 @@ trait ExecutionEventRepository {
     timestampEnd: Long,
     pageRequest: PageRequest,
     sortRequest: SortRequest,
-    searchTerm: String,
-    applicationId: String,
-    dataSourceUri: String)
+    maybeSearchTerm: Option[String],
+    maybeAppend: Option[Boolean],
+    maybeApplicationId: Option[String],
+    maybeDataSourceUri: Option[String])
     (implicit ec: ExecutionContext): Future[(Seq[WriteEventInfo], Long)]
 }

@@ -28,6 +28,8 @@ import scala.concurrent.Future
 @Api(tags = Array("execution-events"))
 class ExecutionEventsController @Autowired()(val repo: ExecutionEventRepository) {
 
+  import za.co.absa.commons.lang.OptionImplicits._
+
   import scala.concurrent.ExecutionContext.Implicits._
 
   @GetMapping(Array("/execution-events"))
@@ -61,6 +63,9 @@ class ExecutionEventsController @Autowired()(val repo: ExecutionEventRepository)
     @ApiParam(value = "Text to filter the results")
     @RequestParam(value = "searchTerm", required = false) searchTerm: String,
 
+    @ApiParam(value = "Write mode (true - append, false - overwrite")
+    @RequestParam(value = "append", required = false) append: java.lang.Boolean,
+
     @ApiParam(value = "Id of the application")
     @RequestParam(value = "applicationId", required = false) applicationId: String,
 
@@ -73,12 +78,18 @@ class ExecutionEventsController @Autowired()(val repo: ExecutionEventRepository)
     val pageRequest = PageRequest(pageNum, pageSize)
     val sortRequest = SortRequest(sortField, sortOrder)
 
+    val maybeSearchTerm = searchTerm.nonBlankOption
+    val maybeAppend = append.asOption.map(Boolean.unbox)
+    val maybeApplicationId = applicationId.nonBlankOption
+    val maybeDataSourceUri = dataSourceUri.nonBlankOption
+
     val eventualDateRange =
       repo.getTimestampRange(
         asAtTime,
-        searchTerm,
-        applicationId,
-        dataSourceUri)
+        maybeSearchTerm,
+        maybeAppend,
+        maybeApplicationId,
+        maybeDataSourceUri)
 
     val eventualEventsWithCount =
       repo.findByTimestampRange(
@@ -87,9 +98,10 @@ class ExecutionEventsController @Autowired()(val repo: ExecutionEventRepository)
         timestampEnd,
         pageRequest,
         sortRequest,
-        searchTerm,
-        applicationId,
-        dataSourceUri)
+        maybeSearchTerm,
+        maybeAppend,
+        maybeApplicationId,
+        maybeDataSourceUri)
 
     for {
       (totalDateFrom, totalDateTo) <- eventualDateRange

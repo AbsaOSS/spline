@@ -30,6 +30,7 @@
 
     <properties>
         <dockerfile.imageName>spline-admin</dockerfile.imageName>
+        <spline.cli.executable>java -jar ${project.build.finalName}.jar</spline.cli.executable>
     </properties>
 
     <dependencies>
@@ -68,6 +69,12 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -99,6 +106,9 @@
                 <artifactId>dockerfile-maven-plugin</artifactId>
                 <configuration>
                     <skip>false</skip>
+                    <buildArgs>
+                        <IMAGE_NAME>${dockerfile.imageName}</IMAGE_NAME>
+                    </buildArgs>
                 </configuration>
             </plugin>
         </plugins>

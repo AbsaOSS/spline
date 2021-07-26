@@ -17,11 +17,14 @@
 # Run image using:
 # $> docker run --rm -it absaoss/spline-admin:latest
 
-ARG DOCKER_BASE_IMAGE_PREFIX=
+ARG DOCKER_BASE_IMAGE_PREFIX
 
 FROM "$DOCKER_BASE_IMAGE_PREFIX"adoptopenjdk/openjdk11:jdk-11.0.10_9-alpine-slim
 
 ARG PROJECT_BUILD_FINAL_NAME
+ARG IMAGE_NAME
+
+ENV IMAGE_NAME=$IMAGE_NAME
 
 LABEL \
     vendor="ABSA" \
@@ -30,6 +33,7 @@ LABEL \
     name="Spline Admin Tool"
 
 COPY target/$PROJECT_BUILD_FINAL_NAME.jar ./admin.jar
+COPY entrypoint.sh .
 
-ENTRYPOINT ["java", "-jar", "admin.jar"]
+ENTRYPOINT ["sh", "./entrypoint.sh"]
 CMD ["--help"]
