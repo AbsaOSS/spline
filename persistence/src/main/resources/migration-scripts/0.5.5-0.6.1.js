@@ -63,10 +63,29 @@ db._createEdgeCollection("uses");
 // Data migration
 // ===========================================================================
 
-console.log("Update 'executionPlan' and insert into 'attribute' ");
+console.log("Extract 'attribute'");
 
 db._query(aql`
     WITH executionPlan, attribute
+    FOR ep IN executionPlan
+        FILTER LOWER(ep.agentInfo.name) == "spline"
+        FILTER NOT IS_NULL(ep.extra.attributes)
+    
+        FOR attr IN ep.extra.attributes
+            INSERT {
+                "_key": CONCAT(ep._key, ":", attr.id),
+                "_created": ep._created,
+                "_belongsTo": ep._id,
+                "dataType": attr.dataTypeId,
+                "name": attr.name
+            }
+            INTO attribute
+`);
+
+console.log("Update 'executionPlan'");
+
+db._query(aql`
+    WITH executionPlan
     FOR ep IN executionPlan
         UPDATE ep
             WITH {
@@ -79,31 +98,27 @@ db._query(aql`
             OPTIONS { 
                 keepNull: false
             }
-            
-        FILTER LOWER(ep.agentInfo.name) == "spline"
-    
-        FOR attr IN ep.extra.attributes || []
-            INSERT {
-                "_key": CONCAT(ep._key, ":", attr.id),
-                "_created": ep._created,
-                "_belongsTo": ep._id,
-                "dataType": attr.dataTypeId,
-                "name": attr.name
-            }
-            INTO attribute
 `);
 
-console.log("Traverse & Update 'executes', 'operation', 'follows', 'readsFrom', 'writesTo'");
+console.log("Update 'executes'");
 
 db._query(aql`
-    WITH executes, operation, follows, writesTo, readsFrom
+    WITH executes
+    FOR ex IN executes
+        LET epId = ex._from
+        UPDATE ex WITH { "_belongsTo": epId } IN executes
+`);
+
+console.log("Traverse & Update 'operation'");
+
+db._query(aql`
+    WITH executes, operation, follows
     FOR ex IN executes
         LET epId = ex._from
         LET wop = DOCUMENT("operation", ex._to)
         
-        FOR op, e IN 0..999999
+        FOR op IN 0..999999
             OUTBOUND wop follows
-            
             UPDATE op
                 WITH { 
                     "name": op.extra.name,
@@ -116,30 +131,55 @@ db._query(aql`
                 OPTIONS {
                     keepNull: false
                 }
-            
-            LET res1 = COUNT(
-                FOR wt IN writesTo
-                    FILTER wt._from == op._id
-                    UPDATE wt WITH {"_belongsTo": epId} IN writesTo
-            )
-                    
-            LET res2 = COUNT(
-                FOR rf IN readsFrom
-                    FILTER rf._from == op._id
-                    UPDATE rf WITH { "_belongsTo": epId } IN readsFrom
-            )
-            
-            LET res3 = (
-                FOR flw IN [e]
-                    FILTER NOT IS_NULL(flw)
-                    UPDATE flw WITH { "_belongsTo": epId } IN follows
-            )
-            
-            UPDATE ex WITH { "_belongsTo": epId } IN executes
+`);
+
+console.log("Traverse & Update 'follows'");
+
+db._query(aql`
+    WITH executes, operation, follows
+    FOR ex IN executes
+        LET epId = ex._from
+        LET wop = DOCUMENT("operation", ex._to)
+        
+        FOR op, flw IN 0..999999
+            OUTBOUND wop follows
+            FILTER NOT IS_NULL(flw)
+            UPDATE flw WITH { "_belongsTo": epId } IN follows
+`);
+
+console.log("Traverse & Update 'readsFrom'");
+
+db._query(aql`
+    WITH executes, operation, follows, readsFrom
+    FOR ex IN executes
+        LET epId = ex._from
+        LET wop = DOCUMENT("operation", ex._to)
+        
+        FOR op IN 0..999999
+            OUTBOUND wop follows
+            FOR rf IN readsFrom
+                FILTER rf._from == op._id
+                UPDATE rf WITH { "_belongsTo": epId } IN readsFrom
+`);
+
+console.log("Traverse & Update 'writesTo'");
+
+db._query(aql`
+    WITH executes, operation, follows, writesTo
+    FOR ex IN executes
+        LET epId = ex._from
+        LET wop = DOCUMENT("operation", ex._to)
+        
+        FOR op, e IN 0..999999
+            OUTBOUND wop follows
+            FOR wt IN writesTo
+                FILTER wt._from == op._id
+                UPDATE wt WITH {"_belongsTo": epId} IN writesTo
 `);
 
 console.log("Extract 'schema' from 'operation'");
 
+// WARNING: This query consumes large amount of memory!
 db._query(aql`
     WITH operation, emits, schema, consistsOf
     FOR op IN operation   
