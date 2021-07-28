@@ -17,7 +17,7 @@
 const {db, aql} = require("@arangodb");
 const graph = require('@arangodb/general-graph');
 
-console.log("[Spline] Start migration to Spline 0.6.0");
+console.log("[Spline] Start migration to Spline 0.6.1");
 
 console.log("Remove views");
 
