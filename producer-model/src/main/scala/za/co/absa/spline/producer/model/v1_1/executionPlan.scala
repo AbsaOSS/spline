@@ -16,6 +16,8 @@
 
 package za.co.absa.spline.producer.model.v1_1
 
+import za.co.absa.spline.common.validation.{Constraint, ValidationUtils}
+
 import java.util.UUID
 
 case class ExecutionPlan(
@@ -33,6 +35,8 @@ case class ExecutionPlan(
   // User payload
   extraInfo: Map[String, Any] = Map.empty
 ) {
+  ValidationUtils.validate(Constraint.unique(attributes) by (_.id) as "attribute ID")
+
   def dataSources: Set[ExecutionPlan.DataSourceUri] = {
     val readSources = operations.reads.flatMap(_.inputSources).toSet
     val writeSource = operations.write.outputSource
@@ -50,6 +54,8 @@ case class Operations(
   reads: Seq[ReadOperation] = Nil,
   other: Seq[DataOperation] = Nil
 ) {
+  ValidationUtils.validate(Constraint.unique(all) by (_.id) as "operation ID")
+
   def all: Seq[OperationLike] = reads ++ other :+ write
 }
 
@@ -57,6 +63,8 @@ case class Expressions(
   functions: Seq[FunctionalExpression] = Nil,
   constants: Seq[Literal] = Nil
 ) {
+  ValidationUtils.validate(Constraint.unique(all) by (_.id) as "expression ID")
+
   def all: Seq[ExpressionLike] = functions ++ constants
 }
 
