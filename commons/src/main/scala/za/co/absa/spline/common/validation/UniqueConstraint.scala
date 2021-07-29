@@ -19,7 +19,7 @@ package za.co.absa.spline.common.validation
 import za.co.absa.spline.common.validation.UniqueConstraint.MaxItemsToPrint
 
 case class UniqueConstraint[A, B](xs: Seq[A], projection: A => B, name: String) extends Constraint {
-  val ys: Seq[B] = xs.map(projection)
+  private val ys: Seq[B] = xs.map(projection)
 
   def by[C](projectionFn: A => C): UniqueConstraint[A, C] = copy(projection = projectionFn)
 
