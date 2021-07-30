@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.producer.rest.controller
 
+import jakarta.validation.ValidationException
 import org.springframework.beans.TypeMismatchException
 import org.springframework.http.HttpStatus.{BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND}
 import org.springframework.http.ResponseEntity
@@ -36,6 +37,7 @@ class ErrorControllerAdvice {
     classOf[TypeMismatchException],
     classOf[HttpMessageConversionException],
     classOf[InconsistentEntityException],
+    classOf[ValidationException],
   ))
   def badRequest(e: Exception): ResponseEntity[_] = new ResponseEntity(e.getMessage, BAD_REQUEST)
 
