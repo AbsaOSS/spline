@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>spline</artifactId>
-    <version>0.6.1-SNAPSHOT</version>
+    <version>0.6.1</version>
 
     <packaging>pom</packaging>
 
@@ -27,7 +27,7 @@
         <url>${scm.url}</url>
         <connection>${scm.connection}</connection>
         <developerConnection>${scm.developerConnection}</developerConnection>
-        <tag>HEAD</tag>
+        <tag>release/0.6.1</tag>
     </scm>
 
     <parent>
