@@ -53,7 +53,7 @@ object ArangoConnectionURL {
   private val ArangoConnectionUrlRegex = {
     val scheme = s"^($ArangoDbScheme|$ArangoSecureDbScheme)"
     val user = "([^@:]+)"
-    val password = "(.+)"
+    val password = "(.+)" // NOSONAR
     val dbName = "(\\S+)"
     val hostList = {
       val hostWithPort = "[^@:]+(?::\\d+)?"

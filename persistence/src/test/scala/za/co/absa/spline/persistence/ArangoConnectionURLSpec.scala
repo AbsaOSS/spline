@@ -81,7 +81,7 @@ class ArangoConnectionURLSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "hide user password" in {
-    ArangoConnectionURL(ArangoDbScheme, Some("bob"), Some("secret"), Seq("host" -> 42), "test").asString shouldEqual "arangodb://bob:*****@host:42/test"
+    ArangoConnectionURL(ArangoDbScheme, Some("bob"), Some("secret"), Seq("host" -> 42), "test").asString shouldEqual "arangodb://bob:*****@host:42/test" // NOSONAR
   }
 
 }
