@@ -42,11 +42,11 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |FOR ee IN progress
         |    FILTER ee._created <= @asAtTime
         |
-        |    FILTER IS_NULL(@applicationId) OR @applicationId == ee.extra.appId
-        |    FILTER IS_NULL(@dataSourceUri) OR @dataSourceUri == ee.execPlanDetails.dataSourceUri
-        |    FILTER IS_NULL(@writeAppend)   OR @writeAppend   == ee.execPlanDetails.append
+        |    FILTER @applicationId == null OR @applicationId == ee.extra.appId
+        |    FILTER @dataSourceUri == null OR @dataSourceUri == ee.execPlanDetails.dataSourceUri
+        |    FILTER @writeAppend == null   OR @writeAppend   == ee.execPlanDetails.append
         |
-        |    FILTER IS_NULL(@searchTerm)
+        |    FILTER @searchTerm == null
         |            OR @searchTerm == ee.timestamp
         |            OR CONTAINS(LOWER(ee.execPlanDetails.frameworkName), @searchTerm)
         |            OR CONTAINS(LOWER(ee.execPlanDetails.applicationName), @searchTerm)
@@ -92,11 +92,11 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |       AND ee.timestamp >= @timestampStart
         |       AND ee.timestamp <= @timestampEnd
         |
-        |    FILTER IS_NULL(@applicationId) OR @applicationId == ee.extra.appId
-        |    FILTER IS_NULL(@dataSourceUri) OR @dataSourceUri == ee.execPlanDetails.dataSourceUri
-        |    FILTER IS_NULL(@writeAppend)   OR @writeAppend   == ee.execPlanDetails.append
+        |    FILTER @applicationId == null OR @applicationId == ee.extra.appId
+        |    FILTER @dataSourceUri == null OR @dataSourceUri == ee.execPlanDetails.dataSourceUri
+        |    FILTER @writeAppend == null   OR @writeAppend   == ee.execPlanDetails.append
         |
-        |    FILTER IS_NULL(@searchTerm)
+        |    FILTER @searchTerm == null
         |            OR @searchTerm == ee.timestamp
         |            OR CONTAINS(LOWER(ee.execPlanDetails.frameworkName), @searchTerm)
         |            OR CONTAINS(LOWER(ee.execPlanDetails.applicationName), @searchTerm)

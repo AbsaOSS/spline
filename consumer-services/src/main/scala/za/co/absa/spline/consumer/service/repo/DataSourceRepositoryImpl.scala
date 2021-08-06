@@ -49,7 +49,7 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         |WITH progress, progressOf, executionPlan, affects, dataSource
         |FOR ds IN dataSource
         |    FILTER ds._created <= @asAtTime
-        |    FILTER IS_NULL(@dataSourceUri) OR @dataSourceUri == ds.uri
+        |    FILTER @dataSourceUri == null OR @dataSourceUri == ds.uri
         |
         |    // last write event or null
         |    LET lwe = FIRST(
@@ -58,10 +58,10 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         |            FILTER we.timestamp >= @timestampStart
         |               AND we.timestamp <= @timestampEnd
         |
-        |            FILTER IS_NULL(@applicationId) OR @applicationId == we.extra.appId
-        |            FILTER IS_NULL(@writeAppend)   OR @writeAppend   == we.execPlanDetails.append
+        |            FILTER @applicationId == null OR @applicationId == we.extra.appId
+        |            FILTER @writeAppend == null   OR @writeAppend   == we.execPlanDetails.append
         |
-        |            FILTER IS_NULL(@searchTerm)
+        |            FILTER @searchTerm == null
         |                    OR @searchTerm == we.timestamp
         |                    OR CONTAINS(LOWER(ds.uri), @searchTerm)
         |                    OR CONTAINS(LOWER(we.execPlanDetails.frameworkName), @searchTerm)
@@ -73,8 +73,8 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         |            RETURN we
         |    )
         |
-        |    FILTER NOT IS_NULL(lwe)
-        |        OR IS_NULL(@searchTerm)
+        |    FILTER lwe != null
+        |        OR @searchTerm == null
         |        OR CONTAINS(LOWER(ds.uri), @searchTerm)
         |
         |    LET resItem = {
