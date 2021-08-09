@@ -84,14 +84,22 @@ object DBVersion {
   */
 case class DataSource(
   uri: DataSource.Uri,
+  name: DataSource.Name,
   override val _key: DataSource.Key
 ) extends Vertex with RootEntity {
-  def this() = this(null, null)
+  def this() = this(null, null, null)
 }
 
 object DataSource {
   type Key = ArangoDocument.Key
   type Uri = String
+  type Name = String
+
+  private val NameRegexp = "(?:.*/)?([^/]+)/*".r
+
+  def getName(uri: Uri): Name = {
+    NameRegexp.findFirstMatchIn(uri).map(_.group(1)).getOrElse("")
+  }
 }
 
 /**
@@ -137,8 +145,9 @@ case class ExecPlanDetails(
   frameworkName: String,
   applicationName: String,
   dataSourceUri: DataSource.Uri,
+  dataSourceName: DataSource.Name,
   dataSourceType: String,
   append: Boolean
 ) {
-  def this() = this(null, null, null, null, null, false)
+  def this() = this(null, null, null, null, null, null, false)
 }

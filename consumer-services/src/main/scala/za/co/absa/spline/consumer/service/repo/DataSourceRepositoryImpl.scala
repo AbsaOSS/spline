@@ -55,7 +55,8 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         |    LET lwe = FIRST(
         |        FOR we IN 2
         |            INBOUND ds affects, progressOf
-        |            FILTER we.timestamp >= @timestampStart
+        |            FILTER we._created <= @asAtTime
+        |               AND we.timestamp >= @timestampStart
         |               AND we.timestamp <= @timestampEnd
         |
         |            FILTER @applicationId == null OR @applicationId == we.extra.appId
@@ -84,7 +85,7 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         |        "applicationName"  : lwe.execPlanDetails.applicationName,
         |        "applicationId"    : lwe.extra.appId,
         |        "timestamp"        : lwe.timestamp || 0,
-        |        "dataSourceName"   : REGEX_MATCHES(ds.uri, "([^/]+)/*$")[1],
+        |        "dataSourceName"   : ds.name,
         |        "dataSourceUri"    : ds.uri,
         |        "dataSourceType"   : lwe.execPlanDetails.dataSourceType,
         |        "append"           : lwe.execPlanDetails.append || false
