@@ -95,7 +95,7 @@ object DataSource {
   type Uri = String
   type Name = String
 
-  private val NameRegexp = "(?:.*/)?([^/]+)/*".r
+  private val NameRegexp = "([^/]+)/*$".r
 
   def getName(uri: Uri): Name = {
     NameRegexp.findFirstMatchIn(uri).map(_.group(1)).getOrElse("")
