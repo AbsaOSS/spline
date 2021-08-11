@@ -392,7 +392,7 @@ object ExecutionPlanPersistentModelBuilder {
 
             // output in undefined and all inputs are equals, so the output can be inferred
             case (Some(inSchemaInfo) +: maybeInSchemaInfos, None)
-              if maybeInSchemaInfos.forall(_.exists(inSchemaInfo.==)) =>
+              if maybeInSchemaInfos.forall(_.exists(_.oid == inSchemaInfo.oid)) =>
               schemaByOpId.updated(op.id, inSchemaInfo)
 
             // output is undefined and is not inferrable
