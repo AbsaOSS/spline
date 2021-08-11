@@ -77,15 +77,17 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
          |FOR ep IN executionPlan
          |    FILTER ep._key IN @keys
          |
-         |    LET writeOp = FIRST(FOR v IN 1 OUTBOUND ep executes RETURN v)
+         |    LET wo = FIRST(FOR v IN 1 OUTBOUND ep executes RETURN v)
+         |    LET ds = FIRST(FOR v IN 1 OUTBOUND ep affects RETURN v)
          |
          |    RETURN {
          |        "executionPlanKey" : ep._key,
          |        "frameworkName"    : CONCAT(ep.systemInfo.name, " ", ep.systemInfo.version),
          |        "applicationName"  : ep.name,
-         |        "dataSourceUri"    : writeOp.outputSource,
-         |        "dataSourceType"   : writeOp.extra.destinationType,
-         |        "append"           : writeOp.append
+         |        "dataSourceUri"    : ds.uri,
+         |        "dataSourceName"   : ds.name,
+         |        "dataSourceType"   : wo.extra.destinationType,
+         |        "append"           : wo.append
          |    }
          |""".stripMargin,
       Map("keys" -> events.map(_.planId))

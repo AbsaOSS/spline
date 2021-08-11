@@ -69,7 +69,7 @@ db._query(aql`
     WITH executionPlan, attribute
     FOR ep IN executionPlan
         FILTER LOWER(ep.agentInfo.name) == "spline"
-        FILTER NOT IS_NULL(ep.extra.attributes)
+        FILTER ep.extra.attributes != null
     
         FOR attr IN ep.extra.attributes
             INSERT {
@@ -143,7 +143,7 @@ db._query(aql`
         
         FOR op, flw IN 0..999999
             OUTBOUND wop follows
-            FILTER NOT IS_NULL(flw)
+            FILTER flw != null
             UPDATE flw WITH { "_belongsTo": epId } IN follows
 `);
 

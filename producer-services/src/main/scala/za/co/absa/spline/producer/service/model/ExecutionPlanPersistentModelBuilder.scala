@@ -69,7 +69,9 @@ class ExecutionPlanPersistentModelBuilder private(
     val transientDSKeyByURI = (referencedURIs -- persistedURIs).map(_ -> randomUUID.toString).toMap
     val dsKeyByUri = transientDSKeyByURI ++ persistedDSKeyByURI
     dsKeyByUri.map {
-      case (uri, key) => uri -> pm.DataSource(uri, key)
+      case (uri, key) =>
+        val dsName = pm.DataSource.getName(uri)
+        uri -> pm.DataSource(uri, dsName, key)
     }
   }
 

@@ -154,7 +154,10 @@ object NodeDef {
 
   object DataSource extends NodeDef("dataSource") with CollectionDef {
     override def indexDefs: Seq[IndexDef] = Seq(
-      IndexDef(Seq("uri"), (new PersistentIndexOptions).unique(true)))
+      IndexDef(Seq("_created"), new PersistentIndexOptions),
+      IndexDef(Seq("uri"), (new PersistentIndexOptions).unique(true)),
+      IndexDef(Seq("name"), new PersistentIndexOptions),
+    )
   }
 
   object ExecutionPlan extends NodeDef("executionPlan") with CollectionDef {
@@ -180,6 +183,7 @@ object NodeDef {
       IndexDef(Seq("execPlanDetails.frameworkName"), new PersistentIndexOptions),
       IndexDef(Seq("execPlanDetails.applicationName"), new PersistentIndexOptions),
       IndexDef(Seq("execPlanDetails.dataSourceUri"), new PersistentIndexOptions),
+      IndexDef(Seq("execPlanDetails.dataSourceName"), new PersistentIndexOptions),
       IndexDef(Seq("execPlanDetails.dataSourceType"), new PersistentIndexOptions),
       IndexDef(Seq("execPlanDetails.append"), new PersistentIndexOptions))
   }
