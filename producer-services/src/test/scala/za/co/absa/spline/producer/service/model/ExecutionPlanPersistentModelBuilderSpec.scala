@@ -24,16 +24,18 @@ import za.co.absa.spline.producer.service.model.ExecutionPlanPersistentModelBuil
 
 class ExecutionPlanPersistentModelBuilderSpec extends AnyFlatSpec with Matchers {
 
+  import za.co.absa.commons.lang.OptionImplicits._
+
   behavior of "ExecutionPlanPersistentModelBuilder"
   behavior of "getSchemaInfos"
 
   it should "infer missing schemas" in {
     // 1[b, c] -> 2 -> 3 -> 4[a, b]
     val ops = Seq(
-      DataOperation(id = "1", childIds = Seq("2"), output = Seq("b", "c")),
+      DataOperation(id = "1", childIds = Seq("2"), output = Seq("b", "c").asOption),
       DataOperation(id = "2", childIds = Seq("3")),
       DataOperation(id = "3", childIds = Seq("4")),
-      DataOperation(id = "4", childIds = Seq.empty, output = Seq("a", "b")),
+      DataOperation(id = "4", childIds = Seq.empty, output = Seq("a", "b").asOption),
     )
 
     ExecutionPlanPersistentModelBuilder.getSchemaInfos(ops) shouldEqual Map(
@@ -52,7 +54,7 @@ class ExecutionPlanPersistentModelBuilderSpec extends AnyFlatSpec with Matchers 
       DataOperation(id = "1", childIds = Seq("2", "3")),
       DataOperation(id = "2", childIds = Seq("4")),
       DataOperation(id = "3", childIds = Seq("4")),
-      DataOperation(id = "4", childIds = Seq.empty, output = Seq("a", "b")),
+      DataOperation(id = "4", childIds = Seq.empty, output = Seq("a", "b").asOption),
     )
 
     ExecutionPlanPersistentModelBuilder.getSchemaInfos(ops) shouldEqual Map(
@@ -63,14 +65,29 @@ class ExecutionPlanPersistentModelBuilderSpec extends AnyFlatSpec with Matchers 
     )
   }
 
+  it should "support empty output schema [spline-931]" in {
+    // 1 -> 2[a, b] -> 3[]
+    val ops = Seq(
+      DataOperation(id = "1", childIds = Seq("2")),
+      DataOperation(id = "2", childIds = Seq("3"), output = Seq("a", "b").asOption),
+      DataOperation(id = "3", childIds = Seq.empty, output = Some(Seq.empty)),
+    )
+
+    ExecutionPlanPersistentModelBuilder.getSchemaInfos(ops) shouldEqual Map(
+      "1" -> SchemaInfo("2", Seq("a", "b"), Set("a", "b")), // inferred schema (=== op #2)
+      "2" -> SchemaInfo("2", Seq("a", "b"), Set("a", "b")),
+      "3" -> SchemaInfo("3", Seq.empty, Set.empty),
+    )
+  }
+
   it should "fail with ambiguity error on join-like operations" in {
     //     /-> 2[a]
     // 1 -|
     //     \-> 3[b]
     val ops = Seq(
-      DataOperation(id = "1", childIds = Seq("2", "3"), output = Nil),
-      DataOperation(id = "2", childIds = Seq.empty, output = Seq("a")),
-      DataOperation(id = "3", childIds = Seq.empty, output = Seq("b")),
+      DataOperation(id = "1", childIds = Seq("2", "3"), output = None),
+      DataOperation(id = "2", childIds = Seq.empty, output = Seq("a").asOption),
+      DataOperation(id = "3", childIds = Seq.empty, output = Seq("b").asOption),
     )
 
     (the[InconsistentEntityException]
@@ -106,18 +123,19 @@ class ExecutionPlanPersistentModelBuilderSpec extends AnyFlatSpec with Matchers 
 
     (the[InconsistentEntityException]
       thrownBy ExecutionPlanPersistentModelBuilder.getSchemaInfos(ops)
-      should have message "Inconsistent entity: Operation DAG must have terminal nodes")
+      should have message "Inconsistent entity: key not found: 4")
   }
 
   it should "complain about cycles" in {
-    // 1 <-> 2
+    // 1 <-> 2 -> 3
     val ops = Seq(
       DataOperation(id = "1", childIds = Seq("2")),
-      DataOperation(id = "2", childIds = Seq("1")),
+      DataOperation(id = "2", childIds = Seq("1", "3")),
+      DataOperation(id = "3", childIds = Seq.empty),
     )
 
     (the[InconsistentEntityException]
       thrownBy ExecutionPlanPersistentModelBuilder.getSchemaInfos(ops)
-      should have message "Inconsistent entity: Operation DAG must have terminal nodes")
+      should have message "Inconsistent entity: Expected DAG but a cycle was detected on the node ID: 2")
   }
 }

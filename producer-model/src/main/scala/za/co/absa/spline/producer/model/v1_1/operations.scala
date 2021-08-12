@@ -17,13 +17,12 @@
 package za.co.absa.spline.producer.model.v1_1
 
 import za.co.absa.commons.graph.GraphImplicits.DAGNodeIdMapping
-import za.co.absa.spline.producer.model.v1_1.OperationLike.Id
 
 sealed trait OperationLike {
-  def id: Id
-  def name: Option[Id]
-  def childIds: Seq[Id]
-  def output: OperationLike.Schema
+  def id: OperationLike.Id
+  def name: Option[OperationLike.Name]
+  def childIds: Seq[OperationLike.Id]
+  def output: Option[OperationLike.Schema]
   def params: Map[String, Any]
   def extra: Map[String, Any]
 }
@@ -44,33 +43,33 @@ object OperationLike {
 
 
 case class DataOperation(
-  override val id: Id,
+  override val id: OperationLike.Id,
   override val name: Option[OperationLike.Name] = None,
-  override val childIds: Seq[Id] = Nil,
-  override val output: Seq[Attribute.Id] = Nil,
+  override val childIds: Seq[OperationLike.Id] = Nil,
+  override val output: Option[OperationLike.Schema] = None,
   override val params: Map[String, Any] = Map.empty,
   override val extra: Map[String, Any] = Map.empty
 ) extends OperationLike
 
 case class ReadOperation(
   inputSources: Seq[String],
-  override val id: Id,
+  override val id: OperationLike.Id,
   override val name: Option[OperationLike.Name] = None,
-  override val output: Seq[Attribute.Id] = Nil,
+  override val output: Option[OperationLike.Schema] = None,
   override val params: Map[String, Any] = Map.empty,
   override val extra: Map[String, Any] = Map.empty
 ) extends OperationLike {
-  override def childIds: Seq[Id] = Nil
+  override def childIds: Seq[OperationLike.Id] = Nil
 }
 
 case class WriteOperation(
   outputSource: String,
   append: Boolean,
-  override val id: Id,
+  override val id: OperationLike.Id,
   override val name: Option[OperationLike.Name] = None,
-  override val childIds: Seq[Id],
+  override val childIds: Seq[OperationLike.Id],
   override val params: Map[String, Any] = Map.empty,
   override val extra: Map[String, Any] = Map.empty
 ) extends OperationLike {
-  override def output: Seq[Attribute.Id] = Nil
+  override def output: Option[OperationLike.Schema] = None
 }

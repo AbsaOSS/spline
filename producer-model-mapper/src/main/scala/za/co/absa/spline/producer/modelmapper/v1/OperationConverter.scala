@@ -34,9 +34,7 @@ class OperationConverter(
       .mapValues(objectConverter.convert)
       .view.force // see: https://github.com/scala/bug/issues/4776
 
-    val output = maybeOutputConverter
-      .flatMap(_.convert(op1))
-      .getOrElse(Nil)
+    val maybeOutput = maybeOutputConverter.flatMap(_.convert(op1))
 
     val id = op1.id.toString
     val maybeName = operationNameExtractor(op1)
@@ -59,7 +57,7 @@ class OperationConverter(
           inputSources = rop1.inputSources,
           id = id,
           name = maybeName,
-          output = output,
+          output = maybeOutput,
           params = convertedParams,
           extra = extra
         )
@@ -68,7 +66,7 @@ class OperationConverter(
           id = id,
           name = maybeName,
           childIds = childIds,
-          output = output,
+          output = maybeOutput,
           params = convertedParams,
           extra = extra
         )
