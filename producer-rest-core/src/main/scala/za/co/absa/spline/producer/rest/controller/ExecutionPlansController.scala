@@ -102,7 +102,7 @@ class ExecutionPlansController @Autowired()(
                 name: <string>,
                 // Array of preceding operations IDs (see above)
                 childIds: [<string>],
-                // [Optional] Output attribute IDs
+                // [Optional] Output attribute IDs. If output is undefined the server will try to infer it from the child operations' output.
                 output: [<string>],
                 // [Optional] Operation parameters
                 params: {...},

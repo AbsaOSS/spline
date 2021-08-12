@@ -72,6 +72,8 @@ class ExecutionPlansControllerDeserFixAspectSpec
 
 object ExecutionPlansControllerDeserFixAspectSpec {
 
+  import za.co.absa.commons.lang.OptionImplicits._
+
   class ProceedingJoinPointSpy(args: AnyRef*) extends ProceedingJoinPoint {
     var capturedProceedingArgs: Seq[AnyRef] = _
 
@@ -132,13 +134,13 @@ object ExecutionPlansControllerDeserFixAspectSpec {
           ReadOperation(
             id = "2",
             inputSources = Seq("foo", "bar"),
-            output = Seq("attr1"),
+            output = Seq("attr1").asOption,
             params = sampleMapWithRefs,
             extra = sampleMapWithRefs),
           ReadOperation(
             id = "3",
             inputSources = Seq("baz", "qux"),
-            output = Seq("attr2"),
+            output = Seq("attr2").asOption,
             params = sampleMapWithRefs,
             extra = sampleMapWithRefs)
         ),
@@ -146,13 +148,13 @@ object ExecutionPlansControllerDeserFixAspectSpec {
           DataOperation(
             id = "4",
             childIds = Seq("2"),
-            output = Seq("attr1", "attr3"),
+            output = Seq("attr1", "attr3").asOption,
             params = sampleMapWithRefs,
             extra = sampleMapWithRefs),
           DataOperation(
             id = "5",
             childIds = Seq("3"),
-            output = Seq("attr2", "attr4"),
+            output = Seq("attr2", "attr4").asOption,
             params = sampleMapWithRefs,
             extra = sampleMapWithRefs)
         )
