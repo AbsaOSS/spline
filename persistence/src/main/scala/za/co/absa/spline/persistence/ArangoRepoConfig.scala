@@ -63,7 +63,7 @@ object ArangoRepoConfig extends DefaultConfigurationStack with ConfTyped {
       conf.getBoolean(Prop("logFullQueryOnError"), false)
 
     val DisableSSLValidation: Boolean =
-      conf.getBoolean(Prop("disableSslValidation"), true)
+      conf.getBoolean(Prop("disableSslValidation"), false)
   }
 
 }
