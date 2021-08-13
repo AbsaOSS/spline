@@ -43,6 +43,7 @@ class StatusController @Autowired()(
     new ApiResponse(code = 200, message = "Everything's working"),
     new ApiResponse(code = 503, message = "There is a problem")
   ))
+  @deprecated("Use liveness probe instead", since = "0.7.0")
   def statusHead(): Future[_] = repo
     .isDatabaseOk
     .map {

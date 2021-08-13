@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2021 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,30 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.gateway.rest.controller
+package za.co.absa.spline.common.webmvc.diagnostics.controller
 
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
-import io.swagger.annotations._
-import org.springframework.http.MediaType._
-import org.springframework.web.bind.annotation.{GetMapping, RequestMapping, RestController}
+import io.swagger.annotations.ApiOperation
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.{GetMapping, RestController}
 import za.co.absa.spline.common.SplineBuildInfo
 
 @RestController
-@RequestMapping(Array("/about"))
-class AboutController {
+class DiagnosticsController {
 
   @GetMapping(path = Array("/version"), produces = Array(APPLICATION_JSON_VALUE))
   @ApiOperation("Get application version info")
-  def buildInfo: String =
-    ConfigFactory
-      .parseProperties(SplineBuildInfo.BuildProps)
-      .root()
-      .render(ConfigRenderOptions.concise)
+  def buildInfo: String = ConfigFactory
+    .parseProperties(SplineBuildInfo.BuildProps)
+    .root()
+    .render(ConfigRenderOptions.concise)
+
+  @GetMapping(Array("/readiness"))
+  @ApiOperation("Service 'readiness' probe")
+  def readinessProbe: ResponseEntity[_] = ResponseEntity.ok(null)
+
+  @GetMapping(Array("/liveness"))
+  @ApiOperation("Service 'liveness' probe")
+  def livenessProbe: ResponseEntity[_] = ResponseEntity.ok(null)
 }

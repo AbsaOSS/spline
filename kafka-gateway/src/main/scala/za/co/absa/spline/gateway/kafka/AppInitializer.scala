@@ -19,6 +19,8 @@ package za.co.absa.spline.gateway.kafka
 import org.springframework.web.WebApplicationInitializer
 import org.springframework.web.context.ContextLoaderListener
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext
+import za.co.absa.spline.common.webmvc.AppInitializerUtils.{registerRESTDispatcher, registerRootDispatcher}
+import za.co.absa.spline.common.webmvc.diagnostics.{DiagnosticsRESTConfig, RootWebContextConfig}
 import za.co.absa.spline.persistence.ArangoRepoConfig
 import za.co.absa.spline.producer.service.ProducerServicesConfig
 
@@ -34,5 +36,9 @@ object AppInitializer extends WebApplicationInitializer {
           classOf[ProducerServicesConfig],
           classOf[ArangoRepoConfig])
       }))
+
+    registerRESTDispatcher[DiagnosticsRESTConfig](container, "about")
+
+    registerRootDispatcher[RootWebContextConfig](container)
   }
 }

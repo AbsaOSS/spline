@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.gateway.rest
+package za.co.absa.spline.common.webmvc.diagnostics
 
 package object controller {
 
