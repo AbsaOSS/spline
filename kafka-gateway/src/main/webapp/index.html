@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
           integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
 
-    <title>Spline REST Gateway</title>
+    <title>Spline Kafka Gateway</title>
 </head>
 
 <body>
@@ -47,7 +47,7 @@
         <!-- CARD: GATEWAY INFO -->
         <div class="col mb-4">
             <div class="card h-100">
-                <h5 class="card-header">Spline REST Gateway</h5>
+                <h5 class="card-header">Spline Kafka Gateway</h5>
                 <div class="card-body">
                     <dl class="row">
                         <dt class="col-sm-4">Version</dt>
@@ -74,47 +74,12 @@
                 <div class="card-body">
                     <nav class="nav flex-column">
                         <a class="nav-link" rel="noopener noreferrer" href="https://absaoss.github.io/spline/" target="_blank">GitHub pages</a>
-                        <a class="nav-link" rel="noopener noreferrer" href="docs/producer.html" target="_blank">Producer API specification</a>
-                        <a class="nav-link" rel="noopener noreferrer" href="docs/consumer.html" target="_blank">Consumer API specification</a>
+                        <a class="nav-link" rel="noopener noreferrer" href="https://github.com/AbsaOSS/spline/tree/develop/kafka-gateway" target="_blank">Readme</a>
                     </nav>
                 </div>
             </div>
         </div>
         <!-- ./CARD: DOCS -->
-
-        <!-- CARD: PRODUCER CONF -->
-        <div class="col mb-4">
-            <div class="card h-100">
-                <h5 class="card-header">Producer API</h5>
-                <div class="card-body">
-                    <dl class="row">
-                        <dt class="col-sm-4">Base URL</dt>
-                        <dd class="col-sm-8"><code id="spline-producer-url">&nbsp;</code></dd>
-
-                        <dt class="col-sm-4">API version</dt>
-                        <dd class="col-sm-8"><code id="spline-producer-api-version">&nbsp;</code></dd>
-
-                        <dt class="col-sm-4">Request encoding</dt>
-                        <dd class="col-sm-8"><code id="spline-producer-request-compression">&nbsp;</code></dd>
-                    </dl>
-                </div>
-            </div>
-        </div>
-        <!-- ./CARD: PRODUCER CONF -->
-
-        <!-- CARD: CONSUMER CONF -->
-        <div class="col mb-4">
-            <div class="card h-100">
-                <h5 class="card-header">Consumer API</h5>
-                <div class="card-body">
-                    <dl class="row">
-                        <dt class="col-sm-4">Base URL</dt>
-                        <dd class="col-sm-8"><code id="spline-consumer-url">&nbsp;</code></dd>
-                    </dl>
-                </div>
-            </div>
-        </div>
-        <!-- ./CARD: CONSUMER CONF -->
 
     </div>
 </div>
@@ -136,9 +101,6 @@
             .filter(t => !t.endsWith(".html"))
             .join("/")
 
-    document.querySelector('#spline-producer-url').textContent = `${baseUrl}/producer`
-    document.querySelector('#spline-consumer-url').textContent = `${baseUrl}/consumer`
-
     update()
     setInterval(update, 5000)
 
@@ -156,18 +118,8 @@
                 document.querySelector('#spline-timestamp').textContent = data.build.timestamp && moment(data.build.timestamp).format("ll")
             })
 
-        $.ajax(`${baseUrl}/producer/status`, {method: 'HEAD'})
-            .done((data, status, jqXHR) => {
-                const headers = Object.fromEntries(
-                    jqXHR.getAllResponseHeaders().split("\n").map(header => {
-                        const tokens = header.split(": ")
-                        const key = tokens.shift()
-                        return [key.toLowerCase(), tokens]
-                    }))
-
-                document.querySelector('#spline-producer-request-compression').textContent = headers["absa-spline-accept-request-encoding"]
-                document.querySelector('#spline-producer-api-version').textContent = headers["absa-spline-api-version"]
-
+        $.ajax(`${baseUrl}/about/liveness`, {method: 'GET'})
+            .done(() => {
                 const statusElem = document.querySelector('#spline-status')
                 statusElem.classList.remove(...ALL)
                 statusElem.classList.add(OK)
