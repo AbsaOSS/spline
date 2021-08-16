@@ -81,6 +81,26 @@
         </div>
         <!-- ./CARD: DOCS -->
 
+        <!-- CARD: DIAGNOSTICS API -->
+        <div class="col mb-4">
+            <div class="card h-100">
+                <h5 class="card-header">Diagnostics API</h5>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Server version</dt>
+                        <dd class="col-sm-8"><code id="spline-diagnostics-version-url">&nbsp;</code></dd>
+
+                        <dt class="col-sm-4">Readiness probe</dt>
+                        <dd class="col-sm-8"><code id="spline-diagnostics-readiness-url">&nbsp;</code></dd>
+
+                        <dt class="col-sm-4">Liveness probe</dt>
+                        <dd class="col-sm-8"><code id="spline-diagnostics-liveness-url">&nbsp;</code></dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <!-- ./CARD: DIAGNOSTICS API -->
+
     </div>
 </div>
 <!-- ./BODY -->
@@ -100,6 +120,10 @@
             .split("/")
             .filter(t => !t.endsWith(".html"))
             .join("/")
+
+    document.querySelector('#spline-diagnostics-version-url').textContent = `${baseUrl}/about/version`
+    document.querySelector('#spline-diagnostics-readiness-url').textContent = `${baseUrl}/about/readiness`
+    document.querySelector('#spline-diagnostics-liveness-url').textContent = `${baseUrl}/about/liveness`
 
     update()
     setInterval(update, 5000)
