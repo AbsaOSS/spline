@@ -16,15 +16,12 @@
 
 package za.co.absa.spline.gateway.rest
 
-import java.util
-
-import javax.servlet.DispatcherType._
-import javax.servlet.ServletContext
 import org.springframework.web.WebApplicationInitializer
 import org.springframework.web.context.ContextLoaderListener
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext
-import org.springframework.web.servlet.DispatcherServlet
+import za.co.absa.spline.common.webmvc.AppInitializerUtils.{registerRESTDispatcher, registerRootDispatcher}
 import za.co.absa.spline.common.webmvc.cors.PermissiveCorsFilter
+import za.co.absa.spline.common.webmvc.diagnostics.{DiagnosticsRESTConfig, RootWebContextConfig}
 import za.co.absa.spline.consumer.rest.ConsumerRESTConfig
 import za.co.absa.spline.consumer.service.ConsumerServicesConfig
 import za.co.absa.spline.gateway.rest.filter.GzipFilter
@@ -32,7 +29,9 @@ import za.co.absa.spline.persistence.ArangoRepoConfig
 import za.co.absa.spline.producer.rest.ProducerRESTConfig
 import za.co.absa.spline.producer.service.ProducerServicesConfig
 
-import scala.reflect.ClassTag
+import java.util
+import javax.servlet.DispatcherType._
+import javax.servlet.ServletContext
 
 object AppInitializer extends WebApplicationInitializer {
   override def onStartup(container: ServletContext): Unit = {
@@ -53,26 +52,10 @@ object AppInitializer extends WebApplicationInitializer {
       .addFilter("GzipFilter", new GzipFilter)
       .addMappingForUrlPatterns(util.EnumSet.of(REQUEST), false, "/*")
 
-    container
-      .addServlet("RootDispatcher", new DispatcherServlet(new AnnotationConfigWebApplicationContext {
-        setAllowBeanDefinitionOverriding(false)
-        register(classOf[RootWebContextConfig])
-      }))
-      .addMapping("/*")
-
     registerRESTDispatcher[ConsumerRESTConfig](container, "consumer")
     registerRESTDispatcher[ProducerRESTConfig](container, "producer")
-  }
+    registerRESTDispatcher[DiagnosticsRESTConfig](container, "about")
 
-  private def registerRESTDispatcher[A: ClassTag](container: ServletContext, name: String): Unit = {
-    val restConfigClassTag = implicitly[ClassTag[A]]
-    val webContext = new AnnotationConfigWebApplicationContext {
-      setAllowBeanDefinitionOverriding(false)
-      register(restConfigClassTag.runtimeClass)
-    }
-    val dispatcher = container.addServlet(s"${name}Dispatcher", new DispatcherServlet(webContext))
-    dispatcher.setLoadOnStartup(1)
-    dispatcher.addMapping(s"/$name/*")
-    dispatcher.setAsyncSupported(true)
+    registerRootDispatcher[RootWebContextConfig](container)
   }
 }

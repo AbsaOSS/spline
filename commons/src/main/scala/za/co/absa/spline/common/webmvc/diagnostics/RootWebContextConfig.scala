@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2021 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.gateway.rest
+package za.co.absa.spline.common.webmvc.diagnostics
 
-import org.springframework.context.annotation.{ComponentScan, Configuration}
+import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
 import org.springframework.web.servlet.config.annotation.{DefaultServletHandlerConfigurer, EnableWebMvc, ViewControllerRegistry, WebMvcConfigurer}
 
 @EnableWebMvc
 @Configuration
-@ComponentScan(basePackageClasses = Array(classOf[controller._package]))
 class RootWebContextConfig extends WebMvcConfigurer {
 
   override def configureDefaultServletHandling(configurer: DefaultServletHandlerConfigurer): Unit = {
