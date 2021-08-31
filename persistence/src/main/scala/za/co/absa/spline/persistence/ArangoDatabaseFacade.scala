@@ -16,7 +16,6 @@
 
 package za.co.absa.spline.persistence
 
-import com.arangodb.ArangoDBException
 import com.arangodb.async.{ArangoDBAsync, ArangoDatabaseAsync}
 import com.arangodb.velocypack.module.scala.VPackScalaModule
 import org.slf4s.Logging
@@ -27,7 +26,6 @@ import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 
 import javax.net.ssl._
 import scala.concurrent._
-import scala.util.Try
 
 class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL, maybeSSLContext: Option[SSLContext]) extends DisposableBean {
 
@@ -67,15 +65,7 @@ class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL, maybeSSLContext: 
   }
 
   override def destroy(): Unit = {
-    try {
-      arango.shutdown()
-    } catch {
-      // this is a workaround for https://github.com/arangodb/arangodb-java-driver/issues/399
-      case _: ArangoDBException =>
-        // the second call works apparently because an ArangoDB resource that has thrown this exception on shutdown,
-        // is already closed at this point regardless the exception. So now we're closing remaining resources.
-        Try(arango.shutdown())
-    }
+    arango.shutdown()
   }
 }
 
