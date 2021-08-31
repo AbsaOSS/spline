@@ -96,13 +96,13 @@ class AdminCLISpec
       } should include("--help")
     }
 
-    it should "when called with option -k, create a non-validating SSLContext" in {
-      cli.exec(Array("db-exec", "arangodbs://foo/bar", "-k"))
+    it should "when called with option --disable-ssl-validation, create a non-validating SSLContext" in {
+      cli.exec(Array("db-exec", "arangodbs://foo/bar", "--disable-ssl-validation"))
       sslCtxCaptor.getValue.nonEmpty should be(true)
       sslCtxCaptor.getValue.get should be(TLSUtils.TrustingAllSSLContext)
     }
 
-    it should "when called without option -k, do not create any custom SSLContext (leave default one)" in {
+    it should "not create any custom SSLContext (leave the default one) by default" in {
       cli.exec(Array("db-exec", "arangodbs://foo/bar"))
       sslCtxCaptor.getValue.isEmpty should be(true)
     }
