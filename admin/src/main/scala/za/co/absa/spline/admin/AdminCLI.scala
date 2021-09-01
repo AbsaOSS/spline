@@ -91,11 +91,6 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
           action ((str, conf) => conf.copy(logLevel = Level.valueOf(str))))
       }
 
-      // FIXME: Deprecated since Spline 0.6.1. To be removed in Spline 1.0.0 - https://github.com/AbsaOSS/spline/issues/906
-      (opt[Unit]('k', "insecure")
-        text s"Deprecated. See --disable-ssl-validation"
-        action { case (_, conf) => conf.copy(disableSslValidation = true) })
-
       (opt[Unit]("disable-ssl-validation")
         text s"Disable validation of self-signed SSL certificates. (Don't use on production)."
         action { case (_, conf) => conf.copy(disableSslValidation = true) })
