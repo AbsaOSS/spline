@@ -16,6 +16,8 @@
 
 package za.co.absa.spline.persistence.hdfs
 
+import java.net.URI
+
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.permission.FsPermission
 import org.apache.hadoop.fs.{FileSystem, Path}
@@ -25,6 +27,7 @@ import za.co.absa.spline.model.DataLineage
 import za.co.absa.spline.model.op.Write
 import za.co.absa.spline.persistence.api.DataLineageWriter
 import za.co.absa.spline.persistence.hdfs.serialization.JSONSerialization
+import za.co.absa.spline.common.S3Location.StringS3LocationExt
 
 import scala.concurrent.{ExecutionContext, Future, blocking}
 
@@ -42,13 +45,39 @@ class HdfsDataLineageWriter(hadoopConfiguration: Configuration, fileName: String
     import JSONSerialization._
     for (path <- pathOption) {
       val content = lineage.toJson
-      persistToHdfs(content, path)
+      persistToHadoopFs(content, path.toUri.toString)
     }
   }
 
-  private def persistToHdfs(content: String, path: Path): Unit = blocking {
-    val fs = FileSystem.get(hadoopConfiguration)
+  /**
+   * Converts string full path to Hadoop FS and Path, e.g.
+   * `s3://mybucket1/path/to/file` -> S3 FS + `path/to/file`
+   * `/path/on/hdfs/to/file` -> local HDFS + `/path/on/hdfs/to/file`
+   *
+   * Note, that non-local HDFS paths are not supported in this method, e.g. hdfs://nameservice123:8020/path/on/hdfs/too.
+   *
+   * @param pathString path to convert to FS and relative path
+   * @return FS + relative path
+   **/
+  def pathStringToFsWithPath(pathString: String): (FileSystem, Path) = {
+    pathString.toS3Location match {
+      case Some(s3Location) =>
+        val s3Uri = new URI(s3Location.s3String) // s3://<bucket>
+        val s3Path = new Path(s"/${s3Location.path}") // /<text-file-object-path>
+
+        val fs = FileSystem.get(s3Uri, hadoopConfiguration)
+        (fs, s3Path)
+
+      case None => // local hdfs location
+        val fs = FileSystem.get(hadoopConfiguration)
+        (fs, new Path(pathString))
+    }
+  }
+
+  private def persistToHadoopFs(content: String, hadoopPath: String): Unit = blocking {
+    val (fs, path) = pathStringToFsWithPath(hadoopPath)
     log debug s"Writing lineage to $path"
+
     using(fs.create(
       path,
       filePermissions,
