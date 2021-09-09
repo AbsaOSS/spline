@@ -33,7 +33,7 @@
     <!--
         Optional config
     -->
-    <Environment name="spline/kafka/insertPlanTimeout" type="java.lang.Long" override="false"/>
-    <Environment name="spline/kafka/insertEventTimeout" type="java.lang.Long" override="false"/>
+    <Environment name="spline/kafka/insertPlanTimeout" type="java.lang.String" override="false"/>
+    <Environment name="spline/kafka/insertEventTimeout" type="java.lang.String" override="false"/>
 
 </Context>
