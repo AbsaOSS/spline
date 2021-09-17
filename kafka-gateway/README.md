@@ -3,9 +3,9 @@ Consumes execution plans and events via kafka and stores them to arangoDB
 
 ---
 ### Configuration
-All mandatory configs that needs to be provided are in the example bellow.
+All mandatory configs that needs to be provided are in the next example.
 In addition to this the Kafka consumer can be [configured the standard way](https://kafka.apache.org/documentation/#consumerconfigs). 
-Everything that start with prefix `spline.kafka.consumer.` will be send to consumer as a config (with the prefix removed)
+Everything that start with prefix `spline.kafka.consumer.` will be sent to consumer as a config (with the prefix removed)
 
 
 spline's `DefaultConfigurationStack` is used so there are many ways how to provide the config.
@@ -18,9 +18,47 @@ example properties provided via VM options
 -Dspline.kafka.topic=spline-topic
 ```
 
-### Error recovery
-Currently, all received messages are acknowledged. Errors during message processing are logged. 
-The consumer is idempotent so if needed it can be rewind back, and the failed messages can be re-ingested. 
+### Idempotency
+In accord with Kafka best practices this consumer is indepmotent. 
+In practice, it means that one message can be consumed multiple times without risk of duplication. 
+Spline will recognize that the message was already consumed, and it will simply ignore it.
+
+### Scalability
+By default, Spline Consumer is using one Kafka Consumer. When need to scale arise you can run additional Spline Consumer instances.
+Same rules as for any other Kafka consumers apply.
+
+There is also option to run multiple Kafka Consumers inside one application instance. If for some reason you want to scale vertically.
+You can do this by setting `spline.kafka.consumerConcurrency` to number higher than one.
+
+### Reliability
+To achieve maximum reliability Dead Letter Queue should be enabled, then spline will only commit the message offset 
+once the message data were stored in the database, or the message was sent to the Dead Letter Queue.
+
+Without Dead Letter Queue active the messages that fail will be simply logged and the offset will be committed 
+to not halt the consumption.
+
+There is a retry mechanism that will try to consume the message multiple times before it's considered failed.
+For certain exceptions retry is not attempted. For example, we don't except json parsing to succeed on additional retry.
+
+### Dead Letter Queue
+Disable by default. Set `spline.kafka.deadLetterQueueEnabled` to true to enable. 
+The topic used will have the following name: `<originalTopic>.DLT`. Make sure that automatic topic creation is enabled or create the topic manually.
+By default, the consumer's bootstrap server is used, but it's possible to configure the producer using 
+standard kafka producer config keys prefixed by `spline.kafka.producer`. For example:
+
+```bash
+spline.kafka.producer.bootstrap.servers=localhost:9092
+```
+
+### Retry
+Retry will work out of the box, however it is possible to configure the backoff using following properties (in ms):
+```
+spline.kafka.backOff.multiplier
+spline.kafka.backOff.initialInterval
+spline.kafka.backOff.maxInterval
+spline.kafka.backOff.maxElapsedTime
+```
+The `maxInterval` time must not exceed the `max.poll.interval.ms` consumer property, to avoid a rebalance.
 
 ---
 For general Spline documentation and examples please visit:
