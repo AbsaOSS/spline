@@ -19,34 +19,33 @@ example properties provided via VM options
 ```
 
 ### Idempotency
-In accord with Kafka best practices this consumer is indepmotent. 
+In accordance with Kafka best practices this consumer is idempotent. 
 In practice, it means that one message can be consumed multiple times without risk of duplication. 
 Spline will recognize that the message was already consumed, and it will simply ignore it.
 
 ### Scalability
-By default, Spline Consumer is using one Kafka Consumer. When need to scale arise you can run additional Spline Consumer instances.
+By default, Spline Consumer uses a single Kafka Consumer. When a need to scale arises you can run additional Spline Consumer instances.
 Same rules as for any other Kafka consumers apply.
 
-There is also option to run multiple Kafka Consumers inside one application instance. If for some reason you want to scale vertically.
+Another option is to run multiple Kafka Consumers inside one Spline application instance, if for some reason you want to scale vertically.
 You can do this by setting `spline.kafka.consumerConcurrency` to number higher than one.
 
 ### Reliability
-To achieve maximum reliability Dead Letter Queue should be enabled, then spline will only commit the message offset 
-once the message data were stored in the database, or the message was sent to the Dead Letter Queue.
+To achieve maximum reliability _Dead Letter Queue_ should be enabled. That makes Spline to commit the message offset
+only when the message data is either successfully stored to the database, or is sent to the _Dead Letter Queue_.
 
-Without Dead Letter Queue active the messages that fail will be simply logged and the offset will be committed 
-to not halt the consumption.
+Without having _Dead Letter Queue_ enabled Spline commits the offset anyway (to avoid repeatedly failing messages clogging processing), and the errors are just logged.
 
 There is a retry mechanism that will try to consume the message multiple times before it's considered failed.
-For certain exceptions retry is not attempted. For example, we don't except json parsing to succeed on additional retry.
+For certain exceptions retry is not attempted. For example, messages that fail on JSON parsing won't be retried.
 
 ### Dead Letter Queue
-Disable by default. Set `spline.kafka.deadLetterQueueEnabled` to true to enable. 
-The topic used will have the following name: `<originalTopic>.DLT`. Make sure that automatic topic creation is enabled or create the topic manually.
+Disabled by default. Set `spline.kafka.deadLetterQueueEnabled` to 'true' to enable. 
+The topic name is auto generated using the following format: `<originalTopic>.DLT`. Make sure that automatic topic creation is enabled, or create the topic manually.
 By default, the consumer's bootstrap server is used, but it's possible to configure the producer using 
-standard kafka producer config keys prefixed by `spline.kafka.producer`. For example:
+standard Kafka producer config keys prefixed by `spline.kafka.producer`. For example:
 
-```bash
+```properties
 spline.kafka.producer.bootstrap.servers=localhost:9092
 ```
 
@@ -58,7 +57,7 @@ spline.kafka.backOff.initialInterval
 spline.kafka.backOff.maxInterval
 spline.kafka.backOff.maxElapsedTime
 ```
-The `maxInterval` time must not exceed the `max.poll.interval.ms` consumer property, to avoid a rebalance.
+To avoid rebalance, the `maxInterval` time must not exceed the `max.poll.interval.ms` consumer property.
 
 ---
 For general Spline documentation and examples please visit:
