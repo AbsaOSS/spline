@@ -25,7 +25,6 @@ Spline will recognize that the message was already consumed, and it will simply 
 
 ### Scalability
 By default, Spline Consumer uses a single Kafka Consumer. When a need to scale arises you can run additional Spline Consumer instances.
-Same rules as for any other Kafka consumers apply.
 
 Another option is to run multiple Kafka Consumers inside one Spline application instance, if for some reason you want to scale vertically.
 You can do this by setting `spline.kafka.consumerConcurrency` to number higher than one.
