@@ -21,20 +21,24 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.twitter.finatra.jackson.FinatraInternalModules
 import org.apache.commons.configuration.ConfigurationConverter
 import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.common.serialization.{ByteArrayDeserializer, StringDeserializer}
+import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer, StringDeserializer, StringSerializer}
 import org.springframework.context.annotation.{Bean, ComponentScan, Configuration}
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer
 import org.springframework.core.env.{MutablePropertySources, PropertiesPropertySource}
 import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
-import org.springframework.kafka.core.{ConsumerFactory, DefaultKafkaConsumerFactory}
+import org.springframework.kafka.core._
 import org.springframework.kafka.listener.ContainerProperties.AckMode
+import org.springframework.kafka.listener.{DeadLetterPublishingRecoverer, SeekToCurrentErrorHandler}
 import org.springframework.kafka.support.JacksonUtils
 import org.springframework.kafka.support.converter.Jackson2JavaTypeMapper.TypePrecedence
-import org.springframework.kafka.support.converter.{ByteArrayJsonMessageConverter, DefaultJackson2JavaTypeMapper, RecordMessageConverter}
+import org.springframework.kafka.support.converter.{ByteArrayJsonMessageConverter, ConversionException, DefaultJackson2JavaTypeMapper, RecordMessageConverter}
+import org.springframework.util.backoff.{BackOff, ExponentialBackOff}
 import za.co.absa.commons.config.ConfTyped
 import za.co.absa.commons.config.ConfigurationImplicits.{ConfigurationOptionalWrapper, ConfigurationRequiredWrapper}
 import za.co.absa.spline.common.config.DefaultConfigurationStack
+import za.co.absa.spline.producer.service.InconsistentEntityException
 
 import java.util.concurrent.TimeUnit
 import scala.collection.JavaConverters._
@@ -48,10 +52,11 @@ class KafkaGatewayConfig {
   @Bean
   def kafkaListenerContainerFactory: ConcurrentKafkaListenerContainerFactory[_, _] =
     new ConcurrentKafkaListenerContainerFactory[String, AnyRef] {
-      setConcurrency(1)
+      setConcurrency(KafkaGatewayConfig.Kafka.ConsumerConcurrency)
       setConsumerFactory(consumerFactory)
       setMessageConverter(messageConverter)
-      getContainerProperties.setAckMode(AckMode.BATCH)
+      getContainerProperties.setAckMode(AckMode.RECORD)
+      setErrorHandler(errorHandler)
     }
 
   private def consumerFactory: ConsumerFactory[String, AnyRef] = {
@@ -89,6 +94,42 @@ class KafkaGatewayConfig {
       .setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE)
       .registerModule(FinatraInternalModules.caseClassModule)
 
+  private val errorHandler = {
+    val handler =
+      if (KafkaGatewayConfig.Kafka.DeadLetterQueueEnabled)
+        new SeekToCurrentErrorHandler(new DeadLetterPublishingRecoverer(deadLetterTemplate), backOff)
+      else
+        new SeekToCurrentErrorHandler(backOff)
+
+    handler.addNotRetryableException(classOf[ConversionException])
+    handler.addNotRetryableException(classOf[InconsistentEntityException])
+    handler
+  }
+
+  private def deadLetterTemplate: KafkaTemplate[_, _] =
+    new KafkaTemplate[String, AnyRef](producerFactory)
+
+  private def producerFactory: ProducerFactory[String, AnyRef] = {
+    new DefaultKafkaProducerFactory(producerConfigsMerged.asJava)
+  }
+
+  private def producerConfigsMerged: Map[String, AnyRef] = {
+    Map(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG -> KafkaGatewayConfig.Kafka.Consumer.BootstrapServers) ++
+    KafkaGatewayConfig.Kafka.OtherProducerConfig ++
+    Map[String, AnyRef](
+      ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG -> classOf[StringSerializer].getName,
+      ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG -> classOf[ByteArraySerializer].getName,
+    )
+  }
+
+  private def backOff: BackOff = new ExponentialBackOff {
+    private val backOffConfig = KafkaGatewayConfig.Kafka.BackOff
+    setMultiplier(backOffConfig.Multiplier)
+    setInitialInterval(backOffConfig.InitialInterval)
+    setMaxInterval(backOffConfig.MaxInterval)
+    setMaxElapsedTime(backOffConfig.MaxElapsedTime)
+  }
+
   @Bean
   def propertySourcesPlaceholderConfigurer: PropertySourcesPlaceholderConfigurer = {
     val properties = ConfigurationConverter.getProperties(KafkaGatewayConfig)
@@ -111,6 +152,8 @@ object KafkaGatewayConfig extends DefaultConfigurationStack with ConfTyped {
 
     val Topic: String = conf.getRequiredString(Prop("topic"))
 
+    val ConsumerConcurrency: Int = conf.getInt(Prop("consumerConcurrency"), 1)
+
     object Consumer extends Conf("consumer") {
       val GroupId: String = conf.getRequiredString(Prop(ConsumerConfig.GROUP_ID_CONFIG))
       val BootstrapServers: String = conf.getRequiredString(Prop(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG))
@@ -130,5 +173,19 @@ object KafkaGatewayConfig extends DefaultConfigurationStack with ConfTyped {
       .getOptionalLong(Prop("insertEventTimeout"))
       .map(Duration(_, TimeUnit.MILLISECONDS))
       .getOrElse(10.seconds)
+
+    object BackOff extends Conf("backOff") {
+      val Multiplier: Double = conf.getDouble(Prop("multiplier"), 4)
+      val InitialInterval: Long = conf.getLong(Prop("initialInterval"), 2.seconds.toMillis)
+      val MaxInterval: Long = conf.getLong(Prop("maxInterval"), 32.seconds.toMillis)
+      val MaxElapsedTime: Long = conf.getLong(Prop("maxElapsedTime"), 90.seconds.toMillis)
+    }
+
+    val DeadLetterQueueEnabled: Boolean = conf.getBoolean(Prop("deadLetterQueueEnabled"), false)
+
+    val OtherProducerConfig: Map[String, AnyRef] = ConfigurationConverter
+      .getMap(subset(Prop("producer")))
+      .asScala.toMap
+      .asInstanceOf[Map[String, AnyRef]]
   }
 }

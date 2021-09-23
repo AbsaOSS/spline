@@ -33,7 +33,16 @@
     <!--
         Optional config
     -->
+    <Environment name="spline/kafka/consumerConcurrency" type="java.lang.String" override="false"/>
+
     <Environment name="spline/kafka/insertPlanTimeout" type="java.lang.String" override="false"/>
     <Environment name="spline/kafka/insertEventTimeout" type="java.lang.String" override="false"/>
+
+    <Environment name="spline/kafka/backOff/multiplier" type="java.lang.String" override="false"/>
+    <Environment name="spline/kafka/backOff/initialInterval" type="java.lang.String" override="false"/>
+    <Environment name="spline/kafka/backOff/maxInterval" type="java.lang.String" override="false"/>
+    <Environment name="spline/kafka/backOff/maxElapsedTime" type="java.lang.String" override="false"/>
+
+    <Environment name="spline/kafka/deadLetterQueueEnabled" type="java.lang.String" override="false"/>
 
 </Context>

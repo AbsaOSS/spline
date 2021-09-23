@@ -29,7 +29,6 @@ import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 
 import scala.beans.BeanProperty
 import scala.concurrent.{Await, ExecutionContext}
-import scala.util.control.NonFatal
 
 @Unstable
 @Component
@@ -47,12 +46,9 @@ class ExecutionsListener @Autowired()(val repo: ExecutionProducerRepository) ext
     @Header(KafkaHeaders.OFFSET) offset: Long,
     @Header(KafkaHeaders.RECEIVED_TOPIC) topic: String,
   ): Unit = {
-    try {
-      Await.result(repo.insertExecutionPlan(plan), KafkaGatewayConfig.Kafka.PlanTimeout)
-    } catch {
-      case NonFatal(e) => log.error(
-        s"Error while inserting execution plan id:${plan.id} from topic:$topic on offset:$offset", e)
-    }
+    log.trace(s"Inserting execution plan id:${plan.id} from topic:$topic on offset:$offset")
+
+    Await.result(repo.insertExecutionPlan(plan), KafkaGatewayConfig.Kafka.PlanTimeout)
   }
 
   @KafkaHandler
@@ -61,12 +57,9 @@ class ExecutionsListener @Autowired()(val repo: ExecutionProducerRepository) ext
     @Header(KafkaHeaders.OFFSET) offset: Long,
     @Header(KafkaHeaders.RECEIVED_TOPIC) topic: String,
   ): Unit = {
-    try {
-      Await.result(repo.insertExecutionEvents(Array(event)), KafkaGatewayConfig.Kafka.EventTimeout)
-    } catch {
-      case NonFatal(e) => log.error(
-        s"Error while inserting execution event for planId:${event.planId} and timestamp: ${event.timestamp} " +
-          s"from topic:$topic on offset:$offset", e)
-    }
+    log.trace(s"Inserting execution event for planId:${event.planId} and timestamp: ${event.timestamp} " +
+      s"from topic:$topic on offset:$offset")
+
+    Await.result(repo.insertExecutionEvents(Array(event)), KafkaGatewayConfig.Kafka.EventTimeout)
   }
 }
