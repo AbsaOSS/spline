@@ -16,12 +16,11 @@
 
 package za.co.absa.spline.migrator
 
-import java.util
-import java.util.UUID
-
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.pattern.pipe
+import com.mongodb
 import com.mongodb.ConnectionString
+import com.mongodb.casbah.AggregationOptions
 import com.mongodb.casbah.Imports.DBObject
 import com.mongodb.client.model.Aggregates.{`match`, addFields, project}
 import com.mongodb.client.model.Field
@@ -35,8 +34,10 @@ import za.co.absa.spline.model.{DataLineage, PersistedDatasetDescriptor}
 import za.co.absa.spline.persistence.api.CloseableIterable
 import za.co.absa.spline.persistence.api.DataLineageReader.PageRequest
 import za.co.absa.spline.persistence.mongo.dao.{LineageDAOv3, LineageDAOv4, MultiVersionLineageDAO}
-import za.co.absa.spline.persistence.mongo.{MongoConnectionImpl, MongoDataLineageReader}
+import za.co.absa.spline.persistence.mongo.{MongoConnection, MongoConnectionImpl, MongoDataLineageReader}
 
+import java.util
+import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
@@ -61,13 +62,25 @@ object Spline03Actor {
 
   case class DataLineageLoadFailure(lineageId: UUID, e: Throwable) extends ResponseMessage
 
+  private val mongoConnectionFactory: String => MongoConnection = {
+    val fixedAggOpts =
+      mongodb.AggregationOptions
+        .builder()
+        .allowDiskUse(true)
+        .build()
+
+    val fld = AggregationOptions.getClass.getDeclaredField("default")
+    fld.setAccessible(true)
+    fld.set(AggregationOptions, fixedAggOpts)
+
+    new MongoConnectionImpl(_)
+  }
 }
 
 class Spline03Actor(connectionUrl: String) extends Actor with ActorLogging {
   implicit val ec: ExecutionContext = context.dispatcher
 
-  private val mongoConnection =
-    new MongoConnectionImpl(connectionUrl)
+  private val mongoConnection = mongoConnectionFactory(connectionUrl)
 
   private val mongoDatabase = {
     val dbName = new ConnectionString(connectionUrl).getDatabase
@@ -120,10 +133,10 @@ class Spline03Actor(connectionUrl: String) extends Actor with ActorLogging {
       project(fields(include("lineageId"))))
 
     for (event <-
-         mongoDatabase
-           .watch(pipeline)
-           .withDocumentClass(classOf[DBObject])
-           .asScala) {
+           mongoDatabase
+             .watch(pipeline)
+             .withDocumentClass(classOf[DBObject])
+             .asScala) {
       val dsId = toDatasetId(event.get("lineageId").toString)
       loadLineage(dsId) pipeTo recipient
     }

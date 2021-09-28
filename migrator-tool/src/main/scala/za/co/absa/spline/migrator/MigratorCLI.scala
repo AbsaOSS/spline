@@ -16,19 +16,31 @@
 
 package za.co.absa.spline.migrator
 
-import java.io.File
-
 import ch.qos.logback.classic.Level
 import org.backuity.ansi.AnsiFormatter.FormattedHelper
 import za.co.absa.spline.common.SplineBuildInfo
-import za.co.absa.spline.migrator.rest.{RestClientFactory, RestClientFactoryPlayWsImpl}
+import za.co.absa.spline.migrator.rest.{RestClient, RestClientFactory, RestClientFileDumpingImpl, RestClientPlayWsImpl}
 
+import java.io.File
 import scala.concurrent.duration._
 import scala.util.Try
 
 object MigratorCLI extends App {
 
-  private val rcf: RestClientFactory = new RestClientFactoryPlayWsImpl
+  private val rcf: RestClientFactory = new RestClientFactory {
+    override def createRestClient(baseUrl: String): RestClient = {
+      if (baseUrl.matches("^https?://.*")) {
+        println(s"Sending to URL: $baseUrl")
+        new RestClientPlayWsImpl(baseUrl)
+      }
+      else {
+        val file = new File(baseUrl)
+        println(s"Writing to file: ${file.getAbsolutePath}")
+        new RestClientFileDumpingImpl(file)
+      }
+    }
+  }
+
   private val migrator: MigratorTool = new MigratorToolImpl(rcf)
 
   new MigratorCLI(migrator).exec(args)
@@ -46,8 +58,8 @@ class MigratorCLI(migratorTool: MigratorTool) {
         action ((url, conf) => conf.copy(mongoConnectionUrl = url)))
 
       (opt[String]('t', "target")
-        valueName "<url>"
-        text "Spline Producer REST endpoint URL - a destination for migrated data"
+        valueName "<url> | <file>"
+        text "The destination for migrated data - either Spline Producer REST endpoint URL, or file (use '.gz' extension to create compressed output)"
         required()
         action ((url, conf) => conf.copy(producerRESTEndpointUrl = url)))
 
