@@ -84,11 +84,11 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         |        "frameworkName"    : lwe.execPlanDetails.frameworkName,
         |        "applicationName"  : lwe.execPlanDetails.applicationName,
         |        "applicationId"    : lwe.extra.appId,
-        |        "timestamp"        : lwe.timestamp || 0,
+        |        "timestamp"        : lwe.timestamp,
         |        "dataSourceName"   : ds.name,
         |        "dataSourceUri"    : ds.uri,
         |        "dataSourceType"   : lwe.execPlanDetails.dataSourceType,
-        |        "append"           : lwe.execPlanDetails.append || false
+        |        "append"           : lwe.execPlanDetails.append
         |    }
         |
         |    SORT resItem.@sortField @sortOrder
