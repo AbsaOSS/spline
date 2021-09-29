@@ -22,14 +22,4 @@
     -->
     <Environment name="spline/database/connectionUrl" type="java.lang.String" override="false"/>
 
-    <!--
-        REST adaptive timeout config.
-        It's not actually used at the moment. In the future, it will either be used or deprecated.
-        See:
-            - https://github.com/AbsaOSS/spline/issues/474
-            - https://github.com/AbsaOSS/spline/issues/485
-    -->
-    <Environment name="spline/adaptive_timeout/min" type="java.lang.Long" override="false"/>
-    <Environment name="spline/adaptive_timeout/duration_factor" type="java.lang.Double" override="false"/>
-
 </Context>
