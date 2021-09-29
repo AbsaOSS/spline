@@ -19,7 +19,7 @@ package za.co.absa.spline.gateway.rest
 import org.springframework.web.WebApplicationInitializer
 import org.springframework.web.context.ContextLoaderListener
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext
-import za.co.absa.spline.common.webmvc.AppInitializerUtils.{registerRESTDispatcher, registerRootDispatcher}
+import za.co.absa.spline.common.webmvc.AppInitializerUtils.{registerFilter, registerRESTDispatcher, registerRootDispatcher}
 import za.co.absa.spline.common.webmvc.cors.PermissiveCorsFilter
 import za.co.absa.spline.common.webmvc.diagnostics.{DiagnosticsRESTConfig, RootWebContextConfig}
 import za.co.absa.spline.consumer.rest.ConsumerRESTConfig
@@ -29,8 +29,6 @@ import za.co.absa.spline.persistence.ArangoRepoConfig
 import za.co.absa.spline.producer.rest.ProducerRESTConfig
 import za.co.absa.spline.producer.service.ProducerServicesConfig
 
-import java.util
-import javax.servlet.DispatcherType._
 import javax.servlet.ServletContext
 
 object AppInitializer extends WebApplicationInitializer {
@@ -44,13 +42,8 @@ object AppInitializer extends WebApplicationInitializer {
           classOf[ArangoRepoConfig])
       }))
 
-    container
-      .addFilter("CORSFilter", new PermissiveCorsFilter)
-      .addMappingForUrlPatterns(util.EnumSet.of(REQUEST, ASYNC), false, "/*")
-
-    container
-      .addFilter("GzipFilter", new GzipFilter)
-      .addMappingForUrlPatterns(util.EnumSet.of(REQUEST), false, "/*")
+    registerFilter[PermissiveCorsFilter](container, "CORSFilter", "/*")
+    registerFilter[GzipFilter](container, "GzipFilter", "/*")
 
     registerRESTDispatcher[ConsumerRESTConfig](container, "consumer")
     registerRESTDispatcher[ProducerRESTConfig](container, "producer")
