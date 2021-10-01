@@ -9,9 +9,43 @@ Spline - an open-source data lineage tracking solution for data processing frame
 [![SonarCloud Reliability](https://sonarcloud.io/api/project_badges/measure?project=AbsaOSS_spline&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=AbsaOSS_spline)
 [![SonarCloud Security](https://sonarcloud.io/api/project_badges/measure?project=AbsaOSS_spline&metric=security_rating)](https://sonarcloud.io/dashboard?id=AbsaOSS_spline)
 
-For documentation and examples please visit:
+### Documentation
+
 - [Spline GitHub Pages](https://absaoss.github.io/spline/)
 - [Getting Started](https://github.com/AbsaOSS/spline-getting-started)
+
+### Building from source code
+
+1. Install Java 11 and Maven 3.6 or above
+2. Run Maven build
+
+```shell
+# this will produce standard Java artifacts (JAR and WAR files)
+mvn install
+
+# or, if you also want Docker images use this command
+mvn install -Ddocker -Ddockerfile.repositoryUrl=my
+```
+
+### Running Spline server
+
+https://absaoss.github.io/spline/#step-by-step
+
+### Versioning strategy
+
+##### Application version
+
+Spline server follows _Semantic Versioning_[^1] principles. The _Public API_ in terms of _Semantic Versioning_ is defined as a combination of API of
+all Spline modules, including Producer API (REST and Kafka), Consumer REST API, as well as a set of all command-line interfaces (e.g. Admin CLI).
+Any incompatible change introduced in any of those APIs or CLIs will be accompanied by incrementing the _major version_ component.
+
+##### Database schema version
+
+The database schema version number does **not** follow the _Semantic Versioning_ principles, it does not directly correlate with the application
+version and can only be compared to itself. The only relation between the database schema version number and the application version is that the
+former indicates in which application version the given database schema was introduced.
+
+[^1]: Semantic Versioning - https://semver.org/
 
 ---
 
