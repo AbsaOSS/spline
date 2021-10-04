@@ -46,7 +46,7 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
 
     db.queryAs[WriteEventInfo](
       """
-        |WITH progress, progressOf, executionPlan, affects, dataSource
+        |WITH progress, dataSource
         |FOR ds IN dataSource
         |    FILTER ds._created <= @asAtTime
         |
