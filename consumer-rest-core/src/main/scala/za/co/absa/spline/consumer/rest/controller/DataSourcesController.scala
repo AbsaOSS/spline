@@ -18,22 +18,17 @@ package za.co.absa.spline.consumer.rest.controller
 import io.swagger.annotations.{Api, ApiOperation, ApiParam}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
+import za.co.absa.spline.consumer.rest.controller.DataSourcesController.PageableDataSourcesResponse
 import za.co.absa.spline.consumer.service.model._
-import za.co.absa.spline.consumer.service.repo.{DataSourceRepository, ExecutionEventRepository}
+import za.co.absa.spline.consumer.service.repo.DataSourceRepository
 
-import java.lang.System.currentTimeMillis
 import scala.concurrent.Future
 
 @RestController
 @Api(tags = Array("data-sources"))
 class DataSourcesController @Autowired()(
-  val dataSourceRepo: DataSourceRepository,
-  val execEventsRepo: ExecutionEventRepository
-) {
-
-  import za.co.absa.commons.lang.OptionImplicits._
-
-  import scala.concurrent.ExecutionContext.Implicits._
+  val dataSourceRepo: DataSourceRepository
+) extends AbstractExecutionEventsController(dataSourceRepo) {
 
   @GetMapping(Array("/data-sources"))
   @ApiOperation(
@@ -47,6 +42,9 @@ class DataSourcesController @Autowired()(
 
     @ApiParam(value = "End of the last write time range (inclusive)", example = "0")
     @RequestParam(value = "timestampEnd", required = false) writeTimestampEnd: java.lang.Long,
+
+    @ApiParam(value = "Enable 'timestamp' facet computation. (default - `false`)", example = "0")
+    @RequestParam(value = "facet.timestamp", defaultValue = "false") facetTimestampEnabled: Boolean,
 
     @ApiParam(value = "Timestamp of the request, if asAtTime equals 0, the current timestamp will be applied", example = "0")
     @RequestParam(value = "asAtTime", defaultValue = "0") asAtTime0: Long,
@@ -75,49 +73,23 @@ class DataSourcesController @Autowired()(
     @ApiParam(value = "Destination path")
     @RequestParam(value = "dataSourceUri", required = false) dataSourceUri: String
 
-  ): Future[PageableDataSourcesResponse] = {
+  ): Future[PageableDataSourcesResponse] = find(
+    writeTimestampStart,
+    writeTimestampEnd,
+    facetTimestampEnabled,
+    asAtTime0,
+    pageNum,
+    pageSize,
+    sortField,
+    sortOrder,
+    searchTerm,
+    append,
+    writeApplicationId,
+    dataSourceUri
+  )
+}
 
-    val asAtTime = if (asAtTime0 < 1) currentTimeMillis else asAtTime0
-    val pageRequest = PageRequest(pageNum, pageSize)
-    val sortRequest = SortRequest(sortField, sortOrder)
-
-    val maybeSearchTerm = searchTerm.nonBlankOption
-    val maybeAppend = append.asOption.map(Boolean.unbox)
-    val maybeWriteApplicationId = writeApplicationId.nonBlankOption
-    val maybeDataSourceUri = dataSourceUri.nonBlankOption
-    val maybeWriteTimestampStart = writeTimestampStart.asOption.map(Long.unbox)
-    val maybeWriteTimestampEnd = writeTimestampEnd.asOption.map(Long.unbox)
-
-    val eventualDateRange =
-      execEventsRepo.getTimestampRange(
-        asAtTime,
-        maybeSearchTerm,
-        maybeAppend,
-        maybeWriteApplicationId,
-        maybeDataSourceUri)
-
-    val eventualEventsWithCount =
-      dataSourceRepo.find(
-        asAtTime,
-        maybeWriteTimestampStart,
-        maybeWriteTimestampEnd,
-        pageRequest,
-        sortRequest,
-        maybeSearchTerm,
-        maybeAppend,
-        maybeWriteApplicationId,
-        maybeDataSourceUri)
-
-    for {
-      (totalDateFrom, totalDateTo) <- eventualDateRange
-      (events, totalCount) <- eventualEventsWithCount
-    } yield {
-      PageableDataSourcesResponse(
-        events.toArray,
-        totalCount,
-        pageRequest.page,
-        pageRequest.size,
-        Array(totalDateFrom, totalDateTo))
-    }
-  }
+object DataSourcesController {
+  // for now we reuse the data structure of the ExecutionEventController
+  type PageableDataSourcesResponse = PageableExecutionEventsResponse
 }

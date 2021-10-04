@@ -19,4 +19,25 @@ import za.co.absa.spline.consumer.service.model.{PageRequest, SortRequest, Write
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait ExecutionEventRepository extends AbstractExecutionEventRepository
+trait AbstractExecutionEventRepository {
+
+  def getTimestampRange(
+    asAtTime: Long,
+    maybeSearchTerm: Option[String],
+    maybeAppend: Option[Boolean],
+    maybeApplicationId: Option[String],
+    maybeDataSourceUri: Option[String])
+    (implicit ec: ExecutionContext): Future[(Long, Long)]
+
+  def find(
+    asAtTime: Long,
+    maybeTimestampStart: Option[Long],
+    maybeTimestampEnd: Option[Long],
+    pageRequest: PageRequest,
+    sortRequest: SortRequest,
+    maybeSearchTerm: Option[String],
+    maybeAppend: Option[Boolean],
+    maybeApplicationId: Option[String],
+    maybeDataSourceUri: Option[String])
+    (implicit ec: ExecutionContext): Future[(Seq[WriteEventInfo], Long)]
+}
