@@ -16,8 +16,6 @@
 
 package za.co.absa.spline.consumer.rest
 
-import java.util
-
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.springframework.context.annotation.{Bean, ComponentScan, Configuration}
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
@@ -25,9 +23,9 @@ import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcCo
 import za.co.absa.commons.config.ConfTyped
 import za.co.absa.spline.common.config.DefaultConfigurationStack
 import za.co.absa.spline.common.webmvc.jackson.ObjectMapperBeanPostProcessor
-import za.co.absa.spline.common.webmvc.{EstimableFutureReturnValueHandlerSupport, ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
+import za.co.absa.spline.common.webmvc.{ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
 
-import scala.concurrent.duration._
+import java.util
 
 @EnableWebMvc
 @Configuration
@@ -40,10 +38,6 @@ class ConsumerRESTConfig extends WebMvcConfigurer {
 
   override def addReturnValueHandlers(returnValueHandlers: util.List[HandlerMethodReturnValueHandler]): Unit = {
     returnValueHandlers.add(new UnitMethodReturnValueHandler)
-    returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler with EstimableFutureReturnValueHandlerSupport {
-      override protected val minEstimatedTimeout: Long = ConsumerRESTConfig.AdaptiveTimeout.min
-      override protected val durationToleranceFactor: Double = ConsumerRESTConfig.AdaptiveTimeout.durationFactor
-    })
     returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler)
   }
 
@@ -56,11 +50,5 @@ class ConsumerRESTConfig extends WebMvcConfigurer {
 object ConsumerRESTConfig extends DefaultConfigurationStack with ConfTyped {
 
   override val rootPrefix: String = "spline"
-
-  object AdaptiveTimeout extends Conf("adaptive_timeout") {
-
-    val min: Long = getLong(Prop("min"), 3.seconds.toMillis)
-    val durationFactor: Double = getDouble(Prop("duration_factor"), 1.5)
-  }
 
 }
