@@ -34,8 +34,8 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
 
   override def find(
     asAtTime: Long,
-    writeTimestampStart: Option[Long],
-    writeTimestampEnd: Option[Long],
+    maybeWriteTimestampStart: Option[Long],
+    maybeWriteTimestampEnd: Option[Long],
     pageRequest: PageRequest,
     sortRequest: SortRequest,
     maybeSearchTerm: Option[String],
@@ -105,8 +105,8 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         |""".stripMargin,
       Map(
         "asAtTime" -> Long.box(asAtTime),
-        "timestampStart" -> writeTimestampStart.map(Long.box).orNull,
-        "timestampEnd" -> writeTimestampEnd.map(Long.box).orNull,
+        "timestampStart" -> maybeWriteTimestampStart.map(Long.box).orNull,
+        "timestampEnd" -> maybeWriteTimestampEnd.map(Long.box).orNull,
         "pageOffset" -> Int.box(pageRequest.page - 1),
         "pageSize" -> Int.box(pageRequest.size),
         "sortField" -> sortRequest.sortField,
