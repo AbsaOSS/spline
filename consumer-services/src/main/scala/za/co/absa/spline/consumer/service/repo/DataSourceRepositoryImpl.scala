@@ -34,8 +34,8 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
 
   override def find(
     asAtTime: Long,
-    writeTimestampStart: Long,
-    writeTimestampEnd: Long,
+    maybeWriteTimestampStart: Option[Long],
+    maybeWriteTimestampEnd: Option[Long],
     pageRequest: PageRequest,
     sortRequest: SortRequest,
     maybeSearchTerm: Option[String],
@@ -46,37 +46,43 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
 
     db.queryAs[WriteEventInfo](
       """
-        |WITH progress, progressOf, executionPlan, affects, dataSource
+        |WITH progress, dataSource
         |FOR ds IN dataSource
         |    FILTER ds._created <= @asAtTime
+        |
         |    FILTER @dataSourceUri == null OR @dataSourceUri == ds.uri
         |
         |    // last write event or null
         |    LET lwe = FIRST(
-        |        FOR we IN 2
-        |            INBOUND ds affects, progressOf
+        |        // we're filtering by URI instead of doing traversing for the performance reasons (traversing is slower than a simple index scan)
+        |        FOR we IN progress
         |            FILTER we._created <= @asAtTime
-        |               AND we.timestamp >= @timestampStart
-        |               AND we.timestamp <= @timestampEnd
-        |
-        |            FILTER @applicationId == null OR @applicationId == we.extra.appId
-        |            FILTER @writeAppend == null   OR @writeAppend   == we.execPlanDetails.append
-        |
-        |            FILTER @searchTerm == null
-        |                    OR @searchTerm == we.timestamp
-        |                    OR CONTAINS(LOWER(ds.uri), @searchTerm)
-        |                    OR CONTAINS(LOWER(we.execPlanDetails.frameworkName), @searchTerm)
-        |                    OR CONTAINS(LOWER(we.execPlanDetails.applicationName), @searchTerm)
-        |                    OR CONTAINS(LOWER(we.extra.appId), @searchTerm)
-        |                    OR CONTAINS(LOWER(we.execPlanDetails.dataSourceType), @searchTerm)
-        |
+        |            FILTER we.execPlanDetails.dataSourceUri == ds.uri
         |            SORT we.timestamp DESC
         |            RETURN we
         |    )
         |
-        |    FILTER lwe != null
+        |    FILTER (@timestampStart == null OR @timestampStart <= lwe.timestamp)
+        |       AND (@timestampEnd   == null OR @timestampEnd   >= lwe.timestamp)
+        |       AND (@applicationId  == null OR @applicationId  == lwe.extra.appId)
+        |       AND (@writeAppend    == null OR @writeAppend    == lwe.execPlanDetails.append)
+        |
+        |    FILTER
+        |        (lwe == null
+        |           AND @searchTerm == null
+        |           AND @applicationId == null
+        |           AND @writeAppend == null
+        |           AND @dataSourceUri == null
+        |           AND @timestampStart == null
+        |           AND @timestampEnd == null
+        |        )
         |        OR @searchTerm == null
+        |        OR @searchTerm == lwe.timestamp
         |        OR CONTAINS(LOWER(ds.uri), @searchTerm)
+        |        OR CONTAINS(LOWER(lwe.execPlanDetails.frameworkName), @searchTerm)
+        |        OR CONTAINS(LOWER(lwe.execPlanDetails.applicationName), @searchTerm)
+        |        OR CONTAINS(LOWER(lwe.extra.appId), @searchTerm)
+        |        OR CONTAINS(LOWER(lwe.execPlanDetails.dataSourceType), @searchTerm)
         |
         |    LET resItem = {
         |        "executionEventId" : lwe._key,
@@ -99,8 +105,8 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         |""".stripMargin,
       Map(
         "asAtTime" -> Long.box(asAtTime),
-        "timestampStart" -> Long.box(writeTimestampStart),
-        "timestampEnd" -> Long.box(writeTimestampEnd),
+        "timestampStart" -> maybeWriteTimestampStart.map(Long.box).orNull,
+        "timestampEnd" -> maybeWriteTimestampEnd.map(Long.box).orNull,
         "pageOffset" -> Int.box(pageRequest.page - 1),
         "pageSize" -> Int.box(pageRequest.size),
         "sortField" -> sortRequest.sortField,

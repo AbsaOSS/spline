@@ -23,8 +23,8 @@ trait DataSourceRepository {
 
   def find(
     asAtTime: Long,
-    writeTimestampStart: Long,
-    writeTimestampEnd: Long,
+    maybeWriteTimestampStart: Option[Long],
+    maybeWriteTimestampEnd: Option[Long],
     pageRequest: PageRequest,
     sortRequest: SortRequest,
     maybeSearchTerm: Option[String],
