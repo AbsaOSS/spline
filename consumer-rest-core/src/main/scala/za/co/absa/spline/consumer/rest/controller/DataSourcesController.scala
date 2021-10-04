@@ -43,10 +43,10 @@ class DataSourcesController @Autowired()(
   )
   def dataSources(
     @ApiParam(value = "Beginning of the last write time range (inclusive)", example = "0")
-    @RequestParam(value = "timestampStart", defaultValue = "0") writeTimestampStart: Long,
+    @RequestParam(value = "timestampStart", required = false) writeTimestampStart: java.lang.Long,
 
     @ApiParam(value = "End of the last write time range (inclusive)", example = "0")
-    @RequestParam(value = "timestampEnd", defaultValue = "9223372036854775807") writeTimestampEnd: Long,
+    @RequestParam(value = "timestampEnd", required = false) writeTimestampEnd: java.lang.Long,
 
     @ApiParam(value = "Timestamp of the request, if asAtTime equals 0, the current timestamp will be applied", example = "0")
     @RequestParam(value = "asAtTime", defaultValue = "0") asAtTime0: Long,
@@ -85,6 +85,8 @@ class DataSourcesController @Autowired()(
     val maybeAppend = append.asOption.map(Boolean.unbox)
     val maybeWriteApplicationId = writeApplicationId.nonBlankOption
     val maybeDataSourceUri = dataSourceUri.nonBlankOption
+    val maybeWriteTimestampStart = writeTimestampStart.asOption.map(Long.unbox)
+    val maybeWriteTimestampEnd = writeTimestampEnd.asOption.map(Long.unbox)
 
     val eventualDateRange =
       execEventsRepo.getTimestampRange(
@@ -97,8 +99,8 @@ class DataSourcesController @Autowired()(
     val eventualEventsWithCount =
       dataSourceRepo.find(
         asAtTime,
-        writeTimestampStart,
-        writeTimestampEnd,
+        maybeWriteTimestampStart,
+        maybeWriteTimestampEnd,
         pageRequest,
         sortRequest,
         maybeSearchTerm,
