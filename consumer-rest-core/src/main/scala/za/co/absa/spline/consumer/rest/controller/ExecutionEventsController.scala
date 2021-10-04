@@ -40,10 +40,10 @@ class ExecutionEventsController @Autowired()(val repo: ExecutionEventRepository)
   )
   def executionEvents(
     @ApiParam(value = "Beginning of the time range (inclusive)", example = "0")
-    @RequestParam(value = "timestampStart", defaultValue = "0") timestampStart: Long,
+    @RequestParam(value = "timestampStart", required = false) timestampStart: java.lang.Long,
 
     @ApiParam(value = "End of the time range (inclusive)", example = "0")
-    @RequestParam(value = "timestampEnd", defaultValue = "9223372036854775807") timestampEnd: Long,
+    @RequestParam(value = "timestampEnd", required = false) timestampEnd: java.lang.Long,
 
     @ApiParam(value = "Timestamp of the request, if asAtTime equals 0, the current timestamp will be applied", example = "0")
     @RequestParam(value = "asAtTime", defaultValue = "0") asAtTime0: Long,
@@ -82,6 +82,8 @@ class ExecutionEventsController @Autowired()(val repo: ExecutionEventRepository)
     val maybeAppend = append.asOption.map(Boolean.unbox)
     val maybeApplicationId = applicationId.nonBlankOption
     val maybeDataSourceUri = dataSourceUri.nonBlankOption
+    val maybeTimestampStart = timestampStart.asOption.map(Long.unbox)
+    val maybeTimestampEnd = timestampEnd.asOption.map(Long.unbox)
 
     val eventualDateRange =
       repo.getTimestampRange(
@@ -94,8 +96,8 @@ class ExecutionEventsController @Autowired()(val repo: ExecutionEventRepository)
     val eventualEventsWithCount =
       repo.findByTimestampRange(
         asAtTime,
-        timestampStart,
-        timestampEnd,
+        maybeTimestampStart,
+        maybeTimestampEnd,
         pageRequest,
         sortRequest,
         maybeSearchTerm,

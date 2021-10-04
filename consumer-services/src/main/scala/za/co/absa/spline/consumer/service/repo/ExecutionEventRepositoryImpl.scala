@@ -44,7 +44,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |
         |    FILTER @applicationId == null OR @applicationId == ee.extra.appId
         |    FILTER @dataSourceUri == null OR @dataSourceUri == ee.execPlanDetails.dataSourceUri
-        |    FILTER @writeAppend == null   OR @writeAppend   == ee.execPlanDetails.append
+        |    FILTER @writeAppend   == null OR @writeAppend   == ee.execPlanDetails.append
         |
         |    FILTER @searchTerm == null
         |            OR @searchTerm == ee.timestamp
@@ -75,8 +75,8 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
 
   override def findByTimestampRange(
     asAtTime: Long,
-    timestampStart: Long,
-    timestampEnd: Long,
+    maybeTimestampStart: Option[Long],
+    maybeTimestampEnd: Option[Long],
     pageRequest: PageRequest,
     sortRequest: SortRequest,
     maybeSearchTerm: Option[String],
@@ -89,8 +89,8 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |WITH progress
         |FOR ee IN progress
         |    FILTER ee._created <= @asAtTime
-        |       AND ee.timestamp >= @timestampStart
-        |       AND ee.timestamp <= @timestampEnd
+        |       AND (@timestampStart == null OR @timestampStart <= ee.timestamp)
+        |       AND (@timestampEnd   == null OR @timestampEnd   >= ee.timestamp)
         |
         |    FILTER @applicationId == null OR @applicationId == ee.extra.appId
         |    FILTER @dataSourceUri == null OR @dataSourceUri == ee.execPlanDetails.dataSourceUri
@@ -125,8 +125,8 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         |""".stripMargin,
       Map(
         "asAtTime" -> Long.box(asAtTime),
-        "timestampStart" -> Long.box(timestampStart),
-        "timestampEnd" -> Long.box(timestampEnd),
+        "timestampStart" -> maybeTimestampStart.map(Long.box).orNull,
+        "timestampEnd" -> maybeTimestampEnd.map(Long.box).orNull,
         "pageOffset" -> Int.box(pageRequest.page - 1),
         "pageSize" -> Int.box(pageRequest.size),
         "sortField" -> sortRequest.sortField,

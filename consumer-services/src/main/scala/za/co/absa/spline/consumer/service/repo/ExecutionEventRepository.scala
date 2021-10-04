@@ -31,8 +31,8 @@ trait ExecutionEventRepository {
 
   def findByTimestampRange(
     asAtTime: Long,
-    timestampStart: Long,
-    timestampEnd: Long,
+    maybeTimestampStart: Option[Long],
+    maybeTimestampEnd: Option[Long],
     pageRequest: PageRequest,
     sortRequest: SortRequest,
     maybeSearchTerm: Option[String],
