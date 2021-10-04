@@ -45,6 +45,9 @@ class ExecutionEventsController @Autowired()(val repo: ExecutionEventRepository)
     @ApiParam(value = "End of the time range (inclusive)", example = "0")
     @RequestParam(value = "timestampEnd", required = false) timestampEnd: java.lang.Long,
 
+    @ApiParam(value = "Enable 'timestamp' facet computation. (default - `false`)", example = "0")
+    @RequestParam(value = "facet.timestamp", defaultValue = "false") facetTimestampEnabled: Boolean,
+
     @ApiParam(value = "Timestamp of the request, if asAtTime equals 0, the current timestamp will be applied", example = "0")
     @RequestParam(value = "asAtTime", defaultValue = "0") asAtTime0: Long,
 
@@ -85,13 +88,19 @@ class ExecutionEventsController @Autowired()(val repo: ExecutionEventRepository)
     val maybeTimestampStart = timestampStart.asOption.map(Long.unbox)
     val maybeTimestampEnd = timestampEnd.asOption.map(Long.unbox)
 
-    val eventualDateRange =
-      repo.getTimestampRange(
-        asAtTime,
-        maybeSearchTerm,
-        maybeAppend,
-        maybeApplicationId,
-        maybeDataSourceUri)
+    val eventualDateRange: Future[Array[Long]] =
+      if (facetTimestampEnabled)
+        repo.getTimestampRange(
+          asAtTime,
+          maybeSearchTerm,
+          maybeAppend,
+          maybeApplicationId,
+          maybeDataSourceUri
+        ) map {
+          case (totalDateFrom, totalDateTo) => Array(totalDateFrom, totalDateTo)
+        }
+      else
+        Future.successful(Array.empty)
 
     val eventualEventsWithCount =
       repo.findByTimestampRange(
@@ -106,7 +115,7 @@ class ExecutionEventsController @Autowired()(val repo: ExecutionEventRepository)
         maybeDataSourceUri)
 
     for {
-      (totalDateFrom, totalDateTo) <- eventualDateRange
+      totalDateRange <- eventualDateRange
       (events, totalCount) <- eventualEventsWithCount
     } yield {
       PageableExecutionEventsResponse(
@@ -114,7 +123,7 @@ class ExecutionEventsController @Autowired()(val repo: ExecutionEventRepository)
         totalCount,
         pageRequest.page,
         pageRequest.size,
-        Array(totalDateFrom, totalDateTo))
+        totalDateRange)
     }
 
   }

@@ -47,6 +47,9 @@ class DataSourcesController @Autowired()(
     @ApiParam(value = "End of the last write time range (inclusive)", example = "0")
     @RequestParam(value = "timestampEnd", required = false) writeTimestampEnd: java.lang.Long,
 
+    @ApiParam(value = "Enable 'timestamp' facet computation. (default - `false`)", example = "0")
+    @RequestParam(value = "facet.timestamp", defaultValue = "false") facetTimestampEnabled: Boolean,
+
     @ApiParam(value = "Timestamp of the request, if asAtTime equals 0, the current timestamp will be applied", example = "0")
     @RequestParam(value = "asAtTime", defaultValue = "0") asAtTime0: Long,
 
@@ -87,13 +90,19 @@ class DataSourcesController @Autowired()(
     val maybeWriteTimestampStart = writeTimestampStart.asOption.map(Long.unbox)
     val maybeWriteTimestampEnd = writeTimestampEnd.asOption.map(Long.unbox)
 
-    val eventualDateRange =
-      dataSourceRepo.getTimestampRange(
-        asAtTime,
-        maybeSearchTerm,
-        maybeAppend,
-        maybeWriteApplicationId,
-        maybeDataSourceUri)
+    val eventualDateRange: Future[Array[Long]] =
+      if (facetTimestampEnabled)
+        dataSourceRepo.getTimestampRange(
+          asAtTime,
+          maybeSearchTerm,
+          maybeAppend,
+          maybeWriteApplicationId,
+          maybeDataSourceUri
+        ) map {
+          case (totalDateFrom, totalDateTo) => Array(totalDateFrom, totalDateTo)
+        }
+      else
+        Future.successful(Array.empty)
 
     val eventualEventsWithCount =
       dataSourceRepo.find(
@@ -108,7 +117,7 @@ class DataSourcesController @Autowired()(
         maybeDataSourceUri)
 
     for {
-      (totalDateFrom, totalDateTo) <- eventualDateRange
+      totalDateRange <- eventualDateRange
       (events, totalCount) <- eventualEventsWithCount
     } yield {
       PageableDataSourcesResponse(
@@ -116,7 +125,7 @@ class DataSourcesController @Autowired()(
         totalCount,
         pageRequest.page,
         pageRequest.size,
-        Array(totalDateFrom, totalDateTo))
+        totalDateRange)
     }
   }
 }
