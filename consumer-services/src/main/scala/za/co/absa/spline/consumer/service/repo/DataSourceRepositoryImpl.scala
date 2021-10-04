@@ -32,6 +32,67 @@ import scala.concurrent.{ExecutionContext, Future}
 @Repository
 class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends DataSourceRepository {
 
+  override def getTimestampRange(
+    asAtTime: Long,
+    maybeSearchTerm: Option[String],
+    maybeAppend: Option[Boolean],
+    maybeApplicationId: Option[String],
+    maybeDataSourceUri: Option[String]
+  )(implicit ec: ExecutionContext): Future[(Long, Long)] = {
+    db.queryOne[Array[Long]](
+      """
+        |WITH dataSource, progress
+        |FOR ds IN dataSource
+        |    FILTER ds._created <= @asAtTime
+        |
+        |    FILTER @dataSourceUri == null OR @dataSourceUri == ds.uri
+        |
+        |    // last write event or null
+        |    LET lwe = FIRST(
+        |        FOR we IN progress
+        |            FILTER we._created <= @asAtTime
+        |            FILTER we.execPlanDetails.dataSourceUri == ds.uri
+        |            SORT we.timestamp DESC
+        |            RETURN we
+        |    )
+        |
+        |    FILTER (@applicationId  == null OR @applicationId  == lwe.extra.appId)
+        |       AND (@writeAppend    == null OR @writeAppend    == lwe.execPlanDetails.append)
+        |
+        |    FILTER
+        |        (lwe == null
+        |           AND @searchTerm == null
+        |           AND @applicationId == null
+        |           AND @writeAppend == null
+        |           AND @dataSourceUri == null
+        |        )
+        |        OR @searchTerm == null
+        |        OR @searchTerm == lwe.timestamp
+        |        OR CONTAINS(LOWER(ds.uri), @searchTerm)
+        |        OR CONTAINS(LOWER(lwe.execPlanDetails.frameworkName), @searchTerm)
+        |        OR CONTAINS(LOWER(lwe.execPlanDetails.applicationName), @searchTerm)
+        |        OR CONTAINS(LOWER(lwe.extra.appId), @searchTerm)
+        |        OR CONTAINS(LOWER(lwe.execPlanDetails.dataSourceType), @searchTerm)
+        |
+        |    COLLECT AGGREGATE
+        |        minTimestamp = MIN(lwe.timestamp),
+        |        maxTimestamp = MAX(lwe.timestamp)
+        |
+        |    RETURN [
+        |        minTimestamp || DATE_NOW(),
+        |        maxTimestamp || DATE_NOW()
+        |    ]
+        |""".stripMargin,
+      Map(
+        "asAtTime" -> Long.box(asAtTime),
+        "searchTerm" -> maybeSearchTerm.map(StringUtils.lowerCase).orNull,
+        "writeAppend" -> maybeAppend.map(Boolean.box).orNull,
+        "applicationId" -> maybeApplicationId.orNull,
+        "dataSourceUri" -> maybeDataSourceUri.orNull
+      )
+    ).map { case Array(from, to) => from -> to }
+  }
+
   override def find(
     asAtTime: Long,
     maybeWriteTimestampStart: Option[Long],

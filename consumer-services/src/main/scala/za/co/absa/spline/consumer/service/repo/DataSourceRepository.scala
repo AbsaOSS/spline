@@ -21,6 +21,14 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait DataSourceRepository {
 
+  def getTimestampRange(
+    asAtTime: Long,
+    maybeSearchTerm: Option[String],
+    maybeAppend: Option[Boolean],
+    maybeApplicationId: Option[String],
+    maybeDataSourceUri: Option[String])
+    (implicit ec: ExecutionContext): Future[(Long, Long)]
+
   def find(
     asAtTime: Long,
     maybeWriteTimestampStart: Option[Long],

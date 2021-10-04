@@ -19,7 +19,7 @@ import io.swagger.annotations.{Api, ApiOperation, ApiParam}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.service.model._
-import za.co.absa.spline.consumer.service.repo.{DataSourceRepository, ExecutionEventRepository}
+import za.co.absa.spline.consumer.service.repo.DataSourceRepository
 
 import java.lang.System.currentTimeMillis
 import scala.concurrent.Future
@@ -27,8 +27,7 @@ import scala.concurrent.Future
 @RestController
 @Api(tags = Array("data-sources"))
 class DataSourcesController @Autowired()(
-  val dataSourceRepo: DataSourceRepository,
-  val execEventsRepo: ExecutionEventRepository
+  val dataSourceRepo: DataSourceRepository
 ) {
 
   import za.co.absa.commons.lang.OptionImplicits._
@@ -89,7 +88,7 @@ class DataSourcesController @Autowired()(
     val maybeWriteTimestampEnd = writeTimestampEnd.asOption.map(Long.unbox)
 
     val eventualDateRange =
-      execEventsRepo.getTimestampRange(
+      dataSourceRepo.getTimestampRange(
         asAtTime,
         maybeSearchTerm,
         maybeAppend,
