@@ -16,6 +16,7 @@
 package za.co.absa.spline.consumer.service.model
 
 import io.swagger.annotations.ApiModelProperty
+import za.co.absa.spline.persistence.model.Progress
 
 case class WriteEventInfo
 (
@@ -40,14 +41,15 @@ case class WriteEventInfo
   @ApiModelProperty(value = "Output data source (or data) type")
   dataSourceType: String,
   @ApiModelProperty(value = "Write mode - (true=Append; false=Override)")
-  append: Boolean
+  append: WriteEventInfo.Append
 ) {
-  def this() = this(null, null, null, null, null, 0, 0, null, null, null, false)
+  def this() = this(null, null, null, null, null, null, null, null, null, null, null)
 }
 
 object WriteEventInfo {
   type Id = String
-  type Timestamp = Long
-  type DurationNs = Long
+  type Timestamp = java.lang.Long
+  type DurationNs = Option[Progress.JobDurationInNanos]
+  type Append = java.lang.Boolean
 }
 
