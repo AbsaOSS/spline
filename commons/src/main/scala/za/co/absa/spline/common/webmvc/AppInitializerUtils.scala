@@ -19,19 +19,22 @@ package za.co.absa.spline.common.webmvc
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext
 import org.springframework.web.servlet.DispatcherServlet
 
-import javax.servlet.ServletContext
+import java.util
+import javax.servlet.DispatcherType.{ASYNC, REQUEST}
+import javax.servlet.{Filter, ServletContext}
 import scala.reflect.ClassTag
 
 object AppInitializerUtils {
 
   def registerRootDispatcher[A: ClassTag](container: ServletContext): Unit = {
     val restConfigClassTag = implicitly[ClassTag[A]]
-    container
+    val dispatcher = container
       .addServlet("RootDispatcher", new DispatcherServlet(new AnnotationConfigWebApplicationContext {
         setAllowBeanDefinitionOverriding(false)
         register(restConfigClassTag.runtimeClass)
       }))
-      .addMapping("/*")
+    dispatcher.addMapping("/*")
+    dispatcher.setAsyncSupported(true)
   }
 
   def registerRESTDispatcher[A: ClassTag](container: ServletContext, name: String): Unit = {
@@ -44,6 +47,14 @@ object AppInitializerUtils {
     dispatcher.setLoadOnStartup(1)
     dispatcher.addMapping(s"/$name/*")
     dispatcher.setAsyncSupported(true)
+  }
+
+  def registerFilter[A <: Filter : ClassTag](container: ServletContext, name: String, valuemapping: String): Unit = {
+    val filterClassTag = implicitly[ClassTag[A]]
+    val filterClass: Class[A] = filterClassTag.runtimeClass.asInstanceOf[Class[A]]
+    val registration = container.addFilter(name, filterClass)
+    registration.addMappingForUrlPatterns(util.EnumSet.of(REQUEST, ASYNC), false, valuemapping)
+    registration.setAsyncSupported(true)
   }
 
 }
