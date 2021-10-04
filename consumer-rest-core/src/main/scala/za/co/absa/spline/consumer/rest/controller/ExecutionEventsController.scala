@@ -21,16 +21,13 @@ import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.service.model._
 import za.co.absa.spline.consumer.service.repo.ExecutionEventRepository
 
-import java.lang.System.currentTimeMillis
 import scala.concurrent.Future
 
 @RestController
 @Api(tags = Array("execution-events"))
-class ExecutionEventsController @Autowired()(val repo: ExecutionEventRepository) {
-
-  import za.co.absa.commons.lang.OptionImplicits._
-
-  import scala.concurrent.ExecutionContext.Implicits._
+class ExecutionEventsController @Autowired()(
+  val executionEventRepo: ExecutionEventRepository
+) extends AbstractExecutionEventsController(executionEventRepo) {
 
   @GetMapping(Array("/execution-events"))
   @ApiOperation(
@@ -75,56 +72,18 @@ class ExecutionEventsController @Autowired()(val repo: ExecutionEventRepository)
     @ApiParam(value = "Destination path")
     @RequestParam(value = "dataSourceUri", required = false) dataSourceUri: String
 
-  ): Future[PageableExecutionEventsResponse] = {
-
-    val asAtTime = if (asAtTime0 < 1) currentTimeMillis else asAtTime0
-    val pageRequest = PageRequest(pageNum, pageSize)
-    val sortRequest = SortRequest(sortField, sortOrder)
-
-    val maybeSearchTerm = searchTerm.nonBlankOption
-    val maybeAppend = append.asOption.map(Boolean.unbox)
-    val maybeApplicationId = applicationId.nonBlankOption
-    val maybeDataSourceUri = dataSourceUri.nonBlankOption
-    val maybeTimestampStart = timestampStart.asOption.map(Long.unbox)
-    val maybeTimestampEnd = timestampEnd.asOption.map(Long.unbox)
-
-    val eventualDateRange: Future[Array[Long]] =
-      if (facetTimestampEnabled)
-        repo.getTimestampRange(
-          asAtTime,
-          maybeSearchTerm,
-          maybeAppend,
-          maybeApplicationId,
-          maybeDataSourceUri
-        ) map {
-          case (totalDateFrom, totalDateTo) => Array(totalDateFrom, totalDateTo)
-        }
-      else
-        Future.successful(Array.empty)
-
-    val eventualEventsWithCount =
-      repo.findByTimestampRange(
-        asAtTime,
-        maybeTimestampStart,
-        maybeTimestampEnd,
-        pageRequest,
-        sortRequest,
-        maybeSearchTerm,
-        maybeAppend,
-        maybeApplicationId,
-        maybeDataSourceUri)
-
-    for {
-      totalDateRange <- eventualDateRange
-      (events, totalCount) <- eventualEventsWithCount
-    } yield {
-      PageableExecutionEventsResponse(
-        events.toArray,
-        totalCount,
-        pageRequest.page,
-        pageRequest.size,
-        totalDateRange)
-    }
-
-  }
+  ): Future[PageableExecutionEventsResponse] = find(
+    timestampStart,
+    timestampEnd,
+    facetTimestampEnabled,
+    asAtTime0,
+    pageNum,
+    pageSize,
+    sortField,
+    sortOrder,
+    searchTerm,
+    append,
+    applicationId,
+    dataSourceUri
+  )
 }

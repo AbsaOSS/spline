@@ -18,21 +18,17 @@ package za.co.absa.spline.consumer.rest.controller
 import io.swagger.annotations.{Api, ApiOperation, ApiParam}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
+import za.co.absa.spline.consumer.rest.controller.DataSourcesController.PageableDataSourcesResponse
 import za.co.absa.spline.consumer.service.model._
 import za.co.absa.spline.consumer.service.repo.DataSourceRepository
 
-import java.lang.System.currentTimeMillis
 import scala.concurrent.Future
 
 @RestController
 @Api(tags = Array("data-sources"))
 class DataSourcesController @Autowired()(
   val dataSourceRepo: DataSourceRepository
-) {
-
-  import za.co.absa.commons.lang.OptionImplicits._
-
-  import scala.concurrent.ExecutionContext.Implicits._
+) extends AbstractExecutionEventsController(dataSourceRepo) {
 
   @GetMapping(Array("/data-sources"))
   @ApiOperation(
@@ -77,55 +73,23 @@ class DataSourcesController @Autowired()(
     @ApiParam(value = "Destination path")
     @RequestParam(value = "dataSourceUri", required = false) dataSourceUri: String
 
-  ): Future[PageableDataSourcesResponse] = {
+  ): Future[PageableDataSourcesResponse] = find(
+    writeTimestampStart,
+    writeTimestampEnd,
+    facetTimestampEnabled,
+    asAtTime0,
+    pageNum,
+    pageSize,
+    sortField,
+    sortOrder,
+    searchTerm,
+    append,
+    writeApplicationId,
+    dataSourceUri
+  )
+}
 
-    val asAtTime = if (asAtTime0 < 1) currentTimeMillis else asAtTime0
-    val pageRequest = PageRequest(pageNum, pageSize)
-    val sortRequest = SortRequest(sortField, sortOrder)
-
-    val maybeSearchTerm = searchTerm.nonBlankOption
-    val maybeAppend = append.asOption.map(Boolean.unbox)
-    val maybeWriteApplicationId = writeApplicationId.nonBlankOption
-    val maybeDataSourceUri = dataSourceUri.nonBlankOption
-    val maybeWriteTimestampStart = writeTimestampStart.asOption.map(Long.unbox)
-    val maybeWriteTimestampEnd = writeTimestampEnd.asOption.map(Long.unbox)
-
-    val eventualDateRange: Future[Array[Long]] =
-      if (facetTimestampEnabled)
-        dataSourceRepo.getTimestampRange(
-          asAtTime,
-          maybeSearchTerm,
-          maybeAppend,
-          maybeWriteApplicationId,
-          maybeDataSourceUri
-        ) map {
-          case (totalDateFrom, totalDateTo) => Array(totalDateFrom, totalDateTo)
-        }
-      else
-        Future.successful(Array.empty)
-
-    val eventualEventsWithCount =
-      dataSourceRepo.find(
-        asAtTime,
-        maybeWriteTimestampStart,
-        maybeWriteTimestampEnd,
-        pageRequest,
-        sortRequest,
-        maybeSearchTerm,
-        maybeAppend,
-        maybeWriteApplicationId,
-        maybeDataSourceUri)
-
-    for {
-      totalDateRange <- eventualDateRange
-      (events, totalCount) <- eventualEventsWithCount
-    } yield {
-      PageableDataSourcesResponse(
-        events.toArray,
-        totalCount,
-        pageRequest.page,
-        pageRequest.size,
-        totalDateRange)
-    }
-  }
+object DataSourcesController {
+  // for now we reuse the data structure of the ExecutionEventController
+  type PageableDataSourcesResponse = PageableExecutionEventsResponse
 }

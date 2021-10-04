@@ -73,7 +73,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
     ).map { case Array(from, to) => from -> to }
   }
 
-  override def findByTimestampRange(
+  override def find(
     asAtTime: Long,
     maybeTimestampStart: Option[Long],
     maybeTimestampEnd: Option[Long],
