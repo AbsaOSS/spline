@@ -19,19 +19,7 @@ import za.co.absa.spline.consumer.service.model._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait DataSourceRepository {
-
-  def find(
-    asAtTime: Long,
-    writeTimestampStart: Long,
-    writeTimestampEnd: Long,
-    pageRequest: PageRequest,
-    sortRequest: SortRequest,
-    maybeSearchTerm: Option[String],
-    maybeAppend: Option[Boolean],
-    maybeWriteApplicationId: Option[String],
-    maybeDataSourceUri: Option[String])
-    (implicit ec: ExecutionContext): Future[(Seq[WriteEventInfo], Long)]
+trait DataSourceRepository extends AbstractExecutionEventRepository {
 
   def findByUsage(
     execPlanId: ExecutionPlanInfo.Id,

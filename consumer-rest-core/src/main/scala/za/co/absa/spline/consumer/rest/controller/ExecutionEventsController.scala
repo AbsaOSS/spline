@@ -21,16 +21,13 @@ import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.service.model._
 import za.co.absa.spline.consumer.service.repo.ExecutionEventRepository
 
-import java.lang.System.currentTimeMillis
 import scala.concurrent.Future
 
 @RestController
 @Api(tags = Array("execution-events"))
-class ExecutionEventsController @Autowired()(val repo: ExecutionEventRepository) {
-
-  import za.co.absa.commons.lang.OptionImplicits._
-
-  import scala.concurrent.ExecutionContext.Implicits._
+class ExecutionEventsController @Autowired()(
+  val executionEventRepo: ExecutionEventRepository
+) extends AbstractExecutionEventsController(executionEventRepo) {
 
   @GetMapping(Array("/execution-events"))
   @ApiOperation(
@@ -40,10 +37,13 @@ class ExecutionEventsController @Autowired()(val repo: ExecutionEventRepository)
   )
   def executionEvents(
     @ApiParam(value = "Beginning of the time range (inclusive)", example = "0")
-    @RequestParam(value = "timestampStart", defaultValue = "0") timestampStart: Long,
+    @RequestParam(value = "timestampStart", required = false) timestampStart: java.lang.Long,
 
     @ApiParam(value = "End of the time range (inclusive)", example = "0")
-    @RequestParam(value = "timestampEnd", defaultValue = "9223372036854775807") timestampEnd: Long,
+    @RequestParam(value = "timestampEnd", required = false) timestampEnd: java.lang.Long,
+
+    @ApiParam(value = "Enable 'timestamp' facet computation. (default - `false`)", example = "0")
+    @RequestParam(value = "facet.timestamp", defaultValue = "false") facetTimestampEnabled: Boolean,
 
     @ApiParam(value = "Timestamp of the request, if asAtTime equals 0, the current timestamp will be applied", example = "0")
     @RequestParam(value = "asAtTime", defaultValue = "0") asAtTime0: Long,
@@ -72,48 +72,18 @@ class ExecutionEventsController @Autowired()(val repo: ExecutionEventRepository)
     @ApiParam(value = "Destination path")
     @RequestParam(value = "dataSourceUri", required = false) dataSourceUri: String
 
-  ): Future[PageableExecutionEventsResponse] = {
-
-    val asAtTime = if (asAtTime0 < 1) currentTimeMillis else asAtTime0
-    val pageRequest = PageRequest(pageNum, pageSize)
-    val sortRequest = SortRequest(sortField, sortOrder)
-
-    val maybeSearchTerm = searchTerm.nonBlankOption
-    val maybeAppend = append.asOption.map(Boolean.unbox)
-    val maybeApplicationId = applicationId.nonBlankOption
-    val maybeDataSourceUri = dataSourceUri.nonBlankOption
-
-    val eventualDateRange =
-      repo.getTimestampRange(
-        asAtTime,
-        maybeSearchTerm,
-        maybeAppend,
-        maybeApplicationId,
-        maybeDataSourceUri)
-
-    val eventualEventsWithCount =
-      repo.findByTimestampRange(
-        asAtTime,
-        timestampStart,
-        timestampEnd,
-        pageRequest,
-        sortRequest,
-        maybeSearchTerm,
-        maybeAppend,
-        maybeApplicationId,
-        maybeDataSourceUri)
-
-    for {
-      (totalDateFrom, totalDateTo) <- eventualDateRange
-      (events, totalCount) <- eventualEventsWithCount
-    } yield {
-      PageableExecutionEventsResponse(
-        events.toArray,
-        totalCount,
-        pageRequest.page,
-        pageRequest.size,
-        Array(totalDateFrom, totalDateTo))
-    }
-
-  }
+  ): Future[PageableExecutionEventsResponse] = find(
+    timestampStart,
+    timestampEnd,
+    facetTimestampEnabled,
+    asAtTime0,
+    pageNum,
+    pageSize,
+    sortField,
+    sortOrder,
+    searchTerm,
+    append,
+    applicationId,
+    dataSourceUri
+  )
 }
