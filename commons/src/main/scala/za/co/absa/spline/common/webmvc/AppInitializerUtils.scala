@@ -53,7 +53,7 @@ object AppInitializerUtils {
     val filterClassTag = implicitly[ClassTag[A]]
     val filterClass: Class[A] = filterClassTag.runtimeClass.asInstanceOf[Class[A]]
     val registration = container.addFilter(name, filterClass)
-    registration.addMappingForUrlPatterns(util.EnumSet.of(REQUEST, ASYNC), false, valuemapping)
+    registration.addMappingForUrlPatterns(util.EnumSet.of(REQUEST), false, valuemapping)
     registration.setAsyncSupported(true)
   }
 
