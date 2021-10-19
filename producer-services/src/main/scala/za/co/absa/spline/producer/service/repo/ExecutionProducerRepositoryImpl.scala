@@ -73,7 +73,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
   override def insertExecutionEvents(events: Array[apiModel.ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
     val eventualExecPlanDetails = db.queryStream[ExecPlanDetails](
       s"""
-         |WITH executionPlan, executes, operation
+         |WITH executionPlan, executes, operation, dataSource
          |FOR ep IN executionPlan
          |    FILTER ep._key IN @keys
          |
