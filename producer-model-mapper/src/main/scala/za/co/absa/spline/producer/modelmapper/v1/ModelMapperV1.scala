@@ -80,11 +80,13 @@ object ModelMapperV1 extends ModelMapper {
     // But realistically speaking I don't believe there are many enough non-Spline v1 agents out there,
     // for the risk of misinterpreting the "durationNs" property in extras to be practically possible.
     // So I'm going to make a shortcut here for sake of performance and simplicity.
-    val durationNs = event.extra.get(FieldNamesV1.EventExtraInfo.DurationNs).
-      flatMap(PartialFunction.condOpt(_) {
-        case num: Long => num
-        case str: String if str.forall(_.isDigit) => str.toLong
-      })
+    val durationNs: Option[ExecutionEvent.DurationNs] = {
+      event.extra.get(FieldNamesV1.EventExtraInfo.DurationNs).
+        flatMap(PartialFunction.condOpt(_) {
+          case num: Long => num
+          case str: String if str.forall(_.isDigit) => str.toLong
+        })
+    }
 
     ExecutionEvent(
       planId = event.planId,
