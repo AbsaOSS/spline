@@ -51,7 +51,7 @@ class ExecutionEventsController @Autowired()(
             // Time (milliseconds since Epoch) when the execution finished
             timestamp: <number>,
             // [Optional] Duration (in nanoseconds) of the execution
-            duration: <number>,
+            durationNs: <number>,
             // [Optional] Additional info about the error (in case there was an error during the execution)
             error: {...},
             // [Optional] Any other extra information related to the given execution event
