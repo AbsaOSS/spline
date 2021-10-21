@@ -23,6 +23,7 @@ import org.springframework.stereotype.Repository
 import za.co.absa.spline.persistence.model._
 import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, TxBuilder}
 import za.co.absa.spline.persistence.{ArangoImplicits, Persister}
+import za.co.absa.spline.producer.model.v1_1.ExecutionEvent._
 import za.co.absa.spline.producer.model.{v1_1 => apiModel}
 import za.co.absa.spline.producer.service.InconsistentEntityException
 import za.co.absa.spline.producer.service.model.{ExecutionEventKeyCreator, ExecutionPlanPersistentModel, ExecutionPlanPersistentModelBuilder}
