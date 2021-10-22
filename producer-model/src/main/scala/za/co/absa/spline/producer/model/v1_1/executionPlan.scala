@@ -21,8 +21,9 @@ import za.co.absa.spline.common.validation.{Constraint, ValidationUtils}
 import java.util.UUID
 
 case class ExecutionPlan(
-  id: UUID = UUID.randomUUID(),
+  id: ExecutionPlan.Id = UUID.randomUUID(),
   name: Option[ExecutionPlan.Name],
+  discriminator: Option[ExecutionPlan.Discriminator] = None,
 
   operations: Operations,
   attributes: Seq[Attribute] = Nil,
@@ -45,8 +46,10 @@ case class ExecutionPlan(
 }
 
 object ExecutionPlan {
+  type Id = UUID
   type Name = String
   type DataSourceUri = String
+  type Discriminator = String
 }
 
 case class Operations(

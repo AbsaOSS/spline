@@ -16,12 +16,21 @@
 
 package za.co.absa.spline.producer.model.v1_1
 
-import java.util.UUID
+import za.co.absa.spline.producer.model.v1_1.ExecutionEvent._
+
+import scala.language.implicitConversions
 
 case class ExecutionEvent(
-  planId: UUID,
+  planId: ExecutionPlan.Id,
   timestamp: Long,
-  durationNs: Option[Long],
+  durationNs: Option[DurationNs],
+  discriminator: Option[ExecutionPlan.Discriminator] = None,
   error: Option[Any] = None,
   extra: Map[String, Any] = Map.empty
 )
+
+object ExecutionEvent {
+  type DurationNs = java.lang.Long
+
+  implicit def optJavaLong2OptScalaLong(opt: Option[java.lang.Long]): Option[Long] = opt.map(identity(_))
+}
