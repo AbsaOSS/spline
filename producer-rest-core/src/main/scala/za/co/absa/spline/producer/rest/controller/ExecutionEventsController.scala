@@ -48,12 +48,20 @@ class ExecutionEventsController @Autowired()(
           {
             // Reference to the execution plan Id that was triggered
             planId: <UUID>,
+
+            // [Optional] A label that logically distinguish a group of one of multiple execution plans from another group.
+            // If set, it has to match the discriminator of the associated execution plan.
+            // The property is used for UUID collision detection.
+            discriminator: <string>,
+
             // Time (milliseconds since Epoch) when the execution finished
             timestamp: <number>,
+
             // [Optional] Duration (in nanoseconds) of the execution
             durationNs: <number>,
             // [Optional] Additional info about the error (in case there was an error during the execution)
             error: {...},
+
             // [Optional] Any other extra information related to the given execution event
             extra: {...}
           },

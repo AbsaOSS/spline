@@ -18,13 +18,13 @@ package za.co.absa.spline.producer.model.v1_1
 
 import za.co.absa.spline.producer.model.v1_1.ExecutionEvent._
 
-import java.util.UUID
 import scala.language.implicitConversions
 
 case class ExecutionEvent(
-  planId: UUID,
+  planId: ExecutionPlan.Id,
   timestamp: Long,
   durationNs: Option[DurationNs],
+  discriminator: Option[ExecutionPlan.Discriminator] = None,
   error: Option[Any] = None,
   extra: Map[String, Any] = Map.empty
 )
