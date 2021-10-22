@@ -52,6 +52,11 @@ class ExecutionPlansController @Autowired()(
           // [Optional] A name of the application (script, job etc) that this execution plan represents.
           name: <string>,
 
+          // [Optional] A label that logically distinguish a group of one of multiple execution plans from another group.
+          // If set, it has to match the discriminator of the associated execution events.
+          // The property is used for UUID collision detection.
+          discriminator: <string>,
+
           // Operation level lineage info
           operations: {
 

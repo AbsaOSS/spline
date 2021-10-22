@@ -25,8 +25,8 @@ import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, TxBuilder}
 import za.co.absa.spline.persistence.{ArangoImplicits, Persister}
 import za.co.absa.spline.producer.model.v1_1.ExecutionEvent._
 import za.co.absa.spline.producer.model.{v1_1 => apiModel}
-import za.co.absa.spline.producer.service.InconsistentEntityException
 import za.co.absa.spline.producer.service.model.{ExecutionEventKeyCreator, ExecutionPlanPersistentModel, ExecutionPlanPersistentModelBuilder}
+import za.co.absa.spline.producer.service.{UUIDCollisionDetectedException, InconsistentEntityException}
 
 import java.util.UUID
 import scala.compat.java8.FutureConverters._
@@ -42,15 +42,18 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
   import ExecutionProducerRepositoryImpl._
 
   override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
-    val planAlreadyExistsFuture = db.queryOne[Boolean](
+    // Here I have to use the type parameter `Any` and cast to `String` later due to ArangoDb Java driver issue.
+    // See https://github.com/arangodb/arangodb-java-driver/issues/389
+    val eventualMaybeExistingDiscriminatorOpt: Future[Option[String]] = db.queryOptional[Any](
       s"""
          |WITH ${NodeDef.ExecutionPlan.name}
          |FOR ex IN ${NodeDef.ExecutionPlan.name}
          |    FILTER ex._key == @key
-         |    COLLECT WITH COUNT INTO cnt
-         |    RETURN TO_BOOL(cnt)
+         |    LIMIT 1
+         |    RETURN ex.discriminator
          |    """.stripMargin,
-      Map("key" -> executionPlan.id))
+      Map("key" -> executionPlan.id)
+    ).map(_.map(Option(_).map(_.toString).orNull))
 
     val eventualPersistedDSKeyByURI: Future[Map[DataSource.Uri, DataSource.Key]] = db.queryAs[DataSource](
       s"""
@@ -64,15 +67,21 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 
     for {
       persistedDSKeyByURI <- eventualPersistedDSKeyByURI
-      planAlreadyExists <- planAlreadyExistsFuture
-      _ <-
-        if (planAlreadyExists) Future.successful(Unit) // nothing more to do
-        else createInsertTransaction(executionPlan, persistedDSKeyByURI).execute(db)
+      maybeExistingDiscriminatorOpt <- eventualMaybeExistingDiscriminatorOpt
+      _ <- maybeExistingDiscriminatorOpt match {
+        case Some(existingDiscriminatorOrNull) =>
+          // execution plan with the given ID already exists
+          ensureNoExecPlanIDCollision(executionPlan.id, executionPlan.discriminator.orNull, existingDiscriminatorOrNull)
+          Future.successful(Unit)
+        case None =>
+          // no execution plan with the given ID found
+          createInsertTransaction(executionPlan, persistedDSKeyByURI).execute(db)
+      }
     } yield Unit
   })
 
   override def insertExecutionEvents(events: Array[apiModel.ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
-    val eventualExecPlanDetails = db.queryStream[ExecPlanDetails](
+    val eventualExecPlanInfos: Future[Seq[ExecPlanInfo]] = db.queryStream[ExecPlanInfo](
       s"""
          |WITH executionPlan, executes, operation, dataSource
          |FOR ep IN executionPlan
@@ -82,21 +91,33 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
          |    LET ds = FIRST(FOR v IN 1 OUTBOUND ep affects RETURN v)
          |
          |    RETURN {
-         |        "executionPlanKey" : ep._key,
-         |        "frameworkName"    : CONCAT(ep.systemInfo.name, " ", ep.systemInfo.version),
-         |        "applicationName"  : ep.name,
-         |        "dataSourceUri"    : ds.uri,
-         |        "dataSourceName"   : ds.name,
-         |        "dataSourceType"   : wo.extra.destinationType,
-         |        "append"           : wo.append
+         |        key           : ep._key,
+         |        discriminator : ep.discriminator,
+         |        details: {
+         |            "executionPlanKey" : ep._key,
+         |            "frameworkName"    : CONCAT(ep.systemInfo.name, " ", ep.systemInfo.version),
+         |            "applicationName"  : ep.name,
+         |            "dataSourceUri"    : ds.uri,
+         |            "dataSourceName"   : ds.name,
+         |            "dataSourceType"   : wo.extra.destinationType,
+         |            "append"           : wo.append
+         |        }
          |    }
          |""".stripMargin,
       Map("keys" -> events.map(_.planId))
     )
 
     for {
-      execPlansDetails <- eventualExecPlanDetails
-      res <- createInsertTransaction(events, execPlansDetails.toArray).execute(db)
+      execPlansInfos <- eventualExecPlanInfos
+      (execPlanDiscrById, execPlansDetails) = execPlansInfos
+        .foldLeft((Map.empty[apiModel.ExecutionPlan.Id, apiModel.ExecutionPlan.Discriminator], Vector.empty[ExecPlanDetails])) {
+          case ((descrByIdAcc, detailsAcc), ExecPlanInfo(id, discr, details)) =>
+            (descrByIdAcc + (UUID.fromString(id) -> discr), detailsAcc :+ details)
+        }
+      res <- {
+        events.foreach(e => ensureNoExecPlanIDCollision(e.planId, e.discriminator.orNull, execPlanDiscrById(e.planId)))
+        createInsertTransaction(events, execPlansDetails.toArray).execute(db)
+      }
     } yield res
   })
 
@@ -116,6 +137,13 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 }
 
 object ExecutionProducerRepositoryImpl {
+
+  case class ExecPlanInfo(
+    key: ArangoDocument.Key,
+    discriminator: ExecutionPlan.Discriminator,
+    details: ExecPlanDetails) {
+    def this() = this(null, null, null)
+  }
 
   private def createInsertTransaction(
     executionPlan: apiModel.ExecutionPlan,
@@ -175,7 +203,15 @@ object ExecutionProducerRepositoryImpl {
       .zip(execPlansDetails)
       .map { case (e, pd) =>
         val key = new ExecutionEventKeyCreator(e).executionEventKey
-        Progress(e.timestamp, e.durationNs, e.error, e.extra, key, pd)
+        Progress(
+          timestamp = e.timestamp,
+          durationNs = e.durationNs,
+          discriminator = e.discriminator,
+          error = e.error,
+          extra = e.extra,
+          _key = key,
+          execPlanDetails = pd
+        )
       }
 
     val progressEdges = progressNodes
@@ -188,4 +224,13 @@ object ExecutionProducerRepositoryImpl {
       .buildTx
   }
 
+  private def ensureNoExecPlanIDCollision(
+    planId: apiModel.ExecutionPlan.Id,
+    actualDiscriminator: apiModel.ExecutionPlan.Discriminator,
+    expectedDiscriminator: apiModel.ExecutionPlan.Discriminator
+  ): Unit = {
+    if (actualDiscriminator != expectedDiscriminator) {
+      throw new UUIDCollisionDetectedException("ExecutionPlan", planId, actualDiscriminator)
+    }
+  }
 }
