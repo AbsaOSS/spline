@@ -29,7 +29,10 @@ import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 import scala.concurrent.{ExecutionContext, Future}
 
 @RestController
-@RequestMapping(consumes = Array(ProducerAPI.MimeTypeV1_1))
+@RequestMapping(consumes = Array(
+  ProducerAPI.MimeTypeV1_1,
+  ProducerAPI.MimeTypeV1_2,
+))
 @Api(tags = Array("execution"))
 class ExecutionPlansController @Autowired()(
   val repo: ExecutionProducerRepository) {

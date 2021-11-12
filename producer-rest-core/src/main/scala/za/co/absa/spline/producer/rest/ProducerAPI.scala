@@ -20,10 +20,11 @@ import za.co.absa.commons.version.Version
 import za.co.absa.commons.version.Version._
 
 object ProducerAPI {
-  val CurrentVersion: Version = ver"1.1"
+  val CurrentVersion: Version = ver"1.2"
   val DeprecatedVersions: Seq[Version] = Seq(ver"1" /*, ...*/)
-  val LTSVersions: Seq[Version] = Seq(CurrentVersion /*, ...*/)
+  val LTSVersions: Seq[Version] = Seq(CurrentVersion, ver"1.1" /*, ...*/)
   val SupportedVersions: Seq[Version] = LTSVersions ++ DeprecatedVersions
 
   final val MimeTypeV1_1 = "application/vnd.absa.spline.producer.v1.1+json"
+  final val MimeTypeV1_2 = "application/vnd.absa.spline.producer.v1.2+json"
 }
