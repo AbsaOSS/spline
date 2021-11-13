@@ -177,6 +177,7 @@ object NodeDef {
   object Progress extends NodeDef("progress") with CollectionDef {
     override def indexDefs: Seq[IndexDef] = Seq(
       IndexDef(Seq("timestamp"), new PersistentIndexOptions),
+      IndexDef(Seq("durationNs"), new PersistentIndexOptions),
       IndexDef(Seq("_created"), new PersistentIndexOptions),
       IndexDef(Seq("extra.appId"), new PersistentIndexOptions().sparse(true)),
       IndexDef(Seq("execPlanDetails.executionPlanKey"), new PersistentIndexOptions),
