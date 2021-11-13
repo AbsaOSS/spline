@@ -156,7 +156,8 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         |        "dataSourceUri"    : ds.uri,
         |        "dataSourceType"   : lwe.execPlanDetails.dataSourceType,
         |        "append"           : lwe.execPlanDetails.append,
-        |        "durationNs"       : lwe.durationNs
+        |        "durationNs"       : lwe.durationNs,
+        |        "error"            : lwe.error
         |    }
         |
         |    SORT resItem.@sortField @sortOrder
