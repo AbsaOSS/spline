@@ -33,6 +33,7 @@ function observedWritesByRead(readEvent) {
                     FILTER !wo.append
                     FOR e IN 2 INBOUND wo executes, progressOf
                         FILTER e.timestamp < readTime
+                           AND e.error == null
                         SORT e.timestamp DESC
                         LIMIT 1
                         RETURN e
@@ -43,6 +44,7 @@ function observedWritesByRead(readEvent) {
                     FOR e IN 2 INBOUND wo executes, progressOf
                         FILTER e.timestamp > maybeObservedOverwrite[0].timestamp
                            AND e.timestamp < readTime
+                           AND e.error == null
                         SORT e.timestamp ASC
                         RETURN e
                 )

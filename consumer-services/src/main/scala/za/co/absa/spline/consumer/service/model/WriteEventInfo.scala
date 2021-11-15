@@ -32,8 +32,10 @@ case class WriteEventInfo
   applicationId: String,
   @ApiModelProperty(value = "When the execution was triggered")
   timestamp: WriteEventInfo.Timestamp,
-  @ApiModelProperty(value = "When the execution was triggered")
-  durationNs: WriteEventInfo.DurationNs,
+  @ApiModelProperty(value = "Duration of execution in nanoseconds (for successful executions)")
+  durationNs: Option[WriteEventInfo.DurationNs],
+  @ApiModelProperty(value = "Error (for failed executions)")
+  error: Option[WriteEventInfo.Error],
   @ApiModelProperty(value = "Output data source name")
   dataSourceName: String,
   @ApiModelProperty(value = "Output data source URI")
@@ -43,13 +45,14 @@ case class WriteEventInfo
   @ApiModelProperty(value = "Write mode - (true=Append; false=Override)")
   append: WriteEventInfo.Append
 ) {
-  def this() = this(null, null, null, null, null, null, null, null, null, null, null)
+  def this() = this(null, null, null, null, null, null, null, null, null, null, null, null)
 }
 
 object WriteEventInfo {
   type Id = String
   type Timestamp = java.lang.Long
-  type DurationNs = Option[Progress.JobDurationInNanos]
+  type DurationNs = Progress.JobDurationInNanos
+  type Error = Any
   type Append = java.lang.Boolean
 }
 
