@@ -121,6 +121,7 @@ object ExecutionPlanDeserFixAspectSpec {
     ExecutionPlan(
       id = planId,
       name = None,
+      labels = Map.empty,
       operations = Operations(
         write = WriteOperation(
           id = "1",

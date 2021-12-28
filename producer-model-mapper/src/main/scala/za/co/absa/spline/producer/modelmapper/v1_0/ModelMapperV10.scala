@@ -62,6 +62,7 @@ object ModelMapperV10 extends ModelMapper[v1.ExecutionPlan, v1.ExecutionEvent] {
     ExecutionPlan(
       id = plan1.id,
       name = execPlanNameExtractor(plan1),
+      labels = Map.empty,
       operations = operations,
       attributes = attributes,
       expressions = maybeExpressions,
@@ -87,6 +88,7 @@ object ModelMapperV10 extends ModelMapper[v1.ExecutionPlan, v1.ExecutionEvent] {
 
     ExecutionEvent(
       planId = event.planId,
+      labels = Map.empty,
       timestamp = event.timestamp,
       durationNs = durationNs,
       error = event.error,

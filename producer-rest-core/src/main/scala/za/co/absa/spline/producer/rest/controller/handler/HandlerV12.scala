@@ -54,6 +54,12 @@ trait HandlerV12 {
           // The property is used for UUID collision detection.
           discriminator: <string>,
 
+          // [Optional] An object that consists of string key-multi-value pairs associated with the given execution plan.
+          // The labels can be used later for searching/filtering/grouping the plans on the Consumer/UI side.
+          labels: {
+             <key>: [<values>]
+          },
+
           // Operation level lineage info
           operations: {
 
@@ -202,6 +208,12 @@ trait HandlerV12 {
             // If set, it has to match the discriminator of the associated execution plan.
             // The property is used for UUID collision detection.
             discriminator: <string>,
+
+            // [Optional] An object that consists of string key-multi-value pairs associated with the given execution plan.
+            // The labels can be used later for searching/filtering/grouping the plans on the Consumer/UI side.
+            labels: {
+               <key>: [<values>]
+            },
 
             // Time (milliseconds since Epoch) when the execution finished
             timestamp: <number>,

@@ -207,6 +207,7 @@ object ExecutionProducerRepositoryImpl {
           timestamp = e.timestamp,
           durationNs = e.durationNs,
           discriminator = e.discriminator,
+          labels = e.labels,
           error = e.error,
           extra = e.extra,
           _key = key,

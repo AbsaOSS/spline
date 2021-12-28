@@ -110,6 +110,7 @@ object DataSource {
 case class ExecutionPlan(
   name: Option[ExecutionPlan.Name],
   discriminator: Option[ExecutionPlan.Discriminator],
+  labels: Map[String, Seq[String]],
   systemInfo: Map[String, Any],
   agentInfo: Map[String, Any],
   extra: Map[String, Any],
@@ -130,6 +131,7 @@ case class Progress(
   timestamp: Long,
   durationNs: Option[Progress.JobDurationInNanos],
   discriminator: Option[ExecutionPlan.Discriminator],
+  labels: Map[String, Seq[String]],
   error: Option[Any],
   extra: Map[String, Any],
   override val _key: ArangoDocument.Key,

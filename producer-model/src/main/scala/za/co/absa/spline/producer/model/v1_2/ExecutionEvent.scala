@@ -22,6 +22,7 @@ import scala.language.implicitConversions
 
 case class ExecutionEvent(
   planId: ExecutionPlan.Id,
+  labels: Map[String, Seq[String]] = Map.empty,
   timestamp: Long,
   durationNs: Option[DurationNs],
   discriminator: Option[ExecutionPlan.Discriminator] = None,

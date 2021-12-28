@@ -25,6 +25,9 @@ case class ExecutionPlan(
   name: Option[ExecutionPlan.Name],
   discriminator: Option[ExecutionPlan.Discriminator] = None,
 
+  // Labels are used for grouping and filtering on the Consumer API and the UI side
+  labels: Map[String, Seq[String]] = Map.empty,
+
   operations: Operations,
   attributes: Seq[Attribute] = Nil,
   expressions: Option[Expressions] = None,
@@ -33,7 +36,7 @@ case class ExecutionPlan(
   systemInfo: NameAndVersion,
   // Spline agent information
   agentInfo: Option[NameAndVersion] = None,
-  // User payload
+  // Extra User metadata that is not analyzed by Spline
   extraInfo: Map[String, Any] = Map.empty
 ) {
   ValidationUtils.validate(Constraint.unique(attributes) by (_.id) as "attribute ID")
