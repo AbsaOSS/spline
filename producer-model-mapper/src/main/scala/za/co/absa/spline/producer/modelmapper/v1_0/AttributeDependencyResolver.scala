@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 ABSA Group Limited
+ * Copyright 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.service.model
+package za.co.absa.spline.producer.modelmapper.v1_0
 
-import za.co.absa.spline.producer.model.v1_2._
+import za.co.absa.spline.producer.modelmapper.v1_0.TypesV10.AttrId
+import za.co.absa.spline.producer.{model => modelV1}
 
-class ExecutionPlanKeyCreator(ep: ExecutionPlan) extends AbstractNodeKeyCreator(ep.id) {
-
-  def asOperationKey(opId: OperationLike.Id): String = asCompositeKey(opId)
-
-  def asSchemaKey(opId: OperationLike.Id): String = asCompositeKey(opId)
-
-  def asAttributeKey(attrId: Attribute.Id): String = asCompositeKey(attrId)
-
-  def asExpressionKey(exprId: ExpressionLike.Id): String = asCompositeKey(exprId)
+trait AttributeDependencyResolver {
+  def resolve(
+    op: modelV1.OperationLike,
+    inputSchema: => Seq[AttrId],
+    outputSchema: => Seq[AttrId]
+  ): Map[AttrId, Set[AttrId]]
 }

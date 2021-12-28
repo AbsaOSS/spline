@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.rest
+package za.co.absa.spline.producer.model.v1_2
 
-import za.co.absa.commons.version.Version
-import za.co.absa.commons.version.Version._
+import za.co.absa.spline.producer.model.v1_2.ExecutionEvent._
 
-object ProducerAPI {
-  val CurrentVersion: Version = ver"1.2"
-  val DeprecatedVersions: Seq[Version] = Seq(ver"1" /*, ...*/)
-  val LTSVersions: Seq[Version] = Seq(CurrentVersion, ver"1.1" /*, ...*/)
-  val SupportedVersions: Seq[Version] = LTSVersions ++ DeprecatedVersions
+import scala.language.implicitConversions
 
-  final val MimeTypeV10 = "application/json"
-  final val MimeTypeV11 = "application/vnd.absa.spline.producer.v1.1+json"
-  final val MimeTypeV12 = "application/vnd.absa.spline.producer.v1.2+json"
+case class ExecutionEvent(
+  planId: ExecutionPlan.Id,
+  timestamp: Long,
+  durationNs: Option[DurationNs],
+  discriminator: Option[ExecutionPlan.Discriminator] = None,
+  error: Option[Any] = None,
+  extra: Map[String, Any] = Map.empty
+)
+
+object ExecutionEvent {
+  type DurationNs = java.lang.Long
+
+  implicit def optJavaLong2OptScalaLong(opt: Option[java.lang.Long]): Option[Long] = opt.map(identity(_))
 }

@@ -18,7 +18,7 @@ package za.co.absa.spline.producer.service.repo
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import za.co.absa.spline.producer.model.v1_1.ExecutionEvent
+import za.co.absa.spline.producer.model.v1_2.ExecutionEvent
 import za.co.absa.spline.producer.service.model.ExecutionEventKeyCreator
 
 import java.util.UUID

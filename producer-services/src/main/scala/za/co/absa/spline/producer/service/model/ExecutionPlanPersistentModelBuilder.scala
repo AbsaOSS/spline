@@ -25,9 +25,9 @@ import za.co.absa.commons.lang.OptionImplicits._
 import za.co.absa.spline.persistence.DefaultJsonSerDe._
 import za.co.absa.spline.persistence.model.{Edge, EdgeDef}
 import za.co.absa.spline.persistence.{model => pm}
-import za.co.absa.spline.producer.model.v1_1.AttrOrExprRef
-import za.co.absa.spline.producer.model.v1_1.OperationLike.Id
-import za.co.absa.spline.producer.model.{v1_1 => am}
+import za.co.absa.spline.producer.model.v1_2.AttrOrExprRef
+import za.co.absa.spline.producer.model.v1_2.OperationLike.Id
+import za.co.absa.spline.producer.model.{v1_2 => am}
 import za.co.absa.spline.producer.service.model.ExecutionPlanPersistentModelBuilder._
 import za.co.absa.spline.producer.service.{InconsistentEntityException, model}
 
