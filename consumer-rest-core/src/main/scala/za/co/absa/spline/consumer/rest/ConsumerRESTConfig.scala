@@ -18,6 +18,7 @@ package za.co.absa.spline.consumer.rest
 
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.springframework.context.annotation.{Bean, ComponentScan, Configuration}
+import org.springframework.format.FormatterRegistry
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
 import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
 import za.co.absa.commons.config.ConfTyped
@@ -47,6 +48,10 @@ class ConsumerRESTConfig extends WebMvcConfigurer {
     .registerModule(DefaultScalaModule)
     .setDefaultTyping(new ConsumerTypeResolver)
   )
+
+  override def addFormatters(registry: FormatterRegistry): Unit = {
+    registry.removeConvertible(classOf[String], classOf[Array[Object]])
+  }
 }
 
 object ConsumerRESTConfig extends DefaultConfigurationStack with ConfTyped {

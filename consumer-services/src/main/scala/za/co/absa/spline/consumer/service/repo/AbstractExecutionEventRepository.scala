@@ -15,7 +15,7 @@
  */
 package za.co.absa.spline.consumer.service.repo
 
-import za.co.absa.spline.consumer.service.model.{PageRequest, SortRequest, WriteEventInfo}
+import za.co.absa.spline.consumer.service.model.{Label, PageRequest, SortRequest, WriteEventInfo}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -23,6 +23,7 @@ trait AbstractExecutionEventRepository {
 
   def getTimestampRange(
     asAtTime: Long,
+    labels: Array[Label],
     maybeSearchTerm: Option[String],
     maybeAppend: Option[Boolean],
     maybeApplicationId: Option[String],
@@ -35,6 +36,7 @@ trait AbstractExecutionEventRepository {
     maybeTimestampEnd: Option[Long],
     pageRequest: PageRequest,
     sortRequest: SortRequest,
+    labels: Array[Label],
     maybeSearchTerm: Option[String],
     maybeAppend: Option[Boolean],
     maybeApplicationId: Option[String],

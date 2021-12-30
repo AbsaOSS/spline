@@ -17,6 +17,7 @@ package za.co.absa.spline.consumer.service.repo
 
 import com.arangodb.async.ArangoDatabaseAsync
 import com.arangodb.model.AqlQueryOptions
+import org.apache.commons.lang.StringEscapeUtils.escapeJavaScript
 import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -29,47 +30,64 @@ import scala.concurrent.{ExecutionContext, Future}
 @Repository
 class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExecutionEventRepository {
 
+  import za.co.absa.commons.lang.OptionImplicits._
+
   override def getTimestampRange(
     asAtTime: Long,
+    labels: Array[Label],
     maybeSearchTerm: Option[String],
     maybeAppend: Option[Boolean],
     maybeApplicationId: Option[String],
     maybeDataSourceUri: Option[String]
   )(implicit ec: ExecutionContext): Future[(Long, Long)] = {
+
+    val lblNames = labels.map(_.name)
+    val lblValues = labels.map(_.values)
+
     db.queryOne[Array[Long]](
-      """
-        |WITH progress
-        |FOR ee IN progress
-        |    FILTER ee._created <= @asAtTime
-        |
-        |    FILTER @applicationId == null OR @applicationId == ee.extra.appId
-        |    FILTER @dataSourceUri == null OR @dataSourceUri == ee.execPlanDetails.dataSourceUri
-        |    FILTER @writeAppend   == null OR @writeAppend   == ee.execPlanDetails.append
-        |
-        |    FILTER @searchTerm == null
-        |            OR @searchTerm == ee.timestamp
-        |            OR CONTAINS(LOWER(ee.execPlanDetails.frameworkName), @searchTerm)
-        |            OR CONTAINS(LOWER(ee.execPlanDetails.applicationName), @searchTerm)
-        |            OR CONTAINS(LOWER(ee.extra.appId), @searchTerm)
-        |            OR CONTAINS(LOWER(ee.execPlanDetails.dataSourceUri), @searchTerm)
-        |            OR CONTAINS(LOWER(ee.execPlanDetails.dataSourceType), @searchTerm)
-        |
-        |    COLLECT AGGREGATE
-        |        minTimestamp = MIN(ee.timestamp),
-        |        maxTimestamp = MAX(ee.timestamp)
-        |
-        |    RETURN [
-        |        minTimestamp || DATE_NOW(),
-        |        maxTimestamp || DATE_NOW()
-        |    ]
-        |""".stripMargin,
-      Map(
+      s"""
+         |WITH progress
+         |FOR ee IN progress
+         |    FILTER ee._created <= @asAtTime
+         |
+         |    FILTER @applicationId == null OR @applicationId == ee.extra.appId
+         |    FILTER @dataSourceUri == null OR @dataSourceUri == ee.execPlanDetails.dataSourceUri
+         |    FILTER @writeAppend   == null OR @writeAppend   == ee.execPlanDetails.append
+         |
+      ${
+        lblNames.zipWithIndex.map({
+          case (lblName, i) =>
+            s"FILTER ee.labels['${escapeJavaScript(lblName)}'] ANY IN @lblValues[$i]"
+        }).mkString("\n")
+      }
+         |
+         |    FILTER @searchTerm == null
+         |            OR @searchTerm == ee.timestamp
+         |            OR CONTAINS(LOWER(ee.execPlanDetails.frameworkName), @searchTerm)
+         |            OR CONTAINS(LOWER(ee.execPlanDetails.applicationName), @searchTerm)
+         |            OR CONTAINS(LOWER(ee.extra.appId), @searchTerm)
+         |            OR CONTAINS(LOWER(ee.execPlanDetails.dataSourceUri), @searchTerm)
+         |            OR CONTAINS(LOWER(ee.execPlanDetails.dataSourceType), @searchTerm)
+         |
+         |    COLLECT AGGREGATE
+         |        minTimestamp = MIN(ee.timestamp),
+         |        maxTimestamp = MAX(ee.timestamp)
+         |
+         |    RETURN [
+         |        minTimestamp || DATE_NOW(),
+         |        maxTimestamp || DATE_NOW()
+         |    ]
+         |""".stripMargin,
+      Map[String, AnyRef](
         "asAtTime" -> Long.box(asAtTime),
         "searchTerm" -> maybeSearchTerm.map(StringUtils.lowerCase).orNull,
         "writeAppend" -> maybeAppend.map(Boolean.box).orNull,
         "applicationId" -> maybeApplicationId.orNull,
         "dataSourceUri" -> maybeDataSourceUri.orNull
-      )
+      ).optionally(
+        _.updated("lblValues", _: Seq[Array[Label.Value]]),
+        lblValues.toSeq.asOption
+      ),
     ).map { case Array(from, to) => from -> to }
   }
 
@@ -79,52 +97,64 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
     maybeTimestampEnd: Option[Long],
     pageRequest: PageRequest,
     sortRequest: SortRequest,
+    labels: Array[Label],
     maybeSearchTerm: Option[String],
     maybeAppend: Option[Boolean],
     maybeApplicationId: Option[String],
     maybeDataSourceUri: Option[String]
   )(implicit ec: ExecutionContext): Future[(Seq[WriteEventInfo], Long)] = {
+
+    val lblNames = labels.map(_.name)
+    val lblValues = labels.map(_.values)
+
     db.queryAs[WriteEventInfo](
-      """
-        |WITH progress
-        |FOR ee IN progress
-        |    FILTER ee._created <= @asAtTime
-        |       AND (@timestampStart == null OR @timestampStart <= ee.timestamp)
-        |       AND (@timestampEnd   == null OR @timestampEnd   >= ee.timestamp)
-        |
-        |    FILTER @applicationId == null OR @applicationId == ee.extra.appId
-        |    FILTER @dataSourceUri == null OR @dataSourceUri == ee.execPlanDetails.dataSourceUri
-        |    FILTER @writeAppend == null   OR @writeAppend   == ee.execPlanDetails.append
-        |
-        |    FILTER @searchTerm == null
-        |            OR @searchTerm == ee.timestamp
-        |            OR CONTAINS(LOWER(ee.execPlanDetails.frameworkName), @searchTerm)
-        |            OR CONTAINS(LOWER(ee.execPlanDetails.applicationName), @searchTerm)
-        |            OR CONTAINS(LOWER(ee.extra.appId), @searchTerm)
-        |            OR CONTAINS(LOWER(ee.execPlanDetails.dataSourceUri), @searchTerm)
-        |            OR CONTAINS(LOWER(ee.execPlanDetails.dataSourceType), @searchTerm)
-        |
-        |    LET resItem = {
-        |        "executionEventId" : ee._key,
-        |        "executionPlanId"  : ee.execPlanDetails.executionPlanKey,
-        |        "frameworkName"    : ee.execPlanDetails.frameworkName,
-        |        "applicationName"  : ee.execPlanDetails.applicationName,
-        |        "applicationId"    : ee.extra.appId,
-        |        "timestamp"        : ee.timestamp,
-        |        "dataSourceName"   : ee.execPlanDetails.dataSourceName,
-        |        "dataSourceUri"    : ee.execPlanDetails.dataSourceUri,
-        |        "dataSourceType"   : ee.execPlanDetails.dataSourceType,
-        |        "append"           : ee.execPlanDetails.append,
-        |        "durationNs"       : ee.durationNs,
-        |        "error"            : ee.error
-        |    }
-        |
-        |    SORT resItem.@sortField @sortOrder
-        |    LIMIT @pageOffset*@pageSize, @pageSize
-        |
-        |    RETURN resItem
-        |""".stripMargin,
-      Map(
+      s"""
+         |WITH progress
+         |FOR ee IN progress
+         |    FILTER ee._created <= @asAtTime
+         |       AND (@timestampStart == null OR @timestampStart <= ee.timestamp)
+         |       AND (@timestampEnd   == null OR @timestampEnd   >= ee.timestamp)
+         |
+         |    FILTER @applicationId == null OR @applicationId == ee.extra.appId
+         |    FILTER @dataSourceUri == null OR @dataSourceUri == ee.execPlanDetails.dataSourceUri
+         |    FILTER @writeAppend   == null OR @writeAppend   == ee.execPlanDetails.append
+         |
+      ${
+        lblNames.zipWithIndex.map({
+          case (lblName, i) =>
+            s"FILTER ee.labels['${escapeJavaScript(lblName)}'] ANY IN @lblValues[$i]"
+        }).mkString("\n")
+      }
+         |
+         |    FILTER @searchTerm == null
+         |            OR @searchTerm == ee.timestamp
+         |            OR CONTAINS(LOWER(ee.execPlanDetails.frameworkName), @searchTerm)
+         |            OR CONTAINS(LOWER(ee.execPlanDetails.applicationName), @searchTerm)
+         |            OR CONTAINS(LOWER(ee.extra.appId), @searchTerm)
+         |            OR CONTAINS(LOWER(ee.execPlanDetails.dataSourceUri), @searchTerm)
+         |            OR CONTAINS(LOWER(ee.execPlanDetails.dataSourceType), @searchTerm)
+         |
+         |    LET resItem = {
+         |        "executionEventId" : ee._key,
+         |        "executionPlanId"  : ee.execPlanDetails.executionPlanKey,
+         |        "frameworkName"    : ee.execPlanDetails.frameworkName,
+         |        "applicationName"  : ee.execPlanDetails.applicationName,
+         |        "applicationId"    : ee.extra.appId,
+         |        "timestamp"        : ee.timestamp,
+         |        "dataSourceName"   : ee.execPlanDetails.dataSourceName,
+         |        "dataSourceUri"    : ee.execPlanDetails.dataSourceUri,
+         |        "dataSourceType"   : ee.execPlanDetails.dataSourceType,
+         |        "append"           : ee.execPlanDetails.append,
+         |        "durationNs"       : ee.durationNs,
+         |        "error"            : ee.error
+         |    }
+         |
+         |    SORT resItem.@sortField @sortOrder
+         |    LIMIT @pageOffset*@pageSize, @pageSize
+         |
+         |    RETURN resItem
+         |""".stripMargin,
+      Map[String, AnyRef](
         "asAtTime" -> Long.box(asAtTime),
         "timestampStart" -> maybeTimestampStart.map(Long.box).orNull,
         "timestampEnd" -> maybeTimestampEnd.map(Long.box).orNull,
@@ -136,6 +166,9 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         "writeAppend" -> maybeAppend.map(Boolean.box).orNull,
         "applicationId" -> maybeApplicationId.orNull,
         "dataSourceUri" -> maybeDataSourceUri.orNull
+      ).optionally(
+        _.updated("lblValues", _: Seq[Array[Label.Value]]),
+        lblValues.toSeq.asOption
       ),
       new AqlQueryOptions().fullCount(true)
     ).map {

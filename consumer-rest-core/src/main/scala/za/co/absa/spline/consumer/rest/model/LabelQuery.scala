@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.consumer.service.model
+package za.co.absa.spline.consumer.rest.model
 
-case class Label(name: Label.Name, values: Array[Label.Value])
+import za.co.absa.spline.consumer.service.model.Label
 
-object Label {
-  type Name = String
-  type Value = String
+object LabelQuery {
+  private val KeyValuesRegexp = "([^:]+):(.*)".r
+
+  def parse(str: String): Option[Label] = {
+    KeyValuesRegexp
+      .findFirstMatchIn(str)
+      .map(m =>
+        Label(
+          name = m.group(1),
+          values = m.group(2).split(',').map(_.trim).filterNot(_.isBlank)
+        )
+      )
+  }
 }

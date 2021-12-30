@@ -19,6 +19,7 @@ import io.swagger.annotations.{Api, ApiOperation, ApiParam}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.rest.controller.DataSourcesController.PageableDataSourcesResponse
+import za.co.absa.spline.consumer.rest.model.LabelQuery
 import za.co.absa.spline.consumer.service.model._
 import za.co.absa.spline.consumer.service.repo.DataSourceRepository
 
@@ -61,6 +62,9 @@ class DataSourcesController @Autowired()(
     @ApiParam(value = "Sort order", example = "asc")
     @RequestParam(value = "sortOrder", defaultValue = "asc") sortOrder: String,
 
+    @ApiParam(value = "Labels in format <name>:<value1>,<value2>,...")
+    @RequestParam(value = "label", required = false) labelQueries: Array[String],
+
     @ApiParam(value = "Text to filter the results")
     @RequestParam(value = "searchTerm", required = false) searchTerm: String,
 
@@ -82,6 +86,7 @@ class DataSourcesController @Autowired()(
     pageSize,
     sortField,
     sortOrder,
+    Option(labelQueries).getOrElse(Array.empty).flatMap(LabelQuery.parse),
     searchTerm,
     append,
     writeApplicationId,
