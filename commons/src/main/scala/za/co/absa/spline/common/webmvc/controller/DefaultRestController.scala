@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package za.co.absa.spline.common.webmvc.controller
 
-package za.co.absa.spline.common.webmvc.diagnostics
+import io.swagger.annotations.Api
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation._
 
-import org.springframework.context.annotation.{ComponentScan, Configuration}
-import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
-import za.co.absa.spline.common
+@RestController
+@Api(hidden = true)
+class DefaultRestController {
 
-@EnableWebMvc
-@Configuration
-@ComponentScan(basePackageClasses = Array(
-  classOf[common.webmvc.controller._package],
-  classOf[controller._package]
-))
-class DiagnosticsRESTConfig extends WebMvcConfigurer
+  @GetMapping(Array("/**"))
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  def resourceNotFound(): Unit = {}
+
+}

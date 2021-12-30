@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.common.webmvc.diagnostics
+package za.co.absa.spline.common.webmvc
 
-import org.springframework.context.annotation.{ComponentScan, Configuration}
-import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
-import za.co.absa.spline.common
+package object controller {
 
-@EnableWebMvc
-@Configuration
-@ComponentScan(basePackageClasses = Array(
-  classOf[common.webmvc.controller._package],
-  classOf[controller._package]
-))
-class DiagnosticsRESTConfig extends WebMvcConfigurer
+  trait _package
+
+}

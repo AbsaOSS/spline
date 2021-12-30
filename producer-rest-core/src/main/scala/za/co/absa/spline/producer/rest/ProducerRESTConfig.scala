@@ -22,6 +22,7 @@ import com.twitter.finatra.jackson.FinatraInternalModules
 import org.springframework.context.annotation.{Bean, ComponentScan, Configuration}
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
 import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
+import za.co.absa.spline.common
 import za.co.absa.spline.common.webmvc.jackson.ObjectMapperBeanPostProcessor
 import za.co.absa.spline.common.webmvc.{ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
 
@@ -30,6 +31,7 @@ import java.util
 @EnableWebMvc
 @Configuration
 @ComponentScan(basePackageClasses = Array(
+  classOf[common.webmvc.controller._package],
   classOf[controller._package],
 ))
 class ProducerRESTConfig extends WebMvcConfigurer {
