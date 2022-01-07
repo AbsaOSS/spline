@@ -42,9 +42,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
   import ExecutionProducerRepositoryImpl._
 
   override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
-    // Here I have to use the type parameter `Any` and cast to `String` later due to ArangoDb Java driver issue.
-    // See https://github.com/arangodb/arangodb-java-driver/issues/389
-    val eventualMaybeExistingDiscriminatorOpt: Future[Option[String]] = db.queryOptional[Any](
+    val eventualMaybeExistingDiscriminatorOpt: Future[Option[String]] = db.queryOptional[String](
       s"""
          |WITH ${NodeDef.ExecutionPlan.name}
          |FOR ex IN ${NodeDef.ExecutionPlan.name}
@@ -53,7 +51,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
          |    RETURN ex.discriminator
          |    """.stripMargin,
       Map("key" -> executionPlan.id)
-    ).map(_.map(Option(_).map(_.toString).orNull))
+    )
 
     val eventualPersistedDSKeyByURI: Future[Map[DataSource.Uri, DataSource.Key]] = db.queryAs[DataSource](
       s"""
