@@ -39,6 +39,65 @@ db._query(aql`
 console.log("[Spline] Drop 'attributeSearchView'");
 db._dropView("attributeSearchView");
 
+console.log("[Spline] Create 'progress_view'");
+db._createView("progress_view", "arangosearch", {})
+    .properties({
+        "links": {
+            "progress": {
+                "analyzers": [
+                    "identity"
+                ],
+                "fields": {
+                    "labels": {
+                        "analyzers": [
+                            "norm_en"
+                        ],
+                        "includeAllFields": true
+                    },
+                    "extra": {
+                        "fields": {
+                            "appId": {
+                                "analyzers": [
+                                    "norm_en"
+                                ]
+                            }
+                        }
+                    },
+                    "timestamp": {},
+                    "_created": {},
+                    "execPlanDetails": {
+                        "fields": {
+                            "dataSourceUri": {
+                                "analyzers": [
+                                    "norm_en"
+                                ]
+                            },
+                            "dataSourceType": {
+                                "analyzers": [
+                                    "norm_en"
+                                ]
+                            },
+                            "append": {},
+                            "frameworkName": {
+                                "analyzers": [
+                                    "norm_en"
+                                ]
+                            },
+                            "applicationName": {
+                                "analyzers": [
+                                    "norm_en"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "includeAllFields": false,
+                "storeValues": "none",
+                "trackListPositions": false
+            }
+        }
+    });
+
 console.log("[Spline] Create index 'progress.durationNs'");
 db.progress.ensureIndex({type: "persistent", fields: ["durationNs"]});
 
