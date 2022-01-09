@@ -18,11 +18,11 @@ package za.co.absa.spline.persistence.model
 
 import com.arangodb.entity.CollectionType
 import com.arangodb.entity.arangosearch.{CollectionLink, FieldLink}
-import com.arangodb.model.PersistentIndexOptions
 import com.arangodb.model.arangosearch.ArangoSearchPropertiesOptions
+import com.arangodb.model.{IndexOptions, PersistentIndexOptions}
 
 
-case class IndexDef(fields: Seq[String], options: AnyRef)
+case class IndexDef(fields: Seq[String], options: IndexOptions[_ <: IndexOptions[_]])
 
 sealed trait GraphElementDef
 
