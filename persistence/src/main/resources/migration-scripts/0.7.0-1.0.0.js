@@ -50,7 +50,8 @@ db._createView("progress_view", "arangosearch", {})
                 "fields": {
                     "labels": {
                         "analyzers": [
-                            "norm_en"
+                            "norm_en",
+                            "identity"
                         ],
                         "includeAllFields": true
                     },
@@ -58,7 +59,8 @@ db._createView("progress_view", "arangosearch", {})
                         "fields": {
                             "appId": {
                                 "analyzers": [
-                                    "norm_en"
+                                    "norm_en",
+                                    "identity"
                                 ]
                             }
                         }
@@ -69,7 +71,8 @@ db._createView("progress_view", "arangosearch", {})
                         "fields": {
                             "dataSourceUri": {
                                 "analyzers": [
-                                    "norm_en"
+                                    "norm_en",
+                                    "identity"
                                 ]
                             },
                             "dataSourceType": {

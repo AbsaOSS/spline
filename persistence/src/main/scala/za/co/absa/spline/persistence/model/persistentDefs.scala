@@ -18,7 +18,7 @@ package za.co.absa.spline.persistence.model
 
 import com.arangodb.entity.CollectionType
 import com.arangodb.entity.arangosearch.analyzer.{NormAnalyzer, NormAnalyzerProperties, SearchAnalyzer, SearchAnalyzerCase}
-import com.arangodb.entity.arangosearch.{CollectionLink, FieldLink}
+import com.arangodb.entity.arangosearch.{AnalyzerType, CollectionLink, FieldLink}
 import com.arangodb.model.arangosearch.ArangoSearchPropertiesOptions
 import com.arangodb.model.{IndexOptions, PersistentIndexOptions}
 import za.co.absa.spline.persistence.model.SearchAnalyzerDef.NormSearchAnalyzer
@@ -225,17 +225,17 @@ object SearchViewDef {
           FieldLink.on("_created"),
           FieldLink.on("timestamp"),
           FieldLink.on("extra").fields(
-            FieldLink.on("appId").analyzers(NormSearchAnalyzer.name)
+            FieldLink.on("appId").analyzers(NormSearchAnalyzer.name, AnalyzerType.identity.name)
           ),
           FieldLink.on("execPlanDetails").fields(
             FieldLink.on("append"),
             FieldLink.on("applicationName").analyzers(NormSearchAnalyzer.name),
             FieldLink.on("frameworkName").analyzers(NormSearchAnalyzer.name),
-            FieldLink.on("dataSourceUri").analyzers(NormSearchAnalyzer.name),
+            FieldLink.on("dataSourceUri").analyzers(NormSearchAnalyzer.name, AnalyzerType.identity.name),
             FieldLink.on("dataSourceType").analyzers(NormSearchAnalyzer.name),
           ),
           FieldLink.on("labels")
-            .includeAllFields(true).analyzers(NormSearchAnalyzer.name),
+            .includeAllFields(true).analyzers(NormSearchAnalyzer.name, AnalyzerType.identity.name),
         )
       ))
 }
