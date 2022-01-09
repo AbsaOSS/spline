@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
+const VER = "0.5.4"
+
 const {db, aql} = require("@arangodb");
 const udfs = require("@arangodb/aql/functions");
 
-console.log("Update SPLINE::EVENT_LINEAGE_OVERVIEW");
+console.log(`[Spline] Start migration to ${VER}`);
+
+console.log("[Spline] Update SPLINE::EVENT_LINEAGE_OVERVIEW");
 
 udfs.unregister("SPLINE::EVENT_LINEAGE_OVERVIEW");
 udfs.register("SPLINE::EVENT_LINEAGE_OVERVIEW", "" +
@@ -178,18 +182,18 @@ udfs.register("SPLINE::EVENT_LINEAGE_OVERVIEW", "" +
     "    }\n" +
     "})()\n");
 
-console.log("Remove indices");
+console.log("[Spline] Remove indices");
 
 db._collections()
     .filter(c => c.name()[0] !== '_')
     .flatMap(c => c.getIndexes())
     .filter(idx => !['primary', 'edge'].includes(idx.type))
     .forEach(idx => {
-        console.log("...drop index", idx.id);
+        console.log("[Spline] ...drop index", idx.id);
         db._dropIndex(idx);
     });
 
-console.log("Upgrade data");
+console.log("[Spline] Upgrade data");
 
 db._query(aql`
     WITH progress, progressOf, executionPlan, executes, operation
@@ -221,7 +225,7 @@ db._query(aql`
      `
 );
 
-console.log("Create indices");
+console.log("[Spline] Create indices");
 
 db.dataSource.ensureIndex({type: "persistent", fields: ["uri"], unique: true});
 
@@ -240,4 +244,4 @@ db.progress.ensureIndex({type: "persistent", fields: ["execPlanDetails.dataSourc
 db.progress.ensureIndex({type: "persistent", fields: ["execPlanDetails.dataSourceType"]});
 db.progress.ensureIndex({type: "persistent", fields: ["execPlanDetails.append"]});
 
-console.log("Done");
+console.log(`[Spline] Migration done. Version ${VER}`);

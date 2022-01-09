@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+const VER = "0.6.1"
+
 const {db} = require("@arangodb");
 
-console.log("[Spline] Start migration");
+console.log(`[Spline] Start migration to ${VER}`);
 
 console.log("[Spline] Drop index 'progress.execPlanDetails.executionPlanId'");
 const idxToDrop = db.progress.getIndexes().find(idx => idx.fields.every(fld => fld === "execPlanDetails.executionPlanId"));
@@ -25,4 +27,4 @@ db.progress.dropIndex(idxToDrop);
 console.log("[Spline] Create index 'progress.execPlanDetails.executionPlanKey'");
 db.progress.ensureIndex({type: "persistent", fields: ["execPlanDetails.executionPlanKey"]});
 
-console.log("[Spline] Migration done. Version 0.6.1");
+console.log(`[Spline] Migration done. Version ${VER}`);
