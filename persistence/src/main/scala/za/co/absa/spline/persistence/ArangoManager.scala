@@ -18,6 +18,7 @@ package za.co.absa.spline.persistence
 
 import com.arangodb.async.ArangoDatabaseAsync
 import com.arangodb.entity.{EdgeDefinition, IndexType}
+import com.arangodb.model.Implicits.IndexOptionsOps
 import com.arangodb.model._
 import org.apache.commons.io.FilenameUtils
 import org.slf4s.Logging
@@ -127,18 +128,21 @@ class ArangoManagerImpl(
       _ <- if (exists && !dropIfExists)
         throw new IllegalArgumentException(s"Arango Database ${db.name()} already exists")
       else if (exists && dropIfExists) {
-        log.debug("Drop existing database")
+        log.info(s"Drop database: ${db.name}")
         db.drop().toScala
       }
-      else Future.successful(Unit)
-    } yield Unit
+      else Future.successful({})
+    } yield {}
   }
 
   private def createCollections(db: ArangoDatabaseAsync) = {
     log.debug(s"Create collections")
     Future.sequence(
       for (colDef <- sealedInstancesOf[CollectionDef])
-        yield db.createCollection(colDef.name, new CollectionCreateOptions().`type`(colDef.collectionType)).toScala)
+        yield {
+          log.info(s"Create collection: ${colDef.name}")
+          db.createCollection(colDef.name, new CollectionCreateOptions().`type`(colDef.collectionType)).toScala
+        })
   }
 
   private def createGraphs(db: ArangoDatabaseAsync) = {
@@ -155,25 +159,31 @@ class ArangoManagerImpl(
   }
 
   private def deleteIndices(db: ArangoDatabaseAsync) = {
+    log.info(s"Drop indices")
     for {
-      cols <- db.getCollections.toScala.map(_.asScala.filter(!_.getIsSystem))
-      eventualIndices = cols.map(col => db.collection(col.getName).getIndexes.toScala.map(_.asScala))
+      colEntities <- db.getCollections.toScala.map(_.asScala.filter(!_.getIsSystem))
+      eventualIndices = colEntities.map(ce => db.collection(ce.getName).getIndexes.toScala.map(_.asScala.map(ce.getName -> _)))
       allIndices <- Future.reduceLeft(Iterable(eventualIndices.toSeq: _*))(_ ++ _)
-      userIndices = allIndices.filter(idx => idx.getType != IndexType.primary && idx.getType != IndexType.edge)
-      _ <- Future.traverse(userIndices)(idx => db.deleteIndex(idx.getId).toScala)
+      userIndices = allIndices.filter{case (_, idx) => idx.getType != IndexType.primary && idx.getType != IndexType.edge}
+      _ <- Future.traverse(userIndices) { case (colName, idx) =>
+        log.debug(s"Drop ${idx.getType} index: $colName.${idx.getName}")
+        db.deleteIndex(idx.getId).toScala
+      }
     } yield {}
   }
 
   private def createIndices(db: ArangoDatabaseAsync) = {
-    log.debug(s"Create indices")
+    log.info(s"Create indices")
     Future.sequence(
       for {
         colDef <- sealedInstancesOf[CollectionDef]
         idxDef <- colDef.indexDefs
       } yield {
+        val idxOpts = idxDef.options
+        log.debug(s"Ensure ${idxOpts.indexType} index: ${colDef.name} [${idxDef.fields.mkString(",")}]")
         val dbCol = db.collection(colDef.name)
         val fields = idxDef.fields.asJava
-        (idxDef.options match {
+        (idxOpts match {
           case opts: FulltextIndexOptions => dbCol.ensureFulltextIndex(fields, opts)
           case opts: GeoIndexOptions => dbCol.ensureGeoIndex(fields, opts)
           case opts: PersistentIndexOptions => dbCol.ensurePersistentIndex(fields, opts)
@@ -190,7 +200,7 @@ class ArangoManagerImpl(
         .map(res => {
           val functionName = s"$AQLFunctionsPrefix::${FilenameUtils.removeExtension(res.getFilename).toUpperCase}"
           val functionBody = ARM.using(Source.fromURL(res.getURL))(_.getLines.mkString("\n"))
-          log.debug(s"Register AQL function: $functionName")
+          log.info(s"Register AQL function: $functionName")
           log.trace(s"AQL function body: $functionBody")
           db.createAqlFunction(functionName, functionBody, new AqlFunctionCreateOptions()).toScala
         }))
@@ -201,7 +211,10 @@ class ArangoManagerImpl(
     val serviceDefs = FoxxSourceResolver.lookupSources(FoxxSourcesLocation)
     log.debug(s"Found Foxx services: ${serviceDefs.map(_._1) mkString ", "}")
     Future.traverse(serviceDefs.toSeq) {
-      case (name, assets) => foxxManager.install(s"/$name", assets)
+      case (name, assets) =>
+        val srvMount = s"/$name"
+        log.info(s"Install Foxx service: $srvMount")
+        foxxManager.install(srvMount, assets)
     }
   }
 
@@ -210,8 +223,12 @@ class ArangoManagerImpl(
     foxxManager.list().flatMap(srvDefs =>
       Future.sequence(for {
         srvDef <- srvDefs
-        srvMount = srvDef("mount").toString if !srvMount.startsWith("/_")
-      } yield foxxManager.uninstall(srvMount)
+        srvMount = srvDef("mount").toString
+        if !srvMount.startsWith("/_")
+      } yield {
+        log.info(s"Uninstall Foxx service: $srvMount")
+        foxxManager.uninstall(srvMount)
+      }
       ).map(_ => {})
     )
   }
