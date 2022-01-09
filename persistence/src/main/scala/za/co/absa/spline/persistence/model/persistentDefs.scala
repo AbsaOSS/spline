@@ -209,10 +209,4 @@ object CollectionDef {
 
 object ViewDef {
 
-  object AttributeSearchView extends ViewDef("attributeSearchView",
-    (new ArangoSearchPropertiesOptions)
-      .link(CollectionLink.on(NodeDef.Attribute.name)
-        .analyzers("text_en", "identity")
-        .fields(FieldLink.on("name"))))
-
 }

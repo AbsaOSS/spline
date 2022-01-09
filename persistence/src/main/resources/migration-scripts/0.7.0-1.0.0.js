@@ -36,6 +36,9 @@ db._query(aql`
         UPDATE ep WITH { labels: {} } IN executionPlan
 `);
 
+console.log("[Spline] Drop 'attributeSearchView'");
+db._dropView("attributeSearchView");
+
 console.log("[Spline] Create index 'progress.durationNs'");
 db.progress.ensureIndex({type: "persistent", fields: ["durationNs"]});
 
