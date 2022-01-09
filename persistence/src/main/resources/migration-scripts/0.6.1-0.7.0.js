@@ -20,7 +20,7 @@ const {db, aql} = require("@arangodb");
 
 console.log(`[Spline] Start migration to ${VER}`);
 
-console.log("Update 'dataSource'");
+console.log("[Spline] Update 'dataSource'");
 
 db._query(aql`
     WITH dataSource
@@ -32,7 +32,7 @@ db._query(aql`
             IN dataSource
 `);
 
-console.log("Update 'progress.execPlanDetails'");
+console.log("[Spline] Update 'progress.execPlanDetails'");
 
 db._query(aql`
     WITH progress

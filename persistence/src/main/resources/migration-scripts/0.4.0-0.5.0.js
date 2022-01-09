@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
+const VER = "0.5.0"
+
 const {db} = require("@arangodb");
 const udfs = require("@arangodb/aql/functions");
 const graph = require('@arangodb/general-graph');
 
-console.log("Unregister UDFs");
+console.log(`[Spline] Start migration to ${VER}`);
+
+console.log("[Spline] Unregister UDFs");
 
 udfs.unregisterGroup("SPLINE");
 
-console.log("Register SPLINE::OBSERVED_WRITES_BY_READ");
+console.log("[Spline] Register SPLINE::OBSERVED_WRITES_BY_READ");
 
 udfs.register(
     "SPLINE::OBSERVED_WRITES_BY_READ",
@@ -72,7 +76,7 @@ udfs.register(
     "    }"
 );
 
-console.log("Register SPLINE::EVENT_LINEAGE_OVERVIEW");
+console.log("[Spline] Register SPLINE::EVENT_LINEAGE_OVERVIEW");
 
 udfs.register(
     "SPLINE::EVENT_LINEAGE_OVERVIEW",
@@ -234,7 +238,7 @@ udfs.register(
     "    })()"
 );
 
-console.log("Remove indices");
+console.log("[Spline] Remove indices");
 
 db._collections()
     .filter(c => c.name()[0] !== '_')
@@ -245,7 +249,7 @@ db._collections()
         db._dropIndex(idx);
     });
 
-console.log("Create indices");
+console.log("[Spline] Create indices");
 
 db.dataSource.ensureIndex({type: "hash", fields: ["uri"], unique: true});
 
@@ -257,14 +261,14 @@ db.progress.ensureIndex({type: "skiplist", fields: ["timestamp"]});
 db.progress.ensureIndex({type: "skiplist", fields: ["_created"]});
 db.progress.ensureIndex({type: "hash", fields: ["extra.appId"], sparse: true});
 
-console.log("Remove views");
+console.log("[Spline] Remove views");
 
 db._views().forEach(v => {
-    console.log("...drop view", v.name());
+    console.log("[Spline] ...drop view", v.name());
     db._dropView(v.name());
 });
 
-console.log("Create views");
+console.log("[Spline] Create views");
 
 db._createView("attributeSearchView", "arangosearch", {})
     .properties({
@@ -292,14 +296,14 @@ db._createView("attributeSearchView", "arangosearch", {})
         }
     });
 
-console.log("Remove graphs");
+console.log("[Spline] Remove graphs");
 
 graph._list().forEach(g => {
-    console.log("... drop graph", g);
+    console.log("[Spline] ... drop graph", g);
     graph._drop(g, false);
 });
 
-console.log("Create graphs");
+console.log("[Spline] Create graphs");
 
 graph._create(
     "overview",
@@ -318,4 +322,4 @@ graph._create(
         {collection: "writesTo", "from": ["operation"], "to": ["dataSource"]},
     ]);
 
-console.log("Done");
+console.log(`[Spline] Migration done. Version ${VER}`);

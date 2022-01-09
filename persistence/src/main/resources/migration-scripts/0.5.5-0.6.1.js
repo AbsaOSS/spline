@@ -14,43 +14,45 @@
  * limitations under the License.
  */
 
+const VER = "0.6.1"
+
 const {db, aql} = require("@arangodb");
 const graph = require('@arangodb/general-graph');
 
-console.log("[Spline] Start migration to Spline 0.6.1");
+console.log(`[Spline] Start migration to ${VER}`);
 
-console.log("Remove views");
+console.log("[Spline] Remove views");
 
 db._views().forEach(v => {
     console.log("...drop view", v.name());
     db._dropView(v.name());
 });
 
-console.log("Remove graphs");
+console.log("[Spline] Remove graphs");
 
 graph._list().forEach(g => {
-    console.log("... drop graph", g);
+    console.log("[Spline] ... drop graph", g);
     graph._drop(g, false);
 });
 
-console.log("Remove indices");
+console.log("[Spline] Remove indices");
 
 db._collections()
     .filter(c => c.name()[0] !== '_')
     .flatMap(c => c.getIndexes())
     .filter(idx => !['primary', 'edge'].includes(idx.type))
     .forEach(idx => {
-        console.log("...drop index", idx.id);
+        console.log("[Spline] ...drop index", idx.id);
         db._dropIndex(idx);
     });
 
-console.log("Create missing NODE collections");
+console.log("[Spline] Create missing NODE collections");
 
 db._createDocumentCollection("schema");
 db._createDocumentCollection("attribute");
 db._createDocumentCollection("expression");
 
-console.log("Create missing EDGE collections");
+console.log("[Spline] Create missing EDGE collections");
 
 db._createEdgeCollection("emits");
 db._createEdgeCollection("produces");
@@ -63,7 +65,7 @@ db._createEdgeCollection("uses");
 // Data migration
 // ===========================================================================
 
-console.log("Extract 'attribute'");
+console.log("[Spline] Extract 'attribute'");
 
 db._query(aql`
     WITH executionPlan, attribute
@@ -82,7 +84,7 @@ db._query(aql`
             INTO attribute
 `);
 
-console.log("Update 'executionPlan'");
+console.log("[Spline] Update 'executionPlan'");
 
 db._query(aql`
     WITH executionPlan
@@ -100,7 +102,7 @@ db._query(aql`
             }
 `);
 
-console.log("Update 'executes'");
+console.log("[Spline] Update 'executes'");
 
 db._query(aql`
     WITH executes
@@ -109,7 +111,7 @@ db._query(aql`
         UPDATE ex WITH { "_belongsTo": epId } IN executes
 `);
 
-console.log("Traverse & Update 'operation'");
+console.log("[Spline] Traverse & Update 'operation'");
 
 db._query(aql`
     WITH executes, operation, follows
@@ -133,7 +135,7 @@ db._query(aql`
                 }
 `);
 
-console.log("Traverse & Update 'follows'");
+console.log("[Spline] Traverse & Update 'follows'");
 
 db._query(aql`
     WITH executes, operation, follows
@@ -147,7 +149,7 @@ db._query(aql`
             UPDATE flw WITH { "_belongsTo": epId } IN follows
 `);
 
-console.log("Traverse & Update 'readsFrom'");
+console.log("[Spline] Traverse & Update 'readsFrom'");
 
 db._query(aql`
     WITH executes, operation, follows, readsFrom
@@ -162,7 +164,7 @@ db._query(aql`
                 UPDATE rf WITH { "_belongsTo": epId } IN readsFrom
 `);
 
-console.log("Traverse & Update 'writesTo'");
+console.log("[Spline] Traverse & Update 'writesTo'");
 
 db._query(aql`
     WITH executes, operation, follows, writesTo
@@ -177,7 +179,7 @@ db._query(aql`
                 UPDATE wt WITH {"_belongsTo": epId} IN writesTo
 `);
 
-console.log("Extract 'schema' from 'operation'");
+console.log("[Spline] Extract 'schema' from 'operation'");
 
 // WARNING: This query consumes large amount of memory!
 db._query(aql`
@@ -229,7 +231,7 @@ db._query(aql`
                 INTO consistsOf
 `);
 
-console.log("Update attribute references in 'operation'");
+console.log("[Spline] Update attribute references in 'operation'");
 
 db._query(aql`
     WITH operation
@@ -253,7 +255,7 @@ db._query(aql`
             }
 `);
 
-console.log("Update 'progress'");
+console.log("[Spline] Update 'progress'");
 
 db._query(aql`
     WITH progress
@@ -275,7 +277,7 @@ db._query(aql`
             }
 `);
 
-console.log("Update 'depends'");
+console.log("[Spline] Update 'depends'");
 
 db._query(aql`
     WITH depends
@@ -287,7 +289,7 @@ db._query(aql`
             IN depends
 `);
 
-console.log("Update 'affects'");
+console.log("[Spline] Update 'affects'");
 
 db._query(aql`
     WITH affects
@@ -310,7 +312,7 @@ db._query(aql`
 
 // ===========================================================================
 
-console.log("Create graphs");
+console.log("[Spline] Create graphs");
 
 graph._create(
     "overviewGraph",
@@ -351,7 +353,7 @@ graph._create(
     ]);
 
 
-console.log("Create indices");
+console.log("[Spline] Create indices");
 
 db.follows.ensureIndex({type: "persistent", fields: ["_belongsTo"]});
 
@@ -373,7 +375,7 @@ db.progress.ensureIndex({type: "persistent", fields: ["execPlanDetails.dataSourc
 db.progress.ensureIndex({type: "persistent", fields: ["execPlanDetails.append"]});
 
 
-console.log("Create views");
+console.log("[Spline] Create views");
 
 db._createView("attributeSearchView", "arangosearch", {})
     .properties({
@@ -397,4 +399,4 @@ db._createView("attributeSearchView", "arangosearch", {})
         }
     });
 
-console.log("[Spline] Migration done. Version 0.6.1");
+console.log(`[Spline] Migration done. Version ${VER}`);

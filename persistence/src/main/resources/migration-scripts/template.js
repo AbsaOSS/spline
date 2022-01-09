@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 ABSA Group Limited
+ * Copyright 2021 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-const VER = "0.5.5"
+const VER = "0.0.0"
 
-const udfs = require("@arangodb/aql/functions");
+const {db, aql} = require("@arangodb");
 
 console.log(`[Spline] Start migration to ${VER}`);
 
-console.log("[Spline] Remove SPLINE AQL UDFs. See https://github.com/AbsaOSS/spline/issues/761");
+// Migration script BEGIN
 
-udfs.unregister("SPLINE::OBSERVED_WRITES_BY_READ");
-udfs.unregister("SPLINE::EVENT_LINEAGE_OVERVIEW");
+console.log("[Spline] ...");
+db._query(aql`
+    WITH ...
+    ...
+`);
+
+// Migration script END
 
 console.log(`[Spline] Migration done. Version ${VER}`);
