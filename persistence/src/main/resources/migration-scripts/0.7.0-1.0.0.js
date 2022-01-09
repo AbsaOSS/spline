@@ -20,6 +20,22 @@ const {db, aql} = require("@arangodb");
 
 console.log(`[Spline] Start migration to ${VER}`);
 
+console.log("[Spline] Add 'progress.labels'");
+db._query(aql`
+    WITH progress
+    FOR ee IN progress
+        FILTER ee.labels == null
+        UPDATE ee WITH { labels: {} } IN progress
+`);
+
+console.log("[Spline] Add 'executionPlan.labels'");
+db._query(aql`
+    WITH executionPlan
+    FOR ep IN executionPlan
+        FILTER ep.labels == null
+        UPDATE ep WITH { labels: {} } IN executionPlan
+`);
+
 console.log("[Spline] Create index 'progress.durationNs'");
 db.progress.ensureIndex({type: "persistent", fields: ["durationNs"]});
 
