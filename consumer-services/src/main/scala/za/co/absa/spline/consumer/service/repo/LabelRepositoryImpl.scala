@@ -41,7 +41,7 @@ class LabelRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends LabelRep
          |        FOR ep IN executionPlan FOR a IN ATTRIBUTES(ep.labels) RETURN a,
          |        FOR ee IN progress FOR a IN ATTRIBUTES(ee.labels) RETURN a
          |    )
-         |    FILTER @searchTerm == null OR CONTAINS(LOWER(x), @searchTerm)
+         |    FILTER @searchTerm == null OR CONTAINS(LOWER(x), LOWER(@searchTerm))
          |    LIMIT @offset, @length
          |RETURN x
          |""".stripMargin,
@@ -63,7 +63,7 @@ class LabelRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends LabelRep
          |        FOR ep IN executionPlan FOR a IN (ep.labels[@labelName]||[]) RETURN a,
          |        FOR ee IN progress FOR a IN (ee.labels[@labelName]||[]) RETURN a
          |    )
-         |    FILTER @searchTerm == null OR CONTAINS(LOWER(x), @searchTerm)
+         |    FILTER @searchTerm == null OR CONTAINS(LOWER(x), LOWER(@searchTerm))
          |    LIMIT @offset, @length
          |    RETURN x
          |""".stripMargin,
