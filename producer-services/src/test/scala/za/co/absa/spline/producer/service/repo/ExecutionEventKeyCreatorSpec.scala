@@ -18,7 +18,7 @@ package za.co.absa.spline.producer.service.repo
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import za.co.absa.spline.producer.model.v1_1.ExecutionEvent
+import za.co.absa.spline.producer.model.v1_2.ExecutionEvent
 import za.co.absa.spline.producer.service.model.ExecutionEventKeyCreator
 
 import java.util.UUID
@@ -28,6 +28,7 @@ class ExecutionEventKeyCreatorSpec extends AnyFlatSpec with Matchers {
   "asExecutionEventKey" should "create an event key based on the execution plan ID and the event timestamp" in {
     val testEvent = ExecutionEvent(
       planId = UUID.fromString("00000000-0000-0000-0000-000000000000"),
+      labels = Map.empty,
       timestamp = 1234567890,
       durationNs = None,
       error = None,

@@ -23,10 +23,10 @@ import org.springframework.stereotype.Repository
 import za.co.absa.spline.persistence.model._
 import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, TxBuilder}
 import za.co.absa.spline.persistence.{ArangoImplicits, Persister}
-import za.co.absa.spline.producer.model.v1_1.ExecutionEvent._
-import za.co.absa.spline.producer.model.{v1_1 => apiModel}
+import za.co.absa.spline.producer.model.v1_2.ExecutionEvent._
+import za.co.absa.spline.producer.model.{v1_2 => apiModel}
 import za.co.absa.spline.producer.service.model.{ExecutionEventKeyCreator, ExecutionPlanPersistentModel, ExecutionPlanPersistentModelBuilder}
-import za.co.absa.spline.producer.service.{UUIDCollisionDetectedException, InconsistentEntityException}
+import za.co.absa.spline.producer.service.{InconsistentEntityException, UUIDCollisionDetectedException}
 
 import java.util.UUID
 import scala.compat.java8.FutureConverters._
@@ -205,6 +205,7 @@ object ExecutionProducerRepositoryImpl {
           timestamp = e.timestamp,
           durationNs = e.durationNs,
           discriminator = e.discriminator,
+          labels = e.labels,
           error = e.error,
           extra = e.extra,
           _key = key,

@@ -16,12 +16,9 @@
 
 package za.co.absa.spline.producer.modelmapper
 
-import za.co.absa.spline.producer.model.v1_1.{ExecutionEvent, ExecutionPlan}
+import za.co.absa.spline.producer.model.v1_2.{ExecutionEvent, ExecutionPlan}
 
-trait ModelMapper {
-  type P
-  type E
-
+trait ModelMapper[P, E] {
   def fromDTO(plan: P): ExecutionPlan
   def fromDTO(event: E): ExecutionEvent
 }

@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.producer.service.repo
 
-import za.co.absa.spline.producer.model.v1_1.{ExecutionEvent, ExecutionPlan}
+import za.co.absa.spline.producer.model.v1_2.{ExecutionEvent, ExecutionPlan}
 
 import scala.concurrent.{ExecutionContext, Future}
 

@@ -29,11 +29,8 @@ case class ExecutionPlan(
   attributes: Seq[Attribute] = Nil,
   expressions: Option[Expressions] = None,
 
-  // Information about a data framework in use (e.g. Spark, StreamSets etc)
   systemInfo: NameAndVersion,
-  // Spline agent information
   agentInfo: Option[NameAndVersion] = None,
-  // User payload
   extraInfo: Map[String, Any] = Map.empty
 ) {
   ValidationUtils.validate(Constraint.unique(attributes) by (_.id) as "attribute ID")

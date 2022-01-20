@@ -18,8 +18,12 @@ package za.co.absa.spline.common.webmvc.diagnostics
 
 import org.springframework.context.annotation.{ComponentScan, Configuration}
 import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
+import za.co.absa.spline.common
 
 @EnableWebMvc
 @Configuration
-@ComponentScan(basePackageClasses = Array(classOf[controller._package]))
+@ComponentScan(basePackageClasses = Array(
+  classOf[common.webmvc.controller._package],
+  classOf[controller._package]
+))
 class DiagnosticsRESTConfig extends WebMvcConfigurer

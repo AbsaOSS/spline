@@ -38,6 +38,7 @@ class AbstractExecutionEventsController(
     pageSize: Int,
     sortField: String,
     sortOrder: String,
+    labels: Array[Label],
     searchTerm: String,
     append: java.lang.Boolean,
     applicationId: String,
@@ -59,6 +60,7 @@ class AbstractExecutionEventsController(
       if (facetTimestampEnabled)
         repo.getTimestampRange(
           asAtTime,
+          labels,
           maybeSearchTerm,
           maybeAppend,
           maybeWriteApplicationId,
@@ -76,6 +78,7 @@ class AbstractExecutionEventsController(
         maybeWriteTimestampEnd,
         pageRequest,
         sortRequest,
+        labels,
         maybeSearchTerm,
         maybeAppend,
         maybeWriteApplicationId,

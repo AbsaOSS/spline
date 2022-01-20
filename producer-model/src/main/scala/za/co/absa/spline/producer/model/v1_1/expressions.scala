@@ -22,7 +22,6 @@ import za.co.absa.spline.common.webmvc.jackson.NullAcceptingDeserializer
 sealed trait ExpressionLike {
   def id: ExpressionLike.Id
 
-  // todo: data types aren't properly modeled yet. Shouldn't we hide them under extras then?
   def dataType: Option[Any]
 
   def childRefs: Seq[ExpressionLike.ChildRef]

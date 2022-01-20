@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.producer.service.model
 
-import za.co.absa.spline.producer.model.v1_1._
+import za.co.absa.spline.producer.model.v1_2._
 
 class ExecutionPlanKeyCreator(ep: ExecutionPlan) extends AbstractNodeKeyCreator(ep.id) {
 

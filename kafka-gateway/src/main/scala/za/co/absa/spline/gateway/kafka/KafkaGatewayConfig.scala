@@ -83,9 +83,15 @@ class KafkaGatewayConfig {
     }
   }
 
-  private val typeMappings = Map[String, Class[_]](
+  private val typeMappings: Map[String, Class[_]] = Map(
     "ExecutionPlan" -> classOf[za.co.absa.spline.producer.model.v1_1.ExecutionPlan],
-    "ExecutionEvent" -> classOf[za.co.absa.spline.producer.model.v1_1.ExecutionEvent]
+    "ExecutionEvent" -> classOf[za.co.absa.spline.producer.model.v1_1.ExecutionEvent],
+
+    "ExecutionPlan_1.1" -> classOf[za.co.absa.spline.producer.model.v1_1.ExecutionPlan],
+    "ExecutionEvent_1.1" -> classOf[za.co.absa.spline.producer.model.v1_1.ExecutionEvent],
+
+    "ExecutionPlan_1.2" -> classOf[za.co.absa.spline.producer.model.v1_2.ExecutionPlan],
+    "ExecutionEvent_1.2" -> classOf[za.co.absa.spline.producer.model.v1_2.ExecutionEvent],
   )
 
   private val objectMapper: ObjectMapper =
