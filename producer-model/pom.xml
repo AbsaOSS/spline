@@ -25,7 +25,7 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>producer-model-v1.1</artifactId>
+    <artifactId>producer-model-v1.2</artifactId>
 
     <dependencies>
         <dependency>
