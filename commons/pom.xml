@@ -38,39 +38,43 @@
             <groupId>za.co.absa.commons</groupId>
             <artifactId>commons_${scala.compat.version}</artifactId>
         </dependency>
-        <dependency>
-            <groupId>commons-configuration</groupId>
-            <artifactId>commons-configuration</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>org.slf4s</groupId>
             <artifactId>slf4s-api_${scala.compat.version}</artifactId>
+            <optional>true</optional>
         </dependency>
+
+        <!-- package: config -->
+
+        <dependency>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- package: rest -->
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- package: validation -->
+
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- package: webmvc -->
 
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpcore</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -88,17 +92,17 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>config</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- ConsoleUtils -->
+
+        <dependency>
             <groupId>org.backuity</groupId>
             <artifactId>ansi-interpolator_${scala.compat.version}</artifactId>
             <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-graph</groupId>
-            <artifactId>graph-core_${scala.compat.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe</groupId>
-            <artifactId>config</artifactId>
         </dependency>
 
         <!-- test scope -->
