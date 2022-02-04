@@ -15,19 +15,36 @@
  */
 
 import org.apache.commons.io.FileUtils
-
+import za.co.absa.spline.common.SplineBuildInfo
 
 object App {
-  def main(args : Array[String]) {
+  def main(args : Array[String]): Unit = {
+    import scopt.OParser
+    val builder = OParser.builder[Config]
+    val configParser = {
+      import builder._
+      OParser.sequence(
+        programName("test-data-generator"),
+        head(
+          s"""
+             |Spline Data Generator
+             |Version: ${SplineBuildInfo.Version} (rev. ${SplineBuildInfo.Revision})
+             |""".stripMargin
+        ),
+        help("help").text("Print this usage text."),
+        version('v', "version").text("Print version info."),
+        opt[Int]('o', "operations")
+          .action((x, c) => c.copy(operations = x))
+          .text("Plan with operations will be generated.")
+      )
+    }
 
-    val opCount = args(0).toInt
-    println(s"Plan with $opCount operations will be generated.")
-    println(s"Approximate size of plan string is ${FileUtils.byteCountToDisplaySize((opCount * 180).toLong)}")
+    val config = OParser.parse(configParser, args, Config()).getOrElse(sys.exit(1))
 
-    val dispatcher = createDispatcher("file", opCount)
-
+    println(s"Approximate size of plan string is ${FileUtils.byteCountToDisplaySize((config.operations * 180).toLong)}")
+    val dispatcher = createDispatcher("file", config.operations)
     println("Generating plan")
-    val plan = PlanGenerator.generate(opCount)
+    val plan = PlanGenerator.generate(config.operations)
     dispatcher.send(plan)
 
     println("Generating event")

@@ -28,11 +28,11 @@ object PlanGenerator {
       id = planId,
       name = Some(s"generated plan $planId"),
       operations = generateOperations(opCount.toLong),
-      attributes = Seq(),
+      attributes = Seq.empty,
       expressions = None,
       systemInfo = NameAndVersion("splinegen", "0.1-SNAPSHOT"),
       agentInfo = None,
-      extraInfo = Map()
+      extraInfo = Map.empty
     )
   }
 
@@ -55,8 +55,8 @@ object PlanGenerator {
       id = id,
       name = Some(s"generated read $id"),
       output = None,
-      params = Map(),
-      extra = Map()
+      params = Map.empty,
+      extra = Map.empty
     )
   }
 
@@ -69,15 +69,15 @@ object PlanGenerator {
       generateDataOperations(opCount - 1, allOps :+ op, Seq(op.id))
     }
 
-  def generateDataOperation(childIds: Seq[String]) = {
+  private def generateDataOperation(childIds: Seq[String]): DataOperation = {
     val id = UUID.randomUUID().toString
     DataOperation(
       id = id,
       name = Some(s"generated data operation $id"),
       childIds = childIds,
       output = None,
-      params = Map(),
-      extra = Map()
+      params = Map.empty,
+      extra = Map.empty
     )
   }
 
@@ -88,8 +88,8 @@ object PlanGenerator {
       id = UUID.randomUUID().toString,
       name = Some("generatedWrite"),
       childIds = Seq(childId),
-      params = Map(),
-      extra = Map()
+      params = Map.empty,
+      extra = Map.empty
     )
   }
 
