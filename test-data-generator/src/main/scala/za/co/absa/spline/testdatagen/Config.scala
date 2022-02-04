@@ -14,4 +14,6 @@
  * limitations under the License.
  */
 
+package za.co.absa.spline.testdatagen
+
 case class Config(operations: Int = 0)

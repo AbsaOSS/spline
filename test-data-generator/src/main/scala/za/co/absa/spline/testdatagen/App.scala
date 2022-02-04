@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
+package za.co.absa.spline.testdatagen
+
 import org.apache.commons.io.FileUtils
 import za.co.absa.spline.common.SplineBuildInfo
 
 object App {
-  def main(args : Array[String]): Unit = {
+  def main(args: Array[String]): Unit = {
     import scopt.OParser
     val builder = OParser.builder[Config]
     val configParser = {
@@ -27,7 +29,7 @@ object App {
         programName("test-data-generator"),
         head(
           s"""
-             |Spline Data Generator
+             |Spline Test Data Generator
              |Version: ${SplineBuildInfo.Version} (rev. ${SplineBuildInfo.Revision})
              |""".stripMargin
         ),

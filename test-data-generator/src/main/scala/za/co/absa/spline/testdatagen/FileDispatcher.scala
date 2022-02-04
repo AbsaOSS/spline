@@ -14,17 +14,28 @@
  * limitations under the License.
  */
 
+package za.co.absa.spline.testdatagen
+
+import java.io.File
+import java.nio.charset.Charset
+
+import org.apache.commons.io.FileUtils
+import za.co.absa.commons.json.DefaultJacksonJsonSerDe
 import za.co.absa.spline.producer.model.v1_2.{ExecutionEvent, ExecutionPlan}
 
-object EventGenerator {
+class FileDispatcher(fileNamePrefix: String) extends DefaultJacksonJsonSerDe {
 
-  def generate(executionPlan: ExecutionPlan): ExecutionEvent = {
-    ExecutionEvent(
-      planId = executionPlan.id,
-      timestamp = System.currentTimeMillis(),
-      durationNs = None,
-      error = None,
-      extra = Map.empty
+  def send(plan: ExecutionPlan): Unit =
+    FileUtils.writeStringToFile(
+      new File(s"$fileNamePrefix-plan.json"),
+      plan.toJson,
+      Charset.defaultCharset()
     )
-  }
+
+  def send(event: ExecutionEvent): Unit =
+    FileUtils.writeStringToFile(
+      new File(s"$fileNamePrefix-event.json"),
+      Seq(event).toJson,
+      Charset.defaultCharset()
+  )
 }

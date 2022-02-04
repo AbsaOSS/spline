@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+package za.co.absa.spline.testdatagen
+
 import java.util.UUID
 
-import za.co.absa.spline.producer.model.v1_2.{DataOperation, ExecutionPlan, NameAndVersion, Operations, ReadOperation, WriteOperation}
+import za.co.absa.spline.producer.model.v1_2._
 
 import scala.annotation.tailrec
 
@@ -62,7 +64,7 @@ object PlanGenerator {
 
   @tailrec
   def generateDataOperations(opCount: Long, allOps: Seq[DataOperation], childIds: Seq[String]): Seq[DataOperation] =
-    if(opCount == 0) {
+    if (opCount == 0) {
       allOps
     } else {
       val op = generateDataOperation(childIds)
