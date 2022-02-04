@@ -16,7 +16,6 @@
 
 package za.co.absa.spline.common.rest
 
-import org.apache.commons.io.IOUtils
 import org.apache.http.auth.Credentials
 import org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPost, HttpRequestBase}
 import org.apache.http.conn.ssl.NoopHostnameVerifier
@@ -29,6 +28,7 @@ import za.co.absa.commons.lang.ARM.managed
 import java.net.URI
 import javax.net.ssl.SSLContext
 import scala.concurrent.{ExecutionContext, Future}
+import scala.io.Source
 
 class RESTClientApacheHttpImpl(
   uri: URI,
@@ -80,7 +80,7 @@ class RESTClientApacheHttpImpl(
             val encoding = Option(e.getContentEncoding).map(_.getValue).getOrElse("UTF-8")
             ARM.using(e.getContent) {
               inputStream =>
-                IOUtils.toString(inputStream, encoding)
+                Source.fromInputStream(inputStream, encoding).mkString
             }
           })
         (response.getStatusLine, maybeBody.orNull)
