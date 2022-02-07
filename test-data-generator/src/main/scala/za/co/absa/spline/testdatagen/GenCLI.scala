@@ -19,7 +19,7 @@ package za.co.absa.spline.testdatagen
 import org.apache.commons.io.FileUtils
 import za.co.absa.spline.common.SplineBuildInfo
 
-object App {
+object GenCLI {
   def main(args: Array[String]): Unit = {
     import scopt.OParser
     val builder = OParser.builder[Config]

@@ -72,7 +72,7 @@
                     <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifestEntries>
-                            <Main-Class>za.co.absa.spline.splinegen.App</Main-Class>
+                            <Main-Class>za.co.absa.spline.testdatagen.GenCLI</Main-Class>
                         </manifestEntries>
                     </archive>
                 </configuration>

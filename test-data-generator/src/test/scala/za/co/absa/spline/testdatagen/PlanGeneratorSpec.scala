@@ -21,15 +21,14 @@ import org.scalatest.matchers.should.Matchers._
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import za.co.absa.spline.producer.model.v1_2.{DataOperation, ExecutionEvent}
 
-class PlanGeneratorTest extends AnyFlatSpec {
+class PlanGeneratorSpec extends AnyFlatSpec {
 
   behavior of "PlanGenerator"
 
   it should "generate Write operation " in {
-    val id = "123"
     val writeOperation = PlanGenerator.generateWrite("123")
 
-    writeOperation.childIds shouldEqual Seq(id)
+    writeOperation.childIds shouldEqual Seq("123")
     writeOperation.name shouldEqual Some("generatedWrite")
   }
 
@@ -40,8 +39,7 @@ class PlanGeneratorTest extends AnyFlatSpec {
   }
 
   it should "generate 4 data operations when 4 opCount is provided" in {
-    val id = "23"
-    val dataOperations: Seq[DataOperation] = PlanGenerator.generateDataOperations(4, Seq.empty, Seq(id))
+    val dataOperations: Seq[DataOperation] = PlanGenerator.generateDataOperations(4, Seq.empty, Seq("23"))
     dataOperations.size shouldEqual 4
     all (dataOperations.map(_.name.get)) should startWith("generated data operation")
     dataOperations.head.childIds shouldEqual List("23")
