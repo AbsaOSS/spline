@@ -18,6 +18,7 @@ package za.co.absa.spline.testdatagen
 
 import org.apache.commons.io.FileUtils
 import za.co.absa.spline.common.SplineBuildInfo
+import za.co.absa.spline.testdatagen.generators.{EventGenerator, PlanGenerator}
 
 object GenCLI {
   def main(args: Array[String]): Unit = {
@@ -37,16 +38,23 @@ object GenCLI {
         version('v', "version").text("Print version info."),
         opt[Int]('o', "operations")
           .action((x, c) => c.copy(operations = x))
-          .text("Plan with operations will be generated.")
+          .text("Plan with operations will be generated."),
+        opt[Int]('r', "reads")
+          .action((x, c) => c.copy(reads = x)),
+        opt[Int]('a', "attributes")
+          .action((x, c) => c.copy(attributes = x))
+          .text("Plan with operations will be generated."),
+        opt[Int]('f', "expressions")
+          .action((x, c) => c.copy(expressions = x)),
       )
     }
 
     val config = OParser.parse(configParser, args, Config()).getOrElse(sys.exit(1))
 
     println(s"Approximate size of plan string is ${FileUtils.byteCountToDisplaySize((config.operations * 180).toLong)}")
-    val dispatcher = createDispatcher("file", config.operations)
+    val dispatcher = createDispatcher("file", config)
     println("Generating plan")
-    val plan = PlanGenerator.generate(config.operations)
+    val plan = PlanGenerator.generate(config)
     dispatcher.send(plan)
 
     println("Generating event")
@@ -54,8 +62,9 @@ object GenCLI {
     dispatcher.send(event)
   }
 
-  private def createDispatcher(name: String, opCount: Int): FileDispatcher = name match {
+  private def createDispatcher(name: String, config: Config): FileDispatcher = name match {
     case "file" =>
-      new FileDispatcher(s"lineage-${opCount}ops")
+      new FileDispatcher(s"lineage-${config.operations}ops-${config.reads}reads-" +
+        s"${config.attributes}attr-${config.expressions}expr")
   }
 }

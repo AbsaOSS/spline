@@ -16,4 +16,4 @@
 
 package za.co.absa.spline.testdatagen
 
-case class Config(operations: Int = 0)
+case class Config(operations: Int = 0, reads: Int = 0, attributes: Int = 0, expressions: Int = 0)
