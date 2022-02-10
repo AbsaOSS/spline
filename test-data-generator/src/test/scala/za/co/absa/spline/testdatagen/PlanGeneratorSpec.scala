@@ -20,37 +20,18 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import za.co.absa.spline.producer.model.v1_2.{DataOperation, ExecutionEvent}
+import za.co.absa.spline.testdatagen.generators.{EventGenerator, PlanGenerator}
 
 class PlanGeneratorSpec extends AnyFlatSpec {
 
   behavior of "PlanGenerator"
 
-  it should "generate Write operation " in {
-    val writeOperation = PlanGenerator.generateWrite("123")
-
-    writeOperation.childIds shouldEqual Seq("123")
-    writeOperation.name shouldEqual Some("generatedWrite")
-  }
-
-  it should "generate read" in {
-    val readOperation = PlanGenerator.generateRead()
-    readOperation.name.getOrElse("") should startWith("generated read")
-    readOperation.output shouldEqual None
-  }
-
-  it should "generate 4 data operations when 4 opCount is provided" in {
-    val dataOperations: Seq[DataOperation] = PlanGenerator.generateDataOperations(4, Seq.empty, Seq("23"))
-    dataOperations.size shouldEqual 4
-    all (dataOperations.map(_.name.get)) should startWith("generated data operation")
-    dataOperations.head.childIds shouldEqual List("23")
-  }
-
   behavior of "PlanGenerator with EventGenerator"
 
   it should "generate plan and event" in {
-    val plan = PlanGenerator.generate(4)
+    val plan = PlanGenerator.generate(Config(operations = 4))
     plan.operations.other.size shouldEqual 4
-    plan.systemInfo.name shouldEqual "splinegen"
+    plan.systemInfo.name shouldEqual "spline-data-gen"
     plan.dataSources.size shouldEqual 2
 
     val event: ExecutionEvent = EventGenerator.generate(plan)
