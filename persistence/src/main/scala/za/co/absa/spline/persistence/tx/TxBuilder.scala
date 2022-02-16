@@ -17,9 +17,9 @@
 package za.co.absa.spline.persistence.tx
 
 import java.util.UUID
-
 import com.arangodb.async.ArangoDatabaseAsync
 import com.arangodb.model.TransactionOptions
+import org.slf4s.Logging
 import za.co.absa.spline.persistence.model.{ArangoDocument, CollectionDef}
 import za.co.absa.spline.persistence.tx.TxBuilder.{ArangoTxImpl, condLine}
 
@@ -39,7 +39,8 @@ case class NativeQuery(
 case class UpdateQuery(
   collectionDef: CollectionDef,
   filter: String,
-  data: Map[String, Any]
+  data: Map[String, Any],
+  chainInput: Boolean = false
 ) extends Query {
   override def collectionDefs: Seq[CollectionDef] = Seq(collectionDef)
 }
@@ -51,7 +52,8 @@ object UpdateQuery {
 case class InsertQuery(
   collectionDef: CollectionDef,
   documents: Seq[ArangoDocument],
-  ignoreExisting: Boolean = false
+  ignoreExisting: Boolean = false,
+  chainInput: Boolean = false
 ) extends Query {
   override def collectionDefs: Seq[CollectionDef] = Seq(collectionDef)
 }
@@ -75,15 +77,16 @@ class TxBuilder {
     val statements = queries.zipWithIndex.map {
       case (nq: NativeQuery, i) =>
         s"""
-           |(function(db, params){
-           |  ${nq.query}
+           |lastRes = (function(db, params){
+           |  return ${nq.query}
            |})(_db, _params[$i]);
            |""".stripMargin.trim
 
       case (iq: InsertQuery, i) =>
         val colName = iq.collectionDef.name
+        val objects = if (iq.chainInput) "lastRes" else s"_params[$i]"
         Seq(
-          s"_params[$i].forEach(o =>",
+          s"$objects.map(o =>",
           condLine(iq.ignoreExisting,
             s"""
                |  o._key && _db._collection("$colName").exists(o._key) ||
@@ -103,13 +106,14 @@ class TxBuilder {
         val colName = uq.collectionDef.name
         val doc = "a"
         val filter = uq.filter.replace(UpdateQuery.DocWildcard, doc)
+        val bDoc = if (uq.chainInput) "lastRes" else s"_params[$i]"
         s"""
            |_db._query(`
            |  WITH $colName
            |  FOR $doc IN $colName
            |      FILTER $filter
            |      UPDATE $doc._key WITH @b IN $colName
-           |`, {"b": _params[$i]});
+           |`, {"b": $bDoc});
            |""".stripMargin.trim
     }
     s"""
@@ -140,9 +144,12 @@ class TxBuilder {
 
 object TxBuilder {
 
-  private class ArangoTxImpl(txBuilder: TxBuilder) extends ArangoTx {
-    override def execute(db: ArangoDatabaseAsync): Future[Unit] =
-      db.transaction(txBuilder.generateJs(), classOf[Unit], txBuilder.options).toScala
+  private class ArangoTxImpl(txBuilder: TxBuilder) extends ArangoTx with Logging {
+    override def execute(db: ArangoDatabaseAsync): Future[Unit] = {
+      val jsCode = txBuilder.generateJs()
+      log.debug(jsCode)
+      db.transaction(jsCode, classOf[Unit], txBuilder.options).toScala
+    }
   }
 
   private def condLine(cond: => Boolean, stmt: => String): String = if (cond) stmt else ""

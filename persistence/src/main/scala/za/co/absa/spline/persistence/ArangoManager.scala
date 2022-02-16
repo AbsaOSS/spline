@@ -252,10 +252,7 @@ class ArangoManagerImpl(
     log.debug(s"Create search views")
     Future.traverse(sealedInstancesOf[SearchViewDef]) { viewDef =>
       log.info(s"Create search view: ${viewDef.name}")
-      for {
-        _ <- db.createArangoSearch(viewDef.name, null).toScala
-        _ <- db.arangoSearch(viewDef.name).updateProperties(viewDef.properties).toScala
-      } yield {}
+      db.createArangoSearch(viewDef.name, viewDef.properties).toScala
     }
   }
 

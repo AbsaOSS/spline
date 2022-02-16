@@ -21,14 +21,13 @@ import org.slf4s.Logging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.persistence.model._
-import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, TxBuilder}
+import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, NativeQuery, TxBuilder}
 import za.co.absa.spline.persistence.{ArangoImplicits, Persister}
 import za.co.absa.spline.producer.model.v1_2.ExecutionEvent._
 import za.co.absa.spline.producer.model.{v1_2 => apiModel}
+import za.co.absa.spline.producer.service.UUIDCollisionDetectedException
 import za.co.absa.spline.producer.service.model.{ExecutionEventKeyCreator, ExecutionPlanPersistentModel, ExecutionPlanPersistentModelBuilder}
-import za.co.absa.spline.producer.service.{InconsistentEntityException, UUIDCollisionDetectedException}
 
-import java.util.UUID
 import scala.compat.java8.FutureConverters._
 import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -58,7 +57,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
          |WITH ${NodeDef.DataSource.name}
          |FOR ds IN ${NodeDef.DataSource.name}
          |    FILTER ds.uri IN @refURIs
-         |    RETURN ds
+         |    RETURN KEEP(ds, ['_key', 'uri'])
          |    """.stripMargin,
       Map("refURIs" -> executionPlan.dataSources.toArray)
     ).map(_.streamRemaining.toScala.map(ds => ds.uri -> ds._key).toMap)
@@ -79,44 +78,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
   })
 
   override def insertExecutionEvents(events: Array[apiModel.ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
-    val eventualExecPlanInfos: Future[Seq[ExecPlanInfo]] = db.queryStream[ExecPlanInfo](
-      s"""
-         |WITH executionPlan, executes, operation, dataSource
-         |FOR ep IN executionPlan
-         |    FILTER ep._key IN @keys
-         |
-         |    LET wo = FIRST(FOR v IN 1 OUTBOUND ep executes RETURN v)
-         |    LET ds = FIRST(FOR v IN 1 OUTBOUND ep affects RETURN v)
-         |
-         |    RETURN {
-         |        key           : ep._key,
-         |        discriminator : ep.discriminator,
-         |        details: {
-         |            "executionPlanKey" : ep._key,
-         |            "frameworkName"    : CONCAT(ep.systemInfo.name, " ", ep.systemInfo.version),
-         |            "applicationName"  : ep.name,
-         |            "dataSourceUri"    : ds.uri,
-         |            "dataSourceName"   : ds.name,
-         |            "dataSourceType"   : wo.extra.destinationType,
-         |            "append"           : wo.append
-         |        }
-         |    }
-         |""".stripMargin,
-      Map("keys" -> events.map(_.planId))
-    )
-
-    for {
-      execPlansInfos <- eventualExecPlanInfos
-      (execPlanDiscrById, execPlansDetails) = execPlansInfos
-        .foldLeft((Map.empty[apiModel.ExecutionPlan.Id, apiModel.ExecutionPlan.Discriminator], Vector.empty[ExecPlanDetails])) {
-          case ((descrByIdAcc, detailsAcc), ExecPlanInfo(id, discr, details)) =>
-            (descrByIdAcc + (UUID.fromString(id) -> discr), detailsAcc :+ details)
-        }
-      res <- {
-        events.foreach(e => ensureNoExecPlanIDCollision(e.planId, e.discriminator.orNull, execPlanDiscrById(e.planId)))
-        createInsertTransaction(events, execPlansDetails.toArray).execute(db)
-      }
-    } yield res
+    createInsertTransaction(events).execute(db)
   })
 
   override def isDatabaseOk()(implicit ec: ExecutionContext): Future[Boolean] = {
@@ -135,13 +97,6 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
 }
 
 object ExecutionProducerRepositoryImpl {
-
-  case class ExecPlanInfo(
-    key: ArangoDocument.Key,
-    discriminator: ExecutionPlan.Discriminator,
-    details: ExecPlanDetails) {
-    def this() = this(null, null, null)
-  }
 
   private def createInsertTransaction(
     executionPlan: apiModel.ExecutionPlan,
@@ -186,39 +141,84 @@ object ExecutionProducerRepositoryImpl {
   }
 
   private def createInsertTransaction(
-    events: Array[apiModel.ExecutionEvent],
-    execPlansDetails: Array[ExecPlanDetails]
+    events: Array[apiModel.ExecutionEvent]
   ): ArangoTx = {
-    val referredPlanIds = events.iterator.map(_.planId).toSet
-    if (referredPlanIds.size != execPlansDetails.length) {
-      val existingIds = execPlansDetails.map(pd => UUID.fromString(pd.executionPlanKey))
-      val missingIds = referredPlanIds -- existingIds
-      throw new InconsistentEntityException(
-        s"Unresolved execution plan IDs: ${missingIds mkString ", "}")
-    }
-
-    val progressNodes = events
-      .zip(execPlansDetails)
-      .map { case (e, pd) =>
+    val progressNodesWithPlanKey = events
+      .map { e =>
         val key = new ExecutionEventKeyCreator(e).executionEventKey
-        Progress(
+        val p = Progress(
           timestamp = e.timestamp,
           durationNs = e.durationNs,
           discriminator = e.discriminator,
           labels = e.labels,
           error = e.error,
           extra = e.extra,
-          _key = key,
-          execPlanDetails = pd
+          _key = key
         )
+        Array(p, e.planId)
       }
 
-    val progressEdges = progressNodes
-      .zip(events)
-      .map { case (p, e) => EdgeDef.ProgressOf.edge(p._key, e.planId) }
+    val progressEdges = progressNodesWithPlanKey
+      .map { case Array(p: Progress, planKey) => EdgeDef.ProgressOf.edge(p._key, planKey) }
 
     new TxBuilder()
-      .addQuery(InsertQuery(NodeDef.Progress, progressNodes: _*).copy(ignoreExisting = true))
+      .addQuery(
+        NativeQuery(
+          query =
+            """params.progressNodesWithPlanKey.map(progressWithPlanKey => {
+              |    const {_class, ...p} = progressWithPlanKey[0];
+              |    const planKey = progressWithPlanKey[1];
+              |    const ep = db._document(`executionPlan/${planKey}`);
+              |    const {
+              |       targetDsSelector,
+              |       dataSourceUri,
+              |       dataSourceName,
+              |       dataSourceType,
+              |       append
+              |    } = db._query(`
+              |       WITH executionPlan, executes, operation, affects, dataSource
+              |       LET wo = FIRST(FOR v IN 1 OUTBOUND '${ep._id}' executes RETURN v)
+              |       LET ds = FIRST(FOR v IN 1 OUTBOUND '${ep._id}' affects RETURN v)
+              |       RETURN {
+              |           targetDsSelector : KEEP(ds, ['_id', '_rev']),
+              |           "dataSourceName" : ds.name,
+              |           "dataSourceUri"  : ds.uri,
+              |           "dataSourceType" : wo.extra.destinationType,
+              |           "append"         : wo.append
+              |       }
+              |    `).next();
+              |
+              |    const execPlanDetails = {
+              |      "executionPlanKey" : ep._key,
+              |      "frameworkName"    : `${ep.systemInfo.name} ${ep.systemInfo.version}`,
+              |      "applicationName"  : ep.name,
+              |      "dataSourceUri"    : dataSourceUri,
+              |      "dataSourceName"   : dataSourceName,
+              |      "dataSourceType"   : dataSourceType,
+              |      "append"           : append
+              |    }
+              |
+              |    if (ep.discriminator != p.discriminator) {
+              |      // nobody should never see this happening, but just in case the universe goes crazy...
+              |      throw new Error(`UUID collision detected !!! Execution event ID: ${p._key}, discriminator: ${p.discriminator}`)
+              |    }
+              |
+              |    const maybeExistingProgress = db._query(`RETURN DOCUMENT('progress/${p._key}')`).next();
+              |    const {_id, _rev, ...pRefined} = maybeExistingProgress || p;
+              |    const progressWithPlanDetails = {...pRefined, execPlanDetails};
+              |
+              |    db._update(
+              |     targetDsSelector,
+              |     {lastWriteDetails: progressWithPlanDetails}
+              |    );
+              |
+              |    return progressWithPlanDetails;
+              |});
+              |""".stripMargin,
+          params = Map("progressNodesWithPlanKey" -> progressNodesWithPlanKey),
+          collectionDefs = Seq(NodeDef.Progress, NodeDef.ExecutionPlan, EdgeDef.Executes, NodeDef.Operation, EdgeDef.Affects, NodeDef.DataSource))
+      )
+      .addQuery(InsertQuery(NodeDef.Progress).copy(ignoreExisting = true, chainInput = true))
       .addQuery(InsertQuery(EdgeDef.ProgressOf, progressEdges: _*).copy(ignoreExisting = true))
       .buildTx
   }

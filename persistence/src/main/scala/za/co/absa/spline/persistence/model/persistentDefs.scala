@@ -17,12 +17,11 @@
 package za.co.absa.spline.persistence.model
 
 import com.arangodb.entity.CollectionType
+import com.arangodb.entity.arangosearch._
 import com.arangodb.entity.arangosearch.analyzer.{NormAnalyzer, NormAnalyzerProperties, SearchAnalyzer, SearchAnalyzerCase}
-import com.arangodb.entity.arangosearch.{AnalyzerType, CollectionLink, FieldLink}
-import com.arangodb.model.arangosearch.ArangoSearchPropertiesOptions
+import com.arangodb.model.arangosearch.ArangoSearchCreateOptions
 import com.arangodb.model.{IndexOptions, PersistentIndexOptions}
 import za.co.absa.spline.persistence.model.SearchAnalyzerDef.NormSearchAnalyzer
-
 
 case class IndexDef(fields: Seq[String], options: IndexOptions[_ <: IndexOptions[_]])
 
@@ -96,7 +95,7 @@ sealed abstract class GraphDef(val name: String, val edgeDefs: EdgeDef*) {
   require(edgeDefs.nonEmpty)
 }
 
-sealed abstract class SearchViewDef(val name: String, val properties: ArangoSearchPropertiesOptions)
+sealed abstract class SearchViewDef(val name: String, val properties: ArangoSearchCreateOptions)
 
 sealed trait SearchAnalyzerDef {
   this: SearchAnalyzer =>
@@ -219,7 +218,7 @@ object SearchViewDef {
 
   object ProgressSearchView extends SearchViewDef(
     s"${NodeDef.Progress.name}_view",
-    (new ArangoSearchPropertiesOptions)
+    (new ArangoSearchCreateOptions)
       .link(CollectionLink.on(NodeDef.Progress.name)
         .fields(
           FieldLink.on("_created"),
@@ -238,6 +237,54 @@ object SearchViewDef {
             .includeAllFields(true).analyzers(NormSearchAnalyzer.name, AnalyzerType.identity.name),
         )
       ))
+
+  object DataSourceSearchView extends SearchViewDef(
+    s"${NodeDef.DataSource.name}_view",
+    (new ArangoSearchCreateOptions)
+      .link(CollectionLink.on(NodeDef.DataSource.name)
+        .fields(
+          FieldLink.on("_created"),
+          FieldLink.on("uri"),
+          FieldLink.on("name").analyzers(NormSearchAnalyzer.name, AnalyzerType.identity.name),
+          FieldLink.on("lastWriteDetails")
+            .storeValues(StoreValuesType.ID)
+            .fields(
+              FieldLink.on("timestamp"),
+              FieldLink.on("durationNs"),
+              FieldLink.on("extra").fields(
+                FieldLink.on("appId").analyzers(NormSearchAnalyzer.name, AnalyzerType.identity.name)
+              ),
+              FieldLink.on("labels")
+                .includeAllFields(true).analyzers(NormSearchAnalyzer.name, AnalyzerType.identity.name),
+              FieldLink.on("execPlanDetails").fields(
+                FieldLink.on("append"),
+                FieldLink.on("applicationName").analyzers(NormSearchAnalyzer.name),
+                FieldLink.on("frameworkName").analyzers(NormSearchAnalyzer.name),
+                FieldLink.on("dataSourceType").analyzers(NormSearchAnalyzer.name),
+              )
+            )
+        )
+      )
+    /*.storedValues(
+      new StoredValue(
+        util.Arrays.asList(
+          "uri",
+          "name",
+          "lastWriteDetails._key",
+          "lastWriteDetails.timestamp",
+          "lastWriteDetails.durationNs",
+          "lastWriteDetails.error",
+          "lastWriteDetails.extra.appId",
+          "lastWriteDetails.execPlanDetails.executionPlanKey",
+          "lastWriteDetails.execPlanDetails.frameworkName",
+          "lastWriteDetails.execPlanDetails.applicationName",
+          "lastWriteDetails.execPlanDetails.dataSourceType",
+          "lastWriteDetails.execPlanDetails.append",
+        ),
+        ArangoSearchCompression.lz4
+      )
+    )*/
+  )
 }
 
 object SearchAnalyzerDef {

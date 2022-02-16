@@ -36,6 +36,22 @@ db._query(aql`
         UPDATE ep WITH { labels: {} } IN executionPlan
 `);
 
+console.log("[Spline] Update 'dataSource.lastWriteDetails'");
+db._query(aql`
+    WITH dataSource, progress
+    FOR ds IN dataSource
+        LET lwe = FIRST(
+            FOR we IN progress
+                FILTER we.execPlanDetails.dataSourceUri == ds.uri
+                SORT we.timestamp DESC
+                RETURN UNSET(we, ["_id", "_rev"])
+        )
+        FILTER lwe != null
+        UPDATE ds
+          WITH {lastWriteDetails: lwe}
+            IN dataSource
+`);
+
 console.log("[Spline] Drop 'attributeSearchView'");
 db._dropView("attributeSearchView");
 
@@ -101,7 +117,88 @@ db._createView("progress_view", "arangosearch", {})
         }
     });
 
-console.log("[Spline] Create index 'progress.durationNs'");
-db.progress.ensureIndex({type: "persistent", fields: ["durationNs"]});
+console.log("[Spline] Create 'dataSource_view'");
+db._createView("dataSource_view", "arangosearch", {})
+    .properties({
+        "links": {
+            "dataSource": {
+                "analyzers": [
+                    "identity"
+                ],
+                "fields": {
+                    "uri": {},
+                    "name": {
+                        "analyzers": [
+                            "norm_en",
+                            "identity"
+                        ]
+                    },
+                    "_created": {},
+                    "lastWriteDetails": {
+                        "fields": {
+                            "labels": {
+                                "analyzers": [
+                                    "norm_en",
+                                    "identity"
+                                ],
+                                "includeAllFields": true
+                            },
+                            "extra": {
+                                "fields": {
+                                    "appId": {
+                                        "analyzers": [
+                                            "norm_en",
+                                            "identity"
+                                        ]
+                                    }
+                                }
+                            },
+                            "timestamp": {},
+                            "durationNs": {},
+                            "execPlanDetails": {
+                                "fields": {
+                                    "dataSourceType": {
+                                        "analyzers": [
+                                            "norm_en"
+                                        ]
+                                    },
+                                    "append": {},
+                                    "frameworkName": {
+                                        "analyzers": [
+                                            "norm_en"
+                                        ]
+                                    },
+                                    "applicationName": {
+                                        "analyzers": [
+                                            "norm_en"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "storeValues": "id"
+                    }
+                },
+                "includeAllFields": false,
+                "storeValues": "none",
+                "trackListPositions": false
+            }
+        }
+    });
+
+console.log("[Spline] Drop user indices 'progress.*' (except 'timestamp')");
+db.progress.getIndexes()
+    .filter(idx => idx.type !== "primary" && !idx.fields.some(fld => fld === "timestamp"))
+    .forEach(idx => db._dropIndex(idx));
+
+console.log("[Spline] Drop user indices 'dataSource.*' (except 'uri')");
+db.dataSource.getIndexes()
+    .filter(idx => idx.type !== "primary" && !idx.fields.some(fld => fld === "uri"))
+    .forEach(idx => db._dropIndex(idx));
+
+console.log("[Spline] Drop unused indices 'operation.outputSource'");
+db.operation.getIndexes()
+    .filter(idx => idx.type !== "primary" && idx.fields.every(fld => fld === "outputSource"))
+    .forEach(idx => db._dropIndex(idx));
 
 console.log(`[Spline] Migration done. Version ${VER}`);

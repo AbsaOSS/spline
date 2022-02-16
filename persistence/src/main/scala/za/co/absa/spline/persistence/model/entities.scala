@@ -29,6 +29,7 @@ trait ArangoDocument {
 object ArangoDocument {
   type Id = String
   type Key = String
+  type Rev = String
   type Timestamp = Long
 }
 
@@ -85,9 +86,10 @@ object DBVersion {
 case class DataSource(
   uri: DataSource.Uri,
   name: DataSource.Name,
-  override val _key: DataSource.Key
+  override val _key: DataSource.Key,
+  lastWriteDetails: Option[Progress] = None
 ) extends Vertex with RootEntity {
-  def this() = this(null, null, null)
+  def this() = this(null, null, null, null)
 }
 
 object DataSource {
@@ -135,7 +137,7 @@ case class Progress(
   error: Option[Any],
   extra: Map[String, Any],
   override val _key: ArangoDocument.Key,
-  execPlanDetails: ExecPlanDetails
+  execPlanDetails: ExecPlanDetails = null
 ) extends Vertex with RootEntity
 
 object Progress {
