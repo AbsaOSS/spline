@@ -85,8 +85,9 @@ class TxBuilder {
       case (iq: InsertQuery, i) =>
         val colName = iq.collectionDef.name
         val objects = if (iq.chainInput) "lastRes" else s"_params[$i]"
+        val iterMethod = if (iq.chainInput) "map" else s"forEach"
         Seq(
-          s"$objects.map(o =>",
+          s"$objects.$iterMethod(o =>",
           condLine(iq.ignoreExisting,
             s"""
                |  o._key && _db._collection("$colName").exists(o._key) ||
