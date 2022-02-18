@@ -172,8 +172,9 @@ object ExecutionProducerRepositoryImpl {
               |    const ep = db._document(`executionPlan/${planKey}`);
               |    const {
               |       targetDsSelector,
-              |       dataSourceUri,
+              |       lastWriteTimestamp,
               |       dataSourceName,
+              |       dataSourceUri,
               |       dataSourceType,
               |       append
               |    } = db._query(`
@@ -181,11 +182,12 @@ object ExecutionProducerRepositoryImpl {
               |       LET wo = FIRST(FOR v IN 1 OUTBOUND '${ep._id}' executes RETURN v)
               |       LET ds = FIRST(FOR v IN 1 OUTBOUND '${ep._id}' affects RETURN v)
               |       RETURN {
-              |           targetDsSelector : KEEP(ds, ['_id', '_rev']),
-              |           "dataSourceName" : ds.name,
-              |           "dataSourceUri"  : ds.uri,
-              |           "dataSourceType" : wo.extra.destinationType,
-              |           "append"         : wo.append
+              |           "targetDsSelector"   : KEEP(ds, ['_id', '_rev']),
+              |           "lastWriteTimestamp" : ds.lastWriteDetails.timestamp,
+              |           "dataSourceName"     : ds.name,
+              |           "dataSourceUri"      : ds.uri,
+              |           "dataSourceType"     : wo.extra.destinationType,
+              |           "append"             : wo.append
               |       }
               |    `).next();
               |
@@ -208,10 +210,12 @@ object ExecutionProducerRepositoryImpl {
               |    const {_id, _rev, ...pRefined} = maybeExistingProgress || p;
               |    const progressWithPlanDetails = {...pRefined, execPlanDetails};
               |
-              |    db._update(
-              |     targetDsSelector,
-              |     {lastWriteDetails: progressWithPlanDetails}
-              |    );
+              |    if (lastWriteTimestamp < p.timestamp) {
+              |      db._update(
+              |       targetDsSelector,
+              |       {lastWriteDetails: progressWithPlanDetails}
+              |      );
+              |    }
               |
               |    return progressWithPlanDetails;
               |});
