@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.testdatagen
+package za.co.absa.spline.testdatagen.generators.graph
 
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
-import za.co.absa.spline.testdatagen.generators.OperationsGenerator
+import org.scalatest.matchers.should.Matchers.{convertToAnyShouldWrapper, all}
 
-class OperationsGeneratorSpec extends AnyFlatSpec {
+class DiamondSpec extends AnyFlatSpec {
 
-  behavior of "PlanGenerator with EventGenerator"
+  val diamond1 = new Diamond(3,2,7,4)
 
-  it should "generate expressions and event" in {
-    val expressions = OperationsGenerator.generateOperations(5,2)
-    expressions.reads.size shouldEqual 2
-    expressions.other.size shouldEqual 10
+  behavior of "diamond generation"
+
+  it should "generate the right diamond structure" in {
+    val plan = diamond1.generate()
+    val operations = plan.operations
+    operations.reads.size shouldEqual 1
+    operations.reads.head.inputSources.size shouldEqual 3
+    all(operations.other.map(_.childIds)) shouldBe Seq(operations.reads.head.id)
+    operations.write.childIds shouldEqual operations.other.map(_.id)
   }
 
 }
