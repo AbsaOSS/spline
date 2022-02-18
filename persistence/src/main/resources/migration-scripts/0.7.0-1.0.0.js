@@ -17,6 +17,7 @@
 const VER = "1.0.0"
 
 const {db, aql} = require("@arangodb");
+const analyzers = require("@arangodb/analyzers");
 
 console.log(`[Spline] Start migration to ${VER}`);
 
@@ -54,6 +55,13 @@ db._query(aql`
 
 console.log("[Spline] Drop 'attributeSearchView'");
 db._dropView("attributeSearchView");
+
+console.log("[Spline] Create search analyzers");
+analyzers.save("norm_en", "norm", {
+    "locale": "en.utf-8",
+    "case": "lower",
+    "accent": false
+});
 
 console.log("[Spline] Create 'progress_view'");
 db._createView("progress_view", "arangosearch", {})
