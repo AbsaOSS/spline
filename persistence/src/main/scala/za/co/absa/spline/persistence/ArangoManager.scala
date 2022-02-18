@@ -272,9 +272,7 @@ class ArangoManagerImpl(
     log.debug(s"Create search analyzers")
     Future.traverse(sealedInstancesOf[SearchAnalyzerDef]) { ad =>
       log.info(s"Create search analyzer: ${ad.name}")
-      for {
-        _ <- db.createSearchAnalyzer(ad.analyzer).toScala
-      } yield {}
+      db.createSearchAnalyzer(ad.analyzer).toScala
     }
   }
 }
