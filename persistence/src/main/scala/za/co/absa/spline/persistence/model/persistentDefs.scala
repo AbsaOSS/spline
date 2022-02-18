@@ -265,25 +265,6 @@ object SearchViewDef {
             )
         )
       )
-    /*.storedValues(
-      new StoredValue(
-        util.Arrays.asList(
-          "uri",
-          "name",
-          "lastWriteDetails._key",
-          "lastWriteDetails.timestamp",
-          "lastWriteDetails.durationNs",
-          "lastWriteDetails.error",
-          "lastWriteDetails.extra.appId",
-          "lastWriteDetails.execPlanDetails.executionPlanKey",
-          "lastWriteDetails.execPlanDetails.frameworkName",
-          "lastWriteDetails.execPlanDetails.applicationName",
-          "lastWriteDetails.execPlanDetails.dataSourceType",
-          "lastWriteDetails.execPlanDetails.append",
-        ),
-        ArangoSearchCompression.lz4
-      )
-    )*/
   )
 }
 
