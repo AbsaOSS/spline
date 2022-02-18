@@ -87,7 +87,7 @@ case class DataSource(
   uri: DataSource.Uri,
   name: DataSource.Name,
   override val _key: DataSource.Key,
-  lastWriteDetails: Option[Progress] = None
+  lastWriteDetails: Option[Progress]
 ) extends Vertex with RootEntity {
   def this() = this(null, null, null, null)
 }

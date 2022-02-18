@@ -71,7 +71,7 @@ class ExecutionPlanPersistentModelBuilder private(
     dsKeyByUri.map {
       case (uri, key) =>
         val dsName = pm.DataSource.getName(uri)
-        uri -> pm.DataSource(uri, dsName, key)
+        uri -> pm.DataSource(uri, dsName, key, None)
     }
   }
 
