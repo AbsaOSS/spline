@@ -153,7 +153,8 @@ object ExecutionProducerRepositoryImpl {
           labels = e.labels,
           error = e.error,
           extra = e.extra,
-          _key = key
+          _key = key,
+          execPlanDetails = null // the value is populated below in the transaction script
         )
         Array(p, e.planId)
       }

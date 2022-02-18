@@ -137,7 +137,7 @@ case class Progress(
   error: Option[Any],
   extra: Map[String, Any],
   override val _key: ArangoDocument.Key,
-  execPlanDetails: ExecPlanDetails = null
+  execPlanDetails: ExecPlanDetails
 ) extends Vertex with RootEntity
 
 object Progress {
