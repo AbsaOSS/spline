@@ -14,28 +14,25 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.testdatagen
+package za.co.absa.spline.testdatagen.generators.graph
 
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers._
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
-import za.co.absa.spline.producer.model.v1_2.{DataOperation, ExecutionEvent}
-import za.co.absa.spline.testdatagen.generators.{EventGenerator, PlanGenerator}
 
-class PlanGeneratorSpec extends AnyFlatSpec {
+class ChainSpec extends AnyFlatSpec {
 
-  behavior of "PlanGenerator"
+  val chain1 = new Chain(3,2,7,4)
 
-  behavior of "PlanGenerator with EventGenerator"
+  behavior of "chain generation"
 
-  it should "generate plan and event" in {
-    val plan = PlanGenerator.generate(Config(operations = 4))
-    plan.operations.other.size shouldEqual 4
-    plan.systemInfo.name shouldEqual "spline-data-gen"
-    plan.dataSources.size shouldEqual 2
-
-    val event: ExecutionEvent = EventGenerator.generate(plan)
-    event.planId shouldEqual plan.id
+  it should "generate the right chain structure" in {
+    val plan = chain1.generate()
+    val operations = plan.operations
+    operations.reads.size shouldEqual 1
+    operations.reads.head.inputSources.size shouldEqual 3
+    operations.other(1).childIds shouldBe Seq(operations.other.head.id)
+    operations.other(2).childIds shouldBe Seq(operations.other(1).id)
+    operations.write.childIds shouldEqual Seq(operations.other.last.id)
   }
 
 }

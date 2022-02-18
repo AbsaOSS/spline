@@ -16,9 +16,8 @@
 
 package za.co.absa.spline.testdatagen
 
-import org.apache.commons.io.FileUtils
 import za.co.absa.spline.common.SplineBuildInfo
-import za.co.absa.spline.testdatagen.generators.{EventGenerator, PlanGenerator}
+import za.co.absa.spline.testdatagen.generators.{EventGenerator, Graph}
 
 object GenCLI {
   def main(args: Array[String]): Unit = {
@@ -36,35 +35,43 @@ object GenCLI {
         ),
         help("help").text("Print this usage text."),
         version('v', "version").text("Print version info."),
-        opt[Int]('o', "operations")
-          .action((x, c) => c.copy(operations = x))
-          .text("Plan with operations will be generated."),
-        opt[Int]('r', "reads")
-          .action((x, c) => c.copy(reads = x)),
-        opt[Int]('a', "attributes")
-          .action((x, c) => c.copy(attributes = x))
-          .text("Plan with operations will be generated."),
-        opt[Int]('f', "expressions")
-          .action((x, c) => c.copy(expressions = x)),
+        opt[String]('r', "reads")
+          .action((x, c) => c.copy(reads = NumericValue(x))),
+        opt[String]('o', "operations")
+          .action((x, c) => c.copy(operations = NumericValue(x))),
+        opt[String]('a', "attributes")
+          .action((x, c) => c.copy(attributes = NumericValue(x))),
+        opt[String]('e', "expressions")
+          .action((x, c) => c.copy(expressions = NumericValue(x))),
+        opt[String]('g', "graph-type")
+          .action((x: String, c) => c.copy(graphType = x))
       )
     }
 
     val config = OParser.parse(configParser, args, Config()).getOrElse(sys.exit(1))
 
-    println(s"Approximate size of plan string is ${FileUtils.byteCountToDisplaySize((config.operations * 180).toLong)}")
-    val dispatcher = createDispatcher("file", config)
-    println("Generating plan")
-    val plan = PlanGenerator.generate(config)
-    dispatcher.send(plan)
+    val configs: Seq[Config] = config.expand()
 
-    println("Generating event")
-    val event = EventGenerator.generate(plan)
-    dispatcher.send(event)
+    configs.foreach(config => {
+      val dispatcher = createDispatcher("file", config)
+      println("Generating plan")
+      val graphType: Graph = Graph(config)
+
+      val plan = graphType.generate()
+      dispatcher.send(plan)
+
+      println("Generating event")
+      val event = EventGenerator.generate(plan)
+      dispatcher.send(event)
+    })
   }
 
   private def createDispatcher(name: String, config: Config): FileDispatcher = name match {
     case "file" =>
-      new FileDispatcher(s"lineage-${config.operations}ops-${config.reads}reads-" +
-        s"${config.attributes}attr-${config.expressions}expr")
+      new FileDispatcher(s"${config.graphType}-lineage-" +
+        s"${config.reads.valueOf()}reads-" +
+        s"${config.operations.valueOf()}ops-" +
+        s"${config.attributes.valueOf()}attr-" +
+        s"${config.expressions.valueOf()}expr")
   }
 }
