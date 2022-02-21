@@ -16,30 +16,9 @@
 
 package za.co.absa.spline.testdatagen
 
-sealed trait NumericValue {
-  def isExpanded: Boolean = this.isInstanceOf[Constant]
-  def valueOf(): Int = if (isExpanded) this.asInstanceOf[Constant].value else {
-    throw new Exception("Not expanded")
-  }
-}
-case class Constant(value: Int) extends NumericValue
-case class Variable(start: Int, end: Int, step: Int) extends NumericValue {
-  def expand(): Seq[Constant] = (start to end by step).map(i => Constant(i))
-}
+import za.co.absa.spline.testdatagen.GraphType.{ChainType, GraphType}
 
-object NumericValue {
-  def apply(param: String): NumericValue = {
-    val ConstantPattern = "([0-9]+)".r
-    val VariablePattern = "([0-9]+)-([0-9]+)/([0-9]+)".r
-    param match {
-      case ConstantPattern(c) => Constant(c.toInt)
-      case VariablePattern(start: String, end: String, step: String) => Variable(start.toInt, end.toInt,step.toInt)
-      case _ => throw new Exception("Invalid")
-    }
-  }
-}
-
-case class Config(graphType: String = "chain",
+case class Config(graphType: GraphType = ChainType,
                   reads: NumericValue = Constant(0),
                   operations: NumericValue = Constant(0),
                   attributes: NumericValue = Constant(0),

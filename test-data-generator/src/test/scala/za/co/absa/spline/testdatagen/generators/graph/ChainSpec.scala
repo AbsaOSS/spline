@@ -21,7 +21,7 @@ import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 
 class ChainSpec extends AnyFlatSpec {
 
-  val chain1 = new Chain(3,2,7,4)
+  val chain1 = new Chain(3, 2, 7, 4)
 
   behavior of "chain generation"
 

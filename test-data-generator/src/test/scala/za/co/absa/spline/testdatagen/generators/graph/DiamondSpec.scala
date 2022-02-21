@@ -21,7 +21,7 @@ import org.scalatest.matchers.should.Matchers.{convertToAnyShouldWrapper, all}
 
 class DiamondSpec extends AnyFlatSpec {
 
-  val diamond1 = new Diamond(3,2,7,4)
+  val diamond1 = new Diamond(3, 2, 7, 4)
 
   behavior of "diamond generation"
 

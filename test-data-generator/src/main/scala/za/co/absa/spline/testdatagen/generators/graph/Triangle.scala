@@ -20,7 +20,8 @@ import za.co.absa.spline.producer.model.v1_2.{DataOperation, ReadOperation}
 import za.co.absa.spline.testdatagen.generators.AttributesGenerator.generateSchema
 import za.co.absa.spline.testdatagen.generators.Graph
 
-class Triangle(reads: Int, dataOps: Int, attributes: Int, expressions: Int) extends Graph(reads, dataOps, attributes, expressions){
+class Triangle(reads: Int, dataOps: Int, attributes: Int, expressions: Int)
+  extends Graph(reads, dataOps, attributes, expressions) {
   override def generateReads(numbSources: Int): Seq[ReadOperation] = {
     (1 to numbSources).map(id => {
       val sources = Seq(s"file://splinegen/read_${id}.csv")
@@ -35,16 +36,11 @@ class Triangle(reads: Int, dataOps: Int, attributes: Int, expressions: Int) exte
     })
   }
 
-  override def generateDataOperations(opCount: Long, allOps: Seq[DataOperation], childIds: Seq[String]): Seq[DataOperation] = {
-    val operations = (1 to opCount.toInt).zip(childIds).map{case (_, childId) => {
-      generateDataOperation(Seq(childId))
-    }}
-    if (opCount <= childIds.size) {
-      operations
-    } else {
-      val rest = (1 to (opCount - childIds.size).toInt).map(_ => generateDataOperation(Seq(childIds.head)))
-      operations ++ rest
-    }
+  override def generateDataOperations(opCount: Int, childIds: Seq[String]): Seq[DataOperation] = {
+    childIds
+      .take(opCount)
+      .padTo(opCount, childIds.head)
+      .map(childId => generateDataOperation(Seq(childId)))
   }
 
   override def getWriteLinkedOperations(dataOperations: Seq[DataOperation]): Seq[String] = {

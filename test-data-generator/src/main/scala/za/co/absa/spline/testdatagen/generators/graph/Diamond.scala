@@ -19,9 +19,10 @@ package za.co.absa.spline.testdatagen.generators.graph
 import za.co.absa.spline.producer.model.v1_2.DataOperation
 import za.co.absa.spline.testdatagen.generators.Graph
 
-class Diamond(reads: Int, dataOps: Int, attributes: Int, expressions: Int) extends Graph(reads, dataOps, attributes, expressions) {
+class Diamond(reads: Int, dataOps: Int, attributes: Int, expressions: Int)
+  extends Graph(reads, dataOps, attributes, expressions) {
 
-  override def generateDataOperations(opCount: Long, allOps: Seq[DataOperation], childIds: Seq[String]): Seq[DataOperation] = {
+  override def generateDataOperations(opCount: Int, childIds: Seq[String]): Seq[DataOperation] = {
     (1 to opCount.toInt).map(_ => {
       generateDataOperation(childIds)
     })

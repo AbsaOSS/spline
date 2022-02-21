@@ -21,6 +21,7 @@ import java.util.UUID
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.producer.model.v1_2.{DataOperation, ExecutionPlan, NameAndVersion, Operations, ReadOperation, WriteOperation}
 import za.co.absa.spline.testdatagen.Config
+import za.co.absa.spline.testdatagen.GraphType.{DiamondType, TriangleType}
 import za.co.absa.spline.testdatagen.generators.AttributesGenerator.generateSchema
 import za.co.absa.spline.testdatagen.generators.ExpressionGenerator.generateExpressions
 import za.co.absa.spline.testdatagen.generators.graph.{Chain, Diamond, Triangle}
@@ -31,7 +32,7 @@ abstract class Graph(reads: Int, operations: Int, attributes: Int, expressions: 
     ExecutionPlan(
       id = planId,
       name = Some(s"generated plan $planId"),
-      operations = generateOperations(operations.toLong, reads),
+      operations = generateOperations(operations, reads),
       attributes = generateSchema(attributes),
       expressions = Some(generateExpressions(expressions)),
       systemInfo = NameAndVersion("spline-data-gen", SplineBuildInfo.Version),
@@ -55,10 +56,10 @@ abstract class Graph(reads: Int, operations: Int, attributes: Int, expressions: 
 
   def getWriteLinkedOperations(dataOperations: Seq[DataOperation]): Seq[String]
 
-  def generateOperations(dataOpCount: Long, readOpCount: Int): Operations = {
+  def generateOperations(dataOpCount: Int, readOpCount: Int): Operations = {
     val reads: Seq[ReadOperation] = generateReads(readOpCount)
 
-    val dataOperations = generateDataOperations(dataOpCount, Seq.empty, reads.map(_.id))
+    val dataOperations = generateDataOperations(dataOpCount, reads.map(_.id))
 
     val linkedOperations = getWriteLinkedOperations(dataOperations)
 
@@ -69,7 +70,7 @@ abstract class Graph(reads: Int, operations: Int, attributes: Int, expressions: 
     )
   }
 
-  def generateDataOperations(opCount: Long, allOps: Seq[DataOperation], childIds: Seq[String]): Seq[DataOperation]
+  def generateDataOperations(opCount: Int, childIds: Seq[String]): Seq[DataOperation]
 
   protected def generateDataOperation(childIds: Seq[String]): DataOperation = {
     val id = UUID.randomUUID().toString
@@ -101,10 +102,10 @@ object Graph {
     if (!config.isExpanded) {
       throw new Exception("Invalid config")
     }
-    config.graphType.toLowerCase match {
-      case "diamond" => new Diamond(config.reads.valueOf(), config.operations.valueOf(),
+    config.graphType match {
+      case DiamondType => new Diamond(config.reads.valueOf(), config.operations.valueOf(),
         config.expressions.valueOf(), config.attributes.valueOf())
-      case "triangle" => new Triangle(config.reads.valueOf(), config.operations.valueOf(),
+      case TriangleType => new Triangle(config.reads.valueOf(), config.operations.valueOf(),
         config.expressions.valueOf(), config.attributes.valueOf())
       case _ => new Chain(config.reads.valueOf(), config.operations.valueOf(),
         config.expressions.valueOf(), config.attributes.valueOf())
