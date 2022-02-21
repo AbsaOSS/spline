@@ -17,14 +17,25 @@
 package za.co.absa.spline.testdatagen
 
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers.{all, convertToAnyShouldWrapper}
+import org.scalatest.matchers.must.Matchers.{be, noException}
+import org.scalatest.matchers.should.Matchers.{all, an, convertToAnyShouldWrapper}
+import za.co.absa.spline.testdatagen.GraphType.{DiamondType, TriangleType}
 
 class ConfigSpec extends AnyFlatSpec{
 
-  private val varAttr = Config(reads = Constant(2) ,operations = Constant(5), attributes = Variable(2,8,2), expressions = Constant(3))
-  private val constTriangle = Config(graphType= "triangle", reads= Constant(3), operations = Constant(1), attributes = Constant(2))
-  private val varReadOpDiamond = Config(graphType= "diamond", reads = Variable(1,2,1), operations = Variable(4, 10, 3),
-    attributes = Constant(4), expressions = Constant(3))
+  private val varAttr = Config(reads = Constant(2),
+    operations = Constant(5),
+    attributes = Variable(2,8,2),
+    expressions = Constant(3))
+  private val constTriangle = Config(graphType = TriangleType,
+    reads= Constant(3),
+    operations = Constant(1),
+    attributes = Constant(2))
+  private val varReadOpDiamond = Config(graphType= DiamondType,
+    reads = Variable(1,2,1),
+    operations = Variable(4, 10, 3),
+    attributes = Constant(4),
+    expressions = Constant(3))
 
   behavior of "config expand"
 
@@ -74,5 +85,15 @@ class ConfigSpec extends AnyFlatSpec{
     all(configs.map(_.attributes)) shouldEqual varReadOpDiamond.attributes
     all(configs.map(_.expressions)) shouldEqual varReadOpDiamond.expressions
     all(configs.map(_.isExpanded)) shouldBe true
+  }
+
+  behavior of "numeric values"
+
+  it should "expand 2 vars" in {
+
+    noException should be thrownBy varReadOpDiamond.attributes.valueOf()
+    noException should be thrownBy varReadOpDiamond.expressions.valueOf()
+    an[Exception] should be thrownBy varReadOpDiamond.reads.valueOf()
+    an[Exception] should be thrownBy varReadOpDiamond.operations.valueOf()
   }
 }

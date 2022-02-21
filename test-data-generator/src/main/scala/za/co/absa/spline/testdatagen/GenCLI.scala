@@ -44,7 +44,7 @@ object GenCLI {
         opt[String]('e', "expressions")
           .action((x, c) => c.copy(expressions = NumericValue(x))),
         opt[String]('g', "graph-type")
-          .action((x: String, c) => c.copy(graphType = x))
+          .action((x: String, c) => c.copy(graphType = GraphType.withNameWithDefault(x)))
       )
     }
 

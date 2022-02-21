@@ -21,8 +21,8 @@ import org.scalatest.matchers.should.Matchers.{all, convertToAnyShouldWrapper}
 
 class TriangleSpec extends AnyFlatSpec {
 
-  val triangle1 = new Triangle(2,5,7,4)
-  val triangle2 = new Triangle(5,2,7,4)
+  val triangle1 = new Triangle(2, 5, 7, 4)
+  val triangle2 = new Triangle(5, 2, 7, 4)
 
   behavior of "triangle generation"
 
@@ -48,8 +48,8 @@ class TriangleSpec extends AnyFlatSpec {
     operations.reads.size shouldEqual 5
     operations.other.size shouldEqual 2
 
-    operations.other.head.childIds shouldBe Seq(operations.reads.head.id)
-    operations.other(1).childIds shouldBe Seq(operations.reads(1).id)
+    operations.other.head.childIds shouldEqual Seq(operations.reads.head.id)
+    operations.other(1).childIds shouldEqual Seq(operations.reads(1).id)
     operations.write.childIds shouldEqual operations.other.map(_.id)
   }
 
