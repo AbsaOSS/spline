@@ -33,10 +33,10 @@ class TriangleSpec extends AnyFlatSpec {
     operations.other.size shouldEqual 5
 
     operations.other.head.childIds shouldBe Seq(operations.reads.head.id)
-    operations.other(1).childIds shouldBe Seq(operations.reads(1).id)
-    operations.other(2).childIds shouldBe Seq(operations.reads.head.id)
-    operations.other(3).childIds shouldBe Seq(operations.reads.head.id)
-    operations.other(4).childIds shouldBe Seq(operations.reads.head.id)
+    operations.other(1).childIds shouldEqual Seq(operations.reads(1).id)
+    operations.other(2).childIds shouldEqual Seq(operations.reads.head.id)
+    operations.other(3).childIds shouldEqual Seq(operations.reads.head.id)
+    operations.other(4).childIds shouldEqual Seq(operations.reads.head.id)
 
     operations.write.childIds shouldEqual operations.other.map(_.id)
   }
