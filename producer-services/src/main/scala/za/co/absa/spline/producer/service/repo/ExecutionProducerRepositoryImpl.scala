@@ -202,7 +202,7 @@ object ExecutionProducerRepositoryImpl {
               |    }
               |
               |    if (ep.discriminator != p.discriminator) {
-              |      // nobody should never see this happening, but just in case the universe goes crazy...
+              |      // nobody should ever see this happening, but just in case the universe goes crazy...
               |      throw new Error(`UUID collision detected !!! Execution event ID: ${p._key}, discriminator: ${p.discriminator}`)
               |    }
               |
