@@ -104,19 +104,9 @@ sealed trait SearchAnalyzerDef {
 }
 
 object GraphDef {
-
-  import za.co.absa.spline.persistence.model.EdgeDef._
-
-  object OverviewGraphDef extends GraphDef("overviewGraph", ProgressOf, Depends, Affects)
-
-  object OperationsGraphDef extends GraphDef("operationsGraph", Executes, Follows, ReadsFrom, WritesTo)
-
-  object SchemasGraphDef extends GraphDef("schemasGraph", Emits, ConsistsOf)
-
-  object AttributesGraphDef extends GraphDef("attributesGraph", Produces, DerivesFrom)
-
-  object ExpressionsGraphDef extends GraphDef("expressionsGraph", ComputedBy, Takes)
-
+  // A place to define named graphs.
+  // Example:
+  //   object MyGraphDef extends GraphDef("myGraph", EdgeDef.Foo, EdgeDef.Bar, ...)
 }
 
 object EdgeDef {
