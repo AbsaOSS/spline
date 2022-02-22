@@ -24,8 +24,8 @@ class StringEscapeUtilsSpec extends AnyFlatSpec with Matchers{
   behavior of "escapeAQLSearch"
 
   it should "escape _ and % characters" in {
-    StringEscapeUtils.escapeAQLSearch("foo%bar_baz") should equal("""foo\\%bar\\_baz""")
-    StringEscapeUtils.escapeAQLSearch("foo%%bar__baz") should equal("""foo\\%\\%bar\\_\\_baz""")
+    StringEscapeUtils.escapeAQLSearch("foo%bar_baz -i- foo%bar_baz") should equal("""foo\\%bar\\_baz -i- foo\\%bar\\_baz""")
+    StringEscapeUtils.escapeAQLSearch("foo%%bar__baz -i- foo%%bar__baz") should equal("""foo\\%\\%bar\\_\\_baz -i- foo\\%\\%bar\\_\\_baz""")
   }
 
 }

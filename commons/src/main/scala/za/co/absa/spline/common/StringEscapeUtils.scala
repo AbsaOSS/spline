@@ -18,6 +18,6 @@ package za.co.absa.spline.common
 
 object StringEscapeUtils {
   def escapeAQLSearch(str: String): String = str
-    .replaceAll("_", "\\\\\\\\_")
-    .replaceAll("%", "\\\\\\\\%")
+    .replace("_", """\\_""")
+    .replace("%", """\\%""")
 }
