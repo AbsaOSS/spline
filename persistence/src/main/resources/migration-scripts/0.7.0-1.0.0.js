@@ -17,9 +17,13 @@
 const VER = "1.0.0"
 
 const {db, aql} = require("@arangodb");
+const graph = require('@arangodb/general-graph');
 const analyzers = require("@arangodb/analyzers");
 
 console.log(`[Spline] Start migration to ${VER}`);
+
+console.log("[Spline] Remove unused named graphs");
+graph._list().forEach(name => graph._drop(name));
 
 console.log("[Spline] Add 'progress.labels'");
 db._query(aql`
