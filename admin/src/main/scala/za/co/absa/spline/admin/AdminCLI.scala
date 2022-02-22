@@ -135,12 +135,18 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
         opt[Unit]("indices-create")
           text "Create indices"
           action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(IndicesCreate)) },
-        opt[Unit]("views-delete")
-          text "Delete views"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(ViewsDelete)) },
-        opt[Unit]("views-create")
-          text "Create views"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(ViewsCreate)) })
+        opt[Unit]("search-views-delete")
+          text "Delete search views"
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(SearchViewsDelete)) },
+        opt[Unit]("search-views-create")
+          text "Create search views"
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(SearchViewsCreate)) },
+        opt[Unit]("search-analyzers-delete")
+          text "Delete search analyzers"
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(SearchAnalyzerDelete)) },
+        opt[Unit]("search-analyzers-create")
+          text "Create search analyzers"
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(SearchAnalyzerCreate)) })
         children (this.dbCommandOptions: _*)
         )
 

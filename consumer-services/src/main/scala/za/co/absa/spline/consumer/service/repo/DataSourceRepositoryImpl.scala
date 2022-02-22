@@ -19,13 +19,14 @@ package za.co.absa.spline.consumer.service.repo
 import com.arangodb.async.ArangoDatabaseAsync
 import com.arangodb.model.AqlQueryOptions
 import org.apache.commons.lang.StringEscapeUtils.escapeJavaScript
-import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
+import za.co.absa.spline.common.StringEscapeUtils.escapeAQLSearch
 import za.co.absa.spline.consumer.service.model.DataSourceActionType.{Read, Write}
 import za.co.absa.spline.consumer.service.model._
+import za.co.absa.spline.consumer.service.repo.DataSourceRepositoryImpl.SearchFields
 import za.co.absa.spline.persistence.ArangoImplicits._
-import za.co.absa.spline.persistence.model.{EdgeDef, NodeDef}
+import za.co.absa.spline.persistence.model.{EdgeDef, NodeDef, SearchViewDef}
 
 import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -48,49 +49,30 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
 
     db.queryOne[Array[Long]](
       s"""
-         |WITH dataSource, progress
-         |FOR ds IN dataSource
-         |    FILTER ds._created <= @asAtTime
-         |
-         |    FILTER @dataSourceUri == null OR @dataSourceUri == ds.uri
-         |
-         |    // last write event or null
-         |    LET lwe = FIRST(
-         |        FOR we IN progress
-         |            FILTER we._created <= @asAtTime
-         |            FILTER we.execPlanDetails.dataSourceUri == ds.uri
-         |            SORT we.timestamp DESC
-         |            RETURN we
-         |    )
-         |
-         |    FILTER (@applicationId  == null OR @applicationId  == lwe.extra.appId)
-         |       AND (@writeAppend    == null OR @writeAppend    == lwe.execPlanDetails.append)
-         |
+         |WITH ${SearchViewDef.DataSourceSearchView.name}
+         |FOR ds IN ${SearchViewDef.DataSourceSearchView.name}
+         |    SEARCH ds._created <= @asAtTime
+         |        AND (@dataSourceUri == null OR @dataSourceUri == ds.uri)
+         |        AND (@applicationId == null OR @applicationId == ds.lastWriteDetails.extra.appId)
+         |        AND (@writeAppend   == null OR @writeAppend   == ds.lastWriteDetails.execPlanDetails.append)
       ${
         lblNames.zipWithIndex.map({
           case (lblName, i) =>
-            s"FILTER lwe.labels['${escapeJavaScript(lblName)}'] ANY IN @lblValues[$i]"
+            s"    AND @lblValues[$i] ANY == ds.labels['${escapeJavaScript(lblName)}']"
         }).mkString("\n")
       }
-         |
-         |    FILTER
-         |        (lwe == null
-         |           AND @searchTerm == null
-         |           AND @applicationId == null
-         |           AND @writeAppend == null
-         |           AND @dataSourceUri == null
+         |        AND (@searchTerm == null
+      ${
+        SearchFields.map({
+          fld =>
+            s"""      OR ANALYZER(LIKE(ds.$fld, CONCAT("%", TOKENS(@searchTerm, "norm_en")[0], "%")), "norm_en")"""
+        }).mkString("\n")
+      }
          |        )
-         |        OR @searchTerm == null
-         |        OR @searchTerm == lwe.timestamp
-         |        OR CONTAINS(LOWER(ds.uri), @searchTerm)
-         |        OR CONTAINS(LOWER(lwe.execPlanDetails.frameworkName), @searchTerm)
-         |        OR CONTAINS(LOWER(lwe.execPlanDetails.applicationName), @searchTerm)
-         |        OR CONTAINS(LOWER(lwe.extra.appId), @searchTerm)
-         |        OR CONTAINS(LOWER(lwe.execPlanDetails.dataSourceType), @searchTerm)
          |
          |    COLLECT AGGREGATE
-         |        minTimestamp = MIN(lwe.timestamp),
-         |        maxTimestamp = MAX(lwe.timestamp)
+         |        minTimestamp = MIN(ds.lastWriteDetails.timestamp),
+         |        maxTimestamp = MAX(ds.lastWriteDetails.timestamp)
          |
          |    RETURN [
          |        minTimestamp || DATE_NOW(),
@@ -99,7 +81,7 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
          |""".stripMargin,
       Map[String, AnyRef](
         "asAtTime" -> Long.box(asAtTime),
-        "searchTerm" -> maybeSearchTerm.map(StringUtils.lowerCase).orNull,
+        "searchTerm" -> maybeSearchTerm.map(escapeAQLSearch).orNull,
         "writeAppend" -> maybeAppend.map(Boolean.box).orNull,
         "applicationId" -> maybeApplicationId.orNull,
         "dataSourceUri" -> maybeDataSourceUri.orNull
@@ -127,64 +109,41 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
 
     db.queryAs[WriteEventInfo](
       s"""
-         |WITH progress, dataSource
-         |FOR ds IN dataSource
-         |    FILTER ds._created <= @asAtTime
-         |
-         |    FILTER @dataSourceUri == null OR @dataSourceUri == ds.uri
-         |
-         |    // last write event or null
-         |    LET lwe = FIRST(
-         |        // we're filtering by URI instead of doing traversing for the performance reasons (traversing is slower than a simple index scan)
-         |        FOR we IN progress
-         |            FILTER we._created <= @asAtTime
-         |            FILTER we.execPlanDetails.dataSourceUri == ds.uri
-         |            SORT we.timestamp DESC
-         |            RETURN we
-         |    )
-         |
-         |    FILTER (@timestampStart == null OR @timestampStart <= lwe.timestamp)
-         |       AND (@timestampEnd   == null OR @timestampEnd   >= lwe.timestamp)
-         |       AND (@applicationId  == null OR @applicationId  == lwe.extra.appId)
-         |       AND (@writeAppend    == null OR @writeAppend    == lwe.execPlanDetails.append)
-         |
+         |WITH ${SearchViewDef.DataSourceSearchView.name}
+         |FOR ds IN ${SearchViewDef.DataSourceSearchView.name}
+         |    SEARCH ds._created <= @asAtTime
+         |        AND (@timestampStart == null OR IN_RANGE(ds.lastWriteDetails.timestamp, @timestampStart, @timestampEnd, true, true))
+         |        AND (@dataSourceUri  == null OR @dataSourceUri == ds.uri)
+         |        AND (@applicationId  == null OR @applicationId == ds.lastWriteDetails.extra.appId)
+         |        AND (@writeAppend    == null OR @writeAppend   == ds.lastWriteDetails.execPlanDetails.append)
       ${
         lblNames.zipWithIndex.map({
           case (lblName, i) =>
-            s"FILTER lwe.labels['${escapeJavaScript(lblName)}'] ANY IN @lblValues[$i]"
+            s"    AND @lblValues[$i] ANY == ds.lastWriteDetails.labels['${escapeJavaScript(lblName)}']"
         }).mkString("\n")
       }
-         |
-         |    FILTER
-         |        (lwe == null
-         |           AND @searchTerm == null
-         |           AND @applicationId == null
-         |           AND @writeAppend == null
-         |           AND @dataSourceUri == null
-         |           AND @timestampStart == null
-         |           AND @timestampEnd == null
+         |        AND (@searchTerm == null
+      ${
+        SearchFields.map({
+          fld =>
+            s"""      OR ANALYZER(LIKE(ds.$fld, CONCAT("%", TOKENS(@searchTerm, "norm_en")[0], "%")), "norm_en")"""
+        }).mkString("\n")
+      }
          |        )
-         |        OR @searchTerm == null
-         |        OR @searchTerm == lwe.timestamp
-         |        OR CONTAINS(LOWER(ds.uri), @searchTerm)
-         |        OR CONTAINS(LOWER(lwe.execPlanDetails.frameworkName), @searchTerm)
-         |        OR CONTAINS(LOWER(lwe.execPlanDetails.applicationName), @searchTerm)
-         |        OR CONTAINS(LOWER(lwe.extra.appId), @searchTerm)
-         |        OR CONTAINS(LOWER(lwe.execPlanDetails.dataSourceType), @searchTerm)
          |
          |    LET resItem = {
-         |        "executionEventId" : lwe._key,
-         |        "executionPlanId"  : lwe.execPlanDetails.executionPlanKey,
-         |        "frameworkName"    : lwe.execPlanDetails.frameworkName,
-         |        "applicationName"  : lwe.execPlanDetails.applicationName,
-         |        "applicationId"    : lwe.extra.appId,
-         |        "timestamp"        : lwe.timestamp,
+         |        "executionEventId" : ds.lastWriteDetails._key,
+         |        "executionPlanId"  : ds.lastWriteDetails.execPlanDetails.executionPlanKey,
+         |        "frameworkName"    : ds.lastWriteDetails.execPlanDetails.frameworkName,
+         |        "applicationName"  : ds.lastWriteDetails.execPlanDetails.applicationName,
+         |        "applicationId"    : ds.lastWriteDetails.extra.appId,
+         |        "timestamp"        : ds.lastWriteDetails.timestamp,
          |        "dataSourceName"   : ds.name,
          |        "dataSourceUri"    : ds.uri,
-         |        "dataSourceType"   : lwe.execPlanDetails.dataSourceType,
-         |        "append"           : lwe.execPlanDetails.append,
-         |        "durationNs"       : lwe.durationNs,
-         |        "error"            : lwe.error
+         |        "dataSourceType"   : ds.lastWriteDetails.execPlanDetails.dataSourceType,
+         |        "append"           : ds.lastWriteDetails.execPlanDetails.append,
+         |        "durationNs"       : ds.lastWriteDetails.durationNs,
+         |        "error"            : ds.lastWriteDetails.error
          |    }
          |
          |    SORT resItem.@sortField @sortOrder
@@ -200,7 +159,7 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         "pageSize" -> Int.box(pageRequest.size),
         "sortField" -> sortRequest.sortField,
         "sortOrder" -> sortRequest.sortOrder,
-        "searchTerm" -> maybeSearchTerm.map(StringUtils.lowerCase).orNull,
+        "searchTerm" -> maybeSearchTerm.map(escapeAQLSearch).orNull,
         "writeAppend" -> maybeAppend.map(Boolean.box).orNull,
         "applicationId" -> maybeWriteApplicationId.orNull,
         "dataSourceUri" -> maybeDataSourceUri.orNull
@@ -255,4 +214,15 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         ).map(_.toArray)
       })
   }
+}
+
+object DataSourceRepositoryImpl {
+  private val SearchFields = Seq(
+    "uri",
+    "name",
+    "lastWriteDetails.execPlanDetails.frameworkName",
+    "lastWriteDetails.execPlanDetails.applicationName",
+    "lastWriteDetails.extra.appId",
+    "lastWriteDetails.execPlanDetails.dataSourceType",
+  )
 }

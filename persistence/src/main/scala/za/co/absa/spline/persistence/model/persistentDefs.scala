@@ -17,10 +17,11 @@
 package za.co.absa.spline.persistence.model
 
 import com.arangodb.entity.CollectionType
-import com.arangodb.entity.arangosearch.{CollectionLink, FieldLink}
-import com.arangodb.model.arangosearch.ArangoSearchPropertiesOptions
+import com.arangodb.entity.arangosearch._
+import com.arangodb.entity.arangosearch.analyzer.{NormAnalyzer, NormAnalyzerProperties, SearchAnalyzer, SearchAnalyzerCase}
+import com.arangodb.model.arangosearch.ArangoSearchCreateOptions
 import com.arangodb.model.{IndexOptions, PersistentIndexOptions}
-
+import za.co.absa.spline.persistence.model.SearchAnalyzerDef.NormSearchAnalyzer
 
 case class IndexDef(fields: Seq[String], options: IndexOptions[_ <: IndexOptions[_]])
 
@@ -94,7 +95,13 @@ sealed abstract class GraphDef(val name: String, val edgeDefs: EdgeDef*) {
   require(edgeDefs.nonEmpty)
 }
 
-sealed abstract class ViewDef(val name: String, val properties: ArangoSearchPropertiesOptions)
+sealed abstract class SearchViewDef(val name: String, val properties: ArangoSearchCreateOptions)
+
+sealed trait SearchAnalyzerDef {
+  this: SearchAnalyzer =>
+  def analyzer: SearchAnalyzer = this
+  def name: String = getName
+}
 
 object GraphDef {
 
@@ -207,12 +214,67 @@ object CollectionDef {
 
 }
 
-object ViewDef {
+object SearchViewDef {
 
-  object AttributeSearchView extends ViewDef("attributeSearchView",
-    (new ArangoSearchPropertiesOptions)
-      .link(CollectionLink.on(NodeDef.Attribute.name)
-        .analyzers("text_en", "identity")
-        .fields(FieldLink.on("name"))))
+  object ProgressSearchView extends SearchViewDef(
+    s"${NodeDef.Progress.name}_view",
+    (new ArangoSearchCreateOptions)
+      .link(CollectionLink.on(NodeDef.Progress.name)
+        .fields(
+          FieldLink.on("_created"),
+          FieldLink.on("timestamp"),
+          FieldLink.on("extra").fields(
+            FieldLink.on("appId").analyzers(NormSearchAnalyzer.name, AnalyzerType.identity.name)
+          ),
+          FieldLink.on("execPlanDetails").fields(
+            FieldLink.on("append"),
+            FieldLink.on("applicationName").analyzers(NormSearchAnalyzer.name),
+            FieldLink.on("frameworkName").analyzers(NormSearchAnalyzer.name),
+            FieldLink.on("dataSourceUri").analyzers(NormSearchAnalyzer.name, AnalyzerType.identity.name),
+            FieldLink.on("dataSourceType").analyzers(NormSearchAnalyzer.name),
+          ),
+          FieldLink.on("labels")
+            .includeAllFields(true).analyzers(NormSearchAnalyzer.name, AnalyzerType.identity.name),
+        )
+      ))
 
+  object DataSourceSearchView extends SearchViewDef(
+    s"${NodeDef.DataSource.name}_view",
+    (new ArangoSearchCreateOptions)
+      .link(CollectionLink.on(NodeDef.DataSource.name)
+        .fields(
+          FieldLink.on("_created"),
+          FieldLink.on("uri"),
+          FieldLink.on("name").analyzers(NormSearchAnalyzer.name, AnalyzerType.identity.name),
+          FieldLink.on("lastWriteDetails")
+            .storeValues(StoreValuesType.ID)
+            .fields(
+              FieldLink.on("timestamp"),
+              FieldLink.on("durationNs"),
+              FieldLink.on("extra").fields(
+                FieldLink.on("appId").analyzers(NormSearchAnalyzer.name, AnalyzerType.identity.name)
+              ),
+              FieldLink.on("labels")
+                .includeAllFields(true).analyzers(NormSearchAnalyzer.name, AnalyzerType.identity.name),
+              FieldLink.on("execPlanDetails").fields(
+                FieldLink.on("append"),
+                FieldLink.on("applicationName").analyzers(NormSearchAnalyzer.name),
+                FieldLink.on("frameworkName").analyzers(NormSearchAnalyzer.name),
+                FieldLink.on("dataSourceType").analyzers(NormSearchAnalyzer.name),
+              )
+            )
+        )
+      )
+  )
+}
+
+object SearchAnalyzerDef {
+  object NormSearchAnalyzer extends NormAnalyzer with SearchAnalyzerDef {
+    setName("norm_en")
+    setProperties(new NormAnalyzerProperties {
+      setAnalyzerCase(SearchAnalyzerCase.lower)
+      setAccent(false)
+      setLocale("en.utf-8")
+    })
+  }
 }

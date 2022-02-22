@@ -29,7 +29,7 @@ import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Skip}
 import za.co.absa.spline.persistence.foxx.{FoxxManager, FoxxSourceResolver}
 import za.co.absa.spline.persistence.migration.Migrator
-import za.co.absa.spline.persistence.model.{CollectionDef, GraphDef, ViewDef}
+import za.co.absa.spline.persistence.model.{CollectionDef, GraphDef, SearchAnalyzerDef, SearchViewDef}
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable._
@@ -73,7 +73,8 @@ class ArangoManagerImpl(
         _ <- createFoxxServices()
         _ <- createIndices(db)
         _ <- createGraphs(db)
-        _ <- createViews(db)
+        _ <- createSearchAnalyzers(db)
+        _ <- createSearchViews(db)
         _ <- dbVersionManager.insertDbVersion(appDBVersion)
       } yield true
     }
@@ -105,8 +106,10 @@ class ArangoManagerImpl(
           case AuxiliaryDBAction.FoxxReinstall => reinstallFoxxServices()
           case AuxiliaryDBAction.IndicesDelete => deleteIndices(db)
           case AuxiliaryDBAction.IndicesCreate => createIndices(db)
-          case AuxiliaryDBAction.ViewsDelete => deleteViews(db)
-          case AuxiliaryDBAction.ViewsCreate => createViews(db)
+          case AuxiliaryDBAction.SearchViewsDelete => deleteSearchViews(db)
+          case AuxiliaryDBAction.SearchViewsCreate => createSearchViews(db)
+          case AuxiliaryDBAction.SearchAnalyzerDelete => deleteSearchAnalyzers(db)
+          case AuxiliaryDBAction.SearchAnalyzerCreate => createSearchAnalyzers(db)
         }).map(_ => {}))
     }
   }
@@ -233,25 +236,43 @@ class ArangoManagerImpl(
     )
   }
 
-  private def deleteViews(db: ArangoDatabaseAsync) = {
-    Future.traverse(sealedInstancesOf[ViewDef])(viewDef => {
-      val view = db.view(viewDef.name)
-      view.exists().toScala.flatMap { exists =>
-        if (exists)
-          view.drop().toScala
-        else
-          Future.successful(())
+  private def deleteSearchViews(db: ArangoDatabaseAsync) = {
+    log.debug(s"Delete search views")
+    for {
+      viewEntities <- db.getViews.toScala.map(_.asScala)
+      views = viewEntities.map(ve => db.view(ve.getName))
+      _ <- Future.traverse(views) { view =>
+        log.info(s"Delete search view: ${view.name}")
+        view.drop().toScala
       }
-    })
+    } yield {}
   }
 
-  private def createViews(db: ArangoDatabaseAsync) = {
-    log.debug(s"Create views")
-    Future.traverse(sealedInstancesOf[ViewDef]) { viewDef =>
-      for {
-        _ <- db.createArangoSearch(viewDef.name, null).toScala
-        _ <- db.arangoSearch(viewDef.name).updateProperties(viewDef.properties).toScala
-      } yield Unit
+  private def createSearchViews(db: ArangoDatabaseAsync) = {
+    log.debug(s"Create search views")
+    Future.traverse(sealedInstancesOf[SearchViewDef]) { viewDef =>
+      log.info(s"Create search view: ${viewDef.name}")
+      db.createArangoSearch(viewDef.name, viewDef.properties).toScala
+    }
+  }
+
+  private def deleteSearchAnalyzers(db: ArangoDatabaseAsync) = {
+    log.debug(s"Delete search analyzers")
+    for {
+      analyzers <- db.getSearchAnalyzers.toScala.map(_.asScala)
+      userAnalyzers = analyzers.filter(_.getName.startsWith(s"${db.name}::"))
+      _ <- Future.traverse(userAnalyzers)(ua => {
+        log.info(s"Delete search analyzer: ${ua.getName}")
+        db.deleteSearchAnalyzer(ua.getName).toScala
+      })
+    } yield {}
+  }
+
+  private def createSearchAnalyzers(db: ArangoDatabaseAsync) = {
+    log.debug(s"Create search analyzers")
+    Future.traverse(sealedInstancesOf[SearchAnalyzerDef]) { ad =>
+      log.info(s"Create search analyzer: ${ad.name}")
+      db.createSearchAnalyzer(ad.analyzer).toScala
     }
   }
 }
