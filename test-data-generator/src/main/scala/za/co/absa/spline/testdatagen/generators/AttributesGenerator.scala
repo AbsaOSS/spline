@@ -18,11 +18,36 @@ package za.co.absa.spline.testdatagen.generators
 
 import java.util.UUID
 
-import za.co.absa.spline.producer.model.v1_2.Attribute
+import za.co.absa.spline.producer.model.v1_2.Attribute.Id
+import za.co.absa.spline.producer.model.v1_2.{AttrOrExprRef, Attribute}
 
 object AttributesGenerator {
 
-  def generateSchema(nr: Int): Seq[Attribute] = {
-    1.to(nr).map(id => Attribute(id = UUID.randomUUID().toString, name = s"dummy_attr_${id}"))
+  def generateSchema(nr: Int, parents: Seq[Id] = Seq.empty): Seq[Attribute] = {
+    if (parents.isEmpty) {
+      1.to(nr).map(id => Attribute(id = UUID.randomUUID().toString, name = s"dummy_attr_${id}"))
+    } else {
+      parents.map(parentId => {
+        val id = UUID.randomUUID().toString
+        val result = Attribute(id = id, name = s"dummy_attr_${id}", childRefs =
+          Seq(AttrOrExprRef(
+            __attrId = None,
+            __exprId = Some(parentId))
+          ))
+        result
+      })
+    }
+  }
+
+  def generateAttributeFromExprParent(parentID: Option[Id]): Attribute = {
+    val attrId = UUID.randomUUID().toString
+    parentID match {
+      case Some(parent) => Attribute(id = attrId, name = s"dummy_attr_${attrId}", childRefs =
+        Seq(AttrOrExprRef(
+          __attrId = None,
+          __exprId = Some(parent))
+        ))
+      case None => Attribute(id = UUID.randomUUID().toString, name = s"dummy_attr_${attrId}")
+    }
   }
 }

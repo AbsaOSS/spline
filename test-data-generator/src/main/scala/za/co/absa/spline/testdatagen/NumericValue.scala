@@ -18,11 +18,13 @@ package za.co.absa.spline.testdatagen
 
 sealed trait NumericValue {
   def isExpanded: Boolean = this.isInstanceOf[Constant]
+
   def valueOf(): Int = if (isExpanded) this.asInstanceOf[Constant].value else {
     throw new Exception("Not expanded")
   }
 }
 case class Constant(value: Int) extends NumericValue
+
 case class Variable(start: Int, end: Int, step: Int) extends NumericValue {
   def expand(): Seq[Constant] = (start to end by step).map(i => Constant(i))
 }

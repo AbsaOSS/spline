@@ -17,32 +17,35 @@
 package za.co.absa.spline.testdatagen.generators.graph
 
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers.{all, convertToAnyShouldWrapper}
+import org.scalatest.matchers.should.Matchers.{convertToAnyShouldWrapper, exactly}
 
 class TriangleSpec extends AnyFlatSpec {
 
-  val triangle1 = new Triangle(2, 5, 7, 4)
-  val triangle2 = new Triangle(5, 2, 7, 4)
+  val triangle1 = new Triangle(2, 5, 4)
+  val triangle2 = new Triangle(5, 2, 4)
 
   behavior of "triangle generation"
 
-  it should "generate the right triangle structure for 2 reads and 5 ops" in {
+  it should "generate the right triangle structure for 2 readCount and 5 ops" in {
     val plan = triangle1.generate()
     val operations = plan.operations
     operations.reads.size shouldEqual 2
     operations.other.size shouldEqual 5
 
-    operations.other.head.childIds shouldBe Seq(operations.reads.head.id)
-    operations.other(1).childIds shouldEqual Seq(operations.reads(1).id)
-    operations.other(2).childIds shouldEqual Seq(operations.reads.head.id)
-    operations.other(3).childIds shouldEqual Seq(operations.reads.head.id)
-    operations.other(4).childIds shouldEqual Seq(operations.reads.head.id)
+    exactly(4, operations.other.map(_.childIds)) shouldEqual List(operations.reads.head.id)
+    exactly(1, operations.other.map(_.childIds)) shouldEqual List(operations.reads(1).id)
 
     operations.write.childIds shouldEqual operations.other.map(_.id)
+
+    plan.attributes.size shouldEqual 28
+
+    val expressions = plan.expressions.get
+    expressions.constants.size shouldEqual 20
+    expressions.functions.size shouldEqual 20
   }
 
 
-  it should "generate the right triangle structure for 5 reads and 2 ops" in {
+  it should "generate the right triangle structure for 5 readCount and 2 ops" in {
     val plan = triangle2.generate()
     val operations = plan.operations
     operations.reads.size shouldEqual 5
@@ -51,6 +54,15 @@ class TriangleSpec extends AnyFlatSpec {
     operations.other.head.childIds shouldEqual Seq(operations.reads.head.id)
     operations.other(1).childIds shouldEqual Seq(operations.reads(1).id)
     operations.write.childIds shouldEqual operations.other.map(_.id)
+
+    plan.attributes.size shouldEqual 28
+
+    val expressions = plan.expressions.get
+    expressions.constants.size shouldEqual 8
+    expressions.functions.size shouldEqual 8
+
+    //functional expressions referencing expressions should be the defined constants
+    expressions.functions.flatMap(_.childRefs.flatMap(_.__exprId)) shouldEqual expressions.constants.map(_.id)
   }
 
 

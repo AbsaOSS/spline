@@ -18,10 +18,11 @@ package za.co.absa.spline.testdatagen.generators.graph
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import za.co.absa.spline.producer.model.v1_2.Expressions
 
 class ChainSpec extends AnyFlatSpec {
 
-  val chain1 = new Chain(3, 2, 7, 4)
+  val chain1 = new Chain(3, 2, 4)
 
   behavior of "chain generation"
 
@@ -31,8 +32,18 @@ class ChainSpec extends AnyFlatSpec {
     operations.reads.size shouldEqual 1
     operations.reads.head.inputSources.size shouldEqual 3
     operations.other(1).childIds shouldBe Seq(operations.other.head.id)
-    operations.other(2).childIds shouldBe Seq(operations.other(1).id)
     operations.write.childIds shouldEqual Seq(operations.other.last.id)
+
+    val attributes = plan.attributes
+    attributes.size shouldEqual 12
+
+    val expressions: Expressions = plan.expressions.get
+    expressions.constants.size shouldEqual 8
+    expressions.functions.size shouldEqual 8
+
+    //functional expressions referencing expressions should be the defined constants
+    expressions.functions.flatMap(_.childRefs.flatMap(_.__exprId)) shouldEqual expressions.constants.map(_.id)
+
   }
 
 }
