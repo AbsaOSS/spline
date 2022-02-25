@@ -18,13 +18,14 @@ package za.co.absa.spline.testdatagen
 
 import za.co.absa.spline.testdatagen.GraphType.{ChainType, GraphType}
 
+case class ExpandedConfig(graphType: GraphType = ChainType, reads: Int, operations: Int, attributes: Int)
+
 case class Config(graphType: GraphType = ChainType,
                   reads: NumericValue = Constant(0),
                   operations: NumericValue = Constant(0),
-                  attributes: NumericValue = Constant(0),
-                  expressions: NumericValue= Constant(0)) {
-  def isExpanded: Boolean = reads.isExpanded && attributes.isExpanded && operations.isExpanded && expressions.isExpanded
-  def expand(): Seq[Config] = for {
+                  attributes: NumericValue = Constant(0)) {
+
+  def expand(): Seq[ExpandedConfig] = for {
     cr: Config <- reads match {
       case v: Variable => v.expand().map(i => this.copy(reads = i))
       case _ => Seq(this)
@@ -37,9 +38,8 @@ case class Config(graphType: GraphType = ChainType,
       case v: Variable => v.expand().map(i => co.copy(attributes = i))
       case _ => Seq(co)
     }
-    ce <- ca.expressions match {
-      case v: Variable => v.expand().map(i => ca.copy(expressions = i))
-      case _ => Seq(ca)
-    }
-  } yield ce
+  } yield ca.toExpandedConfig()
+
+  private def toExpandedConfig(): ExpandedConfig = ExpandedConfig(graphType,
+    reads.valueOf(), operations.valueOf(), attributes.valueOf())
 }

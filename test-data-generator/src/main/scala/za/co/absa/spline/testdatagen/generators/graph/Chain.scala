@@ -16,16 +16,40 @@
 
 package za.co.absa.spline.testdatagen.generators.graph
 
-import za.co.absa.spline.producer.model.v1_2.DataOperation
-import za.co.absa.spline.testdatagen.generators.Graph
+import za.co.absa.spline.producer.model.v1_2._
+import za.co.absa.spline.testdatagen.generators.{AttributesGenerator, ExpressionGenerator, Graph}
 
-class Chain(reads: Int, dataOps: Int, attributes: Int, expressions: Int)
-  extends Graph(reads, dataOps, attributes, expressions) {
+class Chain(readCount: Int, dataOpCount: Int, attCount: Int)
+  extends Graph(readCount, dataOpCount, attCount) {
 
-  override def generateDataOperations(opCount: Int, childIds: Seq[String]): Seq[DataOperation] =
-    (1 to opCount.toInt).scanLeft(generateDataOperation(childIds))((prev, _) => {
-      generateDataOperation(Seq(prev.id))
-    })
+  override def generateDataOperationsAndExpressions(opCount: Int,
+                                                    reads: Map[ReadOperation, Seq[Attribute]]):
+  Map[DataOperation, Seq[(Attribute, FunctionalExpression, Literal)]] = {
+
+    val (read, readAttr) = reads.head
+
+    val initialDataOp = generateDataOperation(Seq(read.id), readAttr)
+
+    val initial = generateAttributesFromNewExpressions(readAttr)
+
+    val tuples = (1 until opCount.toInt).scanLeft((initialDataOp, initial)) { case (
+      (prevDataOp: DataOperation, prevAttrs: Seq[(Attribute, FunctionalExpression, Literal)]), _) => {
+      val expressionsAndLiterals = prevAttrs.map(ael => {
+        ExpressionGenerator.generateExpressionAndLiteralForAttribute(ael._1)
+      })
+
+      val attExpLit: Seq[(Attribute, FunctionalExpression, Literal)] = expressionsAndLiterals.map {
+        case (exp, lit) => {
+          val generatedAttribute = AttributesGenerator.generateAttributeFromExprParent(Some(exp.id))
+          (generatedAttribute, exp, lit)
+        }
+      }
+      val generatedOperation = generateDataOperation(Seq(prevDataOp.id), attExpLit.map(_._1))
+      (generatedOperation, attExpLit)
+    }
+    }
+    tuples.toMap
+  }
 
   override def getWriteLinkedOperations(dataOperations: Seq[DataOperation]): Seq[String] = {
     Seq(dataOperations.last.id)

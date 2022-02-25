@@ -17,83 +17,62 @@
 package za.co.absa.spline.testdatagen
 
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must.Matchers.{be, noException}
-import org.scalatest.matchers.should.Matchers.{all, an, convertToAnyShouldWrapper}
+import org.scalatest.matchers.should.Matchers.{all, convertToAnyShouldWrapper}
 import za.co.absa.spline.testdatagen.GraphType.{DiamondType, TriangleType}
 
 class ConfigSpec extends AnyFlatSpec{
 
   private val varAttr = Config(reads = Constant(2),
     operations = Constant(5),
-    attributes = Variable(2,8,2),
-    expressions = Constant(3))
+    attributes = Variable(2, 8, 2))
   private val constTriangle = Config(graphType = TriangleType,
     reads= Constant(3),
     operations = Constant(1),
     attributes = Constant(2))
   private val varReadOpDiamond = Config(graphType= DiamondType,
-    reads = Variable(1,2,1),
+    reads = Variable(1, 2, 1),
     operations = Variable(4, 10, 3),
-    attributes = Constant(4),
-    expressions = Constant(3))
+    attributes = Constant(4))
 
   behavior of "config expand"
 
   it should "expand var" in {
     val configs = varAttr.expand()
 
-    varAttr.isExpanded shouldBe false
     configs.size shouldEqual 4
-    configs.head.attributes shouldEqual Constant(2)
-    configs(1).attributes shouldEqual Constant(4)
-    configs(2).attributes shouldEqual Constant(6)
-    configs(3).attributes shouldEqual Constant(8)
+    configs.head.attributes shouldEqual 2
+    configs(1).attributes shouldEqual 4
+    configs(2).attributes shouldEqual 6
+    configs(3).attributes shouldEqual 8
     all(configs.map(_.graphType)) shouldEqual varAttr.graphType
-    all(configs.map(_.reads)) shouldEqual varAttr.reads
-    all(configs.map(_.operations)) shouldEqual varAttr.operations
-    all(configs.map(_.expressions)) shouldEqual varAttr.expressions
-    all(configs.map(_.isExpanded)) shouldBe true
+    all(configs.map(_.reads)) shouldEqual 2
+    all(configs.map(_.operations)) shouldEqual 5
   }
 
   it should "expand constant config" in {
     val configs = constTriangle.expand()
 
-    constTriangle.isExpanded shouldBe true
     configs.size shouldEqual 1
-    configs.head.attributes shouldEqual Constant(2)
+    configs.head.attributes shouldEqual 2
   }
 
   it should "expand 2 vars" in {
     val configs = varReadOpDiamond.expand()
 
-    varAttr.isExpanded shouldBe false
-    varAttr.isExpanded shouldBe false
     configs.size shouldEqual 6
-    configs.head.reads shouldEqual Constant(1)
-    configs.head.operations shouldEqual Constant(4)
-    configs(1).reads shouldEqual Constant(1)
-    configs(1).operations shouldEqual Constant(7)
-    configs(2).reads shouldEqual Constant(1)
-    configs(2).operations shouldEqual Constant(10)
-    configs(3).reads shouldEqual Constant(2)
-    configs(3).operations shouldEqual Constant(4)
-    configs(4).reads shouldEqual Constant(2)
-    configs(4).operations shouldEqual Constant(7)
-    configs(5).reads shouldEqual Constant(2)
-    configs(5).operations shouldEqual Constant(10)
+    configs.head.reads shouldEqual 1
+    configs.head.operations shouldEqual 4
+    configs(1).reads shouldEqual 1
+    configs(1).operations shouldEqual 7
+    configs(2).reads shouldEqual 1
+    configs(2).operations shouldEqual 10
+    configs(3).reads shouldEqual 2
+    configs(3).operations shouldEqual 4
+    configs(4).reads shouldEqual 2
+    configs(4).operations shouldEqual 7
+    configs(5).reads shouldEqual 2
+    configs(5).operations shouldEqual 10
     all(configs.map(_.graphType)) shouldEqual varReadOpDiamond.graphType
-    all(configs.map(_.attributes)) shouldEqual varReadOpDiamond.attributes
-    all(configs.map(_.expressions)) shouldEqual varReadOpDiamond.expressions
-    all(configs.map(_.isExpanded)) shouldBe true
-  }
-
-  behavior of "numeric values"
-
-  it should "expand 2 vars" in {
-
-    noException should be thrownBy varReadOpDiamond.attributes.valueOf()
-    noException should be thrownBy varReadOpDiamond.expressions.valueOf()
-    an[Exception] should be thrownBy varReadOpDiamond.reads.valueOf()
-    an[Exception] should be thrownBy varReadOpDiamond.operations.valueOf()
+    all(configs.map(_.attributes)) shouldEqual 4
   }
 }

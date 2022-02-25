@@ -16,31 +16,42 @@
 
 package za.co.absa.spline.testdatagen.generators.graph
 
-import za.co.absa.spline.producer.model.v1_2.{DataOperation, ReadOperation}
+import za.co.absa.spline.producer.model.v1_2._
 import za.co.absa.spline.testdatagen.generators.AttributesGenerator.generateSchema
 import za.co.absa.spline.testdatagen.generators.Graph
 
-class Triangle(reads: Int, dataOps: Int, attributes: Int, expressions: Int)
-  extends Graph(reads, dataOps, attributes, expressions) {
-  override def generateReads(numbSources: Int): Seq[ReadOperation] = {
+class Triangle(readCount: Int, dataOpCount: Int, attCount: Int)
+  extends Graph(readCount, dataOpCount, attCount) {
+
+  override def generateReads(numbSources: Int): Map[ReadOperation, Seq[Attribute]] = {
     (1 to numbSources).map(id => {
       val sources = Seq(s"file://splinegen/read_${id}.csv")
-      ReadOperation(
+      val attributes = generateSchema(attCount)
+      val readOp = ReadOperation(
         inputSources = sources,
         id = id.toString,
         name = Some(s"generated read $id"),
-        output = Some(generateSchema(attributes).map(_.id)),
+        output = Some(attributes.map(_.id)),
         params = Map.empty,
         extra = Map.empty
       )
-    })
+      (readOp, attributes)
+    }).toMap
   }
 
-  override def generateDataOperations(opCount: Int, childIds: Seq[String]): Seq[DataOperation] = {
-    childIds
+  override def generateDataOperationsAndExpressions(opCount: Int, reads: Map[ReadOperation, Seq[Attribute]]):
+  Map[DataOperation, Seq[(Attribute, FunctionalExpression, Literal)]] = {
+
+    reads
+      .toSeq
       .take(opCount)
-      .padTo(opCount, childIds.head)
-      .map(childId => generateDataOperation(Seq(childId)))
+      .padTo(opCount, reads.head)
+      .map{ case (readOp: ReadOperation, schema: Seq[Attribute]) => {
+        val attExpLit: Seq[(Attribute, FunctionalExpression, Literal)] = generateAttributesFromNewExpressions(schema)
+        val dataOperation = generateDataOperation(Seq(readOp.id), attExpLit.map(_._1))
+        (dataOperation, attExpLit)
+      }}.toMap
+
   }
 
   override def getWriteLinkedOperations(dataOperations: Seq[DataOperation]): Seq[String] = {

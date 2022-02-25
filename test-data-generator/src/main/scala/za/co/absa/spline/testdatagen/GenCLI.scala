@@ -35,14 +35,12 @@ object GenCLI {
         ),
         help("help").text("Print this usage text."),
         version('v', "version").text("Print version info."),
-        opt[String]('r', "reads")
+        opt[String]('r', "readCount")
           .action((x, c) => c.copy(reads = NumericValue(x))),
-        opt[String]('o', "operations")
+        opt[String]('o', "opCount")
           .action((x, c) => c.copy(operations = NumericValue(x))),
-        opt[String]('a', "attributes")
+        opt[String]('a', "attCount")
           .action((x, c) => c.copy(attributes = NumericValue(x))),
-        opt[String]('e', "expressions")
-          .action((x, c) => c.copy(expressions = NumericValue(x))),
         opt[String]('g', "graph-type")
           .action((x: String, c) => c.copy(graphType = GraphType.withNameWithDefault(x)))
       )
@@ -50,7 +48,7 @@ object GenCLI {
 
     val config = OParser.parse(configParser, args, Config()).getOrElse(sys.exit(1))
 
-    val configs: Seq[Config] = config.expand()
+    val configs: Seq[ExpandedConfig] = config.expand()
 
     configs.foreach(config => {
       val dispatcher = createDispatcher("file", config)
@@ -66,12 +64,11 @@ object GenCLI {
     })
   }
 
-  private def createDispatcher(name: String, config: Config): FileDispatcher = name match {
+  private def createDispatcher(name: String, config: ExpandedConfig): FileDispatcher = name match {
     case "file" =>
       new FileDispatcher(s"${config.graphType}-lineage-" +
-        s"${config.reads.valueOf()}reads-" +
-        s"${config.operations.valueOf()}ops-" +
-        s"${config.attributes.valueOf()}attr-" +
-        s"${config.expressions.valueOf()}expr")
+        s"${config.reads}readCount-" +
+        s"${config.operations}ops-" +
+        s"${config.attributes}attr-")
   }
 }
