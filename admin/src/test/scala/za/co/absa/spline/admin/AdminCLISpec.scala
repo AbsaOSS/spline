@@ -161,13 +161,24 @@ class AdminCLISpec
         "db-exec",
         "arangodb://foo/bar",
         "--indices-delete",
-        "--views-delete",
+        "--search-views-delete",
+        "--search-analyzers-delete",
         "--foxx-reinstall",
-        "--views-create",
-        "--indices-create"))
+        "--search-analyzers-create",
+        "--search-views-create",
+        "--indices-create",
+      ))
 
       import za.co.absa.spline.persistence.AuxiliaryDBAction._
-      verify(arangoManagerMock).execute(IndicesDelete, ViewsDelete, FoxxReinstall, ViewsCreate, IndicesCreate)
+      verify(arangoManagerMock).execute(
+        IndicesDelete,
+        SearchViewsDelete,
+        SearchAnalyzerDelete,
+        FoxxReinstall,
+        SearchAnalyzerCreate,
+        SearchViewsCreate,
+        IndicesCreate,
+      )
     }
   }
 }

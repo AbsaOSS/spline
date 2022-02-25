@@ -35,11 +35,11 @@ class TxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
       """
         |function (_params) {
         |  const _db = require('internal').db;
-        |  (function(db, params){
-        |    db.FOO();
+        |  lastRes = (function(db, params){
+        |    return db.FOO();
         |  })(_db, _params[0]);
-        |  (function(db, params){
-        |    db.BAR();
+        |  lastRes = (function(db, params){
+        |    return db.BAR();
         |  })(_db, _params[1]);
         |}
         |""".stripMargin

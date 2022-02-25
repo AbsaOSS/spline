@@ -28,8 +28,12 @@ object AuxiliaryDBAction {
 
   case object IndicesCreate extends AuxiliaryDBAction
 
-  case object ViewsDelete extends AuxiliaryDBAction
+  case object SearchViewsDelete extends AuxiliaryDBAction
 
-  case object ViewsCreate extends AuxiliaryDBAction
+  case object SearchViewsCreate extends AuxiliaryDBAction
+
+  case object SearchAnalyzerDelete extends AuxiliaryDBAction
+
+  case object SearchAnalyzerCreate extends AuxiliaryDBAction
 
 }

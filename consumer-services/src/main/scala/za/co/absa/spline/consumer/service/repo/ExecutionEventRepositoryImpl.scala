@@ -18,11 +18,13 @@ package za.co.absa.spline.consumer.service.repo
 import com.arangodb.async.ArangoDatabaseAsync
 import com.arangodb.model.AqlQueryOptions
 import org.apache.commons.lang.StringEscapeUtils.escapeJavaScript
-import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
+import za.co.absa.spline.common.StringEscapeUtils.escapeAQLSearch
 import za.co.absa.spline.consumer.service.model._
+import za.co.absa.spline.consumer.service.repo.ExecutionEventRepositoryImpl.SearchFields
 import za.co.absa.spline.persistence.ArangoImplicits._
+import za.co.absa.spline.persistence.model.SearchViewDef
 
 import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -46,28 +48,26 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
 
     db.queryOne[Array[Long]](
       s"""
-         |WITH progress
-         |FOR ee IN progress
-         |    FILTER ee._created <= @asAtTime
-         |
-         |    FILTER @applicationId == null OR @applicationId == ee.extra.appId
-         |    FILTER @dataSourceUri == null OR @dataSourceUri == ee.execPlanDetails.dataSourceUri
-         |    FILTER @writeAppend   == null OR @writeAppend   == ee.execPlanDetails.append
-         |
+         |WITH ${SearchViewDef.ProgressSearchView.name}
+         |FOR ee IN ${SearchViewDef.ProgressSearchView.name}
+         |    SEARCH ee._created <= @asAtTime
+         |        AND (@applicationId == null OR @applicationId == ee.extra.appId)
+         |        AND (@dataSourceUri == null OR @dataSourceUri == ee.execPlanDetails.dataSourceUri)
+         |        AND (@writeAppend   == null OR @writeAppend   == ee.execPlanDetails.append)
       ${
         lblNames.zipWithIndex.map({
           case (lblName, i) =>
-            s"FILTER ee.labels['${escapeJavaScript(lblName)}'] ANY IN @lblValues[$i]"
+            s"    AND @lblValues[$i] ANY == ee.labels['${escapeJavaScript(lblName)}']"
         }).mkString("\n")
       }
-         |
-         |    FILTER @searchTerm == null
-         |            OR @searchTerm == ee.timestamp
-         |            OR CONTAINS(LOWER(ee.execPlanDetails.frameworkName), @searchTerm)
-         |            OR CONTAINS(LOWER(ee.execPlanDetails.applicationName), @searchTerm)
-         |            OR CONTAINS(LOWER(ee.extra.appId), @searchTerm)
-         |            OR CONTAINS(LOWER(ee.execPlanDetails.dataSourceUri), @searchTerm)
-         |            OR CONTAINS(LOWER(ee.execPlanDetails.dataSourceType), @searchTerm)
+         |        AND (@searchTerm == null
+      ${
+        SearchFields.map({
+          fld =>
+            s"""      OR ANALYZER(LIKE(ee.$fld, CONCAT("%", TOKENS(@searchTerm, "norm_en")[0], "%")), "norm_en")"""
+        }).mkString("\n")
+      }
+         |        )
          |
          |    COLLECT AGGREGATE
          |        minTimestamp = MIN(ee.timestamp),
@@ -80,7 +80,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
          |""".stripMargin,
       Map[String, AnyRef](
         "asAtTime" -> Long.box(asAtTime),
-        "searchTerm" -> maybeSearchTerm.map(StringUtils.lowerCase).orNull,
+        "searchTerm" -> maybeSearchTerm.map(escapeAQLSearch).orNull,
         "writeAppend" -> maybeAppend.map(Boolean.box).orNull,
         "applicationId" -> maybeApplicationId.orNull,
         "dataSourceUri" -> maybeDataSourceUri.orNull
@@ -109,30 +109,27 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
 
     db.queryAs[WriteEventInfo](
       s"""
-         |WITH progress
-         |FOR ee IN progress
-         |    FILTER ee._created <= @asAtTime
-         |       AND (@timestampStart == null OR @timestampStart <= ee.timestamp)
-         |       AND (@timestampEnd   == null OR @timestampEnd   >= ee.timestamp)
-         |
-         |    FILTER @applicationId == null OR @applicationId == ee.extra.appId
-         |    FILTER @dataSourceUri == null OR @dataSourceUri == ee.execPlanDetails.dataSourceUri
-         |    FILTER @writeAppend   == null OR @writeAppend   == ee.execPlanDetails.append
-         |
+         |WITH ${SearchViewDef.ProgressSearchView.name}
+         |FOR ee IN ${SearchViewDef.ProgressSearchView.name}
+         |    SEARCH ee._created <= @asAtTime
+         |        AND (@timestampStart == null OR IN_RANGE(ee.timestamp, @timestampStart, @timestampEnd, true, true))
+         |        AND (@applicationId == null OR @applicationId == ee.extra.appId)
+         |        AND (@dataSourceUri == null OR @dataSourceUri == ee.execPlanDetails.dataSourceUri)
+         |        AND (@writeAppend   == null OR @writeAppend   == ee.execPlanDetails.append)
       ${
         lblNames.zipWithIndex.map({
           case (lblName, i) =>
-            s"FILTER ee.labels['${escapeJavaScript(lblName)}'] ANY IN @lblValues[$i]"
+            s"    AND @lblValues[$i] ANY == ee.labels['${escapeJavaScript(lblName)}']"
         }).mkString("\n")
       }
-         |
-         |    FILTER @searchTerm == null
-         |            OR @searchTerm == ee.timestamp
-         |            OR CONTAINS(LOWER(ee.execPlanDetails.frameworkName), @searchTerm)
-         |            OR CONTAINS(LOWER(ee.execPlanDetails.applicationName), @searchTerm)
-         |            OR CONTAINS(LOWER(ee.extra.appId), @searchTerm)
-         |            OR CONTAINS(LOWER(ee.execPlanDetails.dataSourceUri), @searchTerm)
-         |            OR CONTAINS(LOWER(ee.execPlanDetails.dataSourceType), @searchTerm)
+         |        AND (@searchTerm == null
+      ${
+        SearchFields.map({
+          fld =>
+            s"""      OR ANALYZER(LIKE(ee.$fld, CONCAT("%", TOKENS(@searchTerm, "norm_en")[0], "%")), "norm_en")"""
+        }).mkString("\n")
+      }
+         |        )
          |
          |    LET resItem = {
          |        "executionEventId" : ee._key,
@@ -162,7 +159,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         "pageSize" -> Int.box(pageRequest.size),
         "sortField" -> sortRequest.sortField,
         "sortOrder" -> sortRequest.sortOrder,
-        "searchTerm" -> maybeSearchTerm.map(StringUtils.lowerCase).orNull,
+        "searchTerm" -> maybeSearchTerm.map(escapeAQLSearch).orNull,
         "writeAppend" -> maybeAppend.map(Boolean.box).orNull,
         "applicationId" -> maybeApplicationId.orNull,
         "dataSourceUri" -> maybeDataSourceUri.orNull
@@ -178,4 +175,14 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         items -> totalCount
     }
   }
+}
+
+object ExecutionEventRepositoryImpl {
+  private val SearchFields = Seq(
+    "execPlanDetails.frameworkName",
+    "execPlanDetails.applicationName",
+    "extra.appId",
+    "execPlanDetails.dataSourceUri",
+    "execPlanDetails.dataSourceType",
+  )
 }
