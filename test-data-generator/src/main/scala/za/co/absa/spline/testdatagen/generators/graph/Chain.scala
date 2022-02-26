@@ -17,38 +17,27 @@
 package za.co.absa.spline.testdatagen.generators.graph
 
 import za.co.absa.spline.producer.model.v1_2._
-import za.co.absa.spline.testdatagen.generators.{AttributesGenerator, ExpressionGenerator, Graph}
+import za.co.absa.spline.testdatagen.generators.Graph
 
 class Chain(readCount: Int, dataOpCount: Int, attCount: Int)
   extends Graph(readCount, dataOpCount, attCount) {
 
-  override def generateDataOperationsAndExpressions(opCount: Int,
-                                                    reads: Map[ReadOperation, Seq[Attribute]]):
+  override def generateDataOperationsAndExpressions(opCount: Int, reads: Map[ReadOperation, Seq[Attribute]]):
   Map[DataOperation, Seq[(Attribute, FunctionalExpression, Literal)]] = {
 
-    val (read, readAttr) = reads.head
+    val (read: ReadOperation, readAttr: Seq[Attribute]) = reads.head
 
-    val initialDataOp = generateDataOperation(Seq(read.id), readAttr)
+    val initialAttExpLit: Seq[(Attribute, FunctionalExpression, Literal)] = generateAttributesFromNewExpressions(readAttr)
+    val initialDataOp: DataOperation = generateDataOperation(Seq(read.id), initialAttExpLit.map(_._1))
 
-    val initial = generateAttributesFromNewExpressions(readAttr)
-
-    val tuples = (1 until opCount.toInt).scanLeft((initialDataOp, initial)) { case (
-      (prevDataOp: DataOperation, prevAttrs: Seq[(Attribute, FunctionalExpression, Literal)]), _) => {
-      val expressionsAndLiterals = prevAttrs.map(ael => {
-        ExpressionGenerator.generateExpressionAndLiteralForAttribute(ael._1)
-      })
-
-      val attExpLit: Seq[(Attribute, FunctionalExpression, Literal)] = expressionsAndLiterals.map {
-        case (exp, lit) => {
-          val generatedAttribute = AttributesGenerator.generateAttributeFromExprParent(Some(exp.id))
-          (generatedAttribute, exp, lit)
-        }
+    val result = (1 until opCount.toInt).scanLeft((initialDataOp, initialAttExpLit)) {
+      case ((prevDataOp: DataOperation, prevAttrs: Seq[(Attribute, FunctionalExpression, Literal)]), _) => {
+        val attExpLit = generateAttributesFromNewExpressions(prevAttrs.map(_._1))
+        val generatedOperation = generateDataOperation(Seq(prevDataOp.id), attExpLit.map(_._1))
+        (generatedOperation, attExpLit)
       }
-      val generatedOperation = generateDataOperation(Seq(prevDataOp.id), attExpLit.map(_._1))
-      (generatedOperation, attExpLit)
     }
-    }
-    tuples.toMap
+    result.toMap
   }
 
   override def getWriteLinkedOperations(dataOperations: Seq[DataOperation]): Seq[String] = {

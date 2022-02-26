@@ -16,11 +16,14 @@
 
 package za.co.absa.spline.testdatagen.generators.graph
 
+import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers.contain
 import org.scalatest.matchers.should.Matchers.{all, convertToAnyShouldWrapper}
+import za.co.absa.spline.producer.model.v1_2.Attribute.Id
 import za.co.absa.spline.producer.model.v1_2.Expressions
 
-class DiamondSpec extends AnyFlatSpec {
+class DiamondSpec extends AnyFlatSpec with AttributeExpressionReferenceSpec {
 
   val diamond1 = new Diamond(3, 2, 4)
 
@@ -36,6 +39,8 @@ class DiamondSpec extends AnyFlatSpec {
 
     val attributes = plan.attributes
     attributes.size shouldEqual 12
+    attributes.map(_.id) should contain allElementsOf operations.reads.head.output.get
+    attributes.map(_.id) should contain allElementsOf operations.other.flatMap(_.output).flatten
 
     val expressions: Expressions = plan.expressions.get
     expressions.constants.size shouldEqual 8
@@ -46,6 +51,14 @@ class DiamondSpec extends AnyFlatSpec {
 
     //functional expressions referencing attributes should be the read attributes
     expressions.functions.flatMap(_.childRefs.flatMap(_.__attrId)).toSet shouldEqual operations.reads.head.output.get.toSet
+
+    val readAttributes: Seq[Id] = operations.reads.head.output.get
+    val firstDataOpAttributeIds: Seq[Id] = operations.other.head.output.get
+    val secondDataOpAttributeIds: Seq[Id] = operations.other(1).output.get
+
+    val checkingWiringFor: (Seq[Id], Seq[Id]) => Assertion = checkExpressionAttributeReferencingFor(expressions, attributes)
+    checkingWiringFor(readAttributes, firstDataOpAttributeIds)
+    checkingWiringFor(readAttributes, secondDataOpAttributeIds)
   }
 
 }

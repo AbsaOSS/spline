@@ -35,7 +35,7 @@ object GenCLI {
         ),
         help("help").text("Print this usage text."),
         version('v', "version").text("Print version info."),
-        opt[String]('r', "readCount")
+        opt[String]('r', "reads")
           .action((x, c) => c.copy(reads = NumericValue(x))),
         opt[String]('o', "opCount")
           .action((x, c) => c.copy(operations = NumericValue(x))),
@@ -67,8 +67,8 @@ object GenCLI {
   private def createDispatcher(name: String, config: ExpandedConfig): FileDispatcher = name match {
     case "file" =>
       new FileDispatcher(s"${config.graphType}-lineage-" +
-        s"${config.reads}readCount-" +
+        s"${config.reads}reads-" +
         s"${config.operations}ops-" +
-        s"${config.attributes}attr-")
+        s"${config.attributes}attr")
   }
 }

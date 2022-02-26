@@ -29,7 +29,7 @@ object ExpressionGenerator {
     val literalChildRef = AttrOrExprRef(None, Some(literal.id))
     val attributeChildRef = AttrOrExprRef(Some(attribute.id), None)
 
-    val expression = FunctionalExpression(UUID.randomUUID().toString, name = s"dummy_funcexpr_", childRefs = Seq(literalChildRef, attributeChildRef))
+    val expression = FunctionalExpression(UUID.randomUUID().toString, name = s"dummy_funcexpr", childRefs = Seq(literalChildRef, attributeChildRef))
     (expression, literal)
   }
 
