@@ -22,8 +22,8 @@ import za.co.absa.spline.testdatagen.generators.Graph
 class Diamond(readCount: Int, dataOpCount: Int, attCount: Int)
   extends Graph(readCount, dataOpCount, attCount) {
 
-  override def generateDataOperationsAndExpressions(opCount: Int,
-                                                    reads: Map[ReadOperation, Seq[Attribute]]): Map[DataOperation, Seq[(Attribute, FunctionalExpression, Literal)]] = {
+  override def generateDataOperationsAndExpressions(opCount: Int, reads: Map[ReadOperation, Seq[Attribute]]):
+  Map[DataOperation, Seq[(Attribute, FunctionalExpression, Literal)]] = {
     val (read: ReadOperation, readAttr: Seq[Attribute]) = reads.head
 
     val dataOperationsTuples = (1 to opCount).map(_ => {

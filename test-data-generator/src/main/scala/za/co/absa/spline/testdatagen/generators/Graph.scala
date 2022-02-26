@@ -88,14 +88,13 @@ abstract class Graph(readCount: Int, opCount: Int, attCount: Int) {
   def generateDataOperationsAndExpressions(opCount: Int, reads: Map[ReadOperation, Seq[Attribute]]):
   Map[DataOperation, Seq[(Attribute, FunctionalExpression, Literal)]]
 
-  def generateAttributesFromNewExpressions(prevAttrs: Seq[Attribute]): Seq[(Attribute, FunctionalExpression, Literal)] = {
-    val exprWithLiterals = prevAttrs.map(ExpressionGenerator.generateExpressionAndLiteralForAttribute)
+  def generateAttributesFromNewExpressions(parentAttrs: Seq[Attribute]): Seq[(Attribute, FunctionalExpression, Literal)] = {
+    val exprWithLiterals = parentAttrs.map(ExpressionGenerator.generateExpressionAndLiteralForAttribute)
 
     val attrExpLit = exprWithLiterals.map { case (fexp, lit) => {
-      val attribute = AttributesGenerator.generateAttributeFromExprParent(Some(fexp.id))
+      val attribute = AttributesGenerator.generateAttributeFromExpressionParent(Some(fexp.id))
       (attribute, fexp, lit)
-    }
-    }
+    }}
     attrExpLit
   }
 

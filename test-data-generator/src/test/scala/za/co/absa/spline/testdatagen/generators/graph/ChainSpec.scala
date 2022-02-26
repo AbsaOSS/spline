@@ -16,11 +16,14 @@
 
 package za.co.absa.spline.testdatagen.generators.graph
 
+import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers.contain
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import za.co.absa.spline.producer.model.v1_2.Attribute.Id
 import za.co.absa.spline.producer.model.v1_2.Expressions
 
-class ChainSpec extends AnyFlatSpec {
+class ChainSpec extends AnyFlatSpec with AttributeExpressionReferenceSpec {
 
   val chain1 = new Chain(3, 2, 4)
 
@@ -36,6 +39,8 @@ class ChainSpec extends AnyFlatSpec {
 
     val attributes = plan.attributes
     attributes.size shouldEqual 12
+    attributes.map(_.id) should contain allElementsOf operations.reads.head.output.get
+    attributes.map(_.id) should contain allElementsOf operations.other.flatMap(_.output).flatten
 
     val expressions: Expressions = plan.expressions.get
     expressions.constants.size shouldEqual 8
@@ -44,6 +49,12 @@ class ChainSpec extends AnyFlatSpec {
     //functional expressions referencing expressions should be the defined constants
     expressions.functions.flatMap(_.childRefs.flatMap(_.__exprId)) shouldEqual expressions.constants.map(_.id)
 
-  }
+    val readAttributes: Seq[Id] = operations.reads.head.output.get
+    val firstDataOpAttributeIds: Seq[Id] = operations.other.head.output.get
+    val secondDataOpAttributeIds: Seq[Id] = operations.other(1).output.get
 
+    val checkingWiringFor: (Seq[Id], Seq[Id]) => Assertion = checkExpressionAttributeReferencingFor(expressions, attributes)
+    checkingWiringFor(readAttributes, firstDataOpAttributeIds)
+    checkingWiringFor(firstDataOpAttributeIds, secondDataOpAttributeIds)
+  }
 }

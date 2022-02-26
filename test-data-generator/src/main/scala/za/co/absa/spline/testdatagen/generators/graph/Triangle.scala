@@ -41,7 +41,6 @@ class Triangle(readCount: Int, dataOpCount: Int, attCount: Int)
 
   override def generateDataOperationsAndExpressions(opCount: Int, reads: Map[ReadOperation, Seq[Attribute]]):
   Map[DataOperation, Seq[(Attribute, FunctionalExpression, Literal)]] = {
-
     reads
       .toSeq
       .take(opCount)
