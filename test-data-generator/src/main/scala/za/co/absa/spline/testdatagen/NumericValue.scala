@@ -35,7 +35,7 @@ object NumericValue {
     val VariablePattern = "([0-9]+)-([0-9]+)/([0-9]+)".r
     param match {
       case ConstantPattern(c) => Constant(c.toInt)
-      case VariablePattern(start: String, end: String, step: String) => Variable(start.toInt, end.toInt,step.toInt)
+      case VariablePattern(start: String, end: String, step: String) => Variable(start.toInt, end.toInt, step.toInt)
       case _ => throw new Exception("Invalid")
     }
   }

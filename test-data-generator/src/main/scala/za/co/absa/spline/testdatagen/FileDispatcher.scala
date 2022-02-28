@@ -20,10 +20,14 @@ import java.io.File
 import java.nio.charset.Charset
 
 import org.apache.commons.io.FileUtils
-import za.co.absa.commons.json.DefaultJacksonJsonSerDe
+import org.json4s.JsonAST.JValue
 import za.co.absa.spline.producer.model.v1_2.{ExecutionEvent, ExecutionPlan}
+import org.json4s.jackson.JsonMethods
+import za.co.absa.commons.json.AbstractJsonSerDe
+import za.co.absa.commons.json.format.{DefaultFormatsBuilder, JavaTypesSupport}
 
-class FileDispatcher(fileNamePrefix: String) extends DefaultJacksonJsonSerDe {
+class FileDispatcher(fileNamePrefix: String) extends AbstractJsonSerDe[JValue] with JsonMethods
+  with DefaultFormatsBuilder with JavaTypesSupport {
 
   def send(plan: ExecutionPlan): Unit =
     FileUtils.writeStringToFile(

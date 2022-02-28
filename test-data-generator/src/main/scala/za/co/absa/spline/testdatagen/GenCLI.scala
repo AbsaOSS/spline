@@ -17,9 +17,11 @@
 package za.co.absa.spline.testdatagen
 
 import za.co.absa.spline.common.SplineBuildInfo
+import za.co.absa.spline.producer.model.v1_2.ExecutionPlan
 import za.co.absa.spline.testdatagen.generators.{EventGenerator, Graph}
 
 object GenCLI {
+
   def main(args: Array[String]): Unit = {
     import scopt.OParser
     val builder = OParser.builder[Config]
@@ -35,7 +37,7 @@ object GenCLI {
         ),
         help("help").text("Print this usage text."),
         version('v', "version").text("Print version info."),
-        opt[String]('r', "reads")
+        opt[String]('r', "readCount")
           .action((x, c) => c.copy(reads = NumericValue(x))),
         opt[String]('o', "opCount")
           .action((x, c) => c.copy(operations = NumericValue(x))),
@@ -55,7 +57,7 @@ object GenCLI {
       println("Generating plan")
       val graphType: Graph = Graph(config)
 
-      val plan = graphType.generate()
+      val plan: ExecutionPlan = graphType.generate()
       dispatcher.send(plan)
 
       println("Generating event")

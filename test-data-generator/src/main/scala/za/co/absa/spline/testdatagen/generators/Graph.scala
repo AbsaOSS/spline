@@ -19,6 +19,7 @@ package za.co.absa.spline.testdatagen.generators
 import java.util.UUID
 
 import za.co.absa.spline.common.SplineBuildInfo
+import za.co.absa.spline.producer.model.v1_2.OperationLike.{Id, Schema}
 import za.co.absa.spline.producer.model.v1_2._
 import za.co.absa.spline.testdatagen.ExpandedConfig
 import za.co.absa.spline.testdatagen.GraphType.{DiamondType, TriangleType}
@@ -58,22 +59,15 @@ abstract class Graph(readCount: Int, opCount: Int, attCount: Int) {
     Map(read -> schema)
   }
 
-  def getWriteLinkedOperations(dataOperations: Seq[DataOperation]): Seq[String]
+  def getWriteLinkedOperation(dataOperations: Seq[DataOperation]): (Seq[String], Schema)
 
   def generateOperations(dataOpCount: Int, readOpCount: Int): (Operations, Seq[Attribute], Expressions) = {
     val readsMap: Map[ReadOperation, Seq[Attribute]] = generateReads(readOpCount)
 
     val dataOpsMap: Map[DataOperation, Seq[(Attribute, FunctionalExpression, Literal)]] = generateDataOperationsAndExpressions(dataOpCount, readsMap)
 
-    val linkedOperations = getWriteLinkedOperations(dataOpsMap.keys.toSeq)
-
-    val operations = Operations(
-      write = generateWrite(linkedOperations),
-      reads = readsMap.keys.toSeq,
-      other = dataOpsMap.keys.toSeq
-    )
-
     val dataOpAttributes: Iterable[Attribute] = dataOpsMap.values.flatMap(_.map(_._1))
+
     val readAttributes: Iterable[Attribute] = readsMap.values.flatten
     val allAttributesSet = (readAttributes ++ dataOpAttributes).toSet
 
@@ -81,6 +75,14 @@ abstract class Graph(readCount: Int, opCount: Int, attCount: Int) {
     val literals = dataOpsMap.values.flatMap(_.map(_._3)).toSeq
 
     val allExpressions = Expressions(functionalExpressions, literals)
+
+    val (linkedOperations, linkedAttributes: Schema) = getWriteLinkedOperation(dataOpsMap.keys.toSeq)
+    val finalDataOp = generateDataOperation(linkedOperations, linkedAttributes)
+    val operations = Operations(
+      write = generateWrite(Seq(finalDataOp.id)),
+      reads = readsMap.keys.toSeq,
+      other = dataOpsMap.keys.toSeq ++ Seq(finalDataOp)
+    )
 
     (operations, allAttributesSet.toSeq, allExpressions)
   }
@@ -98,13 +100,13 @@ abstract class Graph(readCount: Int, opCount: Int, attCount: Int) {
     attrExpLit
   }
 
-  protected def generateDataOperation(childIds: Seq[String], schema: Seq[Attribute]): DataOperation = {
+  protected def generateDataOperation(childIds: Seq[String], schema: Seq[Id]): DataOperation = {
     val id = UUID.randomUUID().toString
     DataOperation(
       id = id,
       name = Some(s"generated data operation $id"),
       childIds = childIds,
-      output = Some(schema.map(_.id)),
+      output = Some(schema),
       params = Map.empty,
       extra = Map.empty
     )

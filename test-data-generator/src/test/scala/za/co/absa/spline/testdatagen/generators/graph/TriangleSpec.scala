@@ -34,12 +34,12 @@ class TriangleSpec extends AnyFlatSpec with AttributeExpressionReferenceSpec {
     val operations = plan.operations
     val attributes = plan.attributes
     operations.reads.size shouldEqual 2
-    operations.other.size shouldEqual 5
+    operations.other.size shouldEqual 6
 
     exactly(4, operations.other.map(_.childIds)) shouldEqual List(operations.reads.head.id)
     exactly(1, operations.other.map(_.childIds)) shouldEqual List(operations.reads(1).id)
 
-    operations.write.childIds shouldEqual operations.other.map(_.id)
+    operations.write.childIds shouldEqual Seq(operations.other.last.id)
 
     attributes.size shouldEqual 28
     attributes.map(_.id) should contain allElementsOf operations.reads.head.output.get
@@ -56,11 +56,11 @@ class TriangleSpec extends AnyFlatSpec with AttributeExpressionReferenceSpec {
     val operations = plan.operations
     val attributes = plan.attributes
     operations.reads.size shouldEqual 5
-    operations.other.size shouldEqual 2
+    operations.other.size shouldEqual 3
 
     operations.other.head.childIds shouldEqual Seq(operations.reads.head.id)
     operations.other(1).childIds shouldEqual Seq(operations.reads(1).id)
-    operations.write.childIds shouldEqual operations.other.map(_.id)
+    operations.write.childIds shouldEqual Seq(operations.other.last.id)
 
     attributes.size shouldEqual 28
     attributes.map(_.id) should contain allElementsOf operations.reads.head.output.get

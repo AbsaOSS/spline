@@ -17,4 +17,4 @@
 
 FILE_TO_SEND=$1
 BASE_URL=$2
-curl -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data @"${FILE_TO_SEND}" ${BASE_URL}/producer/execution-plans
+curl -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data @"${FILE_TO_SEND}" ${BASE_URL}/producer/execution-events
