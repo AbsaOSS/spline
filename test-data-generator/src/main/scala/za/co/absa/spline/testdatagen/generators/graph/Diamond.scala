@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.testdatagen.generators.graph
 
+import za.co.absa.spline.producer.model.v1_2.OperationLike.Schema
 import za.co.absa.spline.producer.model.v1_2._
 import za.co.absa.spline.testdatagen.generators.Graph
 
@@ -29,13 +30,13 @@ class Diamond(readCount: Int, dataOpCount: Int, attCount: Int)
     val dataOperationsTuples = (1 to opCount).map(_ => {
       val attExpLit = generateAttributesFromNewExpressions(readAttr)
 
-      val dataOperation = generateDataOperation(Seq(read.id), attExpLit.map(_._1))
+      val dataOperation = generateDataOperation(Seq(read.id), attExpLit.map(_._1.id))
       (dataOperation, attExpLit)
     })
     dataOperationsTuples.toMap
   }
 
-  override def getWriteLinkedOperations(dataOperations: Seq[DataOperation]): Seq[String] = {
-    dataOperations.map(_.id)
+  override def getWriteLinkedOperation(dataOperations: Seq[DataOperation]): (Seq[String], Schema) = {
+    (dataOperations.map(_.id), dataOperations.flatMap(_.output).flatten)
   }
 }

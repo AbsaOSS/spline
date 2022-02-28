@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.testdatagen.generators.graph
 
+import za.co.absa.spline.producer.model.v1_2.OperationLike.Schema
 import za.co.absa.spline.producer.model.v1_2._
 import za.co.absa.spline.testdatagen.generators.AttributesGenerator.generateSchema
 import za.co.absa.spline.testdatagen.generators.Graph
@@ -47,13 +48,13 @@ class Triangle(readCount: Int, dataOpCount: Int, attCount: Int)
       .padTo(opCount, reads.head)
       .map{ case (readOp: ReadOperation, schema: Seq[Attribute]) => {
         val attExpLit: Seq[(Attribute, FunctionalExpression, Literal)] = generateAttributesFromNewExpressions(schema)
-        val dataOperation = generateDataOperation(Seq(readOp.id), attExpLit.map(_._1))
+        val dataOperation = generateDataOperation(Seq(readOp.id), attExpLit.map(_._1.id))
         (dataOperation, attExpLit)
       }}.toMap
 
   }
 
-  override def getWriteLinkedOperations(dataOperations: Seq[DataOperation]): Seq[String] = {
-    dataOperations.map(_.id)
+  override def getWriteLinkedOperation(dataOperations: Seq[DataOperation]): (Seq[String], Schema) = {
+    (dataOperations.map(_.id), dataOperations.flatMap(_.output).flatten)
   }
 }

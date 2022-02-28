@@ -34,8 +34,8 @@ class DiamondSpec extends AnyFlatSpec with AttributeExpressionReferenceSpec {
     val operations = plan.operations
     operations.reads.size shouldEqual 1
     operations.reads.head.inputSources.size shouldEqual 3
-    all(operations.other.map(_.childIds)) shouldBe Seq(operations.reads.head.id)
-    operations.write.childIds shouldEqual operations.other.map(_.id)
+    all(operations.other.dropRight(1).map(_.childIds)) shouldBe Seq(operations.reads.head.id)
+    operations.write.childIds shouldEqual Seq(operations.other.last.id)
 
     val attributes = plan.attributes
     attributes.size shouldEqual 12
