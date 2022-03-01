@@ -27,15 +27,13 @@ object AttributesGenerator {
     1.to(nr).map(id => Attribute(id = UUID.randomUUID().toString, name = s"dummy_attr_${id}"))
   }
 
-  def generateAttributeFromExpressionParent(parentID: Option[Id]): Attribute = {
+  def generateAttributeFromExpressionParent(parentId: Id): Attribute = {
     val attrId = UUID.randomUUID().toString
-    parentID match {
-      case Some(parent) => Attribute(id = attrId, name = s"dummy_attr_${attrId}", childRefs =
+    Attribute(id = attrId, name = s"dummy_attr_${attrId}", childRefs =
         Seq(AttrOrExprRef(
           __attrId = None,
-          __exprId = Some(parent))
-        ))
-      case None => Attribute(id = UUID.randomUUID().toString, name = s"dummy_attr_${attrId}")
-    }
+          __exprId = Some(parentId))
+        )
+    )
   }
 }

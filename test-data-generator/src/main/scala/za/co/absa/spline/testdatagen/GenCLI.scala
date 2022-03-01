@@ -44,7 +44,12 @@ object GenCLI {
         opt[String]('a', "attCount")
           .action((x, c) => c.copy(attributes = NumericValue(x))),
         opt[String]('g', "graph-type")
-          .action((x: String, c) => c.copy(graphType = GraphType.withNameWithDefault(x)))
+          .action((x: String, c) => {
+            GraphType.fromString(x) match {
+              case Some(graphType) => c.copy(graphType = graphType)
+              case None => c
+            }
+          })
       )
     }
 
@@ -68,7 +73,7 @@ object GenCLI {
 
   private def createDispatcher(name: String, config: ExpandedConfig): FileDispatcher = name match {
     case "file" =>
-      new FileDispatcher(s"${config.graphType}-lineage-" +
+      new FileDispatcher(s"${config.graphType.value}-lineage-" +
         s"${config.reads}reads-" +
         s"${config.operations}ops-" +
         s"${config.attributes}attr")
