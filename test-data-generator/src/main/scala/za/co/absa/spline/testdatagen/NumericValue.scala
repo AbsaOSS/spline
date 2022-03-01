@@ -20,7 +20,7 @@ sealed trait NumericValue {
   def isExpanded: Boolean = this.isInstanceOf[Constant]
 
   def valueOf(): Int = if (isExpanded) this.asInstanceOf[Constant].value else {
-    throw new Exception("Not expanded")
+    throw new NotImplementedError("Not expanded")
   }
 }
 case class Constant(value: Int) extends NumericValue
@@ -30,13 +30,15 @@ case class Variable(start: Int, end: Int, step: Int) extends NumericValue {
 }
 
 object NumericValue {
+  private val numberPattern = "([0-9]+)"
+
   def apply(param: String): NumericValue = {
-    val ConstantPattern = "([0-9]+)".r
-    val VariablePattern = "([0-9]+)-([0-9]+)/([0-9]+)".r
+    val ConstantPattern = numberPattern.r
+    val VariablePattern = (numberPattern + "-" + numberPattern + "/" + numberPattern).r
     param match {
       case ConstantPattern(c) => Constant(c.toInt)
       case VariablePattern(start: String, end: String, step: String) => Variable(start.toInt, end.toInt, step.toInt)
-      case _ => throw new Exception("Invalid")
+      case _ => throw new IllegalArgumentException("Invalid specified pattern")
     }
   }
 }

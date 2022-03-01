@@ -22,7 +22,7 @@ import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.producer.model.v1_2.OperationLike.{Id, Schema}
 import za.co.absa.spline.producer.model.v1_2._
 import za.co.absa.spline.testdatagen.ExpandedConfig
-import za.co.absa.spline.testdatagen.GraphType.{DiamondType, TriangleType}
+import za.co.absa.spline.testdatagen.GraphType.{ChainType, DiamondType, TriangleType}
 import za.co.absa.spline.testdatagen.generators.AttributesGenerator.generateSchema
 import za.co.absa.spline.testdatagen.generators.graph.{Chain, Diamond, Triangle}
 
@@ -87,16 +87,19 @@ abstract class Graph(readCount: Int, opCount: Int, attCount: Int) {
     (operations, allAttributesSet.toSeq, allExpressions)
   }
 
-  def generateDataOperationsAndExpressions(opCount: Int, reads: Map[ReadOperation, Seq[Attribute]]):
-  Map[DataOperation, Seq[(Attribute, FunctionalExpression, Literal)]]
+  def generateDataOperationsAndExpressions(
+                                            opCount: Int,
+                                            reads: Map[ReadOperation, Seq[Attribute]]
+                                          ): Map[DataOperation, Seq[(Attribute, FunctionalExpression, Literal)]]
 
   def generateAttributesFromNewExpressions(parentAttrs: Seq[Attribute]): Seq[(Attribute, FunctionalExpression, Literal)] = {
     val exprWithLiterals = parentAttrs.map(ExpressionGenerator.generateExpressionAndLiteralForAttribute)
 
-    val attrExpLit = exprWithLiterals.map { case (fexp, lit) => {
-      val attribute = AttributesGenerator.generateAttributeFromExpressionParent(Some(fexp.id))
-      (attribute, fexp, lit)
-    }}
+    val attrExpLit = exprWithLiterals.map {
+      case (fexp, lit) =>
+        val attribute = AttributesGenerator.generateAttributeFromExpressionParent(fexp.id)
+        (attribute, fexp, lit)
+    }
     attrExpLit
   }
 
@@ -130,7 +133,7 @@ object Graph {
     config.graphType match {
       case DiamondType => new Diamond(config.reads, config.operations, config.attributes)
       case TriangleType => new Triangle(config.reads, config.operations, config.attributes)
-      case _ => new Chain(config.reads, config.operations, config.attributes)
+      case ChainType => new Chain(config.reads, config.operations, config.attributes)
     }
   }
 }

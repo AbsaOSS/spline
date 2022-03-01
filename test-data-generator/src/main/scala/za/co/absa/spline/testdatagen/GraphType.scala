@@ -16,13 +16,15 @@
 
 package za.co.absa.spline.testdatagen
 
-object GraphType extends Enumeration {
-  type GraphType = Value
+sealed abstract class GraphType(val value: String)
 
-  val ChainType: Value = Value("chain")
-  val DiamondType: Value = Value("diamond")
-  val TriangleType: Value = Value("triangle")
+object GraphType {
 
-  def withNameWithDefault(name: String): Value =
-    values.find(_.toString.toLowerCase() == name.toLowerCase()).getOrElse(ChainType)
+  case object ChainType extends GraphType("chain")
+  case object DiamondType extends GraphType("diamond")
+  case object TriangleType extends GraphType("triangle")
+
+  def fromString(value: String): Option[GraphType] = {
+    Vector(ChainType, DiamondType, TriangleType).find(_.value.equalsIgnoreCase(value))
+  }
 }

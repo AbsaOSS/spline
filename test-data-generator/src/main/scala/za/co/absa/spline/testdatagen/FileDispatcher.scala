@@ -26,8 +26,10 @@ import org.json4s.jackson.JsonMethods
 import za.co.absa.commons.json.AbstractJsonSerDe
 import za.co.absa.commons.json.format.{DefaultFormatsBuilder, JavaTypesSupport}
 
-class FileDispatcher(fileNamePrefix: String) extends AbstractJsonSerDe[JValue] with JsonMethods
-  with DefaultFormatsBuilder with JavaTypesSupport {
+class FileDispatcher(fileNamePrefix: String) extends AbstractJsonSerDe[JValue]
+  with JsonMethods
+  with DefaultFormatsBuilder
+  with JavaTypesSupport {
 
   def send(plan: ExecutionPlan): Unit =
     FileUtils.writeStringToFile(

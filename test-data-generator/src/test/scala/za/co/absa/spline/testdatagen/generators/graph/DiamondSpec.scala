@@ -56,9 +56,9 @@ class DiamondSpec extends AnyFlatSpec with AttributeExpressionReferenceSpec {
     val firstDataOpAttributeIds: Seq[Id] = operations.other.head.output.get
     val secondDataOpAttributeIds: Seq[Id] = operations.other(1).output.get
 
-    val checkingWiringFor: (Seq[Id], Seq[Id]) => Assertion = checkExpressionAttributeReferencingFor(expressions, attributes)
-    checkingWiringFor(readAttributes, firstDataOpAttributeIds)
-    checkingWiringFor(readAttributes, secondDataOpAttributeIds)
+    val checkWiringFor: (Seq[Id], Seq[Id]) => Assertion = checkExpressionAttributeReferencingFor(expressions, attributes)
+    checkWiringFor(readAttributes, firstDataOpAttributeIds)
+    checkWiringFor(readAttributes, secondDataOpAttributeIds)
   }
 
 }
