@@ -39,7 +39,11 @@ abstract class Graph(readCount: Int, opCount: Int, attCount: Int) {
       expressions = Some(expressions),
       systemInfo = NameAndVersion("spline-data-gen", SplineBuildInfo.Version),
       agentInfo = None,
-      extraInfo = Map("graph-type"-> this.getClass.getSimpleName)
+      extraInfo = Map("graph-type"-> this.getClass.getSimpleName,
+        "operationCount" -> opCount,
+        "attributeCount" -> attCount,
+        "readCount" -> readCount
+      )
     )
   }
 

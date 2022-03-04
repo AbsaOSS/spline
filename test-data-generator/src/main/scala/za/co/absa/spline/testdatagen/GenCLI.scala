@@ -20,7 +20,27 @@ import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.producer.model.v1_2.ExecutionPlan
 import za.co.absa.spline.testdatagen.generators.{EventGenerator, Graph}
 
+import scala.util.{Failure, Success, Try}
+
 object GenCLI {
+
+  def validateNumericParam(param: String): Either[String, Unit] = {
+    Try(NumericValue(param)) match {
+      case Failure(exception) => Left(exception.getMessage)
+      case Success(_) => Right()
+    }
+  }
+
+  val numericParamText = "positive integers or patterns like: start-end/step, each element positive integer"
+
+  val validGraphValues: String = GraphType.stringValues.mkString(", ")
+
+  def validateGraphType(param: String): Either[String, Unit] = {
+    GraphType.fromString(param) match {
+      case None => Left(s"Invalid provided graph type. Valid values: ${validGraphValues}")
+      case Some(_) => Right()
+    }
+  }
 
   def main(args: Array[String]): Unit = {
     import scopt.OParser
@@ -32,23 +52,34 @@ object GenCLI {
         head(
           s"""
              |Spline Test Data Generator
-             |Version: ${SplineBuildInfo.Version} (rev. ${SplineBuildInfo.Revision})
+             |Version: ${SplineBuildInfo.Version})
              |""".stripMargin
         ),
         help("help").text("Print this usage text."),
         version('v', "version").text("Print version info."),
         opt[String]('r', "readCount")
-          .action((x, c) => c.copy(reads = NumericValue(x))),
+          .validate(validateNumericParam)
+          .required()
+          .text(numericParamText)
+          .action((x, c) => c.copy(reads = NumericValue(x)))
+        ,
         opt[String]('o', "opCount")
-          .action((x, c) => c.copy(operations = NumericValue(x))),
+          .validate(validateNumericParam)
+          .required()
+          .text(numericParamText)
+          .action((x, c) => c.copy(operations = NumericValue(x)))
+          .text(""),
         opt[String]('a', "attCount")
+          .validate(validateNumericParam)
+          .required()
+          .text(numericParamText)
           .action((x, c) => c.copy(attributes = NumericValue(x))),
         opt[String]('g', "graph-type")
+          .validate(validateGraphType)
+          .required()
+          .text(s"Supported values: ${validGraphValues}")
           .action((x: String, c) => {
-            GraphType.fromString(x) match {
-              case Some(graphType) => c.copy(graphType = graphType)
-              case None => c
-            }
+            c.copy(graphType = GraphType.fromString(x).get)
           })
       )
     }
@@ -57,21 +88,18 @@ object GenCLI {
 
     val configs: Seq[ExpandedConfig] = config.expand()
 
+    val dispatcher = createDispatcher("file", config)
+
     configs.foreach(config => {
-      val dispatcher = createDispatcher("file", config)
-      println("Generating plan")
       val graphType: Graph = Graph(config)
 
       val plan: ExecutionPlan = graphType.generate()
-      dispatcher.send(plan)
-
-      println("Generating event")
       val event = EventGenerator.generate(plan)
-      dispatcher.send(event)
+      dispatcher.send(event, plan)
     })
   }
 
-  private def createDispatcher(name: String, config: ExpandedConfig): FileDispatcher = name match {
+  private def createDispatcher(name: String, config: Config): FileDispatcher = name match {
     case "file" =>
       new FileDispatcher(s"${config.graphType.value}-lineage-" +
         s"${config.reads}reads-" +

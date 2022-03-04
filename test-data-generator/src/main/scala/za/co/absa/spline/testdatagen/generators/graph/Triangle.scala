@@ -42,7 +42,7 @@ class Triangle(readCount: Int, dataOpCount: Int, attCount: Int)
 
   override def generateDataOperationsAndExpressions(opCount: Int, reads: Map[ReadOperation, Seq[Attribute]]):
   Map[DataOperation, Seq[(Attribute, FunctionalExpression, Literal)]] = {
-    reads
+    val mapping = reads
       .toSeq
       .take(opCount)
       .padTo(opCount, reads.head)
@@ -50,7 +50,24 @@ class Triangle(readCount: Int, dataOpCount: Int, attCount: Int)
         val attExpLit: Seq[(Attribute, FunctionalExpression, Literal)] = generateAttributesFromNewExpressions(schema)
         val dataOperation = generateDataOperation(Seq(readOp.id), attExpLit.map(_._1.id))
         (dataOperation, attExpLit)
-      }}.toMap
+      }}
+
+
+    if (readCount > opCount) {
+      val lastReadMappings: Seq[(ReadOperation, Seq[Attribute])] = reads.toSeq.takeRight(reads.size - opCount)
+      val lastDataOp = mapping.last._1
+
+      val newLastDataOp = lastDataOp.copy(childIds = lastDataOp.childIds ++ lastReadMappings.map(_._1.id))
+      val prevLastAttExpLit: Seq[(Attribute, FunctionalExpression, Literal)] = mapping.last._2
+
+      val lastReadAttExpLits: Seq[Seq[(Attribute, FunctionalExpression, Literal)]] = lastReadMappings.map(_._2)
+        .map(generateAttributesFromNewExpressions)
+      val newLastAttExpLit = prevLastAttExpLit ++ lastReadAttExpLits.flatten
+
+      (mapping.init :+ (newLastDataOp, newLastAttExpLit)).toMap
+    } else {
+      mapping.toMap
+    }
 
   }
 

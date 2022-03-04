@@ -15,6 +15,15 @@
   limitations under the License.
 '
 
-FILE_TO_SEND=$1
+filename=$1
 BASE_URL=$2
-curl -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data @"${FILE_TO_SEND}" ${BASE_URL}/producer/execution-plans
+while read line; do
+  if [[ $line =~ ^{.* ]]
+  then
+    echo "Sending plan"
+    curl -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data "${line}" ${BASE_URL}/producer/execution-plans
+  else
+    echo "Sending event"
+    curl -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data "${line}" ${BASE_URL}/producer/execution-events
+  fi
+done < $filename
