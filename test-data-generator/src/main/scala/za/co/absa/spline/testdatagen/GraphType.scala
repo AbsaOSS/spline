@@ -15,6 +15,7 @@
  */
 
 package za.co.absa.spline.testdatagen
+import scala.collection.immutable
 
 sealed abstract class GraphType(val value: String)
 
@@ -24,7 +25,10 @@ object GraphType {
   case object DiamondType extends GraphType("diamond")
   case object TriangleType extends GraphType("triangle")
 
+  private val values = Vector(ChainType, DiamondType, TriangleType)
+  val stringValues: immutable.Seq[String] = values.map(_.value)
+
   def fromString(value: String): Option[GraphType] = {
-    Vector(ChainType, DiamondType, TriangleType).find(_.value.equalsIgnoreCase(value))
+    values.find(_.value.equalsIgnoreCase(value))
   }
 }

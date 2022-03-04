@@ -59,28 +59,34 @@ class TriangleSpec extends AnyFlatSpec with AttributeExpressionReferenceSpec {
     operations.other.size shouldEqual 3
 
     operations.other.head.childIds shouldEqual Seq(operations.reads.head.id)
-    operations.other(1).childIds shouldEqual Seq(operations.reads(1).id)
+    operations.other(1).childIds shouldEqual operations.reads.takeRight(4).map(_.id)
     operations.write.childIds shouldEqual Seq(operations.other.last.id)
 
-    attributes.size shouldEqual 28
+    attributes.size shouldEqual 40
     attributes.map(_.id) should contain allElementsOf operations.reads.head.output.get
     attributes.map(_.id) should contain allElementsOf operations.other.flatMap(_.output).flatten
 
     val expressions = plan.expressions.get
-    expressions.constants.size shouldEqual 8
-    expressions.functions.size shouldEqual 8
+    expressions.constants.size shouldEqual 20
+    expressions.functions.size shouldEqual 20
 
     //functional expressions referencing expressions should be the defined constants
     expressions.functions.flatMap(_.childRefs.flatMap(_.__exprId)) shouldEqual expressions.constants.map(_.id)
 
     val firstReadAttributes: Seq[Id] = operations.reads.head.output.get
     val secondReadAttributes: Seq[Id] = operations.reads(1).output.get
+    val thirdReadAttributes: Seq[Id] = operations.reads(1).output.get
+    val fourthReadAttributes: Seq[Id] = operations.reads(1).output.get
+    val fifthReadAttributes: Seq[Id] = operations.reads(1).output.get
     val firstDataOpAttributeIds: Seq[Id] = operations.other.head.output.get
     val secondDataOpAttributeIds: Seq[Id] = operations.other(1).output.get
 
     val checkingWiringFor: (Seq[Id], Seq[Id]) => Assertion = checkExpressionAttributeReferencingFor(expressions, attributes)
     checkingWiringFor(firstReadAttributes, firstDataOpAttributeIds)
     checkingWiringFor(secondReadAttributes, secondDataOpAttributeIds)
+    checkingWiringFor(thirdReadAttributes, secondDataOpAttributeIds)
+    checkingWiringFor(fourthReadAttributes, secondDataOpAttributeIds)
+    checkingWiringFor(fifthReadAttributes, secondDataOpAttributeIds)
   }
 
 
