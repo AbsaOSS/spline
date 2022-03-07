@@ -40,7 +40,7 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
     asAtTime: Long,
     labels: Array[Label],
     maybeSearchTerm: Option[String],
-    maybeAppend: Option[Boolean],
+    writeAppendOptions: Array[Option[Boolean]],
     maybeApplicationId: Option[String],
     maybeDataSourceUri: Option[String]
   )(implicit ec: ExecutionContext): Future[(Long, Long)] = {
@@ -54,7 +54,10 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
          |    SEARCH ds._created <= @asAtTime
          |        AND (@dataSourceUri == null OR @dataSourceUri == ds.uri)
          |        AND (@applicationId == null OR @applicationId == ds.lastWriteDetails.extra.appId)
-         |        AND (@writeAppend   == null OR @writeAppend   == ds.lastWriteDetails.execPlanDetails.append)
+         |        AND (@writeAppends   == null
+         |           OR ds.lastWriteDetails.execPlanDetails.append IN @writeAppends
+         |           OR (@includeNoWrite AND !EXISTS(ds.lastWriteDetails))
+         |        )
       ${
         lblNames.zipWithIndex.map({
           case (lblName, i) =>
@@ -82,7 +85,8 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
       Map[String, AnyRef](
         "asAtTime" -> Long.box(asAtTime),
         "searchTerm" -> maybeSearchTerm.map(escapeAQLSearch).orNull,
-        "writeAppend" -> maybeAppend.map(Boolean.box).orNull,
+        "writeAppends" -> (if (writeAppendOptions.isEmpty) null else writeAppendOptions.flatten.map(Boolean.box)),
+        "includeNoWrite" -> Boolean.box(writeAppendOptions.contains(None)),
         "applicationId" -> maybeApplicationId.orNull,
         "dataSourceUri" -> maybeDataSourceUri.orNull
       ).optionally(
@@ -100,7 +104,7 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
     sortRequest: SortRequest,
     labels: Array[Label],
     maybeSearchTerm: Option[String],
-    maybeAppend: Option[Boolean],
+    writeAppendOptions: Array[Option[Boolean]],
     maybeWriteApplicationId: Option[String],
     maybeDataSourceUri: Option[String]
   )(implicit ec: ExecutionContext): Future[(Seq[WriteEventInfo], Long)] = {
@@ -115,7 +119,10 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
          |        AND (@timestampStart == null OR IN_RANGE(ds.lastWriteDetails.timestamp, @timestampStart, @timestampEnd, true, true))
          |        AND (@dataSourceUri  == null OR @dataSourceUri == ds.uri)
          |        AND (@applicationId  == null OR @applicationId == ds.lastWriteDetails.extra.appId)
-         |        AND (@writeAppend    == null OR @writeAppend   == ds.lastWriteDetails.execPlanDetails.append)
+         |        AND (@writeAppends   == null
+         |           OR ds.lastWriteDetails.execPlanDetails.append IN @writeAppends
+         |           OR (@includeNoWrite AND !EXISTS(ds.lastWriteDetails))
+         |        )
       ${
         lblNames.zipWithIndex.map({
           case (lblName, i) =>
@@ -160,7 +167,8 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         "sortField" -> sortRequest.sortField,
         "sortOrder" -> sortRequest.sortOrder,
         "searchTerm" -> maybeSearchTerm.map(escapeAQLSearch).orNull,
-        "writeAppend" -> maybeAppend.map(Boolean.box).orNull,
+        "writeAppends" -> (if (writeAppendOptions.isEmpty) null else writeAppendOptions.flatten.map(Boolean.box)),
+        "includeNoWrite" -> Boolean.box(writeAppendOptions.contains(None)),
         "applicationId" -> maybeWriteApplicationId.orNull,
         "dataSourceUri" -> maybeDataSourceUri.orNull
       ).optionally(

@@ -40,7 +40,7 @@ class AbstractExecutionEventsController(
     sortOrder: String,
     labels: Array[Label],
     searchTerm: String,
-    append: java.lang.Boolean,
+    writeAppendOptions: Array[Option[Boolean]],
     applicationId: String,
     dataSourceUri: String
   ): Future[PageableExecutionEventsResponse] = {
@@ -50,7 +50,6 @@ class AbstractExecutionEventsController(
     val sortRequest = SortRequest(sortField, sortOrder)
 
     val maybeSearchTerm = searchTerm.nonBlankOption
-    val maybeAppend = append.asOption.map(Boolean.unbox)
     val maybeWriteApplicationId = applicationId.nonBlankOption
     val maybeDataSourceUri = dataSourceUri.nonBlankOption
     val maybeWriteTimestampStart = timestampStart.asOption.map(Long.unbox)
@@ -62,7 +61,7 @@ class AbstractExecutionEventsController(
           asAtTime,
           labels,
           maybeSearchTerm,
-          maybeAppend,
+          writeAppendOptions,
           maybeWriteApplicationId,
           maybeDataSourceUri
         ) map {
@@ -80,7 +79,7 @@ class AbstractExecutionEventsController(
         sortRequest,
         labels,
         maybeSearchTerm,
-        maybeAppend,
+        writeAppendOptions,
         maybeWriteApplicationId,
         maybeDataSourceUri)
 

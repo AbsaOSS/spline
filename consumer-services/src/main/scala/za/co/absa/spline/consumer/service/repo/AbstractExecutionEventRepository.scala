@@ -25,7 +25,7 @@ trait AbstractExecutionEventRepository {
     asAtTime: Long,
     labels: Array[Label],
     maybeSearchTerm: Option[String],
-    maybeAppend: Option[Boolean],
+    writeAppendOptions: Array[Option[Boolean]],
     maybeApplicationId: Option[String],
     maybeDataSourceUri: Option[String])
     (implicit ec: ExecutionContext): Future[(Long, Long)]
@@ -38,7 +38,7 @@ trait AbstractExecutionEventRepository {
     sortRequest: SortRequest,
     labels: Array[Label],
     maybeSearchTerm: Option[String],
-    maybeAppend: Option[Boolean],
+    writeAppendOptions: Array[Option[Boolean]],
     maybeApplicationId: Option[String],
     maybeDataSourceUri: Option[String])
     (implicit ec: ExecutionContext): Future[(Seq[WriteEventInfo], Long)]
