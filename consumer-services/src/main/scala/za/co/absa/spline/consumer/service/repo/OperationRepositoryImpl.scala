@@ -91,6 +91,8 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
         |    }
         |""".stripMargin,
       Map("operationId" -> operationId)
-    )
+    ).recover({
+      case _: NoSuchElementException => throw new NoSuchElementException(s"Operation ID '$operationId' not found")
+    })
   }
 }
