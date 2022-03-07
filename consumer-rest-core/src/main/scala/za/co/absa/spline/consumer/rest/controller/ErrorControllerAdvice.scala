@@ -30,7 +30,7 @@ class ErrorControllerAdvice {
   @ExceptionHandler(Array(
     classOf[NoSuchElementException]
   ))
-  def notFound(e: Exception): ResponseEntity[_] = new ResponseEntity(ErrorRef(e), NOT_FOUND)
+  def notFound(e: Exception): ResponseEntity[_] = new ResponseEntity(ErrorRef(e, e.getMessage), NOT_FOUND)
 
   @ExceptionHandler(Array(
     classOf[TypeMismatchException],
@@ -41,8 +41,8 @@ class ErrorControllerAdvice {
   @ExceptionHandler(Array(
     classOf[AsyncRequestTimeoutException]
   ))
-  def asyncTimeout(e: Exception): ResponseEntity[_] = new ResponseEntity(ErrorRef(e), SERVICE_UNAVAILABLE)
+  def asyncTimeout(e: Exception): ResponseEntity[_] = new ResponseEntity(ErrorRef(e, e.getMessage), SERVICE_UNAVAILABLE)
 
   @ExceptionHandler
-  def serverError(e: Throwable): ResponseEntity[_] = new ResponseEntity(ErrorRef(e), INTERNAL_SERVER_ERROR)
+  def serverError(e: Throwable): ResponseEntity[_] = new ResponseEntity(ErrorRef(e, e.getMessage), INTERNAL_SERVER_ERROR)
 }
