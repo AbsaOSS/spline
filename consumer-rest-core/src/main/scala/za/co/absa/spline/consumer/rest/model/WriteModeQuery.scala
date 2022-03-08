@@ -18,7 +18,7 @@ package za.co.absa.spline.consumer.rest.model
 
 object WriteModeQuery {
   def parse(str: String): Array[Option[Boolean]] = {
-    str.split(",").map(s => {
+    str.split(",").map(_.trim).map(s => {
       if (s.isEmpty) None
       else Some(s.toBoolean)
     })
