@@ -37,7 +37,7 @@ object GenCLI {
 
   def validateGraphType(param: String): Either[String, Unit] = {
     GraphType.fromString(param) match {
-      case None => Left(s"Invalid provided graph type. Valid values: ${validGraphValues}")
+      case None => Left(s"Invalid provided graph type. Valid values: $validGraphValues")
       case Some(_) => Right()
     }
   }
@@ -52,7 +52,7 @@ object GenCLI {
         head(
           s"""
              |Spline Test Data Generator
-             |Version: ${SplineBuildInfo.Version})
+             |Version: ${SplineBuildInfo.Version} (rev. ${SplineBuildInfo.Revision})
              |""".stripMargin
         ),
         help("help").text("Print this usage text."),
@@ -101,7 +101,7 @@ object GenCLI {
 
   private def createDispatcher(name: String, config: Config): FileDispatcher = name match {
     case "file" =>
-      new FileDispatcher(s"${config.graphType.value}-lineage-" +
+      new FileDispatcher(s"${config.graphType.name}-lineage-" +
         s"${config.reads}reads-" +
         s"${config.operations}ops-" +
         s"${config.attributes}attr")
