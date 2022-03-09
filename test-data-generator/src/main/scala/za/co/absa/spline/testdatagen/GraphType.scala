@@ -15,18 +15,23 @@
  */
 
 package za.co.absa.spline.testdatagen
+import za.co.absa.commons.reflect.EnumerationMacros
 
-import za.co.absa.spline.producer.model.v1_2.{ExecutionEvent, ExecutionPlan}
+sealed abstract class GraphType(val name: String)
 
-object EventGenerator {
+object GraphType {
 
-  def generate(executionPlan: ExecutionPlan): ExecutionEvent = {
-    ExecutionEvent(
-      planId = executionPlan.id,
-      timestamp = System.currentTimeMillis(),
-      durationNs = None,
-      error = None,
-      extra = Map.empty
-    )
+  case object ChainType extends GraphType("chain")
+
+  case object DiamondType extends GraphType("diamond")
+
+  case object TriangleType extends GraphType("triangle")
+
+  private val values: Set[GraphType] = EnumerationMacros.sealedInstancesOf[GraphType]
+  val stringValues: Set[String] = values.map(_.name)
+
+  def fromString(value: String): Option[GraphType] = {
+    values.find(_.name.equalsIgnoreCase(value))
   }
+
 }
