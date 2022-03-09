@@ -48,10 +48,11 @@ class OperationDetailsController @Autowired()
     @ApiParam(value = "Id of the operation node to retrieve")
     @PathVariable("operationId") operationId: Operation.Id
   ): Future[OperationDetails] = {
-
+    val eventualGraph = expressionRepo.expressionGraphUsedByOperation(operationId)
+    val eventualOpDetails = operationRepo.findById(operationId)
     for {
-      opDetails <- operationRepo.findById(operationId)
-      exprGraph <- expressionRepo.expressionGraphUsedByOperation(operationId)
+      opDetails <- eventualOpDetails
+      exprGraph <- eventualGraph
     } yield {
       opDetails.copy(
         dataTypes = reducedDataTypes(opDetails.dataTypes, opDetails.schemas),

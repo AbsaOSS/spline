@@ -19,7 +19,7 @@ import io.swagger.annotations.{Api, ApiOperation, ApiParam}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.rest.controller.DataSourcesController.PageableDataSourcesResponse
-import za.co.absa.spline.consumer.rest.model.LabelQuery
+import za.co.absa.spline.consumer.rest.model.{LabelQuery, WriteModeQuery}
 import za.co.absa.spline.consumer.service.model._
 import za.co.absa.spline.consumer.service.repo.DataSourceRepository
 
@@ -68,8 +68,8 @@ class DataSourcesController @Autowired()(
     @ApiParam(value = "Text to filter the results")
     @RequestParam(value = "searchTerm", required = false) searchTerm: String,
 
-    @ApiParam(value = "Write mode (true - append, false - overwrite")
-    @RequestParam(value = "append", required = false) append: java.lang.Boolean,
+    @ApiParam(value = "Write mode. Comma separated values of: `true` - append, `false` - overwrite, empty string - read only")
+    @RequestParam(value = "append", required = false) append: String,
 
     @ApiParam(value = "Id of the application")
     @RequestParam(value = "applicationId", required = false) writeApplicationId: String,
@@ -88,7 +88,7 @@ class DataSourcesController @Autowired()(
     sortOrder,
     Option(labelQueries).getOrElse(Array.empty).flatMap(LabelQuery.parse),
     searchTerm,
-    append,
+    Option(append).map(WriteModeQuery.parse).getOrElse(Array.empty),
     writeApplicationId,
     dataSourceUri
   )

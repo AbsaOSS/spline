@@ -38,7 +38,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
     asAtTime: Long,
     labels: Array[Label],
     maybeSearchTerm: Option[String],
-    maybeAppend: Option[Boolean],
+    writeAppendOptions: Array[Option[Boolean]],
     maybeApplicationId: Option[String],
     maybeDataSourceUri: Option[String]
   )(implicit ec: ExecutionContext): Future[(Long, Long)] = {
@@ -53,7 +53,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
          |    SEARCH ee._created <= @asAtTime
          |        AND (@applicationId == null OR @applicationId == ee.extra.appId)
          |        AND (@dataSourceUri == null OR @dataSourceUri == ee.execPlanDetails.dataSourceUri)
-         |        AND (@writeAppend   == null OR @writeAppend   == ee.execPlanDetails.append)
+         |        AND (@writeAppends  == null OR ee.execPlanDetails.append IN @writeAppends)
       ${
         lblNames.zipWithIndex.map({
           case (lblName, i) =>
@@ -81,7 +81,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
       Map[String, AnyRef](
         "asAtTime" -> Long.box(asAtTime),
         "searchTerm" -> maybeSearchTerm.map(escapeAQLSearch).orNull,
-        "writeAppend" -> maybeAppend.map(Boolean.box).orNull,
+        "writeAppends" -> (if (writeAppendOptions.isEmpty) null else writeAppendOptions.flatten.map(Boolean.box)),
         "applicationId" -> maybeApplicationId.orNull,
         "dataSourceUri" -> maybeDataSourceUri.orNull
       ).optionally(
@@ -99,7 +99,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
     sortRequest: SortRequest,
     labels: Array[Label],
     maybeSearchTerm: Option[String],
-    maybeAppend: Option[Boolean],
+    writeAppendOptions: Array[Option[Boolean]],
     maybeApplicationId: Option[String],
     maybeDataSourceUri: Option[String]
   )(implicit ec: ExecutionContext): Future[(Seq[WriteEventInfo], Long)] = {
@@ -115,7 +115,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
          |        AND (@timestampStart == null OR IN_RANGE(ee.timestamp, @timestampStart, @timestampEnd, true, true))
          |        AND (@applicationId == null OR @applicationId == ee.extra.appId)
          |        AND (@dataSourceUri == null OR @dataSourceUri == ee.execPlanDetails.dataSourceUri)
-         |        AND (@writeAppend   == null OR @writeAppend   == ee.execPlanDetails.append)
+         |        AND (@writeAppends  == null OR ee.execPlanDetails.append IN @writeAppends)
       ${
         lblNames.zipWithIndex.map({
           case (lblName, i) =>
@@ -160,7 +160,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         "sortField" -> sortRequest.sortField,
         "sortOrder" -> sortRequest.sortOrder,
         "searchTerm" -> maybeSearchTerm.map(escapeAQLSearch).orNull,
-        "writeAppend" -> maybeAppend.map(Boolean.box).orNull,
+        "writeAppends" -> (if (writeAppendOptions.isEmpty) null else writeAppendOptions.flatten.map(Boolean.box)),
         "applicationId" -> maybeApplicationId.orNull,
         "dataSourceUri" -> maybeDataSourceUri.orNull
       ).optionally(
