@@ -15,20 +15,23 @@
  */
 
 package za.co.absa.spline.testdatagen
-import scala.collection.immutable
+import za.co.absa.commons.reflect.EnumerationMacros
 
-sealed abstract class GraphType(val value: String)
+sealed abstract class GraphType(val name: String)
 
 object GraphType {
 
   case object ChainType extends GraphType("chain")
+
   case object DiamondType extends GraphType("diamond")
+
   case object TriangleType extends GraphType("triangle")
 
-  private val values = Vector(ChainType, DiamondType, TriangleType)
-  val stringValues: immutable.Seq[String] = values.map(_.value)
+  private val values: Set[GraphType] = EnumerationMacros.sealedInstancesOf[GraphType]
+  val stringValues: Set[String] = values.map(_.name)
 
   def fromString(value: String): Option[GraphType] = {
-    values.find(_.value.equalsIgnoreCase(value))
+    values.find(_.name.equalsIgnoreCase(value))
   }
+
 }

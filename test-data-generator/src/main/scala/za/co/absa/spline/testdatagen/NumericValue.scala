@@ -17,36 +17,32 @@
 package za.co.absa.spline.testdatagen
 
 sealed trait NumericValue {
-  def isExpanded: Boolean = this.isInstanceOf[Constant]
-
-  def valueOf(): Int = if (isExpanded) this.asInstanceOf[Constant].value else {
-    throw new NotImplementedError("Not expanded")
-  }
-
-  override def toString: String = valueOf().toString
+  def valueOf(): Int = this.asInstanceOf[Constant].value
 }
-case class Constant(value: Int) extends NumericValue
+
+case class Constant(value: Int) extends NumericValue {
+  override def toString: String = value.toString
+}
 
 case class Variable(start: Int, end: Int, step: Int) extends NumericValue {
-  def expand(): Seq[Constant] = (start to end by step).map(i => Constant(i))
+  def expand(): Seq[Constant] = (start to end by step).map(Constant)
 
-  override def toString: String = s"${start}-${end}|${step}"
+  override def toString: String = s"$start-$end|$step"
 }
 
 object NumericValue {
-  private val numberPattern = "([0-9]+)"
 
   def apply(param: String): NumericValue = {
-    val ConstantPattern = numberPattern.r
-    val VariablePattern = (numberPattern + "-" + numberPattern + "/" + numberPattern).r
+    val ConstantPattern = "(\\d+)".r
+    val VariablePattern = "(\\d+)-(\\d+)/(\\d+)".r
     param match {
       case ConstantPattern(c) if c.toInt > 0 => Constant(c.toInt)
-      case ConstantPattern(c) => throw new IllegalArgumentException(s"Invalid value ${c}, number should be positive")
+      case ConstantPattern(c) => throw new IllegalArgumentException(s"Invalid name $c, number should be positive")
       case VariablePattern(start: String, end: String, step: String)
         if start.toInt > 0 && end.toInt > 0 && step.toInt > 0 && end > start =>
         Variable(start.toInt, end.toInt, step.toInt)
-      case VariablePattern(start: String, end: String, step: String) =>
-        throw new IllegalArgumentException(s"Invalid range ${param}, pattern should be start-end/step, each one > 0")
+      case VariablePattern(_, _, _) =>
+        throw new IllegalArgumentException(s"Invalid range $param, pattern should be start-end/step, each one > 0")
       case _ => throw new IllegalArgumentException("Invalid specified pattern")
     }
   }

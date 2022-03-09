@@ -31,7 +31,7 @@ class FileDispatcher(fileNamePrefix: String) extends AbstractJsonSerDe[JValue]
   with DefaultFormatsBuilder
   with JavaTypesSupport {
 
-  private val outputFile = new File(s"$fileNamePrefix.json")
+  private val outputFile = new File(s"$fileNamePrefix.json.txt")
 
   def send(event: ExecutionEvent, plan: ExecutionPlan): Unit = {
 

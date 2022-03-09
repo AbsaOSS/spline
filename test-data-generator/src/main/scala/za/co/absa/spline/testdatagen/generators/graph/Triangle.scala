@@ -55,12 +55,13 @@ class Triangle(readCount: Int, dataOpCount: Int, attCount: Int)
 
     if (readCount > opCount) {
       val lastReadMappings: Seq[(ReadOperation, Seq[Attribute])] = reads.toSeq.takeRight(reads.size - opCount)
-      val lastDataOp = mapping.last._1
+      val (lastDataOp, prevLastAttExpLit) = mapping.last
 
-      val newLastDataOp = lastDataOp.copy(childIds = lastDataOp.childIds ++ lastReadMappings.map(_._1.id))
-      val prevLastAttExpLit: Seq[(Attribute, FunctionalExpression, Literal)] = mapping.last._2
+      val (lastReads: Seq[ReadOperation], lastReadAttrs: Seq[Seq[Attribute]]) = lastReadMappings.unzip
 
-      val lastReadAttExpLits: Seq[Seq[(Attribute, FunctionalExpression, Literal)]] = lastReadMappings.map(_._2)
+      val newLastDataOp = lastDataOp.copy(childIds = lastDataOp.childIds ++ lastReads.map(_.id))
+
+      val lastReadAttExpLits: Seq[Seq[(Attribute, FunctionalExpression, Literal)]] = lastReadAttrs
         .map(generateAttributesFromNewExpressions)
       val newLastAttExpLit = prevLastAttExpLit ++ lastReadAttExpLits.flatten
 

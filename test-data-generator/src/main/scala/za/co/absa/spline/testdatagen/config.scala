@@ -16,11 +16,9 @@
 
 package za.co.absa.spline.testdatagen
 
-import za.co.absa.spline.testdatagen.GraphType.ChainType
-
 case class ExpandedConfig(graphType: GraphType, reads: Int, operations: Int, attributes: Int)
 
-case class Config(graphType: GraphType = ChainType,
+case class Config(graphType: GraphType = null,
                   reads: NumericValue = Constant(0),
                   operations: NumericValue = Constant(0),
                   attributes: NumericValue = Constant(0)) {
