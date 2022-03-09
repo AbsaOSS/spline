@@ -23,22 +23,20 @@ import za.co.absa.spline.testdatagen.generators.Graph
 class Chain(readCount: Int, dataOpCount: Int, attCount: Int)
   extends Graph(readCount, dataOpCount, attCount) {
 
-  override def generateDataOperationsAndExpressions(opCount: Int, reads: Map[ReadOperation, Seq[Attribute]]):
-  Map[DataOperation, Seq[(Attribute, FunctionalExpression, Literal)]] = {
+  override def generateDataOperationsAndExpressions(opCount: Int, reads: Seq[(ReadOperation, Seq[Attribute])]):
+  Seq[(DataOperation, Seq[(Attribute, FunctionalExpression, Literal)])] = {
 
     val (read: ReadOperation, readAttr: Seq[Attribute]) = reads.head
 
     val initialAttExpLit: Seq[(Attribute, FunctionalExpression, Literal)] = generateAttributesFromNewExpressions(readAttr)
     val initialDataOp: DataOperation = generateDataOperation(Seq(read.id), initialAttExpLit.map(_._1.id))
-
-    val result = (1 until opCount.toInt).scanLeft((initialDataOp, initialAttExpLit)) {
+    (1 until opCount.toInt).scanLeft((initialDataOp, initialAttExpLit)) {
       case ((prevDataOp: DataOperation, prevAttrs: Seq[(Attribute, FunctionalExpression, Literal)]), _) => {
         val attExpLit = generateAttributesFromNewExpressions(prevAttrs.map(_._1))
         val generatedOperation = generateDataOperation(Seq(prevDataOp.id), attExpLit.map(_._1.id))
         (generatedOperation, attExpLit)
       }
     }
-    result.toMap
   }
 
   override def getWriteLinkedOperation(dataOperations: Seq[DataOperation]): (Seq[String], Schema) = {

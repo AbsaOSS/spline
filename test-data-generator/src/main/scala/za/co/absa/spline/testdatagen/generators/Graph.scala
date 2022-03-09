@@ -47,7 +47,7 @@ abstract class Graph(readCount: Int, opCount: Int, attCount: Int) {
     )
   }
 
-  def generateReads(numbSources: Int): Map[ReadOperation, Seq[Attribute]] = {
+  def generateReads(numbSources: Int): Seq[(ReadOperation, Seq[Attribute])] = {
     val id = UUID.randomUUID().toString
     val sources = (1 to numbSources).map(count => s"file://splinegen/read_${id}_$count.csv")
 
@@ -60,32 +60,37 @@ abstract class Graph(readCount: Int, opCount: Int, attCount: Int) {
       params = Map.empty,
       extra = Map.empty
     )
-    Map(read -> schema)
+    Seq((read, schema))
   }
 
   def getWriteLinkedOperation(dataOperations: Seq[DataOperation]): (Seq[String], Schema)
 
   def generateOperations(dataOpCount: Int, readOpCount: Int): (Operations, Seq[Attribute], Expressions) = {
-    val readsMap: Map[ReadOperation, Seq[Attribute]] = generateReads(readOpCount)
+    val readsMap: Seq[(ReadOperation, Seq[Attribute])] = generateReads(readOpCount)
 
-    val dataOpsMap: Map[DataOperation, Seq[(Attribute, FunctionalExpression, Literal)]] = generateDataOperationsAndExpressions(dataOpCount, readsMap)
+    val (reads: Seq[ReadOperation], readAttributes: Seq[Seq[Attribute]]) = readsMap.unzip
 
-    val dataOpAttributes: Iterable[Attribute] = dataOpsMap.values.flatMap(_.map(_._1))
+    val (dataOps: Seq[DataOperation], dataAFL: Seq[Seq[(Attribute, FunctionalExpression, Literal)]]) =
+      generateDataOperationsAndExpressions(dataOpCount, readsMap).unzip
 
-    val readAttributes: Iterable[Attribute] = readsMap.values.flatten
-    val allAttributesSet = (readAttributes ++ dataOpAttributes).toSet
+    val dataOpAttributes: Iterable[Attribute] = dataAFL.flatMap(_.map {
+      case (attribute, _, _) => attribute
+    })
 
-    val functionalExpressions = dataOpsMap.values.flatMap(_.map(_._2)).toSeq
-    val literals = dataOpsMap.values.flatMap(_.map(_._3)).toSeq
+    val allAttributesSet = (readAttributes.flatten ++ dataOpAttributes).toSet
+
+    val (functionalExpressions: Seq[FunctionalExpression], literals: Seq[Literal]) = dataAFL.flatMap(
+      _.map { case (_, fex, lit) => (fex, lit)
+    }).unzip
 
     val allExpressions = Expressions(functionalExpressions, literals)
 
-    val (linkedOperations, linkedAttributes: Schema) = getWriteLinkedOperation(dataOpsMap.keys.toSeq)
+    val (linkedOperations, linkedAttributes: Schema) = getWriteLinkedOperation(dataOps)
     val finalDataOp = generateDataOperation(linkedOperations, linkedAttributes)
     val operations = Operations(
       write = generateWrite(Seq(finalDataOp.id)),
-      reads = readsMap.keys.toSeq,
-      other = dataOpsMap.keys.toSeq ++ Seq(finalDataOp)
+      reads = reads,
+      other = dataOps ++ Seq(finalDataOp)
     )
 
     (operations, allAttributesSet.toSeq, allExpressions)
@@ -93,8 +98,8 @@ abstract class Graph(readCount: Int, opCount: Int, attCount: Int) {
 
   def generateDataOperationsAndExpressions(
                                             opCount: Int,
-                                            reads: Map[ReadOperation, Seq[Attribute]]
-                                          ): Map[DataOperation, Seq[(Attribute, FunctionalExpression, Literal)]]
+                                            reads: Seq[(ReadOperation, Seq[Attribute])]
+                                          ): Seq[(DataOperation, Seq[(Attribute, FunctionalExpression, Literal)])]
 
   def generateAttributesFromNewExpressions(parentAttrs: Seq[Attribute]): Seq[(Attribute, FunctionalExpression, Literal)] = {
     val exprWithLiterals = parentAttrs.map(ExpressionGenerator.generateExpressionAndLiteralForAttribute)
