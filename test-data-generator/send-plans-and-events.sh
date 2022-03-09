@@ -18,7 +18,7 @@
 filename=$1
 BASE_URL=$2
 while read line; do
-  if [[ $line =~ ^{.* ]]
+  if [[ ${line:0:1} = '{' ]]
   then
     echo "Sending plan"
     curl -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data "${line}" ${BASE_URL}/producer/execution-plans

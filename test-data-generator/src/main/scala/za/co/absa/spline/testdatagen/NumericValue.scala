@@ -17,10 +17,12 @@
 package za.co.absa.spline.testdatagen
 
 sealed trait NumericValue {
-  def valueOf(): Int = this.asInstanceOf[Constant].value
+  def valueOf(): Int
 }
 
 case class Constant(value: Int) extends NumericValue {
+  override def valueOf(): Int = value
+
   override def toString: String = value.toString
 }
 
@@ -28,6 +30,8 @@ case class Variable(start: Int, end: Int, step: Int) extends NumericValue {
   def expand(): Seq[Constant] = (start to end by step).map(Constant)
 
   override def toString: String = s"$start-$end|$step"
+
+  override def valueOf(): Int = throw new NotImplementedError("Not expanded")
 }
 
 object NumericValue {

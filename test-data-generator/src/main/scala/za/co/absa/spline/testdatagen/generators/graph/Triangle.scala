@@ -24,7 +24,7 @@ import za.co.absa.spline.testdatagen.generators.Graph
 class Triangle(readCount: Int, dataOpCount: Int, attCount: Int)
   extends Graph(readCount, dataOpCount, attCount) {
 
-  override def generateReads(numbSources: Int): Map[ReadOperation, Seq[Attribute]] = {
+  override def generateReads(numbSources: Int): Seq[(ReadOperation, Seq[Attribute])] = {
     (1 to numbSources).map(id => {
       val sources = Seq(s"file://splinegen/read_${id}.csv")
       val attributes = generateSchema(attCount)
@@ -37,13 +37,12 @@ class Triangle(readCount: Int, dataOpCount: Int, attCount: Int)
         extra = Map.empty
       )
       (readOp, attributes)
-    }).toMap
+    })
   }
 
-  override def generateDataOperationsAndExpressions(opCount: Int, reads: Map[ReadOperation, Seq[Attribute]]):
-  Map[DataOperation, Seq[(Attribute, FunctionalExpression, Literal)]] = {
+  override def generateDataOperationsAndExpressions(opCount: Int, reads: Seq[(ReadOperation, Seq[Attribute])]):
+  Seq[(DataOperation, Seq[(Attribute, FunctionalExpression, Literal)])] = {
     val mapping = reads
-      .toSeq
       .take(opCount)
       .padTo(opCount, reads.head)
       .map{ case (readOp: ReadOperation, schema: Seq[Attribute]) => {
@@ -65,9 +64,9 @@ class Triangle(readCount: Int, dataOpCount: Int, attCount: Int)
         .map(generateAttributesFromNewExpressions)
       val newLastAttExpLit = prevLastAttExpLit ++ lastReadAttExpLits.flatten
 
-      (mapping.init :+ (newLastDataOp, newLastAttExpLit)).toMap
+      (mapping.init :+ (newLastDataOp, newLastAttExpLit))
     } else {
-      mapping.toMap
+      mapping
     }
 
   }

@@ -23,17 +23,16 @@ import za.co.absa.spline.testdatagen.generators.Graph
 class Diamond(readCount: Int, dataOpCount: Int, attCount: Int)
   extends Graph(readCount, dataOpCount, attCount) {
 
-  override def generateDataOperationsAndExpressions(opCount: Int, reads: Map[ReadOperation, Seq[Attribute]]):
-  Map[DataOperation, Seq[(Attribute, FunctionalExpression, Literal)]] = {
+  override def generateDataOperationsAndExpressions(opCount: Int, reads: Seq[(ReadOperation, Seq[Attribute])]):
+  Seq[(DataOperation, Seq[(Attribute, FunctionalExpression, Literal)])] = {
     val (read: ReadOperation, readAttr: Seq[Attribute]) = reads.head
 
-    val dataOperationsTuples = (1 to opCount).map(_ => {
+    (1 to opCount).map(_ => {
       val attExpLit = generateAttributesFromNewExpressions(readAttr)
 
       val dataOperation = generateDataOperation(Seq(read.id), attExpLit.map(_._1.id))
       (dataOperation, attExpLit)
     })
-    dataOperationsTuples.toMap
   }
 
   override def getWriteLinkedOperation(dataOperations: Seq[DataOperation]): (Seq[String], Schema) = {
