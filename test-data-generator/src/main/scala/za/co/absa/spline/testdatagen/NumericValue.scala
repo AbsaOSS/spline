@@ -43,7 +43,7 @@ object NumericValue {
       case ConstantPattern(c) if c.toInt > 0 => Constant(c.toInt)
       case ConstantPattern(c) => throw new IllegalArgumentException(s"Invalid name $c, number should be positive")
       case VariablePattern(start: String, end: String, step: String)
-        if start.toInt > 0 && end.toInt > 0 && step.toInt > 0 && end > start =>
+        if start.toInt > 0 && end.toInt > 0 && step.toInt > 0 && end.toInt > start.toInt =>
         Variable(start.toInt, end.toInt, step.toInt)
       case VariablePattern(_, _, _) =>
         throw new IllegalArgumentException(s"Invalid range $param, pattern should be start-end/step, each one > 0")
