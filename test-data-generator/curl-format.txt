@@ -1,0 +1,5 @@
+        time_connect:  %{time_connect}s\n
+       time_redirect:  %{time_redirect}s\n
+  time_starttransfer:  %{time_starttransfer}s\n
+                     ----------\n
+          time_total:  %{time_total}s\n

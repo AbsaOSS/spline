@@ -15,15 +15,27 @@
   limitations under the License.
 '
 
-filename=$1
-BASE_URL=$2
+cd /opt
+echo "Running data generator"
+java -jar /opt/test-data-generator.jar -g ${GRAPH_TYPE} -r ${READS} -o ${OPERATIONS} -a ${ATTRIBUTES}
+
+echo "Sending lineages from:"
+
+READS_NR=`echo $READS| tr '/' '|'`
+OP_NR=`echo $OPERATIONS | tr '/' '|'`
+ATTR_NR=`echo $ATTRIBUTES | tr '/' '|'`
+
+FILENAME="./${GRAPH_TYPE}-lineage-${READS_NR}reads-${OP_NR}ops-${ATTR_NR}attr.json.txt"
+echo $FILENAME
+
 while read line; do
+  sleep 5
   if [[ ${line:0:1} = '{' ]]
   then
     echo "Sending plan"
-    curl -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data "${line}" ${BASE_URL}/producer/execution-plans
+    curl -w "@curl-format.txt" -o /dev/null -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data "${line}" ${SPLINE_URL}/producer/execution-plans
   else
     echo "Sending event"
-    curl -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data "${line}" ${BASE_URL}/producer/execution-events
+    curl -w "@curl-format.txt" -o /dev/null -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data "${line}" ${SPLINE_URL}/producer/execution-events
   fi
-done < $filename
+done < $FILENAME
