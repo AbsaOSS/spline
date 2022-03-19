@@ -15,18 +15,8 @@
   limitations under the License.
 '
 
-cd /opt
-echo "Running data generator"
-java -jar /opt/test-data-generator.jar -g ${GRAPH_TYPE} -r ${READS} -o ${OPERATIONS} -a ${ATTRIBUTES}
-
-echo "Sending lineages from:"
-
-READS_NR=`echo $READS| tr '/' '|'`
-OP_NR=`echo $OPERATIONS | tr '/' '|'`
-ATTR_NR=`echo $ATTRIBUTES | tr '/' '|'`
-
-FILENAME="./${GRAPH_TYPE}-lineage-${READS_NR}reads-${OP_NR}ops-${ATTR_NR}attr.json.txt"
-echo $FILENAME
+FILENAME=$1
+SPLINE_URL=$2
 
 while read line; do
   sleep 5

@@ -1,5 +1,5 @@
+       request_size:   %{size_request}s\n
         time_connect:  %{time_connect}s\n
-       time_redirect:  %{time_redirect}s\n
   time_starttransfer:  %{time_starttransfer}s\n
-                     ----------\n
+           resp_code:  %{http_code}s\n
           time_total:  %{time_total}s\n

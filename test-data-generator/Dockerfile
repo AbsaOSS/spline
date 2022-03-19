@@ -32,8 +32,8 @@ ENV ATTRIBUTES=3
 
 RUN rm -rf /usr/local/tomcat/webapps/* && apk --no-cache add curl
 ADD ./target/${JAR_FILE} /opt/test-data-generator.jar
-ADD send-plans-and-events.sh /opt/send-plans-and-events.sh
+ADD send-plans-and-events-docker.sh /opt/send-plans-and-events-docker.sh
 ADD curl-format.txt /opt/curl-format.txt
 
-ENTRYPOINT ["sh", "/opt/send-plans-and-events.sh"]
+ENTRYPOINT ["sh", "/opt/send-plans-and-events-docker.sh"]
 CMD "--help"
