@@ -42,8 +42,8 @@ class ConsumerRESTConfig extends WebMvcConfigurer {
   override def addReturnValueHandlers(returnValueHandlers: util.List[HandlerMethodReturnValueHandler]): Unit = {
     returnValueHandlers.add(new UnitMethodReturnValueHandler)
     returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler(
-      maybeDefaultTimeout = ConsumerRESTConfig.MaybeDefaultTimeout,
-      maybeMaximumTimeout = ConsumerRESTConfig.MaybeMaximumTimeout
+      defaultTimeout = ConsumerRESTConfig.DefaultTimeout,
+      maximumTimeout = ConsumerRESTConfig.MaximumTimeout
     ))
   }
 

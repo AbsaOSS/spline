@@ -19,13 +19,26 @@ package za.co.absa.spline.common.config
 import org.apache.commons.configuration.Configuration
 import za.co.absa.commons.config.ConfTyped
 import za.co.absa.commons.config.ConfigurationImplicits._
+import za.co.absa.spline.common.config.HttpConfiguration.{DefaultDefaultTimeout, DefaultMaximumTimeout}
 
 import scala.concurrent.duration._
 
 trait HttpConfiguration {
   this: ConfTyped with Configuration =>
 
-  val MaybeDefaultTimeout: Option[Duration] = this.getOptionalLong(Prop("timeoutDefault")).map(_.millis)
-  val MaybeMaximumTimeout: Option[Duration] = this.getOptionalLong(Prop("timeoutMaximum")).map(_.millis)
+  val DefaultTimeout: Duration =
+    this.getOptionalLong(Prop("timeoutDefault"))
+      .map(_.millis)
+      .getOrElse(DefaultDefaultTimeout)
 
+  val MaximumTimeout: Duration =
+    this.getOptionalLong(Prop("timeoutMaximum"))
+      .map(_.millis)
+      .getOrElse(DefaultMaximumTimeout)
+
+}
+
+object HttpConfiguration {
+  val DefaultDefaultTimeout: Duration = 2.minutes
+  val DefaultMaximumTimeout: Duration = 1.hour
 }

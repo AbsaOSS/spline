@@ -43,8 +43,8 @@ class ProducerRESTConfig extends WebMvcConfigurer {
   override def addReturnValueHandlers(returnValueHandlers: util.List[HandlerMethodReturnValueHandler]): Unit = {
     returnValueHandlers.add(new UnitMethodReturnValueHandler)
     returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler(
-      maybeDefaultTimeout = ProducerRESTConfig.MaybeDefaultTimeout,
-      maybeMaximumTimeout = ProducerRESTConfig.MaybeMaximumTimeout
+      defaultTimeout = ProducerRESTConfig.DefaultTimeout,
+      maximumTimeout = ProducerRESTConfig.MaximumTimeout
     ))
   }
 

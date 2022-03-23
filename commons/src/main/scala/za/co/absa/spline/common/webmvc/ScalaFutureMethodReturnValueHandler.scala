@@ -30,8 +30,8 @@ import scala.util.{Failure, Success}
 
 
 class ScalaFutureMethodReturnValueHandler(
-  maybeDefaultTimeout: Option[Duration],
-  maybeMaximumTimeout: Option[Duration]
+  defaultTimeout: Duration,
+  maximumTimeout: Duration
 )(implicit ec: ExecutionContext)
   extends DeferredResultMethodReturnValueHandler
     with AsyncHandlerMethodReturnValueHandler
@@ -39,8 +39,8 @@ class ScalaFutureMethodReturnValueHandler(
 
   import ScalaFutureMethodReturnValueHandler._
 
-  log.debug(s"Default timeout: $maybeDefaultTimeout")
-  log.debug(s"Maximum timeout: $maybeMaximumTimeout")
+  log.debug(s"Default timeout: $defaultTimeout")
+  log.debug(s"Maximum timeout: $maximumTimeout")
 
   protected type F <: Future[_]
 
@@ -62,15 +62,15 @@ class ScalaFutureMethodReturnValueHandler(
       super.handleReturnValue(retVal, retType, mav, req)
   }
 
-  protected def getFutureTimeout(future: F, req: WebRequest): Option[Long] =
+  protected def getFutureTimeout(future: F, req: WebRequest): Long =
     getTimeout(
       Option(req.getHeader(TIMEOUT_HEADER)).map(_.toLong.millis),
-      maybeDefaultTimeout,
-      maybeMaximumTimeout
-    ).map(_.toMillis)
+      defaultTimeout,
+      maximumTimeout
+    ).toMillis
 
-  private def toDeferredResult(returnValue: Future[_], timeout: Option[Long]): DeferredResult[_] =
-    new DeferredResult[Any](timeout.map(Long.box).orNull) {
+  private def toDeferredResult(returnValue: Future[_], timeout: Long): DeferredResult[_] =
+    new DeferredResult[Any](timeout) {
       returnValue.andThen {
         case Success(value) => setResult(value)
         case Failure(error) => setErrorResult(error)
@@ -93,20 +93,18 @@ object ScalaFutureMethodReturnValueHandler {
 
   private[webmvc] def getTimeout(
     maybeRequestedTimeout: Option[Duration],
-    maybeDefaultTimeout: Option[Duration],
-    maybeMaximumTimeout: Option[Duration]
-  ): Option[Duration] = {
-
+    defaultTimeout: Duration,
+    maximumTimeout: Duration
+  ): Duration = {
     val requestedTOpt = maybeRequestedTimeout.map(convertNegOrZeroToInf)
-    val defaultTOpt = maybeDefaultTimeout.map(convertNegOrZeroToInf)
-    val maximumTOpt = maybeMaximumTimeout.map(convertNegOrZeroToInf)
+    val defaultT = convertNegOrZeroToInf(defaultTimeout)
+    val maximumT = convertNegOrZeroToInf(maximumTimeout)
 
-    val desiredTOpt = requestedTOpt.orElse(defaultTOpt)
+    val resultT =
+      requestedTOpt
+        .getOrElse(defaultT)
+        .min(maximumT)
 
-    desiredTOpt
-      .flatMap(t => maximumTOpt.map(t.min)) // apply threshold
-      .orElse(maximumTOpt) // take threshold if value is empty
-      .orElse(desiredTOpt) // otherwise accept desired value
-      .map(convertInfToZero)
+    convertInfToZero(resultT)
   }
 }

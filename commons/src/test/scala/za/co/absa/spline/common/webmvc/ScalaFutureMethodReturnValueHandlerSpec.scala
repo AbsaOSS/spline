@@ -26,7 +26,6 @@ import org.springframework.web.context.request.async.DeferredResult
 import za.co.absa.spline.common.webmvc.ScalaFutureMethodReturnValueHandlerSpec.{SubFuture, mockWith}
 
 import java.util.concurrent.CompletionStage
-import scala.concurrent.duration.Duration.Inf
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 
@@ -35,7 +34,7 @@ class ScalaFutureMethodReturnValueHandlerSpec extends AnyFlatSpec with MockitoSu
   import scala.concurrent.duration._
 
   private implicit val ec: ExecutionContext = mock[ExecutionContext]
-  private val handler = new ScalaFutureMethodReturnValueHandler(None, None)
+  private val handler = new ScalaFutureMethodReturnValueHandler(Duration.Inf, Duration.Inf)
 
   behavior of "supportsReturnType()"
 
@@ -57,39 +56,30 @@ class ScalaFutureMethodReturnValueHandlerSpec extends AnyFlatSpec with MockitoSu
     handler.isAsyncReturnValue(null, null) should be(false)
   }
 
-  Seq(Inf, 0.millis, -1.millis).foreach(inf => {
+  Seq(Duration.Inf, 0.millis, -1.millis).foreach(inf => {
     behavior of s"getTimeout() [infinite = $inf]"
 
-    it should "return None when all arguments are None" in {
-      ScalaFutureMethodReturnValueHandler.getTimeout(None, None, None) should be(None)
-    }
-
     it should "return default timeout when requested timeout is unspecified" in {
-      ScalaFutureMethodReturnValueHandler.getTimeout(None, Some(42.millis), None) should equal(Some(42.millis))
-      ScalaFutureMethodReturnValueHandler.getTimeout(None, Some(42.millis), Some(777.millis)) should equal(Some(42.millis))
+      ScalaFutureMethodReturnValueHandler.getTimeout(None, 42.millis, inf) should equal(42.millis)
+      ScalaFutureMethodReturnValueHandler.getTimeout(None, 42.millis, 777.millis) should equal(42.millis)
     }
 
     it should s"return requested timeout regardless of default timeout settings" in {
-      ScalaFutureMethodReturnValueHandler.getTimeout(Some(42.millis), None, None) should equal(Some(42.millis))
-      ScalaFutureMethodReturnValueHandler.getTimeout(Some(42.millis), Some(1.milli), None) should equal(Some(42.millis))
-      ScalaFutureMethodReturnValueHandler.getTimeout(Some(42.millis), Some(100.milli), None) should equal(Some(42.millis))
-      ScalaFutureMethodReturnValueHandler.getTimeout(Some(42.millis), Some(inf), None) should equal(Some(42.millis))
-    }
-
-    it should s"return threshold timeout when no timeout is specified" in {
-      ScalaFutureMethodReturnValueHandler.getTimeout(None, None, Some(10.millis)) should equal(Some(10.millis))
+      ScalaFutureMethodReturnValueHandler.getTimeout(Some(42.millis), 1.milli, inf) should equal(42.millis)
+      ScalaFutureMethodReturnValueHandler.getTimeout(Some(42.millis), 100.milli, inf) should equal(42.millis)
+      ScalaFutureMethodReturnValueHandler.getTimeout(Some(42.millis), inf, inf) should equal(42.millis)
     }
 
     it should s"return threshold timeout when any of timeouts exceeds threshold value" in {
-      ScalaFutureMethodReturnValueHandler.getTimeout(Some(42.millis), None, Some(10.millis)) should equal(Some(10.millis))
-      ScalaFutureMethodReturnValueHandler.getTimeout(None, Some(42.millis), Some(10.millis)) should equal(Some(10.millis))
-      ScalaFutureMethodReturnValueHandler.getTimeout(None, Some(inf), Some(10.millis)) should equal(Some(10.millis))
-      ScalaFutureMethodReturnValueHandler.getTimeout(Some(inf), None, Some(10.millis)) should equal(Some(10.millis))
+      ScalaFutureMethodReturnValueHandler.getTimeout(Some(42.millis), inf, 10.millis) should equal(10.millis)
+      ScalaFutureMethodReturnValueHandler.getTimeout(Some(inf), inf, 10.millis) should equal(10.millis)
+      ScalaFutureMethodReturnValueHandler.getTimeout(None, 42.millis, 10.millis) should equal(10.millis)
+      ScalaFutureMethodReturnValueHandler.getTimeout(None, inf, 10.millis) should equal(10.millis)
     }
 
-    it should s"return 0 when default or requested timeout is infinite" in {
-      ScalaFutureMethodReturnValueHandler.getTimeout(Some(inf), None, None) should equal(Some(0.millis))
-      ScalaFutureMethodReturnValueHandler.getTimeout(None, Some(inf), None) should equal(Some(0.millis))
+    it should s"return Zero when default or requested timeout is infinite" in {
+      ScalaFutureMethodReturnValueHandler.getTimeout(Some(inf), 42.millis, inf) should equal(Duration.Zero)
+      ScalaFutureMethodReturnValueHandler.getTimeout(None, inf, inf) should equal(Duration.Zero)
     }
   })
 }
