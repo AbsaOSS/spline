@@ -22,7 +22,9 @@ import com.twitter.finatra.jackson.FinatraInternalModules
 import org.springframework.context.annotation.{Bean, ComponentScan, Configuration}
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
 import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
+import za.co.absa.commons.config.ConfTyped
 import za.co.absa.spline.common
+import za.co.absa.spline.common.config.{DefaultConfigurationStack, HttpConfiguration}
 import za.co.absa.spline.common.webmvc.jackson.ObjectMapperBeanPostProcessor
 import za.co.absa.spline.common.webmvc.{ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
 
@@ -40,11 +42,23 @@ class ProducerRESTConfig extends WebMvcConfigurer {
 
   override def addReturnValueHandlers(returnValueHandlers: util.List[HandlerMethodReturnValueHandler]): Unit = {
     returnValueHandlers.add(new UnitMethodReturnValueHandler)
-    returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler)
+    returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler(
+      defaultTimeout = ProducerRESTConfig.DefaultTimeout,
+      maximumTimeout = ProducerRESTConfig.MaximumTimeout
+    ))
   }
 
   @Bean def jacksonConfigurer = new ObjectMapperBeanPostProcessor(_
     .registerModule(DefaultScalaModule)
     .setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE)
     .registerModule(FinatraInternalModules.caseClassModule))
+}
+
+object ProducerRESTConfig
+  extends DefaultConfigurationStack
+    with ConfTyped
+    with HttpConfiguration {
+
+  override def rootPrefix: String = "spline.producer"
+
 }

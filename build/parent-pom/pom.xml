@@ -275,7 +275,7 @@
             <dependency>
                 <groupId>za.co.absa.commons</groupId>
                 <artifactId>commons_${scala.compat.version}</artifactId>
-                <version>0.0.26</version>
+                <version>1.0.2</version>
             </dependency>
 
             <!-- Apache Commons -->

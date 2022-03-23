@@ -14,4 +14,16 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 '
-curl -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data @lineage-20000ops-plan.json http://localhost:8080/producer/execution-plans
+
+filename=$1
+BASE_URL=$2
+while read line; do
+  if [[ ${line:0:1} = '{' ]]
+  then
+    echo "Sending plan"
+    curl -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data "${line}" ${BASE_URL}/producer/execution-plans
+  else
+    echo "Sending event"
+    curl -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data "${line}" ${BASE_URL}/producer/execution-events
+  fi
+done < $filename

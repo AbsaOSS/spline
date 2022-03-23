@@ -38,6 +38,10 @@
             <artifactId>json4s-jackson_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-ext_${scala.compat.version}</artifactId>
+        </dependency>
+        <dependency>
             <groupId>za.co.absa.spline</groupId>
             <artifactId>commons</artifactId>
             <version>${project.version}</version>

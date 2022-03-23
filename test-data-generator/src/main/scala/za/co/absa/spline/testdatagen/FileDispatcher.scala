@@ -17,25 +17,30 @@
 package za.co.absa.spline.testdatagen
 
 import java.io.File
-import java.nio.charset.Charset
 
 import org.apache.commons.io.FileUtils
-import za.co.absa.commons.json.DefaultJacksonJsonSerDe
+import org.json4s.JsonAST.JValue
 import za.co.absa.spline.producer.model.v1_2.{ExecutionEvent, ExecutionPlan}
+import org.json4s.jackson.JsonMethods
+import za.co.absa.commons.json.AbstractJsonSerDe
+import za.co.absa.commons.json.format.{DefaultFormatsBuilder, JavaTypesSupport}
+import scala.collection.JavaConverters._
 
-class FileDispatcher(fileNamePrefix: String) extends DefaultJacksonJsonSerDe {
+class FileDispatcher(fileNamePrefix: String) extends AbstractJsonSerDe[JValue]
+  with JsonMethods
+  with DefaultFormatsBuilder
+  with JavaTypesSupport {
 
-  def send(plan: ExecutionPlan): Unit =
-    FileUtils.writeStringToFile(
-      new File(s"$fileNamePrefix-plan.json"),
-      plan.toJson,
-      Charset.defaultCharset()
+  private val outputFile = new File(s"$fileNamePrefix.json.txt")
+
+  def send(event: ExecutionEvent, plan: ExecutionPlan): Unit = {
+
+    val strings = Seq(plan.toJson, Seq(event).toJson)
+
+    FileUtils.writeLines(
+      outputFile,
+      strings.asJava,
+      true
     )
-
-  def send(event: ExecutionEvent): Unit =
-    FileUtils.writeStringToFile(
-      new File(s"$fileNamePrefix-event.json"),
-      Seq(event).toJson,
-      Charset.defaultCharset()
-  )
+  }
 }
