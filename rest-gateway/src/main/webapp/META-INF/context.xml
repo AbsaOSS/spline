@@ -22,4 +22,10 @@
     -->
     <Environment name="spline/database/connectionUrl" type="java.lang.String" override="false"/>
 
+    <Environment name="spline/producer/timeoutDefault" type="java.lang.String" override="false"/>
+    <Environment name="spline/producer/timeoutMaximum" type="java.lang.String" override="false"/>
+
+    <Environment name="spline/consumer/timeoutDefault" type="java.lang.String" override="false"/>
+    <Environment name="spline/consumer/timeoutMaximum" type="java.lang.String" override="false"/>
+
 </Context>
