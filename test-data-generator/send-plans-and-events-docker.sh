@@ -34,10 +34,10 @@ while read line; do
   then
     echo "Sending plan"
     echo $line > /opt/current_plan.txt
-    curl -w "@curl-format.txt" -o /dev/null -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data @"/opt/current_plan.txt" ${SPLINE_URL}/producer/execution-plans
+    curl -w "@curl-format.txt" -o /dev/null -H "Content-Type: application/vnd.absa.spline.producer.v1.1+json" -X POST --data @"/opt/current_plan.txt" ${SPLINE_URL}/producer/execution-plans
   else
     echo "Sending event"
     echo $line > /opt/current_event.txt
-    curl -w "@curl-format.txt" -o /dev/null -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data @"/opt/current_event.txt" ${SPLINE_URL}/producer/execution-events
+    curl -w "@curl-format.txt" -o /dev/null -H "Content-Type: application/vnd.absa.spline.producer.v1.1+json" -X POST --data @"/opt/current_event.txt" ${SPLINE_URL}/producer/execution-events
   fi
 done < $FILENAME
