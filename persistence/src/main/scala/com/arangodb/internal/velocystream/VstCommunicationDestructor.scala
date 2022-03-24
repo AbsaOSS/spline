@@ -32,7 +32,7 @@ object VstCommunicationDestructor {
   case class ConnectionParams(
     hostDescription: HostDescription,
     user: String,
-    password: String,
+    password: Option[String],
     sslContext: Option[SSLContext]
   )
 
@@ -44,7 +44,7 @@ object VstCommunicationDestructor {
     val connParams = ConnectionParams(
       host.getDescription,
       comm.user,
-      comm.password,
+      Option(comm.password),
       Option(sslContext)
     )
 
