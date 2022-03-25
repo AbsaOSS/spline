@@ -23,9 +23,9 @@ while read line; do
   if [[ ${line:0:1} = '{' ]]
   then
     echo "Sending plan"
-    curl -w "@curl-format.txt" -o /dev/null -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data "${line}" ${SPLINE_URL}/producer/execution-plans
+    curl -w "@curl-format.txt" -o /dev/null -H "Content-Type: application/vnd.absa.spline.producer.v1.1+json" -X POST --data "${line}" ${SPLINE_URL}/producer/execution-plans
   else
     echo "Sending event"
-    curl -w "@curl-format.txt" -o /dev/null -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data "${line}" ${SPLINE_URL}/producer/execution-events
+    curl -w "@curl-format.txt" -o /dev/null -H "Content-Type: application/vnd.absa.spline.producer.v1.1+json" -X POST --data "${line}" ${SPLINE_URL}/producer/execution-events
   fi
 done < $FILENAME

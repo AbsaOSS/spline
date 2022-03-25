@@ -1,5 +1,5 @@
-       request_size:   %{size_request}s\n
+         upload_size:  %{size_upload}\n
         time_connect:  %{time_connect}s\n
   time_starttransfer:  %{time_starttransfer}s\n
-           resp_code:  %{http_code}s\n
+           resp_code:  %{http_code}\n
           time_total:  %{time_total}s\n

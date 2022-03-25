@@ -14,7 +14,11 @@
 # limitations under the License.
 #
 
-FROM fabric8/java-alpine-openjdk11-jre
+
+ARG DOCKER_BASE_IMAGE_PREFIX
+ARG JAR_FILE
+
+FROM "$DOCKER_BASE_IMAGE_PREFIX"fabric8/java-alpine-openjdk11-jre
 
 LABEL \
     vendor="ABSA" \
@@ -22,7 +26,6 @@ LABEL \
     license="Apache License, version 2.0" \
     name="Spline Performance Testing"
 
-ARG JAR_FILE
 
 ENV SPLINE_URL=http://localhost:8080
 ENV GRAPH_TYPE=triangle
