@@ -50,8 +50,10 @@ class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL, maybeSSLContext: 
         .having(maybeSSLContext)(_ sslContext _)
     }
 
-    // enable active failover
-    arangoBuilder.acquireHostList(true)
+    // Active failover mode is disabled according to https://github.com/AbsaOSS/spline/issues/1056
+    // This is fixed in Spline 1.0.0, see https://github.com/AbsaOSS/spline/issues/1050
+    arangoBuilder.acquireHostList(false)
+
     for ((host, port) <- hostsWithPorts) arangoBuilder.host(host, port)
 
     // build ArangoDB Client
