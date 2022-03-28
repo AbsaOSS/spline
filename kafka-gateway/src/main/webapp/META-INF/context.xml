@@ -31,8 +31,9 @@
     <Environment name="spline/kafka/consumer/bootstrap/servers" type="java.lang.String" override="false"/>
 
     <!--
-        Optional config
+        Optional config [kafka]
     -->
+
     <Environment name="spline/kafka/consumerConcurrency" type="java.lang.String" override="false"/>
 
     <Environment name="spline/kafka/insertPlanTimeout" type="java.lang.String" override="false"/>
@@ -44,5 +45,13 @@
     <Environment name="spline/kafka/backOff/maxElapsedTime" type="java.lang.String" override="false"/>
 
     <Environment name="spline/kafka/deadLetterQueueEnabled" type="java.lang.String" override="false"/>
+
+    <!--
+        Optional config [database]
+    -->
+
+    <Environment name="spline/database/activeFailover" type="java.lang.String" override="false"/>
+    <Environment name="spline/database/disableSslValidation" type="java.lang.String" override="false"/>
+    <Environment name="spline/database/logFullQueryOnError" type="java.lang.String" override="false"/>
 
 </Context>

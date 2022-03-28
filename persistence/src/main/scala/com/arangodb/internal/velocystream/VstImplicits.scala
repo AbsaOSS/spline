@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 ABSA Group Limited
+ * Copyright 2022 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package com.arangodb.async.internal
+package com.arangodb.internal.velocystream
 
-import com.arangodb.internal.velocystream.VstCommunication
+import com.arangodb.internal.net.AccessType
 import com.arangodb.internal.velocystream.internal.VstConnection
-import za.co.absa.commons.reflect.ReflectionUtils
 
-object ArangoExecutorAsyncDestructor {
-  private final val CommunicationField = "communication"
+object VstImplicits {
 
-  def unapply(executor: ArangoExecutorAsync): Option[VstCommunication[_, _ <: VstConnection[_]]] = {
-    Option(
-      ReflectionUtils.extractFieldValue[ArangoExecutorAsync, VstCommunication[_, _ <: VstConnection[_]]](executor, CommunicationField)
-    )
+  implicit class InternalVstCommunicationOps(val vstComm: VstCommunication[_, VstConnection[_]]) extends AnyVal {
+
+    def getUser: String = vstComm.user
+
+    def getPassword: String = vstComm.password
+
+    def connect(accessType: AccessType): VstConnection[_] = vstComm.connect(null, accessType)
   }
 }
