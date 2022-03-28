@@ -42,8 +42,6 @@ class ScalaFutureMethodReturnValueHandler(
   log.debug(s"Default timeout: $defaultTimeout")
   log.debug(s"Maximum timeout: $maximumTimeout")
 
-  protected type F <: Future[_]
-
   override def supportsReturnType(returnType: MethodParameter): Boolean =
     classOf[Future[_]].isAssignableFrom(returnType.getParameterType) || super.supportsReturnType(returnType)
 
@@ -51,7 +49,7 @@ class ScalaFutureMethodReturnValueHandler(
     returnValue.isInstanceOf[Future[_]]
 
   override def handleReturnValue(retVal: Any, retType: MethodParameter, mav: ModelAndViewContainer, req: NativeWebRequest): Unit = retVal match {
-    case future: F =>
+    case future: Future[_] =>
       val maybeTimeout = getFutureTimeout(future, req)
       log.debug(s"Future timeout: $maybeTimeout")
       val deferredResult = toDeferredResult(future, maybeTimeout)
@@ -62,7 +60,7 @@ class ScalaFutureMethodReturnValueHandler(
       super.handleReturnValue(retVal, retType, mav, req)
   }
 
-  protected def getFutureTimeout(future: F, req: WebRequest): Long =
+  protected def getFutureTimeout(future: Future[_], req: WebRequest): Long =
     getTimeout(
       Option(req.getHeader(TIMEOUT_HEADER)).map(_.toLong.millis),
       defaultTimeout,

@@ -29,6 +29,7 @@ import za.co.absa.spline.persistence.AuxiliaryDBAction._
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManagerFactory, ArangoManagerFactoryImpl}
 
+import scala.annotation.nowarn
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
@@ -67,7 +68,7 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
 
   def exec(args: Array[String]): Unit = {
 
-    val cliParser: OptionParser[AdminCLIConfig] = new OptionParser[AdminCLIConfig](AppConfig.Spline.CLI.Executable) {
+    @nowarn val cliParser: OptionParser[AdminCLIConfig] = new OptionParser[AdminCLIConfig](AppConfig.Spline.CLI.Executable) {
 
       import AdminCLI._
 
@@ -178,7 +179,7 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
         val onExistsAction = (force, skip) match {
           case (true, false) => Drop
           case (false, true) => Skip
-          case (false, false) => Fail
+          case _ => Fail
         }
         val dbManager = dbManagerFactory.create(url, sslCtxOpt)
         val wasInitialized = Await.result(dbManager.initialize(onExistsAction), Duration.Inf)

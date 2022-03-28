@@ -34,8 +34,8 @@ class JsonPath(tokens: Seq[Token]) {
       case (xs: Array[_], i: Int) => xs(i)
       case (xs: ju.List[_], i: Int) => xs.get(i)
 
-      case (m: Map[String, _], k: String) => m(k)
-      case (m: ju.Map[String, _], k: String) => m.get(k)
+      case (m: Map[String@unchecked, _], k: String) => m(k)
+      case (m: ju.Map[String@unchecked, _], k: String) => m.get(k)
     }.asInstanceOf[V]
   }
 
@@ -49,8 +49,8 @@ class JsonPath(tokens: Seq[Token]) {
         xs2
       }) -> xs.get(i)
 
-      case ((prevSetter: Setter, m: Map[String, Any]), k: String) => prevSetter.compose(m.updated(k, _: Value)) -> m(k)
-      case ((prevSetter: Setter, m: ju.Map[String, Any]), k: String) => prevSetter.compose((v2: Value) => {
+      case ((prevSetter: Setter, m: Map[String@unchecked, _]), k: String) => prevSetter.compose(m.updated(k, _: Value)) -> m(k)
+      case ((prevSetter: Setter, m: ju.Map[String@unchecked, _]), k: String) => prevSetter.compose((v2: Value) => {
         val m2 = new ju.HashMap[String, Any](m)
         m2.put(k, v2)
         m2
