@@ -20,6 +20,8 @@ import com.arangodb.entity.IndexType
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
+import scala.annotation.nowarn
+
 class ImplicitsSpec extends AnyFlatSpec with Matchers {
 
   import com.arangodb.model.Implicits._
@@ -27,11 +29,11 @@ class ImplicitsSpec extends AnyFlatSpec with Matchers {
   behavior of "IndexOptionsOps.indexType"
 
   it should "resolve index type" in {
-    (new SkiplistIndexOptions).indexType should be theSameInstanceAs IndexType.skiplist
+    (new SkiplistIndexOptions@nowarn).indexType should be theSameInstanceAs IndexType.skiplist
     (new GeoIndexOptions).indexType should be theSameInstanceAs IndexType.geo
     (new TtlIndexOptions).indexType should be theSameInstanceAs IndexType.ttl
     (new FulltextIndexOptions).indexType should be theSameInstanceAs IndexType.fulltext
-    (new HashIndexOptions).indexType should be theSameInstanceAs IndexType.hash
+    (new HashIndexOptions@nowarn).indexType should be theSameInstanceAs IndexType.hash
     (new PersistentIndexOptions).indexType should be theSameInstanceAs IndexType.persistent
   }
 }

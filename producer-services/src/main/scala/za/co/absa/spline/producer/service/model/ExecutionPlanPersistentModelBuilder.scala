@@ -241,6 +241,8 @@ class ExecutionPlanPersistentModelBuilder private(
                 EdgeDef.Takes.edgeToAttr(exprKey, keyCreator.asAttributeKey(attrId), epPKey, i)
               case AttrOrExprRef(_, Some(exprId)) =>
                 EdgeDef.Takes.edgeToExpr(exprKey, keyCreator.asExpressionKey(exprId), epPKey, i)
+              case _ =>
+                throw new IllegalArgumentException(s"Invalid child reference: $ref")
             })
         })
     }
@@ -288,7 +290,7 @@ class ExecutionPlanPersistentModelBuilder private(
   private def collectRefsWithPaths(obj: Map[String, Any], pathPrefix: Edge.FromPath): Iterable[(am.AttrOrExprRef, Edge.FromPath)] = {
     def fromVal(v: Any, p: Edge.FromPath): Iterable[(am.AttrOrExprRef, Edge.FromPath)] = v match {
       case ref: am.AttrOrExprRef => Seq(ref -> p)
-      case m: Map[String, _] => collectRefsWithPaths(m, p)
+      case m: Map[String@unchecked, _] => collectRefsWithPaths(m, p)
       case xs: Seq[_] => xs.zipWithIndex.flatMap { case (x, i) => fromVal(x, s"$p[$i]") }
       case _ => Nil
     }
@@ -376,7 +378,7 @@ object ExecutionPlanPersistentModelBuilder {
 
             // Schema agnostic operation
             case (maybeInSchemaInfos, None)
-              if maybeInSchemaInfos.forall(_.isEmpty)=>
+              if maybeInSchemaInfos.forall(_.isEmpty) =>
               schemaByOpId
 
             // output is defined

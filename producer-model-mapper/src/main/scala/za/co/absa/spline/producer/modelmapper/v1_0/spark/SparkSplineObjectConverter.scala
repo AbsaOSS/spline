@@ -25,8 +25,8 @@ class SparkSplineObjectConverter(
 ) extends ObjectConverter {
 
   override def convert(obj: Any): Any = obj match {
-    case attrDef: TypesV10.AttrDef if attrRefConverter.isAttrRef(attrDef) => attrRefConverter.convert(attrDef)
-    case exprDef: TypesV10.ExprDef if exprConverter.isExpression(exprDef) => exprRef(exprConverter.convert(exprDef).id)
+    case attrDef: TypesV10.AttrDef@unchecked if attrRefConverter.isAttrRef(attrDef) => attrRefConverter.convert(attrDef)
+    case exprDef: TypesV10.ExprDef@unchecked if exprConverter.isExpression(exprDef) => exprRef(exprConverter.convert(exprDef).id)
     case arr: Seq[_] => arr.map(this.convert)
     case m: Map[_, _] => m.mapValues(this.convert).view.force // see: https://github.com/scala/bug/issues/4776
     case _ => obj
