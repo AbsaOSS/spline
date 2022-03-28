@@ -129,9 +129,9 @@ class ArangoManagerImpl(
     for {
       exists <- db.exists.toScala
       _ <- if (exists && !dropIfExists)
-        throw new IllegalArgumentException(s"Arango Database ${db.name()} already exists")
+        throw new IllegalArgumentException(s"Arango Database ${db.dbName} already exists")
       else if (exists && dropIfExists) {
-        log.info(s"Drop database: ${db.name}")
+        log.info(s"Drop database: ${db.dbName}")
         db.drop().toScala
       }
       else Future.successful({})
@@ -260,7 +260,7 @@ class ArangoManagerImpl(
     log.debug(s"Delete search analyzers")
     for {
       analyzers <- db.getSearchAnalyzers.toScala.map(_.asScala)
-      userAnalyzers = analyzers.filter(_.getName.startsWith(s"${db.name}::"))
+      userAnalyzers = analyzers.filter(_.getName.startsWith(s"${db.dbName}::"))
       _ <- Future.traverse(userAnalyzers)(ua => {
         log.info(s"Delete search analyzer: ${ua.getName}")
         db.deleteSearchAnalyzer(ua.getName).toScala

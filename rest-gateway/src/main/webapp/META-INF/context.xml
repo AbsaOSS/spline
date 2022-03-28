@@ -22,6 +22,14 @@
     -->
     <Environment name="spline/database/connectionUrl" type="java.lang.String" override="false"/>
 
+    <!--
+        Optional config
+    -->
+
+    <Environment name="spline/database/activeFailover" type="java.lang.String" override="false"/>
+    <Environment name="spline/database/disableSslValidation" type="java.lang.String" override="false"/>
+    <Environment name="spline/database/logFullQueryOnError" type="java.lang.String" override="false"/>
+
     <Environment name="spline/producer/timeoutDefault" type="java.lang.String" override="false"/>
     <Environment name="spline/producer/timeoutMaximum" type="java.lang.String" override="false"/>
 
