@@ -18,7 +18,6 @@ package za.co.absa.spline.persistence
 
 import com.arangodb.DbName
 import com.arangodb.async.{ArangoDBAsync, ArangoDatabaseAsync}
-import com.arangodb.entity.LoadBalancingStrategy
 import com.arangodb.velocypack.module.scala.VPackScalaModule
 import org.slf4s.Logging
 import org.springframework.beans.factory.DisposableBean
@@ -51,15 +50,7 @@ class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL, maybeSSLContext: 
         .having(maybeSSLContext)(_ sslContext _)
     }
 
-    if (activeFailover) {
-      arangoBuilder.acquireHostList(true)
-      arangoBuilder.loadBalancingStrategy(LoadBalancingStrategy.NONE)
-    } else {
-      arangoBuilder.acquireHostList(false)
-      if (hostsWithPorts.size > 1) {
-        arangoBuilder.loadBalancingStrategy(LoadBalancingStrategy.ROUND_ROBIN)
-      }
-    }
+    arangoBuilder.acquireHostList(activeFailover)
 
     for ((host, port) <- hostsWithPorts) arangoBuilder.host(host, port)
 
