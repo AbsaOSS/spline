@@ -27,8 +27,8 @@ class AutoClosingArangoManagerProxy(
   (implicit val ex: ExecutionContext)
   extends ArangoManager {
 
-  override def initialize(onExistsAction: OnDBExistsAction): Future[Boolean] =
-    withManager(_.initialize(onExistsAction))
+  override def initialize(onExistsAction: OnDBExistsAction, options: DatabaseCreateOptions): Future[Boolean] =
+    withManager(_.initialize(onExistsAction, options))
 
   override def upgrade(): Future[Unit] =
     withManager(_.upgrade())
