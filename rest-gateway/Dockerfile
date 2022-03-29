@@ -28,4 +28,7 @@ EXPOSE 8080
 EXPOSE 8009
 
 RUN rm -rf /usr/local/tomcat/webapps/*
-COPY target/*.war /usr/local/tomcat/webapps/ROOT.war
+
+USER 1001
+ARG PROJECT_BUILD_FINAL_NAME
+COPY --chown=1001 target/$PROJECT_BUILD_FINAL_NAME/ /usr/local/tomcat/webapps/ROOT/
