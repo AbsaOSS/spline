@@ -15,10 +15,7 @@
 #
 
 
-ARG DOCKER_BASE_IMAGE_PREFIX
-ARG JAR_FILE
-
-FROM "$DOCKER_BASE_IMAGE_PREFIX"fabric8/java-alpine-openjdk11-jre
+FROM fabric8/java-alpine-openjdk11-jre
 
 LABEL \
     vendor="ABSA" \
@@ -26,6 +23,7 @@ LABEL \
     license="Apache License, version 2.0" \
     name="Spline Performance Testing"
 
+ARG JAR_FILE
 
 ENV SPLINE_URL=http://localhost:8080
 ENV GRAPH_TYPE=triangle
@@ -36,7 +34,6 @@ ENV ATTRIBUTES=3
 RUN rm -rf /usr/local/tomcat/webapps/* && apk --no-cache add curl
 ADD ./target/${JAR_FILE} /opt/test-data-generator.jar
 ADD send-plans-and-events-docker.sh /opt/send-plans-and-events-docker.sh
-ADD curl-format.txt /opt/curl-format.txt
 
 ENTRYPOINT ["sh", "/opt/send-plans-and-events-docker.sh"]
 CMD "--help"

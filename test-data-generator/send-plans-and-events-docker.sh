@@ -25,19 +25,48 @@ READS_NR=`echo $READS| tr '/' '|'`
 OP_NR=`echo $OPERATIONS | tr '/' '|'`
 ATTR_NR=`echo $ATTRIBUTES | tr '/' '|'`
 
+echo "${READS_NR}" | egrep "(\d+)-(\d+)\|(\d+)"
+rc=$?
+if [[ "${rc}" == 0 ]]
+then
+   FROM=`echo $READS_NR | cut -d "-" -f1`
+   BY=`echo $READS_NR | cut -d "|" -f2`
+fi
+
+
+echo "${OP_NR}" | egrep "(\d+)-(\d+)\|(\d+)"
+rc=$?
+if [[ "${rc}" == 0 ]]
+then
+  FROM=`echo $OP_NR | cut -d "-" -f1`
+  BY=`echo $OP_NR | cut -d "|" -f2`
+fi
+
+echo "${ATTR_NR}" | egrep "(\d+)-(\d+)\|(\d+)"
+rc=$?
+if [[ "${rc}" == 0 ]]
+then
+  echo other
+  FROM=`echo $ATTR_NR | cut -d "-" -f1`
+  BY=`echo $ATTR_NR | cut -d "|" -f2`
+fi
+
+i=$FROM
+
 FILENAME="./${GRAPH_TYPE}-lineage-${READS_NR}reads-${OP_NR}ops-${ATTR_NR}attr.json.txt"
 echo $FILENAME
+echo
+echo "variable, total_time, http_code, size_upload"
 
 while read line; do
-  sleep 5
+  sleep 1
   if [[ ${line:0:1} = '{' ]]
   then
-    echo "Sending plan"
     echo $line > /opt/current_plan.txt
-    curl -w "@curl-format.txt" -o /dev/null -H "Content-Type: application/vnd.absa.spline.producer.v1.1+json" -X POST --data @"/opt/current_plan.txt" ${SPLINE_URL}/producer/execution-plans
+    curl -s -w "${i}, %{time_total}s, %{http_code}, %{size_upload}\n" -o /dev/null -H "Content-Type: application/vnd.absa.spline.producer.v1.1+json" -X POST --data @"/opt/current_plan.txt" ${SPLINE_URL}/producer/execution-plans
+    i=$((i+BY))
   else
-    echo "Sending event"
     echo $line > /opt/current_event.txt
-    curl -w "@curl-format.txt" -o /dev/null -H "Content-Type: application/vnd.absa.spline.producer.v1.1+json" -X POST --data @"/opt/current_event.txt" ${SPLINE_URL}/producer/execution-events
+    curl -s -o /dev/null -H "Content-Type: application/vnd.absa.spline.producer.v1.1+json" -X POST --data @"/opt/current_event.txt" ${SPLINE_URL}/producer/execution-events
   fi
 done < $FILENAME
