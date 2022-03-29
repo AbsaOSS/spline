@@ -46,7 +46,7 @@
         <json4s.version>3.6.7</json4s.version>
         <spring.version>5.2.9.RELEASE</spring.version>
         <springfox-swagger.version>2.9.2</springfox-swagger.version>
-        <jackson.version>2.12.1</jackson.version>
+        <jackson.version>2.12.6.1</jackson.version>
         <finatra.jackson.version>21.5.0</finatra.jackson.version>
     </properties>
 
