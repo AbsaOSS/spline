@@ -19,7 +19,7 @@
 
 ARG DOCKER_BASE_IMAGE_PREFIX
 
-FROM "$DOCKER_BASE_IMAGE_PREFIX"adoptopenjdk/openjdk11:jdk-11.0.10_9-alpine-slim
+FROM "$DOCKER_BASE_IMAGE_PREFIX"adoptopenjdk:11-jre
 
 ARG VERSION
 ARG IMAGE_NAME
@@ -32,8 +32,16 @@ LABEL \
     license="Apache License, version 2.0" \
     name="Spline Admin Tool"
 
+# Install Tini
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+            tini=0.18* \
+ && rm -rf /var/lib/apt/lists/*
+
+USER 1001
+
 COPY target/admin-$VERSION.jar ./admin.jar
 COPY entrypoint.sh .
 
-ENTRYPOINT ["sh", "./entrypoint.sh"]
+ENTRYPOINT ["tini", "-g", "--", "sh", "./entrypoint.sh"]
 CMD ["--help"]
