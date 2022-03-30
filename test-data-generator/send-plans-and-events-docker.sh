@@ -29,6 +29,7 @@ echo "${READS_NR}" | egrep "(\d+)-(\d+)\|(\d+)"
 rc=$?
 if [[ "${rc}" == 0 ]]
 then
+   VARIABLE="reads"
    FROM=`echo $READS_NR | cut -d "-" -f1`
    BY=`echo $READS_NR | cut -d "|" -f2`
 fi
@@ -38,6 +39,7 @@ echo "${OP_NR}" | egrep "(\d+)-(\d+)\|(\d+)"
 rc=$?
 if [[ "${rc}" == 0 ]]
 then
+  VARIABLE="operations"
   FROM=`echo $OP_NR | cut -d "-" -f1`
   BY=`echo $OP_NR | cut -d "|" -f2`
 fi
@@ -46,7 +48,7 @@ echo "${ATTR_NR}" | egrep "(\d+)-(\d+)\|(\d+)"
 rc=$?
 if [[ "${rc}" == 0 ]]
 then
-  echo other
+  VARIABLE="attributes"
   FROM=`echo $ATTR_NR | cut -d "-" -f1`
   BY=`echo $ATTR_NR | cut -d "|" -f2`
 fi
@@ -56,7 +58,7 @@ i=$FROM
 FILENAME="./${GRAPH_TYPE}-lineage-${READS_NR}reads-${OP_NR}ops-${ATTR_NR}attr.json.txt"
 echo $FILENAME
 echo
-echo "variable, total_time, http_code, size_upload"
+echo "${VARIABLE}, total_time, http_code, size_upload"
 
 while read line; do
   sleep 1
