@@ -50,6 +50,7 @@ class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL, maybeSSLContext: 
         .having(maybeSSLContext)(_ sslContext _)
     }
 
+    // enable active failover
     arangoBuilder.acquireHostList(activeFailover)
 
     for ((host, port) <- hostsWithPorts) arangoBuilder.host(host, port)
