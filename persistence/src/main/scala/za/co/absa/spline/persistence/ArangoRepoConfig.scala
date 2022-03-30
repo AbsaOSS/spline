@@ -29,15 +29,17 @@ import za.co.absa.spline.common.security.TLSUtils
 class ArangoRepoConfig extends InitializingBean with Logging {
 
   import za.co.absa.spline.persistence.ArangoRepoConfig._
+
   import scala.concurrent.ExecutionContext.Implicits._
 
   override def afterPropertiesSet(): Unit = {
     log.info(s"Spline database URL: ${Database.ConnectionURL.asString}")
+    log.info(s"ArangoDB Active Failover: ${Database.ActiveFailoverMode}")
   }
 
   @Bean def arangoDatabaseFacade: ArangoDatabaseFacade = {
     val sslCtxOpt = Option.when(Database.DisableSSLValidation)(TLSUtils.TrustingAllSSLContext)
-    new ArangoDatabaseFacade(Database.ConnectionURL, sslCtxOpt)
+    new ArangoDatabaseFacade(Database.ConnectionURL, sslCtxOpt, Database.ActiveFailoverMode)
   }
 
   @Bean def arangoDatabase: ArangoDatabaseAsync = arangoDatabaseFacade.db
@@ -64,6 +66,9 @@ object ArangoRepoConfig extends DefaultConfigurationStack with ConfTyped {
 
     val DisableSSLValidation: Boolean =
       conf.getBoolean(Prop("disableSslValidation"), false)
+
+    val ActiveFailoverMode: Boolean =
+      conf.getBoolean(Prop("activeFailover"), false)
   }
 
 }

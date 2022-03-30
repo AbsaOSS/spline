@@ -27,7 +27,7 @@ trait ArangoManagerFactory {
   def create(connectionURL: ArangoConnectionURL, maybeSSLContext: Option[SSLContext]): ArangoManager
 }
 
-class ArangoManagerFactoryImpl()(implicit ec: ExecutionContext) extends ArangoManagerFactory {
+class ArangoManagerFactoryImpl(activeFailover: Boolean)(implicit ec: ExecutionContext) extends ArangoManagerFactory {
 
   import ArangoImplicits._
 
@@ -48,7 +48,7 @@ class ArangoManagerFactoryImpl()(implicit ec: ExecutionContext) extends ArangoMa
     }
 
     def dbFacade(): ArangoDatabaseFacade =
-      new ArangoDatabaseFacade(connectionURL, maybeSSLContext)
+      new ArangoDatabaseFacade(connectionURL, maybeSSLContext, activeFailover)
 
     new AutoClosingArangoManagerProxy(dbManager, dbFacade)
   }

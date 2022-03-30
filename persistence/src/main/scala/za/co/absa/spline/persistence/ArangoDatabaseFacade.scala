@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.persistence
 
+import com.arangodb.DbName
 import com.arangodb.async.{ArangoDBAsync, ArangoDatabaseAsync}
 import com.arangodb.velocypack.module.scala.VPackScalaModule
 import org.slf4s.Logging
@@ -27,7 +28,8 @@ import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 import javax.net.ssl._
 import scala.concurrent._
 
-class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL, maybeSSLContext: Option[SSLContext]) extends DisposableBean {
+class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL, maybeSSLContext: Option[SSLContext], activeFailover: Boolean)
+  extends DisposableBean {
 
   import za.co.absa.spline.persistence.ArangoDatabaseFacade._
 
@@ -48,8 +50,8 @@ class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL, maybeSSLContext: 
         .having(maybeSSLContext)(_ sslContext _)
     }
 
-    // enable active failover
-    arangoBuilder.acquireHostList(true)
+    arangoBuilder.acquireHostList(activeFailover)
+
     for ((host, port) <- hostsWithPorts) arangoBuilder.host(host, port)
 
     // build ArangoDB Client
@@ -59,7 +61,7 @@ class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL, maybeSSLContext: 
   // The val is lazy to not prevent a facade instance from being created.
   // It allows connection to be re-attempted later and the {{shutdown()}} method to be called.
   lazy val db: ArangoDatabaseAsync = {
-    val db = arango.db(dbName)
+    val db = arango.db(DbName.of(dbName))
     warmUpDb(db)
     db
   }

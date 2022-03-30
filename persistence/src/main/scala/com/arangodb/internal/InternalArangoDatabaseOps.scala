@@ -17,30 +17,51 @@
 package com.arangodb.internal
 
 import com.arangodb.async.ArangoDatabaseAsync
-import com.arangodb.async.internal.{ArangoExecutorAsync, ArangoExecutorAsyncDestructor}
-import com.arangodb.internal.velocystream.VstCommunicationDestructor
-import com.arangodb.internal.velocystream.VstCommunicationDestructor.ConnectionParams
+import com.arangodb.async.internal.ArangoExecutorAsync
+import com.arangodb.internal.net.{AccessType, HostDescription}
+import com.arangodb.internal.velocystream.VstCommunication
+import com.arangodb.internal.velocystream.internal.VstConnection
+import org.apache.commons.lang3.StringUtils
 import org.apache.http.auth.UsernamePasswordCredentials
+import za.co.absa.commons.reflect.ReflectionUtils
+import za.co.absa.commons.reflect.ReflectionUtils.extractFieldValue
 import za.co.absa.spline.common.rest.{HttpStatusException, RESTClient, RESTClientApacheHttpImpl}
 
 import java.net.URI
+import javax.net.ssl.SSLContext
 import scala.concurrent.{ExecutionContext, Future}
 
 class InternalArangoDatabaseOps(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) {
+
+  import com.arangodb.internal.velocystream.VstImplicits._
 
   /**
    * @see [[https://github.com/arangodb/arangodb-java-driver/issues/353]]
    */
   def restClient: RESTClient = {
-    val asyncExecutable = db.asInstanceOf[ArangoExecuteable[ArangoExecutorAsync]]
-    val ArangoExecutorAsyncDestructor(vstComm) = asyncExecutable.executor
-    val VstCommunicationDestructor(ConnectionParams(hostDescription, user, password, maybeSslContext)) = vstComm
+    val vstComm = {
+      val asyncExecutable = db.asInstanceOf[ArangoExecuteable[ArangoExecutorAsync]]
+      val executor = asyncExecutable.executor
+      ReflectionUtils.extractFieldValue[ArangoExecutorAsync, VstCommunication[_, VstConnection[_]]](executor, "communication")
+    }
+    val connection = vstComm.connect(AccessType.WRITE)
+
+    val maybeSslContext = Option(extractFieldValue[VstConnection[_], SSLContext](connection, "sslContext"))
     val scheme = if (maybeSslContext.isDefined) "https" else "http"
+
+    val hostDescription = extractFieldValue[VstConnection[_], HostDescription](connection, "host")
     val host = hostDescription.getHost
     val port = hostDescription.getPort
-    val maybeCredentials = Option(user).map(user => new UsernamePasswordCredentials(user, password))
+    val database = db.dbName
 
-    new RESTClientApacheHttpImpl(new URI(s"$scheme://$host:$port/_db/${db.name}"), maybeCredentials, maybeSslContext)
+    val maybeCredentials =
+      for {
+        username <- Option(vstComm.getUser)
+        password = StringUtils.defaultString(vstComm.getPassword)
+      } yield
+        new UsernamePasswordCredentials(username, password)
+
+    new RESTClientApacheHttpImpl(new URI(s"$scheme://$host:$port/_db/$database"), maybeCredentials, maybeSslContext)
   }
 
 

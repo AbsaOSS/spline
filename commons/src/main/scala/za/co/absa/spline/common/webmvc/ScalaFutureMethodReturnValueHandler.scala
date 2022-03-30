@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.common.webmvc
 
+import org.slf4s.Logging
 import org.springframework.core.MethodParameter
 import org.springframework.lang.Nullable
 import org.springframework.web.context.request.async.{DeferredResult, WebAsyncUtils}
@@ -23,17 +24,23 @@ import org.springframework.web.context.request.{NativeWebRequest, WebRequest}
 import org.springframework.web.method.support.{AsyncHandlerMethodReturnValueHandler, ModelAndViewContainer}
 import org.springframework.web.servlet.mvc.method.annotation.DeferredResultMethodReturnValueHandler
 
+import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 
-class ScalaFutureMethodReturnValueHandler()(implicit ec: ExecutionContext)
+class ScalaFutureMethodReturnValueHandler(
+  defaultTimeout: Duration,
+  maximumTimeout: Duration
+)(implicit ec: ExecutionContext)
   extends DeferredResultMethodReturnValueHandler
-    with AsyncHandlerMethodReturnValueHandler {
+    with AsyncHandlerMethodReturnValueHandler
+    with Logging {
 
   import ScalaFutureMethodReturnValueHandler._
 
-  protected type F <: Future[_]
+  log.debug(s"Default timeout: $defaultTimeout")
+  log.debug(s"Maximum timeout: $maximumTimeout")
 
   override def supportsReturnType(returnType: MethodParameter): Boolean =
     classOf[Future[_]].isAssignableFrom(returnType.getParameterType) || super.supportsReturnType(returnType)
@@ -42,8 +49,9 @@ class ScalaFutureMethodReturnValueHandler()(implicit ec: ExecutionContext)
     returnValue.isInstanceOf[Future[_]]
 
   override def handleReturnValue(retVal: Any, retType: MethodParameter, mav: ModelAndViewContainer, req: NativeWebRequest): Unit = retVal match {
-    case future: F =>
+    case future: Future[_] =>
       val maybeTimeout = getFutureTimeout(future, req)
+      log.debug(s"Future timeout: $maybeTimeout")
       val deferredResult = toDeferredResult(future, maybeTimeout)
       WebAsyncUtils
         .getAsyncManager(req)
@@ -52,11 +60,15 @@ class ScalaFutureMethodReturnValueHandler()(implicit ec: ExecutionContext)
       super.handleReturnValue(retVal, retType, mav, req)
   }
 
-  protected def getFutureTimeout(future: F, req: WebRequest): Option[Long] =
-    Option(req.getHeader(TIMEOUT_HEADER)).map(_.toLong)
+  protected def getFutureTimeout(future: Future[_], req: WebRequest): Long =
+    getTimeout(
+      Option(req.getHeader(TIMEOUT_HEADER)).map(_.toLong.millis),
+      defaultTimeout,
+      maximumTimeout
+    ).toMillis
 
-  private def toDeferredResult(returnValue: Future[_], timeout: Option[Long]): DeferredResult[_] =
-    new DeferredResult[Any](timeout.map(Long.box).orNull) {
+  private def toDeferredResult(returnValue: Future[_], timeout: Long): DeferredResult[_] =
+    new DeferredResult[Any](timeout) {
       returnValue.andThen {
         case Success(value) => setResult(value)
         case Failure(error) => setErrorResult(error)
@@ -66,4 +78,31 @@ class ScalaFutureMethodReturnValueHandler()(implicit ec: ExecutionContext)
 
 object ScalaFutureMethodReturnValueHandler {
   private val TIMEOUT_HEADER = "X-SPLINE-TIMEOUT"
+
+  private def convertNegOrZeroToInf(t: Duration): Duration = {
+    if (t.isFinite() && t.toMillis < 1) Duration.Inf
+    else t
+  }
+
+  private def convertInfToZero(t: Duration): Duration = {
+    if (t.isFinite()) t
+    else 0.millis
+  }
+
+  private[webmvc] def getTimeout(
+    maybeRequestedTimeout: Option[Duration],
+    defaultTimeout: Duration,
+    maximumTimeout: Duration
+  ): Duration = {
+    val requestedTOpt = maybeRequestedTimeout.map(convertNegOrZeroToInf)
+    val defaultT = convertNegOrZeroToInf(defaultTimeout)
+    val maximumT = convertNegOrZeroToInf(maximumTimeout)
+
+    val resultT =
+      requestedTOpt
+        .getOrElse(defaultT)
+        .min(maximumT)
+
+    convertInfToZero(resultT)
+  }
 }

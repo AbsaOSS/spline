@@ -97,7 +97,7 @@ object ExecutionPlanDeserFixAspect extends Logging {
   }
 
   private def fixValue(v: Any): Any = v match {
-    case m: Map[String, _] => AttrOrExprRef.fromMap(m) getOrElse fixMap(m)
+    case m: Map[String@unchecked, _] => AttrOrExprRef.fromMap(m) getOrElse fixMap(m)
     case xs: Seq[_] => xs.map(fixValue)
     case _ => v
   }

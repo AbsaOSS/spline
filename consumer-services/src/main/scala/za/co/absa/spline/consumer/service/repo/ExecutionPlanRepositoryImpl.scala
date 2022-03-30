@@ -20,6 +20,7 @@ import com.arangodb.async.ArangoDatabaseAsync
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.model._
+import za.co.absa.spline.persistence.model.Operation.OperationTypes
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -104,6 +105,20 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         |""".stripMargin,
       Map("execPlanId" -> execId)
     ).filter(null.!=)
+  }
+
+  override def getWriteOperationId(planId: ExecutionPlanInfo.Id)(implicit ec: ExecutionContext): Future[Operation.Id] = {
+    db.queryOne[Operation.Id](
+      s"""
+         |WITH operation
+         |FOR op IN operation
+         |    FILTER op._belongsTo == CONCAT('executionPlan/', @planId)
+         |    FILTER op.type == '${OperationTypes.Write}'
+         |    RETURN op._key
+         |""".stripMargin,
+      Map(
+        "planId" -> planId
+      ))
   }
 
   override def execPlanAttributeLineage(attrId: Attribute.Id)(implicit ec: ExecutionContext): Future[AttributeGraph] = {

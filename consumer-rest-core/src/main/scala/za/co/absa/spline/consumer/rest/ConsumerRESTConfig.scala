@@ -23,7 +23,7 @@ import org.springframework.web.method.support.HandlerMethodReturnValueHandler
 import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
 import za.co.absa.commons.config.ConfTyped
 import za.co.absa.spline.common
-import za.co.absa.spline.common.config.DefaultConfigurationStack
+import za.co.absa.spline.common.config.{DefaultConfigurationStack, HttpConfiguration}
 import za.co.absa.spline.common.webmvc.jackson.ObjectMapperBeanPostProcessor
 import za.co.absa.spline.common.webmvc.{ScalaFutureMethodReturnValueHandler, UnitMethodReturnValueHandler}
 
@@ -41,7 +41,10 @@ class ConsumerRESTConfig extends WebMvcConfigurer {
 
   override def addReturnValueHandlers(returnValueHandlers: util.List[HandlerMethodReturnValueHandler]): Unit = {
     returnValueHandlers.add(new UnitMethodReturnValueHandler)
-    returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler)
+    returnValueHandlers.add(new ScalaFutureMethodReturnValueHandler(
+      defaultTimeout = ConsumerRESTConfig.DefaultTimeout,
+      maximumTimeout = ConsumerRESTConfig.MaximumTimeout
+    ))
   }
 
   @Bean def jacksonConfigurer = new ObjectMapperBeanPostProcessor(_
@@ -54,8 +57,11 @@ class ConsumerRESTConfig extends WebMvcConfigurer {
   }
 }
 
-object ConsumerRESTConfig extends DefaultConfigurationStack with ConfTyped {
+object ConsumerRESTConfig
+  extends DefaultConfigurationStack
+    with ConfTyped
+    with HttpConfiguration {
 
-  override val rootPrefix: String = "spline"
+  override def rootPrefix: String = "spline.consumer"
 
 }

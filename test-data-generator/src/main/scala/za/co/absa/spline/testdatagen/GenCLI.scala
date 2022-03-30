@@ -26,8 +26,8 @@ object GenCLI {
 
   def validateNumericParam(param: String): Either[String, Unit] = {
     Try(NumericValue(param)) match {
+      case Success(_) => Right(())
       case Failure(exception) => Left(exception.getMessage)
-      case Success(_) => Right()
     }
   }
 
@@ -37,8 +37,8 @@ object GenCLI {
 
   def validateGraphType(param: String): Either[String, Unit] = {
     GraphType.fromString(param) match {
+      case Some(_) => Right(())
       case None => Left(s"Invalid provided graph type. Valid values: $validGraphValues")
-      case Some(_) => Right()
     }
   }
 
@@ -77,7 +77,7 @@ object GenCLI {
         opt[String]('g', "graph-type")
           .validate(validateGraphType)
           .required()
-          .text(s"Supported values: ${validGraphValues}")
+          .text(s"Supported values: $validGraphValues")
           .action((x: String, c) => {
             c.copy(graphType = GraphType.fromString(x).get)
           })

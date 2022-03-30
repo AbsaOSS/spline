@@ -30,7 +30,7 @@ trait AttributeRefConverter extends Converter {
 object AttributeRefConverter extends AttributeRefConverter {
 
   override def isAttrRef(obj: Any): Boolean = PartialFunction.cond(obj) {
-    case attrRef: TypesV10.ExprDef => attrRef
+    case attrRef: TypesV10.ExprDef@unchecked => attrRef
       .get(FieldNamesV10.ExpressionDef.TypeHint)
       .map(_.toString)
       .contains("expr.AttrRef")
