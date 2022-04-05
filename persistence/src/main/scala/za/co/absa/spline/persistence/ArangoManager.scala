@@ -42,7 +42,7 @@ trait ArangoManager {
   /**
    * @return `true` if actual initialization was performed.
    */
-  def initialize(onExistsAction: OnDBExistsAction): Future[Boolean]
+  def initialize(onExistsAction: OnDBExistsAction, options: DatabaseCreateOptions): Future[Boolean]
   def upgrade(): Future[Unit]
   def execute(actions: AuxiliaryDBAction*): Future[Unit]
 }
@@ -59,7 +59,7 @@ class ArangoManagerImpl(
 
   import ArangoManagerImpl._
 
-  def initialize(onExistsAction: OnDBExistsAction): Future[Boolean] = {
+  def initialize(onExistsAction: OnDBExistsAction, options: DatabaseCreateOptions): Future[Boolean] = {
     log.debug("Initialize database")
     db.exists.toScala.flatMap { exists =>
       if (exists && onExistsAction == Skip) {
@@ -68,7 +68,7 @@ class ArangoManagerImpl(
       } else for {
         _ <- deleteDbIfRequested(db, onExistsAction == Drop)
         _ <- db.create().toScala
-        _ <- createCollections(db)
+        _ <- createCollections(db, options)
         _ <- createAQLUserFunctions(db)
         _ <- createFoxxServices()
         _ <- createIndices(db)
@@ -138,13 +138,21 @@ class ArangoManagerImpl(
     } yield {}
   }
 
-  private def createCollections(db: ArangoDatabaseAsync) = {
+  private def createCollections(db: ArangoDatabaseAsync, options: DatabaseCreateOptions) = {
     log.debug(s"Create collections")
     Future.sequence(
       for (colDef <- sealedInstancesOf[CollectionDef])
         yield {
-          log.info(s"Create collection: ${colDef.name}")
-          db.createCollection(colDef.name, new CollectionCreateOptions().`type`(colDef.collectionType)).toScala
+          val shardNum = options.numShards.get(colDef).orElse(options.numShardsDefault).getOrElse(colDef.numShards)
+          val shardKeys = options.shardKeys.get(colDef).orElse(options.shardKeysDefault).getOrElse(colDef.shardKeys)
+          val replFactor = options.replFactor.get(colDef).orElse(options.replFactorDefault).getOrElse(colDef.replFactor)
+          val collectionOptions = new CollectionCreateOptions()
+            .`type`(colDef.collectionType)
+            .numberOfShards(shardNum)
+            .shardKeys(shardKeys: _*)
+            .replicationFactor(replFactor)
+            .waitForSync(options.waitForSync)
+          db.createCollection(colDef.name, collectionOptions).toScala
         })
   }
 
@@ -167,7 +175,7 @@ class ArangoManagerImpl(
       colEntities <- db.getCollections.toScala.map(_.asScala.filter(!_.getIsSystem))
       eventualIndices = colEntities.map(ce => db.collection(ce.getName).getIndexes.toScala.map(_.asScala.map(ce.getName -> _)))
       allIndices <- Future.reduceLeft(Iterable(eventualIndices.toSeq: _*))(_ ++ _)
-      userIndices = allIndices.filter{case (_, idx) => idx.getType != IndexType.primary && idx.getType != IndexType.edge}
+      userIndices = allIndices.filter { case (_, idx) => idx.getType != IndexType.primary && idx.getType != IndexType.edge }
       _ <- Future.traverse(userIndices) { case (colName, idx) =>
         log.debug(s"Drop ${idx.getType} index: $colName.${idx.getName}")
         db.deleteIndex(idx.getId).toScala

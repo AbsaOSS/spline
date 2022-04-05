@@ -21,6 +21,7 @@ import com.arangodb.entity.arangosearch._
 import com.arangodb.entity.arangosearch.analyzer.{NormAnalyzer, NormAnalyzerProperties, SearchAnalyzer, SearchAnalyzerCase}
 import com.arangodb.model.arangosearch.ArangoSearchCreateOptions
 import com.arangodb.model.{IndexOptions, PersistentIndexOptions}
+import za.co.absa.commons.reflect.ReflectionUtils
 import za.co.absa.spline.persistence.model.SearchAnalyzerDef.NormSearchAnalyzer
 
 case class IndexDef(fields: Seq[String], options: IndexOptions[_ <: IndexOptions[_]])
@@ -31,6 +32,9 @@ sealed trait CollectionDef {
   def name: String
   def collectionType: CollectionType
   def indexDefs: Seq[IndexDef] = Nil
+  def numShards: Int = 1
+  def shardKeys: Seq[String] = Seq("_key")
+  def replFactor: Int = 1
 }
 
 sealed abstract class EdgeDef(override val name: String, val froms: Seq[NodeDef], val tos: Seq[NodeDef])
@@ -150,6 +154,9 @@ object EdgeDef {
 object NodeDef {
 
   object DataSource extends NodeDef("dataSource") with CollectionDef {
+
+    override def shardKeys: Seq[String] = Seq("uri")
+
     override def indexDefs: Seq[IndexDef] = Seq(
       IndexDef(Seq("_created"), new PersistentIndexOptions),
       IndexDef(Seq("uri"), (new PersistentIndexOptions).unique(true)),
@@ -195,6 +202,9 @@ object NodeDef {
 }
 
 object CollectionDef {
+
+  val forName: String => CollectionDef =
+    ReflectionUtils.objectsOf[CollectionDef].map(d => d.name -> d).toMap
 
   object DBVersion extends CollectionDef {
     override def collectionType = CollectionType.DOCUMENT
