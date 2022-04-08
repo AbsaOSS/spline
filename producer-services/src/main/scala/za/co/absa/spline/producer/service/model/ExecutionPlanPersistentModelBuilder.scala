@@ -31,11 +31,9 @@ import za.co.absa.spline.producer.model.{v1_2 => am}
 import za.co.absa.spline.producer.service.model.ExecutionPlanPersistentModelBuilder._
 import za.co.absa.spline.producer.service.{InconsistentEntityException, model}
 
-import java.util.UUID.randomUUID
-
 class ExecutionPlanPersistentModelBuilder private(
   ep: am.ExecutionPlan,
-  persistedDSKeyByURI: Map[pm.DataSource.Uri, pm.DataSource.Key]
+  dsKeyByURI: pm.DataSource.Uri => pm.DataSource.Key
 ) {
   private val keyCreator = new ExecutionPlanKeyCreator(ep)
   private val epPKey: pm.ArangoDocument.Id = ep.id.toString
@@ -63,18 +61,6 @@ class ExecutionPlanPersistentModelBuilder private(
   // attr dependency graph
   private var _attrDepGraph = Graph.empty[AttrOrExprRef, DiEdge]
 
-  private val pmDataSourceByURI: Map[String, pm.DataSource] = {
-    val referencedURIs = ep.dataSources
-    val persistedURIs = persistedDSKeyByURI.keys
-    val transientDSKeyByURI = (referencedURIs -- persistedURIs).map(_ -> randomUUID.toString).toMap
-    val dsKeyByUri = transientDSKeyByURI ++ persistedDSKeyByURI
-    dsKeyByUri.map {
-      case (uri, key) =>
-        val dsName = pm.DataSource.getName(uri)
-        uri -> pm.DataSource(uri, dsName, key, None)
-    }
-  }
-
   def build(): ExecutionPlanPersistentModel = {
     val pmExecutionPlan = pm.ExecutionPlan(
       name = ep.name,
@@ -100,11 +86,6 @@ class ExecutionPlanPersistentModelBuilder private(
         )
       }
 
-    val pmTransientDataSources = {
-      val persistentDSUris = persistedDSKeyByURI.keys
-      (pmDataSourceByURI -- persistentDSUris).values.toSeq
-    }
-
     model.ExecutionPlanPersistentModel(
       // plan
       executionPlan = pmExecutionPlan,
@@ -120,9 +101,6 @@ class ExecutionPlanPersistentModelBuilder private(
       emits = _pmEmits,
       uses = _pmUses,
       produces = _pmProduces,
-
-      // data source
-      dataSources = pmTransientDataSources,
 
       // schema
       schemas = _pmSchemas,
@@ -257,7 +235,7 @@ class ExecutionPlanPersistentModelBuilder private(
     } yield {
       EdgeDef.ReadsFrom.edge(
         keyCreator.asOperationKey(ro.id),
-        pmDataSourceByURI(ds)._key,
+        dsKeyByURI(ds),
         epPKey
       )
     }
@@ -265,7 +243,7 @@ class ExecutionPlanPersistentModelBuilder private(
   private def pmWritesTo: pm.Edge = {
     EdgeDef.WritesTo.edge(
       keyCreator.asOperationKey(ep.operations.write.id),
-      pmDataSourceByURI(ep.operations.write.outputSource)._key,
+      dsKeyByURI(ep.operations.write.outputSource),
       epPKey
     )
   }
@@ -276,14 +254,14 @@ class ExecutionPlanPersistentModelBuilder private(
       ds <- ro.inputSources
     } yield EdgeDef.Depends.edge(
       ep.id,
-      pmDataSourceByURI(ds)._key,
+      dsKeyByURI(ds),
       epPKey
     )
 
   private def pmAffects: pm.Edge =
     EdgeDef.Affects.edge(
       ep.id,
-      pmDataSourceByURI(ep.operations.write.outputSource)._key,
+      dsKeyByURI(ep.operations.write.outputSource),
       epPKey
     )
 
@@ -346,10 +324,11 @@ object ExecutionPlanPersistentModelBuilder {
 
   def toPersistentModel(
     ep: am.ExecutionPlan,
-    persistedDSKeyByURI: Map[pm.DataSource.Uri, pm.DataSource.Key]
+    persistedDataSources: Seq[pm.DataSource]
   ): ExecutionPlanPersistentModel = {
     val maybeExpressions = ep.expressions.map(_.all)
-    new ExecutionPlanPersistentModelBuilder(ep, persistedDSKeyByURI)
+    val dsKeyByURI = persistedDataSources.map(ds => ds.uri -> ds._key).toMap
+    new ExecutionPlanPersistentModelBuilder(ep, dsKeyByURI)
       .addOperations(ep.operations.all)
       .addAttributes(ep.attributes)
       .having(maybeExpressions)(_ addExpressions _)

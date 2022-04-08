@@ -86,10 +86,11 @@ object DBVersion {
 case class DataSource(
   uri: DataSource.Uri,
   name: DataSource.Name,
-  override val _key: DataSource.Key,
   lastWriteDetails: Option[Progress]
 ) extends Vertex with RootEntity {
-  def this() = this(null, null, null, null)
+  override val _key: DataSource.Key = null
+
+  def this() = this(null, null, null)
 }
 
 object DataSource {
@@ -99,9 +100,11 @@ object DataSource {
 
   private val NameRegexp = "([^/]+)/*$".r
 
-  def getName(uri: Uri): Name = {
+  private[persistence] def getName(uri: Uri): Name = {
     NameRegexp.findFirstMatchIn(uri).map(_.group(1)).getOrElse("")
   }
+
+  def apply(uri: Uri): DataSource = DataSource(uri, getName(uri), None)
 }
 
 /**

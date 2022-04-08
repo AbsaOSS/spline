@@ -67,7 +67,7 @@ class ArangoManagerImpl(
         Future.successful(false)
       } else for {
         _ <- deleteDbIfRequested(db, onExistsAction == Drop)
-        _ <- db.create().toScala
+        _ <- createDb(db)
         _ <- createCollections(db, options)
         _ <- createAQLUserFunctions(db)
         _ <- createFoxxServices()
@@ -136,6 +136,11 @@ class ArangoManagerImpl(
       }
       else Future.successful({})
     } yield {}
+  }
+
+  private def createDb(db: ArangoDatabaseAsync) = {
+    log.info(s"Create database: ${db.dbName}")
+    db.create().toScala
   }
 
   private def createCollections(db: ArangoDatabaseAsync, options: DatabaseCreateOptions) = {
