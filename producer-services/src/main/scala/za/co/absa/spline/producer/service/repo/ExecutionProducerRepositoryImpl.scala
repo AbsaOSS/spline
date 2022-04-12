@@ -20,13 +20,14 @@ import com.arangodb.async.ArangoDatabaseAsync
 import org.slf4s.Logging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
+import za.co.absa.spline.common.AsyncCallRetryer
 import za.co.absa.spline.persistence.model._
 import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, TxBuilder}
-import za.co.absa.spline.persistence.{ArangoImplicits, Persister}
+import za.co.absa.spline.persistence.ArangoImplicits
 import za.co.absa.spline.producer.model.v1_1.ExecutionEvent._
 import za.co.absa.spline.producer.model.{v1_1 => apiModel}
 import za.co.absa.spline.producer.service.model.{ExecutionEventKeyCreator, ExecutionPlanPersistentModel, ExecutionPlanPersistentModelBuilder}
-import za.co.absa.spline.producer.service.{UUIDCollisionDetectedException, InconsistentEntityException}
+import za.co.absa.spline.producer.service.{InconsistentEntityException, UUIDCollisionDetectedException}
 
 import java.util.UUID
 import scala.compat.java8.FutureConverters._
@@ -35,13 +36,13 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
 @Repository
-class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExecutionProducerRepository
+class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, repeater: AsyncCallRetryer) extends ExecutionProducerRepository
   with Logging {
 
   import ArangoImplicits._
   import ExecutionProducerRepositoryImpl._
 
-  override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
+  override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = repeater.execute({
     // Here I have to use the type parameter `Any` and cast to `String` later due to ArangoDb Java driver issue.
     // See https://github.com/arangodb/arangodb-java-driver/issues/389
     val eventualMaybeExistingDiscriminatorOpt: Future[Option[String]] = db.queryOptional[Any](
@@ -80,7 +81,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
     } yield Unit
   })
 
-  override def insertExecutionEvents(events: Array[apiModel.ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
+  override def insertExecutionEvents(events: Array[apiModel.ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = repeater.execute({
     val eventualExecPlanInfos: Future[Seq[ExecPlanInfo]] = db.queryStream[ExecPlanInfo](
       s"""
          |WITH executionPlan, executes, operation, dataSource
