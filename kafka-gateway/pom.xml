@@ -21,7 +21,7 @@
     <parent>
         <artifactId>parent-pom</artifactId>
         <groupId>za.co.absa.spline</groupId>
-        <version>0.7.7</version>
+        <version>0.7.8-SNAPSHOT</version>
         <relativePath>../build/parent-pom/pom.xml</relativePath>
     </parent>
 
