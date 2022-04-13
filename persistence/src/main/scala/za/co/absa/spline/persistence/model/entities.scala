@@ -16,6 +16,8 @@
 package za.co.absa.spline.persistence.model
 
 trait ArangoDocument {
+  val _key: ArangoDocument.Key = null
+
   // entity creation time (don't confuse with the event time)
   val _created: ArangoDocument.Timestamp = System.currentTimeMillis
 
@@ -38,9 +40,7 @@ trait RootEntity {
   override val _belongsTo: Option[ArangoDocument.Id] = None
 }
 
-trait Vertex extends ArangoDocument {
-  def _key: ArangoDocument.Key
-}
+trait Vertex extends ArangoDocument
 
 case class Edge(
   _from: ArangoDocument.Id,
@@ -76,6 +76,10 @@ object DBVersion {
     val Upgraded: Status.Type = Value("upgraded")
   }
 
+}
+
+case class Counter(override val _key: String, curVal: Long) extends ArangoDocument with RootEntity {
+  def this() = this(null, Long.MinValue)
 }
 
 /**

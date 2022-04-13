@@ -158,7 +158,10 @@ class ArangoManagerImpl(
             .shardKeys(shardKeys: _*)
             .replicationFactor(replFactor)
             .waitForSync(options.waitForSync)
-          db.createCollection(colDef.name, collectionOptions).toScala
+          for {
+            _ <- db.createCollection(colDef.name, collectionOptions).toScala
+            _ <- db.collection(colDef.name).insertDocuments(colDef.initData.asJava).toScala
+          } yield ()
         })
   }
 

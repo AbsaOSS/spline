@@ -22,6 +22,7 @@ import com.arangodb.entity.arangosearch.analyzer.{NormAnalyzer, NormAnalyzerProp
 import com.arangodb.model.arangosearch.ArangoSearchCreateOptions
 import com.arangodb.model.{IndexOptions, PersistentIndexOptions}
 import za.co.absa.commons.reflect.ReflectionUtils
+import za.co.absa.spline.persistence.model
 import za.co.absa.spline.persistence.model.SearchAnalyzerDef.NormSearchAnalyzer
 
 case class IndexDef(fields: Seq[String], options: IndexOptions[_ <: IndexOptions[_]])
@@ -35,6 +36,7 @@ sealed trait CollectionDef {
   def numShards: Int = 1
   def shardKeys: Seq[String] = Seq("_key")
   def replFactor: Int = 1
+  def initData: Seq[AnyRef] = Nil
 }
 
 sealed abstract class EdgeDef(override val name: String, val froms: Seq[NodeDef], val tos: Seq[NodeDef])
@@ -210,6 +212,14 @@ object CollectionDef {
     override def collectionType = CollectionType.DOCUMENT
 
     override def name: String = "dbVersion"
+  }
+
+  object Counter extends CollectionDef {
+    override def collectionType = CollectionType.DOCUMENT
+
+    override def name: String = "counter"
+
+    override def initData: Seq[AnyRef] = Seq(model.Counter("tx", 0))
   }
 
 }
