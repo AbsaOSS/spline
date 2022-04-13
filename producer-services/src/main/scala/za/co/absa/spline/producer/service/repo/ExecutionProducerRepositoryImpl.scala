@@ -20,9 +20,10 @@ import com.arangodb.async.ArangoDatabaseAsync
 import org.slf4s.Logging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
+import za.co.absa.spline.common.AsyncCallRetryer
+import za.co.absa.spline.persistence.ArangoImplicits
 import za.co.absa.spline.persistence.model._
 import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, NativeQuery, TxBuilder}
-import za.co.absa.spline.persistence.{ArangoImplicits, Persister}
 import za.co.absa.spline.producer.model.v1_2.ExecutionEvent._
 import za.co.absa.spline.producer.model.{v1_2 => apiModel}
 import za.co.absa.spline.producer.service.UUIDCollisionDetectedException
@@ -33,13 +34,13 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
 @Repository
-class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExecutionProducerRepository
+class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retryer: AsyncCallRetryer) extends ExecutionProducerRepository
   with Logging {
 
   import ArangoImplicits._
   import ExecutionProducerRepositoryImpl._
 
-  override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
+  override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = retryer.execute({
     val eventualMaybeExistingDiscriminatorOpt: Future[Option[String]] = db.queryOptional[String](
       s"""
          |WITH ${NodeDef.ExecutionPlan.name}
@@ -81,7 +82,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
     } yield Unit
   })
 
-  override def insertExecutionEvents(events: Array[apiModel.ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
+  override def insertExecutionEvents(events: Array[apiModel.ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = retryer.execute({
     createInsertTransaction(events).execute(db)
   })
 

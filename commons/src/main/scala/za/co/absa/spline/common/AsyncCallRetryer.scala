@@ -14,29 +14,20 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence
+package za.co.absa.spline.common
 
-import java.util.concurrent.CompletionException
-
-import com.arangodb.ArangoDBException
 import org.slf4s.Logging
+import za.co.absa.spline.common.AsyncCallRetryer._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-object Persister extends Logging {
+class AsyncCallRetryer(isRetryable: Throwable => Boolean, maxRetries: Int) extends Logging {
 
-  import scala.concurrent.ExecutionContext.Implicits._
-
-  private[persistence] val MaxRetries = 5
-
-  def execute[R](fn: => Future[R]): Future[R] = {
+  def execute[R](fn: => Future[R])(implicit ex: ExecutionContext): Future[R] = {
     executeWithRetry(fn, None)
   }
 
-  @throws(classOf[IllegalArgumentException])
-  @throws(classOf[ArangoDBException])
-  @throws(classOf[CompletionException])
-  private def executeWithRetry[R](fn: => Future[R], lastFailure: Option[FailedAttempt]): Future[R] = {
+  private def executeWithRetry[R](fn: => Future[R], lastFailure: Option[FailedAttempt])(implicit ex: ExecutionContext): Future[R] = {
     val eventualResult = fn
     val attemptsUsed = lastFailure.map(_.count).getOrElse(0)
 
@@ -44,14 +35,15 @@ object Persister extends Logging {
       log.warn(s"Succeeded after ${failure.count + 1} attempts. Previous message was: ${failure.error.getMessage}")
     }
 
-    if (attemptsUsed >= MaxRetries)
+    if (attemptsUsed >= maxRetries)
       eventualResult
     else
       eventualResult.recoverWith {
-        case RetryableException(e) => executeWithRetry(fn, Some(FailedAttempt(attemptsUsed + 1, e)))
+        case e if isRetryable(e) => executeWithRetry(fn, Some(FailedAttempt(attemptsUsed + 1, e)))
       }
   }
+}
 
-  case class FailedAttempt(count: Int, error: Exception)
-
+object AsyncCallRetryer {
+  case class FailedAttempt(count: Int, error: Throwable)
 }

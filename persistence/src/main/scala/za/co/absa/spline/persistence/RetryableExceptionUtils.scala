@@ -16,12 +16,12 @@
 
 package za.co.absa.spline.persistence
 
-import java.util.concurrent.CompletionException
-
 import com.arangodb.ArangoDBException
 import za.co.absa.spline.persistence.ArangoCode._
 
-object RetryableException {
+import scala.annotation.tailrec
+
+object RetryableExceptionUtils {
 
   private[persistence] val RetryableCodes = Set(
     ArangoConflict,
@@ -33,10 +33,16 @@ object RetryableException {
     ClusterTimeout)
     .map(_.code)
 
-  def unapply(exception: Throwable): Option[RuntimeException] = exception match {
-    case e: ArangoDBException if RetryableCodes(e.getResponseCode) => Some(e)
-    case e: CompletionException => Option(e.getCause).flatMap(unapply).map(_ => e)
-    case _ => None
+  def isRetryable(exception: Throwable): Boolean = {
+    @tailrec def loop(ex: Throwable, visited: Set[Throwable]): Boolean = {
+      (!visited.contains(ex)) && (ex match {
+        case e: ArangoDBException if RetryableCodes.contains(e.getErrorNum) => true
+        case e: Exception => loop(e.getCause, visited + e)
+        case _ => false
+      })
+    }
+
+    loop(exception, Set.empty)
   }
 
 }

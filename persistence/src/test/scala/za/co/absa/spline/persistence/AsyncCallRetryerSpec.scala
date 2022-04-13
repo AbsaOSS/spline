@@ -16,34 +16,28 @@
 
 package za.co.absa.spline.persistence
 
-import java.util.concurrent.CompletionException
-
-import com.arangodb.ArangoDBException
 import org.mockito.Mockito._
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
-import za.co.absa.spline.persistence.PersisterSpec.ARecoverableArangoErrorCode
+import za.co.absa.spline.common.AsyncCallRetryer
 
 import scala.concurrent.Future
 import scala.concurrent.Future._
 import scala.language.implicitConversions
 
-object PersisterSpec {
-  private val ARecoverableArangoErrorCode = ArangoCode.ClusterTimeout.code
-}
-
-class PersisterSpec
+class AsyncCallRetryerSpec
   extends AsyncFlatSpec
     with Matchers
     with MockitoSugar {
 
-  behavior of "Persister"
+  behavior of "isRetryable()"
 
   it should "call an underlying method and return a result" in {
+    val retryer = new AsyncCallRetryer(mock[Throwable => Boolean], 5)
     val spy = mock[() => Future[String]]
     when(spy()) thenReturn successful("result")
-    for (result <- Persister.execute(spy()))
+    for (result <- retryer.execute(spy()))
       yield {
         verify(spy, times(1))()
         result should equal("result")
@@ -51,36 +45,35 @@ class PersisterSpec
   }
 
   it should "retry after a recoverable failure" in {
-    Future.traverse(RetryableException.RetryableCodes) {
-      errorCode => {
-        val spy = mock[() => Future[String]]
-        (when(spy())
-          thenReturn failed(new ArangoDBException("1st call failed", errorCode))
-          thenReturn failed(new CompletionException(new ArangoDBException("2st call failed", errorCode)))
-          thenReturn successful("3rd call succeeded"))
-        for (result <- Persister.execute(spy()))
-          yield {
-            verify(spy, times(3))()
-            result should equal("3rd call succeeded")
-          }
+    val retryer = new AsyncCallRetryer(_ => true, 5)
+    val spy = mock[() => Future[String]]
+    (when(spy())
+      thenReturn failed(new Exception("1st call failed"))
+      thenReturn failed(new Exception("2nd call failed"))
+      thenReturn successful("3rd call succeeded"))
+    for (result <- retryer.execute(spy()))
+      yield {
+        verify(spy, times(3))()
+        result should equal("3rd call succeeded")
       }
-    }.map(_.head)
   }
 
   it should "only retry up to the maximum number of retries" in {
+    val retryer = new AsyncCallRetryer(_ => true, 2)
     val spy = mock[() => Future[String]]
-    when(spy()) thenReturn failed(new ArangoDBException("oops", ARecoverableArangoErrorCode))
-    for (thrown <- recoverToExceptionIf[ArangoDBException](Persister.execute(spy())))
+    when(spy()) thenReturn failed(new Exception("oops"))
+    for (thrown <- recoverToExceptionIf[Exception](retryer.execute(spy())))
       yield {
-        verify(spy, times(Persister.MaxRetries + 1))()
+        verify(spy, times(3))() // 2 retries + 1 initial call
         thrown.getMessage should equal("oops")
       }
   }
 
   it should "not retry on a non-recoverable error" in {
+    val retryer = new AsyncCallRetryer(_ => false, 5)
     val spy = mock[() => Future[String]]
     when(spy()) thenReturn failed(new RuntimeException("boom"))
-    for (thrown <- recoverToExceptionIf[Exception](Persister.execute(spy())))
+    for (thrown <- recoverToExceptionIf[Exception](retryer.execute(spy())))
       yield {
         verify(spy, times(1))()
         thrown.getMessage should equal("boom")
