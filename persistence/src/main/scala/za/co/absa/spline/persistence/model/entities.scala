@@ -47,9 +47,10 @@ case class Edge(
   _to: ArangoDocument.Id,
   override val _belongsTo: Option[ArangoDocument.Id],
   index: Option[Edge.Index],
-  path: Option[Edge.FromPath]
+  path: Option[Edge.FromPath],
+  override val _key: ArangoDocument.Key = null
 ) extends ArangoDocument {
-  def this() = this(null, null, null, null, null)
+  def this() = this(null, null, null, null, null, null)
 }
 
 object Edge {

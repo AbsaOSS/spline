@@ -163,7 +163,7 @@ object ExecutionProducerRepositoryImpl {
         execPlanDetails = null // the value is populated below in the transaction script
       )
 
-      val progressEdge = EdgeDef.ProgressOf.edge(p._key, e.planId)
+      val progressEdge = EdgeDef.ProgressOf.edge(p._key, e.planId).copy(_key = p._key)
 
       txBuilder.addQuery(NativeQuery(
         query =
