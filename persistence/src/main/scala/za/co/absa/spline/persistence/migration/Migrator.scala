@@ -89,7 +89,7 @@ class Migrator(
           s"${UpdateQuery.DocWildcard}.status == '${Status.Current}'", Map("status" -> Status.Upgraded.toString)))
         .addQuery(UpdateQuery(DBVersion,
           s"${UpdateQuery.DocWildcard}.status == '${Status.Preparing}'", Map("status" -> Status.Current.toString)))
-        .buildTx
+        .buildTx()
         .execute(db)
     } yield ()
   }

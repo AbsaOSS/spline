@@ -141,7 +141,7 @@ object ExecutionProducerRepositoryImpl {
       .addQuery(InsertQuery(NodeDef.Expression, eppm.expressions))
       .addQuery(InsertQuery(EdgeDef.Takes, eppm.takes))
 
-      .buildTx
+      .buildTx()
   }
 
   private def createExecutionEventTransaction(
@@ -230,7 +230,7 @@ object ExecutionProducerRepositoryImpl {
       txBuilder.addQuery(InsertQuery(EdgeDef.ProgressOf, progressEdge).copy(ignoreExisting = true))
     }
 
-    txBuilder.buildTx
+    txBuilder.buildTx()
   }
 
   private def ensureNoExecPlanIDCollision(

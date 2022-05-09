@@ -24,7 +24,7 @@ import scala.compat.java8.FutureConverters._
 
 class JSTxBuilder extends AbstractTxBuilder with Logging {
 
-  override def buildTx: ArangoTx = {
+  override def buildTx(): ArangoTx = {
     val jsCode = generateJs()
     log.debug(jsCode)
     db => db.transaction(jsCode, classOf[Unit], txOptions).toScala

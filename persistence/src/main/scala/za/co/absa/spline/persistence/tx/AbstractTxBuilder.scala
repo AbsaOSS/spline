@@ -22,7 +22,7 @@ abstract class AbstractTxBuilder() {
 
   protected var queries: Seq[Query] = Vector.empty
 
-  def buildTx: ArangoTx
+  def buildTx(): ArangoTx
 
   def addQuery(q: Query): this.type = {
     queries :+= q
