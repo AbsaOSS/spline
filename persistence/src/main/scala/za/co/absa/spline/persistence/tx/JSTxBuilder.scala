@@ -16,10 +16,13 @@
 
 package za.co.absa.spline.persistence.tx
 
+import com.arangodb.async.ArangoDatabaseAsync
 import org.slf4s.Logging
 import za.co.absa.spline.persistence.tx.JSTxBuilder.condLine
 
 import scala.compat.java8.FutureConverters._
+import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.ClassTag
 
 
 class JSTxBuilder extends AbstractTxBuilder with Logging {
@@ -27,7 +30,12 @@ class JSTxBuilder extends AbstractTxBuilder with Logging {
   override def buildTx(): ArangoTx = {
     val jsCode = generateJs()
     log.debug(jsCode)
-    db => db.transaction(jsCode, classOf[Unit], txOptions).toScala
+    new ArangoTx {
+      override def execute[A: ClassTag](db: ArangoDatabaseAsync)(implicit ex: ExecutionContext): Future[A] = {
+        val ct = implicitly[ClassTag[A]]
+        db.transaction[A](jsCode, ct.runtimeClass.asInstanceOf[Class[A]], txOptions).toScala
+      }
+    }
   }
 
   private[tx] def generateJs(): String = {

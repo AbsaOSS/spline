@@ -83,7 +83,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retr
   })
 
   override def insertExecutionEvents(events: Array[apiModel.ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = retryer.execute({
-    createExecutionEventTransaction(events).execute(db)
+    createExecutionEventTransaction(events).execute[Unit](db)
   })
 
   override def isDatabaseOk()(implicit ec: ExecutionContext): Future[Boolean] = {
