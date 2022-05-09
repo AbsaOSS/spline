@@ -35,7 +35,7 @@ class JSTxBuilder extends AbstractTxBuilder with Logging {
       case (nq: NativeQuery, i) =>
         s"""
            |lastRes = (function(db, params){
-           |  return ${nq.query}
+           |  return (function(){${nq.query}})()
            |})(_db, _params[$i]);
            |""".stripMargin.trim
 
