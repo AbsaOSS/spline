@@ -16,62 +16,19 @@
 
 package za.co.absa.spline.persistence.tx
 
-import java.util.UUID
-import com.arangodb.async.ArangoDatabaseAsync
-import com.arangodb.model.TransactionOptions
 import org.slf4s.Logging
-import za.co.absa.spline.persistence.model.{ArangoDocument, CollectionDef}
-import za.co.absa.spline.persistence.tx.TxBuilder.{ArangoTxImpl, condLine}
+import za.co.absa.spline.persistence.tx.JSTxBuilder.condLine
 
 import scala.compat.java8.FutureConverters._
-import scala.concurrent.Future
 
-sealed trait Query {
-  def collectionDefs: Seq[CollectionDef]
-}
 
-case class NativeQuery(
-  query: String,
-  params: Map[String, Any] = Map.empty,
-  override val collectionDefs: Seq[CollectionDef] = Nil
-) extends Query
+class JSTxBuilder extends AbstractTxBuilder with Logging {
 
-case class UpdateQuery(
-  collectionDef: CollectionDef,
-  filter: String,
-  data: Map[String, Any],
-  chainInput: Boolean = false
-) extends Query {
-  override def collectionDefs: Seq[CollectionDef] = Seq(collectionDef)
-}
-
-object UpdateQuery {
-  val DocWildcard = s"_${UUID.randomUUID}_"
-}
-
-case class InsertQuery(
-  collectionDef: CollectionDef,
-  documents: Seq[ArangoDocument],
-  ignoreExisting: Boolean = false,
-  chainInput: Boolean = false
-) extends Query {
-  override def collectionDefs: Seq[CollectionDef] = Seq(collectionDef)
-}
-
-object InsertQuery {
-  def apply(colDef: CollectionDef, docs: ArangoDocument*): InsertQuery = InsertQuery(colDef, docs)
-}
-
-class TxBuilder {
-
-  private var queries: Seq[Query] = Vector.empty
-
-  def addQuery(q: Query): this.type = {
-    queries :+= q
-    this
+  override def buildTx: ArangoTx = {
+    val jsCode = generateJs()
+    log.debug(jsCode)
+    db => db.transaction(jsCode, classOf[Unit], txOptions).toScala
   }
-
-  def buildTx: ArangoTx = new ArangoTxImpl(this)
 
   private[tx] def generateJs(): String = {
     val statements = queries.zipWithIndex.map {
@@ -125,33 +82,8 @@ class TxBuilder {
        |""".stripMargin
   }
 
-  private def options: TransactionOptions = {
-    val params = queries
-      .map({
-        case nq: NativeQuery => nq.params
-        case iq: InsertQuery => iq.documents.toVector
-        case uq: UpdateQuery => uq.data
-      })
-    val writeCollections = queries
-      .flatMap(_.collectionDefs)
-      .map(_.name)
-      .distinct
-    new TransactionOptions()
-      .params(params)
-      .writeCollections(writeCollections: _*)
-      .allowImplicit(false)
-  }
 }
 
-object TxBuilder {
-
-  private class ArangoTxImpl(txBuilder: TxBuilder) extends ArangoTx with Logging {
-    override def execute(db: ArangoDatabaseAsync): Future[Unit] = {
-      val jsCode = txBuilder.generateJs()
-      log.debug(jsCode)
-      db.transaction(jsCode, classOf[Unit], txBuilder.options).toScala
-    }
-  }
-
+object JSTxBuilder {
   private def condLine(cond: => Boolean, stmt: => String): String = if (cond) stmt else ""
 }

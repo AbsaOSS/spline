@@ -21,12 +21,12 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.spline.persistence.model.NodeDef
 
-class TxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
+class JSTxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
 
   behavior of "generateJs()"
 
   it should "generate NATIVE statements" in {
-    val generatedJS = new TxBuilder()
+    val generatedJS = new JSTxBuilder()
       .addQuery(NativeQuery("db.FOO();"))
       .addQuery(NativeQuery("db.BAR();"))
       .generateJs()
@@ -47,7 +47,7 @@ class TxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
   }
 
   it should "generate INSERT statements" in {
-    val generatedJS = new TxBuilder()
+    val generatedJS = new JSTxBuilder()
       .addQuery(InsertQuery(NodeDef.DataSource))
       .addQuery(InsertQuery(NodeDef.Operation).copy(ignoreExisting = true))
       .generateJs()
@@ -74,7 +74,7 @@ class TxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
   }
 
   it should "generate UPDATE statements" in {
-    val generatedJS = new TxBuilder()
+    val generatedJS = new JSTxBuilder()
       .addQuery(UpdateQuery(NodeDef.DataSource, s"${UpdateQuery.DocWildcard}.foo == 42", Map.empty))
       .addQuery(UpdateQuery(NodeDef.DataSource, s"${UpdateQuery.DocWildcard}.baz == 777", Map.empty))
       .generateJs()

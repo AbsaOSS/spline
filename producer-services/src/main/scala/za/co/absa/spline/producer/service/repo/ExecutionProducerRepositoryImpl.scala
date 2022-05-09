@@ -23,7 +23,7 @@ import org.springframework.stereotype.Repository
 import za.co.absa.spline.common.AsyncCallRetryer
 import za.co.absa.spline.persistence.ArangoImplicits
 import za.co.absa.spline.persistence.model._
-import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, NativeQuery, TxBuilder}
+import za.co.absa.spline.persistence.tx.{AppTxBuilder, ArangoTx, InsertQuery, NativeQuery}
 import za.co.absa.spline.producer.model.v1_2.ExecutionEvent._
 import za.co.absa.spline.producer.model.{v1_2 => apiModel}
 import za.co.absa.spline.producer.service.UUIDCollisionDetectedException
@@ -77,13 +77,13 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retr
           Future.successful(Unit)
         case None =>
           // no execution plan with the given ID found
-          createInsertTransaction(executionPlan, persistedDSKeyByURI).execute(db)
+          createExecutionPlanTransaction(executionPlan, persistedDSKeyByURI).execute(db)
       }
     } yield Unit
   })
 
   override def insertExecutionEvents(events: Array[apiModel.ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = retryer.execute({
-    createInsertTransaction(events).execute(db)
+    createExecutionEventTransaction(events).execute(db)
   })
 
   override def isDatabaseOk()(implicit ec: ExecutionContext): Future[Boolean] = {
@@ -103,14 +103,16 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retr
 
 object ExecutionProducerRepositoryImpl {
 
-  private def createInsertTransaction(
+  private def createTxBuilder() = new AppTxBuilder
+
+  private def createExecutionPlanTransaction(
     executionPlan: apiModel.ExecutionPlan,
     persistedDataSources: Seq[DataSource]
   ) = {
     val eppm: ExecutionPlanPersistentModel =
       ExecutionPlanPersistentModelBuilder.toPersistentModel(executionPlan, persistedDataSources)
 
-    new TxBuilder()
+    createTxBuilder()
       // execution plan
       .addQuery(InsertQuery(NodeDef.ExecutionPlan, eppm.executionPlan))
       .addQuery(InsertQuery(EdgeDef.Executes, eppm.executes))
@@ -142,7 +144,7 @@ object ExecutionProducerRepositoryImpl {
       .buildTx
   }
 
-  private def createInsertTransaction(
+  private def createExecutionEventTransaction(
     events: Array[apiModel.ExecutionEvent]
   ): ArangoTx = {
     val progressNodesWithPlanKey = events
@@ -164,7 +166,7 @@ object ExecutionProducerRepositoryImpl {
     val progressEdges = progressNodesWithPlanKey
       .map { case Array(p: Progress, planKey) => EdgeDef.ProgressOf.edge(p._key, planKey) }
 
-    new TxBuilder()
+    createTxBuilder()
       .addQuery(
         NativeQuery(
           query =
