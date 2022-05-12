@@ -24,6 +24,10 @@ sealed trait Query {
   def collectionDefs: Seq[CollectionDef]
 }
 
+object Query {
+  final val LastResultPlaceholder = null
+}
+
 case class NativeQuery(
   query: String,
   params: Map[String, Any] = Map.empty,
@@ -34,7 +38,6 @@ case class UpdateQuery(
   collectionDef: CollectionDef,
   filter: String,
   data: Map[String, Any],
-  chainInput: Boolean = false
 ) extends Query {
   override def collectionDefs: Seq[CollectionDef] = Seq(collectionDef)
 }
@@ -47,7 +50,6 @@ case class InsertQuery(
   collectionDef: CollectionDef,
   documents: Seq[ArangoDocument],
   ignoreExisting: Boolean = false,
-  chainInput: Boolean = false
 ) extends Query {
   override def collectionDefs: Seq[CollectionDef] = Seq(collectionDef)
 }

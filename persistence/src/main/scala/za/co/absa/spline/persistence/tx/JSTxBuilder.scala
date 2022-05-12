@@ -18,7 +18,7 @@ package za.co.absa.spline.persistence.tx
 
 import com.arangodb.async.ArangoDatabaseAsync
 import org.slf4s.Logging
-import za.co.absa.spline.persistence.tx.JSTxBuilder.condLine
+import za.co.absa.spline.persistence.tx.JSTxBuilder.{condLine, withExpandedPlaceholders}
 
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -43,14 +43,14 @@ class JSTxBuilder extends AbstractTxBuilder with Logging {
       case (nq: NativeQuery, i) =>
         s"""
            |lastRes = (function(db, params){
-           |  return (function(){${nq.query}})()
+           |  ${nq.query}
            |})(_db, _params[$i]);
            |""".stripMargin.trim
 
       case (iq: InsertQuery, i) =>
         val colName = iq.collectionDef.name
-        val objects = if (iq.chainInput) "lastRes" else s"_params[$i]"
-        val iterMethod = if (iq.chainInput) "map" else s"forEach"
+        val objects = withExpandedPlaceholders(s"_params[$i]", iq.documents)
+        val iterMethod = if (iq.documents.contains(Query.LastResultPlaceholder)) "map" else s"forEach"
         Seq(
           s"$objects.$iterMethod(o =>",
           condLine(iq.ignoreExisting,
@@ -72,7 +72,7 @@ class JSTxBuilder extends AbstractTxBuilder with Logging {
         val colName = uq.collectionDef.name
         val doc = "a"
         val filter = uq.filter.replace(UpdateQuery.DocWildcard, doc)
-        val bDoc = if (uq.chainInput) "lastRes" else s"_params[$i]"
+        val bDoc = if (uq.data == Query.LastResultPlaceholder) "lastRes" else s"_params[$i]"
         s"""
            |_db._query(`
            |  WITH $colName
@@ -86,6 +86,7 @@ class JSTxBuilder extends AbstractTxBuilder with Logging {
        |function (_params) {
        |  const _db = require('internal').db;
        |  ${statements.mkString("\n").replace("\n", "\n  ")}
+       |  return lastRes;
        |}
        |""".stripMargin
   }
@@ -94,4 +95,20 @@ class JSTxBuilder extends AbstractTxBuilder with Logging {
 
 object JSTxBuilder {
   private def condLine(cond: => Boolean, stmt: => String): String = if (cond) stmt else ""
+
+  private def withExpandedPlaceholders(jsIterateeExpr: String, docs: Seq[AnyRef]): String = {
+    val plcIdxes = docs.zipWithIndex.filter({case (d, _) => Query.LastResultPlaceholder.eq(d)}).map(_._2)
+    if (plcIdxes.isEmpty) {
+      jsIterateeExpr
+    } else {
+      val firstPlcIdx +: restPlcIdx = plcIdxes
+      plcIdxes
+        .map(_ + 1)
+        .zip(restPlcIdx :+ "Number.MAX_SAFE_INTEGER")
+        .foldLeft(s"$jsIterateeExpr.slice(0, $firstPlcIdx)") {
+          case (acc, (i, j)) =>
+            s"$acc.concat(lastRes, $jsIterateeExpr.slice($i, $j))"
+        }
+    }
+  }
 }

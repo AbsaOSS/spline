@@ -23,7 +23,7 @@ import org.springframework.stereotype.Repository
 import za.co.absa.spline.common.AsyncCallRetryer
 import za.co.absa.spline.persistence.ArangoImplicits
 import za.co.absa.spline.persistence.model._
-import za.co.absa.spline.persistence.tx.{AppTxBuilder, ArangoTx, InsertQuery, NativeQuery}
+import za.co.absa.spline.persistence.tx.{AppTxBuilder, ArangoTx, InsertQuery, NativeQuery, Query}
 import za.co.absa.spline.producer.model.v1_2.ExecutionEvent._
 import za.co.absa.spline.producer.model.{v1_2 => apiModel}
 import za.co.absa.spline.producer.service.UUIDCollisionDetectedException
@@ -77,7 +77,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retr
           Future.successful(Unit)
         case None =>
           // no execution plan with the given ID found
-          createExecutionPlanTransaction(executionPlan, persistedDSKeyByURI).execute(db)
+          createExecutionPlanTransaction(executionPlan, persistedDSKeyByURI).execute[Any](db)
       }
     } yield Unit
   })
@@ -226,7 +226,7 @@ object ExecutionProducerRepositoryImpl {
         ),
         collectionDefs = Seq(NodeDef.Progress, NodeDef.ExecutionPlan, EdgeDef.Executes, NodeDef.Operation, EdgeDef.Affects, NodeDef.DataSource))
       )
-      txBuilder.addQuery(InsertQuery(NodeDef.Progress).copy(ignoreExisting = true, chainInput = true))
+      txBuilder.addQuery(InsertQuery(NodeDef.Progress, Query.LastResultPlaceholder).copy(ignoreExisting = true))
       txBuilder.addQuery(InsertQuery(EdgeDef.ProgressOf, progressEdge).copy(ignoreExisting = true))
     }
 
