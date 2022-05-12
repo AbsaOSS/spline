@@ -138,6 +138,7 @@ object ExecutionPlan {
   * custom data logically connected to the event.
   */
 case class Progress(
+  planKey: ArangoDocument.Key,
   timestamp: Long,
   durationNs: Option[Progress.JobDurationInNanos],
   discriminator: Option[ExecutionPlan.Discriminator],

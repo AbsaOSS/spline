@@ -48,7 +48,7 @@ class IngestionController @Autowired()(val repo: ExecutionProducerRepository)
     val events = withErrorHandling {
       eventDTOs.map(mapper.fromDTO)
     }
-    repo.insertExecutionEvents(events)
+    Future.traverse(events.toSeq)(repo.insertExecutionEvent).map(_ => ())
   }
 
   private def withErrorHandling[A](body: => A): A = {
