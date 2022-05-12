@@ -36,6 +36,7 @@ object RetryableExceptionUtils {
   def isRetryable(exception: Throwable): Boolean = {
     @tailrec def loop(ex: Throwable, visited: Set[Throwable]): Boolean = {
       (!visited.contains(ex)) && (ex match {
+        case e: MultiDocumentArangoDBException if e.getErrorNums.forall(RetryableCodes.contains) => true
         case e: ArangoDBException if RetryableCodes.contains(e.getErrorNum) => true
         case e: Exception => loop(e.getCause, visited + e)
         case _ => false
