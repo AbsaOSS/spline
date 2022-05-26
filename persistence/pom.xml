@@ -78,7 +78,6 @@
         <dependency>
             <groupId>com.arangodb</groupId>
             <artifactId>arangodb-java-driver</artifactId>
-            <version>6.16.1</version>
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
