@@ -18,12 +18,11 @@ package za.co.absa.spline.persistence
 
 import com.arangodb.ArangoDBException
 import com.arangodb.entity.ErrorEntity
-import com.arangodb.velocypack.{VPack, VPackBuilder, ValueType}
+import com.arangodb.entity.ErrorEntityImplicits._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterEach, OptionValues}
 import za.co.absa.spline.persistence.RetryableExceptionUtils.RetryableCodes
-import za.co.absa.spline.persistence.RetryableExceptionUtilsSpec._
 
 class RetryableExceptionUtilsSpec
   extends AnyFlatSpec
@@ -80,30 +79,4 @@ class RetryableExceptionUtilsSpec
     RetryableExceptionUtils.isRetryable(loopedEx) shouldBe false
   }
 
-}
-
-object RetryableExceptionUtilsSpec {
-
-  private val vpack = new VPack.Builder().build
-
-  implicit class ErrorEntityOps(val ee: ErrorEntity) {
-    def copy(
-      errorMessage: String = ee.getErrorMessage,
-      exception: String = ee.getException,
-      code: Int = ee.getCode,
-      errorNum: Int = ee.getErrorNum
-    ): ErrorEntity = {
-      vpack.deserialize[ErrorEntity](
-        new VPackBuilder()
-          .add(ValueType.OBJECT)
-          .add("errorMessage", errorMessage)
-          .add("exception", exception)
-          .add("code", Int.box(code))
-          .add("errorNum", Int.box(errorNum))
-          .close()
-          .slice(),
-        classOf[ErrorEntity]
-      )
-    }
-  }
 }
