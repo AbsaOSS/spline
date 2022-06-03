@@ -11,5 +11,5 @@ Data lineage tracking is one of the significant problems that financial institut
 
 This paper describes Spline - a data lineage tracking and visualization tool for Apache Spark. Spline captures and stores lineage information from internal Spark execution plans in a lightweight, unobtrusive and easy to use manner. Additionally, Spline offers a modern user interface that allows non-technical users to understand the logic of Apache Spark applications. Keywords—Spline; Apache Spark; data lineage; Big data applications; Apache Hadoop; banking; BCBS 
 
-[Full paper](https://github.com/AbsaOSS/spline/releases/download/release%2F0.2.7/Spline_paper_IEEE_2018.pdf)<br>
+[Full paper](https://ieeexplore.ieee.org/abstract/document/8367160)<br>
 [Proceedings](https://www.computer.org/csdl/proceedings/bigcomp/2018/3649/00/364901a495-abs.html)
