@@ -1,7 +1,7 @@
 ---
 layout: default
 title: "TTTTTTTTTTTTTTTTTT"
-date: 2019-08-01
+date: YYYY-MM-DD
 author: "AAAAAAAAAAAAAA"
 ---
 
