@@ -5,7 +5,7 @@ date: YYYY-MM-DD
 author: "AAAAAAAAAAAAAA"
 ---
 
-<img src="thumbnail.png" width="90%" />
+<img src="thumbnail.png" alt="" />
 
 Short description...
 
