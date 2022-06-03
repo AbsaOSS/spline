@@ -5,6 +5,6 @@ date: 2018-04-18
 author: "Matthieu Blanc"
 ---
 
-<img src="https://pbs.twimg.com/media/DdZGdB2W4AAu3Ne.jpg" width="50%" />
+<img src="https://pbs.twimg.com/media/DdZGdB2W4AAu3Ne.jpg" alt="" />
 
 [Full article](https://zeenea.com/wp-content/uploads/DataXDay-Data-Lineage.pdf)<br>

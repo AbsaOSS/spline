@@ -5,7 +5,7 @@ date: 2018-02-05
 author: "Alper Topcuoglu"
 ---
 
-<img src="https://anchormen.nl/wp-content/uploads/2018/02/spline_report-image-4-768x503.jpg" width="90%" />
+<img src="https://anchormen.nl/wp-content/uploads/2018/02/spline_report-image-4-768x503.jpg" alt="" />
 
 The work of a data engineer typically consists of making code (received from data analysts or data scientists) ready for production. This means it runs on Apache Spark and the code is scalable. Once the code is in production, the data engineers move on to a different task. The code written typically involves a lot of number-crunching. As time passes (weeks or months even), people analyzing the numbers come with questions on how the numbers are calculated. This becomes an impossible task for a data engineer. Hence, tools are necessary that can do this.
 
