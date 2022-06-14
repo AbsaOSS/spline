@@ -39,6 +39,11 @@ class FoxxSourceResolverSpec extends AnyFlatSpec with Matchers {
     FileUtils.writeStringToFile(new File(barServiceDir, "bbb.js"), "say('Hello Bar');", "UTF-8")
     FileUtils.writeStringToFile(new File(barServiceDir, "baz/zzz.js"), "say('zzz');", "UTF-8")
 
+    // todo use OperatingSystems enum/methods from commons when available
+    val osDependentPrefix = if (System.getProperty("os.name").contains("win")) {
+      "/" // windows-specific prefix when listing foxx sources
+    } else ""
+
     (FoxxSourceResolver
       .lookupSources(tmpDir.toURI.toString)
       .map({ case (sn, assets) => sn -> assets.toSet })
@@ -46,12 +51,12 @@ class FoxxSourceResolverSpec extends AnyFlatSpec with Matchers {
       should contain theSameElementsAs Set(
 
       ("foo", Set(
-        "manifest.json" -> """{"main": "hello.js"}""",
-        "hello.js" -> "say('Hello Foo');")),
+        s"${osDependentPrefix}manifest.json" -> """{"main": "hello.js"}""",
+        s"${osDependentPrefix}hello.js" -> "say('Hello Foo');")),
       ("bar", Set(
-        "manifest.json" -> """{"main": "bbb.js"}""",
-        "bbb.js" -> "say('Hello Bar');",
-        "baz/zzz.js" -> "say('zzz');")),
+        s"${osDependentPrefix}manifest.json" -> """{"main": "bbb.js"}""",
+        s"${osDependentPrefix}bbb.js" -> "say('Hello Bar');",
+        s"${osDependentPrefix}baz/zzz.js" -> "say('zzz');")),
     ))
   }
 
