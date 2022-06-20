@@ -9,6 +9,13 @@ Spline - an open-source data lineage tracking solution for data processing frame
 [![SonarCloud Reliability](https://sonarcloud.io/api/project_badges/measure?project=AbsaOSS_spline&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=AbsaOSS_spline)
 [![SonarCloud Security](https://sonarcloud.io/api/project_badges/measure?project=AbsaOSS_spline&metric=security_rating)](https://sonarcloud.io/dashboard?id=AbsaOSS_spline)
 
+> ---
+> # :loudspeaker: Watch us on the Data+AI Summit 2022
+> ## [Spline: Central Data-Lineage Tracking, Not Only For Spark](https://databricks.com/dataaisummit/session/spline-central-data-lineage-tracking-not-only-spark)
+> &nbsp;
+> &nbsp;
+> ---
+
 ### Documentation
 
 See [Spline GitHub Pages](https://absaoss.github.io/spline/)
