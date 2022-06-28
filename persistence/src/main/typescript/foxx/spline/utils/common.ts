@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-"use strict";
-
 /**
  * Returns a memoized function that is based on two provided ones - the key and value functions respectively.
- * The signature of the provided functions must be identical, and the resulting memoized function will have the same signature.
+ * The signature of the provided functions must be identical (except for the return type), and the resulting memoized function will have the same signature.
  * When the resulting function is invoked the key function is first called to get the caching key. The value function is only
  * called when there's no previously cached value for the key. Otherwise the cached value is returned.
  * @param keyFn a key function
  * @param valFn a value function
- * @returns memoized function with the same signature as _keyFn_ and _valueFn_
+ * @returns memoized function with the same signature as _valFn_
  */
-function memoize(keyFn, valFn) {
+export function memoize<KF extends Function, VF extends Function>(keyFn: KF, valFn: VF): VF {
     const cache = new Map();
-    return function () {
+    return <any>function () {
         const key = keyFn.apply(this, arguments);
         if (cache.has(key)) {
             return cache.get(key);
@@ -37,8 +35,4 @@ function memoize(keyFn, valFn) {
             return value;
         }
     }
-}
-
-module.exports = {
-    memoize,
 }

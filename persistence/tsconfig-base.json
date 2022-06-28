@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "rootDir": "src/main/typescript",
+    "outDir": "target/js-main",
+    "target": "es6",
+    "module": "commonjs",
+    "esModuleInterop": true
+  }
+}

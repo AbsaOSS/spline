@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-"use strict";
+type TKey = string
+type TValue = any
 
 class DistinctCollector {
-    constructor(keyFn, initialValues) {
-        this.keyFn = keyFn;
-        this.keys = new Set((initialValues || []).map(v => keyFn(v)));
-        this.vals = initialValues || [];
+
+    private readonly keyFn: (TValue) => TKey
+    private keys: Set<TKey>
+
+    public vals: TValue[]
+
+    constructor(keyFn, initialValues = []) {
+        this.keyFn = keyFn
+        this.keys = new Set(initialValues.map(v => keyFn(v)))
+        this.vals = initialValues
     }
 
     add(o) {
@@ -32,8 +39,11 @@ class DistinctCollector {
     }
 }
 
-class GraphBuilder {
-    constructor(vertices, edges) {
+export class GraphBuilder {
+    private vertexCollector: DistinctCollector
+    private edgeCollector: DistinctCollector
+
+    constructor(vertices, edges = []) {
         this.vertexCollector = new DistinctCollector(v => v._id, vertices);
         this.edgeCollector = new DistinctCollector(e => `${e.source}:${e.target}`, edges);
     }
@@ -49,8 +59,4 @@ class GraphBuilder {
             edges: this.edgeCollector.vals
         }
     }
-}
-
-module.exports = {
-    GraphBuilder
 }

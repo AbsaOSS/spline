@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig-base.json",
+  "compilerOptions": {
+    "strict": false,
+    "sourceMap": true
+  },
+  "include": [
+    "src/main/typescript/foxx/**/*.ts"
+  ]
+}

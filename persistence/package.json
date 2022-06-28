@@ -1,0 +1,25 @@
+{
+  "name": "spline_foxx_services",
+  "license": "Apache-2.0",
+  "copyright": "2022 ABSA Group Limited",
+  "private": true,
+  "scripts": {
+    "build": "npm run build:foxx && npm run build:aqlf",
+    "build:foxx": "tsc -p tsconfig-foxx.json",
+    "build:aqlf": "tsc -p tsconfig-aqlf.json",
+    "test": "jest",
+    "lint": "eslint src/*/typescript/**/*.ts"
+  },
+  "devDependencies": {
+    "@types/arangodb": "^3.5.13",
+    "@types/jest": "^28.1.5",
+    "@types/node": "^13.13.52",
+    "@typescript-eslint/eslint-plugin": "^5.30.7",
+    "@typescript-eslint/parser": "^5.30.7",
+    "eslint": "^8.20.0",
+    "jest": "^28.1.2",
+    "joi": "^17.6.0",
+    "ts-jest": "^28.0.7",
+    "typescript": "^4.7.4"
+  }
+}

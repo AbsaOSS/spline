@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-"use strict";
-const {db, aql} = require('@arangodb');
-const {memoize} = require('../utils/common');
-const {GraphBuilder} = require('../utils/graph');
-const {observedWritesByRead} = require('./observed-writes-by-read');
+import { DocumentKey, ExecutionEvent } from "../model";
+
+import { aql, db } from '@arangodb'
+import { memoize } from '../utils/common'
+import { GraphBuilder } from '../utils/graph'
+import { observedWritesByRead } from './observed-writes-by-read'
 
 /**
  * Return a high-level lineage overview of the given write event.
@@ -28,7 +29,7 @@ const {observedWritesByRead} = require('./observed-writes-by-read');
  * It shows how far the traversal should looks for the lineage.
  * @returns za.co.absa.spline.consumer.service.model.LineageOverview
  */
-function lineageOverview(eventKey, maxDepth) {
+export function lineageOverview(eventKey: DocumentKey, maxDepth: number) {
 
     const executionEvent = db._query(aql`
         WITH progress
@@ -57,7 +58,7 @@ function lineageOverview(eventKey, maxDepth) {
     }
 }
 
-function eventLineageOverviewGraph(startEvent, maxDepth) {
+function eventLineageOverviewGraph(startEvent: ExecutionEvent, maxDepth: number) {
     if (!startEvent || maxDepth < 0) {
         return null;
     }
@@ -76,7 +77,7 @@ function eventLineageOverviewGraph(startEvent, maxDepth) {
 
     const graphBuilder = new GraphBuilder([startSource]);
 
-    const collectPartialGraphForEvent = event => {
+    const collectPartialGraphForEvent = (event: ExecutionEvent) => {
         const partialGraph = db._query(aql`
             WITH progress, progressOf, executionPlan, affects, depends, dataSource
 
@@ -119,11 +120,11 @@ function eventLineageOverviewGraph(startEvent, maxDepth) {
         graphBuilder.add(partialGraph);
     };
 
-    const traverse = memoize(e => e._id, (event, depth) => {
+    const traverse = memoize(e => e._id, (event: ExecutionEvent, depth: number) => {
         let remainingDepth = depth - 1;
         if (depth > 1) {
             observedWritesByRead(event)
-                .forEach(writeEvent => {
+                .forEach((writeEvent: ExecutionEvent) => {
                     const remainingDepth_i = traverse(writeEvent, depth - 1);
                     remainingDepth = Math.min(remainingDepth, remainingDepth_i);
                 })

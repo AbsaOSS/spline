@@ -210,15 +210,22 @@ class ArangoManagerImpl(
 
   private def createAQLUserFunctions(db: ArangoDatabaseAsync) = {
     log.debug(s"Lookup AQL functions to register")
+    val resourceResolver = new PathMatchingResourcePatternResolver(getClass.getClassLoader)
+    val jsFileResource =
+      if (resourceResolver.getResource(AQLFunctionsLocation).exists())
+        resourceResolver.getResources(s"$AQLFunctionsLocation/*.js").toSeq
+      else
+        Seq.empty
+
     Future.sequence(
-      new PathMatchingResourcePatternResolver(getClass.getClassLoader)
-        .getResources(s"$AQLFunctionsLocation/*.js").toSeq
+      jsFileResource
         .map(res => {
           val functionName = s"$AQLFunctionsPrefix::${FilenameUtils.removeExtension(res.getFilename).toUpperCase}"
           val functionBody = ARM.using(Source.fromURL(res.getURL))(_.getLines.mkString("\n"))
           log.info(s"Register AQL function: $functionName")
-          log.trace(s"AQL function body: $functionBody")
-          db.createAqlFunction(functionName, functionBody, new AqlFunctionCreateOptions()).toScala
+          val functionCode = AQLFunctionEnvelop(functionName, functionBody)
+          log.trace(s"AQL function code: $functionCode")
+          db.createAqlFunction(functionName, functionCode, new AqlFunctionCreateOptions()).toScala
         }))
   }
 
@@ -291,7 +298,16 @@ class ArangoManagerImpl(
 }
 
 object ArangoManagerImpl {
+  private val FoxxSourcesLocation = "classpath:foxx"
   private val AQLFunctionsLocation = "classpath:AQLFunctions"
   private val AQLFunctionsPrefix = "SPLINE"
-  private val FoxxSourcesLocation = "classpath:foxx"
+  private val AQLFunctionEnvelop = (functionName: String, functionCode: String) =>
+    s"""
+       |(function(){
+       |  console.log("Create AQL Function $functionName");
+       |  let module = {};
+       |  $functionCode
+       |  return module.exports;
+       |})()
+       |""".stripMargin.trim
 }

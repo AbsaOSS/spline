@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-'use strict';
-const {db, aql} = require('@arangodb');
+import { aql, db } from '@arangodb'
 
 /**
  * Returns a list of execution events which writes are visible from any read of the given execution event
@@ -23,7 +22,7 @@ const {db, aql} = require('@arangodb');
  * @param readEvent za.co.absa.spline.persistence.model.Progress
  * @returns za.co.absa.spline.persistence.model.Progress[]
  */
-function observedWritesByRead(readEvent) {
+export function observedWritesByRead(readEvent) {
     return readEvent && db._query(aql`
         WITH progress, progressOf, executionPlan, executes, operation, depends, writesTo, dataSource
         LET readTime = ${readEvent}.timestamp
@@ -50,9 +49,5 @@ function observedWritesByRead(readEvent) {
                 )
             LET allObservedEvents = APPEND(maybeObservedOverwrite, observedAppends)
             FOR e IN allObservedEvents RETURN e
-    `).toArray();
+    `).toArray()
 }
-
-module.exports = {
-    observedWritesByRead
-};

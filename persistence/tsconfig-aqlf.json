@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig-base.json",
+  "compilerOptions": {
+    "strict": true,
+    "sourceMap": false,
+    "removeComments": true
+  },
+  "include": [
+    "src/main/typescript/AQLFunctions/**/*.ts"
+  ]
+}
