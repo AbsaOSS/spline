@@ -40,7 +40,7 @@ class FoxxSourceResolverSpec extends AnyFlatSpec with Matchers {
     FileUtils.writeStringToFile(new File(barServiceDir, "baz/zzz.js"), "say('zzz');", "UTF-8")
 
     // todo use OperatingSystems enum/methods from commons when available
-    val osDependentPrefix = if (System.getProperty("os.name").contains("win")) {
+    val osDependentPrefix = if (System.getProperty("os.name").toLowerCase.contains("win")) {
       "/" // windows-specific prefix when listing foxx sources
     } else ""
 

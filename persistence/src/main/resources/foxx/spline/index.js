@@ -18,6 +18,7 @@
 const createRouter = require('@arangodb/foxx/router');
 const joi = require('joi');
 const {lineageOverview} = require('./services/lineage-overview');
+const {impactOverview} = require('./services/impact-overview');
 
 const router = createRouter();
 module.context.use(router);
@@ -38,3 +39,21 @@ router
     .response(['application/json'], 'Lineage overview graph')
     .summary('Execution event end-to-end lineage overview')
     .description('Builds a lineage of the data produced by the given execution event');
+
+router
+    .get('/events/:eventKey/impact-overview/:maxDepth',
+        (req, res) => {
+            const eventKey = req.pathParams.eventKey;
+            const maxDepth = req.pathParams.maxDepth;
+            const overview = impactOverview(eventKey, maxDepth);
+            if (overview) {
+                res.send(overview);
+            } else {
+                res.status(404);
+            }
+        })
+    .pathParam('eventKey', joi.string().min(1).required(), 'Execution Event UUID')
+    .pathParam('maxDepth', joi.number().integer().min(0).required(), 'Max depth of traversing in terms of [Data Source] -> [Execution Plan] pairs')
+    .response(['application/json'], 'Forward lineage overview graph')
+    .summary('Execution event end-to-end forward lineage overview')
+    .description('Builds a forward lineage of the data produced by the given execution event');
