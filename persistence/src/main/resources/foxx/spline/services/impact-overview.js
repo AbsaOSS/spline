@@ -18,17 +18,16 @@
 const {db, aql} = require('@arangodb');
 const {memoize} = require('../utils/common');
 const {GraphBuilder} = require('../utils/graph');
-const {observedWritesByRead} = require('./observed-writes-by-read');
+const {observedReadsByWrite} = require('./observed-reads-by-write');
 
 /**
  * Return a high-level impact (forward-lineage) overview of the given write event.
  *
- * @param eventKey write event key
+ * @param eventKey read event key
  * @param maxDepth maximum number of job nodes in any path of the resulted graph (excluding cycles).
  * It shows how far the traversal should looks for the impact (forward-lineage).
  * @returns za.co.absa.spline.consumer.service.model.LineageOverview
  */
-// TODO redo to impact ~ forward impact
 function impactOverview(eventKey, maxDepth) {
 
     const executionEvent = db._query(aql`
@@ -123,7 +122,7 @@ function eventImpactOverviewGraph(startEvent, maxDepth) {
     const traverse = memoize(e => e._id, (event, depth) => {
         let remainingDepth = depth - 1;
         if (depth > 1) {
-            observedWritesByRead(event)
+            observedReadsByWrite(event)
                 .forEach(writeEvent => {
                     const remainingDepth_i = traverse(writeEvent, depth - 1);
                     remainingDepth = Math.min(remainingDepth, remainingDepth_i);
