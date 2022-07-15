@@ -43,7 +43,6 @@ function observedReadsByWrite(writeEvent) {
                 return writeOps
             )[0]
             let maxReadTime = breakingWriteOp ? breakingWriteOp._created : null // maxReadTime is optional
-//            return {"minTime": minReadTime, "maxTime":  maxReadTime} // debug // todo remove
             
             // looking for readOperations that read data written by writes above - within the time window
             // result: array of execPlan keys satisfying read-time window
