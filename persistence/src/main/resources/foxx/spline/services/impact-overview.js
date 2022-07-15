@@ -81,13 +81,17 @@ function eventImpactOverviewGraph(startEvent, maxDepth) {
             WITH progress, progressOf, executionPlan, affects, depends, dataSource
 
             LET exec = FIRST(FOR ex IN 1 OUTBOUND ${event} progressOf RETURN ex)
-            LET affectedDsEdge = FIRST(FOR v, e IN 1 OUTBOUND exec affects RETURN e)
+            LET affectedDsEdgeAndNode = FIRST(FOR v, e IN 1 OUTBOUND exec affects RETURN [v,e])
+            
+            LET affectedDsNode = affectedDsEdgeAndNode[0] // node with result datasource must be included explicitly for impact
+            LET affectedDsEdge = affectedDsEdgeAndNode[1]
+
             LET rdsWithInEdges = (FOR ds, e IN 1 OUTBOUND exec depends RETURN [ds, e])
             LET readSources = rdsWithInEdges[*][0]
             LET readDsEdges = rdsWithInEdges[*][1]
             
             LET vertices = (
-                FOR vert IN APPEND(readSources, exec)
+                FOR vert IN APPEND(APPEND(readSources, exec), affectedDsNode)
                     LET vertType = SPLIT(vert._id, '/')[0]
                     RETURN vertType == "dataSource"
                         ? {
@@ -114,6 +118,7 @@ function eventImpactOverviewGraph(startEvent, maxDepth) {
             )
             
             RETURN {vertices, edges}
+
         `).next();
 
         graphBuilder.add(partialGraph);
