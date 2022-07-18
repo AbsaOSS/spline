@@ -1,6 +1,11 @@
 Spline - an open-source data lineage tracking solution for data processing frameworks like Apache Spark and others.
 
----
+> &nbsp;
+> # :loudspeaker: Watch us on the Data+AI Summit 2022
+> ## [Spline: Central Data-Lineage Tracking, Not Only For Spark](https://databricks.com/dataaisummit/session/spline-central-data-lineage-tracking-not-only-spark)
+> &nbsp;
+> &nbsp;
+
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/za.co.absa.spline/parent-pom/badge.svg)](https://search.maven.org/search?q=g:za.co.absa.spline)
 [![TeamCity build (develop)](https://teamcity.jetbrains.com/app/rest/builds/aggregated/strob:%28locator:%28buildType:%28id:OpenSourceProjects_AbsaOSSSpline_AutomaticBuildsWithTests_Spark24%29,branch:develop%29%29/statusIcon.svg)](https://teamcity.jetbrains.com/viewType.html?buildTypeId=OpenSourceProjects_AbsaOSSSpline_AutomaticBuildsWithTests_Spark24&branch=develop&tab=buildTypeStatusDiv)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9b7ba650a3874c2888dba2d25fa73d88)](https://app.codacy.com/gh/AbsaOSS/spline?utm_source=github.com&utm_medium=referral&utm_content=AbsaOSS/spline&utm_campaign=Badge_Grade_Settings)

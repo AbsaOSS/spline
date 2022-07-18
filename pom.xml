@@ -91,6 +91,7 @@
                 <configuration>
                     <excludes combine.children="append">
                         <exclude>.github/**</exclude>
+                        <exclude>CODE_OF_CONDUCT.md</exclude>
                     </excludes>
                 </configuration>
             </plugin>
