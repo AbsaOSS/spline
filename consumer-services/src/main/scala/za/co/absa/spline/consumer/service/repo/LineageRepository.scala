@@ -23,4 +23,7 @@ trait LineageRepository {
 
   def lineageOverviewForExecutionEvent(eventId: WriteEventInfo.Id, maxDepth: Int)
     (implicit ec: ExecutionContext): Future[LineageOverview]
+
+  def forwardLineageOverviewForExecutionEvent(eventId: WriteEventInfo.Id, maxDepth: Int)
+                                             (implicit ec: ExecutionContext): Future[LineageOverview]
 }

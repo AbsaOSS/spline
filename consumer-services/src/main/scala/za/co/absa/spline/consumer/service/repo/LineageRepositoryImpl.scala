@@ -40,4 +40,16 @@ class LineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Lineag
           if cond(ce.getCause)({ case ae: ArangoDBException => ae.getResponseCode == 404 }) =>
           throw new NoSuchElementException(s"Event ID: $eventId")
       })
+
+  override def forwardLineageOverviewForExecutionEvent(eventId: WriteEventInfo.Id, maxDepth: Int)(implicit ec: ExecutionContext): Future[LineageOverview] =
+    db
+      .route(s"/spline_forward/events/$eventId/lineage-overview-b/$maxDepth")
+      .get()
+      .toScala
+      .map(resp => db.util().deserialize[LineageOverview](resp.getBody, classOf[LineageOverview]))
+      .recover({
+        case ce: CompletionException
+          if cond(ce.getCause)({ case ae: ArangoDBException => ae.getResponseCode == 404 }) =>
+          throw new NoSuchElementException(s"Event ID: $eventId")
+      })
 }

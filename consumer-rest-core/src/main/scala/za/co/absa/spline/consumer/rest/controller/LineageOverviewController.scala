@@ -53,4 +53,28 @@ class LineageOverviewController @Autowired()(val repo: LineageRepository) {
     maxDepth: Int
   ): Future[LineageOverview] =
     repo.lineageOverviewForExecutionEvent(eventId, maxDepth)
+
+  @GetMapping(Array("/forward-lineage-overview"))
+  @ApiOperation(
+    value = "Get execution event lineage overview",
+    notes =
+      """
+        Returns a forward lineage overview for a given execution event.
+        The graph consists of nodes of two types: data sources and executed jobs.
+        The lineage describes the forward data flow only, that is the data flow that has impacted and
+        is observed by the given execution event (at the time of the event)
+      """
+  )
+  def forwardLineageOverview(
+                              @ApiParam("Execution event ID")
+                              @RequestParam("eventId")
+                              eventId: String,
+
+                              @ApiParam(
+                                value = "Max depth of the graph. ([Source] -> [App] -> [Target]) is considered one level",
+                                example = "5")
+                              @RequestParam(name = "maxDepth", defaultValue = "5")
+                              maxDepth: Int
+                            ): Future[LineageOverview] =
+    repo.forwardLineageOverviewForExecutionEvent(eventId, maxDepth)
 }
