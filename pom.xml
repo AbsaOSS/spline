@@ -64,6 +64,8 @@
 
         <module>commons</module>
 
+        <module>arangodb-foxx-services</module>
+        <module>arangodb-aql-functions</module>
         <module>persistence</module>
         <module>producer-services</module>
         <module>consumer-services</module>

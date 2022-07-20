@@ -1,0 +1,15 @@
+{
+  "preset": "ts-jest",
+  "testEnvironment": "node",
+  "verbose": true,
+  "testMatch": [
+    "<rootDir>/src/test/**/*.spec.ts"
+  ],
+  "globals": {
+    "ts-jest": {
+      "tsconfig": {
+          "esModuleInterop": true
+      }
+    }
+  }
+}

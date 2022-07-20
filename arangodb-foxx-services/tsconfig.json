@@ -1,0 +1,13 @@
+{
+  "include": [
+    "src/main/**/*.ts"
+  ],
+  "compilerOptions": {
+    "outDir": "dist/",
+    "target": "es6",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "strict": false,
+    "sourceMap": true
+  }
+}

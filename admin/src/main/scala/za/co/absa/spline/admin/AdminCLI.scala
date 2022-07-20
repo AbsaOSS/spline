@@ -21,14 +21,15 @@ import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
 import scopt.{OptionDef, OptionParser}
 import za.co.absa.spline.admin.AdminCLI.AdminCLIConfig
+import za.co.absa.spline.arango.AuxiliaryDBAction._
+import za.co.absa.spline.arango.OnDBExistsAction.{Drop, Fail, Skip}
+import za.co.absa.spline.arango.{ArangoManagerFactory, ArangoManagerFactoryImpl}
 import za.co.absa.spline.common.ConsoleUtils._
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.common.scala13.Option
 import za.co.absa.spline.common.security.TLSUtils
-import za.co.absa.spline.persistence.AuxiliaryDBAction._
-import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
+import za.co.absa.spline.persistence.ArangoConnectionURL
 import za.co.absa.spline.persistence.model.CollectionDef
-import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManagerFactory, ArangoManagerFactoryImpl}
 
 import scala.annotation.nowarn
 import scala.concurrent.Await
