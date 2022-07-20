@@ -15,10 +15,8 @@
  */
 
 "use strict";
-const {db, aql} = require('@arangodb');
-const {memoize} = require('../utils/common');
-const {GraphBuilder} = require('../utils/graph');
 const {observedReadsByWrite} = require('./observed-reads-by-write');
+const {getExecutionEventFromEventKey, getTargetDataSourceFromExecutionEvent, constructLineageOverview, eventLineageOverviewGraph} = require('./commons')
 
 /**
  * Return a high-level impact (forward-lineage) overview of the given write event.
@@ -30,125 +28,17 @@ const {observedReadsByWrite} = require('./observed-reads-by-write');
  */
 function impactOverview(eventKey, maxDepth) {
 
-    const executionEvent = db._query(aql`
-        WITH progress
-        RETURN FIRST(FOR p IN progress FILTER p._key == ${eventKey} RETURN p)
-    `).next();
-
-    const targetDataSource = executionEvent && db._query(aql`
-        WITH progress, progressOf, executionPlan, affects, dataSource
-        RETURN FIRST(FOR ds IN 2 OUTBOUND ${executionEvent} progressOf, affects RETURN ds)
-    `).next();
-
+    const executionEvent = getExecutionEventFromEventKey(eventKey)
+    const targetDataSource = executionEvent && getTargetDataSourceFromExecutionEvent(executionEvent)
     const impactGraph = eventImpactOverviewGraph(executionEvent, maxDepth);
 
-    return impactGraph && {
-        "info": {
-            "timestamp": executionEvent.timestamp,
-            "applicationId": executionEvent.extra.appId,
-            "targetDataSourceId": targetDataSource._key
-        },
-        "graph": {
-            "depthRequested": maxDepth,
-            "depthComputed": impactGraph.depth || -1,
-            "nodes": impactGraph.vertices,
-            "edges": impactGraph.edges
-        }
-    }
+    return impactGraph && constructLineageOverview(executionEvent, targetDataSource, maxDepth, impactGraph)
 }
 
 function eventImpactOverviewGraph(startEvent, maxDepth) {
-    if (!startEvent || maxDepth < 0) {
-        return null;
-    }
-
-    const startSource = db._query(aql`
-        WITH progress, progressOf, executionPlan, affects, dataSource
-        FOR ds IN 2 OUTBOUND ${startEvent} progressOf, affects 
-            LIMIT 1
-            RETURN {
-                "_id": ds._key,
-                "_class": "za.co.absa.spline.consumer.service.model.DataSourceNode",
-                "name": ds.uri
-            }
-        `
-    ).next();
-
-    const graphBuilder = new GraphBuilder([startSource]);
-
-    const collectPartialGraphForEvent = event => {
-        const partialGraph = db._query(aql`
-            WITH progress, progressOf, executionPlan, affects, depends, dataSource
-
-            LET exec = FIRST(FOR ex IN 1 OUTBOUND ${event} progressOf RETURN ex)
-            LET affectedDsEdgeAndNode = FIRST(FOR v, e IN 1 OUTBOUND exec affects RETURN [v,e])
-            
-            LET affectedDsNode = affectedDsEdgeAndNode[0] // node with result datasource must be included explicitly for impact
-            LET affectedDsEdge = affectedDsEdgeAndNode[1]
-
-            LET rdsWithInEdges = (FOR ds, e IN 1 OUTBOUND exec depends RETURN [ds, e])
-            LET readSources = rdsWithInEdges[*][0]
-            LET readDsEdges = rdsWithInEdges[*][1]
-            
-            LET vertices = (
-                FOR vert IN APPEND(APPEND(readSources, exec), affectedDsNode)
-                    LET vertType = SPLIT(vert._id, '/')[0]
-                    RETURN vertType == "dataSource"
-                        ? {
-                            "_id": vert._key,
-                            "_class": "za.co.absa.spline.consumer.service.model.DataSourceNode",
-                            "name": vert.uri
-                        }
-                        : MERGE(KEEP(vert, ["systemInfo", "agentInfo"]), {
-                            "_id": vert._key,
-                            "_class": "za.co.absa.spline.consumer.service.model.ExecutionNode",
-                            "name": vert.name || ""
-                        })
-            )
-            
-            LET edges = (
-                FOR edge IN APPEND(readDsEdges, affectedDsEdge)
-                    LET edgeType = SPLIT(edge._id, '/')[0]
-                    LET exKey = SPLIT(edge._from, '/')[1]
-                    LET dsKey = SPLIT(edge._to, '/')[1]
-                    RETURN {
-                        "source": edgeType == "depends" ? dsKey : exKey,
-                        "target": edgeType == "affects" ? dsKey : exKey
-                    }
-            )
-            
-            RETURN {vertices, edges}
-        `).next();
-
-        graphBuilder.add(partialGraph);
-    };
-
-    const traverse = memoize(e => e._id, (event, depth) => {
-        let remainingDepth = depth - 1;
-        if (depth > 1) {
-            observedReadsByWrite(event)
-                .forEach(writeEvent => {
-                    const remainingDepth_i = traverse(writeEvent, depth - 1);
-                    remainingDepth = Math.min(remainingDepth, remainingDepth_i);
-                })
-        }
-
-        collectPartialGraphForEvent(event);
-
-        return remainingDepth;
-    });
-
-    const remainingDepth = maxDepth > 0 ? traverse(startEvent, maxDepth) : 0;
-    const resultedGraph = graphBuilder.graph();
-
-    return {
-        depth: maxDepth - remainingDepth,
-        vertices: resultedGraph.vertices,
-        edges: resultedGraph.edges
-    }
+    return eventLineageOverviewGraph(observedReadsByWrite, startEvent, maxDepth)
 }
 
 module.exports = {
     impactOverview
 }
-
