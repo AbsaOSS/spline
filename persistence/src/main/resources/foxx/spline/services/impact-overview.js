@@ -37,7 +37,7 @@ function impactOverview(eventKey, maxDepth) {
 
     const targetDataSource = executionEvent && db._query(aql`
         WITH progress, progressOf, executionPlan, affects, dataSource
-        RETURN FIRST(FOR ds IN 2 OUTBOUND ${executionEvent} progressOf, affects RETURN ds) // forward: affects -> depends
+        RETURN FIRST(FOR ds IN 2 OUTBOUND ${executionEvent} progressOf, affects RETURN ds)
     `).next();
 
     const impactGraph = eventImpactOverviewGraph(executionEvent, maxDepth);
@@ -118,7 +118,6 @@ function eventImpactOverviewGraph(startEvent, maxDepth) {
             )
             
             RETURN {vertices, edges}
-
         `).next();
 
         graphBuilder.add(partialGraph);

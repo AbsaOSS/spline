@@ -20,7 +20,7 @@ import io.swagger.annotations.{Api, ApiOperation, ApiParam}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.service.model.LineageOverview
-import za.co.absa.spline.consumer.service.repo.{ImpactRepository, LineageRepository}
+import za.co.absa.spline.consumer.service.repo.ImpactRepository
 
 import scala.concurrent.Future
 
