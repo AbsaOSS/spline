@@ -21,7 +21,7 @@
     <parent>
         <groupId>za.co.absa</groupId>
         <artifactId>root-pom</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
     </parent>
 
     <groupId>za.co.absa.spline</groupId>
@@ -198,18 +198,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-
-            <!-- customize RAT plugin -->
-            <plugin>
-                <groupId>org.apache.rat</groupId>
-                <artifactId>apache-rat-plugin</artifactId>
-                <configuration>
-                    <excludes combine.children="append">
-                        <!-- exclude Node.js specific dirs -->
-                        <exclude>node_modules/</exclude>
-                    </excludes>
-                </configuration>
             </plugin>
 
         </plugins>
