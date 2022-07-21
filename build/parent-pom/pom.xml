@@ -48,6 +48,8 @@
         <springfox-swagger.version>2.9.2</springfox-swagger.version>
         <jackson.version>2.13.2</jackson.version>
         <finatra.jackson.version>21.5.0</finatra.jackson.version>
+        <node.version>v16.16.0</node.version>
+        <npm.version>8.11.0</npm.version>
     </properties>
 
     <build>
@@ -146,8 +148,8 @@
                 <artifactId>frontend-maven-plugin</artifactId>
                 <version>1.10.3</version>
                 <configuration>
-                    <nodeVersion>v14.16.0</nodeVersion>
-                    <npmVersion>7.6.0</npmVersion>
+                    <nodeVersion>${node.version}</nodeVersion>
+                    <npmVersion>${npm.version}</npmVersion>
                     <skip>true</skip>
                 </configuration>
                 <executions>
