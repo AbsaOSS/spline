@@ -4,6 +4,10 @@
     "redoc-cli": "^0.9.12"
   },
   "scripts": {
-    "gen-api-doc": "redoc-cli bundle"
+    "gen-api-doc:all": "npm run gen-api-doc --doc_name=consumer && npm run gen-api-doc --doc_name=producer",
+    "gen-api-doc": "redoc-cli bundle -o $npm_config_docs_dir/$npm_config_doc_name.html $npm_config_docs_dir/$npm_config_doc_name.swagger.json",
+    "build": "#unused stage",
+    "test": "#unused stage",
+    "lint": "#unused stage"
   }
 }

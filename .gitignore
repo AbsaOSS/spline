@@ -98,3 +98,9 @@ project/boot/
 
 #MacOS
 .DS_Store
+
+# Node.js
+dist/
+node/
+node_modules/
+coverage/
