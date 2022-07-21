@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-import myCoolFunction = require('../main/example')
-
-
-test('myCoolFunction', () => {
-    expect(myCoolFunction(1, 2)).toBe(3)
-})
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export type AnyFunction = (...args: any) => any
+/* eslint-enable @typescript-eslint/no-explicit-any */

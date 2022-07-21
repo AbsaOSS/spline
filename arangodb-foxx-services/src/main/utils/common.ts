@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import { AnyFunction } from './types'
+
+
 /**
  * Returns a memoized function that is based on two provided ones - the key and value functions respectively.
  * The signature of the provided functions must be identical (except for the return type), and the resulting memoized function will have the same signature.
@@ -23,16 +26,17 @@
  * @param valFn a value function
  * @returns memoized function with the same signature as _valFn_
  */
-export function memoize<KF extends Function, VF extends Function>(keyFn: KF, valFn: VF): VF {
-    const cache = new Map();
-    return <any>function () {
-        const key = keyFn.apply(this, arguments);
+export function memoize<KF extends AnyFunction, VF extends AnyFunction>(keyFn: KF, valFn: VF): VF {
+    const cache = new Map()
+    return <VF>function (...args) {
+        const key = keyFn.apply(this, args)
         if (cache.has(key)) {
-            return cache.get(key);
-        } else {
-            const value = valFn.apply(this, arguments);
-            cache.set(key, value);
-            return value;
+            return cache.get(key)
+        }
+        else {
+            const value = valFn.apply(this, args)
+            cache.set(key, value)
+            return value
         }
     }
 }

@@ -17,6 +17,7 @@
 import { createRouter } from '@arangodb/foxx'
 import eventsRouter from './events-router'
 
+
 const rootRouter: Foxx.Router = createRouter()
 rootRouter.use('/events', eventsRouter)
 

@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 type TKey = string
 type TValue = any
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 class DistinctCollector {
 
@@ -31,10 +33,10 @@ class DistinctCollector {
     }
 
     add(o) {
-        const k = this.keyFn(o);
+        const k = this.keyFn(o)
         if (!this.keys.has(k)) {
-            this.keys.add(k);
-            this.vals.push(o);
+            this.keys.add(k)
+            this.vals.push(o)
         }
     }
 }
@@ -44,13 +46,13 @@ export class GraphBuilder {
     private edgeCollector: DistinctCollector
 
     constructor(vertices, edges = []) {
-        this.vertexCollector = new DistinctCollector(v => v._id, vertices);
-        this.edgeCollector = new DistinctCollector(e => `${e.source}:${e.target}`, edges);
+        this.vertexCollector = new DistinctCollector(v => v._id, vertices)
+        this.edgeCollector = new DistinctCollector(e => `${e.source}:${e.target}`, edges)
     }
 
     add(pGraph) {
-        pGraph.vertices.forEach(v => this.vertexCollector.add(v));
-        pGraph.edges.forEach(e => this.edgeCollector.add(e));
+        pGraph.vertices.forEach(v => this.vertexCollector.add(v))
+        pGraph.edges.forEach(e => this.edgeCollector.add(e))
     }
 
     graph() {

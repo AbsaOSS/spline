@@ -16,6 +16,7 @@
 
 import { memoize } from '../../main/utils/common'
 
+
 test('memoize', () => {
     let keyFnCallCnt = 0
     let valFnCallCnt = 0

@@ -16,20 +16,22 @@
 
 import { createRouter } from '@arangodb/foxx'
 import joi from 'joi'
-import { lineageOverview } from "../services/lineage-overview";
+import { lineageOverview } from '../services/lineage-overview'
+
 
 const eventsRouter = createRouter()
 
 eventsRouter
     .get('/:eventKey/lineage-overview/:maxDepth',
         (req: Foxx.Request, res: Foxx.Response) => {
-            const eventKey = req.pathParams.eventKey;
-            const maxDepth = req.pathParams.maxDepth;
-            const overview = lineageOverview(eventKey, maxDepth);
+            const eventKey = req.pathParams.eventKey
+            const maxDepth = req.pathParams.maxDepth
+            const overview = lineageOverview(eventKey, maxDepth)
             if (overview) {
-                res.send(overview);
-            } else {
-                res.status(404);
+                res.send(overview)
+            }
+            else {
+                res.status(404)
             }
         })
     .pathParam('eventKey', joi.string().min(1).required(), 'Execution Event UUID')
@@ -37,6 +39,6 @@ eventsRouter
     .response(200, ['application/json'], 'Lineage overview graph')
     .response(404, 'Lineage overview not found for the given execution event')
     .summary('Get execution event end-to-end lineage overview')
-    .description('Builds a lineage of the data produced by the given execution event');
+    .description('Builds a lineage of the data produced by the given execution event')
 
 export default eventsRouter

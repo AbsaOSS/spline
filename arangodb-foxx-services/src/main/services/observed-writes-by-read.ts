@@ -16,6 +16,7 @@
 
 import { aql, db } from '@arangodb'
 
+
 /**
  * Returns a list of execution events which writes are visible from any read of the given execution event
  *

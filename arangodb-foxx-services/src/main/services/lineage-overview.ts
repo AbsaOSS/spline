@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import { DocumentKey, ExecutionEvent } from "../model";
+import { DocumentKey, ExecutionEvent } from '../model'
 
 import { aql, db } from '@arangodb'
 import { memoize } from '../utils/common'
 import { GraphBuilder } from '../utils/graph'
 import { observedWritesByRead } from './observed-writes-by-read'
+
 
 /**
  * Return a high-level lineage overview of the given write event.
@@ -34,38 +35,38 @@ export function lineageOverview(eventKey: DocumentKey, maxDepth: number) {
     const executionEvent = db._query(aql`
         WITH progress
         RETURN FIRST(FOR p IN progress FILTER p._key == ${eventKey} RETURN p)
-    `).next();
+    `).next()
 
     const targetDataSource = executionEvent && db._query(aql`
         WITH progress, progressOf, executionPlan, affects, dataSource
         RETURN FIRST(FOR ds IN 2 OUTBOUND ${executionEvent} progressOf, affects RETURN ds)
-    `).next();
+    `).next()
 
-    const lineageGraph = eventLineageOverviewGraph(executionEvent, maxDepth);
+    const lineageGraph = eventLineageOverviewGraph(executionEvent, maxDepth)
 
     return lineageGraph && {
-        "info": {
-            "timestamp": executionEvent.timestamp,
-            "applicationId": executionEvent.extra.appId,
-            "targetDataSourceId": targetDataSource._key
+        'info': {
+            'timestamp': executionEvent.timestamp,
+            'applicationId': executionEvent.extra.appId,
+            'targetDataSourceId': targetDataSource._key
         },
-        "graph": {
-            "depthRequested": maxDepth,
-            "depthComputed": lineageGraph.depth || -1,
-            "nodes": lineageGraph.vertices,
-            "edges": lineageGraph.edges
+        'graph': {
+            'depthRequested': maxDepth,
+            'depthComputed': lineageGraph.depth || -1,
+            'nodes': lineageGraph.vertices,
+            'edges': lineageGraph.edges
         }
     }
 }
 
 function eventLineageOverviewGraph(startEvent: ExecutionEvent, maxDepth: number) {
     if (!startEvent || maxDepth < 0) {
-        return null;
+        return null
     }
 
     const startSource = db._query(aql`
         WITH progress, progressOf, executionPlan, affects, dataSource
-        FOR ds IN 2 OUTBOUND ${startEvent} progressOf, affects 
+        FOR ds IN 2 OUTBOUND ${startEvent} progressOf, affects
             LIMIT 1
             RETURN {
                 "_id": ds._key,
@@ -73,9 +74,9 @@ function eventLineageOverviewGraph(startEvent: ExecutionEvent, maxDepth: number)
                 "name": ds.uri
             }
         `
-    ).next();
+    ).next()
 
-    const graphBuilder = new GraphBuilder([startSource]);
+    const graphBuilder = new GraphBuilder([startSource])
 
     const collectPartialGraphForEvent = (event: ExecutionEvent) => {
         const partialGraph = db._query(aql`
@@ -86,7 +87,7 @@ function eventLineageOverviewGraph(startEvent: ExecutionEvent, maxDepth: number)
             LET rdsWithInEdges = (FOR ds, e IN 1 OUTBOUND exec depends RETURN [ds, e])
             LET readSources = rdsWithInEdges[*][0]
             LET readDsEdges = rdsWithInEdges[*][1]
-            
+
             LET vertices = (
                 FOR vert IN APPEND(readSources, exec)
                     LET vertType = SPLIT(vert._id, '/')[0]
@@ -102,7 +103,7 @@ function eventLineageOverviewGraph(startEvent: ExecutionEvent, maxDepth: number)
                             "name": vert.name || ""
                         })
             )
-            
+
             LET edges = (
                 FOR edge IN APPEND(readDsEdges, affectedDsEdge)
                     LET edgeType = SPLIT(edge._id, '/')[0]
@@ -113,30 +114,30 @@ function eventLineageOverviewGraph(startEvent: ExecutionEvent, maxDepth: number)
                         "target": edgeType == "affects" ? dsKey : exKey
                     }
             )
-            
-            RETURN {vertices, edges}
-        `).next();
 
-        graphBuilder.add(partialGraph);
-    };
+            RETURN {vertices, edges}
+        `).next()
+
+        graphBuilder.add(partialGraph)
+    }
 
     const traverse = memoize(e => e._id, (event: ExecutionEvent, depth: number) => {
-        let remainingDepth = depth - 1;
+        let remainingDepth = depth - 1
         if (depth > 1) {
             observedWritesByRead(event)
                 .forEach((writeEvent: ExecutionEvent) => {
-                    const remainingDepth_i = traverse(writeEvent, depth - 1);
-                    remainingDepth = Math.min(remainingDepth, remainingDepth_i);
+                    const remainingDepth_i = traverse(writeEvent, depth - 1)
+                    remainingDepth = Math.min(remainingDepth, remainingDepth_i)
                 })
         }
 
-        collectPartialGraphForEvent(event);
+        collectPartialGraphForEvent(event)
 
-        return remainingDepth;
-    });
+        return remainingDepth
+    })
 
-    const totalRemainingDepth = maxDepth > 0 ? traverse(startEvent, maxDepth) : 0;
-    const resultedGraph = graphBuilder.graph();
+    const totalRemainingDepth = maxDepth > 0 ? traverse(startEvent, maxDepth) : 0
+    const resultedGraph = graphBuilder.graph()
 
     return {
         depth: maxDepth - totalRemainingDepth,

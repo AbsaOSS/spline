@@ -7,7 +7,7 @@
     "build": "tsc",
     "postbuild": "copyfiles --up 2 src/main/*.json src/main/**/*.json target/dist",
     "test": "jest",
-    "lint": "eslint src/**/*.ts"
+    "lint": "eslint src"
   },
   "devDependencies": {
     "@types/arangodb": "^3.5.13",
