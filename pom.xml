@@ -34,7 +34,7 @@
     <parent>
         <groupId>za.co.absa</groupId>
         <artifactId>root-pom</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.2</version>
     </parent>
 
     <developers>
@@ -81,23 +81,4 @@
         <module>admin</module>
         <module>test-data-generator</module>
     </modules>
-
-    <build>
-        <plugins>
-
-            <!-- customize RAT plugin -->
-
-            <plugin>
-                <groupId>org.apache.rat</groupId>
-                <artifactId>apache-rat-plugin</artifactId>
-                <configuration>
-                    <excludes combine.children="append">
-                        <exclude>.github/**</exclude>
-                        <exclude>CODE_OF_CONDUCT.md</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>
