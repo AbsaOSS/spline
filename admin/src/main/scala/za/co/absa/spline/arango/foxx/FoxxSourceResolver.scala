@@ -30,15 +30,10 @@ object FoxxSourceResolver {
   private final val ServiceNameRegexp = """(.*)\.zip""".r
 
   def lookupSources(baseResourceLocation: String): Array[(ServiceName, ServiceContent)] = {
-    // Although the code below might look a bit redundant it's actually not.
-    // This has to work in both inside and outside a JAR, but:
-    //   - ResourcePatternResolver.getResources("classpath:foo/*") doesn't behave consistently
-    //   - manifestResource.createRelative(". or ..") doesn't behave consistently
-    //   - Resource.getFile doesn't work within a JAR
-    //
     new PathMatchingResourcePatternResolver(getClass.getClassLoader)
       .getResources(s"$baseResourceLocation/$ServiceArchiveFilenamePattern")
       .map(resource => {
+        // Note: Resource.getFile() doesn't work from within a JAR, so we need to use Resource.getURL().getFile()
         val ServiceNameRegexp(serviceName) = new File(resource.getURL.getFile).getName
         val serviceContent = ARM.using(resource.getInputStream)(IOUtils.toByteArray)
         serviceName -> serviceContent
