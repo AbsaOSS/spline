@@ -15,9 +15,9 @@
  */
 
 import { createRouter } from '@arangodb/foxx'
-import rootRouter from './root'
+import eventsRouter from './events-router'
 
-const appRouter: Foxx.Router = createRouter()
-appRouter.use('/', rootRouter)
+const rootRouter: Foxx.Router = createRouter()
+rootRouter.use('/events', eventsRouter)
 
-export default appRouter
+export default rootRouter

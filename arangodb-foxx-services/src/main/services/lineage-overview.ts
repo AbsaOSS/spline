@@ -135,11 +135,11 @@ function eventLineageOverviewGraph(startEvent: ExecutionEvent, maxDepth: number)
         return remainingDepth;
     });
 
-    const remainingDepth = maxDepth > 0 ? traverse(startEvent, maxDepth) : 0;
+    const totalRemainingDepth = maxDepth > 0 ? traverse(startEvent, maxDepth) : 0;
     const resultedGraph = graphBuilder.graph();
 
     return {
-        depth: maxDepth - remainingDepth,
+        depth: maxDepth - totalRemainingDepth,
         vertices: resultedGraph.vertices,
         edges: resultedGraph.edges
     }
