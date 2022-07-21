@@ -133,7 +133,7 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <id>gen-swagger-consumer-json</id>
+                        <id>gen-swagger-docs</id>
                         <phase>prepare-package</phase>
                         <goals>
                             <goal>npm</goal>
