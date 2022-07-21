@@ -24,7 +24,7 @@
     <includeBaseDirectory>false</includeBaseDirectory>
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}/dist</directory>
+            <directory>${project.build.directory}/dist</directory>
             <excludes>
                 <exclude>example.js</exclude>
             </excludes>

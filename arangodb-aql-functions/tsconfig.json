@@ -3,7 +3,7 @@
     "src/main/**/*.ts"
   ],
   "compilerOptions": {
-    "outDir": "dist/",
+    "outDir": "target/dist/",
     "target": "es6",
     "module": "commonjs",
     "esModuleInterop": true,

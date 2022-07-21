@@ -132,16 +132,7 @@
                 <configuration>
                     <filesets>
                         <fileset>
-                            <directory>dist</directory>
-                        </fileset>
-                        <fileset>
-                            <directory>node</directory>
-                        </fileset>
-                        <fileset>
                             <directory>node_modules</directory>
-                        </fileset>
-                        <fileset>
-                            <directory>coverage</directory>
                         </fileset>
                     </filesets>
                 </configuration>
@@ -155,6 +146,7 @@
                 <configuration>
                     <nodeVersion>${node.version}</nodeVersion>
                     <npmVersion>${npm.version}</npmVersion>
+                    <installDirectory>${project.build.directory}/node</installDirectory>
                     <skip>true</skip>
                 </configuration>
                 <executions>
@@ -215,10 +207,7 @@
                 <configuration>
                     <excludes combine.children="append">
                         <!-- exclude Node.js specific dirs -->
-                        <exclude>dist/</exclude>
-                        <exclude>node/</exclude>
                         <exclude>node_modules/</exclude>
-                        <exclude>coverage/</exclude>
                     </excludes>
                 </configuration>
             </plugin>

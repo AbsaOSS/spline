@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "postbuild": "copyfiles --up 2 src/main/*.json src/main/**/*.json dist",
+    "postbuild": "copyfiles --up 2 src/main/*.json src/main/**/*.json target/dist",
     "test": "jest",
     "lint": "eslint src/**/*.ts"
   },

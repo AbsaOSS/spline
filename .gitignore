@@ -100,7 +100,4 @@ project/boot/
 .DS_Store
 
 # Node.js
-dist/
-node/
 node_modules/
-coverage/
