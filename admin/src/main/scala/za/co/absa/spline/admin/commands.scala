@@ -17,7 +17,8 @@ package za.co.absa.spline.admin
  */
 
 import za.co.absa.spline.admin.DBCommand._
-import za.co.absa.spline.persistence.{ArangoConnectionURL, AuxiliaryDBAction, DatabaseCreateOptions}
+import za.co.absa.spline.arango.{AuxiliaryDBAction, DatabaseCreateOptions}
+import za.co.absa.spline.persistence.ArangoConnectionURL
 
 sealed trait Command
 

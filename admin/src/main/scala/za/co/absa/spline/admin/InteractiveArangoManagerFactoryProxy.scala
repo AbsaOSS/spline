@@ -16,8 +16,9 @@
 
 package za.co.absa.spline.admin
 
-import za.co.absa.spline.persistence.AuxiliaryDBAction.CheckDBAccess
-import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManager, ArangoManagerFactory}
+import za.co.absa.spline.arango.AuxiliaryDBAction.CheckDBAccess
+import za.co.absa.spline.arango.{ArangoManager, ArangoManagerFactory}
+import za.co.absa.spline.persistence.ArangoConnectionURL
 
 import javax.net.ssl.SSLContext
 import scala.concurrent.Await

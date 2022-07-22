@@ -25,11 +25,13 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.commons.scalatest.{ConsoleStubs, SystemExitFixture}
+import za.co.absa.spline.arango.AuxiliaryDBAction._
+import za.co.absa.spline.arango.OnDBExistsAction._
+import za.co.absa.spline.arango._
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.common.security.TLSUtils
-import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
-import za.co.absa.spline.persistence.model.{EdgeDef, NodeDef}
 import za.co.absa.spline.persistence._
+import za.co.absa.spline.persistence.model.{EdgeDef, NodeDef}
 
 import javax.net.ssl.SSLContext
 import scala.concurrent.Future
@@ -243,8 +245,6 @@ class AdminCLISpec
         "--search-views-create",
         "--indices-create",
       ))
-
-      import za.co.absa.spline.persistence.AuxiliaryDBAction._
       verify(arangoManagerMock).execute(
         IndicesDelete,
         SearchViewsDelete,
