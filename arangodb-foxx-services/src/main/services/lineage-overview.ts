@@ -145,8 +145,3 @@ function eventLineageOverviewGraph(startEvent: ExecutionEvent, maxDepth: number)
         edges: resultedGraph.edges
     }
 }
-
-module.exports = {
-    lineageOverview
-}
-
