@@ -1,0 +1,161 @@
+/*
+ * Copyright 2022 ABSA Group Limited
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import {DocumentKey, ExecutionEvent, LineageOverview, LineageOverviewInfo, LineageOverviewGraph, DataSource} from '../model'
+
+import {aql, db} from '@arangodb'
+import {memoize} from '../utils/common'
+import {GraphBuilder} from '../utils/graph'
+import {AnyFunction} from '../utils/types'
+
+
+export function getExecutionEventFromEventKey(eventKey: DocumentKey): ExecutionEvent {
+    return db._query(aql`
+        WITH progress
+        RETURN FIRST(FOR p IN progress FILTER p._key == ${eventKey} RETURN p)
+    `).next()
+}
+
+export function getTargetDataSourceFromExecutionEvent(executionEvent: ExecutionEvent) {
+    return db._query(aql`
+        WITH progress, progressOf, executionPlan, affects, dataSource
+        RETURN FIRST(FOR ds IN 2 OUTBOUND ${executionEvent} progressOf, affects RETURN ds)
+    `).next()
+}
+
+export function constructLineageOverview(executionEvent: ExecutionEvent, targetDataSource: DataSource, maxDepth: number, lineageGraph: LineageGraph): LineageOverview {
+    return new LineageOverview (
+        new LineageOverviewInfo(
+            executionEvent.timestamp,
+            executionEvent.extra.appId,
+            targetDataSource._key
+        ),
+        new LineageOverviewGraph(
+            maxDepth,
+            lineageGraph.depth || -1,
+            lineageGraph.vertices,
+            lineageGraph.edges
+        )
+    )
+}
+
+function getStartDataSourceFromExecutionEvent(startEvent: ExecutionEvent) {
+    return db._query(aql`
+        WITH progress, progressOf, executionPlan, affects, dataSource
+        FOR ds IN 2 OUTBOUND ${startEvent} progressOf, affects
+            LIMIT 1
+            RETURN {
+                "_id": ds._key,
+                "_class": "za.co.absa.spline.consumer.service.model.DataSourceNode",
+                "name": ds.uri
+            }
+        `).next()
+}
+
+function getPartialGraphForEvent(event: ExecutionEvent) {
+    // using the same query for backward lineage and forward lineage (impact)
+    return db._query(aql`
+            WITH progress, progressOf, executionPlan, affects, depends, dataSource
+
+            LET exec = FIRST(FOR ex IN 1 OUTBOUND ${event} progressOf RETURN ex)
+            LET affectedDsEdgeAndNode = FIRST(FOR v, e IN 1 OUTBOUND exec affects RETURN [v,e])
+
+            LET affectedDsNode = affectedDsEdgeAndNode[0] // for impact: node with result datasource must be included explicitly
+            LET affectedDsEdge = affectedDsEdgeAndNode[1]
+
+            LET rdsWithInEdges = (FOR ds, e IN 1 OUTBOUND exec depends RETURN [ds, e])
+            LET readSources = rdsWithInEdges[*][0]
+            LET readDsEdges = rdsWithInEdges[*][1]
+
+            LET vertices = (
+                FOR vert IN APPEND(APPEND(readSources, exec), affectedDsNode)
+                    LET vertType = SPLIT(vert._id, '/')[0]
+                    RETURN vertType == "dataSource"
+                        ? {
+                            "_id": vert._key,
+                            "_class": "za.co.absa.spline.consumer.service.model.DataSourceNode",
+                            "name": vert.uri
+                        }
+                        : MERGE(KEEP(vert, ["systemInfo", "agentInfo"]), {
+                            "_id": vert._key,
+                            "_class": "za.co.absa.spline.consumer.service.model.ExecutionNode",
+                            "name": vert.name || ""
+                        })
+            )
+
+            LET edges = (
+                FOR edge IN APPEND(readDsEdges, affectedDsEdge)
+                    LET edgeType = SPLIT(edge._id, '/')[0]
+                    LET exKey = SPLIT(edge._from, '/')[1]
+                    LET dsKey = SPLIT(edge._to, '/')[1]
+                    RETURN {
+                        "source": edgeType == "depends" ? dsKey : exKey,
+                        "target": edgeType == "affects" ? dsKey : exKey
+                    }
+            )
+
+            RETURN {vertices, edges}
+        `).next()
+}
+
+export class LineageGraph {
+    readonly depth: number
+    readonly vertices: Array<object>
+    readonly edges: Array<object>
+
+    constructor(depth: number, vertices: Array<object>, edges: Array<object>) {
+        this.depth = depth
+        this.vertices = vertices
+        this.edges = edges
+    }
+}
+
+export function eventLineageOverviewGraph(observeByEventFn: AnyFunction, startEvent: ExecutionEvent, maxDepth: number): LineageGraph {
+    if (!startEvent || maxDepth < 0) {
+        return null
+    }
+
+    const startSource = getStartDataSourceFromExecutionEvent(startEvent)
+    const graphBuilder = new GraphBuilder([startSource])
+
+    const collectPartialGraphForEvent = (event: ExecutionEvent) => {
+        const partialGraph = getPartialGraphForEvent(event)
+        graphBuilder.add(partialGraph)
+    }
+
+    const traverse = memoize(e => e._id, (event: ExecutionEvent, depth: number) => {
+        let remainingDepth = depth - 1
+        if (depth > 1) {
+            observeByEventFn(event)
+                .forEach(writeEvent => {
+                    const remainingDepth_i = traverse(writeEvent, depth - 1)
+                    remainingDepth = Math.min(remainingDepth, remainingDepth_i)
+                })
+        }
+
+        collectPartialGraphForEvent(event)
+
+        return remainingDepth
+    })
+
+    const totalRemainingDepth = maxDepth > 0 ? traverse(startEvent, maxDepth) : 0
+    const resultedGraph = graphBuilder.graph()
+
+    return new LineageGraph(
+        maxDepth - totalRemainingDepth,
+        resultedGraph.vertices,
+        resultedGraph.edges
+    )
+}

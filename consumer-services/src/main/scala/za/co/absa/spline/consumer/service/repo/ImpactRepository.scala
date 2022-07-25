@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2022 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package za.co.absa.spline.consumer.service.model
+package za.co.absa.spline.consumer.service.repo
 
-import io.swagger.annotations.{ApiModel, ApiModelProperty}
+import za.co.absa.spline.consumer.service.model.{LineageOverview, WriteEventInfo}
 
-@ApiModel(description = "Lineage/Impact Overview")
-case class LineageOverview(
-  @ApiModelProperty(value = "Lineage/Impact graph")
-  graph: LineageOverviewGraph,
-  @ApiModelProperty(value = "Additional information")
-  info: Map[String, Any]
-) {
-  def this() = this(null, null)
+import scala.concurrent.{ExecutionContext, Future}
+
+trait ImpactRepository {
+
+  def impactOverviewForExecutionEvent(eventId: WriteEventInfo.Id, maxDepth: Int)
+    (implicit ec: ExecutionContext): Future[LineageOverview]
 }
