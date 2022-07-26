@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {DocumentKey, ExecutionEvent} from '../model'
+import {DataSource, DocumentKey, ExecutionEvent, LineageOverview} from '../model'
 
 import {observedWritesByRead} from './observed-writes-by-read'
 import {
@@ -33,11 +33,11 @@ import {
  * It shows how far the traversal should look for the lineage.
  * @returns za.co.absa.spline.consumer.service.model.LineageOverview
  */
-export function lineageOverview(eventKey: DocumentKey, maxDepth: number) {
+export function lineageOverview(eventKey: DocumentKey, maxDepth: number): LineageOverview {
 
-    const executionEvent= getExecutionEventFromEventKey(eventKey)
-    const targetDataSource = executionEvent && getTargetDataSourceFromExecutionEvent(executionEvent)
-    const lineageGraph = eventBackwardLineageOverviewGraph(executionEvent, maxDepth)
+    const executionEvent: ExecutionEvent = getExecutionEventFromEventKey(eventKey)
+    const targetDataSource: DataSource = executionEvent && getTargetDataSourceFromExecutionEvent(executionEvent)
+    const lineageGraph: LineageGraph = eventBackwardLineageOverviewGraph(executionEvent, maxDepth)
 
     return lineageGraph && constructLineageOverview(executionEvent, targetDataSource, maxDepth, lineageGraph)
 }

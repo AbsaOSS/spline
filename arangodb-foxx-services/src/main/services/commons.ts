@@ -28,7 +28,7 @@ export function getExecutionEventFromEventKey(eventKey: DocumentKey): ExecutionE
     `).next()
 }
 
-export function getTargetDataSourceFromExecutionEvent(executionEvent: ExecutionEvent) {
+export function getTargetDataSourceFromExecutionEvent(executionEvent: ExecutionEvent): DataSource {
     return db._query(aql`
         WITH progress, progressOf, executionPlan, affects, dataSource
         RETURN FIRST(FOR ds IN 2 OUTBOUND ${executionEvent} progressOf, affects RETURN ds)
@@ -51,7 +51,7 @@ export function constructLineageOverview(executionEvent: ExecutionEvent, targetD
     )
 }
 
-function getStartDataSourceFromExecutionEvent(startEvent: ExecutionEvent) {
+function getStartDataSourceFromExecutionEvent(startEvent: ExecutionEvent): DataSource {
     return db._query(aql`
         WITH progress, progressOf, executionPlan, affects, dataSource
         FOR ds IN 2 OUTBOUND ${startEvent} progressOf, affects

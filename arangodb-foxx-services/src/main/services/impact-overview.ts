@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {DocumentKey, ExecutionEvent} from '../model'
+import {DataSource, DocumentKey, ExecutionEvent, LineageOverview} from '../model'
 
 import {observedReadsByWrite} from './observed-reads-by-write'
 import {
@@ -33,10 +33,10 @@ import {
  * It shows how far the traversal should look for the impact (forward-lineage).
  * @returns za.co.absa.spline.consumer.service.model.LineageOverview
  */
-export function impactOverview(eventKey: DocumentKey, maxDepth: number) {
+export function impactOverview(eventKey: DocumentKey, maxDepth: number): LineageOverview {
 
-    const executionEvent = getExecutionEventFromEventKey(eventKey)
-    const targetDataSource = executionEvent && getTargetDataSourceFromExecutionEvent(executionEvent)
+    const executionEvent: ExecutionEvent = getExecutionEventFromEventKey(eventKey)
+    const targetDataSource: DataSource = executionEvent && getTargetDataSourceFromExecutionEvent(executionEvent)
     const impactGraph: LineageGraph = eventImpactOverviewGraph(executionEvent, maxDepth)
 
     return impactGraph && constructLineageOverview(executionEvent, targetDataSource, maxDepth, impactGraph)
