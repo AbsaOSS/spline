@@ -35,37 +35,25 @@ export interface ExecutionEventLike {
  * mimics backend's [[za.co.absa.spline.consumer.service.model.LineageOverview]]
  */
 export class LineageOverview {
-    readonly info: LineageOverviewInfo
-    readonly graph: LineageOverviewGraph
-
-    constructor(info: LineageOverviewInfo, graph: LineageOverviewGraph) {
-        this.info = info
-        this.graph = graph
+    constructor(
+        readonly info: LineageOverviewInfo,
+        readonly graph: LineageOverviewGraph) {
     }
 }
 
 export class LineageOverviewInfo {
-    readonly timestamp: bigint
-    readonly applicationId: string
-    readonly targetDataSourceId: string
-
-    constructor(timestamp: bigint, applicationId: string, targetDataSourceId: string) {
-        this.timestamp = timestamp
-        this.applicationId = applicationId
-        this.targetDataSourceId = targetDataSourceId
+    constructor(
+        readonly timestamp: bigint,
+        readonly applicationId: string,
+        readonly targetDataSourceId: string) {
     }
 }
 
 export class LineageOverviewGraph {
-    readonly depthRequested: number
-    readonly depthComputed: number
-    readonly nodes: Array<object>
-    readonly edges: Array<object>
-
-    constructor(depthRequested: number, depthComputed: number, nodes: Array<object>, edges: Array<object>) {
-        this.depthRequested = depthRequested
-        this.depthComputed = depthComputed
-        this.nodes = nodes
-        this.edges = edges
+    constructor(
+        readonly depthRequested: number,
+        readonly depthComputed: number,
+        readonly nodes: Array<object>,
+        readonly edges: Array<object>) {
     }
 }

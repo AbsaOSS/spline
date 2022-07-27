@@ -2,12 +2,12 @@
  * Copyright 2022 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * you may not use this file except IN compliance with the License.
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
+ * Unless required by applicable law or agreed to IN writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
@@ -25,36 +25,37 @@ import { aql, db } from '@arangodb'
  */
 export function observedReadsByWrite(writeEvent) {
     return writeEvent && db._query(aql`
+        WITH progress, progressOf, executionPlan, executes, operation, depends, writesTo, readsFrom, dataSource
         FOR wExPlan IN 1 OUTBOUND ${writeEvent} progressOf
-        for wds in outbound wExPlan affects
-            let thisWriteOp = (for writeOp in 1 inbound wds writesTo
-                filter writeOp._belongsTo == wExPlan._id // operations have _belongsTo connections to their execPlan
-                limit 1 // we are expecting a single write of the execPlan
-                return writeOp
+        FOR wds IN outbound wExPlan affects
+            LET thisWriteOp = (FOR writeOp IN 1 INBOUND wds writesTo
+                FILTER writeOp._belongsTo == wExPlan._id // operations have _belongsTo connections to their execPlan
+                LIMIT 1 // we are expecting a single write of the execPlan
+                RETURN writeOp
             )[0] // write operation that wrote the to this file
             LET minReadTime = thisWriteOp._created
 
             // lets find out maxReadTime - this may not exits
-            let breakingWriteOp = (for writeOps in 1 inbound wds writesTo
-                filter writeOps._created > thisWriteOp._created
-                filter !writeOps.append // appends do not break lineage-connection for impact
+            LET breakingWriteOp = (FOR writeOps IN 1 INBOUND wds writesTo
+                FILTER writeOps._created > thisWriteOp._created
+                FILTER !writeOps.append // appends do not break lineage-connection for impact
                 sort writeOps._created DESC
-                limit 1
-                return writeOps
+                LIMIT 1
+                RETURN writeOps
             )[0]
-            let maxReadTime = breakingWriteOp ? breakingWriteOp._created : null // maxReadTime is optional
+            LET maxReadTime = breakingWriteOp ? breakingWriteOp._created : null // maxReadTime is optional
 
             // looking for readOperations that read data written by writes above - within the time window
             // result: array of execPlan keys satisfying read-time window
-            let execPlans = (for readOps in 1 inbound wds readsFrom
-                filter readOps._created > minReadTime
-                filter (maxReadTime ? readOps._created < maxReadTime : true) // maxReadTime null -> all after minReadTime
-                return readOps._belongsTo
+            LET execPlans = (FOR readOps IN 1 INBOUND wds readsFrom
+                FILTER readOps._created > minReadTime
+                FILTER (maxReadTime ? readOps._created < maxReadTime : true) // maxReadTime null -> all after minReadTime
+                RETURN readOps._belongsTo
             )
 
-            for rExPlan in 1 inbound wds depends
-                filter rExPlan._id in execPlans
-                for readEvent in 1 inbound rExPlan progressOf
-                    return readEvent
+            FOR rExPlan IN 1 INBOUND wds depends
+                FILTER rExPlan._id IN execPlans
+                FOR readEvent IN 1 INBOUND rExPlan progressOf
+                    RETURN readEvent
     `).toArray()
 }
