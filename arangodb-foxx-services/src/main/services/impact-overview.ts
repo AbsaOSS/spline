@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-import {DataSource, DocumentKey, ExecutionEvent, LineageOverview} from '../model'
+import {DataSource, DocumentKey, ExecutionEvent, LineageGraph, LineageOverview} from '../model'
 
 import {observedReadsByWrite} from './observed-reads-by-write'
 import {
     constructLineageOverview, eventLineageOverviewGraph,
     getExecutionEventFromEventKey,
-    getTargetDataSourceFromExecutionEvent,
-    LineageGraph
+    getTargetDataSourceFromExecutionEvent
 } from './commons'
 
 

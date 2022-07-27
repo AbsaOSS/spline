@@ -15,45 +15,49 @@
  */
 
 export type DocumentKey = string
-export type ExecutionEvent = ExecutionEventLike
-export type DataSource = DataSourceLike
-
-interface DataSourceLike {
-    _key: string
-}
-
-interface ExecutionEventExtra {
-    appId: string
-}
-
-export interface ExecutionEventLike {
+export type ExecutionEvent = {
     timestamp: bigint
-    extra: ExecutionEventExtra
+    extra: {
+        appId: string
+    }
+}
+export type DataSource = {
+    _key: string
+    name: string
+}
+
+export type ExecutionNode = {
+    _key: string
+    name: string
+
+}
+export type LineageGraphNode = ExecutionNode | DataSource
+
+export type LineageGraphEdge = {
+    source: string
+    target: string
+}
+
+export type LineageGraph = {
+    depth: number
+    vertices: Array<LineageGraphNode>
+    edges: Array<LineageGraphEdge>
 }
 
 /**
- * mimics backend's [[za.co.absa.spline.consumer.service.model.LineageOverview]]
+ * Mimics backend's [[za.co.absa.spline.consumer.service.model.LineageOverview]]
  */
-export class LineageOverview {
-    constructor(
-        readonly info: LineageOverviewInfo,
-        readonly graph: LineageOverviewGraph) {
+export type LineageOverview = {
+    info: {
+        timestamp: bigint
+        applicationId: string
+        targetDataSourceId: string
+    }
+    graph: {
+        depthRequested: number
+        depthComputed: number
+        nodes: Array<LineageGraphNode>
+        edges: Array<LineageGraphEdge>
     }
 }
 
-export class LineageOverviewInfo {
-    constructor(
-        readonly timestamp: bigint,
-        readonly applicationId: string,
-        readonly targetDataSourceId: string) {
-    }
-}
-
-export class LineageOverviewGraph {
-    constructor(
-        readonly depthRequested: number,
-        readonly depthComputed: number,
-        readonly nodes: Array<object>,
-        readonly edges: Array<object>) {
-    }
-}

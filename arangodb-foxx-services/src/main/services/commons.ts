@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {DocumentKey, ExecutionEvent, LineageOverview, LineageOverviewInfo, LineageOverviewGraph, DataSource} from '../model'
+import {DocumentKey, ExecutionEvent, LineageOverview, DataSource, LineageGraph} from '../model'
 
 import {aql, db} from '@arangodb'
 import {memoize} from '../utils/common'
@@ -36,19 +36,19 @@ export function getTargetDataSourceFromExecutionEvent(executionEvent: ExecutionE
 }
 
 export function constructLineageOverview(executionEvent: ExecutionEvent, targetDataSource: DataSource, maxDepth: number, lineageGraph: LineageGraph): LineageOverview {
-    return new LineageOverview (
-        new LineageOverviewInfo(
-            executionEvent.timestamp,
-            executionEvent.extra.appId,
-            targetDataSource._key
-        ),
-        new LineageOverviewGraph(
-            maxDepth,
-            lineageGraph.depth || -1,
-            lineageGraph.vertices,
-            lineageGraph.edges
-        )
-    )
+    return {
+        'info': {
+            'timestamp': executionEvent.timestamp,
+            'applicationId': executionEvent.extra.appId,
+            'targetDataSourceId': targetDataSource._key
+        },
+        'graph': {
+            'depthRequested': maxDepth,
+            'depthComputed': lineageGraph.depth || -1,
+            'nodes': lineageGraph.vertices,
+            'edges': lineageGraph.edges
+        }
+    }
 }
 
 function getStartDataSourceFromExecutionEvent(startEvent: ExecutionEvent): DataSource {
@@ -110,18 +110,6 @@ function getPartialGraphForEvent(event: ExecutionEvent) {
         `).next()
 }
 
-export class LineageGraph {
-    readonly depth: number
-    readonly vertices: Array<object>
-    readonly edges: Array<object>
-
-    constructor(depth: number, vertices: Array<object>, edges: Array<object>) {
-        this.depth = depth
-        this.vertices = vertices
-        this.edges = edges
-    }
-}
-
 export function eventLineageOverviewGraph(observeByEventFn: AnyFunction, startEvent: ExecutionEvent, maxDepth: number): LineageGraph {
     if (!startEvent || maxDepth < 0) {
         return null
@@ -153,9 +141,9 @@ export function eventLineageOverviewGraph(observeByEventFn: AnyFunction, startEv
     const totalRemainingDepth = maxDepth > 0 ? traverse(startEvent, maxDepth) : 0
     const resultedGraph = graphBuilder.graph()
 
-    return new LineageGraph(
-        maxDepth - totalRemainingDepth,
-        resultedGraph.vertices,
-        resultedGraph.edges
-    )
+    return {
+        depth: maxDepth - totalRemainingDepth,
+        vertices: resultedGraph.vertices,
+        edges: resultedGraph.edges
+    }
 }
