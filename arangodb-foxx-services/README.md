@@ -15,7 +15,7 @@ mvn clean install
 # (http://some.server:1234/_db/foo/spline/)
 npm foxx:deploy --database=foo --server=http://some.server:1234
 
-# If the "--service" option is omitted, the local server is used
+# If the "--server" option is omitted, the local server is used
 # (http://localhost:8529/_db/foo/spline/)
 npm foxx:deploy --database=foo
 
