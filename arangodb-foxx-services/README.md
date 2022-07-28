@@ -13,16 +13,16 @@ mvn clean install
 ```shell
 # Deploy the "/spline" service to the "foo" database on the given ArangoDB server
 # (http://some.server:1234/_db/foo/spline/)
-npm foxx:deploy --database foo --server http://some.server:1234
+npm foxx:deploy --database=foo --server=http://some.server:1234
 
 # If the "--service" option is omitted, the local server is used
 # (http://localhost:8529/_db/foo/spline/)
-npm foxx:deploy --database foo
+npm foxx:deploy --database=foo
 
 # If needed, in addition to the "foxx:deploy" script that executes build, uninstall and install steps,
 # you can also use individual "foxx:install" or "foxx:uninstall" scripts with the same arguments.
-npm foxx:uninstall --database NAME [--server URL]
-npm foxx:install --database NAME [--server URL]
+npm foxx:uninstall --database=NAME [--server=URL]
+npm foxx:install --database=NAME [--server=URL]
 ```
 
 ---
