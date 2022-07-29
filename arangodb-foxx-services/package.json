@@ -9,8 +9,8 @@
     "test": "jest",
     "lint": "eslint src",
     "foxx:deploy": "npm run build && npm run foxx:uninstall && npm run foxx:install",
-    "foxx:uninstall": "foxx uninstall --server $npm_config_server --database $npm_config_database /spline",
-    "foxx:install": "foxx install --server $npm_config_server --database $npm_config_database /spline target/dist"
+    "foxx:uninstall": "cross-env-shell foxx uninstall --server $npm_config_server --database $npm_config_database /spline",
+    "foxx:install": "cross-env-shell foxx install --server $npm_config_server --database $npm_config_database /spline target/dist"
   },
   "devDependencies": {
     "@types/arangodb": "^3.5.13",
@@ -19,6 +19,7 @@
     "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "^5.30.7",
     "copyfiles": "^2.4.1",
+    "cross-env": "^7.0.3",
     "eslint": "^8.20.0",
     "foxx-cli": "^2.0.1",
     "jest": "^28.1.2",
