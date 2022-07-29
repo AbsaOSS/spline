@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 ABSA Group Limited
+ * Copyright 2022 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 import {DataSource, DocumentKey, ExecutionEvent, LineageGraph, LineageOverview} from '../model'
 
-import {observedWritesByRead} from './observed-writes-by-read'
+import {observedReadsByWrite} from './observed-reads-by-write'
 import {
     constructLineageOverview, eventLineageOverviewGraph,
     getExecutionEventFromEventKey,
@@ -25,22 +25,22 @@ import {
 
 
 /**
- * Return a high-level lineage overview of the given write event.
+ * Return a high-level impact (forward-lineage) overview of the given write event.
  *
- * @param eventKey write event key
+ * @param eventKey read event key
  * @param maxDepth maximum number of job nodes in any path of the resulted graph (excluding cycles).
- * It shows how far the traversal should look for the lineage.
+ * It shows how far the traversal should look for the impact (forward-lineage).
  * @returns za.co.absa.spline.consumer.service.model.LineageOverview
  */
-export function lineageOverview(eventKey: DocumentKey, maxDepth: number): LineageOverview {
+export function impactOverview(eventKey: DocumentKey, maxDepth: number): LineageOverview {
 
     const executionEvent: ExecutionEvent = getExecutionEventFromEventKey(eventKey)
     const targetDataSource: DataSource = executionEvent && getTargetDataSourceFromExecutionEvent(executionEvent)
-    const lineageGraph: LineageGraph = eventBackwardLineageOverviewGraph(executionEvent, maxDepth)
+    const impactGraph: LineageGraph = eventImpactOverviewGraph(executionEvent, maxDepth)
 
-    return lineageGraph && constructLineageOverview(executionEvent, targetDataSource, maxDepth, lineageGraph)
+    return impactGraph && constructLineageOverview(executionEvent, targetDataSource, maxDepth, impactGraph)
 }
 
-function eventBackwardLineageOverviewGraph(startEvent: ExecutionEvent, maxDepth: number): LineageGraph {
-    return eventLineageOverviewGraph(observedWritesByRead, startEvent, maxDepth)
+function eventImpactOverviewGraph(startEvent: ExecutionEvent, maxDepth: number): LineageGraph {
+    return eventLineageOverviewGraph(observedReadsByWrite, startEvent, maxDepth)
 }

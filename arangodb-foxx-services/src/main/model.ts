@@ -15,4 +15,49 @@
  */
 
 export type DocumentKey = string
-export type ExecutionEvent = object
+export type ExecutionEvent = {
+    timestamp: bigint
+    extra: {
+        appId: string
+    }
+}
+export type DataSource = {
+    _key: string
+    name: string
+}
+
+export type ExecutionNode = {
+    _key: string
+    name: string
+
+}
+export type LineageGraphNode = ExecutionNode | DataSource
+
+export type LineageGraphEdge = {
+    source: string
+    target: string
+}
+
+export type LineageGraph = {
+    depth: number
+    vertices: Array<LineageGraphNode>
+    edges: Array<LineageGraphEdge>
+}
+
+/**
+ * Mimics backend's [[za.co.absa.spline.consumer.service.model.LineageOverview]]
+ */
+export type LineageOverview = {
+    info: {
+        timestamp: bigint
+        applicationId: string
+        targetDataSourceId: string
+    }
+    graph: {
+        depthRequested: number
+        depthComputed: number
+        nodes: Array<LineageGraphNode>
+        edges: Array<LineageGraphEdge>
+    }
+}
+

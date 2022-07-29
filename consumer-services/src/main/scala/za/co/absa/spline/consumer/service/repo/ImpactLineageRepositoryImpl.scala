@@ -20,18 +20,29 @@ import com.arangodb.ArangoDBException
 import com.arangodb.async.ArangoDatabaseAsync
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import za.co.absa.spline.consumer.service.model.{WriteEventInfo, LineageOverview}
+import za.co.absa.spline.consumer.service.model.WriteEventInfo.Id
+import za.co.absa.spline.consumer.service.model.LineageOverview
 
 import scala.PartialFunction.cond
 import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.concurrent.{ExecutionContext, Future}
 
 @Repository
-class LineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends LineageRepository {
+class ImpactLineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends LineageRepository with ImpactRepository {
 
-  override def lineageOverviewForExecutionEvent(eventId: WriteEventInfo.Id, maxDepth: Int)(implicit ec: ExecutionContext): Future[LineageOverview] =
+  override def lineageOverviewForExecutionEvent(eventId: Id, maxDepth: Int)
+                                               (implicit ec: ExecutionContext): Future[LineageOverview] = {
+    generalLineageOverviewForExecutionEvent(s"/spline/events/$eventId/lineage-overview/$maxDepth", eventId)
+  }
+
+  override def impactOverviewForExecutionEvent(eventId: Id, maxDepth: Int)
+                                              (implicit ec: ExecutionContext): Future[LineageOverview] = {
+    generalLineageOverviewForExecutionEvent(s"/spline/events/$eventId/impact-overview/$maxDepth", eventId)
+  }
+
+  private def generalLineageOverviewForExecutionEvent(routeUrl: String, eventId: Id)(implicit ec: ExecutionContext): Future[LineageOverview] =
     db
-      .route(s"/spline/events/$eventId/lineage-overview/$maxDepth")
+      .route(routeUrl)
       .get()
       .toScala
       .map(resp => db.util().deserialize[LineageOverview](resp.getBody, classOf[LineageOverview]))
