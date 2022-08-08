@@ -15,12 +15,14 @@
  */
 
 import { createRouter } from '@arangodb/foxx'
-import { plansRouter } from './plans-router'
-import { eventsRouter } from './events-router'
 
 
-const rootRouter: Foxx.Router = createRouter()
-rootRouter.use('/execution-plans', plansRouter)
-rootRouter.use('/execution-events', eventsRouter)
+export const plansRouter: Foxx.Router = createRouter()
 
-export default rootRouter
+plansRouter
+    .post('/',
+        (req: Foxx.Request, res: Foxx.Response) => {
+            // todo: implement it
+        })
+    .response(201, 'Plan registered')
+    .summary('Register a new execution plan')

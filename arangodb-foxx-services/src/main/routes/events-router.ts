@@ -20,7 +20,7 @@ import { lineageOverview } from '../services/lineage-overview'
 import { impactOverview } from '../services/impact-overview'
 
 
-const eventsRouter = createRouter()
+export const eventsRouter: Foxx.Router = createRouter()
 
 eventsRouter
     .get('/:eventKey/lineage-overview/:maxDepth',
@@ -62,4 +62,10 @@ eventsRouter
     .summary('Get execution event end-to-end impact (forward lineage) overview')
     .description('Builds an impact (forward lineage) of the data produced by the given execution event')
 
-export default eventsRouter
+eventsRouter
+    .post('/',
+        (req: Foxx.Request, res: Foxx.Response) => {
+            // todo: implement it
+        })
+    .response(201, 'Execution event recorded')
+    .summary('Record a new execution event')

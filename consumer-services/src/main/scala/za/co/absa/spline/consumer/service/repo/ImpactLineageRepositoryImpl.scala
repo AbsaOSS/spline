@@ -15,14 +15,14 @@
  */
 package za.co.absa.spline.consumer.service.repo
 
-import java.util.concurrent.CompletionException
 import com.arangodb.ArangoDBException
 import com.arangodb.async.ArangoDatabaseAsync
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import za.co.absa.spline.consumer.service.model.WriteEventInfo.Id
 import za.co.absa.spline.consumer.service.model.LineageOverview
+import za.co.absa.spline.consumer.service.model.WriteEventInfo.Id
 
+import java.util.concurrent.CompletionException
 import scala.PartialFunction.cond
 import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.concurrent.{ExecutionContext, Future}
@@ -31,13 +31,13 @@ import scala.concurrent.{ExecutionContext, Future}
 class ImpactLineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends LineageRepository with ImpactRepository {
 
   override def lineageOverviewForExecutionEvent(eventId: Id, maxDepth: Int)
-                                               (implicit ec: ExecutionContext): Future[LineageOverview] = {
-    generalLineageOverviewForExecutionEvent(s"/spline/events/$eventId/lineage-overview/$maxDepth", eventId)
+    (implicit ec: ExecutionContext): Future[LineageOverview] = {
+    generalLineageOverviewForExecutionEvent(s"/spline/execution-events/$eventId/lineage-overview/$maxDepth", eventId)
   }
 
   override def impactOverviewForExecutionEvent(eventId: Id, maxDepth: Int)
-                                              (implicit ec: ExecutionContext): Future[LineageOverview] = {
-    generalLineageOverviewForExecutionEvent(s"/spline/events/$eventId/impact-overview/$maxDepth", eventId)
+    (implicit ec: ExecutionContext): Future[LineageOverview] = {
+    generalLineageOverviewForExecutionEvent(s"/spline/execution-events/$eventId/impact-overview/$maxDepth", eventId)
   }
 
   private def generalLineageOverviewForExecutionEvent(routeUrl: String, eventId: Id)(implicit ec: ExecutionContext): Future[LineageOverview] =
