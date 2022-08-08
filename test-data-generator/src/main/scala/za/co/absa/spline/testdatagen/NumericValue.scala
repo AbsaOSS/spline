@@ -29,7 +29,7 @@ case class Constant(value: Int) extends NumericValue {
 case class Variable(start: Int, end: Int, step: Int) extends NumericValue {
   def expand(): Seq[Constant] = (start to end by step).map(Constant)
 
-  override def toString: String = s"$start-$end|$step"
+  override def toString: String = s"$start-${end}by$step"
 
   override def valueOf(): Int = throw new NotImplementedError("Not expanded")
 }
@@ -38,7 +38,7 @@ object NumericValue {
 
   def apply(param: String): NumericValue = {
     val ConstantPattern = "(\\d+)".r
-    val VariablePattern = "(\\d+)-(\\d+)/(\\d+)".r
+    val VariablePattern = "(\\d+)-(\\d+)by(\\d+)".r
     param match {
       case ConstantPattern(c) if c.toInt > 0 => Constant(c.toInt)
       case ConstantPattern(c) => throw new IllegalArgumentException(s"Invalid name $c, number should be positive")
@@ -46,7 +46,7 @@ object NumericValue {
         if start.toInt > 0 && end.toInt > 0 && step.toInt > 0 && end.toInt > start.toInt =>
         Variable(start.toInt, end.toInt, step.toInt)
       case VariablePattern(_, _, _) =>
-        throw new IllegalArgumentException(s"Invalid range $param, pattern should be start-end/step, each one > 0")
+        throw new IllegalArgumentException(s"Invalid range $param, pattern should be {start}-{end}by{step}, each one > 0")
       case _ => throw new IllegalArgumentException("Invalid specified pattern")
     }
   }

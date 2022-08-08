@@ -80,7 +80,11 @@ object GenCLI {
           .text(s"Supported values: $validGraphValues")
           .action((x: String, c) => {
             c.copy(graphType = GraphType.fromString(x).get)
-          })
+          }),
+        opt[String]('t', "output")
+          .optional()
+          .text("Custom output file name - supply reasonable name/path to be usable on your platform")
+          .action((x, c) => c.copy(customOutputFileName = Some(x))),
       )
     }
 
@@ -101,9 +105,14 @@ object GenCLI {
 
   private def createDispatcher(name: String, config: Config): FileDispatcher = name match {
     case "file" =>
-      new FileDispatcher(s"${config.graphType.name}-lineage-" +
-        s"${config.reads}reads-" +
-        s"${config.operations}ops-" +
-        s"${config.attributes}attr")
+      config.customOutputFileName.fold {
+        val defaultPrefixName = s"${config.graphType.name}-lineage-" +
+          s"${config.reads}reads-" +
+          s"${config.operations}ops-" +
+          s"${config.attributes}attr"
+        new FileDispatcher(defaultPrefixName) // using default prefix and default built-in suffix
+      } { customFileName =>
+        new FileDispatcher(customFileName, "") // custom name as-is
+      }
   }
 }
