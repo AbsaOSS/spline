@@ -45,6 +45,19 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>arangodb-aql-functions</artifactId>
+            <version>${project.version}</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>arangodb-foxx-services</artifactId>
+            <version>${project.version}</version>
+            <type>pom</type>
+        </dependency>
+
+        <dependency>
             <groupId>com.github.scopt</groupId>
             <artifactId>scopt_${scala.compat.version}</artifactId>
         </dependency>
@@ -74,8 +87,56 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
             </resource>
+            <resource>
+                <directory>${project.build.directory}/arangodb-resources</directory>
+                <filtering>false</filtering>
+            </resource>
         </resources>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.1.2</version>
+                <executions>
+                    <execution>
+                        <id>copy-aql-functions</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>za.co.absa.spline</groupId>
+                                    <artifactId>arangodb-aql-functions</artifactId>
+                                    <type>zip</type>
+                                    <classifier>dist</classifier>
+                                    <outputDirectory>${project.build.directory}/arangodb-resources/AQLFunctions/</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-foxx-services</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>za.co.absa.spline</groupId>
+                                    <artifactId>arangodb-foxx-services</artifactId>
+                                    <type>zip</type>
+                                    <classifier>dist</classifier>
+                                    <outputDirectory>${project.build.directory}/arangodb-resources/foxx/</outputDirectory>
+                                    <destFileName>spline.zip</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>

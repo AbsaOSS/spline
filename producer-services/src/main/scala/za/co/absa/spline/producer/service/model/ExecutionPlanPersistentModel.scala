@@ -35,9 +35,6 @@ case class ExecutionPlanPersistentModel(
   uses: Seq[Edge], // ... attribute or expression
   produces: Seq[Edge], // ... attribute
 
-  // data source
-  dataSources: Seq[DataSource],
-
   // schema
   schemas: Seq[Schema],
   consistsOf: Seq[Edge], // ... attributes

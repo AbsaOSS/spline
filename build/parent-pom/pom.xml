@@ -21,7 +21,7 @@
     <parent>
         <groupId>za.co.absa</groupId>
         <artifactId>root-pom</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.3</version>
     </parent>
 
     <groupId>za.co.absa.spline</groupId>
@@ -48,6 +48,8 @@
         <springfox-swagger.version>2.9.2</springfox-swagger.version>
         <jackson.version>2.13.2</jackson.version>
         <finatra.jackson.version>21.5.0</finatra.jackson.version>
+        <node.version>v16.16.0</node.version>
+        <npm.version>8.11.0</npm.version>
     </properties>
 
     <build>
@@ -92,6 +94,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <!-- disable surefire -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -101,6 +104,7 @@
                     <skipTests>true</skipTests>
                 </configuration>
             </plugin>
+
             <!-- enable scalatest -->
             <plugin>
                 <groupId>com.github.cerveada</groupId>
@@ -120,6 +124,82 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Clean Node.js specific dirs on the Maven "clean" phase -->
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>node_modules</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+
+            <!-- Call NPM scripts on different Maven phases -->
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.10.3</version>
+                <configuration>
+                    <nodeVersion>${node.version}</nodeVersion>
+                    <npmVersion>${npm.version}</npmVersion>
+                    <installDirectory>${project.build.directory}/node</installDirectory>
+                    <skip>true</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>install node and npm</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>install node modules</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>ci</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run build</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>test</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>lint</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run lint</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 
@@ -413,6 +493,11 @@
 
             <!-- others -->
 
+            <dependency>
+                <groupId>com.arangodb</groupId>
+                <artifactId>arangodb-java-driver</artifactId>
+                <version>6.17.0</version>
+            </dependency>
             <dependency>
                 <groupId>jakarta.validation</groupId>
                 <artifactId>jakarta.validation-api</artifactId>

@@ -16,9 +16,15 @@
 
 package za.co.absa.spline.producer.service
 
-import org.springframework.context.annotation.{ComponentScan, Configuration, EnableAspectJAutoProxy}
+import org.springframework.context.annotation.{Bean, ComponentScan, Configuration, EnableAspectJAutoProxy}
+import za.co.absa.spline.common.AsyncCallRetryer
+import za.co.absa.spline.persistence.RetryableExceptionUtils
 
 @Configuration
 @EnableAspectJAutoProxy
 @ComponentScan(basePackageClasses = Array(classOf[repo._package]))
-class ProducerServicesConfig
+class ProducerServicesConfig {
+
+  @Bean def retryer: AsyncCallRetryer = new AsyncCallRetryer(isRetryable = RetryableExceptionUtils.isRetryable, 5)
+
+}

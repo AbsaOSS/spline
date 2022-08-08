@@ -17,9 +17,9 @@ package za.co.absa.spline.consumer.service.model
 
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
 
-@ApiModel(description = "Lineage Overview")
+@ApiModel(description = "Lineage/Impact Overview")
 case class LineageOverview(
-  @ApiModelProperty(value = "Lineage graph")
+  @ApiModelProperty(value = "Lineage/Impact graph")
   graph: LineageOverviewGraph,
   @ApiModelProperty(value = "Additional information")
   info: Map[String, Any]

@@ -27,7 +27,7 @@ object LabelQuery {
       .map(m =>
         Label(
           name = m.group(1),
-          values = m.group(2).split(',').map(_.trim).filterNot(_.isBlank)
+          values = m.group(2).split(',').map(_.trim).filterNot(_.isEmpty)
         )
       )
   }

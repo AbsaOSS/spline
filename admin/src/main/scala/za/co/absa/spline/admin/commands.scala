@@ -17,7 +17,8 @@ package za.co.absa.spline.admin
  */
 
 import za.co.absa.spline.admin.DBCommand._
-import za.co.absa.spline.persistence.{ArangoConnectionURL, AuxiliaryDBAction}
+import za.co.absa.spline.arango.{AuxiliaryDBAction, DatabaseCreateOptions}
+import za.co.absa.spline.persistence.ArangoConnectionURL
 
 sealed trait Command
 
@@ -42,7 +43,8 @@ object DBCommand {
 case class DBInit(
   override val dbUrl: Url = null,
   force: Boolean = false,
-  skip: Boolean = false
+  skip: Boolean = false,
+  options: DatabaseCreateOptions = DatabaseCreateOptions()
 ) extends DBCommand {
   protected override type Self = DBInit
   protected override val selfCopy: DBCommandProps => Self = copy(_)

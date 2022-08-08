@@ -126,26 +126,20 @@
                 </dependencies>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.8</version>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <configuration>
+                    <skip>false</skip>
+                </configuration>
                 <executions>
                     <execution>
+                        <id>gen-swagger-docs</id>
                         <phase>prepare-package</phase>
                         <goals>
-                            <goal>run</goal>
+                            <goal>npm</goal>
                         </goals>
                         <configuration>
-                            <target>
-                                <exec executable="cmd" osfamily="windows" failonerror="true">
-                                    <env key="DOCS_DIR" value="${swagger.docs.path}" />
-                                    <arg line="/c gen-api-doc.cmd" />
-                                </exec>
-                                <exec executable="bash" osfamily="unix" failonerror="true">
-                                    <env key="DOCS_DIR" value="${swagger.docs.path}" />
-                                    <arg line="gen-api-doc.sh" />
-                                </exec>
-                            </target>
+                            <arguments>run gen-api-doc:all --docs_dir=${swagger.docs.path}</arguments>
                         </configuration>
                     </execution>
                 </executions>

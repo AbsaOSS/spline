@@ -20,27 +20,27 @@ import com.arangodb.async.ArangoDatabaseAsync
 import org.slf4s.Logging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
+import za.co.absa.spline.common.AsyncCallRetryer
+import za.co.absa.spline.persistence.ArangoImplicits
 import za.co.absa.spline.persistence.model._
 import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, NativeQuery, TxBuilder}
-import za.co.absa.spline.persistence.{ArangoImplicits, Persister}
 import za.co.absa.spline.producer.model.v1_2.ExecutionEvent._
 import za.co.absa.spline.producer.model.{v1_2 => apiModel}
 import za.co.absa.spline.producer.service.UUIDCollisionDetectedException
 import za.co.absa.spline.producer.service.model.{ExecutionEventKeyCreator, ExecutionPlanPersistentModel, ExecutionPlanPersistentModelBuilder}
 
 import scala.compat.java8.FutureConverters._
-import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
 @Repository
-class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExecutionProducerRepository
+class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retryer: AsyncCallRetryer) extends ExecutionProducerRepository
   with Logging {
 
   import ArangoImplicits._
   import ExecutionProducerRepositoryImpl._
 
-  override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
+  override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = retryer.execute({
     val eventualMaybeExistingDiscriminatorOpt: Future[Option[String]] = db.queryOptional[String](
       s"""
          |WITH ${NodeDef.ExecutionPlan.name}
@@ -52,18 +52,23 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
       Map("key" -> executionPlan.id)
     )
 
-    val eventualPersistedDSKeyByURI: Future[Map[DataSource.Uri, DataSource.Key]] = db.queryAs[DataSource](
-      s"""
-         |WITH ${NodeDef.DataSource.name}
-         |FOR ds IN ${NodeDef.DataSource.name}
-         |    FILTER ds.uri IN @refURIs
-         |    RETURN KEEP(ds, ['_key', 'uri'])
-         |    """.stripMargin,
-      Map("refURIs" -> executionPlan.dataSources.toArray)
-    ).map(_.streamRemaining.toScala.map(ds => ds.uri -> ds._key).toMap)
+    val eventualPersistedDataSources: Future[Seq[DataSource]] = {
+      val dataSources: Set[DataSource] = executionPlan.dataSources.map(DataSource.apply)
+      db.queryStream[DataSource](
+        s"""
+           |WITH ${NodeDef.DataSource.name}
+           |FOR ds IN @dataSources
+           |    UPSERT { uri: ds.uri }
+           |        INSERT KEEP(ds, ['_created', 'uri', 'name'])
+           |        UPDATE {} IN ${NodeDef.DataSource.name}
+           |        RETURN KEEP(NEW, ['_key', 'uri'])
+           |    """.stripMargin,
+        Map("dataSources" -> dataSources.toArray)
+      )
+    }
 
     for {
-      persistedDSKeyByURI <- eventualPersistedDSKeyByURI
+      persistedDSKeyByURI <- eventualPersistedDataSources
       maybeExistingDiscriminatorOpt <- eventualMaybeExistingDiscriminatorOpt
       _ <- maybeExistingDiscriminatorOpt match {
         case Some(existingDiscriminatorOrNull) =>
@@ -77,7 +82,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) exte
     } yield Unit
   })
 
-  override def insertExecutionEvents(events: Array[apiModel.ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = Persister.execute({
+  override def insertExecutionEvents(events: Array[apiModel.ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = retryer.execute({
     createInsertTransaction(events).execute(db)
   })
 
@@ -100,10 +105,10 @@ object ExecutionProducerRepositoryImpl {
 
   private def createInsertTransaction(
     executionPlan: apiModel.ExecutionPlan,
-    persistedDSKeyByURI: Map[DataSource.Uri, DataSource.Key]
+    persistedDataSources: Seq[DataSource]
   ) = {
     val eppm: ExecutionPlanPersistentModel =
-      ExecutionPlanPersistentModelBuilder.toPersistentModel(executionPlan, persistedDSKeyByURI)
+      ExecutionPlanPersistentModelBuilder.toPersistentModel(executionPlan, persistedDataSources)
 
     new TxBuilder()
       // execution plan
@@ -120,9 +125,6 @@ object ExecutionProducerRepositoryImpl {
       .addQuery(InsertQuery(EdgeDef.Emits, eppm.emits))
       .addQuery(InsertQuery(EdgeDef.Uses, eppm.uses))
       .addQuery(InsertQuery(EdgeDef.Produces, eppm.produces))
-
-      // data source
-      .addQuery(InsertQuery(NodeDef.DataSource, eppm.dataSources))
 
       // schema
       .addQuery(InsertQuery(NodeDef.Schema, eppm.schemas))

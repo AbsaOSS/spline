@@ -105,6 +105,14 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- ArangoDB -->
+
+        <dependency>
+            <groupId>com.arangodb</groupId>
+            <artifactId>arangodb-java-driver</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- test scope -->
 
         <dependency>

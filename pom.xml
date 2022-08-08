@@ -34,7 +34,7 @@
     <parent>
         <groupId>za.co.absa</groupId>
         <artifactId>root-pom</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.3</version>
     </parent>
 
     <developers>
@@ -64,6 +64,8 @@
 
         <module>commons</module>
 
+        <module>arangodb-foxx-services</module>
+        <module>arangodb-aql-functions</module>
         <module>persistence</module>
         <module>producer-services</module>
         <module>consumer-services</module>
@@ -79,22 +81,4 @@
         <module>admin</module>
         <module>test-data-generator</module>
     </modules>
-
-    <build>
-        <plugins>
-
-            <!-- customize RAT plugin -->
-
-            <plugin>
-                <groupId>org.apache.rat</groupId>
-                <artifactId>apache-rat-plugin</artifactId>
-                <configuration>
-                    <excludes combine.children="append">
-                        <exclude>.github/**</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>

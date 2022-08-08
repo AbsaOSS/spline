@@ -20,14 +20,18 @@ import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.OneInstancePerTest
+import org.scalatest.OptionValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.commons.scalatest.{ConsoleStubs, SystemExitFixture}
+import za.co.absa.spline.arango.AuxiliaryDBAction._
+import za.co.absa.spline.arango.OnDBExistsAction._
+import za.co.absa.spline.arango._
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.common.security.TLSUtils
-import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
-import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManager, ArangoManagerFactory, OnDBExistsAction}
+import za.co.absa.spline.persistence._
+import za.co.absa.spline.persistence.model.{EdgeDef, NodeDef}
 
 import javax.net.ssl.SSLContext
 import scala.concurrent.Future
@@ -67,6 +71,7 @@ class AdminCLISpec
 
   {
     val connUrlCaptor: ArgumentCaptor[ArangoConnectionURL] = ArgumentCaptor.forClass(classOf[ArangoConnectionURL])
+    val dbOptionCaptor: ArgumentCaptor[DatabaseCreateOptions] = ArgumentCaptor.forClass(classOf[DatabaseCreateOptions])
     val actionFlgCaptor: ArgumentCaptor[OnDBExistsAction] = ArgumentCaptor.forClass(classOf[OnDBExistsAction])
     val sslCtxCaptor: ArgumentCaptor[Option[SSLContext]] = ArgumentCaptor.forClass(classOf[Option[SSLContext]])
 
@@ -75,7 +80,7 @@ class AdminCLISpec
       thenReturn arangoManagerMock)
 
     (when(
-      arangoManagerMock.initialize(actionFlgCaptor.capture))
+      arangoManagerMock.initialize(actionFlgCaptor.capture, dbOptionCaptor.capture))
       thenReturn Future.successful(true))
 
     (when(
@@ -108,6 +113,78 @@ class AdminCLISpec
     }
 
     behavior of "DB-Init"
+
+    it should "accept custom collection options" in assertingStdOut(include("DONE")) {
+      cli.exec(Array(
+        "db-init",
+        "--shard-num-default", "42",
+        "--shard-num", "executionPlan=3,progressOf=5",
+
+        "--shard-keys-default", "a+b+c",
+        "--shard-keys", "executionPlan=x+y,progressOf=z",
+
+        "--repl-factor-default", "55",
+        "--repl-factor", "executionPlan=7,progressOf=9",
+
+        "--wait-for-sync",
+
+        "arangodb://foo/bar"))
+
+      dbOptionCaptor.getValue.numShards(NodeDef.ExecutionPlan) should equal(3)
+      dbOptionCaptor.getValue.numShards(EdgeDef.ProgressOf) should equal(5)
+      dbOptionCaptor.getValue.numShardsDefault should equal(Some(42))
+
+      dbOptionCaptor.getValue.shardKeys(NodeDef.ExecutionPlan) should contain theSameElementsInOrderAs Seq("x", "y")
+      dbOptionCaptor.getValue.shardKeys(EdgeDef.ProgressOf) should contain theSameElementsInOrderAs Seq("z")
+      dbOptionCaptor.getValue.shardKeysDefault should be(defined)
+      dbOptionCaptor.getValue.shardKeysDefault.value should contain theSameElementsInOrderAs Seq("a", "b", "c")
+
+      dbOptionCaptor.getValue.replFactor(NodeDef.ExecutionPlan) should equal(7)
+      dbOptionCaptor.getValue.replFactor(EdgeDef.ProgressOf) should equal(9)
+      dbOptionCaptor.getValue.replFactorDefault should equal(Some(55))
+
+      dbOptionCaptor.getValue.waitForSync should equal(true)
+    }
+
+    it should "validate '--shard-num'" in {
+      captureExitStatus(cli.exec(Array("db-init", "--shard-num", "operation=1", "arangodb://foo/bar"))) should be(0)
+
+      captureStdErr(
+        captureExitStatus(
+          cli.exec(Array("db-init", "--shard-num", "operation=0", "arangodb://foo/bar"))
+        ) should be(1)
+      ) should include("Shard number should be positive")
+    }
+
+    it should "validate '--shard-num-default'" in {
+      captureExitStatus(cli.exec(Array("db-init", "--shard-num-default", "1", "arangodb://foo/bar"))) should be(0)
+
+      captureStdErr(
+        captureExitStatus(
+          cli.exec(Array("db-init", "--shard-num-default", "0", "arangodb://foo/bar"))
+        ) should be(1)
+      ) should include("Shard number should be positive")
+    }
+
+    it should "validate '--repl-factor'" in {
+      captureExitStatus(cli.exec(Array("db-init", "--repl-factor", "operation=1", "arangodb://foo/bar"))) should be(0)
+
+      captureStdErr(
+        captureExitStatus(
+          cli.exec(Array("db-init", "--repl-factor", "operation=0", "arangodb://foo/bar"))
+        ) should be(1)
+      ) should include("Replication factor should be positive")
+    }
+
+    it should "validate '--repl-factor-default'" in {
+      captureExitStatus(cli.exec(Array("db-init", "--repl-factor-default", "1", "arangodb://foo/bar"))) should be(0)
+
+      captureStdErr(
+        captureExitStatus(
+          cli.exec(Array("db-init", "--repl-factor-default", "0", "arangodb://foo/bar"))
+        ) should be(1)
+      ) should include("Replication factor should be positive")
+    }
 
     it should "initialize database" in assertingStdOut(include("DONE")) {
       cli.exec(Array("db-init", "arangodb://foo/bar"))
@@ -168,8 +245,6 @@ class AdminCLISpec
         "--search-views-create",
         "--indices-create",
       ))
-
-      import za.co.absa.spline.persistence.AuxiliaryDBAction._
       verify(arangoManagerMock).execute(
         IndicesDelete,
         SearchViewsDelete,

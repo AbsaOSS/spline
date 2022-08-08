@@ -32,8 +32,16 @@ LABEL \
     license="Apache License, version 2.0" \
     name="Spline Admin Tool"
 
+# Install Tini
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+            tini=0.18* \
+ && rm -rf /var/lib/apt/lists/*
+
+USER 1001
+
 COPY target/$PROJECT_BUILD_FINAL_NAME.jar ./admin.jar
 COPY entrypoint.sh .
 
-ENTRYPOINT ["sh", "./entrypoint.sh"]
+ENTRYPOINT ["tini", "-g", "--", "sh", "./entrypoint.sh"]
 CMD ["--help"]
