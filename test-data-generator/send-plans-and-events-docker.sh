@@ -16,8 +16,11 @@
 '
 
 cd /opt
-echo "Running data generator"
-java -jar /opt/test-data-generator.jar -g ${GRAPH_TYPE} -r ${READS} -o ${OPERATIONS} -a ${ATTRIBUTES}
+echo "Running data generator with options:"
+echo "-g ${GRAPH_TYPE} -r ${READS} -o ${OPERATIONS} -a ${ATTRIBUTES}"
+
+FILENAME="lineage-$RANDOM.json.txt"
+java -jar /opt/test-data-generator.jar -g ${GRAPH_TYPE} -r ${READS} -o ${OPERATIONS} -a ${ATTRIBUTES} -t ${FILENAME}
 
 echo "Sending lineages from:"
 
@@ -51,7 +54,6 @@ fi
 
 i=$FROM
 
-FILENAME="./${GRAPH_TYPE}-lineage-${READS}reads-${OPERATIONS}ops-${ATTRIBUTES}attr.json.txt"
 echo $FILENAME
 echo
 echo "${VARIABLE}, total_time, http_code, size_upload"
