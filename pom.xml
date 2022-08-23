@@ -64,6 +64,7 @@
 
         <module>commons</module>
 
+        <module>arangodb-foxx-api</module>
         <module>arangodb-foxx-services</module>
         <module>arangodb-aql-functions</module>
         <module>persistence</module>
