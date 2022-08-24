@@ -18,6 +18,8 @@ ARG DOCKER_BASE_IMAGE_PREFIX=
 
 FROM "$DOCKER_BASE_IMAGE_PREFIX"tomcat:9-jre11-openjdk-slim-buster
 
+RUN apt-get update && apt-get install curl -y
+
 LABEL \
     vendor="ABSA" \
     copyright="2019 ABSA Group Limited" \
