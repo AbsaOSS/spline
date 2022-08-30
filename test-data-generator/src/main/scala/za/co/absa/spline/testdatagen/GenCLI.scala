@@ -106,13 +106,13 @@ object GenCLI {
   private def createDispatcher(name: String, config: Config): FileDispatcher = name match {
     case "file" =>
       config.customOutputFileName.fold {
-        val defaultPrefixName = s"${config.graphType.name}-lineage-" +
-          s"${config.reads}reads-" +
-          s"${config.operations}ops-" +
-          s"${config.attributes}attr"
-        new FileDispatcher(defaultPrefixName) // using default prefix and default built-in suffix
+        new FileDispatcher(createDefaultFileName(config))
       } { customFileName =>
-        new FileDispatcher(customFileName, "") // custom name as-is
+        new FileDispatcher(customFileName)
       }
+  }
+
+  private def createDefaultFileName(config: Config): String = {
+    s"${config.graphType.name}-lineage-${config.reads}reads-${config.operations}ops-${config.attributes}attr.json.txt"
   }
 }

@@ -26,17 +26,12 @@ import za.co.absa.commons.json.AbstractJsonSerDe
 import za.co.absa.commons.json.format.{DefaultFormatsBuilder, JavaTypesSupport}
 import scala.collection.JavaConverters._
 
-/**
- * Will generate file named `\$fileNamePrefix\$fileNameSuffix`
- * @param fileNamePrefix
- * @param fileNameSuffix suffix - by default `.json.txt`
- */
-class FileDispatcher(fileNamePrefix: String, fileNameSuffix: String = ".json.txt") extends AbstractJsonSerDe[JValue]
+class FileDispatcher(fileName: String) extends AbstractJsonSerDe[JValue]
   with JsonMethods
   with DefaultFormatsBuilder
   with JavaTypesSupport {
 
-  private val outputFile = new File(s"$fileNamePrefix$fileNameSuffix")
+  private val outputFile = new File(fileName)
 
   def send(event: ExecutionEvent, plan: ExecutionPlan): Unit = {
 
