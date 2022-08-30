@@ -16,46 +16,44 @@
 '
 
 cd /opt
-echo "Running data generator"
-java -jar /opt/test-data-generator.jar -g ${GRAPH_TYPE} -r ${READS} -o ${OPERATIONS} -a ${ATTRIBUTES}
+echo "Running data generator with options:"
+echo "-g ${GRAPH_TYPE} -r ${READS} -o ${OPERATIONS} -a ${ATTRIBUTES}"
+
+FILENAME="lineage-$RANDOM.json.txt"
+java -jar /opt/test-data-generator.jar -g ${GRAPH_TYPE} -r ${READS} -o ${OPERATIONS} -a ${ATTRIBUTES} -t ${FILENAME}
 
 echo "Sending lineages from:"
 
-READS_NR=`echo $READS| tr '/' '|'`
-OP_NR=`echo $OPERATIONS | tr '/' '|'`
-ATTR_NR=`echo $ATTRIBUTES | tr '/' '|'`
-
-echo "${READS_NR}" | egrep "(\d+)-(\d+)\|(\d+)"
+echo "${READS}" | egrep "(\d+)-(\d+)@(\d+)"
 rc=$?
 if [[ "${rc}" == 0 ]]
 then
    VARIABLE="reads"
-   FROM=`echo $READS_NR | cut -d "-" -f1`
-   BY=`echo $READS_NR | cut -d "|" -f2`
+   FROM=`echo $READS | cut -d "-" -f1`
+   BY=`echo $READS | cut -d "@" -f2`
 fi
 
 
-echo "${OP_NR}" | egrep "(\d+)-(\d+)\|(\d+)"
+echo "${OPERATIONS}" | egrep "(\d+)-(\d+)@(\d+)"
 rc=$?
 if [[ "${rc}" == 0 ]]
 then
   VARIABLE="operations"
-  FROM=`echo $OP_NR | cut -d "-" -f1`
-  BY=`echo $OP_NR | cut -d "|" -f2`
+  FROM=`echo $OPERATIONS | cut -d "-" -f1`
+  BY=`echo $OPERATIONS | cut -d "@" -f2`
 fi
 
-echo "${ATTR_NR}" | egrep "(\d+)-(\d+)\|(\d+)"
+echo "${ATTRIBUTES}" | egrep "(\d+)-(\d+)@(\d+)"
 rc=$?
 if [[ "${rc}" == 0 ]]
 then
   VARIABLE="attributes"
-  FROM=`echo $ATTR_NR | cut -d "-" -f1`
-  BY=`echo $ATTR_NR | cut -d "|" -f2`
+  FROM=`echo $ATTRIBUTES | cut -d "-" -f1`
+  BY=`echo $ATTRIBUTES | cut -d "@" -f2`
 fi
 
 i=$FROM
 
-FILENAME="./${GRAPH_TYPE}-lineage-${READS_NR}reads-${OP_NR}ops-${ATTR_NR}attr.json.txt"
 echo $FILENAME
 echo
 echo "${VARIABLE}, total_time, http_code, size_upload"

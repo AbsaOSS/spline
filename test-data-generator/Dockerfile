@@ -28,7 +28,7 @@ ARG JAR_FILE
 ENV SPLINE_URL=http://localhost:8080
 ENV GRAPH_TYPE=triangle
 ENV READS=3
-ENV OPERATIONS=30-100/10
+ENV OPERATIONS=30-100@10
 ENV ATTRIBUTES=3
 
 RUN rm -rf /usr/local/tomcat/webapps/* && apk --no-cache add curl
