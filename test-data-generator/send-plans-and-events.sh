@@ -15,15 +15,17 @@
   limitations under the License.
 '
 
-filename=$1
-BASE_URL=$2
+FILENAME=$1
+SPLINE_URL=$2
+
 while read line; do
+  sleep 5
   if [[ ${line:0:1} = '{' ]]
   then
     echo "Sending plan"
-    curl -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data "${line}" ${BASE_URL}/producer/execution-plans
+    curl -w "@curl-format.txt" -o /dev/null -H "Content-Type: application/vnd.absa.spline.producer.v1.1+json" -X POST --data "${line}" ${SPLINE_URL}/producer/execution-plans
   else
     echo "Sending event"
-    curl -H "Content-Type: application/vnd.absa.spline.producer.v1.2+json" -X POST --data "${line}" ${BASE_URL}/producer/execution-events
+    curl -w "@curl-format.txt" -o /dev/null -H "Content-Type: application/vnd.absa.spline.producer.v1.1+json" -X POST --data "${line}" ${SPLINE_URL}/producer/execution-events
   fi
-done < $filename
+done < $FILENAME
