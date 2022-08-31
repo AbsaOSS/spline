@@ -92,7 +92,7 @@ object GenCLI {
 
     val configs: Seq[ExpandedConfig] = config.expand()
 
-    val dispatcher = createDispatcher(config)
+    val dispatcher = new FileDispatcher(createFileName(config))
 
     configs.foreach(config => {
       val graphType: Graph = Graph(config)
@@ -103,11 +103,7 @@ object GenCLI {
     })
   }
 
-  private def createDispatcher(config: Config): FileDispatcher = {
-    new FileDispatcher(createDefaultFileName(config))
-  }
-
-  private def createDefaultFileName(config: Config): String = {
+  private def createFileName(config: Config): String = {
     config.customOutputFileName match {
       case None =>  // default name assembly
         s"${config.graphType.name}-lineage-${config.reads}reads-${config.operations}ops-${config.attributes}attr.json.txt"
