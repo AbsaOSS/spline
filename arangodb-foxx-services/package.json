@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "postbuild": "copyfiles --up 2 src/main/*.json src/main/**/*.json target/dist",
+    "postbuild": "copyfiles --up 1 src/*.json target/dist",
     "test": "jest",
     "lint": "eslint src",
     "foxx:deploy": "npm run build && npm run foxx:uninstall && npm run foxx:install",

@@ -1,6 +1,7 @@
 {
   "include": [
-    "src/main/**/*.ts"
+    "src/main/**/*.ts",
+    "src/external/**/*.ts"
   ],
   "compilerOptions": {
     "outDir": "target/dist/",

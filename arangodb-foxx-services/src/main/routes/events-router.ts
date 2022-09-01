@@ -15,9 +15,10 @@
  */
 
 import { createRouter } from '@arangodb/foxx'
-import joi from 'joi'
+import * as Joi from 'joi'
 import { lineageOverview } from '../services/lineage-overview'
 import { impactOverview } from '../services/impact-overview'
+import { Progress } from '../../external/api.model'
 
 
 export const eventsRouter: Foxx.Router = createRouter()
@@ -35,8 +36,8 @@ eventsRouter
                 res.status(404)
             }
         })
-    .pathParam('eventKey', joi.string().min(1).required(), 'Execution Event UUID')
-    .pathParam('maxDepth', joi.number().integer().min(0).required(), 'Max depth of traversing in terms of [Data Source] -> [Execution Plan] pairs')
+    .pathParam('eventKey', Joi.string().min(1).required(), 'Execution Event UUID')
+    .pathParam('maxDepth', Joi.number().integer().min(0).required(), 'Max depth of traversing in terms of [Data Source] -> [Execution Plan] pairs')
     .response(200, ['application/json'], 'Lineage overview graph')
     .response(404, 'Lineage overview not found for the given execution event')
     .summary('Get execution event end-to-end lineage overview')
@@ -55,8 +56,8 @@ eventsRouter
                 res.status(404)
             }
         })
-    .pathParam('eventKey', joi.string().min(1).required(), 'Execution Event UUID')
-    .pathParam('maxDepth', joi.number().integer().min(0).required(), 'Max depth of traversing in terms of [Data Source] -> [Execution Plan] pairs')
+    .pathParam('eventKey', Joi.string().min(1).required(), 'Execution Event UUID')
+    .pathParam('maxDepth', Joi.number().integer().min(0).required(), 'Max depth of traversing in terms of [Data Source] -> [Execution Plan] pairs')
     .response(200, ['application/json'], 'Impact (forward lineage) overview graph')
     .response(404, 'Impact (forward lineage) overview not found for the given execution event')
     .summary('Get execution event end-to-end impact (forward lineage) overview')
@@ -64,8 +65,11 @@ eventsRouter
 
 eventsRouter
     .post('/',
-        (req: Foxx.Request, res: Foxx.Response) => {
+        (req: Foxx.Request) => {
+            const execEvent: Progress = req.body
+            console.log('ADD EVENT ---> ', typeof execEvent, execEvent._key)
             // todo: implement it
         })
+    .body(["application/json"], "Execution Event (Progress) JSON")
     .response(201, 'Execution event recorded')
     .summary('Record a new execution event')

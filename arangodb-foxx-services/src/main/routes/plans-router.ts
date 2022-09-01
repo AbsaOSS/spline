@@ -15,14 +15,18 @@
  */
 
 import { createRouter } from '@arangodb/foxx'
+import { ExecutionPlanPersistentModel } from '../../external/api.model'
 
 
 export const plansRouter: Foxx.Router = createRouter()
 
 plansRouter
     .post('/',
-        (req: Foxx.Request, res: Foxx.Response) => {
+        (req: Foxx.Request) => {
+            const execPlanModel: ExecutionPlanPersistentModel = req.body
+            console.log('ADD PLAN ---> ', typeof execPlanModel, execPlanModel.executionPlan._key)
             // todo: implement it
         })
+    .body(["application/json"], "Execution Plan Persistent Model JSON")
     .response(201, 'Plan registered')
     .summary('Register a new execution plan')

@@ -109,8 +109,8 @@
                                 <artifactItem>
                                     <groupId>za.co.absa.spline</groupId>
                                     <artifactId>arangodb-aql-functions</artifactId>
-                                    <type>zip</type>
                                     <classifier>dist</classifier>
+                                    <type>zip</type>
                                     <outputDirectory>${project.build.directory}/arangodb-resources/AQLFunctions/</outputDirectory>
                                 </artifactItem>
                             </artifactItems>
@@ -127,8 +127,8 @@
                                 <artifactItem>
                                     <groupId>za.co.absa.spline</groupId>
                                     <artifactId>arangodb-foxx-services</artifactId>
-                                    <type>zip</type>
                                     <classifier>dist</classifier>
+                                    <type>zip</type>
                                     <outputDirectory>${project.build.directory}/arangodb-resources/foxx/</outputDirectory>
                                     <destFileName>spline.zip</destFileName>
                                 </artifactItem>

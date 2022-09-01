@@ -30,8 +30,65 @@
     <artifactId>arangodb-foxx-services</artifactId>
     <packaging>pom</packaging>
 
+    <properties>
+        <externalSourceDirectory>src/external</externalSourceDirectory>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>arangodb-foxx-api</artifactId>
+            <version>${project.version}</version>
+            <type>pom</type>
+        </dependency>
+    </dependencies>
+
     <build>
+        <sourceDirectory>src/main</sourceDirectory>
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${externalSourceDirectory}</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.1.2</version>
+                <executions>
+                    <execution>
+                        <id>unpack-foxx-api-ts-typedefs</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>za.co.absa.spline</groupId>
+                                    <artifactId>arangodb-foxx-api</artifactId>
+                                    <classifier>ts</classifier>
+                                    <type>zip</type>
+                                    <outputDirectory>src/external/</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>com.github.cerveada</groupId>
                 <artifactId>scalatest-maven-plugin</artifactId>
@@ -62,6 +119,17 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <filesets combine.children="append">
+                        <fileset>
+                            <directory>${externalSourceDirectory}</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
             </plugin>
         </plugins>
     </build>
