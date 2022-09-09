@@ -5,6 +5,7 @@
   },
   "main": "main/index.js",
   "name": "spline-persistence-services",
+  "version": "@VERSION@",
   "description": "Spline persistence REST API",
   "author": "ABSA Group Limited",
   "license": "Apache-2.0",

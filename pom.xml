@@ -82,4 +82,30 @@
         <module>admin</module>
         <module>test-data-generator</module>
     </modules>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>3.0.0-M1</version>
+                <configuration>
+                    <preparationGoals>
+                        clean verify
+                        scm:add -Dincludes=**/package*.json scm:add -Dexcludes=**/node_modules/**
+                        -Dscm.url=${project.scm.url}
+                        -Dscm.connection=${project.scm.connection}
+                        -Dscm.developerConnection=${project.scm.developerConnection}
+                    </preparationGoals>
+                    <completionGoals>
+                        generate-resources
+                        scm:add -Dincludes=**/package*.json -Dexcludes=**/node_modules/**
+                        -Dscm.url=${project.scm.url}
+                        -Dscm.connection=${project.scm.connection}
+                        -Dscm.developerConnection=${project.scm.developerConnection}
+                    </completionGoals>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
