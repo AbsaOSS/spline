@@ -142,110 +142,12 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retr
 
 object ExecutionProducerRepositoryImpl {
 
-  private def createTxBuilder() = new AppTxBuilder
-
   private def createExecutionPlanTransaction(eppm: ExecutionPlanPersistentModel) = {
-    createTxBuilder()
-      // execution plan
-      .addQuery(InsertQuery(NodeDef.ExecutionPlan, eppm.executionPlan))
-      .addQuery(InsertQuery(EdgeDef.Executes, eppm.executes))
-      .addQuery(InsertQuery(EdgeDef.Depends, eppm.depends))
-      .addQuery(InsertQuery(EdgeDef.Affects, eppm.affects))
-
-      // operation
-      .addQuery(InsertQuery(NodeDef.Operation, eppm.operations))
-      .addQuery(InsertQuery(EdgeDef.Follows, eppm.follows))
-      .addQuery(InsertQuery(EdgeDef.ReadsFrom, eppm.readsFrom))
-      .addQuery(InsertQuery(EdgeDef.WritesTo, eppm.writesTo))
-      .addQuery(InsertQuery(EdgeDef.Emits, eppm.emits))
-      .addQuery(InsertQuery(EdgeDef.Uses, eppm.uses))
-      .addQuery(InsertQuery(EdgeDef.Produces, eppm.produces))
-
-      // schema
-      .addQuery(InsertQuery(NodeDef.Schema, eppm.schemas))
-      .addQuery(InsertQuery(EdgeDef.ConsistsOf, eppm.consistsOf))
-
-      // attribute
-      .addQuery(InsertQuery(NodeDef.Attribute, eppm.attributes))
-      .addQuery(InsertQuery(EdgeDef.ComputedBy, eppm.computedBy))
-      .addQuery(InsertQuery(EdgeDef.DerivesFrom, eppm.derivesFrom))
-
-      // expression
-      .addQuery(InsertQuery(NodeDef.Expression, eppm.expressions))
-      .addQuery(InsertQuery(EdgeDef.Takes, eppm.takes))
-
-      .buildTx()
+    new FoxxPostTxBuilder("/spline/execution-plans", eppm).buildTx()
   }
 
   private def createExecutionEventTransaction(p: Progress): ArangoTx = {
-    val txBuilder = createTxBuilder()
-
-    val progressEdge = EdgeDef.ProgressOf.edge(p._key, p.planKey).copy(_key = p._key)
-
-    txBuilder.addQuery(NativeQuery(
-      query =
-        """
-          |const {_class, ...p} = params.progress;
-          |const planKey = params.planKey;
-          |const ep = db._document(`executionPlan/${planKey}`);
-          |const {
-          |   targetDsSelector,
-          |   lastWriteTimestamp,
-          |   dataSourceName,
-          |   dataSourceUri,
-          |   dataSourceType,
-          |   append
-          |} = db._query(`
-          |   WITH executionPlan, executes, operation, affects, dataSource
-          |   LET wo = FIRST(FOR v IN 1 OUTBOUND '${ep._id}' executes RETURN v)
-          |   LET ds = FIRST(FOR v IN 1 OUTBOUND '${ep._id}' affects RETURN v)
-          |   RETURN {
-          |       "targetDsSelector"   : KEEP(ds, ['_id', '_rev']),
-          |       "lastWriteTimestamp" : ds.lastWriteDetails.timestamp,
-          |       "dataSourceName"     : ds.name,
-          |       "dataSourceUri"      : ds.uri,
-          |       "dataSourceType"     : wo.extra.destinationType,
-          |       "append"             : wo.append
-          |   }
-          |`).next();
-          |
-          |const execPlanDetails = {
-          |  "executionPlanKey" : ep._key,
-          |  "frameworkName"    : `${ep.systemInfo.name} ${ep.systemInfo.version}`,
-          |  "applicationName"  : ep.name,
-          |  "dataSourceUri"    : dataSourceUri,
-          |  "dataSourceName"   : dataSourceName,
-          |  "dataSourceType"   : dataSourceType,
-          |  "append"           : append
-          |}
-          |
-          |if (ep.discriminator != p.discriminator) {
-          |  // nobody should ever see this happening, but just in case the universe goes crazy...
-          |  throw new Error(`UUID collision detected !!! Execution event ID: ${p._key}, discriminator: ${p.discriminator}`)
-          |}
-          |
-          |const {_id, _rev, ...pRefined} = p;
-          |const progressWithPlanDetails = {...pRefined, execPlanDetails};
-          |
-          |if (lastWriteTimestamp < p.timestamp) {
-          |  db._update(
-          |   targetDsSelector,
-          |   {lastWriteDetails: progressWithPlanDetails}
-          |  );
-          |}
-          |
-          |return [progressWithPlanDetails];
-          |""".stripMargin,
-      params = Map(
-        "progress" -> p,
-        "planKey" -> p.planKey,
-      ),
-      collectionDefs = Seq(NodeDef.Progress, NodeDef.ExecutionPlan, EdgeDef.Executes, NodeDef.Operation, EdgeDef.Affects, NodeDef.DataSource))
-    )
-    txBuilder.addQuery(InsertQuery(NodeDef.Progress, Query.LastResultPlaceholder))
-    txBuilder.addQuery(InsertQuery(EdgeDef.ProgressOf, progressEdge))
-
-    txBuilder.buildTx()
+    new FoxxPostTxBuilder("/spline/execution-events", p).buildTx()
   }
 
   private def ensureNoExecPlanIDCollision(

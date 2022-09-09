@@ -19,6 +19,7 @@ import * as Joi from 'joi'
 import { lineageOverview } from '../services/lineage-overview'
 import { impactOverview } from '../services/impact-overview'
 import { Progress } from '../../external/api.model'
+import { storeExecutionEvent } from '../services/execution-event-store'
 
 
 export const eventsRouter: Foxx.Router = createRouter()
@@ -65,11 +66,11 @@ eventsRouter
 
 eventsRouter
     .post('/',
-        (req: Foxx.Request) => {
+        (req: Foxx.Request, res: Foxx.Response) => {
             const execEvent: Progress = req.body
-            console.log('ADD EVENT ---> ', typeof execEvent, execEvent._key)
-            // todo: implement it
+            storeExecutionEvent(execEvent)
+            res.status('created')
         })
-    .body(["application/json"], "Execution Event (Progress) JSON")
+    .body(['application/json'], 'Execution Event (Progress) JSON')
     .response(201, 'Execution event recorded')
     .summary('Record a new execution event')
