@@ -16,41 +16,43 @@
 
 
 import { ExecutionPlanPersistentModel } from '../../external/api.model'
+import { CollectionName } from '../persistence/model'
+import { insert } from './store'
 
 
-export function storeExecutionPlan(execPlanModel: ExecutionPlanPersistentModel): void {
-    console.log('STORE PLAN ---> ', typeof execPlanModel, execPlanModel.executionPlan._key)
-    // todo: implement it
+export function storeExecutionPlan(eppm: ExecutionPlanPersistentModel): void {
+    console.log('STORE PLAN', eppm.executionPlan._key)
 
-    /*createTxBuilder()
-      // execution plan
-      .addQuery(InsertQuery(NodeDef.ExecutionPlan, eppm.executionPlan))
-      .addQuery(InsertQuery(EdgeDef.Executes, eppm.executes))
-      .addQuery(InsertQuery(EdgeDef.Depends, eppm.depends))
-      .addQuery(InsertQuery(EdgeDef.Affects, eppm.affects))
+    // todo: start TX
 
-      // operation
-      .addQuery(InsertQuery(NodeDef.Operation, eppm.operations))
-      .addQuery(InsertQuery(EdgeDef.Follows, eppm.follows))
-      .addQuery(InsertQuery(EdgeDef.ReadsFrom, eppm.readsFrom))
-      .addQuery(InsertQuery(EdgeDef.WritesTo, eppm.writesTo))
-      .addQuery(InsertQuery(EdgeDef.Emits, eppm.emits))
-      .addQuery(InsertQuery(EdgeDef.Uses, eppm.uses))
-      .addQuery(InsertQuery(EdgeDef.Produces, eppm.produces))
+    // execution plan
+    insert(eppm.executes, CollectionName.Executes)
+    insert(eppm.depends, CollectionName.Depends)
+    insert(eppm.affects, CollectionName.Affects)
+    insert(eppm.expressions, CollectionName.ExecutionPlan)
 
-      // schema
-      .addQuery(InsertQuery(NodeDef.Schema, eppm.schemas))
-      .addQuery(InsertQuery(EdgeDef.ConsistsOf, eppm.consistsOf))
+    // operation
+    insert(eppm.operations, CollectionName.Operation)
+    insert(eppm.follows, CollectionName.Follows)
+    insert(eppm.readsFrom, CollectionName.ReadsFrom)
+    insert(eppm.writesTo, CollectionName.WritesTo)
+    insert(eppm.emits, CollectionName.Emits)
+    insert(eppm.uses, CollectionName.Uses)
+    insert(eppm.produces, CollectionName.Produces)
 
-      // attribute
-      .addQuery(InsertQuery(NodeDef.Attribute, eppm.attributes))
-      .addQuery(InsertQuery(EdgeDef.ComputedBy, eppm.computedBy))
-      .addQuery(InsertQuery(EdgeDef.DerivesFrom, eppm.derivesFrom))
+    // schema
+    insert(eppm.schemas, CollectionName.Schema)
+    insert(eppm.consistsOf, CollectionName.ConsistsOf)
 
-      // expression
-      .addQuery(InsertQuery(NodeDef.Expression, eppm.expressions))
-      .addQuery(InsertQuery(EdgeDef.Takes, eppm.takes))
+    // attribute
+    insert(eppm.attributes, CollectionName.Attribute)
+    insert(eppm.computedBy, CollectionName.ComputedBy)
+    insert(eppm.derivesFrom, CollectionName.DerivesFrom)
 
-      .buildTx()*/
+    // expression
+    insert(eppm.expressions, CollectionName.Expression)
+    insert(eppm.takes, CollectionName.Takes)
+
+    // todo: commit TX
 }
 
