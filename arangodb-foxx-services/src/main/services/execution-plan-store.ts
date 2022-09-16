@@ -17,7 +17,7 @@
 
 import { ExecutionPlanPersistentModel } from '../../external/api.model'
 import { CollectionName } from '../persistence/model'
-import { insert } from './store'
+import { store } from './store'
 
 
 export function storeExecutionPlan(eppm: ExecutionPlanPersistentModel): void {
@@ -26,32 +26,32 @@ export function storeExecutionPlan(eppm: ExecutionPlanPersistentModel): void {
     // todo: start TX
 
     // execution plan
-    insert(eppm.executes, CollectionName.Executes)
-    insert(eppm.depends, CollectionName.Depends)
-    insert(eppm.affects, CollectionName.Affects)
-    insert(eppm.expressions, CollectionName.ExecutionPlan)
+    store.insert(eppm.executes, CollectionName.Executes)
+    store.insert(eppm.depends, CollectionName.Depends)
+    store.insert(eppm.affects, CollectionName.Affects)
+    store.insert(eppm.executionPlan, CollectionName.ExecutionPlan)
 
     // operation
-    insert(eppm.operations, CollectionName.Operation)
-    insert(eppm.follows, CollectionName.Follows)
-    insert(eppm.readsFrom, CollectionName.ReadsFrom)
-    insert(eppm.writesTo, CollectionName.WritesTo)
-    insert(eppm.emits, CollectionName.Emits)
-    insert(eppm.uses, CollectionName.Uses)
-    insert(eppm.produces, CollectionName.Produces)
+    store.insert(eppm.operations, CollectionName.Operation)
+    store.insert(eppm.follows, CollectionName.Follows)
+    store.insert(eppm.readsFrom, CollectionName.ReadsFrom)
+    store.insert(eppm.writesTo, CollectionName.WritesTo)
+    store.insert(eppm.emits, CollectionName.Emits)
+    store.insert(eppm.uses, CollectionName.Uses)
+    store.insert(eppm.produces, CollectionName.Produces)
 
     // schema
-    insert(eppm.schemas, CollectionName.Schema)
-    insert(eppm.consistsOf, CollectionName.ConsistsOf)
+    store.insert(eppm.schemas, CollectionName.Schema)
+    store.insert(eppm.consistsOf, CollectionName.ConsistsOf)
 
     // attribute
-    insert(eppm.attributes, CollectionName.Attribute)
-    insert(eppm.computedBy, CollectionName.ComputedBy)
-    insert(eppm.derivesFrom, CollectionName.DerivesFrom)
+    store.insert(eppm.attributes, CollectionName.Attribute)
+    store.insert(eppm.computedBy, CollectionName.ComputedBy)
+    store.insert(eppm.derivesFrom, CollectionName.DerivesFrom)
 
     // expression
-    insert(eppm.expressions, CollectionName.Expression)
-    insert(eppm.takes, CollectionName.Takes)
+    store.insert(eppm.expressions, CollectionName.Expression)
+    store.insert(eppm.takes, CollectionName.Takes)
 
     // todo: commit TX
 }

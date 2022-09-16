@@ -16,76 +16,69 @@
 
 
 import { Progress } from '../../external/api.model'
+import { CollectionName, edge } from '../persistence/model'
+import { store } from './store'
+import { aql, db } from '@arangodb'
 
 
-export function storeExecutionEvent(execEvent: Progress): void {
-    console.log('STORE EVENT ---> ', typeof execEvent, execEvent._key)
-    // todo: implement it
+export function storeExecutionEvent(progress: Progress): void {
+    console.log('STORE EVENT', progress._key, (<any>progress)._id, (<any>progress)._rev)
 
-    /*
-       val progressEdge = EdgeDef.ProgressOf.edge(p._key, p.planKey).copy(_key = p._key)
-       txBuilder.addQuery(NativeQuery(
-         query =
-           """
-             |const {_class, ...p} = params.progress;
-             |const planKey = params.planKey;
-             |const ep = db._document(`executionPlan/${planKey}`);
-             |const {
-             |   targetDsSelector,
-             |   lastWriteTimestamp,
-             |   dataSourceName,
-             |   dataSourceUri,
-             |   dataSourceType,
-             |   append
-             |} = db._query(`
-             |   WITH executionPlan, executes, operation, affects, dataSource
-             |   LET wo = FIRST(FOR v IN 1 OUTBOUND '${ep._id}' executes RETURN v)
-             |   LET ds = FIRST(FOR v IN 1 OUTBOUND '${ep._id}' affects RETURN v)
-             |   RETURN {
-             |       "targetDsSelector"   : KEEP(ds, ['_id', '_rev']),
-             |       "lastWriteTimestamp" : ds.lastWriteDetails.timestamp,
-             |       "dataSourceName"     : ds.name,
-             |       "dataSourceUri"      : ds.uri,
-             |       "dataSourceType"     : wo.extra.destinationType,
-             |       "append"             : wo.append
-             |   }
-             |`).next();
-             |
-             |const execPlanDetails = {
-             |  "executionPlanKey" : ep._key,
-             |  "frameworkName"    : `${ep.systemInfo.name} ${ep.systemInfo.version}`,
-             |  "applicationName"  : ep.name,
-             |  "dataSourceUri"    : dataSourceUri,
-             |  "dataSourceName"   : dataSourceName,
-             |  "dataSourceType"   : dataSourceType,
-             |  "append"           : append
-             |}
-             |
-             |if (ep.discriminator != p.discriminator) {
-             |  // nobody should ever see this happening, but just in case the universe goes crazy...
-             |  throw new Error(`UUID collision detected !!! Execution event ID: ${p._key}, discriminator: ${p.discriminator}`)
-             |}
-             |
-             |const {_id, _rev, ...pRefined} = p;
-             |const progressWithPlanDetails = {...pRefined, execPlanDetails};
-             |
-             |if (lastWriteTimestamp < p.timestamp) {
-             |  db._update( <-------------------------------------------------------------- GET RID OF THIS
-             |   targetDsSelector,
-             |   {lastWriteDetails: progressWithPlanDetails}
-             |  );
-             |}
-             |
-             |return [progressWithPlanDetails];
-             |""".stripMargin,
-         params = Map(
-           "progress" -> p,
-           "planKey" -> p.planKey,
-         ),
-         collectionDefs = Seq(NodeDef.Progress, NodeDef.ExecutionPlan, EdgeDef.Executes, NodeDef.Operation, EdgeDef.Affects, NodeDef.DataSource))
-       )
-       txBuilder.addQuery(InsertQuery(NodeDef.Progress, Query.LastResultPlaceholder))
-       txBuilder.addQuery(InsertQuery(EdgeDef.ProgressOf, progressEdge))
-       */
+    const planKey = progress.planKey
+    const ep = store.getDocByKey(CollectionName.ExecutionPlan, planKey)
+    const {
+        targetDsSelector,
+        lastWriteTimestamp,
+        dataSourceName,
+        dataSourceUri,
+        dataSourceType,
+        append
+    } = db._query(
+        aql`
+            WITH executionPlan, executes, operation, affects, dataSource
+            LET wo = FIRST(FOR v IN 1 OUTBOUND ${ep._id} executes RETURN v)
+            LET ds = FIRST(FOR v IN 1 OUTBOUND ${ep._id} affects RETURN v)
+            RETURN {
+                "targetDsSelector"   : KEEP(ds, ['_id', '_rev']),
+                "lastWriteTimestamp" : ds.lastWriteDetails.timestamp,
+                "dataSourceName"     : ds.name,
+                "dataSourceUri"      : ds.uri,
+                "dataSourceType"     : wo.extra.destinationType,
+                "append"             : wo.append
+            }
+        `).next()
+
+    // todo: start TX
+
+    const execPlanDetails = {
+        'executionPlanKey': ep._key,
+        'frameworkName': `${ep.systemInfo.name} ${ep.systemInfo.version}`,
+        'applicationName': ep.name,
+        'dataSourceUri': dataSourceUri,
+        'dataSourceName': dataSourceName,
+        'dataSourceType': dataSourceType,
+        'append': append
+    }
+
+    if (ep.discriminator != progress.discriminator) {
+        // nobody should ever see this happening, but just in case the universe goes crazy...
+        throw new Error(`UUID collision detected !!! Execution event ID: ${progress._key}, discriminator: ${progress.discriminator}`)
+    }
+
+    const progressWithPlanDetails = { ...progress, execPlanDetails }
+
+    if (lastWriteTimestamp < progress.timestamp) {
+        // todo: <-------------------------------------------------------------- GET RID OF THIS
+        db._update(
+            targetDsSelector,
+            { lastWriteDetails: progressWithPlanDetails }
+        )
+    }
+
+    store.insert(progressWithPlanDetails, CollectionName.Progress)
+
+    const progressEdge = edge(CollectionName.Progress, progress._key, CollectionName.ExecutionPlan, progress.planKey, progress._key)
+    store.insert(progressEdge, CollectionName.ProgressOf)
+
+    // todo: commit TX
 }
-

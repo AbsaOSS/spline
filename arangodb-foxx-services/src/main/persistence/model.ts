@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+
+import { DocumentKey } from '../model'
+
+
 export enum AuxCollectionName {
     DbVersion = 'dbVersion',
     Counter = 'counter',
@@ -56,3 +60,11 @@ export type CollectionName =
     AuxCollectionName
     | NodeCollectionName
     | EdgeCollectionName
+
+export function edge(fromCollectionName, fromKey, toCollectionName, toKey, key: DocumentKey = undefined): Partial<ArangoDB.Edge> {
+    return {
+        _key: key,
+        _from: `${fromCollectionName}/${fromKey}`,
+        _to: `${toCollectionName}/${toKey}`,
+    }
+}

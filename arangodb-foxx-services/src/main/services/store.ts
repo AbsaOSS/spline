@@ -16,6 +16,8 @@
 
 import { CollectionName } from '../persistence/model'
 import { db } from '@arangodb'
+import { DocumentKey } from '../model'
+import Document = ArangoDB.Document
 
 
 const dbCollections: Record<CollectionName, ArangoDB.Collection> =
@@ -27,8 +29,17 @@ const dbCollections: Record<CollectionName, ArangoDB.Collection> =
         {} as Record<CollectionName, ArangoDB.Collection>
     )
 
-export function insert<T extends {}>(data: T | T[], colName: CollectionName) {
+function insert<T extends {}>(data: T | T[], colName: CollectionName): void {
     const docs = Array.isArray(data) ? data : [data]
     const col = dbCollections[colName]
     docs.forEach(doc => col.insert(doc))
+}
+
+function getDocByKey(colName: CollectionName, key: DocumentKey): Document {
+    return db._document(`${colName}/${key}`)
+}
+
+export const store = {
+    getDocByKey,
+    insert
 }

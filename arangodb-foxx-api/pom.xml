@@ -58,6 +58,7 @@
                         <!-- list of root entities to generate TS definitions -->
                         <argument>za.co.absa.spline.producer.service.model.ExecutionPlanPersistentModel</argument>
                         <argument>za.co.absa.spline.persistence.model.Progress</argument>
+                        <argument>za.co.absa.spline.persistence.model.DataSource</argument>
                     </arguments>
                 </configuration>
                 <dependencies>
