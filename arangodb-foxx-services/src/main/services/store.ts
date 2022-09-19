@@ -29,10 +29,14 @@ const dbCollections: Record<CollectionName, ArangoDB.Collection> =
         {} as Record<CollectionName, ArangoDB.Collection>
     )
 
-function insert<T extends {}>(data: T | T[], colName: CollectionName): void {
-    const docs = Array.isArray(data) ? data : [data]
+function insertOne<T extends {}>(doc: T, colName: CollectionName): ArangoDB.InsertResult {
     const col = dbCollections[colName]
-    docs.forEach(doc => col.insert(doc))
+    return col.insert(doc)
+}
+
+function insertMany<T extends {}>(docs: T[], colName: CollectionName): void {
+    const col = dbCollections[colName]
+    docs.forEach(doc => col.insert(doc, { silent: true }))
 }
 
 function getDocByKey(colName: CollectionName, key: DocumentKey): Document {
@@ -41,5 +45,6 @@ function getDocByKey(colName: CollectionName, key: DocumentKey): Document {
 
 export const store = {
     getDocByKey,
-    insert
+    insertOne,
+    insertMany,
 }

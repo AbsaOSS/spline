@@ -19,22 +19,22 @@ import { Progress } from '../../external/api.model'
 import { CollectionName, edge } from '../persistence/model'
 import { store } from './store'
 import { aql, db } from '@arangodb'
+import { withTimeTracking } from '../utils/common'
 
 
 export function storeExecutionEvent(progress: Progress): void {
-    console.log('STORE EVENT', progress._key, (<any>progress)._id, (<any>progress)._rev)
-
-    const planKey = progress.planKey
-    const ep = store.getDocByKey(CollectionName.ExecutionPlan, planKey)
-    const {
-        targetDsSelector,
-        lastWriteTimestamp,
-        dataSourceName,
-        dataSourceUri,
-        dataSourceType,
-        append
-    } = db._query(
-        aql`
+    withTimeTracking(`STORE EVENT ${progress._key}`,() => {
+        const planKey = progress.planKey
+        const ep = store.getDocByKey(CollectionName.ExecutionPlan, planKey)
+        const {
+            targetDsSelector,
+            lastWriteTimestamp,
+            dataSourceName,
+            dataSourceUri,
+            dataSourceType,
+            append
+        } = db._query(
+            aql`
             WITH executionPlan, executes, operation, affects, dataSource
             LET wo = FIRST(FOR v IN 1 OUTBOUND ${ep._id} executes RETURN v)
             LET ds = FIRST(FOR v IN 1 OUTBOUND ${ep._id} affects RETURN v)
@@ -48,37 +48,38 @@ export function storeExecutionEvent(progress: Progress): void {
             }
         `).next()
 
-    // todo: start TX
+        // todo: start TX
 
-    const execPlanDetails = {
-        'executionPlanKey': ep._key,
-        'frameworkName': `${ep.systemInfo.name} ${ep.systemInfo.version}`,
-        'applicationName': ep.name,
-        'dataSourceUri': dataSourceUri,
-        'dataSourceName': dataSourceName,
-        'dataSourceType': dataSourceType,
-        'append': append
-    }
+        const execPlanDetails = {
+            'executionPlanKey': ep._key,
+            'frameworkName': `${ep.systemInfo.name} ${ep.systemInfo.version}`,
+            'applicationName': ep.name,
+            'dataSourceUri': dataSourceUri,
+            'dataSourceName': dataSourceName,
+            'dataSourceType': dataSourceType,
+            'append': append
+        }
 
-    if (ep.discriminator != progress.discriminator) {
-        // nobody should ever see this happening, but just in case the universe goes crazy...
-        throw new Error(`UUID collision detected !!! Execution event ID: ${progress._key}, discriminator: ${progress.discriminator}`)
-    }
+        if (ep.discriminator != progress.discriminator) {
+            // nobody should ever see this happening, but just in case the universe goes crazy...
+            throw new Error(`UUID collision detected !!! Execution event ID: ${progress._key}, discriminator: ${progress.discriminator}`)
+        }
 
-    const progressWithPlanDetails = { ...progress, execPlanDetails }
+        const progressWithPlanDetails = { ...progress, execPlanDetails }
 
-    if (lastWriteTimestamp < progress.timestamp) {
-        // todo: <-------------------------------------------------------------- GET RID OF THIS
-        db._update(
-            targetDsSelector,
-            { lastWriteDetails: progressWithPlanDetails }
-        )
-    }
+        if (lastWriteTimestamp < progress.timestamp) {
+            // todo: <-------------------------------------------------------------- GET RID OF THIS
+            db._update(
+                targetDsSelector,
+                { lastWriteDetails: progressWithPlanDetails }
+            )
+        }
 
-    store.insert(progressWithPlanDetails, CollectionName.Progress)
+        store.insertOne(progressWithPlanDetails, CollectionName.Progress)
 
-    const progressEdge = edge(CollectionName.Progress, progress._key, CollectionName.ExecutionPlan, progress.planKey, progress._key)
-    store.insert(progressEdge, CollectionName.ProgressOf)
+        const progressEdge = edge(CollectionName.Progress, progress._key, CollectionName.ExecutionPlan, progress.planKey, progress._key)
+        store.insertOne(progressEdge, CollectionName.ProgressOf)
 
-    // todo: commit TX
+        // todo: commit TX
+    })
 }

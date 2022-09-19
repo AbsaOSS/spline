@@ -40,3 +40,13 @@ export function memoize<KF extends AnyFunction, VF extends AnyFunction>(keyFn: K
         }
     }
 }
+
+export function withTimeTracking<T>(label, body: () => T): T {
+    console.time(label)
+    // const startTime = Date.now()
+    const res = body()
+    // const deltaTime = Date.now() - startTime
+    // console.log('Execution time: %dms', deltaTime)
+    console.timeEnd(label)
+    return res
+}

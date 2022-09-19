@@ -18,41 +18,42 @@
 import { ExecutionPlanPersistentModel } from '../../external/api.model'
 import { CollectionName } from '../persistence/model'
 import { store } from './store'
+import { withTimeTracking } from '../utils/common'
 
 
 export function storeExecutionPlan(eppm: ExecutionPlanPersistentModel): void {
-    console.log('STORE PLAN', eppm.executionPlan._key)
+    withTimeTracking(`STORE PLAN ${eppm.executionPlan._key}`, () => {
+        // todo: start TX
 
-    // todo: start TX
+        // execution plan
+        store.insertOne(eppm.executes, CollectionName.Executes)
+        store.insertMany(eppm.depends, CollectionName.Depends)
+        store.insertOne(eppm.affects, CollectionName.Affects)
+        store.insertOne(eppm.executionPlan, CollectionName.ExecutionPlan)
 
-    // execution plan
-    store.insert(eppm.executes, CollectionName.Executes)
-    store.insert(eppm.depends, CollectionName.Depends)
-    store.insert(eppm.affects, CollectionName.Affects)
-    store.insert(eppm.executionPlan, CollectionName.ExecutionPlan)
+        // operation
+        store.insertMany(eppm.operations, CollectionName.Operation)
+        store.insertMany(eppm.follows, CollectionName.Follows)
+        store.insertMany(eppm.readsFrom, CollectionName.ReadsFrom)
+        store.insertOne(eppm.writesTo, CollectionName.WritesTo)
+        store.insertMany(eppm.emits, CollectionName.Emits)
+        store.insertMany(eppm.uses, CollectionName.Uses)
+        store.insertMany(eppm.produces, CollectionName.Produces)
 
-    // operation
-    store.insert(eppm.operations, CollectionName.Operation)
-    store.insert(eppm.follows, CollectionName.Follows)
-    store.insert(eppm.readsFrom, CollectionName.ReadsFrom)
-    store.insert(eppm.writesTo, CollectionName.WritesTo)
-    store.insert(eppm.emits, CollectionName.Emits)
-    store.insert(eppm.uses, CollectionName.Uses)
-    store.insert(eppm.produces, CollectionName.Produces)
+        // schema
+        store.insertMany(eppm.schemas, CollectionName.Schema)
+        store.insertMany(eppm.consistsOf, CollectionName.ConsistsOf)
 
-    // schema
-    store.insert(eppm.schemas, CollectionName.Schema)
-    store.insert(eppm.consistsOf, CollectionName.ConsistsOf)
+        // attribute
+        store.insertMany(eppm.attributes, CollectionName.Attribute)
+        store.insertMany(eppm.computedBy, CollectionName.ComputedBy)
+        store.insertMany(eppm.derivesFrom, CollectionName.DerivesFrom)
 
-    // attribute
-    store.insert(eppm.attributes, CollectionName.Attribute)
-    store.insert(eppm.computedBy, CollectionName.ComputedBy)
-    store.insert(eppm.derivesFrom, CollectionName.DerivesFrom)
+        // expression
+        store.insertMany(eppm.expressions, CollectionName.Expression)
+        store.insertMany(eppm.takes, CollectionName.Takes)
 
-    // expression
-    store.insert(eppm.expressions, CollectionName.Expression)
-    store.insert(eppm.takes, CollectionName.Takes)
-
-    // todo: commit TX
+        // todo: commit TX
+    })
 }
 
