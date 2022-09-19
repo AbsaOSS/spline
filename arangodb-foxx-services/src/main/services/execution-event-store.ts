@@ -16,14 +16,18 @@
 
 
 import { Progress } from '../../external/api.model'
-import { CollectionName, edge } from '../persistence/model'
+import { CollectionName, edge, WriteTxInfo } from '../persistence/model'
 import { store } from './store'
 import { aql, db } from '@arangodb'
 import { withTimeTracking } from '../utils/common'
+import { TxManager } from './TxManager'
 
 
 export function storeExecutionEvent(progress: Progress): void {
-    withTimeTracking(`STORE EVENT ${progress._key}`,() => {
+    withTimeTracking(`STORE EVENT ${progress._key}`, () => {
+
+        // todo: do we need to wrap the following into a READ transaction?
+
         const planKey = progress.planKey
         const ep = store.getDocByKey(CollectionName.ExecutionPlan, planKey)
         const {
@@ -47,8 +51,6 @@ export function storeExecutionEvent(progress: Progress): void {
                 "append"             : wo.append
             }
         `).next()
-
-        // todo: start TX
 
         const execPlanDetails = {
             'executionPlanKey': ep._key,
@@ -75,11 +77,17 @@ export function storeExecutionEvent(progress: Progress): void {
             )
         }
 
-        store.insertOne(progressWithPlanDetails, CollectionName.Progress)
-
         const progressEdge = edge(CollectionName.Progress, progress._key, CollectionName.ExecutionPlan, progress.planKey, progress._key)
-        store.insertOne(progressEdge, CollectionName.ProgressOf)
 
-        // todo: commit TX
+        const wtxInfo: WriteTxInfo = TxManager.startWrite()
+
+        try {
+            store.insertOne(progressWithPlanDetails, CollectionName.Progress, wtxInfo)
+            store.insertOne(progressEdge, CollectionName.ProgressOf, wtxInfo)
+            TxManager.commit(wtxInfo)
+        } catch (e) {
+            TxManager.rollback(wtxInfo)
+            throw e
+        }
     })
 }

@@ -16,44 +16,51 @@
 
 
 import { ExecutionPlanPersistentModel } from '../../external/api.model'
-import { CollectionName } from '../persistence/model'
+import { CollectionName, WriteTxInfo } from '../persistence/model'
 import { store } from './store'
 import { withTimeTracking } from '../utils/common'
+import { TxManager } from './TxManager'
 
 
 export function storeExecutionPlan(eppm: ExecutionPlanPersistentModel): void {
     withTimeTracking(`STORE PLAN ${eppm.executionPlan._key}`, () => {
-        // todo: start TX
+        const txInfo: WriteTxInfo = TxManager.startWrite()
 
-        // execution plan
-        store.insertOne(eppm.executes, CollectionName.Executes)
-        store.insertMany(eppm.depends, CollectionName.Depends)
-        store.insertOne(eppm.affects, CollectionName.Affects)
-        store.insertOne(eppm.executionPlan, CollectionName.ExecutionPlan)
+        try {
+            // execution plan
+            store.insertOne(eppm.executes, CollectionName.Executes, txInfo)
+            store.insertMany(eppm.depends, CollectionName.Depends, txInfo)
+            store.insertOne(eppm.affects, CollectionName.Affects, txInfo)
+            store.insertOne(eppm.executionPlan, CollectionName.ExecutionPlan, txInfo)
 
-        // operation
-        store.insertMany(eppm.operations, CollectionName.Operation)
-        store.insertMany(eppm.follows, CollectionName.Follows)
-        store.insertMany(eppm.readsFrom, CollectionName.ReadsFrom)
-        store.insertOne(eppm.writesTo, CollectionName.WritesTo)
-        store.insertMany(eppm.emits, CollectionName.Emits)
-        store.insertMany(eppm.uses, CollectionName.Uses)
-        store.insertMany(eppm.produces, CollectionName.Produces)
+            // operation
+            store.insertMany(eppm.operations, CollectionName.Operation, txInfo)
+            store.insertMany(eppm.follows, CollectionName.Follows, txInfo)
+            store.insertMany(eppm.readsFrom, CollectionName.ReadsFrom, txInfo)
+            store.insertOne(eppm.writesTo, CollectionName.WritesTo, txInfo)
+            store.insertMany(eppm.emits, CollectionName.Emits, txInfo)
+            store.insertMany(eppm.uses, CollectionName.Uses, txInfo)
+            store.insertMany(eppm.produces, CollectionName.Produces, txInfo)
 
-        // schema
-        store.insertMany(eppm.schemas, CollectionName.Schema)
-        store.insertMany(eppm.consistsOf, CollectionName.ConsistsOf)
+            // schema
+            store.insertMany(eppm.schemas, CollectionName.Schema, txInfo)
+            store.insertMany(eppm.consistsOf, CollectionName.ConsistsOf, txInfo)
 
-        // attribute
-        store.insertMany(eppm.attributes, CollectionName.Attribute)
-        store.insertMany(eppm.computedBy, CollectionName.ComputedBy)
-        store.insertMany(eppm.derivesFrom, CollectionName.DerivesFrom)
+            // attribute
+            store.insertMany(eppm.attributes, CollectionName.Attribute, txInfo)
+            store.insertMany(eppm.computedBy, CollectionName.ComputedBy, txInfo)
+            store.insertMany(eppm.derivesFrom, CollectionName.DerivesFrom, txInfo)
 
-        // expression
-        store.insertMany(eppm.expressions, CollectionName.Expression)
-        store.insertMany(eppm.takes, CollectionName.Takes)
+            // expression
+            store.insertMany(eppm.expressions, CollectionName.Expression, txInfo)
+            store.insertMany(eppm.takes, CollectionName.Takes, txInfo)
 
-        // todo: commit TX
+            TxManager.commit(txInfo)
+
+        } catch (e) {
+            TxManager.rollback(txInfo)
+            throw e
+        }
     })
 }
 

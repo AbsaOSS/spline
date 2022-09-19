@@ -16,11 +16,13 @@
 
 
 import { DocumentKey } from '../model'
+import Document = ArangoDB.Document
 
 
 export enum AuxCollectionName {
     DbVersion = 'dbVersion',
     Counter = 'counter',
+    TxInfo = 'txInfo',
 }
 
 export enum NodeCollectionName {
@@ -67,4 +69,34 @@ export function edge(fromCollectionName, fromKey, toCollectionName, toKey, key: 
         _from: `${fromCollectionName}/${fromKey}`,
         _to: `${toCollectionName}/${toKey}`,
     }
+}
+
+/**
+ * Atomic counter record
+ */
+export type Counter = Document & {
+    curVal: number
+}
+
+/**
+ * Unique logical transaction identifier
+ */
+export type TxId = string
+
+/**
+ * Global sequential number - used for determining transaction order in a linear view.
+ */
+export type TxNum = number
+
+/**
+ * WRITE transaction metadata stored in any persistent entity covered by the logical transaction management layer
+ */
+export type WriteTxInfo = {
+    num: TxNum
+    _key: TxId
+}
+
+export type ReadTxInfo = {
+    num: TxNum
+    uncommittedTxIds: TxId[]
 }

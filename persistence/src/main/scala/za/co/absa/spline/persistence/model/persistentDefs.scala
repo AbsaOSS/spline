@@ -222,6 +222,12 @@ object CollectionDef {
     override def initData: Seq[AnyRef] = Seq(model.Counter("tx", 0))
   }
 
+  object TxInfo extends CollectionDef {
+    override def collectionType = CollectionType.DOCUMENT
+
+    override def name: String = "txInfo"
+  }
+
 }
 
 object SearchViewDef {

@@ -59,6 +59,7 @@
                         <argument>za.co.absa.spline.producer.service.model.ExecutionPlanPersistentModel</argument>
                         <argument>za.co.absa.spline.persistence.model.Progress</argument>
                         <argument>za.co.absa.spline.persistence.model.DataSource</argument>
+                        <argument>za.co.absa.spline.persistence.model.DBVersion</argument>
                     </arguments>
                 </configuration>
                 <dependencies>

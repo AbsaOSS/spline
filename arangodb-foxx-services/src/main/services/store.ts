@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { CollectionName } from '../persistence/model'
+import { CollectionName, WriteTxInfo } from '../persistence/model'
 import { db } from '@arangodb'
 import { DocumentKey } from '../model'
 import Document = ArangoDB.Document
@@ -29,22 +29,31 @@ const dbCollections: Record<CollectionName, ArangoDB.Collection> =
         {} as Record<CollectionName, ArangoDB.Collection>
     )
 
-function insertOne<T extends {}>(doc: T, colName: CollectionName): ArangoDB.InsertResult {
+function insertOne<T extends {}>(doc: T, colName: CollectionName, txInfo: WriteTxInfo = undefined): ArangoDB.InsertResult {
     const col = dbCollections[colName]
-    return col.insert(doc)
+    const rec: any = txInfo ? { ...doc, _txInfo: txInfo } : doc
+    return col.insert(rec)
 }
 
-function insertMany<T extends {}>(docs: T[], colName: CollectionName): void {
+function insertMany<T extends {}>(docs: T[], colName: CollectionName, txInfo: WriteTxInfo = undefined): void {
     const col = dbCollections[colName]
-    docs.forEach(doc => col.insert(doc, { silent: true }))
+    docs.forEach(doc => {
+        const rec = txInfo ? { ...doc, _txInfo: txInfo } : doc
+        col.insert(rec, { silent: true })
+    })
 }
 
-function getDocByKey(colName: CollectionName, key: DocumentKey): Document {
-    return db._document(`${colName}/${key}`)
+function getDocByKey<T extends Document>(colName: CollectionName, key: DocumentKey): T {
+    return <T>db._document(`${colName}/${key}`)
+}
+
+function deleteByKey<T extends Document>(colName: CollectionName, key: DocumentKey): void {
+    (<any>db)._remove({ _id: `${colName}/${key}` }, { silent: true })
 }
 
 export const store = {
     getDocByKey,
     insertOne,
     insertMany,
+    deleteByKey,
 }
