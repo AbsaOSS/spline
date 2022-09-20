@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
-import { AuxCollectionName, CollectionName, Counter, ReadTxInfo, TxId, TxNum, WriteTxInfo } from '../persistence/model'
+import {
+    AuxCollectionName,
+    CollectionName,
+    Counter,
+    DataCollectionName,
+    NodeCollectionName,
+    ReadTxInfo,
+    TxId,
+    TxNum,
+    WriteTxInfo
+} from '../persistence/model'
 import { uuidv4 } from '@arangodb/crypto'
 import { store } from './store'
 import { db } from '@arangodb'
@@ -97,8 +107,14 @@ function commit(txInfo: WriteTxInfo): void {
  * @param txInfo WRITE transaction metadata to rollback
  */
 function rollback(txInfo: WriteTxInfo): void {
-    //TODO: implement it
     console.log('[TX] ROLLBACK:', txInfo)
+
+    for(let cn in DataCollectionName) {
+        const col = db[DataCollectionName[cn]]
+        col.removeByExample({ _txInfo: txInfo })
+    }
+
+    store.deleteByKey(AuxCollectionName.TxInfo, txInfo._key)
 }
 
 export const TxManager = {

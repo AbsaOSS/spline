@@ -52,16 +52,23 @@ export enum EdgeCollectionName {
     Uses = 'uses',
 }
 
-export const CollectionName = {
-    ...AuxCollectionName,
+export const DataCollectionName = {
     ...NodeCollectionName,
     ...EdgeCollectionName,
 }
 
-export type CollectionName =
-    AuxCollectionName
+export type DataCollectionName =
     | NodeCollectionName
     | EdgeCollectionName
+
+export const CollectionName = {
+    ...AuxCollectionName,
+    ...DataCollectionName,
+}
+
+export type CollectionName =
+    | AuxCollectionName
+    | DataCollectionName
 
 export function edge(fromCollectionName, fromKey, toCollectionName, toKey, key: DocumentKey = undefined): Partial<ArangoDB.Edge> {
     return {
