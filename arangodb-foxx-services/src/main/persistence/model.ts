@@ -91,7 +91,7 @@ export type Counter = Document & {
 export type TxId = string
 
 /**
- * Global sequential number - used for determining transaction order in a linear view.
+ * Global sequential number - used for determining transaction position on a sequential time axis.
  */
 export type TxNum = number
 
@@ -100,10 +100,10 @@ export type TxNum = number
  */
 export type WriteTxInfo = {
     num: TxNum
-    _key: TxId
+    uid: TxId
 }
 
 export type ReadTxInfo = {
     num: TxNum
-    uncommittedTxIds: TxId[]
+    liveTxIds: TxId[]
 }

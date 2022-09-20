@@ -14,31 +14,10 @@
  * limitations under the License.
  */
 
-import {
-    AuxCollectionName,
-    CollectionName,
-    Counter,
-    DataCollectionName,
-    NodeCollectionName,
-    ReadTxInfo,
-    TxId,
-    TxNum,
-    WriteTxInfo
-} from '../persistence/model'
-import { uuidv4 } from '@arangodb/crypto'
+import { AuxCollectionName, CollectionName, Counter, DataCollectionName, ReadTxInfo, TxId, TxNum, WriteTxInfo } from '../persistence/model'
 import { store } from './store'
 import { db } from '@arangodb'
 
-
-function newTxId(): TxId {
-    // There is no requirement for good locality
-    // (TxInfo is a single-shard collection),
-    // sorting or range querying by ID, so a simple
-    // UUIDv4 seems to be a good enough transaction ID for now.
-
-    // todo: check quality of the implementation, whether a good quality random gen is used.
-    return uuidv4()
-}
 
 function nextTxNumber(): TxNum {
     const curCnt: Counter = store.getDocByKey(CollectionName.Counter, 'tx')
@@ -64,17 +43,22 @@ function nextTxNumber(): TxNum {
  * @return new WRITE transaction metadata
  */
 function startWrite(): WriteTxInfo {
+    // The following steps must be executed in the given exact order
+    // (opposite to one for the READ transaction) as follows:
 
+    // First,
+    // register a new Tx ID in the transaction registry
+    const txId: TxId = store.insertOne({}, AuxCollectionName.TxInfo)._key
+
+    // Second,
+    // obtain a next global number to fix a transaction position on a serializable time axis.
     const txNum: TxNum = nextTxNumber()
-    const txUid: TxId = newTxId()
 
+    // Return a new WRITE transaction info
     const wtxInfo: WriteTxInfo = {
         num: txNum,
-        _key: txUid,
+        uid: txId,
     }
-
-    store.insertOne(wtxInfo, AuxCollectionName.TxInfo)
-
     console.log('[TX] START WRITE:', wtxInfo)
     return wtxInfo
 }
@@ -84,13 +68,26 @@ function startWrite(): WriteTxInfo {
  * @return new READ transaction metadata
  */
 function startRead(): ReadTxInfo {
-    //TODO: implement it
-    const txInfo: ReadTxInfo = {
-        num: -1,
-        uncommittedTxIds: [],
+    // The following steps must be executed in the given exact order
+    // (opposite to one for the WRITE transaction) as follows:
+
+    // First,
+    // obtain a next global number to fix a transaction position on a serializable time axis.
+
+    // const txIds: TxId[] =
+    const txNum: TxNum = nextTxNumber()
+
+    // Second,
+    // fetch the list of uncommitted transaction IDs from the registry
+    const txIds: TxId[] = db[CollectionName.TxInfo].all().toArray().map(tx => tx._key)
+
+    // Return a new READ transaction info
+    const rtxInfo: ReadTxInfo = {
+        num: txNum,
+        liveTxIds: txIds,
     }
-    console.log('[TX] START READ:', txInfo)
-    return txInfo
+    console.log('[TX] START READ:', rtxInfo)
+    return rtxInfo
 }
 
 /**
@@ -98,7 +95,7 @@ function startRead(): ReadTxInfo {
  * @param txInfo WRITE transaction metadata to rollback
  */
 function commit(txInfo: WriteTxInfo): void {
-    store.deleteByKey(AuxCollectionName.TxInfo, txInfo._key)
+    store.deleteByKey(AuxCollectionName.TxInfo, txInfo.uid)
     console.log('[TX] COMMIT:', txInfo)
 }
 
@@ -109,12 +106,12 @@ function commit(txInfo: WriteTxInfo): void {
 function rollback(txInfo: WriteTxInfo): void {
     console.log('[TX] ROLLBACK:', txInfo)
 
-    for(let cn in DataCollectionName) {
+    for (let cn in DataCollectionName) {
         const col = db[DataCollectionName[cn]]
         col.removeByExample({ _txInfo: txInfo })
     }
 
-    store.deleteByKey(AuxCollectionName.TxInfo, txInfo._key)
+    store.deleteByKey(AuxCollectionName.TxInfo, txInfo.uid)
 }
 
 export const TxManager = {
