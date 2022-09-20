@@ -15,6 +15,7 @@
  */
 
 import { aql, db } from '@arangodb'
+import { Progress } from '../../external/api.model'
 
 
 /**
@@ -23,39 +24,41 @@ import { aql, db } from '@arangodb'
  * @param writeEvent za.co.absa.spline.persistence.model.Progress
  * @returns za.co.absa.spline.persistence.model.Progress[]
  */
-export function observedReadsByWrite(writeEvent) {
+export function observedReadsByWrite(writeEvent: Progress): Progress[] {
     return writeEvent && db._query(aql`
         WITH progress, progressOf, executionPlan, executes, operation, depends, writesTo, readsFrom, dataSource
         FOR wExPlan IN 1 OUTBOUND ${writeEvent} progressOf
-        FOR wds IN outbound wExPlan affects
-            LET thisWriteOp = (FOR writeOp IN 1 INBOUND wds writesTo
-                FILTER writeOp._belongsTo == wExPlan._id // operations have _belongsTo connections to their execPlan
-                LIMIT 1 // we are expecting a single write of the execPlan
-                RETURN writeOp
-            )[0] // write operation that wrote the to this file
-            LET minReadTime = thisWriteOp._created
+            FOR wds IN outbound wExPlan affects
+                LET thisWriteOp = (
+                    FOR writeOp IN 1 INBOUND wds writesTo
+                        FILTER writeOp._belongsTo == wExPlan._id // operations have _belongsTo connections to their execPlan
+                        LIMIT 1 // we are expecting a single write of the execPlan
+                        RETURN writeOp
+                )[0] // write operation that wrote the to this file
+                LET minReadTime = thisWriteOp._created
 
-            // lets find out maxReadTime - this may not exits
-            LET breakingWriteOp = (FOR writeOps IN 1 INBOUND wds writesTo
-                FILTER writeOps._created > thisWriteOp._created
-                FILTER !writeOps.append // appends do not break lineage-connection for impact
-                sort writeOps._created DESC
-                LIMIT 1
-                RETURN writeOps
-            )[0]
-            LET maxReadTime = breakingWriteOp ? breakingWriteOp._created : null // maxReadTime is optional
+                // lets find out maxReadTime - this may not exits
+                LET breakingWriteOp = (
+                    FOR writeOps IN 1 INBOUND wds writesTo
+                        FILTER writeOps._created > thisWriteOp._created
+                        FILTER !writeOps.append // appends do not break lineage-connection for impact
+                        SORT writeOps._created DESC
+                        LIMIT 1
+                        RETURN writeOps
+                )[0]
+                LET maxReadTime = breakingWriteOp ? breakingWriteOp._created : null // maxReadTime is optional
 
-            // looking for readOperations that read data written by writes above - within the time window
-            // result: array of execPlan keys satisfying read-time window
-            LET execPlans = (FOR readOps IN 1 INBOUND wds readsFrom
-                FILTER readOps._created > minReadTime
-                FILTER (maxReadTime ? readOps._created < maxReadTime : true) // maxReadTime null -> all after minReadTime
-                RETURN readOps._belongsTo
-            )
+                // looking for readOperations that read data written by writes above - within the time window
+                // result: array of execPlan keys satisfying read-time window
+                LET execPlans = (FOR readOps IN 1 INBOUND wds readsFrom
+                    FILTER readOps._created > minReadTime
+                    FILTER (maxReadTime ? readOps._created < maxReadTime : true) // maxReadTime null -> all after minReadTime
+                    RETURN readOps._belongsTo
+                )
 
-            FOR rExPlan IN 1 INBOUND wds depends
-                FILTER rExPlan._id IN execPlans
-                FOR readEvent IN 1 INBOUND rExPlan progressOf
-                    RETURN readEvent
+                FOR rExPlan IN 1 INBOUND wds depends
+                    FILTER rExPlan._id IN execPlans
+                    FOR readEvent IN 1 INBOUND rExPlan progressOf
+                        RETURN readEvent
     `).toArray()
 }

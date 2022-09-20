@@ -15,6 +15,7 @@
  */
 
 import { aql, db } from '@arangodb'
+import { Progress } from '../../external/api.model'
 
 
 /**
@@ -23,7 +24,7 @@ import { aql, db } from '@arangodb'
  * @param readEvent za.co.absa.spline.persistence.model.Progress
  * @returns za.co.absa.spline.persistence.model.Progress[]
  */
-export function observedWritesByRead(readEvent) {
+export function observedWritesByRead(readEvent: Progress): Progress[] {
     return readEvent && db._query(aql`
         WITH progress, progressOf, executionPlan, executes, operation, depends, writesTo, dataSource
         LET readTime = ${readEvent}.timestamp
