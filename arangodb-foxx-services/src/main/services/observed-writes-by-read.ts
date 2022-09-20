@@ -16,6 +16,7 @@
 
 import { aql, db } from '@arangodb'
 import { Progress } from '../../external/api.model'
+import { ReadTxInfo } from '../persistence/model'
 
 
 /**
@@ -24,7 +25,7 @@ import { Progress } from '../../external/api.model'
  * @param readEvent za.co.absa.spline.persistence.model.Progress
  * @returns za.co.absa.spline.persistence.model.Progress[]
  */
-export function observedWritesByRead(readEvent: Progress): Progress[] {
+export function observedWritesByRead(readEvent: Progress, rtxInfo: ReadTxInfo): Progress[] {
     return readEvent && db._query(aql`
         WITH progress, progressOf, executionPlan, executes, operation, depends, writesTo, dataSource
         LET readTime = ${readEvent}.timestamp
@@ -32,9 +33,13 @@ export function observedWritesByRead(readEvent: Progress): Progress[] {
             LET maybeObservedOverwrite = SLICE(
                 (FOR wo IN 1 INBOUND rds writesTo
                     FILTER !wo.append
+                    FILTER wo._txInfo.uid NOT IN ${rtxInfo.liveTxIds}
+                       AND wo._txInfo.num < ${rtxInfo.num}
                     FOR e IN 2 INBOUND wo executes, progressOf
                         FILTER e.timestamp < readTime
                            AND e.error == null
+                        FILTER e._txInfo.uid NOT IN ${rtxInfo.liveTxIds}
+                           AND e._txInfo.num < ${rtxInfo.num}
                         SORT e.timestamp DESC
                         LIMIT 1
                         RETURN e
@@ -42,10 +47,14 @@ export function observedWritesByRead(readEvent: Progress): Progress[] {
             LET observedAppends = (
                 FOR wo IN 1 INBOUND rds writesTo
                     FILTER wo.append
+                    FILTER wo._txInfo.uid NOT IN ${rtxInfo.liveTxIds}
+                       AND wo._txInfo.num < ${rtxInfo.num}
                     FOR e IN 2 INBOUND wo executes, progressOf
                         FILTER e.timestamp > maybeObservedOverwrite[0].timestamp
                            AND e.timestamp < readTime
                            AND e.error == null
+                        FILTER e._txInfo.uid NOT IN ${rtxInfo.liveTxIds}
+                           AND e._txInfo.num < ${rtxInfo.num}
                         SORT e.timestamp ASC
                         RETURN e
                 )

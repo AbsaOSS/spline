@@ -20,6 +20,7 @@ import { lineageOverview } from '../services/lineage-overview'
 import { impactOverview } from '../services/impact-overview'
 import { Progress } from '../../external/api.model'
 import { storeExecutionEvent } from '../services/execution-event-store'
+import { TxManager } from '../services/TxManager'
 
 
 export const eventsRouter: Foxx.Router = createRouter()
@@ -29,7 +30,8 @@ eventsRouter
         (req: Foxx.Request, res: Foxx.Response) => {
             const eventKey = req.pathParams.eventKey
             const maxDepth = req.pathParams.maxDepth
-            const overview = lineageOverview(eventKey, maxDepth)
+            const rtxInfo = TxManager.startRead()
+            const overview = lineageOverview(eventKey, maxDepth, rtxInfo)
             if (overview) {
                 res.send(overview)
             }
@@ -49,7 +51,8 @@ eventsRouter
         (req: Foxx.Request, res: Foxx.Response) => {
             const eventKey = req.pathParams.eventKey
             const maxDepth = req.pathParams.maxDepth
-            const overview = impactOverview(eventKey, maxDepth)
+            const rtxInfo = TxManager.startRead()
+            const overview = impactOverview(eventKey, maxDepth, rtxInfo)
             if (overview) {
                 res.send(overview)
             }

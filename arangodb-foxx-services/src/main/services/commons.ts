@@ -13,29 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {DocumentKey, ExecutionEvent, LineageOverview, DataSource, LineageGraph} from '../model'
+import {DocumentKey, LineageOverview, DataSource, LineageGraph} from '../model'
 
 import {aql, db} from '@arangodb'
 import {memoize} from '../utils/common'
 import {GraphBuilder} from '../utils/graph'
-import {AnyFunction} from '../utils/types'
+import { ReadTxInfo } from '../persistence/model'
+import { Progress } from '../../external/api.model'
 
 
-export function getExecutionEventFromEventKey(eventKey: DocumentKey): ExecutionEvent {
+export function getExecutionEventFromEventKey(eventKey: DocumentKey): Progress {
     return db._query(aql`
         WITH progress
         RETURN FIRST(FOR p IN progress FILTER p._key == ${eventKey} RETURN p)
     `).next()
 }
 
-export function getTargetDataSourceFromExecutionEvent(executionEvent: ExecutionEvent): DataSource {
+export function getTargetDataSourceFromExecutionEvent(executionEvent: Progress): DataSource {
     return db._query(aql`
         WITH progress, progressOf, executionPlan, affects, dataSource
         RETURN FIRST(FOR ds IN 2 OUTBOUND ${executionEvent} progressOf, affects RETURN ds)
     `).next()
 }
 
-export function constructLineageOverview(executionEvent: ExecutionEvent, targetDataSource: DataSource, maxDepth: number, lineageGraph: LineageGraph): LineageOverview {
+export function constructLineageOverview(executionEvent: Progress, targetDataSource: DataSource, maxDepth: number, lineageGraph: LineageGraph): LineageOverview {
     return {
         'info': {
             'timestamp': executionEvent.timestamp,
@@ -51,7 +52,7 @@ export function constructLineageOverview(executionEvent: ExecutionEvent, targetD
     }
 }
 
-function getStartDataSourceFromExecutionEvent(startEvent: ExecutionEvent): DataSource {
+function getStartDataSourceFromExecutionEvent(startEvent: Progress): DataSource {
     return db._query(aql`
         WITH progress, progressOf, executionPlan, affects, dataSource
         FOR ds IN 2 OUTBOUND ${startEvent} progressOf, affects
@@ -64,7 +65,7 @@ function getStartDataSourceFromExecutionEvent(startEvent: ExecutionEvent): DataS
         `).next()
 }
 
-function getPartialGraphForEvent(event: ExecutionEvent) {
+function getPartialGraphForEvent(event: Progress) {
     // using the same query for backward lineage and forward lineage (impact)
     return db._query(aql`
             WITH progress, progressOf, executionPlan, affects, depends, dataSource
@@ -110,7 +111,7 @@ function getPartialGraphForEvent(event: ExecutionEvent) {
         `).next()
 }
 
-export function eventLineageOverviewGraph(observeByEventFn: AnyFunction, startEvent: ExecutionEvent, maxDepth: number): LineageGraph {
+export function eventLineageOverviewGraph(observeByEventFn: (p: Progress, rtxInfo: ReadTxInfo) => Progress[], startEvent: Progress, maxDepth: number, rtxInfo: ReadTxInfo): LineageGraph {
     if (!startEvent || maxDepth < 0) {
         return null
     }
@@ -118,15 +119,15 @@ export function eventLineageOverviewGraph(observeByEventFn: AnyFunction, startEv
     const startSource = getStartDataSourceFromExecutionEvent(startEvent)
     const graphBuilder = new GraphBuilder([startSource])
 
-    const collectPartialGraphForEvent = (event: ExecutionEvent) => {
+    const collectPartialGraphForEvent = (event: Progress) => {
         const partialGraph = getPartialGraphForEvent(event)
         graphBuilder.add(partialGraph)
     }
 
-    const traverse = memoize(e => e._id, (event: ExecutionEvent, depth: number) => {
+    const traverse = memoize(e => e._id, (event: Progress, depth: number) => {
         let remainingDepth = depth - 1
         if (depth > 1) {
-            observeByEventFn(event)
+            observeByEventFn(event, rtxInfo)
                 .forEach(writeEvent => {
                     const remainingDepth_i = traverse(writeEvent, depth - 1)
                     remainingDepth = Math.min(remainingDepth, remainingDepth_i)

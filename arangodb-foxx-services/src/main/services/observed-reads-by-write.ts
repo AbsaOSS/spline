@@ -16,6 +16,7 @@
 
 import { aql, db } from '@arangodb'
 import { Progress } from '../../external/api.model'
+import { ReadTxInfo } from '../persistence/model'
 
 
 /**
@@ -24,7 +25,10 @@ import { Progress } from '../../external/api.model'
  * @param writeEvent za.co.absa.spline.persistence.model.Progress
  * @returns za.co.absa.spline.persistence.model.Progress[]
  */
-export function observedReadsByWrite(writeEvent: Progress): Progress[] {
+export function observedReadsByWrite(writeEvent: Progress, rtxInfo: ReadTxInfo): Progress[] {
+
+    // todo: isolate read transaction
+
     return writeEvent && db._query(aql`
         WITH progress, progressOf, executionPlan, executes, operation, depends, writesTo, readsFrom, dataSource
         FOR wExPlan IN 1 OUTBOUND ${writeEvent} progressOf
