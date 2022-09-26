@@ -106,7 +106,7 @@ function commit(txInfo: WriteTxInfo): void {
 function rollback(txInfo: WriteTxInfo): void {
     console.log('[TX] ROLLBACK:', txInfo)
 
-    for (let cn in DataCollectionName) {
+    for (const cn in DataCollectionName) {
         const col = db[DataCollectionName[cn]]
         col.removeByExample({ _txInfo: txInfo })
     }

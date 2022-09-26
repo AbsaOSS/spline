@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import { Progress } from '../external/api.model'
-
 
 export type DocumentKey = string
 export type DataSource = {
