@@ -23,6 +23,7 @@ import { ReadTxInfo } from '../persistence/model'
  * Returns a list of execution events which writes are visible from any read of the given execution event
  *
  * @param readEvent za.co.absa.spline.persistence.model.Progress
+ * @param rtxInfo READ transaction info
  * @returns za.co.absa.spline.persistence.model.Progress[]
  */
 export function observedWritesByRead(readEvent: Progress, rtxInfo: ReadTxInfo): Progress[] {
@@ -31,34 +32,34 @@ export function observedWritesByRead(readEvent: Progress, rtxInfo: ReadTxInfo): 
         LET readTime = ${readEvent}.timestamp
         FOR rds IN 2 OUTBOUND ${readEvent} progressOf, depends
             LET maybeObservedOverwrite = SLICE(
-                (FOR wo IN 1 INBOUND rds writesTo
+                (FOR wo, wt IN 1 INBOUND rds writesTo
+                    PRUNE !SPLINE::IS_VISIBLE_FROM_TX(${rtxInfo}, wo, wt)
+                    FILTER SPLINE::IS_VISIBLE_FROM_TX(${rtxInfo}, wo, wt)
                     FILTER !wo.append
-                    FILTER wo._txInfo.uid NOT IN ${rtxInfo.liveTxIds}
-                       AND wo._txInfo.num < ${rtxInfo.num}
-                    FOR e IN 2 INBOUND wo executes, progressOf
-                        FILTER e.timestamp < readTime
-                           AND e.error == null
-                        FILTER e._txInfo.uid NOT IN ${rtxInfo.liveTxIds}
-                           AND e._txInfo.num < ${rtxInfo.num}
-                        SORT e.timestamp DESC
+                    FOR p, po IN 2 INBOUND wo executes, progressOf
+                        PRUNE !SPLINE::IS_VISIBLE_FROM_TX(${rtxInfo}, p, po)
+                        FILTER SPLINE::IS_VISIBLE_FROM_TX(${rtxInfo}, p, po)
+                        FILTER p.timestamp < readTime
+                           AND p.error == null
+                        SORT p.timestamp DESC
                         LIMIT 1
-                        RETURN e
+                        RETURN p
                 ), 0, 1)
             LET observedAppends = (
-                FOR wo IN 1 INBOUND rds writesTo
+                FOR wo, wt IN 1 INBOUND rds writesTo
+                    PRUNE !SPLINE::IS_VISIBLE_FROM_TX(${rtxInfo}, wo, wt)
+                    FILTER SPLINE::IS_VISIBLE_FROM_TX(${rtxInfo}, wo, wt)
                     FILTER wo.append
-                    FILTER wo._txInfo.uid NOT IN ${rtxInfo.liveTxIds}
-                       AND wo._txInfo.num < ${rtxInfo.num}
-                    FOR e IN 2 INBOUND wo executes, progressOf
-                        FILTER e.timestamp > maybeObservedOverwrite[0].timestamp
-                           AND e.timestamp < readTime
-                           AND e.error == null
-                        FILTER e._txInfo.uid NOT IN ${rtxInfo.liveTxIds}
-                           AND e._txInfo.num < ${rtxInfo.num}
-                        SORT e.timestamp ASC
-                        RETURN e
+                    FOR p, po IN 2 INBOUND wo executes, progressOf
+                        PRUNE !SPLINE::IS_VISIBLE_FROM_TX(${rtxInfo}, p, po)
+                        FILTER SPLINE::IS_VISIBLE_FROM_TX(${rtxInfo}, p, po)
+                        FILTER p.timestamp > maybeObservedOverwrite[0].timestamp
+                           AND p.timestamp < readTime
+                           AND p.error == null
+                        SORT p.timestamp ASC
+                        RETURN p
                 )
             LET allObservedEvents = APPEND(maybeObservedOverwrite, observedAppends)
-            FOR e IN allObservedEvents RETURN e
+            FOR p IN allObservedEvents RETURN p
     `).toArray()
 }
