@@ -20,7 +20,7 @@ import com.arangodb.async.ArangoDatabaseAsync
 import com.arangodb.entity.{EdgeDefinition, IndexType}
 import com.arangodb.model.Implicits.IndexOptionsOps
 import com.arangodb.model._
-import org.apache.commons.io.FilenameUtils
+import org.apache.commons.lang3.StringUtils
 import org.slf4s.Logging
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import za.co.absa.commons.lang.ARM
@@ -67,15 +67,15 @@ class ArangoManagerImpl(
         log.debug("Database already exists - skipping initialization")
         Future.successful(false)
       } else for {
-        _ <- deleteDbIfRequested(db, onExistsAction == Drop)
-        _ <- createDb(db)
-        _ <- createCollections(db, options)
-        _ <- createAQLUserFunctions(db)
+        _ <- deleteDbIfRequested(onExistsAction == Drop)
+        _ <- createDb()
+        _ <- createCollections(options)
+        _ <- createAQLUserFunctions()
         _ <- createFoxxServices()
-        _ <- createIndices(db)
-        _ <- createGraphs(db)
-        _ <- createSearchAnalyzers(db)
-        _ <- createSearchViews(db)
+        _ <- createIndices()
+        _ <- createGraphs()
+        _ <- createSearchAnalyzers()
+        _ <- createSearchViews()
         _ <- dbVersionManager.insertDbVersion(appDBVersion)
       } yield true
     }
@@ -103,30 +103,32 @@ class ArangoManagerImpl(
     actions.foldLeft(Future.successful(())) {
       case (prevFuture, nextAction) =>
         prevFuture.flatMap(_ => (nextAction match {
-          case AuxiliaryDBAction.CheckDBAccess => checkDBAccess(db)
-          case AuxiliaryDBAction.FoxxReinstall => reinstallFoxxServices()
-          case AuxiliaryDBAction.IndicesDelete => deleteIndices(db)
-          case AuxiliaryDBAction.IndicesCreate => createIndices(db)
-          case AuxiliaryDBAction.SearchViewsDelete => deleteSearchViews(db)
-          case AuxiliaryDBAction.SearchViewsCreate => createSearchViews(db)
-          case AuxiliaryDBAction.SearchAnalyzerDelete => deleteSearchAnalyzers(db)
-          case AuxiliaryDBAction.SearchAnalyzerCreate => createSearchAnalyzers(db)
+          case AuxiliaryDBAction.CheckDBAccess => checkDBAccess()
+          case AuxiliaryDBAction.FoxxReinstall => reinstallFoxxServicesAndAQLFuncs()
+          case AuxiliaryDBAction.IndicesDelete => deleteIndices()
+          case AuxiliaryDBAction.IndicesCreate => createIndices()
+          case AuxiliaryDBAction.SearchViewsDelete => deleteSearchViews()
+          case AuxiliaryDBAction.SearchViewsCreate => createSearchViews()
+          case AuxiliaryDBAction.SearchAnalyzerDelete => deleteSearchAnalyzers()
+          case AuxiliaryDBAction.SearchAnalyzerCreate => createSearchAnalyzers()
         }).map(_ => {}))
     }
   }
 
-  private def checkDBAccess(db: ArangoDatabaseAsync) = {
+  private def checkDBAccess() = {
     db.exists.toScala
   }
 
-  private def reinstallFoxxServices() = {
+  private def reinstallFoxxServicesAndAQLFuncs() = {
     for {
+      _ <- deleteAQLUserFunctions()
+      _ <- createAQLUserFunctions()
       _ <- deleteFoxxServices()
       _ <- createFoxxServices()
     } yield {}
   }
 
-  private def deleteDbIfRequested(db: ArangoDatabaseAsync, dropIfExists: Boolean) = {
+  private def deleteDbIfRequested(dropIfExists: Boolean) = {
     for {
       exists <- db.exists.toScala
       _ <- if (exists && !dropIfExists)
@@ -139,12 +141,12 @@ class ArangoManagerImpl(
     } yield {}
   }
 
-  private def createDb(db: ArangoDatabaseAsync) = {
+  private def createDb() = {
     log.info(s"Create database: ${db.dbName}")
     db.create().toScala
   }
 
-  private def createCollections(db: ArangoDatabaseAsync, options: DatabaseCreateOptions) = {
+  private def createCollections(options: DatabaseCreateOptions) = {
     log.debug(s"Create collections")
     Future.sequence(
       for (colDef <- sealedInstancesOf[CollectionDef])
@@ -165,7 +167,7 @@ class ArangoManagerImpl(
         })
   }
 
-  private def createGraphs(db: ArangoDatabaseAsync) = {
+  private def createGraphs() = {
     log.debug(s"Create graphs")
     Future.sequence(
       for (graphDef <- sealedInstancesOf[GraphDef]) yield {
@@ -178,7 +180,7 @@ class ArangoManagerImpl(
       })
   }
 
-  private def deleteIndices(db: ArangoDatabaseAsync) = {
+  private def deleteIndices() = {
     log.info(s"Drop indices")
     for {
       colEntities <- db.getCollections.toScala.map(_.asScala.filter(!_.getIsSystem))
@@ -192,7 +194,7 @@ class ArangoManagerImpl(
     } yield {}
   }
 
-  private def createIndices(db: ArangoDatabaseAsync) = {
+  private def createIndices() = {
     log.info(s"Create indices")
     Future.sequence(
       for {
@@ -212,24 +214,26 @@ class ArangoManagerImpl(
       })
   }
 
-  private def createAQLUserFunctions(db: ArangoDatabaseAsync) = {
+  private def createAQLUserFunctions() = {
     log.debug(s"Lookup AQL functions to register")
     val resourceResolver = new PathMatchingResourcePatternResolver(getClass.getClassLoader)
     val jsFileResource =
       if (resourceResolver.getResource(AQLFunctionsLocation).exists())
-        resourceResolver.getResources(s"$AQLFunctionsLocation/*.js").toSeq
+        resourceResolver.getResources(s"$AQLFunctionsLocation/*$AQLFunctionFilenameSuffix").toSeq
       else
         Seq.empty
 
+    log.debug(s"Register AQL functions")
     Future.sequence(
       jsFileResource
         .map(res => {
-          val functionName = s"$AQLFunctionsPrefix::${FilenameUtils.removeExtension(res.getFilename).toUpperCase}"
+          val functionShortName = StringUtils.substringBefore(res.getFilename, AQLFunctionFilenameSuffix).toUpperCase
+          val functionFullName = s"$AQLFunctionsNamespace::$functionShortName"
           val functionBody = ARM.using(Source.fromURL(res.getURL))(_.getLines.mkString("\n"))
-          log.info(s"Register AQL function: $functionName")
-          val functionCode = AQLFunctionEnvelop(functionName, functionBody)
+          log.info(s"Register AQL function: $functionFullName")
+          val functionCode = AQLFunctionEnvelop(functionFullName, functionBody)
           log.trace(s"AQL function code: $functionCode")
-          db.createAqlFunction(functionName, functionCode, new AqlFunctionCreateOptions()).toScala
+          db.createAqlFunction(functionFullName, functionCode, new AqlFunctionCreateOptions()).toScala
         }))
   }
 
@@ -260,7 +264,21 @@ class ArangoManagerImpl(
     )
   }
 
-  private def deleteSearchViews(db: ArangoDatabaseAsync) = {
+  private def deleteAQLUserFunctions(): Future[_] = {
+    log.debug(s"Unregister AQL functions")
+    db.getAqlFunctions(new AqlFunctionGetOptions().namespace(AQLFunctionsNamespace)).toScala.flatMap(funcDefs =>
+      Future.sequence(for {
+        funcDef <- funcDefs.asScala
+      } yield {
+        val funcName = funcDef.getName
+        log.info(s"Unregister AQL function: $funcName")
+        db.deleteAqlFunction(funcName, new AqlFunctionDeleteOptions).toScala
+      }
+      ).map(_ => {})
+    )
+  }
+
+  private def deleteSearchViews() = {
     log.debug(s"Delete search views")
     for {
       viewEntities <- db.getViews.toScala.map(_.asScala)
@@ -272,7 +290,7 @@ class ArangoManagerImpl(
     } yield {}
   }
 
-  private def createSearchViews(db: ArangoDatabaseAsync) = {
+  private def createSearchViews() = {
     log.debug(s"Create search views")
     Future.traverse(sealedInstancesOf[SearchViewDef]) { viewDef =>
       log.info(s"Create search view: ${viewDef.name}")
@@ -280,7 +298,7 @@ class ArangoManagerImpl(
     }
   }
 
-  private def deleteSearchAnalyzers(db: ArangoDatabaseAsync) = {
+  private def deleteSearchAnalyzers() = {
     log.debug(s"Delete search analyzers")
     for {
       analyzers <- db.getSearchAnalyzers.toScala.map(_.asScala)
@@ -292,7 +310,7 @@ class ArangoManagerImpl(
     } yield {}
   }
 
-  private def createSearchAnalyzers(db: ArangoDatabaseAsync) = {
+  private def createSearchAnalyzers() = {
     log.debug(s"Create search analyzers")
     Future.traverse(sealedInstancesOf[SearchAnalyzerDef]) { ad =>
       log.info(s"Create search analyzer: ${ad.name}")
@@ -304,7 +322,8 @@ class ArangoManagerImpl(
 object ArangoManagerImpl {
   private val FoxxSourcesLocation = "classpath:foxx"
   private val AQLFunctionsLocation = "classpath:AQLFunctions"
-  private val AQLFunctionsPrefix = "SPLINE"
+  private val AQLFunctionFilenameSuffix = ".func.js"
+  private val AQLFunctionsNamespace = "SPLINE"
   private val AQLFunctionEnvelop = (functionName: String, functionCode: String) =>
     s"""
        |(function(){

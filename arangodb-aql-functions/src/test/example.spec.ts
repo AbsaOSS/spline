@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import myCoolFunction = require('../main/example')
+import myCoolFunction = require('../main/example.func')
 
 
 test('myCoolFunction', () => {

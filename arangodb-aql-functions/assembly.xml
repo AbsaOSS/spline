@@ -25,8 +25,11 @@
     <fileSets>
         <fileSet>
             <directory>${project.build.directory}/dist</directory>
+            <includes>
+                <include>*.func.js</include>
+            </includes>
             <excludes>
-                <exclude>example.js</exclude>
+                <exclude>example.func.js</exclude>
             </excludes>
             <outputDirectory/>
         </fileSet>
