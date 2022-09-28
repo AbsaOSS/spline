@@ -17,21 +17,25 @@
 import { aql, db } from '@arangodb'
 import { Progress } from '../../external/api.model'
 import { ReadTxInfo } from '../persistence/model'
+import { AQLCodeGenHelper } from '../utils/aql-gen-helper'
 
 
 /**
  * Returns a list of execution events which reads are visible from the write of the given execution event
  *
  * @param writeEvent za.co.absa.spline.persistence.model.Progress
+ * @param rtxInfo READ transaction info
  * @returns za.co.absa.spline.persistence.model.Progress[]
  */
 export function observedReadsByWrite(writeEvent: Progress, rtxInfo: ReadTxInfo): Progress[] {
+    const aqlGen = new AQLCodeGenHelper(rtxInfo)
 
-    // todo: isolate read transaction
+    // todo: as soon as Daniel fixes the query due to `_created`, add `${aqlGen.genTxIsolationCode(...)}` where appropriate
 
     return writeEvent && db._query(aql`
         WITH progress, progressOf, executionPlan, executes, operation, depends, writesTo, readsFrom, dataSource
-        FOR wExPlan IN 1 OUTBOUND ${writeEvent} progressOf
+        FOR wExPlan, po IN 1 OUTBOUND ${writeEvent} progressOf
+            ${aqlGen.genTxIsolationCode('wExPlan', 'po')}
             FOR wds IN outbound wExPlan affects
                 LET thisWriteOp = (
                     FOR writeOp IN 1 INBOUND wds writesTo

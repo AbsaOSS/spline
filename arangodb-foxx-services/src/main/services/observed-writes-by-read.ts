@@ -17,6 +17,7 @@
 import { aql, db } from '@arangodb'
 import { Progress } from '../../external/api.model'
 import { ReadTxInfo } from '../persistence/model'
+import { AQLCodeGenHelper } from '../utils/aql-gen-helper'
 
 
 /**
@@ -27,18 +28,17 @@ import { ReadTxInfo } from '../persistence/model'
  * @returns za.co.absa.spline.persistence.model.Progress[]
  */
 export function observedWritesByRead(readEvent: Progress, rtxInfo: ReadTxInfo): Progress[] {
+    const aqlGen = new AQLCodeGenHelper(rtxInfo)
     return readEvent && db._query(aql`
         WITH progress, progressOf, executionPlan, executes, operation, depends, writesTo, dataSource
         LET readTime = ${readEvent}.timestamp
         FOR rds IN 2 OUTBOUND ${readEvent} progressOf, depends
             LET maybeObservedOverwrite = SLICE(
                 (FOR wo, wt IN 1 INBOUND rds writesTo
-                    PRUNE !SPLINE::IS_VISIBLE_FROM_TX(${rtxInfo}, wo, wt)
-                    FILTER SPLINE::IS_VISIBLE_FROM_TX(${rtxInfo}, wo, wt)
+                    ${aqlGen.genTxIsolationCode('wo', 'wt')}
                     FILTER !wo.append
                     FOR p, po IN 2 INBOUND wo executes, progressOf
-                        PRUNE !SPLINE::IS_VISIBLE_FROM_TX(${rtxInfo}, p, po)
-                        FILTER SPLINE::IS_VISIBLE_FROM_TX(${rtxInfo}, p, po)
+                        ${aqlGen.genTxIsolationCode('p', 'po')}
                         FILTER p.timestamp < readTime
                            AND p.error == null
                         SORT p.timestamp DESC
@@ -47,12 +47,10 @@ export function observedWritesByRead(readEvent: Progress, rtxInfo: ReadTxInfo): 
                 ), 0, 1)
             LET observedAppends = (
                 FOR wo, wt IN 1 INBOUND rds writesTo
-                    PRUNE !SPLINE::IS_VISIBLE_FROM_TX(${rtxInfo}, wo, wt)
-                    FILTER SPLINE::IS_VISIBLE_FROM_TX(${rtxInfo}, wo, wt)
+                    ${aqlGen.genTxIsolationCode('wo', 'wt')}
                     FILTER wo.append
                     FOR p, po IN 2 INBOUND wo executes, progressOf
-                        PRUNE !SPLINE::IS_VISIBLE_FROM_TX(${rtxInfo}, p, po)
-                        FILTER SPLINE::IS_VISIBLE_FROM_TX(${rtxInfo}, p, po)
+                        ${aqlGen.genTxIsolationCode('p', 'po')}
                         FILTER p.timestamp > maybeObservedOverwrite[0].timestamp
                            AND p.timestamp < readTime
                            AND p.error == null
