@@ -17,6 +17,7 @@
 import { AuxCollectionName, CollectionName, Counter, DataCollectionName, ReadTxInfo, TxId, TxNum, WriteTxInfo } from '../persistence/model'
 import { store } from './store'
 import { db } from '@arangodb'
+import { Logger } from '../utils/logger'
 
 
 function nextTxNumber(): TxNum {
@@ -59,7 +60,7 @@ function startWrite(): WriteTxInfo {
         num: txNum,
         uid: txId,
     }
-    console.log('[TX] START WRITE:', wtxInfo)
+    Logger.debug('[TX] START WRITE:', wtxInfo)
     return wtxInfo
 }
 
@@ -86,7 +87,7 @@ function startRead(): ReadTxInfo {
         num: txNum,
         liveTxIds: txIds,
     }
-    console.log('[TX] START READ:', rtxInfo)
+    Logger.debug('[TX] START READ:', rtxInfo)
     return rtxInfo
 }
 
@@ -96,7 +97,7 @@ function startRead(): ReadTxInfo {
  */
 function commit(txInfo: WriteTxInfo): void {
     store.deleteByKey(AuxCollectionName.TxInfo, txInfo.uid)
-    console.log('[TX] COMMIT:', txInfo)
+    Logger.debug('[TX] COMMIT:', txInfo)
 }
 
 /**
@@ -104,7 +105,7 @@ function commit(txInfo: WriteTxInfo): void {
  * @param txInfo WRITE transaction metadata to rollback
  */
 function rollback(txInfo: WriteTxInfo): void {
-    console.log('[TX] ROLLBACK:', txInfo)
+    Logger.debug('[TX] ROLLBACK:', txInfo)
 
     for (const cn in DataCollectionName) {
         const col = db[DataCollectionName[cn]]
