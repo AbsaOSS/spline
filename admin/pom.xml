@@ -46,12 +46,6 @@
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>arangodb-aql-functions</artifactId>
-            <version>${project.version}</version>
-            <type>pom</type>
-        </dependency>
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
             <artifactId>arangodb-foxx-services</artifactId>
             <version>${project.version}</version>
             <type>pom</type>
@@ -98,24 +92,6 @@
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>3.1.2</version>
                 <executions>
-                    <execution>
-                        <id>copy-aql-functions</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>za.co.absa.spline</groupId>
-                                    <artifactId>arangodb-aql-functions</artifactId>
-                                    <classifier>dist</classifier>
-                                    <type>zip</type>
-                                    <outputDirectory>${project.build.directory}/arangodb-resources/AQLFunctions/</outputDirectory>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
                     <execution>
                         <id>copy-foxx-services</id>
                         <phase>generate-resources</phase>

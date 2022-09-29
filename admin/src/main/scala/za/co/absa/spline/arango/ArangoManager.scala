@@ -20,10 +20,7 @@ import com.arangodb.async.ArangoDatabaseAsync
 import com.arangodb.entity.{EdgeDefinition, IndexType}
 import com.arangodb.model.Implicits.IndexOptionsOps
 import com.arangodb.model._
-import org.apache.commons.lang3.StringUtils
 import org.slf4s.Logging
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver
-import za.co.absa.commons.lang.ARM
 import za.co.absa.commons.reflect.EnumerationMacros.sealedInstancesOf
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 import za.co.absa.spline.arango.OnDBExistsAction.{Drop, Skip}
@@ -36,7 +33,6 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable._
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.io.Source
 
 trait ArangoManager {
 
@@ -70,7 +66,6 @@ class ArangoManagerImpl(
         _ <- deleteDbIfRequested(onExistsAction == Drop)
         _ <- createDb()
         _ <- createCollections(options)
-        _ <- createAQLUserFunctions()
         _ <- createFoxxServices()
         _ <- createIndices()
         _ <- createGraphs()
@@ -104,7 +99,7 @@ class ArangoManagerImpl(
       case (prevFuture, nextAction) =>
         prevFuture.flatMap(_ => (nextAction match {
           case AuxiliaryDBAction.CheckDBAccess => checkDBAccess()
-          case AuxiliaryDBAction.FoxxReinstall => reinstallFoxxServicesAndAQLFuncs()
+          case AuxiliaryDBAction.FoxxReinstall => reinstallFoxxServices()
           case AuxiliaryDBAction.IndicesDelete => deleteIndices()
           case AuxiliaryDBAction.IndicesCreate => createIndices()
           case AuxiliaryDBAction.SearchViewsDelete => deleteSearchViews()
@@ -119,10 +114,8 @@ class ArangoManagerImpl(
     db.exists.toScala
   }
 
-  private def reinstallFoxxServicesAndAQLFuncs() = {
+  private def reinstallFoxxServices() = {
     for {
-      _ <- deleteAQLUserFunctions()
-      _ <- createAQLUserFunctions()
       _ <- deleteFoxxServices()
       _ <- createFoxxServices()
     } yield {}
@@ -214,29 +207,6 @@ class ArangoManagerImpl(
       })
   }
 
-  private def createAQLUserFunctions() = {
-    log.debug(s"Lookup AQL functions to register")
-    val resourceResolver = new PathMatchingResourcePatternResolver(getClass.getClassLoader)
-    val jsFileResource =
-      if (resourceResolver.getResource(AQLFunctionsLocation).exists())
-        resourceResolver.getResources(s"$AQLFunctionsLocation/*$AQLFunctionFilenameSuffix").toSeq
-      else
-        Seq.empty
-
-    log.debug(s"Register AQL functions")
-    Future.sequence(
-      jsFileResource
-        .map(res => {
-          val functionShortName = StringUtils.substringBefore(res.getFilename, AQLFunctionFilenameSuffix).toUpperCase
-          val functionFullName = s"$AQLFunctionsNamespace::$functionShortName"
-          val functionBody = ARM.using(Source.fromURL(res.getURL))(_.getLines.mkString("\n"))
-          log.info(s"Register AQL function: $functionFullName")
-          val functionCode = AQLFunctionEnvelop(functionFullName, functionBody)
-          log.trace(s"AQL function code: $functionCode")
-          db.createAqlFunction(functionFullName, functionCode, new AqlFunctionCreateOptions()).toScala
-        }))
-  }
-
   private def createFoxxServices(): Future[_] = {
     log.debug(s"Lookup Foxx services to install")
     val serviceDefs = FoxxSourceResolver.lookupSources(FoxxSourcesLocation)
@@ -259,20 +229,6 @@ class ArangoManagerImpl(
       } yield {
         log.info(s"Uninstall Foxx service: $srvMount")
         foxxManager.uninstall(srvMount)
-      }
-      ).map(_ => {})
-    )
-  }
-
-  private def deleteAQLUserFunctions(): Future[_] = {
-    log.debug(s"Unregister AQL functions")
-    db.getAqlFunctions(new AqlFunctionGetOptions().namespace(AQLFunctionsNamespace)).toScala.flatMap(funcDefs =>
-      Future.sequence(for {
-        funcDef <- funcDefs.asScala
-      } yield {
-        val funcName = funcDef.getName
-        log.info(s"Unregister AQL function: $funcName")
-        db.deleteAqlFunction(funcName, new AqlFunctionDeleteOptions).toScala
       }
       ).map(_ => {})
     )
@@ -321,16 +277,4 @@ class ArangoManagerImpl(
 
 object ArangoManagerImpl {
   private val FoxxSourcesLocation = "classpath:foxx"
-  private val AQLFunctionsLocation = "classpath:AQLFunctions"
-  private val AQLFunctionFilenameSuffix = ".func.js"
-  private val AQLFunctionsNamespace = "SPLINE"
-  private val AQLFunctionEnvelop = (functionName: String, functionCode: String) =>
-    s"""
-       |(function(){
-       |  console.log("Create AQL Function $functionName");
-       |  let module = {};
-       |  $functionCode
-       |  return module.exports;
-       |})()
-       |""".stripMargin.trim
 }

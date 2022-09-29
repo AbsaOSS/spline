@@ -1,7 +1,11 @@
 {
-  "$schema": "http://json.schemastore.org/foxx-manifest",
+  "$schema": "https://json.schemastore.org/foxx-manifest",
   "engines": {
     "arangodb": "^3.8.0"
+  },
+  "scripts": {
+    "setup": "scripts/setup.js",
+    "teardown": "scripts/teardown.js"
   },
   "main": "main/index.js",
   "name": "spline-persistence-services",

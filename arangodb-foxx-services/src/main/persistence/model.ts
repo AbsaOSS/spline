@@ -107,3 +107,7 @@ export type ReadTxInfo = {
     num: TxNum
     liveTxIds: TxId[]
 }
+
+export type TxAwareDocument = {
+    _tx_info?: WriteTxInfo
+}

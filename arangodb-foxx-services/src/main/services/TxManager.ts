@@ -17,7 +17,7 @@
 import { AuxCollectionName, CollectionName, Counter, DataCollectionName, ReadTxInfo, TxId, TxNum, WriteTxInfo } from '../persistence/model'
 import { store } from './store'
 import { db } from '@arangodb'
-import { Logger } from '../utils/logger'
+import * as Logger from '../utils/logger'
 
 
 function nextTxNumber(): TxNum {

@@ -15,7 +15,7 @@
  */
 
 
-import { ReadTxInfo, TxId, TxAwareDocument, TxNum, WriteTxInfo } from './is_visible_from_tx.model'
+import { ReadTxInfo, TxAwareDocument, TxId, TxNum, WriteTxInfo } from '../main/persistence/model'
 
 
 /**

@@ -17,14 +17,12 @@
 
 const isDebugEnabled: boolean = module.context.isDevelopment
 
-export namespace Logger {
-    export function info(...args: any[]) {
-        console.log(...args)
-    }
+export function info(...args: any[]) {
+    console.log(...args)
+}
 
-    export function debug(...args: any[]) {
-        if (isDebugEnabled) {
-            console.log(...args)
-        }
+export function debug(...args: any[]) {
+    if (isDebugEnabled) {
+        console.log(...args)
     }
 }

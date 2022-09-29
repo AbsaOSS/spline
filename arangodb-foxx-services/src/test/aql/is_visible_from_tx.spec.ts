@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import isVisible = require('../main/is_visible_from_tx.func')
-import { ReadTxInfo, TxAwareDocument } from '../main/is_visible_from_tx.model'
+import isVisible = require('../../aql/is_visible_from_tx.func')
+import { ReadTxInfo, TxAwareDocument } from '../../main/persistence/model'
 
 
 test('IS_VISIBLE_FROM_TX', () => {

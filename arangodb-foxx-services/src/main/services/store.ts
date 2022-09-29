@@ -18,6 +18,7 @@ import { CollectionName, WriteTxInfo } from '../persistence/model'
 import { db } from '@arangodb'
 import { DocumentKey } from '../model'
 import Document = ArangoDB.Document
+import DocumentMetadata = ArangoDB.DocumentMetadata
 
 
 const dbCollections: Record<CollectionName, ArangoDB.Collection> =
@@ -47,8 +48,8 @@ function getDocByKey<T extends Document>(colName: CollectionName, key: DocumentK
     return <T>db._document(`${colName}/${key}`)
 }
 
-function deleteByKey<T extends Document>(colName: CollectionName, key: DocumentKey): void {
-    (<any>db)._remove({ _id: `${colName}/${key}` }, { silent: true })
+function deleteByKey(colName: CollectionName, key: DocumentKey): DocumentMetadata {
+    return (<any>db)._remove({ _id: `${colName}/${key}` }, { silent: true })
 }
 
 export const store = {

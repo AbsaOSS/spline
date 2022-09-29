@@ -14,19 +14,8 @@
  * limitations under the License.
  */
 
-export type TxAwareDocument = {
-    _tx_info?: WriteTxInfo
-}
+import aqlFunctions from '@arangodb/aql/functions'
 
-export type TxId = string
-export type TxNum = number
-
-export type ReadTxInfo = {
-    num: TxNum
-    liveTxIds: TxId[]
-}
-
-export type WriteTxInfo = {
-    num: TxNum
-    uid: TxId
-}
+// Unregister AQL functions
+const n = aqlFunctions.unregisterGroup('SPLINE')
+console.log('Unregistered AQL functions:', n)
