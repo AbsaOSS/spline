@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json.schemastore.org/foxx-manifest",
+  "$schema": "http://json.schemastore.org/foxx-manifest",
   "engines": {
     "arangodb": "^3.8.0"
   },
