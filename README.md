@@ -7,7 +7,7 @@
 [![SonarCloud Security](https://sonarcloud.io/api/project_badges/measure?project=AbsaOSS_spline&metric=security_rating)](https://sonarcloud.io/dashboard?id=AbsaOSS_spline)
 [![Docker Pulls](https://badgen.net/docker/pulls/absaoss/spline-rest-server?icon=docker&label=pulls)](https://hub.docker.com/r/absaoss/spline-rest-server/)
 
-Spline — an open-source data lineage tracking solution for data processing frameworks like Apache Spark and others.
+Spline — an open-source data lineage tracking solution for data processing frameworks like Apache Spark and others
 ---
 
 [![Watch the video](https://user-images.githubusercontent.com/795479/193536311-d6ce6ed8-36ca-43fa-addb-4f9dcf59e974.png)](https://youtu.be/Bz_Ml6pNH2E)
