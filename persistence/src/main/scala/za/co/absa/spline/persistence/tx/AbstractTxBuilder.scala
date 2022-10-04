@@ -20,7 +20,7 @@ import com.arangodb.model.TransactionOptions
 
 abstract class AbstractTxBuilder() {
 
-  protected var queries: Seq[Query] = Vector.empty
+  protected var queries: Seq[Query] = Vector.empty // NOSONAR
 
   def buildTx(): ArangoTx
 

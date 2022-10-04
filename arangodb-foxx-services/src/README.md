@@ -9,4 +9,3 @@
 **Version**: @VERSION@\
 **Revision**: @REVISION@\
 **Timestamp**: @BUILD_TIMESTAMP@
-

@@ -24,10 +24,6 @@ sealed trait Query {
   def collectionDefs: Seq[CollectionDef]
 }
 
-object Query {
-  final val LastResultPlaceholder = null
-}
-
 case class NativeQuery(
   query: String,
   params: Map[String, Any] = Map.empty,

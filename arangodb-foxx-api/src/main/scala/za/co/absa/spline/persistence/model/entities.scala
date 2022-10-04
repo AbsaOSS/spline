@@ -16,7 +16,7 @@
 package za.co.absa.spline.persistence.model
 
 trait ArangoDocument {
-  val _key: ArangoDocument.Key = null
+  val _key: ArangoDocument.Key = null // NOSONAR
 
   // entity creation time (don't confuse with the event time)
   val _created: ArangoDocument.Timestamp = System.currentTimeMillis
@@ -48,9 +48,9 @@ case class Edge(
   override val _belongsTo: Option[ArangoDocument.Id],
   index: Option[Edge.Index],
   path: Option[Edge.FromPath],
-  override val _key: ArangoDocument.Key = null
+  override val _key: ArangoDocument.Key = null // NOSONAR
 ) extends ArangoDocument {
-  def this() = this(null, null, null, null, null, null)
+  def this() = this(null, null, null, null, null, null) // NOSONAR
 }
 
 object Edge {
@@ -62,7 +62,7 @@ case class DBVersion(
   version: String,
   status: String
 ) extends ArangoDocument with RootEntity {
-  def this() = this(null, null)
+  def this() = this(null, null) // NOSONAR
 }
 
 object DBVersion {
@@ -80,7 +80,7 @@ object DBVersion {
 }
 
 case class Counter(override val _key: String, curVal: Long) extends ArangoDocument with RootEntity {
-  def this() = this(null, Long.MinValue)
+  def this() = this(null, Long.MinValue) // NOSONAR
 }
 
 /**
@@ -93,9 +93,9 @@ case class DataSource(
   name: DataSource.Name,
   lastWriteDetails: Option[Progress]
 ) extends Vertex with RootEntity {
-  override val _key: DataSource.Key = null
+  override val _key: DataSource.Key = null // NOSONAR
 
-  def this() = this(null, null, null)
+  def this() = this(null, null, null) // NOSONAR
 }
 
 object DataSource {
@@ -165,5 +165,5 @@ case class ExecPlanDetails(
   dataSourceType: String,
   append: Boolean
 ) {
-  def this() = this(null, null, null, null, null, null, false)
+  def this() = this(null, null, null, null, null, null, false) // NOSONAR
 }

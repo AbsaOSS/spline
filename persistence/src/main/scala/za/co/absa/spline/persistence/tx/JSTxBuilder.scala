@@ -18,7 +18,7 @@ package za.co.absa.spline.persistence.tx
 
 import com.arangodb.async.ArangoDatabaseAsync
 import org.slf4s.Logging
-import za.co.absa.spline.persistence.tx.JSTxBuilder.{condLine, withExpandedPlaceholders}
+import za.co.absa.spline.persistence.tx.JSTxBuilder.condLine
 
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -42,17 +42,16 @@ class JSTxBuilder extends AbstractTxBuilder with Logging {
     val statements = queries.zipWithIndex.map {
       case (nq: NativeQuery, i) =>
         s"""
-           |lastRes = (function(db, params){
+           |(function(db, params){
            |  ${nq.query}
            |})(_db, _params[$i]);
            |""".stripMargin.trim
 
       case (iq: InsertQuery, i) =>
         val colName = iq.collectionDef.name
-        val objects = withExpandedPlaceholders(s"_params[$i]", iq.documents)
-        val iterMethod = if (iq.documents.contains(Query.LastResultPlaceholder)) "map" else s"forEach"
+        val objects = s"_params[$i]"
         Seq(
-          s"$objects.$iterMethod(o =>",
+          s"$objects.forEach(o =>",
           condLine(iq.ignoreExisting,
             s"""
                |  o._key && _db._collection("$colName").exists(o._key) ||
@@ -70,15 +69,15 @@ class JSTxBuilder extends AbstractTxBuilder with Logging {
 
       case (uq: UpdateQuery, i) =>
         val colName = uq.collectionDef.name
-        val doc = "a"
-        val filter = uq.filter.replace(UpdateQuery.DocWildcard, doc)
-        val bDoc = if (uq.data == Query.LastResultPlaceholder) "lastRes" else s"_params[$i]"
+        val aDoc = "a"
+        val bDoc = s"_params[$i]"
+        val filter = uq.filter.replace(UpdateQuery.DocWildcard, aDoc)
         s"""
            |_db._query(`
            |  WITH $colName
-           |  FOR $doc IN $colName
+           |  FOR $aDoc IN $colName
            |      FILTER $filter
-           |      UPDATE $doc._key WITH @b IN $colName
+           |      UPDATE $aDoc._key WITH @b IN $colName
            |`, {"b": $bDoc});
            |""".stripMargin.trim
     }
@@ -86,7 +85,6 @@ class JSTxBuilder extends AbstractTxBuilder with Logging {
        |function (_params) {
        |  const _db = require('internal').db;
        |  ${statements.mkString("\n").replace("\n", "\n  ")}
-       |  return lastRes;
        |}
        |""".stripMargin
   }
@@ -95,20 +93,4 @@ class JSTxBuilder extends AbstractTxBuilder with Logging {
 
 object JSTxBuilder {
   private def condLine(cond: => Boolean, stmt: => String): String = if (cond) stmt else ""
-
-  private def withExpandedPlaceholders(jsIterateeExpr: String, docs: Seq[AnyRef]): String = {
-    val plcIdxes = docs.zipWithIndex.filter({case (d, _) => Query.LastResultPlaceholder.eq(d)}).map(_._2)
-    if (plcIdxes.isEmpty) {
-      jsIterateeExpr
-    } else {
-      val firstPlcIdx +: restPlcIdx = plcIdxes
-      plcIdxes
-        .map(_ + 1)
-        .zip(restPlcIdx :+ "Number.MAX_SAFE_INTEGER")
-        .foldLeft(s"$jsIterateeExpr.slice(0, $firstPlcIdx)") {
-          case (acc, (i, j)) =>
-            s"$acc.concat(lastRes, $jsIterateeExpr.slice($i, $j))"
-        }
-    }
-  }
 }

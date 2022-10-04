@@ -19,7 +19,7 @@ package za.co.absa.spline.persistence.tx
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
-import za.co.absa.spline.persistence.model.{ArangoDocument, NodeDef}
+import za.co.absa.spline.persistence.model.NodeDef
 
 class JSTxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
 
@@ -35,13 +35,12 @@ class JSTxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
       """
         |function (_params) {
         |  const _db = require('internal').db;
-        |  lastRes = (function(db, params){
+        |  (function(db, params){
         |    return db.FOO();
         |  })(_db, _params[0]);
-        |  lastRes = (function(db, params){
+        |  (function(db, params){
         |    db.BAR();
         |  })(_db, _params[1]);
-        |  return lastRes;
         |}
         |""".stripMargin
     }
@@ -69,7 +68,6 @@ class JSTxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
         |          RETURN !!cnt
         |      `, {o}).next() ||
         |    _db._collection("operation").insert(o, {silent:true}));
-        |  return lastRes;
         |}
         |""".stripMargin
     }
@@ -97,43 +95,8 @@ class JSTxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
         |        FILTER a.baz == 777
         |        UPDATE a._key WITH @b IN dataSource
         |  `, {"b": _params[1]});
-        |  return lastRes;
         |}
         |""".stripMargin
-    }
-  }
-
-  it should "support input chaining" in {
-    val docDummy = mock[ArangoDocument]
-
-    val generatedJS = new JSTxBuilder()
-      .addQuery(NativeQuery("return db.FOO();"))
-      .addQuery(UpdateQuery(NodeDef.DataSource, s"${UpdateQuery.DocWildcard}.foo == 42", Query.LastResultPlaceholder))
-      .addQuery(InsertQuery(NodeDef.DataSource, Query.LastResultPlaceholder))
-      .addQuery(InsertQuery(NodeDef.DataSource, docDummy, Query.LastResultPlaceholder, docDummy))
-      .addQuery(InsertQuery(NodeDef.DataSource, docDummy, Query.LastResultPlaceholder, docDummy, Query.LastResultPlaceholder))
-      .generateJs()
-
-    generatedJS shouldEqual {
-      """
-        |function (_params) {
-        |  const _db = require('internal').db;
-        |  lastRes = (function(db, params){
-        |    return db.FOO();
-        |  })(_db, _params[0]);
-        |  _db._query(`
-        |    WITH dataSource
-        |    FOR a IN dataSource
-        |        FILTER a.foo == 42
-        |        UPDATE a._key WITH @b IN dataSource
-        |  `, {"b": lastRes});
-        |  _params[2].slice(0, 0).concat(lastRes, _params[2].slice(1, Number.MAX_SAFE_INTEGER)).map(o =>_db._collection("dataSource").insert(o, {silent:true}));
-        |  _params[3].slice(0, 1).concat(lastRes, _params[3].slice(2, Number.MAX_SAFE_INTEGER)).map(o =>_db._collection("dataSource").insert(o, {silent:true}));
-        |  _params[4].slice(0, 1).concat(lastRes, _params[4].slice(2, 3)).concat(lastRes, _params[4].slice(4, Number.MAX_SAFE_INTEGER)).map(o =>_db._collection("dataSource").insert(o, {silent:true}));
-        |  return lastRes;
-        |}
-        |""".stripMargin
-
     }
   }
 }
