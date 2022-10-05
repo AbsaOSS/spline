@@ -18,6 +18,7 @@ import { aql, db } from '@arangodb'
 import { Progress } from '../../external/api.model'
 import { ReadTxInfo } from '../persistence/model'
 import { AQLCodeGenHelper } from '../utils/aql-gen-helper'
+import * as Logger from '../utils/logger'
 
 
 /**
@@ -30,12 +31,12 @@ import { AQLCodeGenHelper } from '../utils/aql-gen-helper'
 export function observedReadsByWrite(writeEvent: Progress, rtxInfo: ReadTxInfo): Progress[] {
     const aqlGen = new AQLCodeGenHelper(rtxInfo)
 
-    return writeEvent && db._query(aql`
+    const query = aql`
         WITH progress, progressOf, executionPlan, executes, operation, depends, writesTo, readsFrom, dataSource
         LET minReadTime = ${writeEvent}.timestamp
 
         FOR wExPlan, wpo IN 1 OUTBOUND ${writeEvent} progressOf
-            ${aqlGen.genTxIsolationCode('wExPlan', 'wpo')}
+            ${aqlGen.genTxIsolationCodeForTraversal('wExPlan', 'wpo')}
             LET wds = FIRST(
                 FOR ds IN 1 OUTBOUND wExPlan affects
                     RETURN ds
@@ -44,12 +45,12 @@ export function observedReadsByWrite(writeEvent: Progress, rtxInfo: ReadTxInfo):
             // lets find out maxReadTime - this may not exits
             LET maxReadTime = FIRST(
                 FOR writeOps, wt IN 1 INBOUND wds writesTo
-                    ${aqlGen.genTxIsolationCode('writeOps', 'wt')}
+                    ${aqlGen.genTxIsolationCodeForTraversal('writeOps', 'wt')}
                     FILTER !writeOps.append // appends do not break lineage-connection for impact
                     FOR breakingExPlan IN executionPlan
                         FILTER breakingExPlan._id == writeOps._belongsTo
                         FOR breakingEvent, bpo IN 1 INBOUND breakingExPlan progressOf // looking to find writeOps' execPlan and event
-                            ${aqlGen.genTxIsolationCode('breakingEvent', 'bpo')}
+                            ${aqlGen.genTxIsolationCodeForTraversal('breakingEvent', 'bpo')}
                             FILTER breakingEvent.timestamp > minReadTime
                             SORT breakingEvent.timestamp DESC
                             RETURN breakingEvent.timestamp
@@ -57,17 +58,21 @@ export function observedReadsByWrite(writeEvent: Progress, rtxInfo: ReadTxInfo):
 
             // return distinct set of events that fall into [minReadTime, maxReadTime] range
             // and are connected to the execution plan that reads from the 'wds' data source
-            FOR readEvent, rpo IN progress
-                ${aqlGen.genTxIsolationCode('readEvent', 'rpo')}
+            FOR readEvent IN progress
+                ${aqlGen.genTxIsolationCodeForLoop('readEvent')}
                 FILTER readEvent.timestamp > minReadTime
                 FILTER readEvent.timestamp < maxReadTime || !maxReadTime
                 LET planId = CONCAT('executionPlan/', readEvent.planKey)
                 FOR readOp IN operation
-                    ${aqlGen.genTxIsolationCode('readOp')}
+                    ${aqlGen.genTxIsolationCodeForLoop('readOp')}
                     FILTER readOp.type == 'Read'
                     FILTER readOp._belongsTo == planId
                     FOR ds IN 1 OUTBOUND readOp readsFrom
                         FILTER ds._key == wds._key
                         RETURN DISTINCT readEvent
-    `).toArray()
+    `
+
+    Logger.debug(query)
+
+    return writeEvent && db._query(query).toArray()
 }

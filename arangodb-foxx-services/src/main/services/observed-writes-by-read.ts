@@ -18,6 +18,7 @@ import { aql, db } from '@arangodb'
 import { Progress } from '../../external/api.model'
 import { ReadTxInfo } from '../persistence/model'
 import { AQLCodeGenHelper } from '../utils/aql-gen-helper'
+import * as Logger from '../utils/logger'
 
 
 /**
@@ -29,16 +30,16 @@ import { AQLCodeGenHelper } from '../utils/aql-gen-helper'
  */
 export function observedWritesByRead(readEvent: Progress, rtxInfo: ReadTxInfo): Progress[] {
     const aqlGen = new AQLCodeGenHelper(rtxInfo)
-    return readEvent && db._query(aql`
+    const query = aql`
         WITH progress, progressOf, executionPlan, executes, operation, depends, writesTo, dataSource
         LET readTime = ${readEvent}.timestamp
         FOR rds IN 2 OUTBOUND ${readEvent} progressOf, depends
             LET maybeObservedOverwrite = SLICE(
                 (FOR wo, wt IN 1 INBOUND rds writesTo
-                    ${aqlGen.genTxIsolationCode('wo', 'wt')}
+                    ${aqlGen.genTxIsolationCodeForTraversal('wo', 'wt')}
                     FILTER !wo.append
                     FOR p, po IN 2 INBOUND wo executes, progressOf
-                        ${aqlGen.genTxIsolationCode('p', 'po')}
+                        ${aqlGen.genTxIsolationCodeForTraversal('p', 'po')}
                         FILTER p.timestamp < readTime
                            AND p.error == null
                         SORT p.timestamp DESC
@@ -47,10 +48,10 @@ export function observedWritesByRead(readEvent: Progress, rtxInfo: ReadTxInfo): 
                 ), 0, 1)
             LET observedAppends = (
                 FOR wo, wt IN 1 INBOUND rds writesTo
-                    ${aqlGen.genTxIsolationCode('wo', 'wt')}
+                    ${aqlGen.genTxIsolationCodeForTraversal('wo', 'wt')}
                     FILTER wo.append
                     FOR p, po IN 2 INBOUND wo executes, progressOf
-                        ${aqlGen.genTxIsolationCode('p', 'po')}
+                        ${aqlGen.genTxIsolationCodeForTraversal('p', 'po')}
                         FILTER p.timestamp > maybeObservedOverwrite[0].timestamp
                            AND p.timestamp < readTime
                            AND p.error == null
@@ -59,5 +60,9 @@ export function observedWritesByRead(readEvent: Progress, rtxInfo: ReadTxInfo): 
                 )
             LET allObservedEvents = APPEND(maybeObservedOverwrite, observedAppends)
             FOR p IN allObservedEvents RETURN p
-    `).toArray()
+    `
+
+    Logger.debug(query)
+
+    return readEvent && db._query(query).toArray()
 }

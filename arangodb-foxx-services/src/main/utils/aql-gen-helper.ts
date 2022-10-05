@@ -26,11 +26,21 @@ export class AQLCodeGenHelper {
     ) {
     }
 
-    genTxIsolationCode(...aqlVarIdentifiers: string[]) {
+    genTxIsolationCodeForTraversal(...aqlVarIdentifiers: string[]): ArangoDB.Query {
+        return this.genTxIsolationCode(true, ...aqlVarIdentifiers)
+    }
+
+    genTxIsolationCodeForLoop(...aqlVarIdentifiers: string[]): ArangoDB.Query {
+        return this.genTxIsolationCode(false, ...aqlVarIdentifiers)
+    }
+
+    private genTxIsolationCode(isTraversal: boolean, ...aqlVarIdentifiers: string[]): ArangoDB.Query {
         this.i++
         const pruneVar = aql.literal(`__isTxDirty${this.i}`)
+        const args = aql.literal(aqlVarIdentifiers.join(','))
+        const pruneOrLet = aql.literal(isTraversal ? 'PRUNE' : 'LET')
         return aql`
-            PRUNE ${pruneVar} = !SPLINE::IS_VISIBLE_FROM_TX(${this.rtxInfo}, ${aql.literal(aqlVarIdentifiers.join(','))})
+            ${pruneOrLet} ${pruneVar} = !SPLINE::IS_VISIBLE_FROM_TX(${this.rtxInfo}, ${args})
             FILTER !${pruneVar}
         `
     }
