@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { CollectionName, WriteTxInfo } from '../persistence/model'
+import { CollectionName, ReadTxInfo, TxAwareDocument, WriteTxInfo } from '../persistence/model'
 import { db } from '@arangodb'
 import { DocumentKey } from '../model'
+import isVisibleFromTx from '../../aql/is_visible_from_tx.func'
 import Document = ArangoDB.Document
 import DocumentMetadata = ArangoDB.DocumentMetadata
 
@@ -44,8 +45,9 @@ function insertMany<T extends Record<string, any>>(docs: T[], colName: Collectio
     })
 }
 
-function getDocByKey<T extends Document>(colName: CollectionName, key: DocumentKey): T {
-    return <T>db._document(`${colName}/${key}`)
+function getDocByKey<T extends Document>(colName: CollectionName, key: DocumentKey, rtxInfo: ReadTxInfo = undefined): T {
+    const doc = <T & TxAwareDocument>db._document(`${colName}/${key}`)
+    return doc && rtxInfo && isVisibleFromTx(rtxInfo, doc) ? doc : null
 }
 
 function deleteByKey(colName: CollectionName, key: DocumentKey): DocumentMetadata {

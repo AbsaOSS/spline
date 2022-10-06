@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import isVisible = require('../../aql/is_visible_from_tx.func')
+import isVisibleFromTx = require('../../aql/is_visible_from_tx.func')
 import { ReadTxInfo, TxAwareDocument } from '../../main/persistence/model'
 
 
@@ -24,7 +24,7 @@ test('IS_VISIBLE_FROM_TX', () => {
         liveTxIds: ['111', '222', '333']
     }
 
-    const doc0: TxAwareDocument = {
+    const doc0 = {
         // VISIBLE DOCUMENT
         // no _tx_info
     }
@@ -62,19 +62,19 @@ test('IS_VISIBLE_FROM_TX', () => {
     }
 
     // null safety
-    expect(isVisible(rtx)).toBe(true)
-    expect(isVisible(rtx, <any>null)).toBe(true)
+    expect(isVisibleFromTx(rtx)).toBe(true)
+    expect(isVisibleFromTx(rtx, <any>null)).toBe(true)
 
     // visible docs
-    expect(isVisible(rtx, doc0)).toBe(true)
-    expect(isVisible(rtx, doc1)).toBe(true)
+    expect(isVisibleFromTx(rtx, doc0)).toBe(true)
+    expect(isVisibleFromTx(rtx, doc1)).toBe(true)
 
     // invisible docs
-    expect(isVisible(rtx, doc2)).toBe(false)
-    expect(isVisible(rtx, doc3)).toBe(false)
-    expect(isVisible(rtx, doc4)).toBe(false)
+    expect(isVisibleFromTx(rtx, doc2)).toBe(false)
+    expect(isVisibleFromTx(rtx, doc3)).toBe(false)
+    expect(isVisibleFromTx(rtx, doc4)).toBe(false)
 
     // multiple docs
-    expect(isVisible(rtx, doc0, doc1)).toBe(true)
-    expect(isVisible(rtx, doc1, doc2, doc3, doc4)).toBe(false)
+    expect(isVisibleFromTx(rtx, doc0, doc1)).toBe(true)
+    expect(isVisibleFromTx(rtx, doc1, doc2, doc3, doc4)).toBe(false)
 })

@@ -25,11 +25,12 @@ import { TxManager } from './TxManager'
 
 export function storeExecutionEvent(progress: Progress): void {
     withTimeTracking(`STORE EVENT ${progress._key}`, () => {
-
-        // todo: do we need to wrap the following into a READ transaction?
-
         const planKey = progress.planKey
-        const ep = store.getDocByKey(CollectionName.ExecutionPlan, planKey)
+        const rtxInfo = TxManager.startRead()
+        const ep = store.getDocByKey(CollectionName.ExecutionPlan, planKey, rtxInfo)
+        if (!ep) {
+            throw Error(`Execution plan with ID ${planKey} not found`)
+        }
         const {
             targetDsSelector,
             lastWriteTimestamp,

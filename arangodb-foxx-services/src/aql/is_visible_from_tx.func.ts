@@ -28,7 +28,7 @@ import { ReadTxInfo, TxAwareDocument, TxId, TxNum, WriteTxInfo } from '../main/p
  * @param docs ArangoDB document(s)
  * @return true - if all `docs` are visible, false - otherwise
  */
-function isVisible(rtx: ReadTxInfo, ...docs: TxAwareDocument[]): boolean {
+function isVisibleFromTx(rtx: ReadTxInfo, ...docs: TxAwareDocument[]): boolean {
     const n = docs.length
     const rtxNum: TxNum = rtx.num
     const liveTxIds: TxId[] = rtx.liveTxIds
@@ -45,4 +45,4 @@ function isVisible(rtx: ReadTxInfo, ...docs: TxAwareDocument[]): boolean {
     return true
 }
 
-export = isVisible
+export = isVisibleFromTx
