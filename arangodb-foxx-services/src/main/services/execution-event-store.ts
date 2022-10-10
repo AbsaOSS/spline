@@ -71,7 +71,8 @@ export function storeExecutionEvent(progress: Progress): void {
         const progressWithPlanDetails = { ...progress, execPlanDetails }
 
         if (lastWriteTimestamp < progress.timestamp) {
-            // todo: <-------------------------------------------------------------- GET RID OF THIS
+            // This update is not covered with the application level transaction.
+            // It should be solved in the https://github.com/AbsaOSS/spline/issues/1111
             db._update(
                 targetDsSelector,
                 { lastWriteDetails: progressWithPlanDetails }
