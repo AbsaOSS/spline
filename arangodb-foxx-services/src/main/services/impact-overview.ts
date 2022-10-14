@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-import {DataSource, DocumentKey, ExecutionEvent, LineageGraph, LineageOverview} from '../model'
+import { DataSource, DocumentKey, LineageGraph, LineageOverview } from '../model'
 
-import {observedReadsByWrite} from './observed-reads-by-write'
+import { observedReadsByWrite } from './observed-reads-by-write'
 import {
-    constructLineageOverview, eventLineageOverviewGraph,
+    constructLineageOverview,
+    eventLineageOverviewGraph,
     getExecutionEventFromEventKey,
     getTargetDataSourceFromExecutionEvent
 } from './commons'
+import { Progress } from '../../external/api.model'
+import { ReadTxInfo } from '../persistence/model'
 
 
 /**
@@ -32,15 +35,15 @@ import {
  * It shows how far the traversal should look for the impact (forward-lineage).
  * @returns za.co.absa.spline.consumer.service.model.LineageOverview
  */
-export function impactOverview(eventKey: DocumentKey, maxDepth: number): LineageOverview {
+export function impactOverview(eventKey: DocumentKey, maxDepth: number, rtxInfo: ReadTxInfo): LineageOverview {
 
-    const executionEvent: ExecutionEvent = getExecutionEventFromEventKey(eventKey)
+    const executionEvent: Progress = getExecutionEventFromEventKey(eventKey)
     const targetDataSource: DataSource = executionEvent && getTargetDataSourceFromExecutionEvent(executionEvent)
-    const impactGraph: LineageGraph = eventImpactOverviewGraph(executionEvent, maxDepth)
+    const impactGraph: LineageGraph = eventImpactOverviewGraph(executionEvent, maxDepth, rtxInfo)
 
     return impactGraph && constructLineageOverview(executionEvent, targetDataSource, maxDepth, impactGraph)
 }
 
-function eventImpactOverviewGraph(startEvent: ExecutionEvent, maxDepth: number): LineageGraph {
-    return eventLineageOverviewGraph(observedReadsByWrite, startEvent, maxDepth)
+function eventImpactOverviewGraph(startEvent: Progress, maxDepth: number, rtxInfo: ReadTxInfo): LineageGraph {
+    return eventLineageOverviewGraph(observedReadsByWrite, startEvent, maxDepth, rtxInfo)
 }

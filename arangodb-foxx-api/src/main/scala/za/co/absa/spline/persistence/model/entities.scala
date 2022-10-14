@@ -16,6 +16,8 @@
 package za.co.absa.spline.persistence.model
 
 trait ArangoDocument {
+  val _key: ArangoDocument.Key = null // NOSONAR
+
   // entity creation time (don't confuse with the event time)
   val _created: ArangoDocument.Timestamp = System.currentTimeMillis
 
@@ -38,18 +40,17 @@ trait RootEntity {
   override val _belongsTo: Option[ArangoDocument.Id] = None
 }
 
-trait Vertex extends ArangoDocument {
-  def _key: ArangoDocument.Key
-}
+trait Vertex extends ArangoDocument
 
 case class Edge(
   _from: ArangoDocument.Id,
   _to: ArangoDocument.Id,
   override val _belongsTo: Option[ArangoDocument.Id],
   index: Option[Edge.Index],
-  path: Option[Edge.FromPath]
+  path: Option[Edge.FromPath],
+  override val _key: ArangoDocument.Key = null // NOSONAR
 ) extends ArangoDocument {
-  def this() = this(null, null, null, null, null)
+  def this() = this(null, null, null, null, null, null) // NOSONAR
 }
 
 object Edge {
@@ -61,7 +62,7 @@ case class DBVersion(
   version: String,
   status: String
 ) extends ArangoDocument with RootEntity {
-  def this() = this(null, null)
+  def this() = this(null, null) // NOSONAR
 }
 
 object DBVersion {
@@ -78,6 +79,10 @@ object DBVersion {
 
 }
 
+case class Counter(override val _key: String, curVal: Long) extends ArangoDocument with RootEntity {
+  def this() = this(null, Long.MinValue) // NOSONAR
+}
+
 /**
   * Represents a named location WHERE data can be read from or written to.
   * It can be anything that can serve as a data input or output for a data pipeline.
@@ -88,9 +93,9 @@ case class DataSource(
   name: DataSource.Name,
   lastWriteDetails: Option[Progress]
 ) extends Vertex with RootEntity {
-  override val _key: DataSource.Key = null
+  override val _key: DataSource.Key = null // NOSONAR
 
-  def this() = this(null, null, null)
+  def this() = this(null, null, null) // NOSONAR
 }
 
 object DataSource {
@@ -133,6 +138,7 @@ object ExecutionPlan {
   * custom data logically connected to the event.
   */
 case class Progress(
+  planKey: ArangoDocument.Key,
   timestamp: Long,
   durationNs: Option[Progress.JobDurationInNanos],
   discriminator: Option[ExecutionPlan.Discriminator],
@@ -159,5 +165,5 @@ case class ExecPlanDetails(
   dataSourceType: String,
   append: Boolean
 ) {
-  def this() = this(null, null, null, null, null, null, false)
+  def this() = this(null, null, null, null, null, null, false) // NOSONAR
 }

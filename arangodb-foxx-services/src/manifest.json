@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json.schemastore.org/foxx-manifest",
+  "engines": {
+    "arangodb": "^3.8.0"
+  },
+  "scripts": {
+    "setup": "scripts/setup.js",
+    "teardown": "scripts/teardown.js"
+  },
+  "main": "main/index.js",
+  "name": "spline-persistence-services",
+  "version": "@VERSION@",
+  "description": "Spline persistence REST API",
+  "author": "ABSA Group Limited",
+  "license": "Apache-2.0",
+  "thumbnail": "assets/spline-logo.300x300.png"
+}

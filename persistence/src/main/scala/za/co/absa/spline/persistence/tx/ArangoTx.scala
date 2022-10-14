@@ -18,8 +18,9 @@ package za.co.absa.spline.persistence.tx
 
 import com.arangodb.async.ArangoDatabaseAsync
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.ClassTag
 
 trait ArangoTx {
-  def execute(db: ArangoDatabaseAsync): Future[Unit]
+  def execute[A: ClassTag](db: ArangoDatabaseAsync)(implicit ex: ExecutionContext): Future[A]
 }

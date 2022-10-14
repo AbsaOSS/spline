@@ -21,25 +21,25 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.spline.persistence.model.NodeDef
 
-class TxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
+class JSTxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
 
   behavior of "generateJs()"
 
   it should "generate NATIVE statements" in {
-    val generatedJS = new TxBuilder()
-      .addQuery(NativeQuery("db.FOO();"))
+    val generatedJS = new JSTxBuilder()
+      .addQuery(NativeQuery("return db.FOO();"))
       .addQuery(NativeQuery("db.BAR();"))
       .generateJs()
 
-    generatedJS should be {
+    generatedJS shouldEqual {
       """
         |function (_params) {
         |  const _db = require('internal').db;
-        |  lastRes = (function(db, params){
+        |  (function(db, params){
         |    return db.FOO();
         |  })(_db, _params[0]);
-        |  lastRes = (function(db, params){
-        |    return db.BAR();
+        |  (function(db, params){
+        |    db.BAR();
         |  })(_db, _params[1]);
         |}
         |""".stripMargin
@@ -47,12 +47,12 @@ class TxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
   }
 
   it should "generate INSERT statements" in {
-    val generatedJS = new TxBuilder()
+    val generatedJS = new JSTxBuilder()
       .addQuery(InsertQuery(NodeDef.DataSource))
       .addQuery(InsertQuery(NodeDef.Operation).copy(ignoreExisting = true))
       .generateJs()
 
-    generatedJS should be {
+    generatedJS shouldEqual {
       """
         |function (_params) {
         |  const _db = require('internal').db;
@@ -74,12 +74,12 @@ class TxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
   }
 
   it should "generate UPDATE statements" in {
-    val generatedJS = new TxBuilder()
+    val generatedJS = new JSTxBuilder()
       .addQuery(UpdateQuery(NodeDef.DataSource, s"${UpdateQuery.DocWildcard}.foo == 42", Map.empty))
       .addQuery(UpdateQuery(NodeDef.DataSource, s"${UpdateQuery.DocWildcard}.baz == 777", Map.empty))
       .generateJs()
 
-    generatedJS should be {
+    generatedJS shouldEqual {
       """
         |function (_params) {
         |  const _db = require('internal').db;
@@ -99,5 +99,4 @@ class TxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
         |""".stripMargin
     }
   }
-
 }

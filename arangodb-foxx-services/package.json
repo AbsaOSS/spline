@@ -1,11 +1,18 @@
 {
   "name": "spline_foxx_services",
+  "version": "1.0.0-SNAPSHOT",
   "license": "Apache-2.0",
   "copyright": "2022 ABSA Group Limited",
   "private": true,
   "scripts": {
+    "postinstall": "sync-pom-version",
     "build": "tsc",
-    "postbuild": "copyfiles --up 2 src/main/*.json src/main/**/*.json target/dist",
+    "postbuild": "npm run postbuild:copy && npm run postbuild:replace",
+    "postbuild:copy": "copyfiles --up 1 src/*.json src/assets/* src/README* target/dist",
+    "postbuild:replace": "npm run postbuild:replace:version && npm run postbuild:replace:revision && npm run postbuild:replace:timestamp",
+    "postbuild:replace:version": "cross-env-shell replace '@VERSION@' $npm_package_version target/dist/*",
+    "postbuild:replace:revision": "cross-env-shell replace '@REVISION@' $SPLINE_BUILD_REVISION target/dist/*",
+    "postbuild:replace:timestamp": "cross-env-shell replace '@BUILD_TIMESTAMP@' $SPLINE_BUILD_TIMESTAMP target/dist/*",
     "test": "jest",
     "lint": "eslint src",
     "foxx:deploy": "npm run build && npm run foxx:uninstall && npm run foxx:install",
@@ -15,7 +22,6 @@
   "devDependencies": {
     "@types/arangodb": "^3.5.13",
     "@types/jest": "^28.1.5",
-    "@types/node": "^13.13.52",
     "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "^5.30.7",
     "copyfiles": "^2.4.1",
@@ -24,6 +30,8 @@
     "foxx-cli": "^2.0.1",
     "jest": "^28.1.2",
     "joi": "^17.6.0",
+    "replace": "^1.2.1",
+    "sync-pom-version-to-package": "^1.6.1",
     "ts-jest": "^28.0.7",
     "typescript": "^4.7.4"
   }

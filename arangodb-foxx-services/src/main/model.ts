@@ -14,13 +14,8 @@
  * limitations under the License.
  */
 
+
 export type DocumentKey = string
-export type ExecutionEvent = {
-    timestamp: bigint
-    extra: {
-        appId: string
-    }
-}
 export type DataSource = {
     _key: string
     name: string
@@ -49,7 +44,7 @@ export type LineageGraph = {
  */
 export type LineageOverview = {
     info: {
-        timestamp: bigint
+        timestamp: number
         applicationId: string
         targetDataSourceId: string
     }

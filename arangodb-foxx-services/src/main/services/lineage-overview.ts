@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {DataSource, DocumentKey, ExecutionEvent, LineageGraph, LineageOverview} from '../model'
+import {DataSource, DocumentKey, LineageGraph, LineageOverview} from '../model'
 
 import {observedWritesByRead} from './observed-writes-by-read'
 import {
@@ -22,6 +22,8 @@ import {
     getExecutionEventFromEventKey,
     getTargetDataSourceFromExecutionEvent
 } from './commons'
+import { Progress } from '../../external/api.model'
+import { ReadTxInfo } from '../persistence/model'
 
 
 /**
@@ -32,15 +34,15 @@ import {
  * It shows how far the traversal should look for the lineage.
  * @returns za.co.absa.spline.consumer.service.model.LineageOverview
  */
-export function lineageOverview(eventKey: DocumentKey, maxDepth: number): LineageOverview {
+export function lineageOverview(eventKey: DocumentKey, maxDepth: number, rtxInfo: ReadTxInfo): LineageOverview {
 
-    const executionEvent: ExecutionEvent = getExecutionEventFromEventKey(eventKey)
+    const executionEvent: Progress = getExecutionEventFromEventKey(eventKey)
     const targetDataSource: DataSource = executionEvent && getTargetDataSourceFromExecutionEvent(executionEvent)
-    const lineageGraph: LineageGraph = eventBackwardLineageOverviewGraph(executionEvent, maxDepth)
+    const lineageGraph: LineageGraph = eventBackwardLineageOverviewGraph(executionEvent, maxDepth, rtxInfo)
 
     return lineageGraph && constructLineageOverview(executionEvent, targetDataSource, maxDepth, lineageGraph)
 }
 
-function eventBackwardLineageOverviewGraph(startEvent: ExecutionEvent, maxDepth: number): LineageGraph {
-    return eventLineageOverviewGraph(observedWritesByRead, startEvent, maxDepth)
+function eventBackwardLineageOverviewGraph(startEvent: Progress, maxDepth: number, rtxInfo: ReadTxInfo): LineageGraph {
+    return eventLineageOverviewGraph(observedWritesByRead, startEvent, maxDepth, rtxInfo)
 }

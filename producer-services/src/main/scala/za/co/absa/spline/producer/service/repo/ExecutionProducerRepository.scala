@@ -22,6 +22,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait ExecutionProducerRepository {
   def insertExecutionPlan(executionPlan: ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit]
-  def insertExecutionEvents(executionEvents: Array[ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit]
+  def insertExecutionEvent(executionEvent: ExecutionEvent)(implicit ec: ExecutionContext): Future[Unit]
   def isDatabaseOk()(implicit ec: ExecutionContext): Future[Boolean]
 }

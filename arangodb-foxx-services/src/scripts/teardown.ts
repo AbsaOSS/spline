@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import myCoolFunction = require('../main/example')
+import aqlFunctions from '@arangodb/aql/functions'
 
-
-test('myCoolFunction', () => {
-    expect(myCoolFunction(1, 2)).toBe(3)
-})
+// Unregister AQL functions
+const n = aqlFunctions.unregisterGroup('SPLINE')
+console.log('Unregistered AQL functions:', n)
