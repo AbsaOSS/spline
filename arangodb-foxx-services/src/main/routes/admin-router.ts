@@ -15,12 +15,21 @@
  */
 
 import { createRouter } from '@arangodb/foxx'
-import eventsRouter from './events-router'
-import adminRouter from './admin-router'
+import joi from 'joi'
+import { pruneBefore } from '../services/prune-database'
 
 
-const rootRouter: Foxx.Router = createRouter()
-rootRouter.use('/admin', adminRouter)
-rootRouter.use('/events', eventsRouter)
+const adminRouter = createRouter()
 
-export default rootRouter
+adminRouter
+    .delete('/data/before/:timestamp',
+        (req: Foxx.Request, res: Foxx.Response) => {
+            const timestamp = req.pathParams.timestamp
+            pruneBefore(timestamp)
+            res.send('DB Pruning request submitted.')
+        })
+    .pathParam('timestamp', joi.number().integer().min(0).required(), 'Data retention threshold [timestamp in millis]')
+    .summary('Prune database')
+    .description('Garbage collect the data older than the given timestamp')
+
+export default adminRouter

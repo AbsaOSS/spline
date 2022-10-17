@@ -20,6 +20,9 @@ import za.co.absa.spline.admin.DBCommand._
 import za.co.absa.spline.arango.{AuxiliaryDBAction, DatabaseCreateOptions}
 import za.co.absa.spline.persistence.ArangoConnectionURL
 
+import java.time.ZonedDateTime
+import scala.concurrent.duration.Duration
+
 sealed trait Command
 
 sealed trait DBCommand extends Command {
@@ -66,4 +69,13 @@ case class DBExec(
   protected override val selfCopy: DBCommandProps => Self = copy(_)
 
   def addAction(action: AuxiliaryDBAction): DBExec = copy(actions = actions :+ action)
+}
+
+case class DBPrune(
+                    override val dbUrl: Url = null,
+                    retentionPeriod: Option[Duration] = None,
+                    thresholdDate: Option[ZonedDateTime] = None
+                  ) extends DBCommand {
+  protected override type Self = DBPrune
+  protected override val selfCopy: DBCommandProps => Self = copy(_)
 }

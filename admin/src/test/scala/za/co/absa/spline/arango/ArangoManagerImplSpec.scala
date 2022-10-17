@@ -18,8 +18,9 @@ package za.co.absa.spline.arango
 
 import com.arangodb.async.ArangoDatabaseAsync
 import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentMatchers, Mockito}
+import org.scalatest.concurrent.ScalaFutures.whenReady
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{Assertions, OneInstancePerTest}
@@ -31,6 +32,8 @@ import za.co.absa.spline.arango.foxx.FoxxManager
 import za.co.absa.spline.persistence.DatabaseVersionManager
 import za.co.absa.spline.persistence.migration.Migrator
 
+import java.time.{Clock, Instant, ZoneId, ZonedDateTime}
+import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
 class ArangoManagerImplSpec
@@ -113,10 +116,54 @@ class ArangoManagerImplSpec
       ex.getMessage shouldEqual "oops"
     }
   }
+
+  private val drmMock = mock[DataRetentionManager]
+  when(drmMock.pruneBefore(any())).thenReturn(Future.successful())
+
+  behavior of "prune(Duration)"
+
+  it should "compute timestamp of cut correctly" in {
+    val clock = Clock.fixed(Instant.ofEpochMilli(1000000), ZoneId.of("UTC"))
+    val manager = newManager(drmMock = drmMock, clock = clock)
+
+    whenReady(manager.prune(0.millis))(_ => verify(drmMock).pruneBefore(1000000))
+    whenReady(manager.prune(1.millis))(_ => verify(drmMock).pruneBefore(999999))
+    whenReady(manager.prune(1.second))(_ => verify(drmMock).pruneBefore(999000))
+    whenReady(manager.prune(1.minute))(_ => verify(drmMock).pruneBefore(940000))
+
+    Assertions.succeed
+  }
+
+  it should "not depend on timezone" in {
+    val clock = Clock.fixed(Instant.ofEpochMilli(1000000), ZoneId.of("UTC"))
+    val tzPrague = ZoneId.of("Europe/Prague")
+    val tzSamara = ZoneId.of("Europe/Samara")
+
+    for {
+      _ <- newManager(drmMock = drmMock, clock = clock.withZone(tzPrague)).prune(1.milli)
+      _ <- newManager(drmMock = drmMock, clock = clock.withZone(tzSamara)).prune(1.milli)
+    } yield {
+      verify(drmMock, times(2)).pruneBefore(999999)
+      Assertions.succeed
+    }
+  }
+
+  behavior of "prune(ZonedDateTime)"
+
+  it should "compute timestamp of cut correctly" in {
+    val clock = Clock.fixed(Instant.ofEpochMilli(1000000), ZoneId.of("UTC"))
+    val manager = newManager(drmMock = drmMock, clock = clock)
+
+    whenReady(manager.prune(ZonedDateTime.now(clock)))(_ => verify(drmMock).pruneBefore(1000000))
+
+    Assertions.succeed
+  }
 }
 
 object ArangoManagerImplSpec {
   private def newManager(
+    drmMock: DataRetentionManager = null,
+    clock: Clock = null,
     migratorMock: Migrator = null,
     foxxManagerMock: FoxxManager = null,
     dbVersionManagerMock: DatabaseVersionManager = null,
@@ -125,8 +172,10 @@ object ArangoManagerImplSpec {
     new ArangoManagerImpl(
       mock[ArangoDatabaseAsync],
       dbVersionManagerMock,
+      drmMock,
       migratorMock,
       foxxManagerMock,
+      clock,
       appDbVersion)
   }
 }

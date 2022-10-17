@@ -32,9 +32,11 @@ import za.co.absa.spline.persistence.DatabaseVersionManager
 import za.co.absa.spline.persistence.migration.Migrator
 import za.co.absa.spline.persistence.model.{CollectionDef, GraphDef, SearchAnalyzerDef, SearchViewDef}
 
+import java.time.{Clock, ZonedDateTime}
 import scala.collection.JavaConverters._
 import scala.collection.immutable._
 import scala.compat.java8.FutureConverters._
+import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 import scala.io.Source
 
@@ -46,13 +48,18 @@ trait ArangoManager {
   def initialize(onExistsAction: OnDBExistsAction, options: DatabaseCreateOptions): Future[Boolean]
   def upgrade(): Future[Unit]
   def execute(actions: AuxiliaryDBAction*): Future[Unit]
+  def prune(retentionPeriod: Duration): Future[Unit]
+  def prune(thresholdDate: ZonedDateTime): Future[Unit]
+
 }
 
 class ArangoManagerImpl(
   db: ArangoDatabaseAsync,
   dbVersionManager: DatabaseVersionManager,
+  dataRetentionManager: DataRetentionManager,
   migrator: Migrator,
   foxxManager: FoxxManager,
+  clock: Clock,
   appDBVersion: SemanticVersion)
   (implicit val ex: ExecutionContext)
   extends ArangoManager
@@ -113,6 +120,16 @@ class ArangoManagerImpl(
           case AuxiliaryDBAction.SearchAnalyzerCreate => createSearchAnalyzers(db)
         }).map(_ => {}))
     }
+  }
+
+  override def prune(retentionPeriod: Duration): Future[Unit] = {
+    log.debug(s"Prune data older than $retentionPeriod")
+    dataRetentionManager.pruneBefore(clock.millis - retentionPeriod.toMillis)
+  }
+
+  override def prune(dateTime: ZonedDateTime): Future[Unit] = {
+    log.debug(s"Prune data before $dateTime")
+    dataRetentionManager.pruneBefore(dateTime.toInstant.toEpochMilli)
   }
 
   private def checkDBAccess(db: ArangoDatabaseAsync) = {
