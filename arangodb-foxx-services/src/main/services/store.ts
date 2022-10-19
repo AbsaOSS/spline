@@ -47,7 +47,9 @@ function insertMany<T extends Record<string, any>>(docs: T[], colName: Collectio
 
 function getDocByKey<T extends Document>(colName: CollectionName, key: DocumentKey, rtxInfo: ReadTxInfo = undefined): T {
     const doc = <T & TxAwareDocument>db._document(`${colName}/${key}`)
-    return doc && rtxInfo && isVisibleFromTx(rtxInfo, doc) ? doc : null
+    return doc && rtxInfo && !isVisibleFromTx(rtxInfo, doc)
+        ? null // the doc is found, but is not visible from inside the given read transaction.
+        : doc  // otherwise return the doc, or null if it's not there.
 }
 
 function deleteByKey(colName: CollectionName, key: DocumentKey): DocumentMetadata {
