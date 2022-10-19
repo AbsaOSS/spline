@@ -22,6 +22,17 @@ const analyzers = require("@arangodb/analyzers");
 
 console.log(`[Spline] Start migration to ${VER}`);
 
+console.log("[Spline] Create 'counter' collection");
+db._createDocumentCollection("counter");
+db._query(aql`
+    WITH counter
+    INSERT {
+        "_key": "tx",
+        "curVal": 0
+    }
+    INTO counter
+`);
+
 console.log("[Spline] Remove unused named graphs");
 graph._list().forEach(name => graph._drop(name));
 
