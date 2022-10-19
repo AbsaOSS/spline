@@ -33,6 +33,9 @@ db._query(aql`
     INTO counter
 `);
 
+console.log("[Spline] Create 'txInfo' collection");
+db._createDocumentCollection("txInfo");
+
 console.log("[Spline] Remove unused named graphs");
 graph._list().forEach(name => graph._drop(name));
 
