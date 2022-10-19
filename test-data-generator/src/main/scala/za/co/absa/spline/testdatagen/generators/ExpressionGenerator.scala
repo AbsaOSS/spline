@@ -22,7 +22,7 @@ import za.co.absa.spline.producer.model.v1_2.{AttrOrExprRef, Attribute, Function
 
 object ExpressionGenerator {
 
-  //1 func expre with 1 lit per attribute
+  //1 func expire with 1 lit per attribute
   def generateExpressionAndLiteralForAttribute(attribute: Attribute): (FunctionalExpression, Literal) = {
     val literal = genLiteral()
 
@@ -35,7 +35,7 @@ object ExpressionGenerator {
 
   private def genLiteral(): Literal = {
     val id = UUID.randomUUID().toString
-    Literal(id, value = s"val_${id}")
+    Literal(id, value = s"val_$id")
   }
 
 }

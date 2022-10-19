@@ -15,7 +15,6 @@
  */
 package za.co.absa.spline.consumer.service.model
 
-case class SortRequest(sortField: String, sortOrder: String)
-{
-  def this() =  this(null, null)
+case class SortRequest(sortField: String, sortOrder: String) {
+  def this() = this(null, null)
 }

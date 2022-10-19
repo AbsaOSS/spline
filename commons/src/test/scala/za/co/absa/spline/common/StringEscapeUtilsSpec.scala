@@ -19,7 +19,7 @@ package za.co.absa.spline.common
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class StringEscapeUtilsSpec extends AnyFlatSpec with Matchers{
+class StringEscapeUtilsSpec extends AnyFlatSpec with Matchers {
 
   behavior of "escapeAQLSearch"
 

@@ -17,7 +17,6 @@
 package za.co.absa.spline.gateway.rest.filter
 
 import java.io.{BufferedReader, InputStreamReader}
-
 import javax.servlet.ServletInputStream
 import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper}
 
@@ -29,5 +28,6 @@ final class GZIPRequestWrapper(val request: HttpServletRequest) extends HttpServ
 
 
   override def getInputStream: ServletInputStream = stream
+
   override def getReader: BufferedReader = reader
 }

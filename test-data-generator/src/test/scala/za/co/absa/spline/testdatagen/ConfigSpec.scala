@@ -20,16 +20,21 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers.{all, convertToAnyShouldWrapper}
 import za.co.absa.spline.testdatagen.GraphType.{DiamondType, TriangleType}
 
-class ConfigSpec extends AnyFlatSpec{
+class ConfigSpec extends AnyFlatSpec {
 
-  private val varAttr = Config(reads = Constant(2),
+  private val varAttr = Config(
+    reads = Constant(2),
     operations = Constant(5),
     attributes = Variable(2, 8, 2))
-  private val constTriangle = Config(graphType = TriangleType,
-    reads= Constant(3),
+
+  private val constTriangle = Config(
+    graphType = TriangleType,
+    reads = Constant(3),
     operations = Constant(1),
     attributes = Constant(2))
-  private val varReadOpDiamond = Config(graphType= DiamondType,
+
+  private val varReadOpDiamond = Config(
+    graphType = DiamondType,
     reads = Variable(1, 2, 1),
     operations = Variable(4, 10, 3),
     attributes = Constant(4))

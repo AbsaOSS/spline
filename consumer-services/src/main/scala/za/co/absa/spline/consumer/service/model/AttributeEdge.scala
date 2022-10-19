@@ -18,7 +18,7 @@ package za.co.absa.spline.consumer.service.model
 
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
 
-@ApiModel(description="Link between nodes")
+@ApiModel(description = "Link between nodes")
 case class AttributeEdge
 (
   @ApiModelProperty(value = "Source Node")

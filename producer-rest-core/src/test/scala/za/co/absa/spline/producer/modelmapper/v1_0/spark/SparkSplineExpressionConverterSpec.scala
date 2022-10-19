@@ -19,7 +19,6 @@ package za.co.absa.spline.producer.modelmapper.v1_0.spark
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import za.co.absa.spline.producer.model.v1_2.{AttrOrExprRef, FunctionalExpression, Literal}
-import za.co.absa.spline.producer.modelmapper.v1_0.FieldNamesV10
 import za.co.absa.spline.producer.modelmapper.v1_0.TypesV10.ExprDef
 
 class SparkSplineExpressionConverterSpec extends AnyFlatSpec with Matchers {

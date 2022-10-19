@@ -15,8 +15,4 @@
  */
 package za.co.absa.spline.consumer.service.repo
 
-import za.co.absa.spline.consumer.service.model.{PageRequest, SortRequest, WriteEventInfo}
-
-import scala.concurrent.{ExecutionContext, Future}
-
 trait ExecutionEventRepository extends AbstractExecutionEventRepository

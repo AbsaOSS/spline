@@ -38,12 +38,12 @@ object ExpressionLike {
 /**
  * Represents a functional expression that computes a value based on the given input.
  *
- * @param id       expression ID
- * @param name     expression name
- * @param dataType output data type
+ * @param id        expression ID
+ * @param name      expression name
+ * @param dataType  output data type
  * @param childRefs input expression (or attribute) IDs
- * @param params   optional static expression parameters (don't confuse with input parameters)
- * @param extra    optional metadata
+ * @param params    optional static expression parameters (don't confuse with input parameters)
+ * @param extra     optional metadata
  */
 case class FunctionalExpression(
   override val id: ExpressionLike.Id,

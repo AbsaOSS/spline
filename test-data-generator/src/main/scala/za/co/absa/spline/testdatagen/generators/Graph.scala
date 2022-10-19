@@ -16,8 +16,6 @@
 
 package za.co.absa.spline.testdatagen.generators
 
-import java.util.UUID
-
 import za.co.absa.spline.common.SplineBuildInfo
 import za.co.absa.spline.producer.model.v1_2.OperationLike.{Id, Schema}
 import za.co.absa.spline.producer.model.v1_2._
@@ -25,6 +23,8 @@ import za.co.absa.spline.testdatagen.ExpandedConfig
 import za.co.absa.spline.testdatagen.GraphType.{ChainType, DiamondType, TriangleType}
 import za.co.absa.spline.testdatagen.generators.AttributesGenerator.generateSchema
 import za.co.absa.spline.testdatagen.generators.graph.{Chain, Diamond, Triangle}
+
+import java.util.UUID
 
 abstract class Graph(readCount: Int, opCount: Int, attCount: Int) {
   def generate(): ExecutionPlan = {
@@ -39,7 +39,8 @@ abstract class Graph(readCount: Int, opCount: Int, attCount: Int) {
       expressions = Some(expressions),
       systemInfo = NameAndVersion("spline-data-gen", SplineBuildInfo.Version),
       agentInfo = None,
-      extraInfo = Map("graph-type"-> this.getClass.getSimpleName,
+      extraInfo = Map(
+        "graph-type" -> this.getClass.getSimpleName,
         "operationCount" -> opCount,
         "attributeCount" -> attCount,
         "readCount" -> readCount
@@ -79,9 +80,10 @@ abstract class Graph(readCount: Int, opCount: Int, attCount: Int) {
 
     val allAttributesSet = (readAttributes.flatten ++ dataOpAttributes).toSet
 
-    val (functionalExpressions: Seq[FunctionalExpression], literals: Seq[Literal]) = dataAFL.flatMap(
-      _.map { case (_, fex, lit) => (fex, lit)
-    }).unzip
+    val (functionalExpressions: Seq[FunctionalExpression], literals: Seq[Literal]) =
+      dataAFL
+        .flatMap(_.map { case (_, fex, lit) => (fex, lit) })
+        .unzip
 
     val allExpressions = Expressions(functionalExpressions, literals)
 
@@ -97,9 +99,9 @@ abstract class Graph(readCount: Int, opCount: Int, attCount: Int) {
   }
 
   def generateDataOperationsAndExpressions(
-                                            opCount: Int,
-                                            reads: Seq[(ReadOperation, Seq[Attribute])]
-                                          ): Seq[(DataOperation, Seq[(Attribute, FunctionalExpression, Literal)])]
+    opCount: Int,
+    reads: Seq[(ReadOperation, Seq[Attribute])]
+  ): Seq[(DataOperation, Seq[(Attribute, FunctionalExpression, Literal)])]
 
   def generateAttributesFromNewExpressions(parentAttrs: Seq[Attribute]): Seq[(Attribute, FunctionalExpression, Literal)] = {
     val exprWithLiterals = parentAttrs.map(ExpressionGenerator.generateExpressionAndLiteralForAttribute)

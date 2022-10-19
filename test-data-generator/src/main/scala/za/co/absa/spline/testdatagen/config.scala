@@ -18,12 +18,13 @@ package za.co.absa.spline.testdatagen
 
 case class ExpandedConfig(graphType: GraphType, reads: Int, operations: Int, attributes: Int, outputFileName: Option[String])
 
-case class Config(graphType: GraphType = null,
-                  reads: NumericValue = Constant(0),
-                  operations: NumericValue = Constant(0),
-                  attributes: NumericValue = Constant(0),
-                  customOutputFileName: Option[String] = None
-                 ) {
+case class Config(
+  graphType: GraphType = null,
+  reads: NumericValue = Constant(0),
+  operations: NumericValue = Constant(0),
+  attributes: NumericValue = Constant(0),
+  customOutputFileName: Option[String] = None
+) {
 
   def expand(): Seq[ExpandedConfig] = for {
     cr: Config <- reads match {
@@ -38,8 +39,8 @@ case class Config(graphType: GraphType = null,
       case v: Variable => v.expand().map(i => co.copy(attributes = i))
       case _ => Seq(co)
     }
-  } yield ca.toExpandedConfig()
+  } yield ca.toExpandedConfig
 
-  private def toExpandedConfig(): ExpandedConfig = ExpandedConfig(graphType,
+  private def toExpandedConfig: ExpandedConfig = ExpandedConfig(graphType,
     reads.valueOf(), operations.valueOf(), attributes.valueOf(), customOutputFileName)
 }

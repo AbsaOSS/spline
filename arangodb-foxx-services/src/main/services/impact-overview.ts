@@ -33,6 +33,7 @@ import { ReadTxInfo } from '../persistence/model'
  * @param eventKey read event key
  * @param maxDepth maximum number of job nodes in any path of the resulted graph (excluding cycles).
  * It shows how far the traversal should look for the impact (forward-lineage).
+ * @param rtxInfo read tx info
  * @returns za.co.absa.spline.consumer.service.model.LineageOverview
  */
 export function impactOverview(eventKey: DocumentKey, maxDepth: number, rtxInfo: ReadTxInfo): LineageOverview {

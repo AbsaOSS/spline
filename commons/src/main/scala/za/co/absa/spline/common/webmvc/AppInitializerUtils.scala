@@ -20,7 +20,7 @@ import org.springframework.web.context.support.AnnotationConfigWebApplicationCon
 import org.springframework.web.servlet.DispatcherServlet
 
 import java.util
-import javax.servlet.DispatcherType.{ASYNC, REQUEST}
+import javax.servlet.DispatcherType.REQUEST
 import javax.servlet.{Filter, ServletContext}
 import scala.reflect.ClassTag
 

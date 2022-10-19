@@ -54,13 +54,6 @@
             <groupId>com.github.scopt</groupId>
             <artifactId>scopt_${scala.compat.version}</artifactId>
         </dependency>
-        <!-- Test -->
-        <dependency>
-            <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_${scala.compat.version}</artifactId>
-            <version>3.1.0</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
