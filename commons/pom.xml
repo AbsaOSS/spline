@@ -28,11 +28,6 @@
     <artifactId>commons</artifactId>
     <packaging>jar</packaging>
 
-    <properties>
-        <timestamp>${maven.build.timestamp}</timestamp>
-        <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssX</maven.build.timestamp.format>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>za.co.absa.commons</groupId>
@@ -130,27 +125,5 @@
                 <filtering>true</filtering>
             </resource>
         </resources>
-
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>1.4</version>
-                <executions>
-                    <execution>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>create</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <scmConnectionUrl>scm:git:</scmConnectionUrl>
-                    <revisionOnScmFailure>unknown</revisionOnScmFailure>
-                    <timestampFormat>{0,date,${maven.build.timestamp.format}}</timestampFormat>
-                    <shortRevisionLength>7</shortRevisionLength>
-                </configuration>
-            </plugin>
-        </plugins>
     </build>
 </project>

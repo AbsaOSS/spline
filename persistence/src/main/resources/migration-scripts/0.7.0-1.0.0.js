@@ -22,15 +22,32 @@ const analyzers = require("@arangodb/analyzers");
 
 console.log(`[Spline] Start migration to ${VER}`);
 
+console.log("[Spline] Create 'counter' collection");
+db._createDocumentCollection("counter");
+db._query(aql`
+    WITH counter
+    INSERT {
+        "_key": "tx",
+        "curVal": 0
+    }
+    INTO counter
+`);
+
+console.log("[Spline] Create 'txInfo' collection");
+db._createDocumentCollection("txInfo");
+
 console.log("[Spline] Remove unused named graphs");
 graph._list().forEach(name => graph._drop(name));
 
-console.log("[Spline] Add 'progress.labels'");
+console.log("[Spline] Add 'progress.labels and progress.planKey'");
 db._query(aql`
     WITH progress
     FOR ee IN progress
         FILTER ee.labels == null
-        UPDATE ee WITH { labels: {} } IN progress
+        UPDATE ee WITH {
+            labels: {},
+            planKey: PARSE_IDENTIFIER(FIRST(FOR po IN progressOf FILTER po._from == ee._id RETURN po._to)).key
+        } IN progress
 `);
 
 console.log("[Spline] Add 'executionPlan.labels'");

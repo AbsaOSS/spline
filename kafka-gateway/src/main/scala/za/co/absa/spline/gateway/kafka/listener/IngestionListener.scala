@@ -51,6 +51,6 @@ class IngestionListener @Autowired()(val repo: ExecutionProducerRepository)
   protected def processEvent[A](planId: Any, eventDTO: A, timestamp: Long, offset: Long, mapper: ModelMapper[_, A]): Unit = {
     log.trace(s"Processing execution event for planId:$planId and timestamp:$timestamp from topic:$topic on offset:$offset")
     val event = mapper.fromDTO(eventDTO)
-    Await.result(repo.insertExecutionEvents(Array(event)), KafkaGatewayConfig.Kafka.EventTimeout)
+    Await.result(repo.insertExecutionEvent(event), KafkaGatewayConfig.Kafka.EventTimeout)
   }
 }

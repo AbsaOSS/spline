@@ -30,8 +30,6 @@
 
     <properties>
         <swagger.docs.path>${project.build.directory}/api/docs</swagger.docs.path>
-        <timestamp>${maven.build.timestamp}</timestamp>
-        <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssX</maven.build.timestamp.format>
         <dockerfile.imageName>spline-rest-server</dockerfile.imageName>
     </properties>
 

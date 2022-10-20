@@ -30,10 +30,10 @@ object AttributesGenerator {
   def generateAttributeFromExpressionParent(parentId: Id): Attribute = {
     val attrId = UUID.randomUUID().toString
     Attribute(id = attrId, name = s"dummy_attr_$attrId", childRefs =
-        Seq(AttrOrExprRef(
-          __attrId = None,
-          __exprId = Some(parentId))
-        )
+      Seq(AttrOrExprRef(
+        __attrId = None,
+        __exprId = Some(parentId))
+      )
     )
   }
 }

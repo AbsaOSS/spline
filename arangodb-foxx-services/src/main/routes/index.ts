@@ -15,12 +15,14 @@
  */
 
 import { createRouter } from '@arangodb/foxx'
-import eventsRouter from './events-router'
+import { plansRouter } from './plans-router'
+import { eventsRouter } from './events-router'
 import adminRouter from './admin-router'
 
 
 const rootRouter: Foxx.Router = createRouter()
 rootRouter.use('/admin', adminRouter)
-rootRouter.use('/events', eventsRouter)
+rootRouter.use('/execution-plans', plansRouter)
+rootRouter.use('/execution-events', eventsRouter)
 
 export default rootRouter

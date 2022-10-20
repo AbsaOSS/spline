@@ -15,40 +15,54 @@
  */
 
 import { aql, db } from '@arangodb'
+import { Progress } from '../../external/api.model'
+import { ReadTxInfo } from '../persistence/model'
+import { AQLCodeGenHelper } from '../utils/aql-gen-helper'
+import * as Logger from '../utils/logger'
 
 
 /**
  * Returns a list of execution events which writes are visible from any read of the given execution event
  *
  * @param readEvent za.co.absa.spline.persistence.model.Progress
+ * @param rtxInfo READ transaction info
  * @returns za.co.absa.spline.persistence.model.Progress[]
  */
-export function observedWritesByRead(readEvent) {
-    return readEvent && db._query(aql`
+export function observedWritesByRead(readEvent: Progress, rtxInfo: ReadTxInfo): Progress[] {
+    const aqlGen = new AQLCodeGenHelper(rtxInfo)
+    const query = aql`
         WITH progress, progressOf, executionPlan, executes, operation, depends, writesTo, dataSource
         LET readTime = ${readEvent}.timestamp
         FOR rds IN 2 OUTBOUND ${readEvent} progressOf, depends
             LET maybeObservedOverwrite = SLICE(
-                (FOR wo IN 1 INBOUND rds writesTo
+                (FOR wo, wt IN 1 INBOUND rds writesTo
+                    ${aqlGen.genTxIsolationCodeForTraversal('wo', 'wt')}
                     FILTER !wo.append
-                    FOR e IN 2 INBOUND wo executes, progressOf
-                        FILTER e.timestamp < readTime
-                           AND e.error == null
-                        SORT e.timestamp DESC
+                    FOR p, po IN 2 INBOUND wo executes, progressOf
+                        ${aqlGen.genTxIsolationCodeForTraversal('p', 'po')}
+                        FILTER p.timestamp < readTime
+                           AND p.error == null
+                        SORT p.timestamp DESC
                         LIMIT 1
-                        RETURN e
+                        RETURN p
                 ), 0, 1)
             LET observedAppends = (
-                FOR wo IN 1 INBOUND rds writesTo
+                FOR wo, wt IN 1 INBOUND rds writesTo
+                    ${aqlGen.genTxIsolationCodeForTraversal('wo', 'wt')}
                     FILTER wo.append
-                    FOR e IN 2 INBOUND wo executes, progressOf
-                        FILTER e.timestamp > maybeObservedOverwrite[0].timestamp
-                           AND e.timestamp < readTime
-                           AND e.error == null
-                        SORT e.timestamp ASC
-                        RETURN e
+                    FOR p, po IN 2 INBOUND wo executes, progressOf
+                        ${aqlGen.genTxIsolationCodeForTraversal('p', 'po')}
+                        FILTER p.timestamp > maybeObservedOverwrite[0].timestamp
+                           AND p.timestamp < readTime
+                           AND p.error == null
+                        SORT p.timestamp ASC
+                        RETURN p
                 )
             LET allObservedEvents = APPEND(maybeObservedOverwrite, observedAppends)
-            FOR e IN allObservedEvents RETURN e
-    `).toArray()
+            FOR p IN allObservedEvents RETURN p
+    `
+
+    Logger.debug(query)
+
+    return readEvent && db._query(query).toArray()
 }

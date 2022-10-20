@@ -15,7 +15,6 @@
  */
 package za.co.absa.spline.consumer.service.model
 
-case class PageRequest(page: Int, size: Int)
-{
-  def this() =  this(0, 0)
+case class PageRequest(page: Int, size: Int) {
+  def this() = this(0, 0)
 }

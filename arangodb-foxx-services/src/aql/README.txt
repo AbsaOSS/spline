@@ -6,7 +6,7 @@ Example:
 
 File name:
 
-    foo_bar_baz.ts
+    foo_bar_baz.func.ts
 
 File content:
 

@@ -48,5 +48,4 @@ class MyCoolClass {
     }
 }
 
-// Export your function.
 export = myCoolFunction

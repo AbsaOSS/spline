@@ -84,12 +84,12 @@ class Migrator(
       )
       _ <- db.collection(DBVersion.name).insertDocument(model.DBVersion(version.asString, Status.Preparing)).toScala
       _ <- db.adminExecute(script)
-      _ <- new TxBuilder()
+      _ <- new JSTxBuilder()
         .addQuery(UpdateQuery(DBVersion,
           s"${UpdateQuery.DocWildcard}.status == '${Status.Current}'", Map("status" -> Status.Upgraded.toString)))
         .addQuery(UpdateQuery(DBVersion,
           s"${UpdateQuery.DocWildcard}.status == '${Status.Preparing}'", Map("status" -> Status.Current.toString)))
-        .buildTx
+        .buildTx()
         .execute(db)
     } yield ()
   }

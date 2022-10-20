@@ -26,7 +26,7 @@ class Triangle(readCount: Int, dataOpCount: Int, attCount: Int)
 
   override def generateReads(numbSources: Int): Seq[(ReadOperation, Seq[Attribute])] = {
     (1 to numbSources).map(id => {
-      val sources = Seq(s"file://splinegen/read_${id}.csv")
+      val sources = Seq(s"file://splinegen/read_$id.csv")
       val attributes = generateSchema(attCount)
       val readOp = ReadOperation(
         inputSources = sources,
@@ -45,15 +45,16 @@ class Triangle(readCount: Int, dataOpCount: Int, attCount: Int)
     val mapping = reads
       .take(opCount)
       .padTo(opCount, reads.head)
-      .map{ case (readOp: ReadOperation, schema: Seq[Attribute]) => {
-        val attExpLit: Seq[(Attribute, FunctionalExpression, Literal)] = generateAttributesFromNewExpressions(schema)
-        val dataOperation = generateDataOperation(Seq(readOp.id), attExpLit.map(_._1.id))
-        (dataOperation, attExpLit)
-      }}
+      .map {
+        case (readOp: ReadOperation, schema: Seq[Attribute]) =>
+          val attExpLit: Seq[(Attribute, FunctionalExpression, Literal)] = generateAttributesFromNewExpressions(schema)
+          val dataOperation = generateDataOperation(Seq(readOp.id), attExpLit.map(_._1.id))
+          (dataOperation, attExpLit)
+      }
 
 
     if (readCount > opCount) {
-      val lastReadMappings: Seq[(ReadOperation, Seq[Attribute])] = reads.toSeq.takeRight(reads.size - opCount)
+      val lastReadMappings: Seq[(ReadOperation, Seq[Attribute])] = reads.takeRight(reads.size - opCount)
       val (lastDataOp, prevLastAttExpLit) = mapping.last
 
       val (lastReads: Seq[ReadOperation], lastReadAttrs: Seq[Seq[Attribute]]) = lastReadMappings.unzip
@@ -64,7 +65,7 @@ class Triangle(readCount: Int, dataOpCount: Int, attCount: Int)
         .map(generateAttributesFromNewExpressions)
       val newLastAttExpLit = prevLastAttExpLit ++ lastReadAttExpLits.flatten
 
-      (mapping.init :+ (newLastDataOp, newLastAttExpLit))
+      mapping.init :+ (newLastDataOp, newLastAttExpLit)
     } else {
       mapping
     }

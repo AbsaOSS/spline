@@ -15,7 +15,8 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -38,15 +39,18 @@
     <version>1.0.0-SNAPSHOT</version>
 
     <properties>
+        <timestamp>${maven.build.timestamp}</timestamp>
+        <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssX</maven.build.timestamp.format>
         <java.version>1.8</java.version>
         <scala.version>2.12.15</scala.version>
         <scala.compat.version>2.12</scala.compat.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
         <logback.version>1.2.10</logback.version>
         <slf4j.version>1.7.32</slf4j.version>
         <json4s.version>3.6.7</json4s.version>
         <spring.version>5.2.9.RELEASE</spring.version>
         <springfox-swagger.version>2.9.2</springfox-swagger.version>
-        <jackson.version>2.13.2</jackson.version>
+        <jackson.version>2.13.4</jackson.version>
         <finatra.jackson.version>21.5.0</finatra.jackson.version>
         <node.version>v16.16.0</node.version>
         <npm.version>8.11.0</npm.version>
@@ -57,7 +61,7 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>4.5.0</version>
+                <version>4.7.1</version>
                 <configuration>
                     <scalaVersion>${scala.version}</scalaVersion>
                     <args>
@@ -125,6 +129,27 @@
                 </executions>
             </plugin>
 
+            <!-- Read GIT version info -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <scmConnectionUrl>scm:git:</scmConnectionUrl>
+                    <revisionOnScmFailure>unknown</revisionOnScmFailure>
+                    <timestampFormat>{0,date,${maven.build.timestamp.format}}</timestampFormat>
+                    <shortRevisionLength>7</shortRevisionLength>
+                </configuration>
+            </plugin>
+
             <!-- Clean Node.js specific dirs on the Maven "clean" phase -->
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
@@ -146,6 +171,10 @@
                 <configuration>
                     <nodeVersion>${node.version}</nodeVersion>
                     <npmVersion>${npm.version}</npmVersion>
+                    <environmentVariables>
+                        <SPLINE_BUILD_REVISION>${buildNumber}</SPLINE_BUILD_REVISION>
+                        <SPLINE_BUILD_TIMESTAMP>${timestamp}</SPLINE_BUILD_TIMESTAMP>
+                    </environmentVariables>
                     <installDirectory>${project.build.directory}/node</installDirectory>
                     <skip>true</skip>
                 </configuration>
@@ -322,7 +351,7 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}.1</version>
+                <version>${jackson.version}.2</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.module</groupId>

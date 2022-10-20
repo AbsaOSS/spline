@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2022 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.persistence.model
 
-case class Schema(
-  override val _key: ArangoDocument.Key,
-  override val _belongsTo: Option[ArangoDocument.Id]
-) extends Vertex {
-  def this() = this(null, null)
+const isDebugEnabled: boolean = module.context.isDevelopment
+
+export function info(...args: any[]) {
+    console.log(...args)
+}
+
+export function debug(...args: any[]) {
+    if (isDebugEnabled) {
+        console.log(...args)
+    }
 }

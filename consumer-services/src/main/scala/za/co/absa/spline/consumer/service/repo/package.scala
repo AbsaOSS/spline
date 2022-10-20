@@ -17,10 +17,8 @@
 package za.co.absa.spline.consumer.service
 
 
-
 package object repo {
 
   trait _package
-
 
 }

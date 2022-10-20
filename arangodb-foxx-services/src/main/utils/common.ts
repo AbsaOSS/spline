@@ -40,3 +40,10 @@ export function memoize<KF extends AnyFunction, VF extends AnyFunction>(keyFn: K
         }
     }
 }
+
+export function withTimeTracking<T>(label, body: () => T): T {
+    console.time(label)
+    const res = body()
+    console.timeEnd(label)
+    return res
+}

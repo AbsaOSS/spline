@@ -44,5 +44,5 @@
             <artifactId>jakarta.validation-api</artifactId>
         </dependency>
     </dependencies>
-    
+
 </project>

@@ -105,7 +105,7 @@ object GenCLI {
 
   private def createFileName(config: Config): String = {
     config.customOutputFileName match {
-      case None =>  // default name assembly
+      case None => // default name assembly
         s"${config.graphType.name}-lineage-${config.reads}reads-${config.operations}ops-${config.attributes}attr.json.txt"
       case Some(customName) => customName
     }

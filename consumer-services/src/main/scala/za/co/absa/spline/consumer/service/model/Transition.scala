@@ -18,7 +18,7 @@ package za.co.absa.spline.consumer.service.model
 
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
 
-@ApiModel(description="Link between operations")
+@ApiModel(description = "Link between operations")
 case class Transition
 (
   @ApiModelProperty(value = "Source Operation")

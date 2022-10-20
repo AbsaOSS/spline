@@ -23,7 +23,7 @@ import org.springframework.stereotype.Repository
 import za.co.absa.spline.common.AsyncCallRetryer
 import za.co.absa.spline.persistence.ArangoImplicits
 import za.co.absa.spline.persistence.model._
-import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, NativeQuery, TxBuilder}
+import za.co.absa.spline.persistence.tx._
 import za.co.absa.spline.producer.model.v1_2.ExecutionEvent._
 import za.co.absa.spline.producer.model.{v1_2 => apiModel}
 import za.co.absa.spline.producer.service.UUIDCollisionDetectedException
@@ -77,13 +77,52 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retr
           Future.successful(Unit)
         case None =>
           // no execution plan with the given ID found
-          createInsertTransaction(executionPlan, persistedDSKeyByURI).execute(db)
+          val eppm = ExecutionPlanPersistentModelBuilder.toPersistentModel(executionPlan, persistedDSKeyByURI)
+          val tx = createExecutionPlanTransaction(eppm)
+          tx.execute[Any](db)
       }
     } yield Unit
   })
 
-  override def insertExecutionEvents(events: Array[apiModel.ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = retryer.execute({
-    createInsertTransaction(events).execute(db)
+  override def insertExecutionEvent(e: apiModel.ExecutionEvent)(implicit ec: ExecutionContext): Future[Unit] = retryer.execute({
+
+    val key = new ExecutionEventKeyCreator(e).executionEventKey
+
+    val eventualMaybeExistingDiscriminatorOpt: Future[Option[String]] = db.queryOptional[String](
+      s"""
+         |WITH ${NodeDef.Progress.name}
+         |FOR p IN ${NodeDef.Progress.name}
+         |    FILTER p._key == @key
+         |    LIMIT 1
+         |    RETURN p.discriminator
+         |    """.stripMargin,
+      Map("key" -> key)
+    )
+
+    for {
+      maybeExistingDiscriminatorOpt <- eventualMaybeExistingDiscriminatorOpt
+      _ <- maybeExistingDiscriminatorOpt match {
+        case Some(existingDiscriminatorOrNull) =>
+          // execution plan with the given ID already exists
+          ensureNoExecPlanIDCollision(e.planId, e.discriminator.orNull, existingDiscriminatorOrNull)
+          Future.successful(Unit)
+        case None =>
+          // no execution plan with the given ID found
+          val p = Progress(
+            timestamp = e.timestamp,
+            durationNs = e.durationNs,
+            discriminator = e.discriminator,
+            labels = e.labels,
+            error = e.error,
+            extra = e.extra,
+            _key = key,
+            planKey = e.planId.toString,
+            execPlanDetails = null // the value is populated below in the transaction script
+          )
+          val tx = createExecutionEventTransaction(p)
+          tx.execute[Unit](db)
+      }
+    } yield Unit
   })
 
   override def isDatabaseOk()(implicit ec: ExecutionContext): Future[Boolean] = {
@@ -103,131 +142,12 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retr
 
 object ExecutionProducerRepositoryImpl {
 
-  private def createInsertTransaction(
-    executionPlan: apiModel.ExecutionPlan,
-    persistedDataSources: Seq[DataSource]
-  ) = {
-    val eppm: ExecutionPlanPersistentModel =
-      ExecutionPlanPersistentModelBuilder.toPersistentModel(executionPlan, persistedDataSources)
-
-    new TxBuilder()
-      // execution plan
-      .addQuery(InsertQuery(NodeDef.ExecutionPlan, eppm.executionPlan))
-      .addQuery(InsertQuery(EdgeDef.Executes, eppm.executes))
-      .addQuery(InsertQuery(EdgeDef.Depends, eppm.depends))
-      .addQuery(InsertQuery(EdgeDef.Affects, eppm.affects))
-
-      // operation
-      .addQuery(InsertQuery(NodeDef.Operation, eppm.operations))
-      .addQuery(InsertQuery(EdgeDef.Follows, eppm.follows))
-      .addQuery(InsertQuery(EdgeDef.ReadsFrom, eppm.readsFrom))
-      .addQuery(InsertQuery(EdgeDef.WritesTo, eppm.writesTo))
-      .addQuery(InsertQuery(EdgeDef.Emits, eppm.emits))
-      .addQuery(InsertQuery(EdgeDef.Uses, eppm.uses))
-      .addQuery(InsertQuery(EdgeDef.Produces, eppm.produces))
-
-      // schema
-      .addQuery(InsertQuery(NodeDef.Schema, eppm.schemas))
-      .addQuery(InsertQuery(EdgeDef.ConsistsOf, eppm.consistsOf))
-
-      // attribute
-      .addQuery(InsertQuery(NodeDef.Attribute, eppm.attributes))
-      .addQuery(InsertQuery(EdgeDef.ComputedBy, eppm.computedBy))
-      .addQuery(InsertQuery(EdgeDef.DerivesFrom, eppm.derivesFrom))
-
-      // expression
-      .addQuery(InsertQuery(NodeDef.Expression, eppm.expressions))
-      .addQuery(InsertQuery(EdgeDef.Takes, eppm.takes))
-
-      .buildTx
+  private def createExecutionPlanTransaction(eppm: ExecutionPlanPersistentModel) = {
+    new FoxxPostTxBuilder("/spline/execution-plans", eppm).buildTx()
   }
 
-  private def createInsertTransaction(
-    events: Array[apiModel.ExecutionEvent]
-  ): ArangoTx = {
-    val progressNodesWithPlanKey = events
-      .map { e =>
-        val key = new ExecutionEventKeyCreator(e).executionEventKey
-        val p = Progress(
-          timestamp = e.timestamp,
-          durationNs = e.durationNs,
-          discriminator = e.discriminator,
-          labels = e.labels,
-          error = e.error,
-          extra = e.extra,
-          _key = key,
-          execPlanDetails = null // the value is populated below in the transaction script
-        )
-        Array(p, e.planId)
-      }
-
-    val progressEdges = progressNodesWithPlanKey
-      .map { case Array(p: Progress, planKey) => EdgeDef.ProgressOf.edge(p._key, planKey) }
-
-    new TxBuilder()
-      .addQuery(
-        NativeQuery(
-          query =
-            """params.progressNodesWithPlanKey.map(progressWithPlanKey => {
-              |    const {_class, ...p} = progressWithPlanKey[0];
-              |    const planKey = progressWithPlanKey[1];
-              |    const ep = db._document(`executionPlan/${planKey}`);
-              |    const {
-              |       targetDsSelector,
-              |       lastWriteTimestamp,
-              |       dataSourceName,
-              |       dataSourceUri,
-              |       dataSourceType,
-              |       append
-              |    } = db._query(`
-              |       WITH executionPlan, executes, operation, affects, dataSource
-              |       LET wo = FIRST(FOR v IN 1 OUTBOUND '${ep._id}' executes RETURN v)
-              |       LET ds = FIRST(FOR v IN 1 OUTBOUND '${ep._id}' affects RETURN v)
-              |       RETURN {
-              |           "targetDsSelector"   : KEEP(ds, ['_id', '_rev']),
-              |           "lastWriteTimestamp" : ds.lastWriteDetails.timestamp,
-              |           "dataSourceName"     : ds.name,
-              |           "dataSourceUri"      : ds.uri,
-              |           "dataSourceType"     : wo.extra.destinationType,
-              |           "append"             : wo.append
-              |       }
-              |    `).next();
-              |
-              |    const execPlanDetails = {
-              |      "executionPlanKey" : ep._key,
-              |      "frameworkName"    : `${ep.systemInfo.name} ${ep.systemInfo.version}`,
-              |      "applicationName"  : ep.name,
-              |      "dataSourceUri"    : dataSourceUri,
-              |      "dataSourceName"   : dataSourceName,
-              |      "dataSourceType"   : dataSourceType,
-              |      "append"           : append
-              |    }
-              |
-              |    if (ep.discriminator != p.discriminator) {
-              |      // nobody should ever see this happening, but just in case the universe goes crazy...
-              |      throw new Error(`UUID collision detected !!! Execution event ID: ${p._key}, discriminator: ${p.discriminator}`)
-              |    }
-              |
-              |    const maybeExistingProgress = db._query(`RETURN DOCUMENT('progress/${p._key}')`).next();
-              |    const {_id, _rev, ...pRefined} = maybeExistingProgress || p;
-              |    const progressWithPlanDetails = {...pRefined, execPlanDetails};
-              |
-              |    if (lastWriteTimestamp < p.timestamp) {
-              |      db._update(
-              |       targetDsSelector,
-              |       {lastWriteDetails: progressWithPlanDetails}
-              |      );
-              |    }
-              |
-              |    return progressWithPlanDetails;
-              |});
-              |""".stripMargin,
-          params = Map("progressNodesWithPlanKey" -> progressNodesWithPlanKey),
-          collectionDefs = Seq(NodeDef.Progress, NodeDef.ExecutionPlan, EdgeDef.Executes, NodeDef.Operation, EdgeDef.Affects, NodeDef.DataSource))
-      )
-      .addQuery(InsertQuery(NodeDef.Progress).copy(ignoreExisting = true, chainInput = true))
-      .addQuery(InsertQuery(EdgeDef.ProgressOf, progressEdges: _*).copy(ignoreExisting = true))
-      .buildTx
+  private def createExecutionEventTransaction(p: Progress): ArangoTx = {
+    new FoxxPostTxBuilder("/spline/execution-events", p).buildTx()
   }
 
   private def ensureNoExecPlanIDCollision(

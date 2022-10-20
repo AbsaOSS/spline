@@ -52,7 +52,7 @@ class NullAcceptingDeserializerSpec extends AnyFlatSpec with Matchers with Mocki
   it should "be able to deserialize complex types" in {
     val json = """{ "value" : { "a" : 42, "b" : "abc", "c" : [1,2,3] }}}"""
     val value = objectMapper.readValue(json, classOf[Baz])
-    value.value shouldBe Map("a" -> 42, "b" -> "abc", "c" -> Seq(1,2,3))
+    value.value shouldBe Map("a" -> 42, "b" -> "abc", "c" -> Seq(1, 2, 3))
   }
 
 }
@@ -65,16 +65,16 @@ object NullAcceptingDeserializerSpec {
       .setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE)
       .registerModule(FinatraInternalModules.caseClassModule)
 
-  private case class Foo (
+  private case class Foo(
     str: String
   )
 
-  private case class Bar (
+  private case class Bar(
     @JsonDeserialize(using = classOf[NullAcceptingDeserializer])
     str: String
   )
 
-  private case class Baz (
+  private case class Baz(
     @JsonDeserialize(using = classOf[NullAcceptingDeserializer])
     value: Any
   )
