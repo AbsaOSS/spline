@@ -26,6 +26,7 @@
         <fileSet>
             <directory>${project.build.directory}/generated-ts</directory>
             <outputDirectory/>
+            <lineEnding>unix</lineEnding>
         </fileSet>
     </fileSets>
 </assembly>
