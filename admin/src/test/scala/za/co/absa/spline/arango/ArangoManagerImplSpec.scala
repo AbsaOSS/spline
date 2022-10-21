@@ -162,12 +162,12 @@ class ArangoManagerImplSpec
 
 object ArangoManagerImplSpec {
   private def newManager(
-    drmMock: DataRetentionManager = null,
-    clock: Clock = null,
-    migratorMock: Migrator = null,
-    foxxManagerMock: FoxxManager = null,
-    dbVersionManagerMock: DatabaseVersionManager = null,
-    appDbVersion: SemanticVersion = null
+    drmMock: DataRetentionManager = null, // NOSONAR
+    clock: Clock = null, // NOSONAR
+    migratorMock: Migrator = null, // NOSONAR
+    foxxManagerMock: FoxxManager = null, // NOSONAR
+    dbVersionManagerMock: DatabaseVersionManager = null, // NOSONAR
+    appDbVersion: SemanticVersion = null // NOSONAR
   )(implicit ec: ExecutionContext): ArangoManagerImpl = {
     new ArangoManagerImpl(
       mock[ArangoDatabaseAsync],

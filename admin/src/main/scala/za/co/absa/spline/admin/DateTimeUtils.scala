@@ -19,7 +19,7 @@ package za.co.absa.spline.admin
 import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
 import java.time.temporal.ChronoField
 import java.time.{ZoneId, ZonedDateTime}
-
+import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
 object DateTimeUtils {
@@ -28,7 +28,7 @@ object DateTimeUtils {
     "^" +
     """([\dT:.+\-]+?)""".r + // local datetime
     """(Z|[+\-]\d\d:\d\d)?""".r + // timezone offset
-    """(?:\[([\w/\-+]+)])?""".r + // timezone name
+    """(?:\[([\w/+\-]+)])?""".r + // timezone name
     "$").r
 
   private val ZonedDateTimeFormatter = new DateTimeFormatterBuilder()
@@ -42,7 +42,7 @@ object DateTimeUtils {
     .toFormatter();
 
   def parseZonedDateTime(s: String, defaultZoneId: ZoneId = ZoneId.systemDefault): ZonedDateTime =
-    try {
+    Try {
       val ZonedDateTimeRegexp(ldt, tzOffset, tzId) = s
       val maybeTzIds = Seq(tzId, tzOffset).map(Option.apply)
 
@@ -53,8 +53,8 @@ object DateTimeUtils {
         .getOrElse(defaultZoneId)
 
       ZonedDateTime.parse(ldt, ZonedDateTimeFormatter.withZone(tz))
-
-    } catch {
-      case NonFatal(e) => throw new IllegalArgumentException(s"Cannot parse zoned datetime: $s", e)
+    } match {
+      case Success(zonedTime) => zonedTime
+      case Failure(nfe@NonFatal(_)) => throw new IllegalArgumentException(s"Cannot parse zoned datetime: $s", nfe)
     }
 }
