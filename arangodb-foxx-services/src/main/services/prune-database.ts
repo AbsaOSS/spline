@@ -54,7 +54,7 @@ export function pruneBefore(timestamp) {
     const collections = ['executes', 'operation', 'follows', 'uses', 'expression', 'affects', 'depends', 'writesTo', 'readsFrom', 'emits', 'produces', 'consistsOf', 'derivesFrom', 'computedBy', 'takes', 'schema', 'attribute']
     for (let i = 0; i < collections.length; i++) {
         console.log('### Working on', collections[i], 'collection')
-        let startCount = db._query('RETURN COUNT(@@cols)', {'@cols': collections[i]}).toArray()[0]
+        const startCount = db._query('RETURN COUNT(@@cols)', {'@cols': collections[i]}).toArray()[0]
         db._query('FOR orphanExecPlanID IN @arr FOR collectionEle IN @@cols FILTER collectionEle._belongsTo == orphanExecPlanID && collectionEle._created < @purgeLimitTimestamp REMOVE collectionEle IN @@cols',
             {
                 'arr': orphanExecPlanIDsOlderThanThresholdDaysArray,
@@ -62,11 +62,12 @@ export function pruneBefore(timestamp) {
                 'purgeLimitTimestamp': timestamp
             }
         )
-        let endCount = db._query('RETURN COUNT(@@cols)', {'@cols': collections[i]}).toArray()[0]
+        const endCount = db._query('RETURN COUNT(@@cols)', {'@cols': collections[i]}).toArray()[0]
         console.log(startCount - endCount, collections[i], 'objects deleted...')
     }
 
     ////////////////////////////////////////////////////////////////////////
+    // reused below
     let startCount = 0
     let endCount = 0
 
