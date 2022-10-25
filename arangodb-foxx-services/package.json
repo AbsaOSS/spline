@@ -10,7 +10,7 @@
     "postbuild": "npm run postbuild:copy && npm run postbuild:templates",
     "postbuild:copy": "copyfiles --up 1 src/assets/*  target/dist",
     "postbuild:templates": "npm run postbuild:templates:copy && npm run postbuild:templates:replace && npm run postbuild:templates:move && npm run postbuild:templates:cleanup",
-    "postbuild:templates:copy": "copyfiles --up 1 src/templates/*  target/dist",
+    "postbuild:templates:copy": "copyfiles --up 1 src/*.json src/README* target/dist/templates",
     "postbuild:templates:replace": "npm run postbuild:templates:replace:version && npm run postbuild:templates:replace:revision && npm run postbuild:templates:replace:timestamp",
     "postbuild:templates:replace:version": "cross-env-shell replace '@VERSION@' $npm_package_version './target/dist/templates' -r",
     "postbuild:templates:replace:revision": "cross-env-shell replace '@REVISION@' $SPLINE_BUILD_REVISION ./target/dist/templates -r",
