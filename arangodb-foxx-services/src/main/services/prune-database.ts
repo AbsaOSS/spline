@@ -126,5 +126,6 @@ export function pruneBefore(timestamp) {
 
     const t3 = Date.now()
     console.log(startCount - endCount, `dataSource objects deleted... in ${t3 - t2} ms`)
+    console.log(`[Spline] Complete Prune time: ${t3 - t1} ms`)
     console.log('-------Purge completed-------')
 }
