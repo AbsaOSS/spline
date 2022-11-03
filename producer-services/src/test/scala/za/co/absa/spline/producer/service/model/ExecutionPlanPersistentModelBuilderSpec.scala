@@ -24,7 +24,7 @@ import za.co.absa.spline.producer.service.model.ExecutionPlanPersistentModelBuil
 
 class ExecutionPlanPersistentModelBuilderSpec extends AnyFlatSpec with Matchers {
 
-  import za.co.absa.commons.lang.OptionImplicits._
+  import za.co.absa.commons.lang.extensions.TraversableExtension._
 
   behavior of "ExecutionPlanPersistentModelBuilder"
   behavior of "getSchemaInfos"
