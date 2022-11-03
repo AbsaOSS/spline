@@ -34,7 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Repository
 class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends DataSourceRepository {
 
-  import za.co.absa.commons.lang.OptionImplicits._
+  import za.co.absa.commons.lang.extensions.AnyExtension._
 
   override def getTimestampRange(
     asAtTime: Long,
@@ -89,10 +89,9 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         "includeNoWrite" -> Boolean.box(writeAppendOptions.contains(None)),
         "applicationId" -> maybeApplicationId.orNull,
         "dataSourceUri" -> maybeDataSourceUri.orNull
-      ).optionally(
-        _.updated("lblValues", _: Seq[Array[Label.Value]]),
-        lblValues.toSeq.asOption
-      )
+      ).when(lblValues.nonEmpty) {
+        _.updated("lblValues", lblValues)
+      }
     ).map { case Array(from, to) => from -> to }
   }
 
@@ -171,10 +170,9 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         "includeNoWrite" -> Boolean.box(writeAppendOptions.contains(None)),
         "applicationId" -> maybeWriteApplicationId.orNull,
         "dataSourceUri" -> maybeDataSourceUri.orNull
-      ).optionally(
-        _.updated("lblValues", _: Seq[Array[Label.Value]]),
-        lblValues.toSeq.asOption
-      ),
+      ).when(lblValues.nonEmpty) {
+        _.updated("lblValues", lblValues)
+      },
       new AqlQueryOptions().fullCount(true)
     ).map {
       arangoCursorAsync =>
