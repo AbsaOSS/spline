@@ -25,7 +25,8 @@ class AbstractExecutionEventsController(
   repo: AbstractExecutionEventRepository
 ) {
 
-  import za.co.absa.commons.lang.OptionImplicits._
+  import za.co.absa.commons.lang.extensions.NonOptionExtension._
+  import za.co.absa.commons.lang.extensions.StringExtension._
 
   import scala.concurrent.ExecutionContext.Implicits._
 

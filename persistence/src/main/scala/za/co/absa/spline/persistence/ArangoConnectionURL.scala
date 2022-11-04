@@ -17,15 +17,16 @@
 package za.co.absa.spline.persistence
 
 import org.apache.commons.lang3.StringUtils.trimToNull
-import za.co.absa.commons.lang.OptionImplicits.StringWrapper
 import za.co.absa.spline.persistence.ArangoConnectionURL.ArangoSecureDbScheme
 
 import java.net.MalformedURLException
+import scala.collection.mutable
 import scala.util.matching.Regex
 
 case class ArangoConnectionURL(scheme: String, user: Option[String], password: Option[String], hosts: Seq[(String, Int)], dbName: String) {
 
-  import za.co.absa.commons.lang.OptionImplicits._
+  import za.co.absa.commons.lang.extensions.AnyExtension._
+  import za.co.absa.commons.lang.extensions.StringExtension._
 
   require(user.isDefined || password.isEmpty, "user cannot be blank if password is specified")
 
@@ -33,7 +34,7 @@ case class ArangoConnectionURL(scheme: String, user: Option[String], password: O
     val userInfo = trimToNull(Seq(user, password.map(_ => "*****")).flatten.mkString(":"))
     val commaSeparatedHostsString = hosts.map { case (host, port) => s"$host:$port" }.mkString(",")
 
-    new StringBuilder()
+    new mutable.StringBuilder()
       .append(s"$scheme://")
       .having(userInfo.nonBlankOption)(_ append _ append "@")
       .append(commaSeparatedHostsString)
@@ -45,6 +46,8 @@ case class ArangoConnectionURL(scheme: String, user: Option[String], password: O
 }
 
 object ArangoConnectionURL {
+
+  import za.co.absa.commons.lang.extensions.StringExtension._
 
   private[persistence] val ArangoDbScheme = "arangodb"
   private[persistence] val ArangoSecureDbScheme = "arangodbs"

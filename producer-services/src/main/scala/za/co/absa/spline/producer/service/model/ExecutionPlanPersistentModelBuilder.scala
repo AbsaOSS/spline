@@ -20,8 +20,8 @@ import scalax.collection.Graph
 import scalax.collection.GraphEdge.DiEdge
 import scalax.collection.GraphPredef._
 import za.co.absa.commons.graph.GraphImplicits._
-import za.co.absa.commons.lang.CollectionImplicits._
-import za.co.absa.commons.lang.OptionImplicits._
+import za.co.absa.commons.lang.extensions.AnyExtension._
+import za.co.absa.commons.lang.extensions.TraversableOnceExtension._
 import za.co.absa.spline.persistence.DefaultJsonSerDe._
 import za.co.absa.spline.persistence.model.{Edge, EdgeDef}
 import za.co.absa.spline.persistence.{model => pm}

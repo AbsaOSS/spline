@@ -32,7 +32,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Repository
 class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExecutionEventRepository {
 
-  import za.co.absa.commons.lang.OptionImplicits._
+  import za.co.absa.commons.lang.extensions.AnyExtension._
 
   override def getTimestampRange(
     asAtTime: Long,
@@ -84,10 +84,9 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         "writeAppends" -> (if (writeAppendOptions.isEmpty) null else writeAppendOptions.flatten.map(Boolean.box)),
         "applicationId" -> maybeApplicationId.orNull,
         "dataSourceUri" -> maybeDataSourceUri.orNull
-      ).optionally(
-        _.updated("lblValues", _: Seq[Array[Label.Value]]),
-        lblValues.toSeq.asOption
-      ),
+      ).when(lblValues.nonEmpty) {
+        _.updated("lblValues", lblValues)
+      },
     ).map { case Array(from, to) => from -> to }
   }
 
@@ -163,10 +162,9 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
         "writeAppends" -> (if (writeAppendOptions.isEmpty) null else writeAppendOptions.flatten.map(Boolean.box)),
         "applicationId" -> maybeApplicationId.orNull,
         "dataSourceUri" -> maybeDataSourceUri.orNull
-      ).optionally(
-        _.updated("lblValues", _: Seq[Array[Label.Value]]),
-        lblValues.toSeq.asOption
-      ),
+      ).when(lblValues.nonEmpty) {
+        _.updated("lblValues", lblValues)
+      },
       new AqlQueryOptions().fullCount(true)
     ).map {
       arangoCursorAsync =>

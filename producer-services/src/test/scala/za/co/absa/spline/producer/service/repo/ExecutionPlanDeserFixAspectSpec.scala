@@ -72,7 +72,7 @@ class ExecutionPlanDeserFixAspectSpec
 
 object ExecutionPlanDeserFixAspectSpec {
 
-  import za.co.absa.commons.lang.OptionImplicits._
+  import za.co.absa.commons.lang.extensions.TraversableExtension._
 
   class ProceedingJoinPointSpy(args: AnyRef*) extends ProceedingJoinPoint {
     var capturedProceedingArgs: Seq[AnyRef] = _

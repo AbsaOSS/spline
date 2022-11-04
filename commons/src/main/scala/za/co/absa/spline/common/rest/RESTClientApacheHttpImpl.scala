@@ -37,7 +37,7 @@ class RESTClientApacheHttpImpl(
   (implicit ec: ExecutionContext)
   extends RESTClient {
 
-  import za.co.absa.commons.lang.OptionImplicits._
+  import za.co.absa.commons.lang.extensions.AnyExtension._
 
   override def get(path: String): Future[String] = execHttp {
     baseUri => new HttpGet(s"$baseUri/$path")
