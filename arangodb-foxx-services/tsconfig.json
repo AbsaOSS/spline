@@ -1,19 +1,7 @@
 {
-  "include": [
-    "src/main/**/*.ts",
-    "src/aql/**/*.ts",
-    "src/scripts/**/*.ts",
-    "src/external/**/*.ts"
-  ],
-  "exclude": [
-    "src/aql/example.func.ts"
-  ],
   "compilerOptions": {
-    "outDir": "target/dist/",
     "target": "es6",
     "module": "commonjs",
     "esModuleInterop": true,
-    "strict": false,
-    "sourceMap": true
   }
 }
