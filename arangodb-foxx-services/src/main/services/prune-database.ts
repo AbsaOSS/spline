@@ -17,8 +17,8 @@
 import {aql, db} from '@arangodb'
 
 export function pruneBefore(timestamp) {
-    // console.log(`[Spline] Prune data before: ${timestamp}`)
-    // const t0 = Date.now()
+    console.log(`[Spline] Prune data before: ${timestamp}`)
+    const t0 = Date.now()
 
     // STAGE 1: Cleanup event + edges to plans
 
@@ -33,26 +33,39 @@ export function pruneBefore(timestamp) {
     `).toArray()
 
     const t1 = Date.now()
-    // console.log(`Purged ${refPlanIds.length} plans, ${t1 - t0} ms`)
+    console.log(`Purged ${refPlanIds.length} plans, ${t1 - t0} ms`)
 
     // STAGE 2: No progressOf corresponding to executionPlan (Need to scan all plans, and progressOf foreach) -> delete executionPlan and related fields
 
-    //A
-    const execPlanIDsWithProgressEventsArray = db._query(`
-        FOR execPlan IN executionPlan
+    // //A
+    // const execPlanIDsWithProgressEventsArray = db._query(`
+    //     FOR execPlan IN executionPlan
+    //         FOR progOf IN progressOf
+    //             FILTER execPlan._created < ${timestamp} && progOf._to == execPlan._id
+    //             COLLECT ids = execPlan._id
+    //             RETURN ids
+    // `).toArray()
+    //
+    // const orphanExecPlanIDsOlderThanThresholdDaysArray = db._query(aql`
+    //     FOR execPlan IN executionPlan
+    //         FILTER execPlan._id NOT IN ${execPlanIDsWithProgressEventsArray} && execPlan._created < ${timestamp}
+    //         RETURN execPlan._id
+    // `).toArray()
+
+    // B
+    const orphanExecPlanIDsOlderThanThresholdDaysArray = db._query(aql`
+        LET execPlanIDsWithProgressEventsArray = (FOR execPlan IN executionPlan
             FOR progOf IN progressOf
                 FILTER execPlan._created < ${timestamp} && progOf._to == execPlan._id
                 COLLECT ids = execPlan._id
-                RETURN ids
-    `).toArray()
+                RETURN ids)
 
-    const orphanExecPlanIDsOlderThanThresholdDaysArray = db._query(aql`
         FOR execPlan IN executionPlan
-            FILTER execPlan._id NOT IN ${execPlanIDsWithProgressEventsArray} && execPlan._created < ${timestamp}
+            FILTER execPlan._id NOT IN execPlanIDsWithProgressEventsArray && execPlan._created < ${timestamp}
             RETURN execPlan._id
     `).toArray()
 
-    // //B
+    // //C
     // const orphanExecPlanIDsOlderThanThresholdDaysArray = db._query(aql`
     //     FOR execPlan IN executionPlan
     //         LET connectionCount = LENGTH(FOR progOf IN progressOf
@@ -64,12 +77,12 @@ export function pruneBefore(timestamp) {
     // `).toArray()
 
     const t1b = Date.now()
-    console.log(`[Spline] orphanExecPlanIDsOlderThanThresholdDaysArray collect time (trueB): ${t1b - t1} ms`)
+    console.log(`[Spline] orphanExecPlanIDsOlderThanThresholdDaysArray collect time (Bv2): ${t1b - t1} ms`)
 
 
     const collections = ['executes', 'operation', 'follows', 'uses', 'expression', 'affects', 'depends', 'writesTo', 'readsFrom', 'emits', 'produces', 'consistsOf', 'derivesFrom', 'computedBy', 'takes', 'schema', 'attribute']
     for (let i = 0; i < collections.length; i++) {
-        // console.log('### Working on', collections[i], 'collection')
+        console.log('### Working on', collections[i], 'collection')
         const startCount = db._query('RETURN COUNT(@@cols)', {'@cols': collections[i]}).toArray()[0]
         db._query('FOR orphanExecPlanID IN @arr FOR collectionEle IN @@cols FILTER collectionEle._belongsTo == orphanExecPlanID && collectionEle._created < @purgeLimitTimestamp REMOVE collectionEle IN @@cols',
             {
@@ -79,7 +92,7 @@ export function pruneBefore(timestamp) {
             }
         )
         const endCount = db._query('RETURN COUNT(@@cols)', {'@cols': collections[i]}).toArray()[0]
-        // console.log(startCount - endCount, collections[i], 'objects deleted...')
+        console.log(startCount - endCount, collections[i], 'objects deleted...')
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -87,7 +100,7 @@ export function pruneBefore(timestamp) {
     let startCount = 0
     let endCount = 0
 
-    // console.log('### Working on executionPlan collection')
+    console.log('### Working on executionPlan collection')
     startCount = db._query('RETURN COUNT(@@cols)', {'@cols': 'executionPlan'}).toArray()[0]
     db._query(aql`
         FOR doc IN executionPlan
@@ -95,12 +108,12 @@ export function pruneBefore(timestamp) {
             REMOVE doc IN executionPlan
     `)
     endCount = db._query('RETURN COUNT(@@cols)', {'@cols': 'executionPlan'}).toArray()[0]
-    // console.log(startCount - endCount, 'executionPlan objects deleted...')
+    console.log(startCount - endCount, 'executionPlan objects deleted...')
 
     // Deleted other collections and then the orphanExecPlanIDs
 
     const t2 = Date.now()
-    // console.log(`All collections but dataSource purge in ${t2 - t1} ms`)
+    console.log(`All collections but dataSource purge in ${t2 - t1} ms`)
 
     ////////////////////////////////////////////////////////////////////////
 
@@ -131,7 +144,7 @@ export function pruneBefore(timestamp) {
             RETURN source._key
     `).toArray()
 
-    // console.log('### Working on dataSource collection')
+    console.log('### Working on dataSource collection')
     startCount = db._query('RETURN COUNT(@@cols)', {'@cols': 'dataSource'}).toArray()[0]
     db._query(aql`
         FOR source IN dataSource
@@ -141,7 +154,7 @@ export function pruneBefore(timestamp) {
     endCount = db._query('RETURN COUNT(@@cols)', {'@cols': 'dataSource'}).toArray()[0]
 
     const t3 = Date.now()
-    // console.log(startCount - endCount, `dataSource objects deleted... in ${t3 - t2} ms`)
-    // console.log(`[Spline] Complete Prune time: ${t3 - t1} ms`)
+    console.log(startCount - endCount, `dataSource objects deleted... in ${t3 - t2} ms`)
+    console.log(`[Spline] Complete Prune time: ${t3 - t1} ms`)
     console.log('-------Purge completed-------')
 }
