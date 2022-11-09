@@ -63,15 +63,24 @@ former indicates in which application version the given database schema was intr
 
 [^1]: Semantic Versioning - https://semver.org/
 
+### How to measure code coverage
+```shell
+./mvn verify -Dcode-coverage
+```
+If module contains measurable data the code coverage report will be generated on path:
+```
+{local-path}\spline\{module}\target\site\jacoco
+```
+
 ---
 
     Copyright 2019 ABSA Group Limited
-    
+
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-    
+
         http://www.apache.org/licenses/LICENSE-2.0
-    
+
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
