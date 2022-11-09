@@ -16,12 +16,16 @@
 
 import { AnyFunction } from './types'
 
+// We cannot import @arangodb stuff as usual as it's only available on the server, hence unit tests would break
+/* eslint-disable @typescript-eslint/no-var-requires */
+const isDevelopmentMode: boolean = process.env.NODE_ENV !== 'test' && require('@arangodb/locals')?.context?.isDevelopment
+/* eslint-enable @typescript-eslint/no-var-requires */
 
 /**
  * Returns a memoized function that is based on two provided ones - the key and value functions respectively.
  * The signature of the provided functions must be identical (except for the return type), and the resulting memoized function will have the same signature.
  * When the resulting function is invoked the key function is first called to get the caching key. The value function is only
- * called when there's no previously cached value for the key. Otherwise the cached value is returned.
+ * called when there's no previously cached value for the key. Otherwise, the cached value is returned.
  * @param keyFn a key function
  * @param valFn a value function
  * @returns memoized function with the same signature as _valFn_
@@ -42,8 +46,13 @@ export function memoize<KF extends AnyFunction, VF extends AnyFunction>(keyFn: K
 }
 
 export function withTimeTracking<T>(label, body: () => T): T {
-    console.time(label)
-    const res = body()
-    console.timeEnd(label)
-    return res
+    if (isDevelopmentMode) {
+        console.time(label)
+        const res = body()
+        console.timeEnd(label)
+        return res
+    }
+    else {
+        return body()
+    }
 }
