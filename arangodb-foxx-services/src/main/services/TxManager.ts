@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
-import { AuxCollectionName, CollectionName, Counter, DataCollectionName, ReadTxInfo, TxId, TxNum, WriteTxInfo } from '../persistence/model'
+import {
+    AuxCollectionName,
+    CollectionName,
+    Counter,
+    DataCollectionName,
+    ReadTxInfo,
+    TxAwareDocument,
+    TxId,
+    TxNum,
+    WriteTxInfo
+} from '../persistence/model'
 import { store } from './store'
 import { db } from '@arangodb'
 import * as Logger from '../utils/logger'
@@ -115,9 +125,37 @@ function rollback(txInfo: WriteTxInfo): void {
     store.deleteByKey(AuxCollectionName.TxInfo, txInfo.uid)
 }
 
+/**
+ * Checks if all the `docs` are visible from the `rtx` READ transaction.
+ * The document is visible from the READ transaction if:
+ *   = the document was created out of any logical transaction, OR
+ *   - the doc's associated WRITE transaction has been committed
+ *     before the current READ one started.
+ * @param rtx Read transaction info object
+ * @param docs ArangoDB document(s)
+ * @return true - if all `docs` are visible, false - otherwise
+ */
+function isVisibleFromTx(rtx: ReadTxInfo, ...docs: TxAwareDocument[]): boolean {
+    const n = docs.length
+    const rtxNum: TxNum = rtx.num
+    const liveTxIds: TxId[] = rtx.liveTxIds
+
+    // Not using Array.every() for performance reasons,
+    // for-loop is several time faster.
+    for (let i = 0; i < n; i++) {
+        const wtx: WriteTxInfo | undefined = docs[i]?._tx_info
+        if (wtx === undefined)
+            continue
+        if (wtx.num >= rtxNum || liveTxIds.includes(wtx.uid))
+            return false
+    }
+    return true
+}
+
 export const TxManager = {
     startWrite,
     startRead,
     commit,
     rollback,
+    isVisibleFromTx
 }
