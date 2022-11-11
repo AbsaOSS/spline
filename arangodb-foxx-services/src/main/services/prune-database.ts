@@ -88,7 +88,7 @@ export function pruneBefore(timestamp) {
 
 
     // STAGE 3: No `affects` and `depends` corresponding to dataSource (Need to scan all dataSources, and both edges foreach) -> delete dataSource
-    const dataSourceKeysInAffectUseArray = db._query(`
+    const dataSourceKeysInAffectUseArray = db._query(aql`
         FOR source IN dataSource
             FOR affectEdge in affects
                 FILTER affectEdge._to == source._id
@@ -97,7 +97,7 @@ export function pruneBefore(timestamp) {
     `).toArray()
 
     const dataSourceKeysInAffectsDependsUseArray = dataSourceKeysInAffectUseArray.concat(
-        db._query(`
+        db._query(aql`
             FOR source IN dataSource
                 FOR dependEdge in depends
                     FILTER dependEdge._to == source._id

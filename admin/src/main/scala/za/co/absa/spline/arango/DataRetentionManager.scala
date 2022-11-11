@@ -18,14 +18,14 @@ package za.co.absa.spline.arango
 
 
 import com.arangodb.async.ArangoDatabaseAsync
-import com.arangodb.internal.InternalArangoDatabaseOps
+import za.co.absa.spline.persistence.ArangoImplicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class DataRetentionManager(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) {
 
   def pruneBefore(timestamp: Long): Future[Unit] = {
-    new InternalArangoDatabaseOps(db).restClient.delete(s"spline/admin/data/before/$timestamp")
+    db.restClient.delete(s"spline/admin/data/before/$timestamp")
   }
 
 }
