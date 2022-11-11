@@ -21,7 +21,7 @@ export function pruneBefore(timestamp) {
     const t0 = Date.now()
 
     // STAGE 1: Cleanup event + edges to plans
-
+    // Option A - https://github.com/AbsaOSS/spline/issues/684#issuecomment-1311499371
     const refPlanIds = db._query(aql`
         FOR p IN progress
             FILTER p.timestamp < ${timestamp}
@@ -36,20 +36,18 @@ export function pruneBefore(timestamp) {
     console.log(`Purged ${refPlanIds.length} plans, ${t1 - t0} ms`)
 
     // STAGE 2: No progressOf corresponding to executionPlan (Need to scan all plans, and progressOf foreach) -> delete executionPlan and related fields
-
-    const execPlanIDsWithProgressEventsArray = db._query(`
-        FOR execPlan IN executionPlan
+    // Option A - https://github.com/AbsaOSS/spline/issues/684#issuecomment-1311499371
+    const orphanExecPlanIDsOlderThanThresholdDaysArray = db._query(aql`
+        LET execPlanIDsWithProgressEventsArray = (FOR execPlan IN executionPlan
             FOR progOf IN progressOf
                 FILTER execPlan._created < ${timestamp} && progOf._to == execPlan._id
                 COLLECT ids = execPlan._id
-                RETURN ids
-    `).toArray()
+                RETURN ids)
 
-    const orphanExecPlanIDsOlderThanThresholdDaysArray = db._query(aql`
-        FOR execPlan IN executionPlan
-            FILTER execPlan._id NOT IN ${execPlanIDsWithProgressEventsArray} && execPlan._created < ${timestamp}
-            RETURN execPlan._id
-    `).toArray()
+            FOR execPlan IN executionPlan
+                FILTER execPlan._id NOT IN execPlanIDsWithProgressEventsArray && execPlan._created < ${timestamp}
+                RETURN execPlan._id
+    `)
 
     const collections = ['executes', 'operation', 'follows', 'uses', 'expression', 'affects', 'depends', 'writesTo', 'readsFrom', 'emits', 'produces', 'consistsOf', 'derivesFrom', 'computedBy', 'takes', 'schema', 'attribute']
     for (let i = 0; i < collections.length; i++) {
