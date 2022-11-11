@@ -22,14 +22,24 @@ export function pruneBefore(timestamp) {
 
     // STAGE 1: Cleanup event + edges to plans
 
+    // A
+    // const refPlanIds = db._query(aql`
+    //     FOR p IN progress
+    //         FILTER p.timestamp < ${timestamp}
+    //         REMOVE p IN progress
+    //         FOR po IN progressOf
+    //             FILTER po._from == p._id
+    //             REMOVE po IN progressOf
+    //             RETURN DISTINCT po._to
+    // `).toArray()
+
+    // "B"
     const refPlanIds = db._query(aql`
-        FOR p IN progress
-            FILTER p.timestamp < ${timestamp}
+    FOR p IN progress
+        FILTER p.timestamp < ${timestamp}
+        FOR prog, progOf IN 1 OUTBOUND p progressOf
             REMOVE p IN progress
-            FOR po IN progressOf
-                FILTER po._from == p._id
-                REMOVE po IN progressOf
-                RETURN DISTINCT po._to
+            REMOVE progOf IN progressOf
     `).toArray()
 
     const t1 = Date.now()
