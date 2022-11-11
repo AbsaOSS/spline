@@ -26,7 +26,7 @@ class SparkSplineExpressionConverter(
   attrRefConverter: AttributeRefConverter
 ) extends ExpressionConverter {
 
-  import za.co.absa.commons.lang.OptionImplicits._
+  import za.co.absa.commons.lang.extensions.TraversableExtension._
 
   override def isExpression(obj: Any): Boolean = PartialFunction.cond(obj) {
     case exprDef: TypesV10.ExprDef@unchecked => exprDef

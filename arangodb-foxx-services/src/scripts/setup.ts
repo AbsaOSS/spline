@@ -16,9 +16,10 @@
 
 import aqlFunctions from '@arangodb/aql/functions'
 import * as fs from 'fs'
+import { context } from '@arangodb/locals'
 
 
-const workDir = module.context.basePath
+const workDir = context.basePath
 
 // Register AQL functions
 
@@ -36,7 +37,7 @@ for (const aqlFuncFile of aqlFuncFiles) {
        (function(){
          console.log('Create AQL Function ${funcFQN}')
          const module = {}
-         ${funcRawCode}
+         ;${funcRawCode};
          return module.exports
        })()
     `
