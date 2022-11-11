@@ -22,7 +22,7 @@
     <parent>
         <groupId>za.co.absa</groupId>
         <artifactId>root-pom</artifactId>
-        <version>1.0.3</version>
+        <version>1.0.4</version>
     </parent>
 
     <groupId>za.co.absa.spline</groupId>
@@ -384,7 +384,7 @@
             <dependency>
                 <groupId>za.co.absa.commons</groupId>
                 <artifactId>commons_${scala.compat.version}</artifactId>
-                <version>1.0.2</version>
+                <version>1.3.0</version>
             </dependency>
 
             <!-- Apache Commons -->

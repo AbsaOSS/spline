@@ -21,7 +21,6 @@ import com.arangodb.async.{ArangoDBAsync, ArangoDatabaseAsync}
 import com.arangodb.velocypack.module.scala.VPackScalaModule
 import org.slf4s.Logging
 import org.springframework.beans.factory.DisposableBean
-import za.co.absa.commons.lang.OptionImplicits.AnyWrapper
 import za.co.absa.commons.version.Version
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 
@@ -31,6 +30,7 @@ import scala.concurrent._
 class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL, maybeSSLContext: Option[SSLContext], activeFailover: Boolean)
   extends DisposableBean {
 
+  import za.co.absa.commons.lang.extensions.AnyExtension._
   import za.co.absa.spline.persistence.ArangoDatabaseFacade._
 
   private val ArangoConnectionURL(_, maybeUser, maybePassword, hostsWithPorts, dbName) = connectionURL
