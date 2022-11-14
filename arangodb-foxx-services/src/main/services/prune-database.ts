@@ -47,7 +47,7 @@ export function pruneBefore(timestamp) {
             FOR execPlan IN executionPlan
                 FILTER execPlan._id NOT IN execPlanIDsWithProgressEventsArray && execPlan._created < ${timestamp}
                 RETURN execPlan._id
-    `)
+    `).toArray()
 
     const collections = ['executes', 'operation', 'follows', 'uses', 'expression', 'affects', 'depends', 'writesTo', 'readsFrom', 'emits', 'produces', 'consistsOf', 'derivesFrom', 'computedBy', 'takes', 'schema', 'attribute']
     for (let i = 0; i < collections.length; i++) {
@@ -88,23 +88,25 @@ export function pruneBefore(timestamp) {
 
 
     // STAGE 3: No `affects` and `depends` corresponding to dataSource (Need to scan all dataSources, and both edges foreach) -> delete dataSource
-    const dataSourceKeysInAffectUseArray = db._query(aql`
-        FOR source IN dataSource
-            FOR affectEdge in affects
-                FILTER affectEdge._to == source._id
-                COLLECT keys = source._key
-                RETURN keys
-    `).toArray()
+    const dataSourceKeysInAffectsDependsUseArray = db._query(aql`
+        LET dataSourceKeysInAffectUseArray = (
+            FOR source IN dataSource
+                FOR affectEdge in affects
+                    FILTER affectEdge._to == source._id
+                    COLLECT keys = source._key
+                    RETURN keys
+        )
 
-    const dataSourceKeysInAffectsDependsUseArray = dataSourceKeysInAffectUseArray.concat(
-        db._query(aql`
+        LET dataSourceKeysInDependsUseArray = (
             FOR source IN dataSource
                 FOR dependEdge in depends
                     FILTER dependEdge._to == source._id
                     COLLECT keys = source._key
                     RETURN keys
-        `).toArray()
-    )
+        )
+
+        RETURN UNION_DISTINCT(dataSourceKeysInAffectUseArray, dataSourceKeysInDependsUseArray)
+    `).toArray()
 
     const dataSourceKeysInTotalUseArray = Array.from(new Set(dataSourceKeysInAffectsDependsUseArray))
     const orphanDataSourceKeysOlderThanThresholdDaysArray = db._query(aql`
