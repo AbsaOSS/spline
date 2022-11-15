@@ -24,7 +24,6 @@ import com.arangodb.internal.velocystream.internal.VstConnection
 import org.apache.commons.lang3.StringUtils
 import org.apache.http.auth.UsernamePasswordCredentials
 import za.co.absa.commons.reflect.ReflectionUtils
-import za.co.absa.commons.reflect.ReflectionUtils.extractFieldValue
 import za.co.absa.spline.common.rest.{HttpStatusException, RESTClient, RESTClientApacheHttpImpl}
 
 import java.net.URI
@@ -42,14 +41,14 @@ class InternalArangoDatabaseOps(db: ArangoDatabaseAsync)(implicit ec: ExecutionC
     val vstComm = {
       val asyncExecutable = db.asInstanceOf[ArangoExecuteable[ArangoExecutorAsync]]
       val executor = asyncExecutable.executor
-      ReflectionUtils.extractFieldValue[ArangoExecutorAsync, VstCommunication[_, VstConnection[_]]](executor, "communication")
+      ReflectionUtils.extractValue[ArangoExecutorAsync, VstCommunication[_, VstConnection[_]]](executor, "communication")
     }
     val connection = vstComm.connect(AccessType.WRITE)
 
-    val maybeSslContext = Option(extractFieldValue[VstConnection[_], SSLContext](connection, "sslContext"))
+    val maybeSslContext = Option(ReflectionUtils.extractValue[VstConnection[_], SSLContext](connection, "sslContext"))
     val scheme = if (maybeSslContext.isDefined) "https" else "http"
 
-    val hostDescription = extractFieldValue[VstConnection[_], HostDescription](connection, "host")
+    val hostDescription = ReflectionUtils.extractValue[VstConnection[_], HostDescription](connection, "host")
     val host = hostDescription.getHost
     val port = hostDescription.getPort
     val database = db.dbName

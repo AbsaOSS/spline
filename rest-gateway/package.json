@@ -1,14 +1,14 @@
 {
   "license": "Apache-2.0",
-  "devDependencies": {
-    "cross-env": "^7.0.3",
-    "redoc-cli": "^0.9.12"
-  },
   "scripts": {
     "gen-api-doc:all": "npm run gen-api-doc --doc_name=consumer && npm run gen-api-doc --doc_name=producer",
     "gen-api-doc": "cross-env-shell redoc-cli bundle -o $npm_config_docs_dir/$npm_config_doc_name.html $npm_config_docs_dir/$npm_config_doc_name.swagger.json",
     "build": "echo unused stage",
     "test": "echo unused stage",
     "lint": "echo unused stage"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "redoc-cli": "^0.13.20"
   }
 }

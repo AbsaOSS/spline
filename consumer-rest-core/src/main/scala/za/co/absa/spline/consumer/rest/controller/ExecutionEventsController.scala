@@ -61,7 +61,7 @@ class ExecutionEventsController @Autowired()(
     @ApiParam(value = "Sort order", example = "asc")
     @RequestParam(value = "sortOrder", defaultValue = "desc") sortOrder: String,
 
-    @ApiParam(value = "Labels in format <name>:<value1>,<value2>,...")
+    @ApiParam(value = "Labels in format &lt;name&gt;:&lt;value1&gt;,&lt;value2&gt;,...")
     @RequestParam(value = "label", required = false) labelQueries: Array[String],
 
     @ApiParam(value = "Text to filter the results")
