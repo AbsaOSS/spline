@@ -26,9 +26,9 @@ import scala.util.{Failure, Success, Try}
 object AutoClosingArangoManagerProxy {
 
   def create(
-              managerProvider: ArangoDatabaseAsync => ArangoManager,
-              arangoFacadeProvider: () => ArangoDatabaseFacade)
-            (implicit ex: ExecutionContext): ArangoManager = {
+    managerProvider: ArangoDatabaseAsync => ArangoManager,
+    arangoFacadeProvider: () => ArangoDatabaseFacade)
+  (implicit ex: ExecutionContext): ArangoManager = {
 
     val handler: InvocationHandler = (_: Any, method: Method, args: Array[AnyRef]) => {
       val dbFacade = arangoFacadeProvider()

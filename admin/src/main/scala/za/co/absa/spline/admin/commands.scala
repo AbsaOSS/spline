@@ -72,10 +72,10 @@ case class DBExec(
 }
 
 case class DBPrune(
-                    override val dbUrl: Url = null,
-                    retentionPeriod: Option[Duration] = None,
-                    thresholdDate: Option[ZonedDateTime] = None
-                  ) extends DBCommand {
+  override val dbUrl: Url = null,
+  retentionPeriod: Option[Duration] = None,
+  thresholdDate: Option[ZonedDateTime] = None
+) extends DBCommand {
   protected override type Self = DBPrune
   protected override val selfCopy: DBCommandProps => Self = copy(_)
 }
