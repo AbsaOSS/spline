@@ -21,6 +21,7 @@ import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
 import scopt.{OptionDef, OptionParser}
 import za.co.absa.spline.admin.AdminCLI.AdminCLIConfig
+import za.co.absa.spline.admin.DateTimeUtils.parseZonedDateTime
 import za.co.absa.spline.arango.AuxiliaryDBAction._
 import za.co.absa.spline.arango.OnDBExistsAction.{Drop, Fail, Skip}
 import za.co.absa.spline.arango.{ArangoManagerFactory, ArangoManagerFactoryImpl}
@@ -214,6 +215,21 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
         )
         .children(this.dbCommandOptions: _*)
 
+      (cmd("db-prune")
+        action ((_, c) => c.copy(cmd = DBPrune()))
+        text "Prune old data to decrease the database footprint and speed up queries."
+        children (this.dbCommandOptions: _*)
+        children(
+        opt[String]("retain-for")
+          text "Retention period in format <length><unit>. " +
+          "Example: `--retain-for 30d` means to retain data that is NOT older than 30 days from now."
+          action { case (s, c@AdminCLIConfig(cmd: DBPrune, _, _)) => c.copy(cmd.copy(retentionPeriod = Some(Duration(s)))) },
+        opt[String]("before-date")
+          text "A datetime with an optional time and zone parts in ISO-8601 format. " +
+          "The data older than the specified datetime is subject for removal."
+          action { case (s, c@AdminCLIConfig(cmd: DBPrune, _, _)) => c.copy(cmd.copy(thresholdDate = Some(parseZonedDateTime(s)))) },
+      ))
+
       checkConfig {
         case AdminCLIConfig(null, _, _) =>
           failure("No command given")
@@ -221,6 +237,10 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
           failure("DB connection string is required")
         case AdminCLIConfig(cmd: DBInit, _, _) if cmd.force && cmd.skip =>
           failure("Options '--force' and '--skip' cannot be used together")
+        case AdminCLIConfig(cmd: DBPrune, _, _) if cmd.retentionPeriod.isEmpty && cmd.thresholdDate.isEmpty =>
+          failure("One of the following options must be specified: --retain-for or --before-date")
+        case AdminCLIConfig(cmd: DBPrune, _, _) if cmd.retentionPeriod.isDefined && cmd.thresholdDate.isDefined =>
+          failure("Options --retain-for and --before-date cannot be used together")
         case _ =>
           success
       }
@@ -255,6 +275,14 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
       case DBExec(url, actions) =>
         val dbManager = dbManagerFactory.create(url, sslCtxOpt)
         Await.result(dbManager.execute(actions: _*), Duration.Inf)
+
+      case DBPrune(url, Some(retentionPeriod), _) =>
+        val dbManager = dbManagerFactory.create(url, sslCtxOpt)
+        Await.result(dbManager.prune(retentionPeriod), Duration.Inf)
+
+      case DBPrune(url, _, Some(dateTime)) =>
+        val dbManager = dbManagerFactory.create(url, sslCtxOpt)
+        Await.result(dbManager.prune(dateTime), Duration.Inf)
     }
 
     println(ansi"%green{DONE}")

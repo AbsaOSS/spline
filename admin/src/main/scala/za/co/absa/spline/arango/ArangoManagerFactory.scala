@@ -22,6 +22,7 @@ import za.co.absa.spline.persistence.ArangoImplicits.ArangoDatabaseAsyncScalaWra
 import za.co.absa.spline.persistence.migration.{MigrationScriptRepository, Migrator}
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoDatabaseFacade, DatabaseVersionManager}
 
+import java.time.Clock
 import javax.net.ssl.SSLContext
 import scala.concurrent.ExecutionContext
 
@@ -36,13 +37,17 @@ class ArangoManagerFactoryImpl(activeFailover: Boolean)(implicit ec: ExecutionCo
 
     def dbManager(db: ArangoDatabaseAsync): ArangoManager = {
       val versionManager = new DatabaseVersionManager(db)
+      val drManager = new DataRetentionManager(db)
       val migrator = new Migrator(db, scriptRepo, versionManager)
       val foxxManager = new FoxxManagerImpl(db.restClient)
+      val clock = Clock.systemDefaultZone
       new ArangoManagerImpl(
         db,
         versionManager,
+        drManager,
         migrator,
         foxxManager,
+        clock,
         scriptRepo.latestToVersion
       )
     }
@@ -50,7 +55,7 @@ class ArangoManagerFactoryImpl(activeFailover: Boolean)(implicit ec: ExecutionCo
     def dbFacade(): ArangoDatabaseFacade =
       new ArangoDatabaseFacade(connectionURL, maybeSSLContext, activeFailover)
 
-    new AutoClosingArangoManagerProxy(dbManager, dbFacade)
+    AutoClosingArangoManagerProxy.create(dbManager, dbFacade)
   }
 
 }

@@ -16,9 +16,11 @@
 
 package za.co.absa.spline.admin
 
+import java.time.{ZoneId, ZonedDateTime}
+
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito._
+import org.mockito.Mockito.{inOrder => mockitoInOrder, _} // Mockito.inOrder would collide with Matchers.inOrder
 import org.scalatest.OneInstancePerTest
 import org.scalatest.OptionValues._
 import org.scalatest.flatspec.AnyFlatSpec
@@ -35,6 +37,7 @@ import za.co.absa.spline.persistence.model.{EdgeDef, NodeDef}
 
 import javax.net.ssl.SSLContext
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 class AdminCLISpec
   extends AnyFlatSpec
@@ -89,6 +92,14 @@ class AdminCLISpec
 
     (when(
       arangoManagerMock.execute(any()))
+      thenReturn Future.successful({}))
+
+    (when(
+      arangoManagerMock.prune(any[Duration]()))
+      thenReturn Future.successful({}))
+
+    (when(
+      arangoManagerMock.prune(any[ZonedDateTime]()))
       thenReturn Future.successful({}))
 
     it should "when called with wrong options, print welcome message" in {
@@ -254,6 +265,31 @@ class AdminCLISpec
         SearchViewsCreate,
         IndicesCreate,
       )
+    }
+
+    behavior of "DB-Prune"
+
+    it should "require either -r or -d option" in {
+      val msg = captureStdErr(captureExitStatus(cli.exec(Array("db-prune", "arangodb://foo/bar"))) should be(1))
+      msg should include("Try --help for more information")
+    }
+
+    it should "support retention duration" in assertingStdOut(include("DONE")) {
+      cli.exec(Array("db-prune", "--retain-for", "30d", "arangodb://foo/bar"))
+      connUrlCaptor.getValue should be(ArangoConnectionURL("arangodb://foo/bar"))
+      verify(arangoManagerMock).prune(30.days)
+      verifyNoMoreInteractions(arangoManagerMock)
+    }
+
+    it should "prune support threshold timestamp" in assertingStdOut(include("DONE")) {
+      cli.exec(Array("db-prune", "--before-date", "2020-04-11", "arangodb://foo/bar"))
+      cli.exec(Array("db-prune", "--before-date", "2020-04-11T22:33Z", "arangodb://foo/bar"))
+
+      val inOrder = mockitoInOrder(arangoManagerMock)
+
+      inOrder.verify(arangoManagerMock).prune(ZonedDateTime.of(2020, 4, 11, 0, 0, 0, 0, ZoneId.systemDefault))
+      inOrder.verify(arangoManagerMock).prune(ZonedDateTime.of(2020, 4, 11, 22, 33, 0, 0, ZoneId.of("Z")))
+      inOrder.verifyNoMoreInteractions()
     }
   }
 }

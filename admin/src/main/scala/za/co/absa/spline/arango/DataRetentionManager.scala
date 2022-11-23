@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-import { createRouter } from '@arangodb/foxx'
-import { plansRouter } from './plans-router'
-import { eventsRouter } from './events-router'
-import adminRouter from './admin-router'
+package za.co.absa.spline.arango
 
 
-const rootRouter: Foxx.Router = createRouter()
-rootRouter.use('/admin', adminRouter)
-rootRouter.use('/execution-plans', plansRouter)
-rootRouter.use('/execution-events', eventsRouter)
+import com.arangodb.async.ArangoDatabaseAsync
+import za.co.absa.spline.persistence.ArangoImplicits._
 
-export default rootRouter
+import scala.concurrent.{ExecutionContext, Future}
+
+class DataRetentionManager(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) {
+
+  def pruneBefore(timestamp: Long): Future[Unit] = {
+    db.restClient.delete(s"spline/admin/data/before/$timestamp")
+  }
+
+}
