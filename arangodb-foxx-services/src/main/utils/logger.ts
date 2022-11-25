@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { context } from '@arangodb/locals'
+import { IS_DEVELOPMENT_MODE } from './common'
 
 
-const isDebugEnabled: boolean = context.isDevelopment
+const isDebugEnabled: boolean = IS_DEVELOPMENT_MODE
 
 export function info(...args: any[]) {
     console.log(...args)
