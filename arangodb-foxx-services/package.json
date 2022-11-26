@@ -16,8 +16,8 @@
   "devDependencies": {
     "@types/arangodb": "^3.5.13",
     "@types/jest": "^28.1.5",
-    "@typescript-eslint/eslint-plugin": "^5.30.7",
-    "@typescript-eslint/parser": "^5.30.7",
+    "@typescript-eslint/eslint-plugin": "^5.44.0",
+    "@typescript-eslint/parser": "^5.44.0",
     "copy-webpack-plugin": "^11.0.0",
     "cross-env": "^7.0.3",
     "dedent": "^0.7.0",

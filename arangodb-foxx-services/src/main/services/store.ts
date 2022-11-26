@@ -31,13 +31,13 @@ const dbCollections: Record<CollectionName, ArangoDB.Collection> =
         {} as Record<CollectionName, ArangoDB.Collection>
     )
 
-function insertOne<T extends Record<string, any>>(doc: T, colName: CollectionName, txInfo: WriteTxInfo = undefined): ArangoDB.InsertResult {
+function insertOne<T extends Record<string, unknown>>(doc: T, colName: CollectionName, txInfo: WriteTxInfo = undefined): ArangoDB.InsertResult {
     const col = dbCollections[colName]
-    const rec: any = txInfo ? { ...doc, _txInfo: txInfo } : doc
+    const rec = txInfo ? { ...doc, _txInfo: txInfo } : doc
     return col.insert(rec)
 }
 
-function insertMany<T extends Record<string, any>>(docs: T[], colName: CollectionName, txInfo: WriteTxInfo = undefined): void {
+function insertMany<T extends Record<string, unknown>>(docs: T[], colName: CollectionName, txInfo: WriteTxInfo = undefined): void {
     const col = dbCollections[colName]
     docs.forEach(doc => {
         const rec = txInfo ? { ...doc, _txInfo: txInfo } : doc

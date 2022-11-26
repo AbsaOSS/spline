@@ -19,11 +19,11 @@ import { context } from '@arangodb/locals'
 
 const isDebugEnabled: boolean = context.isDevelopment
 
-export function info(...args: any[]) {
+export function info(...args: unknown[]) {
     console.log(...args)
 }
 
-export function debug(...args: any[]) {
+export function debug(...args: unknown[]) {
     if (isDebugEnabled) {
         console.log(...args)
     }

@@ -53,7 +53,7 @@
                     <arguments>
                         <argument>--out</argument>
                         <argument>${project.basedir}/target/generated-ts/api.model.ts</argument>
-                        <argument>--emit-interfaces</argument>
+                        <argument>--trait-to-type</argument>
                         <argument>--option-to-nullable</argument>
                         <!-- list of root entities to generate TS definitions -->
                         <argument>za.co.absa.spline.producer.service.model.ExecutionPlanPersistentModel</argument>
@@ -66,7 +66,7 @@
                     <dependency>
                         <groupId>com.github.wajda</groupId>
                         <artifactId>scala-ts_${scala.compat.version}</artifactId>
-                        <version>0.4.1.5</version>
+                        <version>0.4.1.7</version>
                     </dependency>
                 </dependencies>
             </plugin>
