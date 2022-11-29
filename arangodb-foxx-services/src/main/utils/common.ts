@@ -15,11 +15,8 @@
  */
 
 import { AnyFunction } from './types'
+import { context } from '@arangodb/locals'
 
-// We cannot import @arangodb stuff as usual as it's only available on the server, hence unit tests would break
-/* eslint-disable @typescript-eslint/no-var-requires */
-const isDevelopmentMode: boolean = process.env.NODE_ENV !== 'test' && require('@arangodb/locals')?.context?.isDevelopment
-/* eslint-enable @typescript-eslint/no-var-requires */
 
 /**
  * Returns a memoized function that is based on two provided ones - the key and value functions respectively.
@@ -46,7 +43,7 @@ export function memoize<KF extends AnyFunction, VF extends AnyFunction>(keyFn: K
 }
 
 export function withTimeTracking<T>(label, body: () => T): T {
-    if (isDevelopmentMode) {
+    if (context.isDevelopment) {
         console.time(label)
         const res = body()
         console.timeEnd(label)

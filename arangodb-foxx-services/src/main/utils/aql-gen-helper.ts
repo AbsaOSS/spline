@@ -35,12 +35,20 @@ export class AQLCodeGenHelper {
     }
 
     private genTxIsolationCode(isTraversal: boolean, ...aqlVarIdentifiers: string[]): ArangoDB.Query {
+        if (aqlVarIdentifiers.length === 0) {
+            return aql``
+        }
         this.i++
-        const pruneVar = aql.literal(`__isTxDirty${this.i}`)
-        const args = aql.literal(aqlVarIdentifiers.join(','))
+        const pruneVar = aql.literal(`__isAnyUncommitted_${this.i}`)
+        const args = aql.literal(aqlVarIdentifiers.join(', '))
         const pruneOrLet = aql.literal(isTraversal ? 'PRUNE' : 'LET')
         return aql`
-            ${pruneOrLet} ${pruneVar} = !SPLINE::IS_VISIBLE_FROM_TX(${this.rtxInfo}, ${args})
+            ${pruneOrLet} ${pruneVar} = LENGTH([${args}][*
+                FILTER CURRENT._tx_info.num >= ${this.rtxInfo}.num
+                    OR POSITION(${this.rtxInfo}.liveTxIds, CURRENT._tx_info.uid)
+                LIMIT 1
+                RETURN CURRENT._id
+            ]) != 0
             FILTER !${pruneVar}
         `
     }

@@ -17,7 +17,7 @@
 import { CollectionName, ReadTxInfo, TxAwareDocument, WriteTxInfo } from '../persistence/model'
 import { db } from '@arangodb'
 import { DocumentKey } from '../model'
-import isVisibleFromTx from '../../aql/is_visible_from_tx.func'
+import { TxManager } from './TxManager'
 import Document = ArangoDB.Document
 import DocumentMetadata = ArangoDB.DocumentMetadata
 
@@ -31,13 +31,13 @@ const dbCollections: Record<CollectionName, ArangoDB.Collection> =
         {} as Record<CollectionName, ArangoDB.Collection>
     )
 
-function insertOne<T extends Record<string, any>>(doc: T, colName: CollectionName, txInfo: WriteTxInfo = undefined): ArangoDB.InsertResult {
+function insertOne<T extends Record<string, unknown>>(doc: T, colName: CollectionName, txInfo: WriteTxInfo = undefined): ArangoDB.InsertResult {
     const col = dbCollections[colName]
-    const rec: any = txInfo ? { ...doc, _txInfo: txInfo } : doc
+    const rec = txInfo ? { ...doc, _txInfo: txInfo } : doc
     return col.insert(rec)
 }
 
-function insertMany<T extends Record<string, any>>(docs: T[], colName: CollectionName, txInfo: WriteTxInfo = undefined): void {
+function insertMany<T extends Record<string, unknown>>(docs: T[], colName: CollectionName, txInfo: WriteTxInfo = undefined): void {
     const col = dbCollections[colName]
     docs.forEach(doc => {
         const rec = txInfo ? { ...doc, _txInfo: txInfo } : doc
@@ -47,7 +47,7 @@ function insertMany<T extends Record<string, any>>(docs: T[], colName: Collectio
 
 function getDocByKey<T extends Document>(colName: CollectionName, key: DocumentKey, rtxInfo: ReadTxInfo = undefined): T {
     const doc = <T & TxAwareDocument>db._document(`${colName}/${key}`)
-    return doc && rtxInfo && !isVisibleFromTx(rtxInfo, doc)
+    return doc && rtxInfo && !TxManager.isVisibleFromTx(rtxInfo, doc)
         ? null // the doc is found, but is not visible from inside the given read transaction.
         : doc  // otherwise return the doc, or null if it's not there.
 }

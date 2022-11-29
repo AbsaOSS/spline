@@ -29,7 +29,7 @@ declare module '@arangodb/aql/functions' {
      */
     export function register(
         name: string,
-        code: string | ((...args: any) => any),
+        code: string | ((...args: unknown[]) => unknown),
         isDeterministic: boolean
     ): boolean
 
