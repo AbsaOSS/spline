@@ -1,4 +1,4 @@
-# Test Doubles
+## Test Doubles
 
 This directory contains _mocks_, _fakes_ and other  [test doubles](https://martinfowler.com/bliki/TestDouble.html)
 for _external_ dependencies (node modules) required for the given Foxx module unit tests, run by [Jest](https://jestjs.io/) test runner.
@@ -15,3 +15,19 @@ template string handler, including associated helper functions like
 ### @arangodb/locals
 
 A partial _stub_ of the [@arangodb/locals](https://www.arangodb.com/docs/stable/foxx-reference-modules.html#the-arangodblocals-module)
+
+
+---
+
+    Copyright 2019 ABSA Group Limited
+
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
