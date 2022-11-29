@@ -29,30 +29,46 @@ import scala.concurrent.{ExecutionContext, Future}
 @RestController
 @Api(tags = Array("lineage"))
 class LineageDetailedController @Autowired()(
-  val epRepo: ExecutionPlanRepository,
-  val dsRepo: DataSourceRepository,
-) {
+                                              val epRepo: ExecutionPlanRepository,
+                                              val dsRepo: DataSourceRepository,
+                                            ) {
 
   import ExecutionContext.Implicits.global
 
+  @GetMapping(value = Array("execution-plans/{execId}"))
+  @ResponseStatus(HttpStatus.OK)
+  @ApiOperation(
+    value = "Get detailed execution plan (DAG)",
+    notes = "Returns a logical plan DAG by execution plan ID")
+  def execPlan(
+                @PathVariable("execId") execId: ExecutionPlanInfo.Id,
+              ): Future[LineageDetailed] = {
+    epRepo.findById(execId)
+  }
+
+  /**
+   * Alias for `execution-plans/{execId}` implemented by [[LineageDetailedController#execPlan(java.util.UUID, java.lang.String)]]
+   * @param execId executionPlan ID (UUID)
+   * @return LineageDetails instance
+   */
   @GetMapping(Array("lineage-detailed"))
   @ApiOperation(
     value = "Get detailed execution plan (DAG)",
     notes = "Returns a logical plan DAG by execution plan ID")
   def lineageDetailed(
-    @ApiParam(value = "Execution plan ID")
-    @RequestParam("execId") execId: ExecutionPlanInfo.Id
-  ): Future[LineageDetailed] = {
-    epRepo.findById(execId)
+                       @ApiParam(value = "Execution plan ID")
+                       @RequestParam("execId") execId: ExecutionPlanInfo.Id
+                     ): Future[LineageDetailed] = {
+    execPlan(execId)
   }
 
   @GetMapping(Array("attribute-lineage-and-impact"))
   @ApiOperation(
     value = "Get graph of attributes that depends on attribute with provided id")
   def attributeLineageAndImpact(
-    @ApiParam(value = "Attribute ID")
-    @RequestParam("attributeId") attributeId: String
-  ): Future[AttributeLineageAndImpact] =
+                                 @ApiParam(value = "Attribute ID")
+                                 @RequestParam("attributeId") attributeId: String
+                               ): Future[AttributeLineageAndImpact] =
     Future.sequence(Seq(
       epRepo.execPlanAttributeLineage(attributeId),
       epRepo.execPlanAttributeImpact(attributeId),
@@ -63,10 +79,10 @@ class LineageDetailedController @Autowired()(
   @GetMapping(value = Array("execution-plans/{plan_id}/data-sources"))
   @ResponseStatus(HttpStatus.OK)
   def execPlanDataSources(
-    @PathVariable("plan_id") planId: ExecutionPlanInfo.Id,
-    @ApiParam(value = "access")
-    @RequestParam(name = "access", required = false) access: String
-  ): Future[Array[String]] = {
+                           @PathVariable("plan_id") planId: ExecutionPlanInfo.Id,
+                           @ApiParam(value = "access")
+                           @RequestParam(name = "access", required = false) access: String
+                         ): Future[Array[String]] = {
     val dataSourceActionTypeOption = DataSourceActionType.findValueOf(access)
     dsRepo.findByUsage(planId, dataSourceActionTypeOption)
   }
@@ -76,10 +92,10 @@ object LineageDetailedController {
 
   @ApiModel(description = "Attribute Lineage And Impact")
   case class AttributeLineageAndImpact(
-    @ApiModelProperty("Attribute Lineage")
-    lineage: Option[AttributeGraph],
-    @ApiModelProperty("Attribute Impact")
-    impact: AttributeGraph
-  )
+                                        @ApiModelProperty("Attribute Lineage")
+                                        lineage: Option[AttributeGraph],
+                                        @ApiModelProperty("Attribute Impact")
+                                        impact: AttributeGraph
+                                      )
 
 }
