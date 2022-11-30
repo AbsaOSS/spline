@@ -35,7 +35,30 @@ class ExecutionPlansController @Autowired()
 (
   val epRepo: ExecutionPlanRepository,
   val dsRepo: DataSourceRepository,
-) {
+) extends AbstractExecutionPlansController(epRepo) {
+
+  @GetMapping(Array(""))
+  @ApiOperation(
+    value = "Get execution plans",
+    notes = "Returns a pageable list of execution plans filtered by the query parameters",
+    response = classOf[PageableExecutionPlansResponse]
+  )
+  def executionPlans(
+    @ApiParam(value = "Timestamp of the request, if asAtTime equals 0, the current timestamp will be applied", example = "0")
+    @RequestParam(value = "asAtTime", defaultValue = "0") asAtTime0: Long,
+
+    @ApiParam(value = "Page number", example = "1")
+    @RequestParam(value = "pageNum", defaultValue = "1") pageNum: Int,
+
+    @ApiParam(value = "Page size", example = "0")
+    @RequestParam(value = "pageSize", defaultValue = "10") pageSize: Int
+  ): Future[PageableExecutionPlansResponse] = find(
+    asAtTime0,
+    pageNum,
+    pageSize,
+    sortField = "_created",
+    sortOrder = "desc"
+  )
 
   import scala.concurrent.ExecutionContext.Implicits._
 
