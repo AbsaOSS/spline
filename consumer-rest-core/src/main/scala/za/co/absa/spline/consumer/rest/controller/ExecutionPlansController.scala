@@ -43,7 +43,7 @@ class ExecutionPlansController @Autowired()
     notes = "Returns a pageable list of execution plans filtered by the query parameters",
     response = classOf[PageableExecutionPlansResponse]
   )
-  def executionPlans(
+  def execPlans(
     @ApiParam(value = "Timestamp of the request, if asAtTime equals 0, the current timestamp will be applied", example = "0")
     @RequestParam(value = "asAtTime", defaultValue = "0") asAtTime0: Long,
 
