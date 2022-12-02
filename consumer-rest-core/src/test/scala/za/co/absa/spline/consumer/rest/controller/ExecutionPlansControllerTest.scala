@@ -1,20 +1,17 @@
 package za.co.absa.spline.consumer.rest.controller
 
-import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito.when
-import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
-import za.co.absa.spline.consumer.service.model.{ExecutionPlanInfo, LineageDetailed, LineageDetailedGraph, Operation, PageRequest, PageableExecutionPlansResponse, SortRequest}
+import za.co.absa.spline.consumer.service.model._
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepository
 
 import java.util.UUID
 import scala.concurrent.Future
 
 class ExecutionPlansControllerTest extends org.scalatest.flatspec.AnyFlatSpec with Matchers with MockitoSugar with ScalaFutures {
-//  val timeout = PatienceConfiguration.Time  out()
-
   import ExecutionPlansControllerTest._
 
   behavior of "ExecutionPlansControllerTest"
