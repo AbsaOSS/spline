@@ -19,6 +19,10 @@ import { context } from '@arangodb/locals'
 
 const isDebugEnabled: boolean = context.isDevelopment
 
+export function error(...args: unknown[]) {
+    console.error(...args)
+}
+
 export function info(...args: unknown[]) {
     console.log(...args)
 }
