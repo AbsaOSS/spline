@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import myCoolFunction = require('../../aql/example.func')
+import myCoolFunction = require('../../src/aql/example.func')
 
 
 test('myCoolFunction', () => {

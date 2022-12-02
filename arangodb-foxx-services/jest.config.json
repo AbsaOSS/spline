@@ -3,7 +3,7 @@
   "testEnvironment": "node",
   "verbose": true,
   "testMatch": [
-    "<rootDir>/src/test/**/*.spec.ts"
+    "<rootDir>/tests/**/*.spec.ts"
   ],
   "globals": {
     "ts-jest": {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { memoize } from '../../main/utils/common'
+import { memoize } from '../../../src/main/utils/common'
 
 
 test('memoize', () => {
