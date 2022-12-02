@@ -27,8 +27,28 @@ import {
 } from '../persistence/model'
 import { store } from './store'
 import { db } from '@arangodb'
+import events from 'events'
 import * as Logger from '../utils/logger'
 
+
+const eventsEmitter = new events.EventEmitter({ captureRejections: true })
+
+function on(eventType: TxEvent, handler: (...args: unknown[]) => void) {
+    // In PRE_COMMIT handlers, in case of a failure, we want to break
+    // the transaction and retry it later. Handlers that do not aim to
+    // break transaction should listen to POST_COMMIT events.
+    const h = (eventType === TxEvent.PreCommit)
+        ? handler
+        : (...args) => {
+            try {
+                handler(...args)
+            }
+            catch (err) {
+                Logger.error(err)
+            }
+        }
+    eventsEmitter.on(eventType, h)
+}
 
 function nextTxNumber(): TxNum {
     const curCnt: Counter = store.getDocByKey(CollectionName.Counter, 'tx')
@@ -70,7 +90,8 @@ function startWrite(): WriteTxInfo {
         num: txNum,
         uid: txId,
     }
-    Logger.debug('[TX] START WRITE:', wtxInfo)
+    eventsEmitter.emit(TxEvent.StartWrite, wtxInfo)
+    Logger.debug('[TX] WRITE STARTED', wtxInfo)
     return wtxInfo
 }
 
@@ -97,7 +118,7 @@ function startRead(): ReadTxInfo {
         num: txNum,
         liveTxIds: txIds,
     }
-    Logger.debug('[TX] START READ:', rtxInfo)
+    Logger.debug('[TX] READ STARTED', rtxInfo)
     return rtxInfo
 }
 
@@ -106,8 +127,10 @@ function startRead(): ReadTxInfo {
  * @param txInfo WRITE transaction metadata to rollback
  */
 function commit(txInfo: WriteTxInfo): void {
+    eventsEmitter.emit(TxEvent.PreCommit, txInfo)
     store.deleteByKey(AuxCollectionName.TxInfo, txInfo.uid)
-    Logger.debug('[TX] COMMIT:', txInfo)
+    Logger.debug('[TX] COMMITTED', txInfo)
+    eventsEmitter.emit(TxEvent.PostCommit, txInfo)
 }
 
 /**
@@ -115,7 +138,8 @@ function commit(txInfo: WriteTxInfo): void {
  * @param txInfo WRITE transaction metadata to rollback
  */
 function rollback(txInfo: WriteTxInfo): void {
-    Logger.debug('[TX] ROLLBACK:', txInfo)
+    Logger.debug('[TX] ROLLBACK STARTING', txInfo)
+    eventsEmitter.emit(TxEvent.PreRollback, txInfo)
 
     for (const cn in DataCollectionName) {
         const col = db[DataCollectionName[cn]]
@@ -123,6 +147,9 @@ function rollback(txInfo: WriteTxInfo): void {
     }
 
     store.deleteByKey(AuxCollectionName.TxInfo, txInfo.uid)
+
+    eventsEmitter.emit(TxEvent.PostRollback, txInfo)
+    Logger.debug('[TX] ROLLBACK COMPLETE', txInfo)
 }
 
 /**
@@ -152,10 +179,19 @@ function isVisibleFromTx(rtx: ReadTxInfo, ...docs: TxAwareDocument[]): boolean {
     return true
 }
 
+export enum TxEvent {
+    StartWrite = 'TX_START_WRITE',
+    PreCommit = 'TX_PRE_COMMIT',
+    PostCommit = 'TX_POST_COMMIT',
+    PreRollback = 'TX_PRE_ROLLBACK',
+    PostRollback = 'TX_POST_ROLLBACK',
+}
+
 export const TxManager = {
     startWrite,
     startRead,
     commit,
     rollback,
-    isVisibleFromTx
+    isVisibleFromTx,
+    on
 }
