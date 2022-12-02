@@ -81,13 +81,17 @@ export function storeExecutionEvent(progress: Progress): void {
 
         const progressEdge = edge(CollectionName.Progress, progress._key, CollectionName.ExecutionPlan, progress.planKey, progress._key)
 
-        const wtxInfo: WriteTxInfo = TxManager.startWrite()
+        const wtxInfo: WriteTxInfo = TxManager.startWrite({
+            execPlanKey: progress.planKey,
+            execEventKey: progress._key
+        })
 
         try {
             store.insertOne(progressWithPlanDetails, CollectionName.Progress, wtxInfo)
             store.insertOne(progressEdge, CollectionName.ProgressOf, wtxInfo)
             TxManager.commit(wtxInfo)
-        } catch (e) {
+        }
+        catch (e) {
             TxManager.rollback(wtxInfo)
             throw e
         }

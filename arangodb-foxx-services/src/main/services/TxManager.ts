@@ -73,7 +73,7 @@ function nextTxNumber(): TxNum {
  * Start new logical transaction for WRITE
  * @return new WRITE transaction metadata
  */
-function startWrite(): WriteTxInfo {
+function startWrite(txParams: TxParams = {}): WriteTxInfo {
     // The following steps must be executed in the given exact order
     // (opposite to one for the READ transaction) as follows:
 
@@ -89,6 +89,7 @@ function startWrite(): WriteTxInfo {
     const wtxInfo: WriteTxInfo = {
         num: txNum,
         uid: txId,
+        params: txParams,
     }
     eventsEmitter.emit(TxEvent.StartWrite, wtxInfo)
     Logger.debug('[TX] WRITE STARTED', wtxInfo)
@@ -186,6 +187,11 @@ export enum TxEvent {
     PreRollback = 'TX_PRE_ROLLBACK',
     PostRollback = 'TX_POST_ROLLBACK',
 }
+
+export type TxParams = Partial<{
+    execPlanKey: string,
+    execEventKey: string,
+}>
 
 export const TxManager = {
     startWrite,

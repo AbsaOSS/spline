@@ -17,6 +17,7 @@
 
 import { DocumentKey } from '../model'
 import Document = ArangoDB.Document
+import { TxParams } from '../services/TxManager'
 
 
 export enum AuxCollectionName {
@@ -101,6 +102,7 @@ export type TxNum = number
 export type WriteTxInfo = {
     num: TxNum
     uid: TxId
+    params: TxParams
 }
 
 export type ReadTxInfo = {

@@ -24,7 +24,9 @@ import { TxManager } from './TxManager'
 
 export function storeExecutionPlan(eppm: ExecutionPlanPersistentModel): void {
     withTimeTracking(`STORE PLAN ${eppm.executionPlan._key}`, () => {
-        const txInfo: WriteTxInfo = TxManager.startWrite()
+        const txInfo: WriteTxInfo = TxManager.startWrite({
+            execPlanKey: eppm.executionPlan._key
+        })
 
         try {
             // execution plan
@@ -57,7 +59,8 @@ export function storeExecutionPlan(eppm: ExecutionPlanPersistentModel): void {
 
             TxManager.commit(txInfo)
 
-        } catch (e) {
+        }
+        catch (e) {
             TxManager.rollback(txInfo)
             throw e
         }
