@@ -143,7 +143,6 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         "pageSize" -> Int.box(pageRequest.size),
         "sortField" -> sortRequest.sortField,
         "sortOrder" -> sortRequest.sortOrder
-
       ),
       new AqlQueryOptions().fullCount(true)
     )

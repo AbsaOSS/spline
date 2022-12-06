@@ -29,9 +29,9 @@ import scala.concurrent.Future
 class ExecutionPlansControllerTest extends org.scalatest.flatspec.AnyFlatSpec with Matchers with MockitoSugar with ScalaFutures {
   import ExecutionPlansControllerTest._
 
-  behavior of "ExecutionPlansControllerTest"
+  behavior of "ExecutionPlansController"
 
-  "execPlan" should "return an execPlan in a form of a LineageDetailed object" in {
+  it should "return an execPlan in a form of a LineageDetailed object from execPlan(id)" in {
     val mockedEpRepo = mock[ExecutionPlanRepository]
     when(mockedEpRepo.findById(eqTo(ep1id))(any())).thenReturn(Future.successful(testingLineageDetailed1))
 
@@ -39,7 +39,7 @@ class ExecutionPlansControllerTest extends org.scalatest.flatspec.AnyFlatSpec wi
     epController.execPlan(ep1id).futureValue shouldBe testingLineageDetailed1
   }
 
-  "execPlans" should "return paginated execPlans in a form of LineageDetailed objects" in {
+  it should "return paginated execPlans in a form of LineageDetailed objects from execPlans(...)" in {
     val aTime = 123456789L
     val mockedEpRepo = mock[ExecutionPlanRepository]
     when(mockedEpRepo.find(eqTo(aTime), eqTo(PageRequest(1, 5)), eqTo(SortRequest("_created", "desc")))(any())).thenReturn(

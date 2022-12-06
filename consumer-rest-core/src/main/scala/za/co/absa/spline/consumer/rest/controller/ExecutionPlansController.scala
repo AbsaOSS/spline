@@ -24,6 +24,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import za.co.absa.spline.consumer.service.model._
 import za.co.absa.spline.consumer.service.repo.{DataSourceRepository, ExecutionPlanRepository}
 
+import java.lang.System.currentTimeMillis
 import javax.servlet.http.HttpServletRequest
 import scala.concurrent.Future
 
@@ -35,7 +36,7 @@ class ExecutionPlansController @Autowired()
 (
   val epRepo: ExecutionPlanRepository,
   val dsRepo: DataSourceRepository,
-) extends AbstractExecutionPlansController(epRepo) {
+) {
 
   @GetMapping(Array(""))
   @ApiOperation(
@@ -86,7 +87,7 @@ class ExecutionPlansController @Autowired()
       val newUri = ServletUriComponentsBuilder.fromRequest(request)
         .path(s"/../../../operations/{opId}") // stripping execution-plans/{planId}/write-op
         .buildAndExpand(opId)
-        .normalize // will normalize `/one/two/../three` into `/one/tree`
+        .normalize // will normalize `/one/two/../three` into `/one/three`
         .toUri
 
       val headers: HttpHeaders = new HttpHeaders();
@@ -105,6 +106,35 @@ class ExecutionPlansController @Autowired()
   ): Future[Array[String]] = {
     val dataSourceActionTypeOption = DataSourceActionType.findValueOf(access)
     dsRepo.findByUsage(planId, dataSourceActionTypeOption)
+  }
+
+  private def find(
+    asAtTime0: Long,
+    pageNum: Int,
+    pageSize: Int,
+    sortField: String,
+    sortOrder: String
+  ): Future[PageableExecutionPlansResponse] = {
+
+    val asAtTime = if (asAtTime0 < 1) currentTimeMillis else asAtTime0
+    val pageRequest = PageRequest(pageNum, pageSize)
+    val sortRequest = SortRequest(sortField, sortOrder)
+
+    val plansWithCount =
+      epRepo.find(
+        asAtTime,
+        pageRequest,
+        sortRequest)
+
+    for {
+      (events, totalCount) <- plansWithCount
+    } yield {
+      PageableExecutionPlansResponse(
+        events.toArray,
+        totalCount,
+        pageRequest.page,
+        pageRequest.size)
+    }
   }
 }
 
