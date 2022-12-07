@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 
-import { context } from '@arangodb/locals'
-
-
-const isDebugEnabled: boolean = context.isDevelopment
-
-export function info(...args: unknown[]) {
-    console.log(...args)
-}
-
-export function debug(...args: unknown[]) {
-    if (isDebugEnabled) {
-        console.log(...args)
-    }
+exports.context = <Foxx.Context>{
+    isDevelopment: true,
+    isProduction: false,
 }
