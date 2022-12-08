@@ -18,24 +18,26 @@ package za.co.absa.spline.consumer.rest.controller
 
 import io.swagger.annotations._
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.rest.controller.LineageDetailedController.AttributeLineageAndImpact
-import za.co.absa.spline.consumer.service.model.{AttributeGraph, DataSourceActionType, ExecutionPlanInfo, LineageDetailed}
-import za.co.absa.spline.consumer.service.repo.{DataSourceRepository, ExecutionPlanRepository}
+import za.co.absa.spline.consumer.service.model.{AttributeGraph, ExecutionPlanInfo, LineageDetailed}
+import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @RestController
 @Api(tags = Array("lineage"))
-class LineageDetailedController @Autowired()(
-  val epRepo: ExecutionPlanRepository,
-  val dsRepo: DataSourceRepository,
-) {
+class LineageDetailedController @Autowired()(val epRepo: ExecutionPlanRepository) {
 
   import ExecutionContext.Implicits.global
 
-  @GetMapping(Array("lineage-detailed"))
+  /**
+   * Alias for `execution-plans/{planId}` implemented by [[ExecutionPlansController#execPlan(java.util.UUID, java.lang.String)]]
+   *
+   * @param execId executionPlan ID (UUID)
+   * @return LineageDetails instance
+   */
+  @GetMapping(Array("/lineage-detailed"))
   @ApiOperation(
     value = "Get detailed execution plan (DAG)",
     notes = "Returns a logical plan DAG by execution plan ID")
@@ -46,12 +48,12 @@ class LineageDetailedController @Autowired()(
     epRepo.findById(execId)
   }
 
-  @GetMapping(Array("attribute-lineage-and-impact"))
+  @GetMapping(Array("/attribute-lineage-and-impact"))
   @ApiOperation(
     value = "Get graph of attributes that depends on attribute with provided id")
   def attributeLineageAndImpact(
-    @ApiParam(value = "Attribute ID")
-    @RequestParam("attributeId") attributeId: String
+     @ApiParam(value = "Attribute ID")
+     @RequestParam("attributeId") attributeId: String
   ): Future[AttributeLineageAndImpact] =
     Future.sequence(Seq(
       epRepo.execPlanAttributeLineage(attributeId),
@@ -59,17 +61,6 @@ class LineageDetailedController @Autowired()(
     )).map({
       case Seq(lin, imp) => AttributeLineageAndImpact(Some(lin), imp)
     })
-
-  @GetMapping(value = Array("execution-plans/{plan_id}/data-sources"))
-  @ResponseStatus(HttpStatus.OK)
-  def execPlanDataSources(
-    @PathVariable("plan_id") planId: ExecutionPlanInfo.Id,
-    @ApiParam(value = "access")
-    @RequestParam(name = "access", required = false) access: String
-  ): Future[Array[String]] = {
-    val dataSourceActionTypeOption = DataSourceActionType.findValueOf(access)
-    dsRepo.findByUsage(planId, dataSourceActionTypeOption)
-  }
 }
 
 object LineageDetailedController {

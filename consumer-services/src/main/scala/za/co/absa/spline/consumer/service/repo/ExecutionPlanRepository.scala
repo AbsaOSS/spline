@@ -28,5 +28,11 @@ trait ExecutionPlanRepository {
 
   def findById(execId: ExecutionPlanInfo.Id)(implicit ec: ExecutionContext): Future[LineageDetailed]
 
+  def find(
+    asAtTime: Long,
+    pageRequest: PageRequest,
+    sortRequest: SortRequest
+  )(implicit ec: ExecutionContext): Future[(Seq[LineageDetailed], Long)]
+
   def getWriteOperationId(planId: ExecutionPlanInfo.Id)(implicit ec: ExecutionContext): Future[Operation.Id]
 }
