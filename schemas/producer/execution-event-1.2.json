@@ -1,0 +1,45 @@
+{
+  "id": "https://raw.githubusercontent.com/AbsaOSS/spline/api-doc/schemas/producer/execution-event-1.2.json",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "required": [
+    "planId",
+    "timestamp"
+  ],
+  "properties": {
+    "planId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "labels": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "timestamp": {
+      "type": "integer",
+      "format": "int64"
+    },
+    "durationNs": {
+      "type": "integer",
+      "format": "int64"
+    },
+    "discriminator": {
+      "type": "string"
+    },
+    "error": {
+      "type": "object"
+    },
+    "extra": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object"
+      }
+    }
+  },
+  "title": "ExecutionEvent"
+}
