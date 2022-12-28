@@ -1,0 +1,26 @@
+{
+  "$id": "https://raw.githubusercontent.com/AbsaOSS/spline/api-doc/schemas/openlineage/spline-payload-facet-1.0.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "https://openlineage.io/spec/1-0-2/OpenLineage.json#/$defs/BaseFacet"
+    },
+    {
+      "type": "object",
+      "required": [
+        "payloadSchemaURL",
+        "payload"
+      ],
+      "properties": {
+        "payloadSchemaURL": {
+          "type": "string",
+          "format": "uri"
+        },
+        "payload": {
+          "type": "object"
+        }
+      }
+    }
+  ]
+}
