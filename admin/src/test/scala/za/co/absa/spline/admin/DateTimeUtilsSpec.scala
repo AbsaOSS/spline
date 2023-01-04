@@ -16,11 +16,11 @@
 
 package za.co.absa.spline.admin
 
-import java.time.{ZoneId, ZonedDateTime}
-
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import za.co.absa.spline.admin.DateTimeUtils.parseZonedDateTime
+
+import java.time.{ZoneId, ZonedDateTime}
 
 class DateTimeUtilsSpec extends AnyFlatSpec with Matchers {
 
@@ -86,8 +86,30 @@ class DateTimeUtilsSpec extends AnyFlatSpec with Matchers {
       ZonedDateTime.of(2020, 1, 11, 23, 34, 45, 123456789, ZoneId.of("Europe/Samara")))
   }
 
-  it should "not allow mixed offset and zone ID" in {
-    intercept[IllegalArgumentException](parseZonedDateTime("2020-01-11+01:00[Europe/Prague]")).getMessage should include("Europe/Prague")
+  it should "parse datetime with both offset and zone ID" in {
+    parseZonedDateTime("2020-01-11+04:00[Europe/Samara]") should equal(
+      ZonedDateTime.of(2020, 1, 11, 0, 0, 0, 0, ZoneId.of("Europe/Samara"))
+    )
+    parseZonedDateTime("2020-01-11+04:00[CET]") should equal(
+      ZonedDateTime.of(2020, 1, 10, 21, 0, 0, 0, ZoneId.of("CET"))
+    )
+  }
+
+  it should "properly handle DST transition (gap)" in {
+    parseZonedDateTime("2023-03-26T02:30[Europe/Samara]").toString should equal("2023-03-26T02:30+04:00[Europe/Samara]") // no DST
+    parseZonedDateTime("2023-03-26T02:30[Europe/Prague]").toString should equal("2023-03-26T03:30+02:00[Europe/Prague]") // adjust to summer
+  }
+
+  it should "properly handle DST transition (overlap)" in {
+    parseZonedDateTime("2022-10-30T02:30[Europe/Samara]").toString should equal("2022-10-30T02:30+04:00[Europe/Samara]") // no DST
+    parseZonedDateTime("2022-10-30T02:30[Europe/Prague]").toString should equal("2022-10-30T02:30+02:00[Europe/Prague]") // pick summer
+  }
+
+  it should "allow user to specify exact offset in the DST transition period" in {
+    parseZonedDateTime("2023-03-26T02:30+01:00").toString should equal("2023-03-26T02:30+01:00")
+    parseZonedDateTime("2023-03-26T02:30+02:00[CET]").toString should equal("2023-03-26T01:30+01:00[CET]")
+    parseZonedDateTime("2022-10-30T02:30+01:00").toString should equal("2022-10-30T02:30+01:00")
+    parseZonedDateTime("2022-10-30T02:30+01:00[CET]").toString should equal("2022-10-30T02:30+01:00[CET]")
   }
 
   it should "throw on malformed input" in {

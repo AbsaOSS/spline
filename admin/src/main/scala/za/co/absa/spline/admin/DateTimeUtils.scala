@@ -16,13 +16,16 @@
 
 package za.co.absa.spline.admin
 
+import org.slf4s.Logging
+
 import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
 import java.time.temporal.ChronoField
-import java.time.{ZoneId, ZonedDateTime}
-import scala.util.{Failure, Success, Try}
+import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
+import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
-object DateTimeUtils {
+object DateTimeUtils extends Logging {
 
   private val ZonedDateTimeRegexp = (s"" +
     "^" +
@@ -31,7 +34,7 @@ object DateTimeUtils {
     """(?:\[([\w/+\-]+)])?""".r + // timezone name
     "$").r
 
-  private val ZonedDateTimeFormatter = new DateTimeFormatterBuilder()
+  private val LocalDateOptionalTimeFormatter = new DateTimeFormatterBuilder()
     .parseCaseInsensitive()
     .append(DateTimeFormatter.ISO_LOCAL_DATE)
     .optionalStart()
@@ -39,20 +42,36 @@ object DateTimeUtils {
     .append(DateTimeFormatter.ISO_LOCAL_TIME)
     .optionalEnd()
     .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
-    .toFormatter();
+    .toFormatter()
 
   def parseZonedDateTime(s: String, defaultZoneId: ZoneId = ZoneId.systemDefault): ZonedDateTime =
     Try {
-      val ZonedDateTimeRegexp(ldt, tzOffset, tzId) = s
-      val maybeTzIds = Seq(tzId, tzOffset).map(Option.apply)
+      val ZonedDateTimeRegexp(ldtStr, tzOffsetStr, tzIdStr) = s
+      val maybeZoneOffset = Option(tzOffsetStr).map(ZoneOffset.of)
+      val maybeZoneGeoId = Option(tzIdStr).map(ZoneId.of)
 
-      require(!maybeTzIds.forall(_.isDefined), "Either timezone ID or offset should be specified, not both")
+      val ldt = LocalDateTime.parse(ldtStr, LocalDateOptionalTimeFormatter)
 
-      val tz = maybeTzIds
-        .collectFirst({ case Some(v) => ZoneId.of(v) })
+      val tz = Seq(maybeZoneOffset, maybeZoneGeoId)
+        .collectFirst({ case Some(zid) => zid })
         .getOrElse(defaultZoneId)
 
-      ZonedDateTime.parse(ldt, ZonedDateTimeFormatter.withZone(tz))
+      val zdt = ZonedDateTime.of(ldt, tz)
+
+      val validOffsets = tz.getRules.getValidOffsets(ldt).asScala
+      if (validOffsets.isEmpty) {
+        log.warn(s"" +
+          s"DST gap was detected for the input '$s' in the time zone '$tz'. " +
+          s"Continue with the adjusted datetime '$zdt''")
+      }
+      if (validOffsets.length > 1) {
+        log.warn(s"" +
+          s"DST overlap (${validOffsets.mkString(", ")}) was detected for the input '$s' in the time zone '$tz'. " +
+          s"Continue with the assumed datetime '$zdt'")
+      }
+
+      maybeZoneGeoId.foldLeft(zdt)(_ withZoneSameInstant _)
+
     } match {
       case Success(zonedTime) => zonedTime
       case Failure(nfe@NonFatal(_)) => throw new IllegalArgumentException(s"Cannot parse zoned datetime: $s", nfe)
