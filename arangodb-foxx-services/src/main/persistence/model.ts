@@ -17,7 +17,6 @@
 
 import { DocumentKey } from '../model'
 import Document = ArangoDB.Document
-import { TxParams } from '../services/TxManager'
 
 
 export enum AuxCollectionName {
@@ -109,6 +108,19 @@ export type ReadTxInfo = {
     num: TxNum
     liveTxIds: TxId[]
 }
+
+export enum TxEvent {
+    StartWrite = 'TX_START_WRITE',
+    PreCommit = 'TX_PRE_COMMIT',
+    PostCommit = 'TX_POST_COMMIT',
+    PreRollback = 'TX_PRE_ROLLBACK',
+    PostRollback = 'TX_POST_ROLLBACK',
+}
+
+export type TxParams = Partial<{
+    execPlanKey: string,
+    execEventKey: string,
+}>
 
 export type TxAwareDocument = {
     _tx_info?: WriteTxInfo

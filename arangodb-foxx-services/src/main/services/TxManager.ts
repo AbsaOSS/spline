@@ -21,8 +21,10 @@ import {
     DataCollectionName,
     ReadTxInfo,
     TxAwareDocument,
+    TxEvent,
     TxId,
     TxNum,
+    TxParams,
     WriteTxInfo
 } from '../persistence/model'
 import { store } from './store'
@@ -179,19 +181,6 @@ function isVisibleFromTx(rtx: ReadTxInfo, ...docs: TxAwareDocument[]): boolean {
     }
     return true
 }
-
-export enum TxEvent {
-    StartWrite = 'TX_START_WRITE',
-    PreCommit = 'TX_PRE_COMMIT',
-    PostCommit = 'TX_POST_COMMIT',
-    PreRollback = 'TX_PRE_ROLLBACK',
-    PostRollback = 'TX_POST_ROLLBACK',
-}
-
-export type TxParams = Partial<{
-    execPlanKey: string,
-    execEventKey: string,
-}>
 
 export const TxManager = {
     startWrite,
