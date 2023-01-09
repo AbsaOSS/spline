@@ -20,7 +20,7 @@ import { CollectionName, edge, WriteTxInfo } from '../persistence/model'
 import { store } from './store'
 import { aql, db } from '@arangodb'
 import { withTimeTracking } from '../utils/common'
-import { TxManager } from './TxManager'
+import { TxManager } from './txm'
 
 
 export function storeExecutionEvent(progress: Progress): void {
@@ -32,20 +32,15 @@ export function storeExecutionEvent(progress: Progress): void {
             throw Error(`Execution plan with ID ${planKey} not found`)
         }
         const {
-            targetDsSelector,
-            lastWriteTimestamp,
             dataSourceName,
             dataSourceUri,
             dataSourceType,
             append
-        } = db._query(
-            aql`
+        } = db._query(aql`
             WITH executionPlan, executes, operation, affects, dataSource
             LET wo = FIRST(FOR v IN 1 OUTBOUND ${ep._id} executes RETURN v)
             LET ds = FIRST(FOR v IN 1 OUTBOUND ${ep._id} affects RETURN v)
             RETURN {
-                "targetDsSelector"   : KEEP(ds, ['_id', '_rev']),
-                "lastWriteTimestamp" : ds.lastWriteDetails.timestamp,
                 "dataSourceName"     : ds.name,
                 "dataSourceUri"      : ds.uri,
                 "dataSourceType"     : wo.extra.destinationType,
@@ -70,20 +65,15 @@ export function storeExecutionEvent(progress: Progress): void {
 
         const progressWithPlanDetails = { ...progress, execPlanDetails }
 
-        if (lastWriteTimestamp < progress.timestamp) {
-            // This update is not covered with the application level transaction.
-            // It should be solved in the https://github.com/AbsaOSS/spline/issues/1111
-            db._update(
-                targetDsSelector,
-                { lastWriteDetails: progressWithPlanDetails }
-            )
-        }
-
         const progressEdge = edge(CollectionName.Progress, progress._key, CollectionName.ExecutionPlan, progress.planKey, progress._key)
 
         const wtxInfo: WriteTxInfo = TxManager.startWrite({
-            execPlanKey: progress.planKey,
-            execEventKey: progress._key
+            execEventInfo: {
+                _key: progress._key,
+                planKey: progress.planKey,
+                timestamp: progress.timestamp,
+                error: progress.error,
+            }
         })
 
         try {

@@ -17,6 +17,7 @@
 
 import { DocumentKey } from '../model'
 import Document = ArangoDB.Document
+import { ExecutionPlan, Progress } from '../../external/api.model'
 
 
 export enum AuxCollectionName {
@@ -118,8 +119,8 @@ export enum TxEvent {
 }
 
 export type TxParams = Partial<{
-    execPlanKey: string,
-    execEventKey: string,
+    execPlanInfo: Partial<ExecutionPlan>,
+    execEventInfo: Partial<Progress>,
 }>
 
 export type TxAwareDocument = {

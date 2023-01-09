@@ -19,13 +19,15 @@ import { ExecutionPlanPersistentModel } from '../../external/api.model'
 import { CollectionName, WriteTxInfo } from '../persistence/model'
 import { store } from './store'
 import { withTimeTracking } from '../utils/common'
-import { TxManager } from './TxManager'
+import { TxManager } from './txm'
 
 
 export function storeExecutionPlan(eppm: ExecutionPlanPersistentModel): void {
     withTimeTracking(`STORE PLAN ${eppm.executionPlan._key}`, () => {
         const txInfo: WriteTxInfo = TxManager.startWrite({
-            execPlanKey: eppm.executionPlan._key
+            execPlanInfo: {
+                _key: eppm.executionPlan._key,
+            }
         })
 
         try {

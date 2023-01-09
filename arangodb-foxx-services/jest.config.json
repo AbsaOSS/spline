@@ -5,6 +5,9 @@
   "testMatch": [
     "<rootDir>/tests/**/*.spec.ts"
   ],
+  "setupFilesAfterEnv": [
+    "jest-extended/all"
+  ],
   "globals": {
     "ts-jest": {
       "tsconfig": {
