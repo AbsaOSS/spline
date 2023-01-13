@@ -19,6 +19,9 @@ npm foxx:deploy --database=foo --server=http://some.server:1234
 # (http://localhost:8529/_db/foo/spline/)
 npm foxx:deploy --database=foo
 
+# Use "foxx:deploy-dev" to deploy the service in development mode (https://www.arangodb.com/docs/stable/foxx-guides-development-mode.html)
+npm foxx:deploy-dev --database=foo
+
 # If needed, in addition to the "foxx:deploy" script that executes build, uninstall and install steps,
 # you can also use individual "foxx:install" or "foxx:uninstall" scripts with the same arguments.
 npm foxx:uninstall --database=NAME [--server=URL]
