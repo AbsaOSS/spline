@@ -25,7 +25,10 @@ module.exports = {
     mode: 'production',
     target: 'node',
     entry: {
-        'main/index': './src/main/index.ts',
+        'index': [
+            ...Glob.sync(`./src/main/index.ts`),
+            ...Glob.sync(`./src/modules/**/index.ts`),
+        ],
         'scripts/setup': './src/scripts/setup.ts',
         'scripts/teardown': './src/scripts/teardown.ts',
         ...(Object.fromEntries(

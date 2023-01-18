@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { TxManager } from '../../services/txm'
-import { TxEvent, WriteTxInfo } from '../../persistence/model'
-import * as Logger from '../../utils/logger'
+import { TxManager } from '../../main/services/txm'
+import { TxEvent, WriteTxInfo } from '../../main/persistence/model'
+import * as Logger from '../../main/utils/logger'
 import { aql, db } from '@arangodb'
-import { Progress } from '../../../external/api.model'
+import { Progress } from '../../external/api.model'
 
 // We listen to PRE_COMMIT because we want to break a tx in case of a failure and preserve data consistency.
 // The downside is that we use uncommitted data, so we risk running into dirty reads problem which again,

@@ -7,7 +7,7 @@
     "setup": "scripts/setup.js",
     "teardown": "scripts/teardown.js"
   },
-  "main": "main/index.js",
+  "main": "index.js",
   "name": "spline-persistence-services",
   "version": "@VERSION@",
   "description": "Spline persistence REST API",

@@ -17,7 +17,5 @@
 import router from './routes'
 import { context } from '@arangodb/locals'
 
-import './modules'
-
 
 context.use(router)
