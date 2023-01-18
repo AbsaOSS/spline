@@ -14,21 +14,9 @@
  * limitations under the License.
  */
 
-import { context } from '@arangodb/locals'
+import myCoolFunction = require('../../src/aql/example.func')
 
 
-const isDebugEnabled: boolean = context.isDevelopment
-
-export function error(...args: unknown[]) {
-    console.error(...args)
-}
-
-export function info(...args: unknown[]) {
-    console.log(...args)
-}
-
-export function debug(...args: unknown[]) {
-    if (isDebugEnabled) {
-        console.log(...args)
-    }
-}
+test('myCoolFunction', () => {
+    expect(myCoolFunction(1, 2)).toBe(3)
+})

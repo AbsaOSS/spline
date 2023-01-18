@@ -10,8 +10,9 @@
     "test": "jest",
     "lint": "eslint src",
     "foxx:deploy": "npm run build && npm run foxx:uninstall && npm run foxx:install",
+    "foxx:deploy-dev": "npm run foxx:deploy --extra_args='--dev'",
     "foxx:uninstall": "cross-env-shell foxx uninstall --server $npm_config_server --database $npm_config_database /spline",
-    "foxx:install": "cross-env-shell foxx install --server $npm_config_server --database $npm_config_database /spline target/dist"
+    "foxx:install": "cross-env-shell foxx install --server $npm_config_server --database $npm_config_database $npm_config_extra_args /spline target/dist"
   },
   "devDependencies": {
     "@types/arangodb": "^3.5.13",
@@ -25,6 +26,7 @@
     "foxx-cli": "^2.0.1",
     "glob": "^8.0.3",
     "jest": "^28.1.2",
+    "jest-extended": "^3.2.2",
     "joi": "^17.6.0",
     "sync-pom-version-to-package": "^1.6.1",
     "ts-jest": "^28.0.7",

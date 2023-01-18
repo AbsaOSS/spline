@@ -17,6 +17,7 @@
 
 import { DocumentKey } from '../model'
 import Document = ArangoDB.Document
+import { ExecutionPlan, Progress } from '../../external/api.model'
 
 
 export enum AuxCollectionName {
@@ -101,12 +102,26 @@ export type TxNum = number
 export type WriteTxInfo = {
     num: TxNum
     uid: TxId
+    params: TxParams
 }
 
 export type ReadTxInfo = {
     num: TxNum
     liveTxIds: TxId[]
 }
+
+export enum TxEvent {
+    StartWrite = 'TX_START_WRITE',
+    PreCommit = 'TX_PRE_COMMIT',
+    PostCommit = 'TX_POST_COMMIT',
+    PreRollback = 'TX_PRE_ROLLBACK',
+    PostRollback = 'TX_POST_ROLLBACK',
+}
+
+export type TxParams = Partial<{
+    execPlanInfo: Partial<ExecutionPlan>,
+    execEventInfo: Partial<Progress>,
+}>
 
 export type TxAwareDocument = {
     _tx_info?: WriteTxInfo

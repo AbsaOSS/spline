@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { AQLCodeGenHelper } from '../../main/utils/aql-gen-helper'
+import { AQLCodeGenHelper } from '../../../src/main/utils/aql-gen-helper'
 import dedent from 'dedent'
 
 

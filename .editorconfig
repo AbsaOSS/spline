@@ -26,6 +26,8 @@ ij_typescript_use_semicolon_after_statement = false
 # braces
 indent_brace_style = stroustrup
 ij_typescript_else_on_new_line = true
+ij_typescript_catch_on_new_line = true
+ij_typescript_finally_on_new_line = true
 
 # imports
 ij_typescript_blank_lines_after_imports = 2

@@ -20,7 +20,7 @@ import { lineageOverview } from '../services/lineage-overview'
 import { impactOverview } from '../services/impact-overview'
 import { Progress } from '../../external/api.model'
 import { storeExecutionEvent } from '../services/execution-event-store'
-import { TxManager } from '../services/TxManager'
+import { TxManager } from '../services/txm'
 
 
 export const eventsRouter: Foxx.Router = createRouter()

@@ -17,9 +17,9 @@
 import { CollectionName, ReadTxInfo, TxAwareDocument, WriteTxInfo } from '../persistence/model'
 import { db } from '@arangodb'
 import { DocumentKey } from '../model'
-import { TxManager } from './TxManager'
 import Document = ArangoDB.Document
 import DocumentMetadata = ArangoDB.DocumentMetadata
+import { TxManager } from './txm'
 
 
 const dbCollections: Record<CollectionName, ArangoDB.Collection> =
@@ -53,7 +53,8 @@ function getDocByKey<T extends Document>(colName: CollectionName, key: DocumentK
 }
 
 function deleteByKey(colName: CollectionName, key: DocumentKey): DocumentMetadata {
-    return (<any>db)._remove({ _id: `${colName}/${key}` }, { silent: true })
+    // @ts-ignore
+    return db._remove({ _id: `${colName}/${key}` }, { silent: true })
 }
 
 export const store = {

@@ -74,5 +74,5 @@ export function observedReadsByWrite(writeEvent: Progress, rtxInfo: ReadTxInfo):
 
     Logger.debug(query)
 
-    return writeEvent && db._query(query).toArray()
+    return db._query(query).toArray()
 }

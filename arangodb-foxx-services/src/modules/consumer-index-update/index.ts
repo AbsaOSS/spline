@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 ABSA Group Limited
+ * Copyright 2023 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,4 @@
  * limitations under the License.
  */
 
-import { context } from '@arangodb/locals'
-
-
-const isDebugEnabled: boolean = context.isDevelopment
-
-export function error(...args: unknown[]) {
-    console.error(...args)
-}
-
-export function info(...args: unknown[]) {
-    console.log(...args)
-}
-
-export function debug(...args: unknown[]) {
-    if (isDebugEnabled) {
-        console.log(...args)
-    }
-}
+import './data-source.last-write.update'
