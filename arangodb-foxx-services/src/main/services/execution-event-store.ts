@@ -15,7 +15,7 @@
  */
 
 
-import { Progress } from '../../external/api.model'
+import { ExecPlanDetails, Progress } from '../../external/api.model'
 import { CollectionName, edge, WriteTxInfo } from '../persistence/model'
 import { store } from './store'
 import { aql, db } from '@arangodb'
@@ -48,7 +48,7 @@ export function storeExecutionEvent(progress: Progress): void {
             }
         `).next()
 
-        const execPlanDetails = {
+        const execPlanDetails: ExecPlanDetails = {
             'executionPlanKey': ep._key,
             'frameworkName': `${ep.systemInfo.name} ${ep.systemInfo.version}`,
             'applicationName': ep.name,
@@ -63,9 +63,11 @@ export function storeExecutionEvent(progress: Progress): void {
             throw new Error(`UUID collision detected !!! Execution event ID: ${progress._key}, discriminator: ${progress.discriminator}`)
         }
 
-        const progressWithPlanDetails = { ...progress, execPlanDetails }
+        const progressWithPlanDetails: Progress =
+            { ...progress, execPlanDetails }
 
-        const progressEdge = edge(CollectionName.Progress, progress._key, CollectionName.ExecutionPlan, progress.planKey, progress._key)
+        const progressEdge: Partial<ArangoDB.Edge> =
+            edge(CollectionName.Progress, progress._key, CollectionName.ExecutionPlan, progress.planKey, progress._key)
 
         const wtxInfo: WriteTxInfo = TxManager.startWrite({
             execEventInfo: {
