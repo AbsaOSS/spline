@@ -55,6 +55,7 @@ export function storeExecutionEvent(progress: Progress): void {
             'dataSourceUri': dataSourceUri,
             'dataSourceName': dataSourceName,
             'dataSourceType': dataSourceType,
+            'labels': ep.labels,
             'append': append
         }
 

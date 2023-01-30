@@ -163,7 +163,8 @@ case class ExecPlanDetails(
   dataSourceUri: DataSource.Uri,
   dataSourceName: DataSource.Name,
   dataSourceType: String,
+  labels: Map[String, Seq[String]],
   append: Boolean
 ) {
-  def this() = this(null, null, null, null, null, null, false) // NOSONAR
+  def this() = this(null, null, null, null, null, null, null, false) // NOSONAR
 }

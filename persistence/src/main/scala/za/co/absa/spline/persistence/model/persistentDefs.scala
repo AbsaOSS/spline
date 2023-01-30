@@ -248,6 +248,8 @@ object SearchViewDef {
             FieldLink.on("frameworkName").analyzers(NormSearchAnalyzer.name),
             FieldLink.on("dataSourceUri").analyzers(NormSearchAnalyzer.name, AnalyzerType.identity.name),
             FieldLink.on("dataSourceType").analyzers(NormSearchAnalyzer.name),
+            FieldLink.on("labels")
+              .includeAllFields(true).analyzers(NormSearchAnalyzer.name, AnalyzerType.identity.name),
           ),
           FieldLink.on("labels")
             .includeAllFields(true).analyzers(NormSearchAnalyzer.name, AnalyzerType.identity.name),
@@ -277,6 +279,8 @@ object SearchViewDef {
                 FieldLink.on("applicationName").analyzers(NormSearchAnalyzer.name),
                 FieldLink.on("frameworkName").analyzers(NormSearchAnalyzer.name),
                 FieldLink.on("dataSourceType").analyzers(NormSearchAnalyzer.name),
+                FieldLink.on("labels")
+                  .includeAllFields(true).analyzers(NormSearchAnalyzer.name, AnalyzerType.identity.name),
               )
             )
         )

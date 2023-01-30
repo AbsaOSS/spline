@@ -43,11 +43,10 @@ console.log("[Spline] Add 'progress.labels and progress.planKey'");
 db._query(aql`
     WITH progress
     FOR ee IN progress
-        FILTER ee.labels == null
         UPDATE ee WITH {
             labels: {},
             planKey: PARSE_IDENTIFIER(FIRST(FOR po IN progressOf FILTER po._from == ee._id RETURN po._to)).key
-        } IN progress
+        } IN progress OPTIONS { mergeObjects: true }
 `);
 
 console.log("[Spline] Add 'executionPlan.labels'");
@@ -114,6 +113,13 @@ db._createView("progress_view", "arangosearch", {})
                     "_created": {},
                     "execPlanDetails": {
                         "fields": {
+                            "labels": {
+                                "analyzers": [
+                                    "norm_en",
+                                    "identity"
+                                ],
+                                "includeAllFields": true
+                            },
                             "dataSourceUri": {
                                 "analyzers": [
                                     "norm_en",
@@ -186,6 +192,13 @@ db._createView("dataSource_view", "arangosearch", {})
                             "durationNs": {},
                             "execPlanDetails": {
                                 "fields": {
+                                    "labels": {
+                                        "analyzers": [
+                                            "norm_en",
+                                            "identity"
+                                        ],
+                                        "includeAllFields": true
+                                    },
                                     "dataSourceType": {
                                         "analyzers": [
                                             "norm_en"
