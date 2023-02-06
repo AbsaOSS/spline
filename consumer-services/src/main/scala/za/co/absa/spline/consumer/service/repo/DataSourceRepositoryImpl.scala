@@ -61,7 +61,12 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
       ${
         lblNames.zipWithIndex.map({
           case (lblName, i) =>
-            s"    AND @lblValues[$i] ANY == ds.labels['${escapeJavaScript(lblName)}']"
+            s"""
+               | AND (
+               |      @lblValues[$i] ANY == ds.lastWriteDetails.labels['${escapeJavaScript(lblName)}']
+               |   OR @lblValues[$i] ANY == ds.lastWriteDetails.execPlanDetails.labels['${escapeJavaScript(lblName)}']
+               | )
+             """.stripMargin
         }).mkString("\n")
       }
          |        AND (@searchTerm == null
@@ -125,7 +130,12 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
       ${
         lblNames.zipWithIndex.map({
           case (lblName, i) =>
-            s"    AND @lblValues[$i] ANY == ds.lastWriteDetails.labels['${escapeJavaScript(lblName)}']"
+            s"""
+               | AND (
+               |      @lblValues[$i] ANY == ds.lastWriteDetails.labels['${escapeJavaScript(lblName)}']
+               |   OR @lblValues[$i] ANY == ds.lastWriteDetails.execPlanDetails.labels['${escapeJavaScript(lblName)}']
+               | )
+             """.stripMargin
         }).mkString("\n")
       }
          |        AND (@searchTerm == null

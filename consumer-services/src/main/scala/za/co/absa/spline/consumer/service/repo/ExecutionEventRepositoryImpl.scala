@@ -57,7 +57,12 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
       ${
         lblNames.zipWithIndex.map({
           case (lblName, i) =>
-            s"    AND @lblValues[$i] ANY == ee.labels['${escapeJavaScript(lblName)}']"
+            s"""
+               | AND (
+               |      @lblValues[$i] ANY == ee.labels['${escapeJavaScript(lblName)}']
+               |   OR @lblValues[$i] ANY == ee.execPlanDetails.labels['${escapeJavaScript(lblName)}']
+               | )
+             """.stripMargin
         }).mkString("\n")
       }
          |        AND (@searchTerm == null
