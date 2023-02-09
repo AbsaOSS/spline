@@ -23,12 +23,15 @@ import { TxManager } from './txm'
 
 
 export function storeExecutionPlan(eppm: ExecutionPlanPersistentModel): void {
-    withTimeTracking(`STORE PLAN ${eppm.executionPlan._key}`, () => {
-        const txInfo: WriteTxInfo = TxManager.startWrite({
-            execPlanInfo: {
-                _key: eppm.executionPlan._key,
-            }
-        })
+    const execPlanKey = eppm.executionPlan._key
+    withTimeTracking(`STORE PLAN ${execPlanKey}`, () => {
+        const txInfo: WriteTxInfo = TxManager.startWrite(
+            execPlanKey,
+            {
+                execPlanInfo: {
+                    _key: execPlanKey,
+                }
+            })
 
         try {
             // execution plan

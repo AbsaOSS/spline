@@ -101,7 +101,8 @@ export type TxNum = number
  */
 export type WriteTxInfo = {
     num: TxNum
-    uid: TxId
+    uid: TxId // primary key - universally unique // TODO: double check with ArangoDB if it's indeed unique for entire collection life even if records are constantly removed
+    sid: TxId // secondary key - for deduplication purpose
     params: TxParams
 }
 

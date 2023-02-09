@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ReadTxInfo, TxAwareDocument, TxEvent, TxParams, WriteTxInfo } from '../../../../src/main/persistence/model'
+import { ReadTxInfo, TxAwareDocument, TxEvent, TxId, TxParams, WriteTxInfo } from '../../../../src/main/persistence/model'
 import { SubscribableTxManagerDecorator } from '../../../../src/main/services/txm/subcribable-tx-manager-decorator'
 
 
@@ -60,11 +60,12 @@ test('startRead() should be delegated', () => {
 })
 
 test('startWrite() should be delegated', () => {
+    const dummySID: TxId = "dummy_tx_sid"
     const dummyTxParams: TxParams = {}
     const dummyResult = {}
     mockTxManagerImpl.startWrite.mockReturnValue(dummyResult)
 
-    const res = txManagerDecorator.startWrite(dummyTxParams)
+    const res = txManagerDecorator.startWrite(dummySID, dummyTxParams)
     expect(res).toBe(dummyResult)
 
     expect(mockTxManagerImpl.startRead.mock.calls.length).toBe(0)
@@ -73,7 +74,8 @@ test('startWrite() should be delegated', () => {
     expect(mockTxManagerImpl.rollback.mock.calls.length).toBe(0)
     expect(mockTxManagerImpl.isVisibleFromTx.mock.calls.length).toBe(0)
 
-    expect(mockTxManagerImpl.startWrite.mock.lastCall[0]).toBe(dummyTxParams)
+    expect(mockTxManagerImpl.startWrite.mock.lastCall[0]).toBe(dummySID)
+    expect(mockTxManagerImpl.startWrite.mock.lastCall[1]).toBe(dummyTxParams)
 })
 
 test('commit() should be delegated', () => {
@@ -133,7 +135,7 @@ test('on(TX_START_WRITE)', () => {
     const dummyTxInfo: WriteTxInfo = {}
     mockTxManagerImpl.startWrite.mockReturnValue(dummyTxInfo)
 
-    txManagerDecorator.startWrite({})
+    txManagerDecorator.startWrite(null, null)
 
     expect(startWriteHandler.mock.calls.length).toBe(1)
     expect(preCommitHandler.mock.calls.length).toBe(0)

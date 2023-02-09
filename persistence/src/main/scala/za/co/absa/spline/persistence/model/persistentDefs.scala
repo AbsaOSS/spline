@@ -234,6 +234,10 @@ object CollectionDef {
     override def collectionType = CollectionType.DOCUMENT
 
     override def name: String = "txInfo"
+
+    override def indexDefs: Seq[IndexDef] = Seq(
+      IndexDef(Seq("sid"), (new PersistentIndexOptions).unique(true))
+    )
   }
 
 }

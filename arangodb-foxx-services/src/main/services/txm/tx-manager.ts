@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-import { ReadTxInfo, TxAwareDocument, TxParams, WriteTxInfo } from '../../persistence/model'
+import { ReadTxInfo, TxAwareDocument, TxId, TxParams, WriteTxInfo } from '../../persistence/model'
 
 
 export interface TxManager {
     /**
      * Start new logical transaction for WRITE
+     * @param sid secondary transaction ID - serves for deduplication purposes.
+     *            It MUST be unique if and only if the data written by the transaction is logically unique.
+     * @param txParams additional parameters associated and stored with this transaction info.
      * @return new WRITE transaction metadata
      */
-    startWrite(txParams: TxParams): WriteTxInfo
+    startWrite(sid: TxId, txParams: TxParams): WriteTxInfo
 
     /**
      * Start new logical transaction for READ
@@ -45,7 +48,7 @@ export interface TxManager {
     /**
      * Checks if all the `docs` are visible from the `rtx` READ transaction.
      * The document is visible from the READ transaction if:
-     *   = the document was created out of any logical transaction, OR
+     *   - the document was created out of any logical transaction, OR
      *   - the doc's associated WRITE transaction has been committed
      *     before the current READ one started.
      * @param rtx Read transaction info object

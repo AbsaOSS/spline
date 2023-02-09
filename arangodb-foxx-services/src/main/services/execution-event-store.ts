@@ -70,14 +70,16 @@ export function storeExecutionEvent(progress: Progress): void {
         const progressEdge: Partial<ArangoDB.Edge> =
             edge(CollectionName.Progress, progress._key, CollectionName.ExecutionPlan, progress.planKey, progress._key)
 
-        const wtxInfo: WriteTxInfo = TxManager.startWrite({
-            execEventInfo: {
-                _key: progress._key,
-                planKey: progress.planKey,
-                timestamp: progress.timestamp,
-                error: progress.error,
-            }
-        })
+        const wtxInfo: WriteTxInfo = TxManager.startWrite(
+            progress._key,
+            {
+                execEventInfo: {
+                    _key: progress._key,
+                    planKey: progress.planKey,
+                    timestamp: progress.timestamp,
+                    error: progress.error,
+                }
+            })
 
         try {
             store.insertOne(progressWithPlanDetails, CollectionName.Progress, wtxInfo)

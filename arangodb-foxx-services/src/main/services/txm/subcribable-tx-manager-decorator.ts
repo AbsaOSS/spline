@@ -16,7 +16,7 @@
 
 import { TxManager } from './tx-manager'
 import events from 'events'
-import { ReadTxInfo, TxAwareDocument, TxEvent, TxParams, WriteTxInfo } from '../../persistence/model'
+import { ReadTxInfo, TxAwareDocument, TxEvent, TxId, TxParams, WriteTxInfo } from '../../persistence/model'
 import * as Logger from '../../utils/logger'
 
 
@@ -64,8 +64,8 @@ export class SubscribableTxManagerDecorator implements TxManager {
         return this.internalTxManager.startRead()
     }
 
-    startWrite(txParams: TxParams): WriteTxInfo {
-        const wtxInfo = this.internalTxManager.startWrite(txParams)
+    startWrite(sid: TxId, txParams: TxParams): WriteTxInfo {
+        const wtxInfo = this.internalTxManager.startWrite(sid, txParams)
         this.eventsEmitter.emit(TxEvent.StartWrite, wtxInfo)
         return wtxInfo
     }
