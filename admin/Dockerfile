@@ -17,9 +17,7 @@
 # Run image using:
 # $> docker run --rm -it absaoss/spline-admin:latest
 
-ARG DOCKER_BASE_IMAGE_PREFIX
-
-FROM "$DOCKER_BASE_IMAGE_PREFIX"adoptopenjdk:11-jre
+FROM adoptopenjdk:11-jre
 
 ARG PROJECT_BUILD_FINAL_NAME
 

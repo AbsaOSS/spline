@@ -14,9 +14,7 @@
 # limitations under the License.
 #
 
-ARG DOCKER_BASE_IMAGE_PREFIX=
-
-FROM "$DOCKER_BASE_IMAGE_PREFIX"tomcat:9-jre11-openjdk-slim-buster
+FROM tomcat:9-jre11-openjdk-slim-buster
 
 LABEL \
     vendor="ABSA" \
