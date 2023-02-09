@@ -139,13 +139,10 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>dockerfile-maven-plugin</artifactId>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
                 <configuration>
                     <skip>false</skip>
-                    <buildArgs>
-                        <IMAGE_NAME>${dockerfile.imageName}</IMAGE_NAME>
-                    </buildArgs>
                 </configuration>
             </plugin>
         </plugins>
