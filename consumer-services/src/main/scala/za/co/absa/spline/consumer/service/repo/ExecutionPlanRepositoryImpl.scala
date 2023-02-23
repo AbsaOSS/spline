@@ -33,109 +33,159 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
 
   import za.co.absa.spline.persistence.ArangoImplicits._
 
-  /** Expect execPlan to be available */
-  private val execPlanToLineageDetailedAQL =
-    """
-      |LET ops = (
-      |    FOR op IN operation
-      |        FILTER op._belongsTo == execPlan._id
-      |        RETURN op
-      |    )
-      |LET edges = (
-      |    FOR f IN follows
-      |        FILTER f._belongsTo == execPlan._id
-      |        RETURN f
-      |    )
-      |LET schemaIds = (
-      |    FOR op IN ops
-      |        FOR schema IN 1
-      |            OUTBOUND op emits
-      |            RETURN DISTINCT schema._id
-      |    )
-      |LET attributes = (
-      |    FOR sid IN schemaIds
-      |        FOR a IN 1
-      |            OUTBOUND sid consistsOf
-      |            RETURN DISTINCT {
-      |                "id"   : a._key,
-      |                "name" : a.name,
-      |                "dataTypeId" : a.dataType
-      |            }
-      |    )
-      |LET inputs = FLATTEN(
-      |    FOR op IN ops
-      |        FILTER op.type == "Read"
-      |        RETURN op.inputSources[* RETURN {
-      |            "source"    : CURRENT,
-      |            "sourceType": op.extra.sourceType
-      |        }]
-      |    )
-      |LET output = FIRST(
-      |    ops[*
-      |        FILTER CURRENT.type == "Write"
-      |        RETURN {
-      |            "source"    : CURRENT.outputSource,
-      |            "sourceType": CURRENT.extra.destinationType
-      |        }]
-      |    )
-      |RETURN execPlan && {
-      |    "graph": {
-      |        "nodes": ops[* RETURN {
-      |                "_id"  : CURRENT._key,
-      |                "_type": CURRENT.type,
-      |                "name" : CURRENT.name || CURRENT.type
-      |            }],
-      |        "edges": edges[* RETURN {
-      |                "source": PARSE_IDENTIFIER(CURRENT._to).key,
-      |                "target": PARSE_IDENTIFIER(CURRENT._from).key
-      |            }]
-      |    },
-      |    "executionPlan": {
-      |        "_id"       : execPlan._key,
-      |        "systemInfo": execPlan.systemInfo,
-      |        "agentInfo" : execPlan.agentInfo,
-      |        "name"      : execPlan.name || execPlan._key,
-      |        "extra"     : MERGE(
-      |                         execPlan.extra,
-      |                         { attributes },
-      |                         { "appName"  : execPlan.name || execPlan._key }
-      |                      ),
-      |        "inputs"    : inputs,
-      |        "output"    : output
-      |    }
-      |}
-      |"""
-
   override def findById(execId: ExecutionPlanInfo.Id)(implicit ec: ExecutionContext): Future[LineageDetailed] = {
     db.queryOne[LineageDetailed](
       s"""
         |WITH executionPlan, executes, operation, follows, emits, schema, consistsOf, attribute
         |LET execPlan = DOCUMENT("executionPlan", @execPlanId)
-        $execPlanToLineageDetailedAQL
+        |LET ops = (
+        |    FOR op IN operation
+        |        FILTER op._belongsTo == execPlan._id
+        |        RETURN op
+        |    )
+        |LET edges = (
+        |    FOR f IN follows
+        |        FILTER f._belongsTo == execPlan._id
+        |        RETURN f
+        |    )
+        |LET schemaIds = (
+        |    FOR op IN ops
+        |        FOR schema IN 1
+        |            OUTBOUND op emits
+        |            RETURN DISTINCT schema._id
+        |    )
+        |LET attributes = (
+        |    FOR sid IN schemaIds
+        |        FOR a IN 1
+        |            OUTBOUND sid consistsOf
+        |            RETURN DISTINCT {
+        |                "id"   : a._key,
+        |                "name" : a.name,
+        |                "dataTypeId" : a.dataType
+        |            }
+        |    )
+        |LET inputs = FLATTEN(
+        |    FOR op IN ops
+        |        FILTER op.type == "Read"
+        |        RETURN op.inputSources[* RETURN {
+        |            "source"    : CURRENT,
+        |            "sourceType": op.extra.sourceType
+        |        }]
+        |    )
+        |LET output = FIRST(
+        |    ops[*
+        |        FILTER CURRENT.type == "Write"
+        |        RETURN {
+        |            "source"    : CURRENT.outputSource,
+        |            "sourceType": CURRENT.extra.destinationType
+        |        }]
+        |    )
+        |RETURN execPlan && {
+        |    "graph": {
+        |        "nodes": ops[* RETURN {
+        |                "_id"  : CURRENT._key,
+        |                "_type": CURRENT.type,
+        |                "name" : CURRENT.name || CURRENT.type
+        |            }],
+        |        "edges": edges[* RETURN {
+        |                "source": PARSE_IDENTIFIER(CURRENT._to).key,
+        |                "target": PARSE_IDENTIFIER(CURRENT._from).key
+        |            }]
+        |    },
+        |    "executionPlan": {
+        |        "_id"       : execPlan._key,
+        |        "systemInfo": execPlan.systemInfo,
+        |        "agentInfo" : execPlan.agentInfo,
+        |        "name"      : execPlan.name || execPlan._key,
+        |        "extra"     : MERGE(
+        |                         execPlan.extra,
+        |                         { attributes },
+        |                         { "appName"  : execPlan.name || execPlan._key }
+        |                      ),
+        |        "inputs"    : inputs,
+        |        "output"    : output
+        |    }
+        |}
         |""".stripMargin,
       Map("execPlanId" -> execId)
     ).filter(null.!=)
   }
 
-  override def find(asAtTime: Long, pageRequest: PageRequest, sortRequest: SortRequest)(implicit ec: ExecutionContext): Future[(Seq[LineageDetailed], Long)] = {
-
-    // cannot use:
-    //        FOR execPlan IN executionPlan
-    //          FOR prog IN 1 OUTBOUND execPlan progressOf
-    // because CURRENT's context would be `progress`, not `executionPlan`
-
-    val queryResult: Future[ArangoCursorAsync[LineageDetailed]] = db.queryAs[LineageDetailed](
+  override def find(
+    asAtTime: Long,
+    pageRequest: PageRequest,
+    sortRequest: SortRequest
+  )(implicit ec: ExecutionContext): Future[(Seq[ExecutionPlanInfo], Long)] = {
+    val queryResult: Future[ArangoCursorAsync[ExecutionPlanInfo]] = db.queryAs[ExecutionPlanInfo](
       s"""
-         |WITH progress, progressOf, executionPlan, executes, operation, follows, emits, schema, consistsOf, attribute
-         |FOR prog IN progress
-         |    FILTER prog.timestamp <= @asAtTime
-         |    FOR execPlan IN 1 OUTBOUND prog progressOf
+         |WITH executionPlan, progress, operation, follows, emits, schema, consistsOf, attribute
+         |FOR execPlan IN executionPlan
+         |    LET progress = (
+         |        FOR prog IN progress
+         |            FILTER prog.execPlanDetails.executionPlanKey == execPlan._key
+         |            FILTER prog.timestamp <= @asAtTime
+         |            LIMIT 1
+         |            RETURN prog
+         |        )
+         |    FILTER LENGTH(progress)
+         |    SORT execPlan.@sortField @sortOrder
+         |    LIMIT @pageOffset*@pageSize, @pageSize
          |
-         |        SORT execPlan.@sortField @sortOrder
-         |        LIMIT @pageOffset*@pageSize, @pageSize
-         |
-         $execPlanToLineageDetailedAQL
-         |
+         |    LET ops = (
+         |        FOR op IN operation
+         |            FILTER op._belongsTo == execPlan._id
+         |            RETURN op
+         |        )
+         |    LET edges = (
+         |        FOR f IN follows
+         |            FILTER f._belongsTo == execPlan._id
+         |            RETURN f
+         |        )
+         |    LET schemaIds = (
+         |        FOR op IN ops
+         |            FOR schema IN 1
+         |                OUTBOUND op emits
+         |                RETURN DISTINCT schema._id
+         |        )
+         |    LET attributes = (
+         |        FOR sid IN schemaIds
+         |            FOR a IN 1
+         |                OUTBOUND sid consistsOf
+         |                RETURN DISTINCT {
+         |                    "id"   : a._key,
+         |                    "name" : a.name,
+         |                    "dataTypeId" : a.dataType
+         |                }
+         |        )
+         |    LET inputs = FLATTEN(
+         |        FOR op IN ops
+         |            FILTER op.type == "Read"
+         |            RETURN op.inputSources[* RETURN {
+         |                "source"    : CURRENT,
+         |                "sourceType": op.extra.sourceType
+         |            }]
+         |        )
+         |    LET output = FIRST(
+         |        ops[*
+         |            FILTER CURRENT.type == "Write"
+         |            RETURN {
+         |                "source"    : CURRENT.outputSource,
+         |                "sourceType": CURRENT.extra.destinationType
+         |            }]
+         |    )
+         |    return {
+         |        "_id"       : execPlan._key,
+         |        "systemInfo": execPlan.systemInfo,
+         |        "agentInfo" : execPlan.agentInfo,
+         |        "name"      : execPlan.name || execPlan._key,
+         |        "extra"     : MERGE(
+         |                         execPlan.extra,
+         |                         { attributes },
+         |                         { "appName"  : execPlan.name || execPlan._key }
+         |                      ),
+         |        "inputs"    : inputs,
+         |        "output"    : output
+         |    }
          |""".stripMargin,
       Map[String, AnyRef](
         "asAtTime" -> Long.box(asAtTime),
@@ -147,7 +197,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
       new AqlQueryOptions().fullCount(true)
     )
 
-    val findResult: Future[(Seq[LineageDetailed], Long)] = queryResult.map {
+    val findResult: Future[(Seq[ExecutionPlanInfo], Long)] = queryResult.map {
       arangoCursorAsync =>
         val items = arangoCursorAsync.streamRemaining().toScala
         val totalCount = arangoCursorAsync.getStats.getFullCount
