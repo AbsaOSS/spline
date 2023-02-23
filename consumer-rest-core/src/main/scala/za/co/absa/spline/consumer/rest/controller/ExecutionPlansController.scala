@@ -127,15 +127,13 @@ class ExecutionPlansController @Autowired()
         sortRequest)
 
     for {
-      (events, totalCount) <- plansWithCount
+      (plans, totalCount) <- plansWithCount
     } yield {
       PageableExecutionPlansResponse(
-        events.toArray,
+        plans.toArray,
         totalCount,
         pageRequest.page,
         pageRequest.size)
     }
   }
 }
-
-

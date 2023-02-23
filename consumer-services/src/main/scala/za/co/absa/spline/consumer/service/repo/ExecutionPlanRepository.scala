@@ -32,7 +32,7 @@ trait ExecutionPlanRepository {
     asAtTime: Long,
     pageRequest: PageRequest,
     sortRequest: SortRequest
-  )(implicit ec: ExecutionContext): Future[(Seq[LineageDetailed], Long)]
+  )(implicit ec: ExecutionContext): Future[(Seq[ExecutionPlanInfo], Long)]
 
   def getWriteOperationId(planId: ExecutionPlanInfo.Id)(implicit ec: ExecutionContext): Future[Operation.Id]
 }

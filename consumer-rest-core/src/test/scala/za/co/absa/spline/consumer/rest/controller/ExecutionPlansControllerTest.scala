@@ -27,45 +27,36 @@ import java.util.UUID
 import scala.concurrent.Future
 
 class ExecutionPlansControllerTest extends org.scalatest.flatspec.AnyFlatSpec with Matchers with MockitoSugar with ScalaFutures {
-  import ExecutionPlansControllerTest._
 
   behavior of "ExecutionPlansController"
 
   it should "return an execPlan in a form of a LineageDetailed object from execPlan(id)" in {
+    val ep1id = UUID.randomUUID()
+    val lineageDetailed1 = mock[LineageDetailed]
     val mockedEpRepo = mock[ExecutionPlanRepository]
-    when(mockedEpRepo.findById(eqTo(ep1id))(any())).thenReturn(Future.successful(testingLineageDetailed1))
+    when(mockedEpRepo.findById(eqTo(ep1id))(any())).thenReturn(Future.successful(lineageDetailed1))
 
     val epController = new ExecutionPlansController(mockedEpRepo, null)
-    epController.execPlan(ep1id).futureValue shouldBe testingLineageDetailed1
+    epController.execPlan(ep1id).futureValue shouldBe lineageDetailed1
   }
 
   it should "return paginated execPlans in a form of LineageDetailed objects from execPlans(...)" in {
+    val executionPlanInfo1 = mock[ExecutionPlanInfo]
+    val executionPlanInfo2 = mock[ExecutionPlanInfo]
+    val executionPlanInfo3 = mock[ExecutionPlanInfo]
+    val executionPlanInfo4 = mock[ExecutionPlanInfo]
+
     val aTime = 123456789L
     val mockedEpRepo = mock[ExecutionPlanRepository]
     when(mockedEpRepo.find(eqTo(aTime), eqTo(PageRequest(1, 5)), eqTo(SortRequest("_created", "desc")))(any())).thenReturn(
-      Future.successful((Seq(testingLineageDetailed1, testingLineageDetailed2, testingLineageDetailed3, testingLineageDetailed4), 4L))
+      Future.successful((Seq(executionPlanInfo1, executionPlanInfo2, executionPlanInfo3, executionPlanInfo4), 4L))
     )
 
     val epController = new ExecutionPlansController(mockedEpRepo, null)
 
-    // Sadly a less readable comparison, because PageableExecutionPlansResponse.items is an Array
     val response = epController.execPlans(aTime, 1, 5).futureValue
     response shouldBe a[PageableExecutionPlansResponse]
     (response.totalCount, response.pageNum, response.pageSize) shouldBe (4, 1, 5)
-    response.items should contain theSameElementsInOrderAs Seq(testingLineageDetailed1, testingLineageDetailed2, testingLineageDetailed3, testingLineageDetailed4)
+    response.items should contain theSameElementsInOrderAs Seq(executionPlanInfo1, executionPlanInfo2, executionPlanInfo3, executionPlanInfo4)
   }
-}
-
-object ExecutionPlansControllerTest {
-  def testLineageDetailed(uuid: UUID = UUID.randomUUID()) = LineageDetailed(
-    ExecutionPlanInfo(uuid, None, Map.empty, Map.empty, Map.empty, Array.empty, null),
-    LineageDetailedGraph(Array(Operation("op1", "Read", None, Map.empty)), Array.empty)
-  )
-
-  val ep1id = UUID.randomUUID()
-  val testingLineageDetailed1 = testLineageDetailed(ep1id)
-  val testingLineageDetailed2 = testLineageDetailed()
-  val testingLineageDetailed3 = testLineageDetailed()
-  val testingLineageDetailed4 = testLineageDetailed()
-
 }

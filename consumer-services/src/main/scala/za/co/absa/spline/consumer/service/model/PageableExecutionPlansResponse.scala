@@ -20,11 +20,11 @@ import io.swagger.annotations.ApiModelProperty
 
 case class PageableExecutionPlansResponse(
   @ApiModelProperty(value = "Array of Execution plans")
-  override val items: Array[LineageDetailed],
+  override val items: Array[ExecutionPlanInfo],
   @ApiModelProperty(value = "Total number of executionPlans in the result set")
   override val totalCount: Long,
   @ApiModelProperty(value = "Page number")
   override val pageNum: Int,
   @ApiModelProperty(value = "Page size")
   override val pageSize: Int
-) extends Pageable[LineageDetailed]
+) extends Pageable[ExecutionPlanInfo]
