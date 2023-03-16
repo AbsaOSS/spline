@@ -105,7 +105,6 @@ export class TxManagerImpl implements TxManager {
         // First,
         // obtain a next global number to fix a transaction position on a serializable time axis.
 
-        // const txIds: TxId[] =
         const txNum: TxNum = this.nextTxNumber()
 
         // Second,
