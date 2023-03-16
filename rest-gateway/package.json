@@ -9,6 +9,6 @@
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
-    "redoc-cli": "^0.13.20"
+    "redoc-cli": "^0.13.21"
   }
 }
