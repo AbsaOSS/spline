@@ -27,19 +27,19 @@ import javax.net.ssl.SSLContext
 import scala.concurrent.ExecutionContext
 
 trait ArangoManagerFactory {
-  def create(connectionURL: ArangoConnectionURL, maybeSSLContext: Option[SSLContext]): ArangoManager
+  def create(connectionURL: ArangoConnectionURL, maybeSSLContext: Option[SSLContext], dryRun: Boolean): ArangoManager
 }
 
 class ArangoManagerFactoryImpl(activeFailover: Boolean)(implicit ec: ExecutionContext) extends ArangoManagerFactory {
 
-  override def create(connectionURL: ArangoConnectionURL, maybeSSLContext: Option[SSLContext]): ArangoManager = {
+  override def create(connectionURL: ArangoConnectionURL, maybeSSLContext: Option[SSLContext], dryRun: Boolean): ArangoManager = {
     val scriptRepo = MigrationScriptRepository
 
     def dbManager(db: ArangoDatabaseAsync): ArangoManager = {
-      val versionManager = new DatabaseVersionManager(db)
-      val drManager = new DataRetentionManager(db)
-      val migrator = new Migrator(db, scriptRepo, versionManager)
-      val foxxManager = new FoxxManagerImpl(db.restClient)
+      val versionManager = new DatabaseVersionManager(db, dryRun)
+      val drManager = new DataRetentionManager(db, dryRun)
+      val migrator = new Migrator(db, scriptRepo, versionManager, dryRun)
+      val foxxManager = new FoxxManagerImpl(db.restClient, dryRun)
       val clock = Clock.systemDefaultZone
       new ArangoManagerImpl(
         db,
@@ -48,7 +48,8 @@ class ArangoManagerFactoryImpl(activeFailover: Boolean)(implicit ec: ExecutionCo
         migrator,
         foxxManager,
         clock,
-        scriptRepo.latestToVersion
+        scriptRepo.latestToVersion,
+        dryRun
       )
     }
 

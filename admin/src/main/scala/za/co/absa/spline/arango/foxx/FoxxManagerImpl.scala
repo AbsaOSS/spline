@@ -20,22 +20,27 @@ import org.json4s.DefaultFormats
 import org.json4s.jackson.JsonMethods.parse
 import org.slf4s.Logging
 import za.co.absa.spline.common.rest.RESTClient
+import za.co.absa.spline.persistence.DryRunnable
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class FoxxManagerImpl(restClient: RESTClient)(implicit ec: ExecutionContext)
+class FoxxManagerImpl(
+  restClient: RESTClient,
+  val dryRun: Boolean
+)(implicit ec: ExecutionContext)
   extends FoxxManager
+    with DryRunnable
     with Logging {
 
   override def install(mountPrefix: String, content: Array[Byte]): Future[Unit] = {
     log.debug(s"Prepare Foxx service.zip: $mountPrefix")
 
-    restClient.post(s"_api/foxx?mount=$mountPrefix", content)
+    unlessDryRunAsync(restClient.post(s"_api/foxx?mount=$mountPrefix", content))
   }
 
   override def uninstall(mountPrefix: String): Future[Unit] = {
     log.debug(s"Delete Foxx service: $mountPrefix")
-    restClient.delete(s"_api/foxx/service?mount=$mountPrefix")
+    unlessDryRunAsync(restClient.delete(s"_api/foxx/service?mount=$mountPrefix"))
   }
 
   override def list(): Future[Seq[Map[String, Any]]] = {

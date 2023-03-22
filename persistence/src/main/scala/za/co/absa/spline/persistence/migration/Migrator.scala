@@ -19,10 +19,10 @@ package za.co.absa.spline.persistence.migration
 import com.arangodb.async.ArangoDatabaseAsync
 import org.slf4s.Logging
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
-import za.co.absa.spline.persistence.model.DBVersion.Status
 import za.co.absa.spline.persistence.model.CollectionDef.DBVersion
+import za.co.absa.spline.persistence.model.DBVersion.Status
 import za.co.absa.spline.persistence.tx._
-import za.co.absa.spline.persistence.{ArangoImplicits, DatabaseVersionManager, model}
+import za.co.absa.spline.persistence.{ArangoImplicits, DatabaseVersionManager, DryRunnable, model}
 
 import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.concurrent.{ExecutionContext, Future}
@@ -30,8 +30,11 @@ import scala.concurrent.{ExecutionContext, Future}
 class Migrator(
   db: ArangoDatabaseAsync,
   scriptRepository: MigrationScriptRepository,
-  dbVersionManager: DatabaseVersionManager)
-  (implicit ec: ExecutionContext) extends Logging {
+  dbVersionManager: DatabaseVersionManager,
+  val dryRun: Boolean)
+  (implicit ec: ExecutionContext)
+  extends Logging
+    with DryRunnable {
 
   def migrate(verFrom: SemanticVersion, verTo: SemanticVersion): Future[Boolean] = {
     val eventualMigrationChain =
@@ -80,17 +83,26 @@ class Migrator(
     for {
       _ <- db.adminExecute(
         // It also serves as a pre-flight check of the '/_admin/execute' API
-        s"console.log('Starting migration to version ${version.asString}')"
+        s"console.log('Starting migration to version ${version.asString}${if (dryRun) " [DRY RUN]" else ""}')"
       )
-      _ <- db.collection(DBVersion.name).insertDocument(model.DBVersion(version.asString, Status.Preparing)).toScala
-      _ <- db.adminExecute(script)
-      _ <- new JSTxBuilder()
-        .addQuery(UpdateQuery(DBVersion,
-          s"${UpdateQuery.DocWildcard}.status == '${Status.Current}'", Map("status" -> Status.Upgraded.toString)))
-        .addQuery(UpdateQuery(DBVersion,
-          s"${UpdateQuery.DocWildcard}.status == '${Status.Preparing}'", Map("status" -> Status.Current.toString)))
-        .buildTx()
-        .execute(db)
+      _ <- unlessDryRunAsync {
+        db.collection(DBVersion.name).insertDocument(model.DBVersion(version.asString, Status.Preparing)).toScala
+      }
+      _ <- unlessDryRunAsync {
+        db.adminExecute(script)
+      }
+      _ <- unlessDryRunAsync {
+        new JSTxBuilder()
+          .addQuery(UpdateQuery(DBVersion,
+            s"${UpdateQuery.DocWildcard}.status == '${Status.Current}'", Map("status" -> Status.Upgraded.toString)))
+          .addQuery(UpdateQuery(DBVersion,
+            s"${UpdateQuery.DocWildcard}.status == '${Status.Preparing}'", Map("status" -> Status.Current.toString)))
+          .buildTx()
+          .execute(db)
+      }
+      _ <- db.adminExecute(
+        s"console.log('Successfully migrated to version ${version.asString}${if (dryRun) " [DRY RUN]" else ""}')"
+      )
     } yield ()
   }
 }

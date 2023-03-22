@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 ABSA Group Limited
+ * Copyright 2023 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.arango
+package za.co.absa.spline.persistence
 
+import scala.concurrent.Future
 
-import com.arangodb.async.ArangoDatabaseAsync
-import za.co.absa.spline.persistence.ArangoImplicits._
-import za.co.absa.spline.persistence.DryRunnable
+trait DryRunnable {
+  def dryRun: Boolean
 
-import scala.concurrent.{ExecutionContext, Future}
-
-class DataRetentionManager(
-  db: ArangoDatabaseAsync,
-  val dryRun: Boolean
-)(implicit ec: ExecutionContext)
-  extends DryRunnable {
-
-  def pruneBefore(timestamp: Long): Future[Unit] = unlessDryRunAsync {
-    db.restClient.delete(s"spline/admin/data/before/$timestamp")
+  def unlessDryRun[T <: Any](code: => T, default: => T): T = {
+    if (dryRun) default
+    else code
   }
 
+  def unlessDryRun[T <: AnyRef](code: => T): T = {
+    unlessDryRun(code, null).asInstanceOf[T]
+  }
+
+  def unlessDryRunAsync[T <: Future[U], U](code: => U): U = {
+    unlessDryRun(code, Future.successful(null)).asInstanceOf[U]
+  }
 }
