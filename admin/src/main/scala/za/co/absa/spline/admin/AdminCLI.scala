@@ -65,10 +65,10 @@ object AdminCLI extends App {
     .map(console => new InteractiveArangoManagerFactoryProxy(dbManagerFactoryImpl, new UserInteractor(console)))
     .getOrElse(dbManagerFactoryImpl)
 
-  new AdminCLI(dbManagerFactory).exec(args)
+  new AdminCLI(dbManagerFactory, maybeConsole).exec(args)
 }
 
-class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
+class AdminCLI(dbManagerFactory: ArangoManagerFactory, maybeConsole: Option[InputConsole]) {
 
   import za.co.absa.spline.common.CollectionUtils.Implicits._
 
@@ -278,6 +278,25 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
 
       case DBUpgrade(url) =>
         val dbManager = dbManagerFactory.create(url, sslCtxOpt, conf.dryRun)
+        val proceed: Boolean = maybeConsole.forall(console => {
+          val res = console.readChar(
+            """
+              |******************************************************************************
+              | WARNING: This operation is irreversible.
+              | It's strongly advisable to create a database backup before proceeding.
+              | If this operation fails it can leave the database in the inconsistent state.
+              | More info about how to create ArangoDB backups can be found here:
+              | https://www.arangodb.com/docs/stable/backup-restore.html
+              |******************************************************************************
+              |
+              |Have you created a database backup?
+            """.stripMargin.trim, Seq('y', 'Y', 'n', 'N'))
+          res.toLower == 'y'
+        })
+        if (!proceed) {
+          println(ansi"%red{ABORTED}")
+          System.exit(1)
+        }
         Await.result(dbManager.upgrade(), Duration.Inf)
 
       case DBExec(url, actions) =>

@@ -50,7 +50,7 @@ class AdminCLISpec
 
   private val arangoManagerFactoryMock = mock[ArangoManagerFactory]
   private val arangoManagerMock = mock[ArangoManager]
-  private val cli = new AdminCLI(arangoManagerFactoryMock)
+  private val cli = new AdminCLI(arangoManagerFactoryMock, None)
 
 
   behavior of "AdminCLI"
