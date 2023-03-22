@@ -30,7 +30,7 @@ trait DryRunnable {
     unlessDryRun(code, null).asInstanceOf[T]
   }
 
-  def unlessDryRunAsync[T <: Future[U], U](code: => U): U = {
-    unlessDryRun(code, Future.successful(null)).asInstanceOf[U]
+  def unlessDryRunAsync[T](code: => Future[T]): Future[T] = {
+    unlessDryRun(code, Future.successful(null)).asInstanceOf[Future[T]]
   }
 }
