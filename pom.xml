@@ -80,6 +80,7 @@
 
         <module>admin</module>
         <module>test-data-generator</module>
+        <module>integration-tests</module>
     </modules>
 
     <build>
