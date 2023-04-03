@@ -39,6 +39,12 @@
     <version>1.0.0-SNAPSHOT</version>
 
     <properties>
+        <default.scalatest.argLine>
+            --add-opens=java.base/java.util=ALL-UNNAMED
+            --add-opens=java.base/sun.net.www.protocol.jar=ALL-UNNAMED
+            --add-exports=java.base/sun.nio.ch=ALL-UNNAMED
+        </default.scalatest.argLine>
+        <scalatest.argLine>${default.scalatest.argLine}</scalatest.argLine>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssX</maven.build.timestamp.format>
         <java.version>1.8</java.version>
@@ -118,11 +124,7 @@
                     <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
                     <junitxml>.</junitxml>
                     <filereports>WDF TestSuite.txt</filereports>
-                    <argLine>
-                        --add-opens=java.base/java.util=ALL-UNNAMED
-                        --add-opens=java.base/sun.net.www.protocol.jar=ALL-UNNAMED
-                        --add-exports=java.base/sun.nio.ch=ALL-UNNAMED
-                    </argLine>
+                    <argLine>${scalatest.argLine} ${argLine}</argLine>
                 </configuration>
                 <executions>
                     <execution>
