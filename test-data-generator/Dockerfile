@@ -36,4 +36,4 @@ ADD ./target/${JAR_FILE} /opt/test-data-generator.jar
 ADD send-plans-and-events-docker.sh /opt/send-plans-and-events-docker.sh
 
 ENTRYPOINT ["sh", "/opt/send-plans-and-events-docker.sh"]
-CMD "--help"
+CMD [ "--help" ]
