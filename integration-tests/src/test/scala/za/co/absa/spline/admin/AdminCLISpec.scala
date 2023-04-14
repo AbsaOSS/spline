@@ -21,7 +21,7 @@ import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.testcontainers.shaded.org.hamcrest.Matchers.blankString
 import za.co.absa.commons.reflect.EnumerationMacros.sealedInstancesOf
-import za.co.absa.commons.scalatest.SystemExitFixture
+import za.co.absa.commons.scalatest.{ConsoleStubs, SystemExitFixture}
 import za.co.absa.spline.persistence.model.CollectionDef
 import za.co.absa.spline.test.fixture.{ArangoDbFixtureAsync, TestContainersFixtureAsync}
 
@@ -33,11 +33,15 @@ class AdminCLISpec
     with TestContainersFixtureAsync
     with ArangoDbFixtureAsync
     with Matchers
-    with SystemExitFixture.SuiteHook {
+    with SystemExitFixture.SuiteHook
+    with SystemExitFixture.Methods
+    with ConsoleStubs {
 
-  it should "init database" in {
+  behavior of "db-init"
+
+  it should "create a new database" in {
     withArangoDb { (db, connUrl) =>
-      AdminCLI.main(Array("db-init", connUrl.asString))
+      captureExitStatus(AdminCLI.main(Array("db-init", connUrl.asString))) should be(0)
 
       for {
         collections <- db.getCollections(new CollectionsReadOptions().excludeSystem(true)).toScala
@@ -58,6 +62,40 @@ class AdminCLISpec
           .getBody.arrayIterator.asScala
           .map(_.get("mount").getAsString)
           .toArray should contain("/spline")
+      }
+    }
+  }
+
+  it should "re-create the database, when run with '--force'" in {
+    withArangoDb { (db, connUrl) =>
+      captureExitStatus(AdminCLI.main(Array("db-init", connUrl.asString))) should be(0)
+      for {
+        testCollection <- db.createCollection("test-collection").toScala
+        testColExists1 <- db.collection(testCollection.getName).exists().toScala
+        statusOf2ndRun = captureExitStatus(AdminCLI.main(Array("db-init", connUrl.asString, "--force")))
+        testColExists2 <- db.collection(testCollection.getName).exists().toScala
+      } yield {
+        statusOf2ndRun should be(0)
+        testColExists1.booleanValue() should be(true)
+        testColExists2.booleanValue() should be(false)
+      }
+    }
+  }
+
+  behavior of "db-init --dry-run"
+
+  it should "emulate the process of creating a db without actually writing anything" in {
+    withArangoDb { (db, connUrl) =>
+      captureStdOut {
+        captureExitStatus {
+          AdminCLI.main(Array("db-init", connUrl.asString, "--dry-run"))
+        } should be(0)
+      } should include("Dry-run mode activated")
+
+      for {
+        dbExists <- db.exists().toScala
+      } yield {
+        dbExists.booleanValue() should be(false)
       }
     }
   }
