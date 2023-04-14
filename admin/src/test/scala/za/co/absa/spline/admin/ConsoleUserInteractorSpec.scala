@@ -23,8 +23,9 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.spline.persistence.ArangoConnectionURL
+import org.scalatest.OptionValues._
 
-class UserInteractorSpec
+class ConsoleUserInteractorSpec
   extends AnyFlatSpec
     with MockitoSugar
     with Matchers
@@ -43,8 +44,10 @@ class UserInteractorSpec
     when(consoleMock.readLine(anyString())) thenReturn "foo"
     when(consoleMock.readPassword(anyString())) thenReturn "bar"
 
-    val resultUrl = new UserInteractor(consoleMock).credentializeConnectionUrl(emptyUrl)
+    val resultUrl = new ConsoleUserInteractor(consoleMock).credentializeConnectionUrl(emptyUrl)
 
+    resultUrl.user.value shouldEqual "foo"
+    resultUrl.password.value shouldEqual "bar"
     verify(consoleMock).readLine("Username: ")
     verify(consoleMock).readPassword("Password for foo: ")
     verifyNoMoreInteractions(consoleMock)
@@ -54,7 +57,7 @@ class UserInteractorSpec
     when(consoleMock.readLine(anyString())) thenReturn "foo"
     when(consoleMock.readPassword(anyString())) thenReturn "bar"
 
-    val resultUrl = new UserInteractor(consoleMock).credentializeConnectionUrl(emptyUrl)
+    val resultUrl = new ConsoleUserInteractor(consoleMock).credentializeConnectionUrl(emptyUrl)
 
     resultUrl.user shouldEqual Some("foo")
     resultUrl.password shouldEqual Some("bar")
@@ -64,7 +67,7 @@ class UserInteractorSpec
     when(consoleMock.readPassword(anyString())) thenReturn "bar"
 
     val givenUrl = emptyUrl.copy(user = Some("foo"))
-    val resultUrl = new UserInteractor(consoleMock).credentializeConnectionUrl(givenUrl)
+    val resultUrl = new ConsoleUserInteractor(consoleMock).credentializeConnectionUrl(givenUrl)
 
     resultUrl.user shouldEqual Some("foo")
     resultUrl.password shouldEqual Some("bar")
@@ -74,7 +77,7 @@ class UserInteractorSpec
 
   it should "when both username and provided in URL, do nothing" in {
     val givenUrl = emptyUrl.copy(user = Some("foo"), password = Some("bar"))
-    val resultUrl = new UserInteractor(consoleMock).credentializeConnectionUrl(givenUrl)
+    val resultUrl = new ConsoleUserInteractor(consoleMock).credentializeConnectionUrl(givenUrl)
 
     resultUrl.user shouldEqual Some("foo")
     resultUrl.password shouldEqual Some("bar")
@@ -86,7 +89,7 @@ class UserInteractorSpec
     when(consoleMock.readLine(anyString())) thenReturn "  foo  "
     when(consoleMock.readPassword(anyString())) thenReturn "   "
 
-    val resultUrl = new UserInteractor(consoleMock).credentializeConnectionUrl(emptyUrl)
+    val resultUrl = new ConsoleUserInteractor(consoleMock).credentializeConnectionUrl(emptyUrl)
 
     resultUrl.user shouldEqual Some("foo")
     resultUrl.password shouldEqual Some("   ")
@@ -96,7 +99,7 @@ class UserInteractorSpec
     when(consoleMock.readLine(anyString())) thenReturn "" thenReturn "  " thenReturn "foo"
     when(consoleMock.readPassword(anyString())) thenReturn ""
 
-    val resultUrl = new UserInteractor(consoleMock).credentializeConnectionUrl(emptyUrl)
+    val resultUrl = new ConsoleUserInteractor(consoleMock).credentializeConnectionUrl(emptyUrl)
 
     resultUrl.user shouldEqual Some("foo")
     resultUrl.password shouldEqual Some("")

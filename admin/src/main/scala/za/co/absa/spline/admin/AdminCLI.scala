@@ -60,15 +60,14 @@ object AdminCLI extends App {
 
   private val dbManagerFactoryImpl = new ArangoManagerFactoryImpl(activeFailover = false)
   private val maybeConsole = InputConsole.systemConsoleIfAvailable()
+  private val userInteractor = maybeConsole.map(new ConsoleUserInteractor(_)).getOrElse(new DummyUserInteractor)
 
-  val dbManagerFactory = maybeConsole
-    .map(console => new InteractiveArangoManagerFactoryProxy(dbManagerFactoryImpl, new UserInteractor(console)))
-    .getOrElse(dbManagerFactoryImpl)
+  val dbManagerFactory = new InteractiveArangoManagerFactoryProxy(dbManagerFactoryImpl, userInteractor)
 
-  new AdminCLI(dbManagerFactory, maybeConsole).exec(args)
+  new AdminCLI(dbManagerFactory, userInteractor).exec(args)
 }
 
-class AdminCLI(dbManagerFactory: ArangoManagerFactory, maybeConsole: Option[InputConsole]) {
+class AdminCLI(dbManagerFactory: ArangoManagerFactory, userInteractor: UserInteractor) {
 
   import za.co.absa.spline.common.CollectionUtils.Implicits._
 
@@ -278,22 +277,7 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory, maybeConsole: Option[Inpu
 
       case DBUpgrade(url) =>
         val dbManager = dbManagerFactory.create(url, sslCtxOpt, conf.dryRun)
-        val proceed: Boolean = maybeConsole.forall(console => {
-          val res = console.readChar(
-            """
-              |******************************************************************************
-              | WARNING: This operation is irreversible.
-              | It's strongly advisable to create a database backup before proceeding.
-              | If this operation fails it can leave the database in the inconsistent state.
-              | More info about how to create ArangoDB backups can be found here:
-              | https://www.arangodb.com/docs/stable/backup-restore.html
-              |******************************************************************************
-              |
-              |Have you created a database backup?
-            """.stripMargin.trim, Seq('y', 'Y', 'n', 'N'))
-          res.toLower == 'y'
-        })
-        if (!proceed) {
+        if (!userInteractor.confirmDatabaseBackupReady()) {
           println(ansi"%red{ABORTED}")
           System.exit(1)
         }

@@ -21,7 +21,6 @@ import java.io.Console
 trait InputConsole {
   def readLine(msg: String): String
   def readPassword(msg: String): String
-  def readChar(msg: String, allowedChars: Seq[Char]): Char
 }
 
 object InputConsole {
@@ -33,15 +32,5 @@ object InputConsole {
     override def readLine(msg: String): String = console.readLine(msg)
 
     override def readPassword(msg: String): String = new String(console.readPassword(msg))
-
-    override def readChar(msg: String, allowedChars: Seq[Char]): Char = {
-      console.printf(s"$msg [${allowedChars.mkString("/")}]: ")
-      val reader = console.reader
-      var c = reader.read.asInstanceOf[Char]
-      while (!allowedChars.contains(c)) {
-        c = reader.read.asInstanceOf[Char]
-      }
-      c
-    }
   }
 }

@@ -16,11 +16,9 @@
 
 package za.co.absa.spline.admin
 
-import java.time.{ZoneId, ZonedDateTime}
-
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito.{inOrder => mockitoInOrder, _} // Mockito.inOrder would collide with Matchers.inOrder
+import org.mockito.Mockito.{inOrder => mockitoInOrder, _}
 import org.scalatest.OneInstancePerTest
 import org.scalatest.OptionValues._
 import org.scalatest.flatspec.AnyFlatSpec
@@ -35,6 +33,7 @@ import za.co.absa.spline.common.security.TLSUtils
 import za.co.absa.spline.persistence._
 import za.co.absa.spline.persistence.model.{EdgeDef, NodeDef}
 
+import java.time.{ZoneId, ZonedDateTime}
 import javax.net.ssl.SSLContext
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -50,7 +49,8 @@ class AdminCLISpec
 
   private val arangoManagerFactoryMock = mock[ArangoManagerFactory]
   private val arangoManagerMock = mock[ArangoManager]
-  private val cli = new AdminCLI(arangoManagerFactoryMock, None)
+  private val userInteractorMock = mock[UserInteractor]
+  private val cli = new AdminCLI(arangoManagerFactoryMock, userInteractorMock)
 
 
   behavior of "AdminCLI"
@@ -233,16 +233,19 @@ class AdminCLISpec
     behavior of "DB-Upgrade"
 
     it should "upgrade database" in assertingStdOut(include("DONE")) {
+      when(userInteractorMock.confirmDatabaseBackupReady()).thenReturn(true)
       cli.exec(Array("db-upgrade", "arangodb://foo/bar"))
       connUrlCaptor.getValue should be(ArangoConnectionURL("arangodb://foo/bar"))
     }
 
     it must "not say DONE when it's not done" in {
+      when(userInteractorMock.confirmDatabaseBackupReady()).thenReturn(true)
       when(arangoManagerMock.upgrade()) thenReturn Future.failed(new Exception("Boom!"))
       assertingStdOut(not(include("DONE"))) {
-        intercept[Exception] {
+        val ex = intercept[Exception] {
           cli.exec(Array("db-upgrade", "arangodb://foo/bar"))
         }
+        ex.getMessage shouldEqual "Boom!"
       }
     }
 
