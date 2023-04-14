@@ -26,15 +26,15 @@ import scala.concurrent.duration.Duration
 
 class InteractiveArangoManagerFactoryProxy(dbManagerFactory: ArangoManagerFactory, interactor: UserInteractor) extends ArangoManagerFactory {
 
-  override def create(connUrl: ArangoConnectionURL, maybeSSLContext: Option[SSLContext]): ArangoManager = {
+  override def create(connUrl: ArangoConnectionURL, maybeSSLContext: Option[SSLContext], dryRun: Boolean): ArangoManager = {
     try {
-      val dbm = dbManagerFactory.create(connUrl, maybeSSLContext)
+      val dbm = dbManagerFactory.create(connUrl, maybeSSLContext, dryRun)
       Await.result(dbm.execute(CheckDBAccess), Duration.Inf)
       dbm
     } catch {
       case ArangoDBAuthenticationException(_) if connUrl.user.isEmpty || connUrl.password.isEmpty =>
         val updatedConnUrl = interactor.credentializeConnectionUrl(connUrl)
-        dbManagerFactory.create(updatedConnUrl, maybeSSLContext)
+        dbManagerFactory.create(updatedConnUrl, maybeSSLContext, dryRun)
     }
   }
 }

@@ -176,6 +176,7 @@ object ArangoManagerImplSpec {
       migratorMock,
       foxxManagerMock,
       clock,
-      appDbVersion)
+      appDbVersion,
+      dryRun = false)
   }
 }

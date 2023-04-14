@@ -25,9 +25,9 @@ import za.co.absa.commons.reflect.EnumerationMacros.sealedInstancesOf
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 import za.co.absa.spline.arango.OnDBExistsAction.{Drop, Skip}
 import za.co.absa.spline.arango.foxx.{FoxxManager, FoxxSourceResolver}
-import za.co.absa.spline.persistence.DatabaseVersionManager
 import za.co.absa.spline.persistence.migration.Migrator
 import za.co.absa.spline.persistence.model.{CollectionDef, GraphDef, SearchAnalyzerDef, SearchViewDef}
+import za.co.absa.spline.persistence.{DatabaseVersionManager, DryRunnable}
 
 import java.time.{Clock, ZonedDateTime}
 import scala.collection.JavaConverters._
@@ -56,9 +56,11 @@ class ArangoManagerImpl(
   migrator: Migrator,
   foxxManager: FoxxManager,
   clock: Clock,
-  appDBVersion: SemanticVersion)
+  appDBVersion: SemanticVersion,
+  val dryRun: Boolean)
   (implicit val ex: ExecutionContext)
   extends ArangoManager
+    with DryRunnable
     with Logging {
 
   import ArangoManagerImpl._
@@ -145,7 +147,7 @@ class ArangoManagerImpl(
         throw new IllegalArgumentException(s"Arango Database ${db.dbName} already exists")
       else if (exists && dropIfExists) {
         log.info(s"Drop database: ${db.dbName}")
-        db.drop().toScala
+        unlessDryRunAsync(db.drop().toScala)
       }
       else Future.successful({})
     } yield {}
@@ -153,7 +155,7 @@ class ArangoManagerImpl(
 
   private def createDb() = {
     log.info(s"Create database: ${db.dbName}")
-    db.create().toScala
+    unlessDryRunAsync(db.create().toScala)
   }
 
   private def createCollections(options: DatabaseCreateOptions) = {
@@ -171,8 +173,8 @@ class ArangoManagerImpl(
             .replicationFactor(replFactor)
             .waitForSync(options.waitForSync)
           for {
-            _ <- db.createCollection(colDef.name, collectionOptions).toScala
-            _ <- db.collection(colDef.name).insertDocuments(colDef.initData.asJava).toScala
+            _ <- unlessDryRunAsync(db.createCollection(colDef.name, collectionOptions).toScala)
+            _ <- unlessDryRunAsync(db.collection(colDef.name).insertDocuments(colDef.initData.asJava).toScala)
           } yield ()
         })
   }
@@ -186,7 +188,7 @@ class ArangoManagerImpl(
             .collection(e.name)
             .from(e.froms.map(_.name): _*)
             .to(e.tos.map(_.name): _*))
-        db.createGraph(graphDef.name, edgeDefs.asJava).toScala
+        unlessDryRunAsync(db.createGraph(graphDef.name, edgeDefs.asJava).toScala)
       })
   }
 
@@ -199,7 +201,7 @@ class ArangoManagerImpl(
       userIndices = allIndices.filter { case (_, idx) => idx.getType != IndexType.primary && idx.getType != IndexType.edge }
       _ <- Future.traverse(userIndices) { case (colName, idx) =>
         log.debug(s"Drop ${idx.getType} index: $colName.${idx.getName}")
-        db.deleteIndex(idx.getId).toScala
+        unlessDryRunAsync(db.deleteIndex(idx.getId).toScala)
       }
     } yield {}
   }
@@ -215,12 +217,14 @@ class ArangoManagerImpl(
         log.debug(s"Ensure ${idxOpts.indexType} index: ${colDef.name} [${idxDef.fields.mkString(",")}]")
         val dbCol = db.collection(colDef.name)
         val fields = idxDef.fields.asJava
-        (idxOpts match {
-          case opts: FulltextIndexOptions => dbCol.ensureFulltextIndex(fields, opts)
-          case opts: GeoIndexOptions => dbCol.ensureGeoIndex(fields, opts)
-          case opts: PersistentIndexOptions => dbCol.ensurePersistentIndex(fields, opts)
-          case opts: TtlIndexOptions => dbCol.ensureTtlIndex(fields, opts)
-        }).toScala
+        unlessDryRunAsync {
+          (idxOpts match {
+            case opts: FulltextIndexOptions => dbCol.ensureFulltextIndex(fields, opts)
+            case opts: GeoIndexOptions => dbCol.ensureGeoIndex(fields, opts)
+            case opts: PersistentIndexOptions => dbCol.ensurePersistentIndex(fields, opts)
+            case opts: TtlIndexOptions => dbCol.ensureTtlIndex(fields, opts)
+          }).toScala
+        }
       })
   }
 
@@ -258,7 +262,7 @@ class ArangoManagerImpl(
       views = viewEntities.map(ve => db.view(ve.getName))
       _ <- Future.traverse(views) { view =>
         log.info(s"Delete search view: ${view.name}")
-        view.drop().toScala
+        unlessDryRunAsync(view.drop().toScala)
       }
     } yield {}
   }
@@ -267,7 +271,7 @@ class ArangoManagerImpl(
     log.debug(s"Create search views")
     Future.traverse(sealedInstancesOf[SearchViewDef]) { viewDef =>
       log.info(s"Create search view: ${viewDef.name}")
-      db.createArangoSearch(viewDef.name, viewDef.properties).toScala
+      unlessDryRunAsync(db.createArangoSearch(viewDef.name, viewDef.properties).toScala)
     }
   }
 
@@ -278,7 +282,7 @@ class ArangoManagerImpl(
       userAnalyzers = analyzers.filter(_.getName.startsWith(s"${db.dbName}::"))
       _ <- Future.traverse(userAnalyzers)(ua => {
         log.info(s"Delete search analyzer: ${ua.getName}")
-        db.deleteSearchAnalyzer(ua.getName).toScala
+        unlessDryRunAsync(db.deleteSearchAnalyzer(ua.getName).toScala)
       })
     } yield {}
   }
@@ -287,7 +291,7 @@ class ArangoManagerImpl(
     log.debug(s"Create search analyzers")
     Future.traverse(sealedInstancesOf[SearchAnalyzerDef]) { ad =>
       log.info(s"Create search analyzer: ${ad.name}")
-      db.createSearchAnalyzer(ad.analyzer).toScala
+      unlessDryRunAsync(db.createSearchAnalyzer(ad.analyzer).toScala)
     }
   }
 }

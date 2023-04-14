@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.arango
+package za.co.absa.spline.test.fixture
 
+import org.scalatest.AsyncTestSuite
+import org.testcontainers.containers.GenericContainer
 
-import com.arangodb.async.ArangoDatabaseAsync
-import za.co.absa.spline.persistence.ArangoImplicits._
-import za.co.absa.spline.persistence.DryRunnable
+import scala.concurrent.Future
 
-import scala.concurrent.{ExecutionContext, Future}
+trait TestContainersFixtureAsync {
+  this: AsyncTestSuite =>
 
-class DataRetentionManager(
-  db: ArangoDatabaseAsync,
-  val dryRun: Boolean
-)(implicit ec: ExecutionContext)
-  extends DryRunnable {
-
-  def pruneBefore(timestamp: Long): Future[Unit] = unlessDryRunAsync {
-    db.restClient.delete(s"spline/admin/data/before/$timestamp")
+  def withTestContainer[A <: GenericContainer[A], B](container: A)(testBody: A => Future[B]): Future[B] = {
+    container.start()
+    testBody(container) andThen {
+      case _ => container.stop()
+    }
   }
-
 }

@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.arango
-
+package za.co.absa.spline.test.fixture
 
 import com.arangodb.async.ArangoDatabaseAsync
-import za.co.absa.spline.persistence.ArangoImplicits._
-import za.co.absa.spline.persistence.DryRunnable
+import za.co.absa.spline.persistence.ArangoConnectionURL
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
-class DataRetentionManager(
-  db: ArangoDatabaseAsync,
-  val dryRun: Boolean
-)(implicit ec: ExecutionContext)
-  extends DryRunnable {
+trait ArangoDbFixtureAsync extends ArangoDbFixtureLike {
+  this: TestContainersFixtureAsync =>
 
-  def pruneBefore(timestamp: Long): Future[Unit] = unlessDryRunAsync {
-    db.restClient.delete(s"spline/admin/data/before/$timestamp")
+  def withArangoDb[A](testBody: (ArangoDatabaseAsync, ArangoConnectionURL) => Future[A]): Future[A] = {
+    withTestContainer(ArangoDbContainer) {
+      runTestBody(testBody)
+    }
   }
-
 }
+
+

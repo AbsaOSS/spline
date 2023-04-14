@@ -21,13 +21,17 @@ import za.co.absa.commons.version.Version
 import za.co.absa.commons.version.Version._
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 import za.co.absa.spline.persistence.DatabaseVersionManager._
-import za.co.absa.spline.persistence.model.DBVersion.Status
 import za.co.absa.spline.persistence.model.CollectionDef.DBVersion
+import za.co.absa.spline.persistence.model.DBVersion.Status
 
 import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.concurrent.{ExecutionContext, Future}
 
-class DatabaseVersionManager(db: ArangoDatabaseAsync)(implicit ec: ExecutionContext) {
+class DatabaseVersionManager(
+  db: ArangoDatabaseAsync,
+  val dryRun: Boolean = false)
+  (implicit ec: ExecutionContext)
+  extends DryRunnable {
 
   import ArangoImplicits._
 
@@ -37,10 +41,12 @@ class DatabaseVersionManager(db: ArangoDatabaseAsync)(implicit ec: ExecutionCont
       exists <- db.collection(DBVersion.name).exists.toScala
       _ <-
         if (exists) Future.successful({})
-        else db.createCollection(DBVersion.name).toScala
-      _ <- db.collection(DBVersion.name)
-        .insertDocument(dbVersion)
-        .toScala
+        else unlessDryRunAsync(db.createCollection(DBVersion.name).toScala)
+      _ <- unlessDryRunAsync {
+        db.collection(DBVersion.name)
+          .insertDocument(dbVersion)
+          .toScala
+      }
     } yield currentVersion
   }
 

@@ -77,9 +77,10 @@ class AdminCLISpec
     val dbOptionCaptor: ArgumentCaptor[DatabaseCreateOptions] = ArgumentCaptor.forClass(classOf[DatabaseCreateOptions])
     val actionFlgCaptor: ArgumentCaptor[OnDBExistsAction] = ArgumentCaptor.forClass(classOf[OnDBExistsAction])
     val sslCtxCaptor: ArgumentCaptor[Option[SSLContext]] = ArgumentCaptor.forClass(classOf[Option[SSLContext]])
+    val dryRunModeCaptor: ArgumentCaptor[Boolean] = ArgumentCaptor.forClass(classOf[Boolean])
 
     (when(
-      arangoManagerFactoryMock.create(connUrlCaptor.capture, sslCtxCaptor.capture))
+      arangoManagerFactoryMock.create(connUrlCaptor.capture, sslCtxCaptor.capture, dryRun = dryRunModeCaptor.capture))
       thenReturn arangoManagerMock)
 
     (when(
@@ -121,6 +122,14 @@ class AdminCLISpec
     it should "not create any custom SSLContext (leave the default one) by default" in {
       cli.exec(Array("db-exec", "arangodbs://foo/bar"))
       sslCtxCaptor.getValue.isEmpty should be(true)
+    }
+
+    it should "when called with option --dry-run, set dryRun mode to true" in {
+      val output = captureStdOut {
+        cli.exec(Array("db-exec", "arangodbs://foo/bar", "--dry-run"))
+      }
+      dryRunModeCaptor.getValue should be(true)
+      output should include("Dry-run mode activated")
     }
 
     behavior of "DB-Init"
