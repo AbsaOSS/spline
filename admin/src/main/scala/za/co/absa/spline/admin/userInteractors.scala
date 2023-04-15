@@ -30,31 +30,27 @@ trait NonInteractiveUserInteractor extends UserInteractor {
   override def credentializeConnectionUrl(url: ArangoConnectionURL): ArangoConnectionURL = url
 }
 
-object PermissiveUserInteractor extends NonInteractiveUserInteractor {
+object ConfirmingUserInteractor extends NonInteractiveUserInteractor {
   override def confirmDatabaseBackupReady(): Boolean = {
     Console.println(
       """
-        |******************************************************************************
-        | WARNING: This command will make changes to your database.
-        | The --non-interactive flag was used, indicating that you have already created
-        | a database backup and have chosen to skip the confirmation prompt.
-        |******************************************************************************
-      """.stripMargin.trim)
+        |Warning: This command will make changes to your database.
+        |The --non-interactive flag was used, indicating that you have already created
+        |a database backup and have chosen to skip the confirmation prompt.
+      """.stripMargin)
     true
   }
 }
 
-object RestrictiveUserInteractor extends NonInteractiveUserInteractor {
+object RejectingUserInteractor extends NonInteractiveUserInteractor {
   override def confirmDatabaseBackupReady(): Boolean = {
     Console.println(
       """
-        |******************************************************************************
-        | ERROR: A confirmation is required before proceeding with this command.
-        | Please run the command interactively and confirm that you have created
-        | a database backup before proceeding, or use the --non-interactive flag
-        | to skip the confirmation prompt.
-        |******************************************************************************
-      """.stripMargin.trim)
+        |A confirmation is required before proceeding with this command.
+        |Please run the command interactively and confirm that you have created
+        |a database backup before proceeding, or use the --non-interactive flag
+        |to skip the confirmation prompt.
+      """.stripMargin)
     false
   }
 }
@@ -76,13 +72,12 @@ class ConsoleUserInteractor(console: InputConsole) extends UserInteractor {
     val validAnswers = positiveAnswers ++ negativeAnswers
     val msg =
       s"""
-         |******************************************************************************
-         | WARNING: This operation is irreversible.
-         | It's strongly advisable to create a database backup before proceeding.
-         | If this operation fails it can leave the database in the inconsistent state.
-         | More info about how to create ArangoDB backups can be found here:
-         | https://www.arangodb.com/docs/stable/backup-restore.html
-         |******************************************************************************
+         |\u00A0
+         |WARNING: This operation is irreversible.
+         |It's strongly advisable to create a database backup before proceeding.
+         |If this operation fails it can leave the database in the inconsistent state.
+         |More info about how to create ArangoDB backups can be found here:
+         |https://www.arangodb.com/docs/stable/backup-restore.html
          |
          |Have you created a database backup? [${validAnswers.mkString("/")}]:\u00A0
       """.stripMargin.trim

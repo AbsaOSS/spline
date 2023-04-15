@@ -273,10 +273,10 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory, maybeConsole: Option[Inpu
     val sslCtxOpt = Option.when(conf.disableSslValidation)(TLSUtils.TrustingAllSSLContext)
 
     val userInteractor: UserInteractor =
-      if (conf.nonInteractive) PermissiveUserInteractor
+      if (conf.nonInteractive) ConfirmingUserInteractor
       else maybeConsole
         .map(new ConsoleUserInteractor(_))
-        .getOrElse(RestrictiveUserInteractor)
+        .getOrElse(RejectingUserInteractor)
 
     val interactiveDbManagerFactory = new InteractiveArangoManagerFactoryProxy(dbManagerFactory, userInteractor)
 
