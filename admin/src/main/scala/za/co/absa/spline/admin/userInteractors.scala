@@ -26,11 +26,37 @@ trait UserInteractor {
   def confirmDatabaseBackupReady(): Boolean
 }
 
-class DummyUserInteractor extends UserInteractor {
-
+trait NonInteractiveUserInteractor extends UserInteractor {
   override def credentializeConnectionUrl(url: ArangoConnectionURL): ArangoConnectionURL = url
+}
 
-  override def confirmDatabaseBackupReady(): Boolean = true
+object PermissiveUserInteractor extends NonInteractiveUserInteractor {
+  override def confirmDatabaseBackupReady(): Boolean = {
+    Console.println(
+      """
+        |******************************************************************************
+        | WARNING: This command will make changes to your database.
+        | The --non-interactive flag was used, indicating that you have already created
+        | a database backup and have chosen to skip the confirmation prompt.
+        |******************************************************************************
+      """.stripMargin.trim)
+    true
+  }
+}
+
+object RestrictiveUserInteractor extends NonInteractiveUserInteractor {
+  override def confirmDatabaseBackupReady(): Boolean = {
+    Console.println(
+      """
+        |******************************************************************************
+        | ERROR: A confirmation is required before proceeding with this command.
+        | Please run the command interactively and confirm that you have created
+        | a database backup before proceeding, or use the --non-interactive flag
+        | to skip the confirmation prompt.
+        |******************************************************************************
+      """.stripMargin.trim)
+    false
+  }
 }
 
 class ConsoleUserInteractor(console: InputConsole) extends UserInteractor {
