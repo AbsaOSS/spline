@@ -16,11 +16,9 @@
 
 package za.co.absa.spline.admin
 
-import java.time.{ZoneId, ZonedDateTime}
-
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito.{inOrder => mockitoInOrder, _} // Mockito.inOrder would collide with Matchers.inOrder
+import org.mockito.Mockito.{inOrder => mockitoInOrder, _}
 import org.scalatest.OneInstancePerTest
 import org.scalatest.OptionValues._
 import org.scalatest.flatspec.AnyFlatSpec
@@ -35,6 +33,7 @@ import za.co.absa.spline.common.security.TLSUtils
 import za.co.absa.spline.persistence._
 import za.co.absa.spline.persistence.model.{EdgeDef, NodeDef}
 
+import java.time.{ZoneId, ZonedDateTime}
 import javax.net.ssl.SSLContext
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -50,7 +49,7 @@ class AdminCLISpec
 
   private val arangoManagerFactoryMock = mock[ArangoManagerFactory]
   private val arangoManagerMock = mock[ArangoManager]
-  private val cli = new AdminCLI(arangoManagerFactoryMock)
+  private val cli = new AdminCLI(arangoManagerFactoryMock, None)
 
 
   behavior of "AdminCLI"
@@ -232,18 +231,44 @@ class AdminCLISpec
 
     behavior of "DB-Upgrade"
 
-    it should "upgrade database" in assertingStdOut(include("DONE")) {
-      cli.exec(Array("db-upgrade", "arangodb://foo/bar"))
-      connUrlCaptor.getValue should be(ArangoConnectionURL("arangodb://foo/bar"))
+    it should "upgrade database" in {
+      assertingStdOut(include("DONE") and include("have chosen to skip the confirmation")) {
+        cli.exec(Array("db-upgrade", "arangodb://foo/bar", "--non-interactive"))
+        connUrlCaptor.getValue should be(ArangoConnectionURL("arangodb://foo/bar"))
+      }
     }
 
     it must "not say DONE when it's not done" in {
       when(arangoManagerMock.upgrade()) thenReturn Future.failed(new Exception("Boom!"))
       assertingStdOut(not(include("DONE"))) {
-        intercept[Exception] {
-          cli.exec(Array("db-upgrade", "arangodb://foo/bar"))
+        val ex = intercept[Exception] {
+          cli.exec(Array("db-upgrade", "arangodb://foo/bar", "--non-interactive"))
         }
+        ex.getMessage shouldEqual "Boom!"
       }
+    }
+
+    it should "abort execution due to absence of confirmation in the non-interactive mode" in {
+      captureExitStatus(
+        assertingStdOut(include("ABORTED") and include("A confirmation is required before proceeding with this command")) {
+          cli.exec(Array("db-upgrade", "arangodb://foo/bar"))
+          connUrlCaptor.getValue should be(ArangoConnectionURL("arangodb://foo/bar"))
+        }
+      ) should be(1)
+    }
+
+    it should "support non-interactive mode even when Console is available" in {
+      val consoleMock = mock[InputConsole]
+      val cliWithConsole = new AdminCLI(arangoManagerFactoryMock, Some(consoleMock))
+
+      captureExitStatus(
+        assertingStdOut(include("DONE") and include("have chosen to skip the confirmation")) {
+          cliWithConsole.exec(Array("db-upgrade", "arangodb://foo/bar", "--non-interactive"))
+          connUrlCaptor.getValue should be(ArangoConnectionURL("arangodb://foo/bar"))
+        }
+      ) should be(0)
+
+      verifyNoInteractions(consoleMock)
     }
 
     behavior of "DB-exec"
@@ -286,6 +311,7 @@ class AdminCLISpec
     it should "support retention duration" in assertingStdOut(include("DONE")) {
       cli.exec(Array("db-prune", "--retain-for", "30d", "arangodb://foo/bar"))
       connUrlCaptor.getValue should be(ArangoConnectionURL("arangodb://foo/bar"))
+      verify(arangoManagerMock).execute(CheckDBAccess)
       verify(arangoManagerMock).prune(30.days)
       verifyNoMoreInteractions(arangoManagerMock)
     }

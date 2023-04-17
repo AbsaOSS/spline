@@ -27,7 +27,7 @@ object InputConsole {
 
   def systemConsoleIfAvailable(): Option[InputConsole] = Option(System.console()).map(new SystemConsole(_))
 
-  class SystemConsole(console: Console) extends InputConsole {
+  private class SystemConsole(console: Console) extends InputConsole {
 
     override def readLine(msg: String): String = console.readLine(msg)
 
