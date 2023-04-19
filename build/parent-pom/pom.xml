@@ -47,7 +47,7 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <logback.version>1.2.10</logback.version>
         <slf4j.version>1.7.32</slf4j.version>
-        <json4s.version>3.6.7</json4s.version>
+        <json4s.version>3.6.12</json4s.version>
         <spring.version>5.2.9.RELEASE</spring.version>
         <springfox-swagger.version>2.9.2</springfox-swagger.version>
         <jackson.version>2.14.2</jackson.version>
