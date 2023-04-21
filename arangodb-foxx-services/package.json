@@ -15,7 +15,7 @@
     "foxx:install": "cross-env-shell foxx install --server $npm_config_server --database $npm_config_database $npm_config_extra_args /spline target/dist"
   },
   "devDependencies": {
-    "@types/arangodb": "^3.5.13",
+    "@types/arangodb": "^3.5.17",
     "@types/jest": "^28.1.5",
     "@typescript-eslint/eslint-plugin": "^5.44.0",
     "@typescript-eslint/parser": "^5.44.0",

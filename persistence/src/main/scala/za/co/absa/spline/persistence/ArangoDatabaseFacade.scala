@@ -76,8 +76,8 @@ object ArangoDatabaseFacade extends Logging {
 
   import za.co.absa.commons.version.Version._
 
-  val MinArangoVerRequired: SemanticVersion = semver"3.6.0"
-  val MinArangoVerRecommended: SemanticVersion = semver"3.7.3"
+  val MinArangoVerRequired: Version = semver"3.6.0"
+  val MinArangoVerRecommended: Version = ver"3.10"
 
   private def warmUpDb(db: ArangoDatabaseAsync): Unit = {
     val verStr = try {
