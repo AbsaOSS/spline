@@ -121,11 +121,11 @@
                     <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
                     <junitxml>.</junitxml>
                     <filereports>WDF TestSuite.txt</filereports>
-<!--                    <argLine>-->
-<!--                        &#45;&#45;add-opens=java.base/java.util=ALL-UNNAMED-->
-<!--                        &#45;&#45;add-opens=java.base/sun.net.www.protocol.jar=ALL-UNNAMED-->
-<!--                        &#45;&#45;add-exports=java.base/sun.nio.ch=ALL-UNNAMED-->
-<!--                    </argLine>-->
+                    <argLine>
+                        --add-opens=java.base/java.util=ALL-UNNAMED
+                        --add-opens=java.base/sun.net.www.protocol.jar=ALL-UNNAMED
+                        --add-exports=java.base/sun.nio.ch=ALL-UNNAMED
+                    </argLine>
                 </configuration>
                 <executions>
                     <execution>
