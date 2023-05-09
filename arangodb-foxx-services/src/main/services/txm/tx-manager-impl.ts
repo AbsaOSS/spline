@@ -39,7 +39,7 @@ export class TxManagerImpl implements TxManager {
         const curCnt: Counter = store.getDocByKey(CollectionName.Counter, 'tx')
 
         // as of time of writing the '@types/arangodb:3.5.13' was the latest version,
-        // and it was not up-to-date with ArangoDB 3.9 JavaScript API
+        // and it was not up-to-date with ArangoDB 3.10+ JavaScript API
         // @ts-ignore
         const updResult: UpdateResult<Counter> = db._update(
             curCnt,
