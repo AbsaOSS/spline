@@ -22,7 +22,7 @@
     <parent>
         <groupId>za.co.absa</groupId>
         <artifactId>root-pom</artifactId>
-        <version>1.0.6</version>
+        <version>1.0.9</version>
     </parent>
 
     <groupId>za.co.absa.spline</groupId>
@@ -55,8 +55,11 @@
         <node.version>v16.16.0</node.version>
         <npm.version>8.11.0</npm.version>
 
-        <!-- Empty initialization required to protect JaCoCo value from parent-pom (in code-coverage profile). -->
-        <argLine/>
+        <default.scalatest.argLine>
+            --add-opens=java.base/java.util=ALL-UNNAMED
+            --add-opens=java.base/sun.net.www.protocol.jar=ALL-UNNAMED
+            --add-exports=java.base/sun.nio.ch=ALL-UNNAMED
+        </default.scalatest.argLine>
     </properties>
 
     <build>
@@ -121,11 +124,8 @@
                     <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
                     <junitxml>.</junitxml>
                     <filereports>WDF TestSuite.txt</filereports>
-                    <argLine>${argLine}
-                        --add-opens=java.base/java.util=ALL-UNNAMED
-                        --add-opens=java.base/sun.net.www.protocol.jar=ALL-UNNAMED
-                        --add-exports=java.base/sun.nio.ch=ALL-UNNAMED
-                    </argLine>
+                    <!-- ‘scalatest.argLine‘ defined in root-pom using value of ‘default.scalatest.argLine‘ -->
+                    <argLine>${scalatest.argLine}</argLine>
                 </configuration>
                 <executions>
                     <execution>
