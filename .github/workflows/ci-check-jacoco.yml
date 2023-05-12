@@ -1,0 +1,52 @@
+name: CI check JaCoCo code-coverage
+
+on:
+  pull_request:
+    branches: [ develop ]
+    types: [ opened, edited, synchronize, reopened ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: "adopt@1.11"
+      - name: Build and run tests
+        run: mvn verify -Dcode-coverage
+      - name: Add coverage to PR
+        id: jacoco
+        uses: madrapps/jacoco-report@v1.3
+        with:
+          paths: >
+            ${{ github.workspace }}/admin/target/site/jacoco/jacoco.xml,
+            ${{ github.workspace }}/arangodb-foxx-api/target/site/jacoco/jacoco.xml,
+            ${{ github.workspace }}/commons/target/site/jacoco/jacoco.xml,
+            ${{ github.workspace }}/consumer-rest-core/target/site/jacoco/jacoco.xml,
+            ${{ github.workspace }}/consumer-services/target/site/jacoco/jacoco.xml,
+            ${{ github.workspace }}/kafka-gateway/target/site/jacoco/jacoco.xml,
+            ${{ github.workspace }}/persistence/target/site/jacoco/jacoco.xml,
+            ${{ github.workspace }}/producer-model/target/site/jacoco/jacoco.xml,
+            ${{ github.workspace }}/producer-model-mapper/target/site/jacoco/jacoco.xml,
+            ${{ github.workspace }}/producer-rest-core/target/site/jacoco/jacoco.xml,
+            ${{ github.workspace }}/producer-services/target/site/jacoco/jacoco.xml,
+            ${{ github.workspace }}/rest-gateway/target/site/jacoco/jacoco.xml,
+            ${{ github.workspace }}/test-data-generator/target/site/jacoco/jacoco.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 0.0
+          min-coverage-changed-files: 80.0
+          title: JaCoCo code coverage report
+          update-comment: true
+      - name: Get the Coverage info
+        run: |
+          echo "Total coverage ${{ steps.jacoco.outputs.coverage-overall }}"
+          echo "Changed Files coverage ${{ steps.jacoco.outputs.coverage-changed-files }}"
+      - name: Fail PR if changed files coverage is less than 80%
+        if: ${{ steps.jacoco.outputs.coverage-changed-files < 80.0 }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.setFailed('Changed files coverage is less than 80%!')
