@@ -124,8 +124,7 @@
                     <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
                     <junitxml>.</junitxml>
                     <filereports>WDF TestSuite.txt</filereports>
-                    <!-- ‘scalatest.argLine‘ defined in root-pom using value of ‘default.scalatest.argLine‘ -->
-                    <argLine>${scalatest.argLine}</argLine>
+                    <argLine>${default.scalatest.argLine}</argLine>
                 </configuration>
                 <executions>
                     <execution>
