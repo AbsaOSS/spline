@@ -124,7 +124,7 @@
                     <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
                     <junitxml>.</junitxml>
                     <filereports>WDF TestSuite.txt</filereports>
-                    <argLine>${default.scalatest.argLine}</argLine>
+                    <argLine>${scalatest.argLine}</argLine>
                 </configuration>
                 <executions>
                     <execution>
