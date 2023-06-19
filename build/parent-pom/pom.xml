@@ -537,7 +537,7 @@
             <dependency>
                 <groupId>com.arangodb</groupId>
                 <artifactId>arangodb-java-driver</artifactId>
-                <version>6.24.0</version>
+                <version>6.25.0</version>
             </dependency>
             <dependency>
                 <groupId>jakarta.validation</groupId>
