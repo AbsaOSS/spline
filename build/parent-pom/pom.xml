@@ -21,7 +21,7 @@
     <parent>
         <groupId>za.co.absa</groupId>
         <artifactId>root-pom</artifactId>
-        <version>1.0.5</version>
+        <version>1.0.11</version>
     </parent>
 
     <groupId>za.co.absa.spline</groupId>
