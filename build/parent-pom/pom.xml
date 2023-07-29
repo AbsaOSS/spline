@@ -32,10 +32,10 @@
         <url>${scm.url}</url>
         <connection>${scm.connection}</connection>
         <developerConnection>${scm.developerConnection}</developerConnection>
-        <tag>release/0.7.8</tag>
+        <tag>HEAD</tag>
     </scm>
 
-    <version>0.7.8</version>
+    <version>0.7.9-SNAPSHOT</version>
 
     <properties>
         <java.version>1.8</java.version>
