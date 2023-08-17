@@ -1,6 +1,5 @@
 /*
- * Copyright 2020 ABSA Group Limited
- *
+ * Copyright 2023 ABSA Group Limited
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,20 +13,19 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.gateway.rest.filter
+package za.co.absa.spline.producer.rest.filter
 
-import java.io.{BufferedReader, InputStreamReader}
-
+import java.io.{BufferedReader, InputStream, InputStreamReader}
 import javax.servlet.ServletInputStream
 import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper}
 
 
-final class GZIPRequestWrapper(val request: HttpServletRequest) extends HttpServletRequestWrapper(request) {
+final class HttpRequestWrapper(request: HttpServletRequest, stream: InputStream)
+  extends HttpServletRequestWrapper(request) {
 
-  val stream = new GZIPServletInputStream(request.getInputStream)
-  val reader = new BufferedReader(new InputStreamReader(stream))
+  private val reader = new BufferedReader(new InputStreamReader(stream))
 
+  override def getInputStream: ServletInputStream = new ServletInputStreamAdapter(stream)
 
-  override def getInputStream: ServletInputStream = stream
   override def getReader: BufferedReader = reader
 }
