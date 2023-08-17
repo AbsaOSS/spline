@@ -92,9 +92,6 @@
                 <artifactId>docker-maven-plugin</artifactId>
                 <configuration>
                     <skip>false</skip>
-                    <buildArgs>
-                        <PROJECT_BUILD_FINAL_NAME>${project.build.finalName}</PROJECT_BUILD_FINAL_NAME>
-                    </buildArgs>
                 </configuration>
             </plugin>
         </plugins>
