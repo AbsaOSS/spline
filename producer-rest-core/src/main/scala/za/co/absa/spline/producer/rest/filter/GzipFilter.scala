@@ -1,6 +1,5 @@
 /*
- * Copyright 2020 ABSA Group Limited
- *
+ * Copyright 2023 ABSA Group Limited
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,12 +13,14 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.gateway.rest.filter
+package za.co.absa.spline.producer.rest.filter
 
-import javax.servlet._
-import javax.servlet.http.HttpServletRequest
 import org.springframework.http.HttpHeaders
 import za.co.absa.spline.producer.rest.HttpConstants.Encoding
+
+import java.util.zip.GZIPInputStream
+import javax.servlet._
+import javax.servlet.http.HttpServletRequest
 
 /**
  * Filter for decompressing gziped Http requests
@@ -30,7 +31,7 @@ class GzipFilter extends Filter {
   override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = {
 
     val newRequest = request match {
-      case r: HttpServletRequest if isCompressed(r) => new GZIPRequestWrapper(r)
+      case r: HttpServletRequest if isCompressed(r) => new HttpRequestWrapper(r, new GZIPInputStream(r.getInputStream))
       case _ => request
     }
 
