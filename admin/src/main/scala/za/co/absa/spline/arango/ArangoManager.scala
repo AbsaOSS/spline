@@ -144,9 +144,9 @@ class ArangoManagerImpl(
     for {
       exists <- db.exists.toScala
       _ <- if (exists && !dropIfExists)
-        throw new IllegalArgumentException(s"Arango Database ${db.dbName} already exists")
+        throw new IllegalArgumentException(s"Arango Database ${db.name} already exists")
       else if (exists && dropIfExists) {
-        log.info(s"Drop database: ${db.dbName}")
+        log.info(s"Drop database: ${db.name}")
         unlessDryRunAsync(db.drop().toScala)
       }
       else Future.successful({})
@@ -154,7 +154,7 @@ class ArangoManagerImpl(
   }
 
   private def createDb() = {
-    log.info(s"Create database: ${db.dbName}")
+    log.info(s"Create database: ${db.name}")
     unlessDryRunAsync(db.create().toScala)
   }
 
@@ -219,10 +219,11 @@ class ArangoManagerImpl(
         val fields = idxDef.fields.asJava
         unlessDryRunAsync {
           (idxOpts match {
-            case opts: FulltextIndexOptions => dbCol.ensureFulltextIndex(fields, opts)
             case opts: GeoIndexOptions => dbCol.ensureGeoIndex(fields, opts)
+            case opts: InvertedIndexOptions => dbCol.ensureInvertedIndex(opts)
             case opts: PersistentIndexOptions => dbCol.ensurePersistentIndex(fields, opts)
             case opts: TtlIndexOptions => dbCol.ensureTtlIndex(fields, opts)
+            case opts: ZKDIndexOptions => dbCol.ensureZKDIndex(fields, opts)
           }).toScala
         }
       })
@@ -279,7 +280,7 @@ class ArangoManagerImpl(
     log.debug(s"Delete search analyzers")
     for {
       analyzers <- db.getSearchAnalyzers.toScala.map(_.asScala)
-      userAnalyzers = analyzers.filter(_.getName.startsWith(s"${db.dbName}::"))
+      userAnalyzers = analyzers.filter(_.getName.startsWith(s"${db.name}::"))
       _ <- Future.traverse(userAnalyzers)(ua => {
         log.info(s"Delete search analyzer: ${ua.getName}")
         unlessDryRunAsync(db.deleteSearchAnalyzer(ua.getName).toScala)
