@@ -126,7 +126,7 @@ export class TxManagerImpl implements TxManager {
         // Not using Array.every() for performance reasons,
         // for-loop is several time faster.
         for (let i = 0; i < n; i++) {
-            const wtx: WriteTxInfo | undefined = docs[i]?._tx_info
+            const wtx: WriteTxInfo | undefined = docs[i]?._txInfo
             if (wtx === undefined)
                 continue
             if (wtx.num >= rtxNum || liveTxIds.includes(wtx.uid))

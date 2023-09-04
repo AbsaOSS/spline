@@ -44,8 +44,8 @@ export class AQLCodeGenHelper {
         const pruneOrLet = aql.literal(isTraversal ? 'PRUNE' : 'LET')
         return aql`
             ${pruneOrLet} ${pruneVar} = LENGTH([${args}][*
-                FILTER CURRENT._tx_info.num >= ${this.rtxInfo}.num
-                    OR POSITION(${this.rtxInfo}.liveTxIds, CURRENT._tx_info.uid)
+                FILTER CURRENT._txInfo.num >= ${this.rtxInfo}.num
+                    OR POSITION(${this.rtxInfo}.liveTxIds, CURRENT._txInfo.uid)
                 LIMIT 1
                 RETURN CURRENT._id
             ]) != 0
