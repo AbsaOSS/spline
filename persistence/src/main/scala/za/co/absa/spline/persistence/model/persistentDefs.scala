@@ -27,12 +27,20 @@ import za.co.absa.spline.persistence.model.SearchAnalyzerDef.NormSearchAnalyzer
 
 case class IndexDef(fields: Seq[String], options: IndexOptions[_ <: IndexOptions[_]])
 
-sealed trait GraphElementDef
+sealed trait IndexableDef {
+  def indexDefs: Seq[IndexDef] = Nil
+  def commonIndexDefs: Seq[IndexDef] = Nil
+}
 
-sealed trait CollectionDef {
+sealed trait GraphElementDef extends IndexableDef {
+  override def commonIndexDefs: Seq[IndexDef] = Seq(
+    IndexDef(Seq("_txInfo.uid"), new PersistentIndexOptions().estimates(false)),
+  )
+}
+
+sealed trait CollectionDef extends IndexableDef {
   def name: String
   def collectionType: CollectionType
-  def indexDefs: Seq[IndexDef] = Nil
   def numShards: Int = 1
   def shardKeys: Seq[String] = Seq("_key")
   def replFactor: Int = 1

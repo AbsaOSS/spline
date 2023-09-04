@@ -211,7 +211,7 @@ class ArangoManagerImpl(
     Future.sequence(
       for {
         colDef <- sealedInstancesOf[CollectionDef]
-        idxDef <- colDef.indexDefs
+        idxDef <- colDef.indexDefs ++ colDef.commonIndexDefs
       } yield {
         val idxOpts = idxDef.options
         log.debug(s"Ensure ${idxOpts.indexType} index: ${colDef.name} [${idxDef.fields.mkString(",")}]")
