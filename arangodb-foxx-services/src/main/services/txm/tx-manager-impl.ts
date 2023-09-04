@@ -28,7 +28,7 @@ import {
     WriteTxInfo
 } from '../../persistence/model'
 import { store } from '../store'
-import { db } from '@arangodb'
+import { aql, db } from '@arangodb'
 import * as Logger from '../../utils/logger'
 import UpdateResult = ArangoDB.UpdateResult
 
@@ -110,9 +110,14 @@ export class TxManagerImpl implements TxManager {
 
     rollback(txInfo: WriteTxInfo): void {
         Logger.debug('[TX] ROLLBACK STARTING', txInfo)
-        for (const cn in DataCollectionName) {
-            const col = db[DataCollectionName[cn]]
-            col.removeByExample({ _txInfo: txInfo })
+        for (const colName in DataCollectionName) {
+            db._query(aql`
+                WITH ${colName}
+                FOR d IN ${colName}
+                    FILTER d._txInfo.uid == ${txInfo.uid}
+                    REMOVE d._key IN ${colName}
+                `
+            )
         }
         store.deleteByKey(AuxCollectionName.TxInfo, txInfo.uid)
         Logger.debug('[TX] ROLLBACK COMPLETE', txInfo)
