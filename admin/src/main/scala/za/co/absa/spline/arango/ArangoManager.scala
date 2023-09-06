@@ -41,7 +41,7 @@ trait ArangoManager {
   /**
    * @return `true` if actual initialization was performed.
    */
-  def initialize(onExistsAction: OnDBExistsAction, options: DatabaseCreateOptions): Future[Boolean]
+  def createDatabase(onExistsAction: OnDBExistsAction, options: DatabaseCreateOptions): Future[Boolean]
   def upgrade(): Future[Unit]
   def execute(actions: AuxiliaryDBAction*): Future[Unit]
   def prune(retentionPeriod: Duration): Future[Unit]
@@ -65,7 +65,7 @@ class ArangoManagerImpl(
 
   import ArangoManagerImpl._
 
-  def initialize(onExistsAction: OnDBExistsAction, options: DatabaseCreateOptions): Future[Boolean] = {
+  def createDatabase(onExistsAction: OnDBExistsAction, options: DatabaseCreateOptions): Future[Boolean] = {
     log.debug("Initialize database")
     db.exists.toScala.flatMap { exists =>
       if (exists && onExistsAction == Skip) {

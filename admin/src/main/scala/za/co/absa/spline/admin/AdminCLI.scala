@@ -289,7 +289,7 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory, maybeConsole: Option[Inpu
           case _ => Fail
         }
         val dbManager = interactiveDbManagerFactory.create(url, sslCtxOpt, conf.dryRun)
-        val wasInitialized = Await.result(dbManager.initialize(onExistsAction, options), Duration.Inf)
+        val wasInitialized = Await.result(dbManager.createDatabase(onExistsAction, options), Duration.Inf)
         if (!wasInitialized) println(ansi"%yellow{Skipped. DB is already initialized}")
 
       case DBUpgrade(url) =>
