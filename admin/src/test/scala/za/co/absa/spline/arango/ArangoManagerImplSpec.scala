@@ -16,10 +16,12 @@
 
 package za.co.absa.spline.arango
 
-import com.arangodb.async.ArangoDatabaseAsync
+import com.arangodb.async.{ArangoCollectionAsync, ArangoDatabaseAsync}
+import com.arangodb.entity._
+import com.arangodb.entity.arangosearch.analyzer.SearchAnalyzer
 import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentMatchers, Mockito}
+import org.mockito.Mockito._
+import org.mockito.{ArgumentCaptor, ArgumentMatchers, Mockito}
 import org.scalatest.concurrent.ScalaFutures.whenReady
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -29,10 +31,14 @@ import org.scalatestplus.mockito.MockitoSugar.mock
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 import za.co.absa.spline.arango.ArangoManagerImplSpec._
 import za.co.absa.spline.arango.foxx.FoxxManager
+import za.co.absa.spline.dummy
 import za.co.absa.spline.persistence.DatabaseVersionManager
 import za.co.absa.spline.persistence.migration.Migrator
 
+import java.lang.Boolean.{FALSE, TRUE}
 import java.time.{Clock, Instant, ZoneId, ZonedDateTime}
+import java.util.concurrent.CompletableFuture.completedFuture
+import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -44,9 +50,165 @@ class ArangoManagerImplSpec
 
   import za.co.absa.commons.version.Version._
 
+  behavior of "createDatabase()"
+
+  it should "create database with all components when database does NOT exist" in {
+    val dbMock = mock[ArangoDatabaseAsync]
+    val dbVerMgrMock = mock[DatabaseVersionManager]
+    val foxxMgrMock = mock[FoxxManager]
+    val colMock = mock[ArangoCollectionAsync]
+
+    val createdColNamesCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
+
+    when(dbMock.exists()) thenReturn completedFuture(FALSE)
+    when(dbMock.create()) thenReturn completedFuture(TRUE)
+    when(dbMock.createCollection(createdColNamesCaptor.capture(), any())) thenReturn completedFuture(dummy[CollectionEntity])
+    when(dbMock.createSearchAnalyzer(any())) thenReturn completedFuture(dummy[SearchAnalyzer])
+    when(dbMock.createArangoSearch(any(), any())) thenReturn completedFuture(dummy[ViewEntity])
+    when(dbMock.collection(any())) thenReturn colMock
+
+    when(dbVerMgrMock.insertDbVersion(any())) thenReturn Future.successful(dummy[SemanticVersion])
+
+    when(colMock.insertDocuments(any())) thenReturn completedFuture(dummy[MultiDocumentEntity[DocumentCreateEntity[Nothing]]])
+    when(colMock.ensurePersistentIndex(any(), any())) thenReturn completedFuture(dummy[IndexEntity])
+
+    when(foxxMgrMock.install(any(), any())) thenReturn Future.successful(())
+
+    val manager = newManager(
+      db = dbMock,
+      foxxManager = foxxMgrMock,
+      dbVersionManager = dbVerMgrMock
+    )
+
+    for {
+      _ <- manager.createDatabase(OnDBExistsAction.Skip, DatabaseCreateOptions())
+    } yield {
+      val inOrder = Mockito.inOrder(dbMock)
+
+      inOrder.verify(dbMock, atLeastOnce()).exists()
+      inOrder.verify(dbMock, times(1)).create()
+      inOrder.verify(dbMock, times(24)).createCollection(any(), any())
+      createdColNamesCaptor.getAllValues.asScala.toSet should ((have size 24) and (contain allOf("txInfo", "dbVersion", "counter")))
+      inOrder.verify(dbMock, times(1)).createSearchAnalyzer(any())
+      inOrder.verify(dbMock, times(2)).createArangoSearch(any(), any())
+
+      verify(dbVerMgrMock).insertDbVersion(notNull())
+      verify(foxxMgrMock).install(ArgumentMatchers.eq("/spline"), notNull())
+
+      verify(colMock, atLeastOnce()).insertDocuments(notNull())
+      verify(colMock, atLeastOnce()).ensurePersistentIndex(any(), any())
+
+      Assertions.succeed
+    }
+  }
+
+  it should "create database with all components when database EXISTS and 'Drop' option is used" in {
+    val dbMock = mock[ArangoDatabaseAsync]
+    val dbVerMgrMock = mock[DatabaseVersionManager]
+    val foxxMgrMock = mock[FoxxManager]
+    val colMock = mock[ArangoCollectionAsync]
+
+    val createdColNamesCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
+
+    when(dbMock.exists()) thenReturn completedFuture(TRUE)
+    when(dbMock.create()) thenReturn completedFuture(TRUE)
+    when(dbMock.drop()) thenReturn completedFuture(TRUE)
+    when(dbMock.createCollection(createdColNamesCaptor.capture(), any())) thenReturn completedFuture(dummy[CollectionEntity])
+    when(dbMock.createSearchAnalyzer(any())) thenReturn completedFuture(dummy[SearchAnalyzer])
+    when(dbMock.createArangoSearch(any(), any())) thenReturn completedFuture(dummy[ViewEntity])
+    when(dbMock.collection(any())) thenReturn colMock
+
+    when(dbVerMgrMock.insertDbVersion(any())) thenReturn Future.successful(dummy[SemanticVersion])
+
+    when(colMock.insertDocuments(any())) thenReturn completedFuture(dummy[MultiDocumentEntity[DocumentCreateEntity[Nothing]]])
+    when(colMock.ensurePersistentIndex(any(), any())) thenReturn completedFuture(dummy[IndexEntity])
+
+    when(foxxMgrMock.install(any(), any())) thenReturn Future.successful(())
+
+    val manager = newManager(
+      db = dbMock,
+      foxxManager = foxxMgrMock,
+      dbVersionManager = dbVerMgrMock
+    )
+
+    for {
+      _ <- manager.createDatabase(OnDBExistsAction.Drop, DatabaseCreateOptions())
+    } yield {
+      val inOrder = Mockito.inOrder(dbMock)
+      inOrder.verify(dbMock, atLeastOnce()).exists()
+      inOrder.verify(dbMock).drop()
+      inOrder.verify(dbMock).create()
+      Assertions.succeed
+    }
+  }
+
+  it should "skip creation of database when database EXISTS and 'Skip' option is used" in {
+    val dbMock = mock[ArangoDatabaseAsync]
+    val dbVerMgrMock = mock[DatabaseVersionManager]
+    val foxxMgrMock = mock[FoxxManager]
+    val colMock = mock[ArangoCollectionAsync]
+
+    when(dbMock.exists()) thenReturn completedFuture(TRUE)
+
+    val manager = newManager(
+      db = dbMock,
+      foxxManager = foxxMgrMock,
+      dbVersionManager = dbVerMgrMock
+    )
+
+    for {
+      _ <- manager.createDatabase(OnDBExistsAction.Skip, DatabaseCreateOptions())
+    } yield {
+      verify(dbMock).exists()
+      verify(dbMock, never()).drop()
+      verify(dbMock, never()).create()
+      verify(dbMock, never()).createCollection(any(), any())
+      verify(dbMock, never()).createSearchAnalyzer(any())
+      verify(dbMock, never()).createArangoSearch(any(), any())
+      verify(dbVerMgrMock, never()).insertDbVersion(any())
+      verify(foxxMgrMock, never()).install(any(), any())
+      verify(colMock, never()).insertDocuments(any())
+      verify(colMock, never()).ensurePersistentIndex(any(), any())
+      Assertions.succeed
+    }
+  }
+
+
+  it should "fail to create database when database EXISTS and 'Fail' option is used" in {
+    val dbMock = mock[ArangoDatabaseAsync]
+    val dbVerMgrMock = mock[DatabaseVersionManager]
+    val foxxMgrMock = mock[FoxxManager]
+    val colMock = mock[ArangoCollectionAsync]
+
+    when(dbMock.exists()) thenReturn completedFuture(TRUE)
+
+    val manager = newManager(
+      db = dbMock,
+      foxxManager = foxxMgrMock,
+      dbVersionManager = dbVerMgrMock
+    )
+
+    for {
+      _ <- recoverToSucceededIf[IllegalArgumentException](manager.createDatabase(OnDBExistsAction.Fail, DatabaseCreateOptions()))
+    } yield {
+      verify(dbMock, atLeastOnce()).exists()
+      verify(dbMock, never()).drop()
+      verify(dbMock, never()).create()
+      verify(dbMock, never()).createCollection(any(), any())
+      verify(dbMock, never()).createSearchAnalyzer(any())
+      verify(dbMock, never()).createArangoSearch(any(), any())
+      verify(dbVerMgrMock, never()).insertDbVersion(any())
+      verify(foxxMgrMock, never()).install(any(), any())
+      verify(colMock, never()).insertDocuments(any())
+      verify(colMock, never()).ensurePersistentIndex(any(), any())
+      Assertions.succeed
+    }
+  }
+
+
   behavior of "upgrade()"
 
-  it should "call foxx manager and migrator properly in order" in {
+  it should "call Foxx manager and Migrator properly and in the correct order" in {
     val dbVerMgrMock = mock[DatabaseVersionManager]
     val migratorMock = mock[Migrator]
     val foxxMgrMock = mock[FoxxManager]
@@ -69,9 +231,9 @@ class ArangoManagerImplSpec
       .thenReturn(Future.successful(true))
 
     val manager = newManager(
-      migratorMock = migratorMock,
-      dbVersionManagerMock = dbVerMgrMock,
-      foxxManagerMock = foxxMgrMock,
+      migrator = migratorMock,
+      dbVersionManager = dbVerMgrMock,
+      foxxManager = foxxMgrMock,
       appDbVersion = semver"4.5.6")
 
     for {
@@ -87,7 +249,7 @@ class ArangoManagerImplSpec
     }
   }
 
-  it should "fail when foxx services failed to install" in {
+  it should "fail when Foxx services failed to install" in {
     val dbVerMgrMock = mock[DatabaseVersionManager]
     val migratorMock = mock[Migrator]
     val foxxMgrMock = mock[FoxxManager]
@@ -105,9 +267,9 @@ class ArangoManagerImplSpec
       .thenReturn(Future.successful(true))
 
     val manager = newManager(
-      migratorMock = migratorMock,
-      dbVersionManagerMock = dbVerMgrMock,
-      foxxManagerMock = foxxMgrMock,
+      migrator = migratorMock,
+      dbVersionManager = dbVerMgrMock,
+      foxxManager = foxxMgrMock,
       appDbVersion = semver"4.5.6")
 
     for {
@@ -162,19 +324,20 @@ class ArangoManagerImplSpec
 
 object ArangoManagerImplSpec {
   private def newManager(
-    drmMock: DataRetentionManager = null, // NOSONAR
-    clock: Clock = null, // NOSONAR
-    migratorMock: Migrator = null, // NOSONAR
-    foxxManagerMock: FoxxManager = null, // NOSONAR
-    dbVersionManagerMock: DatabaseVersionManager = null, // NOSONAR
-    appDbVersion: SemanticVersion = null // NOSONAR
+    db: ArangoDatabaseAsync = mock[ArangoDatabaseAsync],
+    drmMock: DataRetentionManager = mock[DataRetentionManager],
+    clock: Clock = mock[Clock],
+    migrator: Migrator = mock[Migrator],
+    foxxManager: FoxxManager = mock[FoxxManager],
+    dbVersionManager: DatabaseVersionManager = mock[DatabaseVersionManager],
+    appDbVersion: SemanticVersion = mock[SemanticVersion]
   )(implicit ec: ExecutionContext): ArangoManagerImpl = {
     new ArangoManagerImpl(
-      mock[ArangoDatabaseAsync],
-      dbVersionManagerMock,
+      db,
+      dbVersionManager,
       drmMock,
-      migratorMock,
-      foxxManagerMock,
+      migrator,
+      foxxManager,
       clock,
       appDbVersion,
       dryRun = false)

@@ -41,7 +41,7 @@ trait ArangoManager {
   /**
    * @return `true` if actual initialization was performed.
    */
-  def initialize(onExistsAction: OnDBExistsAction, options: DatabaseCreateOptions): Future[Boolean]
+  def createDatabase(onExistsAction: OnDBExistsAction, options: DatabaseCreateOptions): Future[Boolean]
   def upgrade(): Future[Unit]
   def execute(actions: AuxiliaryDBAction*): Future[Unit]
   def prune(retentionPeriod: Duration): Future[Unit]
@@ -65,7 +65,7 @@ class ArangoManagerImpl(
 
   import ArangoManagerImpl._
 
-  def initialize(onExistsAction: OnDBExistsAction, options: DatabaseCreateOptions): Future[Boolean] = {
+  def createDatabase(onExistsAction: OnDBExistsAction, options: DatabaseCreateOptions): Future[Boolean] = {
     log.debug("Initialize database")
     db.exists.toScala.flatMap { exists =>
       if (exists && onExistsAction == Skip) {
@@ -144,9 +144,9 @@ class ArangoManagerImpl(
     for {
       exists <- db.exists.toScala
       _ <- if (exists && !dropIfExists)
-        throw new IllegalArgumentException(s"Arango Database ${db.dbName} already exists")
+        throw new IllegalArgumentException(s"Arango Database ${db.name} already exists")
       else if (exists && dropIfExists) {
-        log.info(s"Drop database: ${db.dbName}")
+        log.info(s"Drop database: ${db.name}")
         unlessDryRunAsync(db.drop().toScala)
       }
       else Future.successful({})
@@ -154,7 +154,7 @@ class ArangoManagerImpl(
   }
 
   private def createDb() = {
-    log.info(s"Create database: ${db.dbName}")
+    log.info(s"Create database: ${db.name}")
     unlessDryRunAsync(db.create().toScala)
   }
 
@@ -211,7 +211,7 @@ class ArangoManagerImpl(
     Future.sequence(
       for {
         colDef <- sealedInstancesOf[CollectionDef]
-        idxDef <- colDef.indexDefs
+        idxDef <- colDef.indexDefs ++ colDef.commonIndexDefs
       } yield {
         val idxOpts = idxDef.options
         log.debug(s"Ensure ${idxOpts.indexType} index: ${colDef.name} [${idxDef.fields.mkString(",")}]")
@@ -219,10 +219,11 @@ class ArangoManagerImpl(
         val fields = idxDef.fields.asJava
         unlessDryRunAsync {
           (idxOpts match {
-            case opts: FulltextIndexOptions => dbCol.ensureFulltextIndex(fields, opts)
             case opts: GeoIndexOptions => dbCol.ensureGeoIndex(fields, opts)
+            case opts: InvertedIndexOptions => dbCol.ensureInvertedIndex(opts)
             case opts: PersistentIndexOptions => dbCol.ensurePersistentIndex(fields, opts)
             case opts: TtlIndexOptions => dbCol.ensureTtlIndex(fields, opts)
+            case opts: ZKDIndexOptions => dbCol.ensureZKDIndex(fields, opts)
           }).toScala
         }
       })
@@ -279,7 +280,7 @@ class ArangoManagerImpl(
     log.debug(s"Delete search analyzers")
     for {
       analyzers <- db.getSearchAnalyzers.toScala.map(_.asScala)
-      userAnalyzers = analyzers.filter(_.getName.startsWith(s"${db.dbName}::"))
+      userAnalyzers = analyzers.filter(_.getName.startsWith(s"${db.name}::"))
       _ <- Future.traverse(userAnalyzers)(ua => {
         log.info(s"Delete search analyzer: ${ua.getName}")
         unlessDryRunAsync(db.deleteSearchAnalyzer(ua.getName).toScala)

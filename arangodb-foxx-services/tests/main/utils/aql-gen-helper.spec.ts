@@ -29,8 +29,8 @@ test('genTxIsolationCodeForTraversal', () => {
     expect(query.bindVars).toEqual({ 'value0': dummyRtxInfo })
     expect(dedent(query.query)).toEqual(dedent(`
         PRUNE __isAnyUncommitted_1 = LENGTH([foo, bar][*
-            FILTER CURRENT._tx_info.num >= @value0.num
-                OR POSITION(@value0.liveTxIds, CURRENT._tx_info.uid)
+            FILTER CURRENT._txInfo.num >= @value0.num
+                OR POSITION(@value0.liveTxIds, CURRENT._txInfo.uid)
             LIMIT 1
             RETURN CURRENT._id
         ]) != 0
@@ -44,8 +44,8 @@ test('genTxIsolationCodeForLoop', () => {
     expect(query.bindVars).toEqual({ 'value0': dummyRtxInfo })
     expect(dedent(query.query)).toEqual(dedent(`
         LET __isAnyUncommitted_1 = LENGTH([foo, bar][*
-            FILTER CURRENT._tx_info.num >= @value0.num
-                OR POSITION(@value0.liveTxIds, CURRENT._tx_info.uid)
+            FILTER CURRENT._txInfo.num >= @value0.num
+                OR POSITION(@value0.liveTxIds, CURRENT._txInfo.uid)
             LIMIT 1
             RETURN CURRENT._id
         ]) != 0

@@ -16,13 +16,11 @@
 
 package za.co.absa.spline.persistence
 
-import com.arangodb.DbName
 import com.arangodb.async.{ArangoDBAsync, ArangoDatabaseAsync}
 import com.arangodb.velocypack.module.scala.VPackScalaModule
 import org.slf4s.Logging
 import org.springframework.beans.factory.DisposableBean
 import za.co.absa.commons.version.Version
-import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 
 import javax.net.ssl._
 import scala.concurrent._
@@ -62,7 +60,7 @@ class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL, maybeSSLContext: 
   // The val is lazy to not prevent a facade instance from being created.
   // It allows connection to be re-attempted later and the {{shutdown()}} method to be called.
   lazy val db: ArangoDatabaseAsync = {
-    val db = arango.db(DbName.of(dbName))
+    val db = arango.db(dbName)
     warmUpDb(db)
     db
   }

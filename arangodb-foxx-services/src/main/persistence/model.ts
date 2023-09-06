@@ -124,5 +124,5 @@ export type TxParams = Partial<{
 }>
 
 export type TxAwareDocument = {
-    _tx_info?: WriteTxInfo
+    _txInfo?: WriteTxInfo
 }

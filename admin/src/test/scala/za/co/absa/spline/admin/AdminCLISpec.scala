@@ -83,7 +83,7 @@ class AdminCLISpec
       thenReturn arangoManagerMock)
 
     (when(
-      arangoManagerMock.initialize(actionFlgCaptor.capture, dbOptionCaptor.capture))
+      arangoManagerMock.createDatabase(actionFlgCaptor.capture, dbOptionCaptor.capture))
       thenReturn Future.successful(true))
 
     (when(
