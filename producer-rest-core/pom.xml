@@ -59,7 +59,7 @@
         <dependency>
             <groupId>za.co.absa.spline</groupId>
             <artifactId>producer-model-v1.1</artifactId>
-            <version>0.7.5</version>
+            <version>0.7.9</version>
         </dependency>
         <dependency>
             <groupId>za.co.absa.spline</groupId>
