@@ -51,7 +51,7 @@
         <spring.version>5.2.9.RELEASE</spring.version>
         <springfox-swagger.version>2.9.2</springfox-swagger.version>
         <jackson.version>2.15.2</jackson.version>
-        <finatra.jackson.version>21.5.0</finatra.jackson.version>
+        <finatra.jackson.version>22.2.0</finatra.jackson.version>
         <node.version>v16.16.0</node.version>
         <npm.version>8.11.0</npm.version>
 
