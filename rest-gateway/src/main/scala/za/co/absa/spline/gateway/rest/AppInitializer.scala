@@ -24,9 +24,9 @@ import za.co.absa.spline.common.webmvc.cors.PermissiveCorsFilter
 import za.co.absa.spline.common.webmvc.diagnostics.{DiagnosticsRESTConfig, RootWebContextConfig}
 import za.co.absa.spline.consumer.rest.ConsumerRESTConfig
 import za.co.absa.spline.consumer.service.ConsumerServicesConfig
-import za.co.absa.spline.gateway.rest.filter.GzipFilter
 import za.co.absa.spline.persistence.ArangoRepoConfig
 import za.co.absa.spline.producer.rest.ProducerRESTConfig
+import za.co.absa.spline.producer.rest.filter.{GzipFilter, MessageLengthCapturingFilter}
 import za.co.absa.spline.producer.service.ProducerServicesConfig
 
 import javax.servlet.ServletContext
@@ -43,7 +43,9 @@ object AppInitializer extends WebApplicationInitializer {
       }))
 
     registerFilter[PermissiveCorsFilter](container, "CORSFilter", "/*")
+    registerFilter[MessageLengthCapturingFilter](container, "MessageSizeCapturingFilter_before_gzip", "/*")
     registerFilter[GzipFilter](container, "GzipFilter", "/*")
+    registerFilter[MessageLengthCapturingFilter](container, "MessageSizeCapturingFilter_after_gzip", "/*")
 
     registerRESTDispatcher[ConsumerRESTConfig](container, "consumer")
     registerRESTDispatcher[ProducerRESTConfig](container, "producer")

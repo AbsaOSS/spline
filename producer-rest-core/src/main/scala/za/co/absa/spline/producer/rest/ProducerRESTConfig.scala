@@ -19,7 +19,7 @@ package za.co.absa.spline.producer.rest
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.twitter.finatra.jackson.FinatraInternalModules
-import org.springframework.context.annotation.{Bean, ComponentScan, Configuration}
+import org.springframework.context.annotation.{Bean, ComponentScan, Configuration, EnableAspectJAutoProxy}
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler
 import org.springframework.web.servlet.config.annotation.{EnableWebMvc, WebMvcConfigurer}
 import za.co.absa.commons.config.ConfTyped
@@ -32,6 +32,7 @@ import java.util
 
 @EnableWebMvc
 @Configuration
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 @ComponentScan(basePackageClasses = Array(
   classOf[common.webmvc.controller._package],
   classOf[controller._package],
