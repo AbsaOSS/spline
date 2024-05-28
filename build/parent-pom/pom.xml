@@ -42,7 +42,7 @@
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssX</maven.build.timestamp.format>
         <java.version>1.8</java.version>
-        <scala.version>2.12.19</scala.version>
+        <scala.version>2.13.14</scala.version>
         <scala.compat.version>2.12</scala.compat.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <logback.version>1.5.6</logback.version>
