@@ -188,7 +188,7 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
       arangoCursorAsync =>
         val items = arangoCursorAsync.streamRemaining().toScala
         val totalCount = arangoCursorAsync.getStats.getFullCount
-        items -> totalCount
+        (items, totalCount)
     }
   }
 

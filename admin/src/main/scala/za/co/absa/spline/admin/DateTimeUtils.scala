@@ -16,16 +16,17 @@
 
 package za.co.absa.spline.admin
 
-import org.slf4s.Logging
+
+import com.typesafe.scalalogging.LazyLogging
 
 import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
 import java.time.temporal.ChronoField
 import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
-object DateTimeUtils extends Logging {
+object DateTimeUtils extends LazyLogging {
 
   private val ZonedDateTimeRegexp = (s"" +
     "^" +
@@ -60,12 +61,12 @@ object DateTimeUtils extends Logging {
 
       val validOffsets = tz.getRules.getValidOffsets(ldt).asScala
       if (validOffsets.isEmpty) {
-        log.warn(s"" +
+        logger.warn("" +
           s"DST gap was detected for the input '$s' in the time zone '$tz'. " +
           s"Continue with the adjusted datetime '$zdt''")
       }
       if (validOffsets.length > 1) {
-        log.warn(s"" +
+        logger.warn("" +
           s"DST overlap (${validOffsets.mkString(", ")}) was detected for the input '$s' in the time zone '$tz'. " +
           s"Continue with the assumed datetime '$zdt'")
       }

@@ -88,19 +88,19 @@ class AdminCLISpec
 
     (when(
       arangoManagerMock.upgrade())
-      thenReturn Future.successful({}))
+      thenReturn Future.successful(()))
 
     (when(
       arangoManagerMock.execute(any()))
-      thenReturn Future.successful({}))
+      thenReturn Future.successful(()))
 
     (when(
       arangoManagerMock.prune(any[Duration]()))
-      thenReturn Future.successful({}))
+      thenReturn Future.successful(()))
 
     (when(
       arangoManagerMock.prune(any[ZonedDateTime]()))
-      thenReturn Future.successful({}))
+      thenReturn Future.successful(()))
 
     it should "when called with wrong options, print welcome message" in {
       captureStdErr {

@@ -51,7 +51,7 @@ class InternalArangoDatabaseOps(db: ArangoDatabaseAsync)(implicit ec: ExecutionC
     val hostDescription = ReflectionUtils.extractValue[VstConnection[_], HostDescription](connection, "host")
     val host = hostDescription.getHost
     val port = hostDescription.getPort
-    val database = db.dbName
+    val database = db.name
 
     val maybeCredentials =
       for {

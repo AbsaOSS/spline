@@ -16,10 +16,9 @@
 
 package za.co.absa.spline.persistence.migration
 
-import scalax.collection.Graph
-import scalax.collection.GraphPredef._
-import scalax.collection.edge.Implicits.edge2WDiEdgeAssoc
-import scalax.collection.edge.WDiEdge
+import scalax.collection.edges._
+import scalax.collection.edges.labeled._
+import scalax.collection.immutable.Graph
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 
 class MigrationScriptRepository(scriptLoader: MigrationScriptLoader) {
@@ -28,13 +27,13 @@ class MigrationScriptRepository(scriptLoader: MigrationScriptLoader) {
 
   def findMigrationChain(verFrom: SemanticVersion, verTo: SemanticVersion): Seq[MigrationScript] = {
     try {
-      val scriptByVersionPair = scripts.groupBy(scr => (scr.verFrom, scr.verTo)).mapValues(_.head)
+      val scriptByVersionPair = scripts.groupBy(scr => (scr.verFrom, scr.verTo)).view.mapValues(_.head)
       val edges: Seq[WDiEdge[SemanticVersion]] = scripts.map(scr => scr.verFrom ~> scr.verTo % 1)
-      val graph = Graph(edges: _*)
+      val graph = Graph.from(edges)
       val vFrom = graph.get(verFrom)
       val vTo = graph.get(verTo)
       val path = (vFrom shortestPathTo vTo).get
-      path.edges.map(e => scriptByVersionPair((e.from, e.to))).toSeq
+      path.edges.map(e => scriptByVersionPair((e.outer.source, e.outer.target))).toSeq
     } catch {
       case _: NoSuchElementException =>
         sys.error(s"Cannot find migration scripts from version ${verFrom.asString} to ${verTo.asString}")

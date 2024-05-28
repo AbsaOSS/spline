@@ -17,7 +17,7 @@
 package za.co.absa.spline.producer.service.repo
 
 import com.arangodb.async.ArangoDatabaseAsync
-import org.slf4s.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.common.AsyncCallRetryer
@@ -35,7 +35,7 @@ import scala.util.control.NonFatal
 
 @Repository
 class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retryer: AsyncCallRetryer) extends ExecutionProducerRepository
-  with Logging {
+  with LazyLogging {
 
   import ArangoImplicits._
   import ExecutionProducerRepositoryImpl._
@@ -74,14 +74,14 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retr
         case Some(existingDiscriminatorOrNull) =>
           // execution plan with the given ID already exists
           ensureNoExecPlanIDCollision(executionPlan.id, executionPlan.discriminator.orNull, existingDiscriminatorOrNull)
-          Future.successful(Unit)
+          Future.successful(())
         case None =>
           // no execution plan with the given ID found
           val eppm = ExecutionPlanPersistentModelBuilder.toPersistentModel(executionPlan, persistedDSKeyByURI)
           val tx = createExecutionPlanTransaction(eppm)
           tx.execute[Any](db)
       }
-    } yield Unit
+    } yield ()
   })
 
   override def insertExecutionEvent(e: apiModel.ExecutionEvent)(implicit ec: ExecutionContext): Future[Unit] = retryer.execute({
@@ -105,7 +105,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retr
         case Some(existingDiscriminatorOrNull) =>
           // execution plan with the given ID already exists
           ensureNoExecPlanIDCollision(e.planId, e.discriminator.orNull, existingDiscriminatorOrNull)
-          Future.successful(Unit)
+          Future.successful(())
         case None =>
           // no execution plan with the given ID found
           val p = Progress(
@@ -120,9 +120,9 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retr
             execPlanDetails = null // the value is populated below in the transaction script
           )
           val tx = createExecutionEventTransaction(p)
-          tx.execute[Unit](db)
+          tx.execute[Any](db)
       }
-    } yield Unit
+    } yield ()
   })
 
   override def isDatabaseOk()(implicit ec: ExecutionContext): Future[Boolean] = {
@@ -131,7 +131,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retr
       val futureIsDbOk = db.collection(anySplineCollectionName).exists.toScala.mapTo[Boolean]
       futureIsDbOk.foreach { isDbOk =>
         if (!isDbOk)
-          log.error(s"Collection '$anySplineCollectionName' does not exist. Spline database is not initialized properly!")
+          logger.error(s"Collection '$anySplineCollectionName' does not exist. Spline database is not initialized properly!")
       }
       futureIsDbOk.recover { case _ => false }
     } catch {

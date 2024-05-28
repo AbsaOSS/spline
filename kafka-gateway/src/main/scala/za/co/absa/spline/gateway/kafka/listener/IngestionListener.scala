@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.gateway.kafka.listener
 
-import org.slf4s.Logging
+import com.typesafe.scalalogging.StrictLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
@@ -33,7 +33,7 @@ import scala.concurrent.{Await, ExecutionContext}
 @Component
 @KafkaListener(topics = Array("#{__listener.topic}"))
 class IngestionListener @Autowired()(val repo: ExecutionProducerRepository)
-  extends Logging
+  extends StrictLogging
     with HandlerV11
     with HandlerV12 {
 
@@ -43,13 +43,13 @@ class IngestionListener @Autowired()(val repo: ExecutionProducerRepository)
   val topic: String = KafkaGatewayConfig.Kafka.Topic
 
   protected def processPlan[A](planId: Any, planDTO: A, offset: Long, mapper: ModelMapper[A, _]): Unit = {
-    log.trace(s"Processing execution plan id:$planId from topic:$topic on offset:$offset")
+    logger.trace(s"Processing execution plan id:$planId from topic:$topic on offset:$offset")
     val plan = mapper.fromDTO(planDTO)
     Await.result(repo.insertExecutionPlan(plan), KafkaGatewayConfig.Kafka.PlanTimeout)
   }
 
   protected def processEvent[A](planId: Any, eventDTO: A, timestamp: Long, offset: Long, mapper: ModelMapper[_, A]): Unit = {
-    log.trace(s"Processing execution event for planId:$planId and timestamp:$timestamp from topic:$topic on offset:$offset")
+    logger.trace(s"Processing execution event for planId:$planId and timestamp:$timestamp from topic:$topic on offset:$offset")
     val event = mapper.fromDTO(eventDTO)
     Await.result(repo.insertExecutionEvent(event), KafkaGatewayConfig.Kafka.EventTimeout)
   }

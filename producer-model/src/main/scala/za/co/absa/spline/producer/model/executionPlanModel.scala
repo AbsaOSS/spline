@@ -1,6 +1,5 @@
 /*
- * Copyright 2021 ABSA Group Limited
- *
+ * Copyright 2024 ABSA Group Limited
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,18 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package za.co.absa.spline.common.webmvc.controller
 
-import io.swagger.annotations.Api
-import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation._
+package za.co.absa.spline.producer.model
 
-@RestController
-@Api(hidden = true)
-class DefaultRestController {
+case class Operations(
+  write: WriteOperation,
+  reads: Seq[ReadOperation] = Nil,
+  other: Seq[DataOperation] = Nil) {
 
-  @GetMapping(Array("/**"))
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  def resourceNotFound(): Unit = ()
-
+  def all: Seq[OperationLike] = reads ++ other :+ write
 }
+
+/**
+ * Information about a data framework in use (e.g. Spark, StreamSets etc)
+ */
+case class SystemInfo(name: String, version: String)
+
+/**
+ * Spline agent information
+ */
+case class AgentInfo(name: String, version: String)

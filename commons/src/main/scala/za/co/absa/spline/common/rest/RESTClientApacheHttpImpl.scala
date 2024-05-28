@@ -45,7 +45,7 @@ class RESTClientApacheHttpImpl(
 
   override def delete(path: String): Future[Unit] = execHttp {
     baseUri => new HttpDelete(s"$baseUri/$path")
-  }.map(_ => {})
+  }.map(_ => ())
 
   override def post(path: String, body: String): Future[Unit] =
     post(path, new StringEntity(body))
@@ -58,7 +58,7 @@ class RESTClientApacheHttpImpl(
       new HttpPost(s"$baseUri/$path") {
         setEntity(entity)
       }
-  }.map(_ => {})
+  }.map(_ => ())
 
   private def execHttp(method: URI => HttpRequestBase): Future[String] = Future {
     val request = {

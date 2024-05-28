@@ -41,7 +41,7 @@ import za.co.absa.spline.common.config.DefaultConfigurationStack
 import za.co.absa.spline.producer.service.InconsistentEntityException
 
 import java.util.concurrent.TimeUnit
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.{Duration, DurationInt}
 
 @EnableKafka

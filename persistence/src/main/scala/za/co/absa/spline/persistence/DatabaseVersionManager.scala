@@ -40,7 +40,7 @@ class DatabaseVersionManager(
     for {
       exists <- db.collection(DBVersion.name).exists.toScala
       _ <-
-        if (exists) Future.successful({})
+        if (exists) Future.successful(())
         else unlessDryRunAsync(db.createCollection(DBVersion.name).toScala)
       _ <- unlessDryRunAsync {
         db.collection(DBVersion.name)

@@ -1,6 +1,5 @@
 /*
- * Copyright 2020 ABSA Group Limited
- *
+ * Copyright 2024 ABSA Group Limited
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,21 +13,16 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.model.v1_2
+package za.co.absa.spline.producer.model.v1_1
 
-import za.co.absa.spline.common.graph.GraphImplicits.DAGNodeIdMapping
+import za.co.absa.commons.graph.GraphImplicits.DAGNodeIdMapping
 
 sealed trait OperationLike {
   def id: OperationLike.Id
-
   def name: Option[OperationLike.Name]
-
   def childIds: Seq[OperationLike.Id]
-
   def output: Option[OperationLike.Schema]
-
   def params: Map[String, Any]
-
   def extra: Map[String, Any]
 }
 

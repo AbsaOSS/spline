@@ -25,7 +25,7 @@ import za.co.absa.commons.scalatest.{ConsoleStubs, SystemExitFixture}
 import za.co.absa.spline.persistence.model.CollectionDef
 import za.co.absa.spline.test.fixture.{ArangoDbFixtureAsync, TestContainersFixtureAsync}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.compat.java8.FutureConverters._
 
 class AdminCLISpec

@@ -18,7 +18,7 @@ package za.co.absa.spline.persistence
 
 import com.arangodb.async.{ArangoDBAsync, ArangoDatabaseAsync}
 import com.arangodb.velocypack.module.scala.VPackScalaModule
-import org.slf4s.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.springframework.beans.factory.DisposableBean
 import za.co.absa.commons.version.Version
 
@@ -70,7 +70,7 @@ class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL, maybeSSLContext: 
   }
 }
 
-object ArangoDatabaseFacade extends Logging {
+object ArangoDatabaseFacade extends LazyLogging {
 
   import za.co.absa.commons.version.Version._
 
@@ -100,7 +100,7 @@ object ArangoDatabaseFacade extends Logging {
         s"Recommended version: ${MinArangoVerRecommended.asString} or later.")
 
     if (arangoVer < MinArangoVerRecommended)
-      log.warn(s"WARNING: " +
+      logger.warn(s"WARNING: " +
         s"The ArangoDB server version ${arangoVer.asString} might contain a bug that can cause Spline malfunction. " +
         s"It's highly recommended to upgrade to ArangoDB ${MinArangoVerRecommended.asString} or later. " +
         s"See: https://github.com/arangodb/arangodb/issues/12693")

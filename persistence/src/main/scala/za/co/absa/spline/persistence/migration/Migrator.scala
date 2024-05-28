@@ -17,7 +17,7 @@
 package za.co.absa.spline.persistence.migration
 
 import com.arangodb.async.ArangoDatabaseAsync
-import org.slf4s.Logging
+import com.typesafe.scalalogging.LazyLogging
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
 import za.co.absa.spline.persistence.model.CollectionDef.DBVersion
 import za.co.absa.spline.persistence.model.DBVersion.Status
@@ -31,9 +31,10 @@ class Migrator(
   db: ArangoDatabaseAsync,
   scriptRepository: MigrationScriptRepository,
   dbVersionManager: DatabaseVersionManager,
-  val dryRun: Boolean)
+  val dryRun: Boolean
+)
   (implicit ec: ExecutionContext)
-  extends Logging
+  extends LazyLogging
     with DryRunnable {
 
   def migrate(verFrom: SemanticVersion, verTo: SemanticVersion): Future[Boolean] = {
@@ -42,7 +43,7 @@ class Migrator(
         dbVersionExists <- db.collection(DBVersion.name).exists.toScala
         maybePreparingVersion <- dbVersionManager.preparingVersion
         _ <-
-          if (dbVersionExists) Future.successful({})
+          if (dbVersionExists) Future.successful(())
           else dbVersionManager.insertDbVersion(DatabaseVersionManager.BaselineVersion)
       } yield {
         maybePreparingVersion.foreach(prepVersion =>
@@ -60,13 +61,13 @@ class Migrator(
 
     eventualMigrationChain.flatMap(migrationChain => {
       if (migrationChain.nonEmpty) {
-        log.info(s"The database is ${migrationChain.length} versions behind. Migration will be performed.")
-        log.debug(s"Migration scripts to apply: $migrationChain")
+        logger.info(s"The database is ${migrationChain.length} versions behind. Migration will be performed.")
+        logger.debug(s"Migration scripts to apply: $migrationChain")
       }
       migrationChain
-        .foldLeft(Future.successful({})) {
+        .foldLeft(Future.successful(())) {
           case (prevMigrationEvidence, scr) => prevMigrationEvidence.flatMap(_ => {
-            log.debug(s"Applying script: $scr")
+            logger.debug(s"Applying script: $scr")
             executeMigration(scr.script, scr.verTo)
           })
         }
@@ -75,8 +76,8 @@ class Migrator(
   }
 
   private def executeMigration(script: String, version: SemanticVersion): Future[Unit] = {
-    log.info(s"Upgrading to version: ${version.asString}")
-    log.trace(s"Applying script: \n$script")
+    logger.info(s"Upgrading to version: ${version.asString}")
+    logger.trace(s"Applying script: \n$script")
 
     import ArangoImplicits._
 

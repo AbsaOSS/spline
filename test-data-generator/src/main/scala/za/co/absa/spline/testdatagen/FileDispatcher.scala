@@ -24,7 +24,7 @@ import za.co.absa.spline.producer.model.v1_2.{ExecutionEvent, ExecutionPlan}
 import org.json4s.jackson.JsonMethods
 import za.co.absa.commons.json.AbstractJsonSerDe
 import za.co.absa.commons.json.format.{DefaultFormatsBuilder, JavaTypesSupport}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class FileDispatcher(fileName: String) extends AbstractJsonSerDe[JValue]
   with JsonMethods

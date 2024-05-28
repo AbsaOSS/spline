@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 ABSA Group Limited
+ * Copyright 2020 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package za.co.absa.spline.common.webmvc.controller
 
-import io.swagger.annotations.Api
-import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation._
+package za.co.absa.spline.producer.model.v1_1
 
-@RestController
-@Api(hidden = true)
-class DefaultRestController {
+case class Attribute(
+  id: Attribute.Id,
+  dataType: Option[Any] = None,
+  childRefs: Seq[Attribute.ChildRef] = Nil,
+  extra: Map[String, Any] = Map.empty,
+  name: String,
+)
 
-  @GetMapping(Array("/**"))
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  def resourceNotFound(): Unit = ()
-
+object Attribute {
+  type Id = ExpressionLike.Id
+  type ChildRef = AttrOrExprRef
 }

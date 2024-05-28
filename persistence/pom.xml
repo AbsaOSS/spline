@@ -56,8 +56,8 @@
             <artifactId>commons-configuration</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.slf4s</groupId>
-            <artifactId>slf4s-api_${scala.compat.version}</artifactId>
+            <groupId>com.typesafe.scala-logging</groupId>
+            <artifactId>scala-logging_${scala.compat.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
