@@ -123,6 +123,7 @@
                                     <dependency>org.jboss.logging:jboss-logging</dependency>
                                     <dependency>jakarta.validation:jakarta.validation-api</dependency>
                                     <dependency>jakarta.el:jakarta.el-api</dependency>
+                                    <dependency>org.aspectj:aspectjweaver</dependency>
                                     <dependency>org.glassfish:jakarta.el</dependency>
                                     <dependency>com.github.ben-manes.caffeine:caffeine</dependency>
                                     <dependency>com.fasterxml.jackson.datatype:jackson-datatype-joda</dependency>

@@ -1,6 +1,5 @@
 /*
- * Copyright 2020 ABSA Group Limited
- *
+ * Copyright 2023 ABSA Group Limited
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,16 +13,12 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.gateway.rest.filter
+package za.co.absa.spline.producer.rest.filter
 
-import java.util.zip.GZIPInputStream
-
+import java.io.InputStream
 import javax.servlet.{ReadListener, ServletInputStream}
 
-final class GZIPServletInputStream(val inputStream: ServletInputStream) extends ServletInputStream {
-
-  val gzipStream = new GZIPInputStream(inputStream)
-
+final class ServletInputStreamAdapter(val gzipStream: InputStream) extends ServletInputStream {
 
   override def read: Int = gzipStream.read
 
