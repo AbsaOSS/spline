@@ -15,14 +15,19 @@
 
 package za.co.absa.spline.producer.model.v1_1
 
-import za.co.absa.commons.graph.GraphImplicits.DAGNodeIdMapping
+import za.co.absa.spline.common.graph.GraphImplicits.DAGNodeIdMapping
 
 sealed trait OperationLike {
   def id: OperationLike.Id
+
   def name: Option[OperationLike.Name]
+
   def childIds: Seq[OperationLike.Id]
+
   def output: Option[OperationLike.Schema]
+
   def params: Map[String, Any]
+
   def extra: Map[String, Any]
 }
 

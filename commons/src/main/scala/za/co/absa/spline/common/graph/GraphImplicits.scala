@@ -98,7 +98,7 @@ object GraphImplicits {
           case Left(cycleNode) =>
             throw new IllegalArgumentException("" +
               s"Expected DAG but cycle was detected: " +
-              cycleNode.cycle.map(_.nodes).getOrElse(Nil).map(selfIdFn(_)).mkString(" → ")
+              cycleNode.cycle.map(_.nodes).getOrElse(Nil).map(selfIdFn(_)).mkString(" - ")
             )
         }
       }
