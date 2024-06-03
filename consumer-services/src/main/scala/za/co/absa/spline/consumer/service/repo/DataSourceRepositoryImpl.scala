@@ -28,8 +28,8 @@ import za.co.absa.spline.consumer.service.repo.DataSourceRepositoryImpl.SearchFi
 import za.co.absa.spline.persistence.ArangoImplicits._
 import za.co.absa.spline.persistence.model.{EdgeDef, NodeDef, SearchViewDef}
 
-import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.StreamConverters._
 
 @Repository
 class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends DataSourceRepository {
@@ -186,7 +186,7 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
       new AqlQueryOptions().fullCount(true)
     ).map {
       arangoCursorAsync =>
-        val items = arangoCursorAsync.streamRemaining().toScala
+        val items = arangoCursorAsync.streamRemaining().toScala(LazyList)
         val totalCount = arangoCursorAsync.getStats.getFullCount
         (items, totalCount)
     }

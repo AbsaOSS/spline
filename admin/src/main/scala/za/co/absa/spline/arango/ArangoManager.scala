@@ -30,11 +30,11 @@ import za.co.absa.spline.persistence.model.{CollectionDef, GraphDef, SearchAnaly
 import za.co.absa.spline.persistence.{DatabaseVersionManager, DryRunnable}
 
 import java.time.{Clock, ZonedDateTime}
-import scala.jdk.CollectionConverters._
 import scala.collection.immutable._
-import scala.compat.java8.FutureConverters._
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
+import scala.jdk.FutureConverters._
 
 trait ArangoManager {
 
@@ -42,9 +42,13 @@ trait ArangoManager {
    * @return `true` if actual initialization was performed.
    */
   def createDatabase(onExistsAction: OnDBExistsAction, options: DatabaseCreateOptions): Future[Boolean]
+
   def upgrade(): Future[Unit]
+
   def execute(actions: AuxiliaryDBAction*): Future[Unit]
+
   def prune(retentionPeriod: Duration): Future[Unit]
+
   def prune(thresholdDate: ZonedDateTime): Future[Unit]
 
 }
@@ -57,7 +61,8 @@ class ArangoManagerImpl(
   foxxManager: FoxxManager,
   clock: Clock,
   appDBVersion: SemanticVersion,
-  val dryRun: Boolean)
+  val dryRun: Boolean
+)
   (implicit val ex: ExecutionContext)
   extends ArangoManager
     with DryRunnable
@@ -67,7 +72,7 @@ class ArangoManagerImpl(
 
   def createDatabase(onExistsAction: OnDBExistsAction, options: DatabaseCreateOptions): Future[Boolean] = {
     logger.debug("Initialize database")
-    db.exists.toScala.flatMap { exists =>
+    db.exists.asScala.flatMap { exists =>
       if (exists && onExistsAction == Skip) {
         logger.debug("Database already exists - skipping initialization")
         Future.successful(false)
@@ -120,7 +125,7 @@ class ArangoManagerImpl(
   }
 
   private def checkDBAccess() = {
-    db.exists.toScala
+    db.exists.asScala
   }
 
   private def reinstallFoxxServices() = {
@@ -142,12 +147,12 @@ class ArangoManagerImpl(
 
   private def deleteDbIfRequested(dropIfExists: Boolean) = {
     for {
-      exists <- db.exists.toScala
+      exists <- db.exists.asScala
       _ <- if (exists && !dropIfExists)
         throw new IllegalArgumentException(s"Arango Database ${db.name} already exists")
       else if (exists && dropIfExists) {
         logger.info(s"Drop database: ${db.name}")
-        unlessDryRunAsync(db.drop().toScala)
+        unlessDryRunAsync(db.drop().asScala)
       }
       else Future.successful(())
     } yield ()
@@ -155,7 +160,7 @@ class ArangoManagerImpl(
 
   private def createDb() = {
     logger.info(s"Create database: ${db.name}")
-    unlessDryRunAsync(db.create().toScala)
+    unlessDryRunAsync(db.create().asScala)
   }
 
   private def createCollections(options: DatabaseCreateOptions) = {
@@ -173,8 +178,8 @@ class ArangoManagerImpl(
             .replicationFactor(replFactor)
             .waitForSync(options.waitForSync)
           for {
-            _ <- unlessDryRunAsync(db.createCollection(colDef.name, collectionOptions).toScala)
-            _ <- unlessDryRunAsync(db.collection(colDef.name).insertDocuments(colDef.initData.asJava).toScala)
+            _ <- unlessDryRunAsync(db.createCollection(colDef.name, collectionOptions).asScala)
+            _ <- unlessDryRunAsync(db.collection(colDef.name).insertDocuments(colDef.initData.asJava).asScala)
           } yield ()
         })
   }
@@ -188,20 +193,20 @@ class ArangoManagerImpl(
             .collection(e.name)
             .from(e.froms.map(_.name): _*)
             .to(e.tos.map(_.name): _*))
-        unlessDryRunAsync(db.createGraph(graphDef.name, edgeDefs.asJava).toScala)
+        unlessDryRunAsync(db.createGraph(graphDef.name, edgeDefs.asJava).asScala)
       })
   }
 
   private def deleteIndices() = {
     logger.info(s"Drop indices")
     for {
-      colEntities <- db.getCollections.toScala.map(_.asScala.filter(!_.getIsSystem))
-      eventualIndices = colEntities.map(ce => db.collection(ce.getName).getIndexes.toScala.map(_.asScala.map(ce.getName -> _)))
+      colEntities <- db.getCollections.asScala.map(_.asScala.filter(!_.getIsSystem))
+      eventualIndices = colEntities.map(ce => db.collection(ce.getName).getIndexes.asScala.map(_.asScala.map(ce.getName -> _)))
       allIndices <- Future.reduceLeft(Iterable(eventualIndices.toSeq: _*))(_ ++ _)
       userIndices = allIndices.filter { case (_, idx) => idx.getType != IndexType.primary && idx.getType != IndexType.edge }
       _ <- Future.traverse(userIndices) { case (colName, idx) =>
         logger.debug(s"Drop ${idx.getType} index: $colName.${idx.getName}")
-        unlessDryRunAsync(db.deleteIndex(idx.getId).toScala)
+        unlessDryRunAsync(db.deleteIndex(idx.getId).asScala)
       }
     } yield ()
   }
@@ -224,7 +229,7 @@ class ArangoManagerImpl(
             case opts: PersistentIndexOptions => dbCol.ensurePersistentIndex(fields, opts)
             case opts: TtlIndexOptions => dbCol.ensureTtlIndex(fields, opts)
             case opts: ZKDIndexOptions => dbCol.ensureZKDIndex(fields, opts)
-          }).toScala
+          }).asScala
         }
       })
   }
@@ -259,11 +264,11 @@ class ArangoManagerImpl(
   private def deleteSearchViews() = {
     logger.debug(s"Delete search views")
     for {
-      viewEntities <- db.getViews.toScala.map(_.asScala)
+      viewEntities <- db.getViews.asScala.map(_.asScala)
       views = viewEntities.map(ve => db.view(ve.getName))
       _ <- Future.traverse(views) { view =>
         logger.info(s"Delete search view: ${view.name}")
-        unlessDryRunAsync(view.drop().toScala)
+        unlessDryRunAsync(view.drop().asScala)
       }
     } yield ()
   }
@@ -272,18 +277,18 @@ class ArangoManagerImpl(
     logger.debug(s"Create search views")
     Future.traverse(sealedInstancesOf[SearchViewDef]) { viewDef =>
       logger.info(s"Create search view: ${viewDef.name}")
-      unlessDryRunAsync(db.createArangoSearch(viewDef.name, viewDef.properties).toScala)
+      unlessDryRunAsync(db.createArangoSearch(viewDef.name, viewDef.properties).asScala)
     }
   }
 
   private def deleteSearchAnalyzers() = {
     logger.debug(s"Delete search analyzers")
     for {
-      analyzers <- db.getSearchAnalyzers.toScala.map(_.asScala)
+      analyzers <- db.getSearchAnalyzers.asScala.map(_.asScala)
       userAnalyzers = analyzers.filter(_.getName.startsWith(s"${db.name}::"))
       _ <- Future.traverse(userAnalyzers)(ua => {
         logger.info(s"Delete search analyzer: ${ua.getName}")
-        unlessDryRunAsync(db.deleteSearchAnalyzer(ua.getName).toScala)
+        unlessDryRunAsync(db.deleteSearchAnalyzer(ua.getName).asScala)
       })
     } yield ()
   }
@@ -292,7 +297,7 @@ class ArangoManagerImpl(
     logger.debug(s"Create search analyzers")
     Future.traverse(sealedInstancesOf[SearchAnalyzerDef]) { ad =>
       logger.info(s"Create search analyzer: ${ad.name}")
-      unlessDryRunAsync(db.createSearchAnalyzer(ad.analyzer).toScala)
+      unlessDryRunAsync(db.createSearchAnalyzer(ad.analyzer).asScala)
     }
   }
 }

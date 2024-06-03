@@ -23,8 +23,8 @@ import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.model._
 import za.co.absa.spline.persistence.model.Operation.OperationTypes
 
-import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.StreamConverters._
 
 @Repository
 class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExecutionPlanRepository {
@@ -197,7 +197,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
 
     val findResult: Future[(Seq[ExecutionPlanInfo], Long)] = queryResult.map {
       arangoCursorAsync =>
-        val items = arangoCursorAsync.streamRemaining().toScala
+        val items = arangoCursorAsync.streamRemaining().toScala(LazyList)
         val totalCount = arangoCursorAsync.getStats.getFullCount
         (items, totalCount)
     }

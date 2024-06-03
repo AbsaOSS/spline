@@ -26,8 +26,8 @@ import za.co.absa.spline.consumer.service.repo.ExecutionEventRepositoryImpl.Sear
 import za.co.absa.spline.persistence.ArangoImplicits._
 import za.co.absa.spline.persistence.model.SearchViewDef
 
-import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.StreamConverters._
 
 @Repository
 class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExecutionEventRepository {
@@ -178,7 +178,7 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
       new AqlQueryOptions().fullCount(true)
     ).map {
       arangoCursorAsync =>
-        val items = arangoCursorAsync.streamRemaining().toScala
+        val items = arangoCursorAsync.streamRemaining().toScala(LazyList)
         val totalCount = arangoCursorAsync.getStats.getFullCount
         (items, totalCount)
     }

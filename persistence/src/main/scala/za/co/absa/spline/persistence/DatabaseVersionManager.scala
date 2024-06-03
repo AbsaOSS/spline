@@ -24,12 +24,13 @@ import za.co.absa.spline.persistence.DatabaseVersionManager._
 import za.co.absa.spline.persistence.model.CollectionDef.DBVersion
 import za.co.absa.spline.persistence.model.DBVersion.Status
 
-import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.FutureConverters._
 
 class DatabaseVersionManager(
   db: ArangoDatabaseAsync,
-  val dryRun: Boolean = false)
+  val dryRun: Boolean = false
+)
   (implicit ec: ExecutionContext)
   extends DryRunnable {
 
@@ -38,14 +39,14 @@ class DatabaseVersionManager(
   def insertDbVersion(currentVersion: SemanticVersion): Future[SemanticVersion] = {
     val dbVersion = model.DBVersion(currentVersion.asString, model.DBVersion.Status.Current)
     for {
-      exists <- db.collection(DBVersion.name).exists.toScala
+      exists <- db.collection(DBVersion.name).exists.asScala
       _ <-
         if (exists) Future.successful(())
-        else unlessDryRunAsync(db.createCollection(DBVersion.name).toScala)
+        else unlessDryRunAsync(db.createCollection(DBVersion.name).asScala)
       _ <- unlessDryRunAsync {
         db.collection(DBVersion.name)
           .insertDocument(dbVersion)
-          .toScala
+          .asScala
       }
     } yield currentVersion
   }
@@ -63,12 +64,12 @@ class DatabaseVersionManager(
       .existsCollection()
       .flatMap(exists =>
         if (exists) db.queryOptional[String](
-          s"""
-             |WITH ${DBVersion.name}
-             |FOR v IN ${DBVersion.name}
-             |    FILTER v.status == '$status'
-             |    RETURN v.version
-             |""".stripMargin)
+            s"""
+               |WITH ${DBVersion.name}
+               |FOR v IN ${DBVersion.name}
+               |    FILTER v.status == '$status'
+               |    RETURN v.version
+               |""".stripMargin)
           .map(_.map(Version.asSemVer))
         else Future.successful(None))
   }

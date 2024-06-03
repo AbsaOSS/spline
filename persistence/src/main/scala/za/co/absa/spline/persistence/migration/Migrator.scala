@@ -24,8 +24,8 @@ import za.co.absa.spline.persistence.model.DBVersion.Status
 import za.co.absa.spline.persistence.tx._
 import za.co.absa.spline.persistence.{ArangoImplicits, DatabaseVersionManager, DryRunnable, model}
 
-import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.FutureConverters._
 
 class Migrator(
   db: ArangoDatabaseAsync,
@@ -40,7 +40,7 @@ class Migrator(
   def migrate(verFrom: SemanticVersion, verTo: SemanticVersion): Future[Boolean] = {
     val eventualMigrationChain =
       for {
-        dbVersionExists <- db.collection(DBVersion.name).exists.toScala
+        dbVersionExists <- db.collection(DBVersion.name).exists.asScala
         maybePreparingVersion <- dbVersionManager.preparingVersion
         _ <-
           if (dbVersionExists) Future.successful(())
@@ -87,7 +87,7 @@ class Migrator(
         s"console.log('Starting migration to version ${version.asString}${if (dryRun) " [DRY RUN]" else ""}')"
       )
       _ <- unlessDryRunAsync {
-        db.collection(DBVersion.name).insertDocument(model.DBVersion(version.asString, Status.Preparing)).toScala
+        db.collection(DBVersion.name).insertDocument(model.DBVersion(version.asString, Status.Preparing)).asScala
       }
       _ <- unlessDryRunAsync {
         db.adminExecute(script)

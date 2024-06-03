@@ -29,8 +29,8 @@ import za.co.absa.spline.producer.model.{v1_2 => apiModel}
 import za.co.absa.spline.producer.service.UUIDCollisionDetectedException
 import za.co.absa.spline.producer.service.model.{ExecutionEventKeyCreator, ExecutionPlanPersistentModel, ExecutionPlanPersistentModelBuilder}
 
-import scala.compat.java8.FutureConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.FutureConverters._
 import scala.util.control.NonFatal
 
 @Repository
@@ -128,7 +128,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retr
   override def isDatabaseOk()(implicit ec: ExecutionContext): Future[Boolean] = {
     try {
       val anySplineCollectionName = NodeDef.ExecutionPlan.name
-      val futureIsDbOk = db.collection(anySplineCollectionName).exists.toScala.mapTo[Boolean]
+      val futureIsDbOk = db.collection(anySplineCollectionName).exists.asScala.mapTo[Boolean]
       futureIsDbOk.foreach { isDbOk =>
         if (!isDbOk)
           logger.error(s"Collection '$anySplineCollectionName' does not exist. Spline database is not initialized properly!")
