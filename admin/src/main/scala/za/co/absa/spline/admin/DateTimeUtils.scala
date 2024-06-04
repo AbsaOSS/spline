@@ -63,12 +63,14 @@ object DateTimeUtils extends LazyLogging {
       if (validOffsets.isEmpty) {
         logger.warn("" +
           s"DST gap was detected for the input '$s' in the time zone '$tz'. " +
-          s"Continue with the adjusted datetime '$zdt''")
+          s"Continue with the adjusted datetime '$zdt'"
+        )
       }
       if (validOffsets.length > 1) {
         logger.warn("" +
           s"DST overlap (${validOffsets.mkString(", ")}) was detected for the input '$s' in the time zone '$tz'. " +
-          s"Continue with the assumed datetime '$zdt'")
+          s"Continue with the assumed datetime '$zdt'"
+        )
       }
 
       maybeZoneGeoId.foldLeft(zdt)(_ withZoneSameInstant _)
