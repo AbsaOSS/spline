@@ -22,7 +22,7 @@
       4
     ],
     "linebreak-style": [
-      "error",
+      "warn",
       "unix"
     ],
     "quotes": [
