@@ -2,7 +2,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "gen-api-doc:all": "npm run gen-api-doc --doc_name=consumer && npm run gen-api-doc --doc_name=producer",
-    "gen-api-doc": "node ./node_modules/@redocly/cli/bin/cli.js build-docs -o $npm_config_docs_dir/$npm_config_doc_name.html $npm_config_docs_dir/$npm_config_doc_name.swagger.json",
+    "gen-api-doc": "cross-env-shell node ./node_modules/@redocly/cli/bin/cli.js build-docs -o $npm_config_docs_dir/$npm_config_doc_name.html $npm_config_docs_dir/$npm_config_doc_name.swagger.json",
     "build": "echo unused stage",
     "test": "echo unused stage",
     "lint": "echo unused stage"
