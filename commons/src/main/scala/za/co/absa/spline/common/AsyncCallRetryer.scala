@@ -16,12 +16,12 @@
 
 package za.co.absa.spline.common
 
-import org.slf4s.Logging
+import com.typesafe.scalalogging.LazyLogging
 import za.co.absa.spline.common.AsyncCallRetryer._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AsyncCallRetryer(isRetryable: Throwable => Boolean, maxRetries: Int) extends Logging {
+class AsyncCallRetryer(isRetryable: Throwable => Boolean, maxRetries: Int) extends LazyLogging {
 
   def execute[R](fn: => Future[R])(implicit ex: ExecutionContext): Future[R] = {
     executeWithRetry(fn, None)
@@ -32,7 +32,7 @@ class AsyncCallRetryer(isRetryable: Throwable => Boolean, maxRetries: Int) exten
     val attemptsUsed = lastFailure.map(_.count).getOrElse(0)
 
     for (failure <- lastFailure) eventualResult.foreach { _ =>
-      log.warn(s"Succeeded after ${failure.count + 1} attempts. Previous message was: ${failure.error.getMessage}")
+      logger.warn(s"Succeeded after ${failure.count + 1} attempts. Previous message was: ${failure.error.getMessage}")
     }
 
     if (attemptsUsed >= maxRetries)

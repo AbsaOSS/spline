@@ -24,8 +24,8 @@ import za.co.absa.spline.consumer.service.model.WriteEventInfo.Id
 
 import java.util.concurrent.CompletionException
 import scala.PartialFunction.cond
-import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.FutureConverters._
 
 @Repository
 class ImpactLineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends LineageRepository with ImpactRepository {
@@ -44,7 +44,7 @@ class ImpactLineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     db
       .route(routeUrl)
       .get()
-      .toScala
+      .asScala
       .map(resp => db.util().deserialize[LineageOverview](resp.getBody, classOf[LineageOverview]))
       .recover({
         case ce: CompletionException

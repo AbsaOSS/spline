@@ -136,6 +136,6 @@ class ExecutionPlanPersistentModelBuilderSpec extends AnyFlatSpec with Matchers 
 
     (the[InconsistentEntityException]
       thrownBy ExecutionPlanPersistentModelBuilder.getSchemaInfos(ops)
-      should have message "Inconsistent entity: Expected DAG but a cycle was detected on the node ID: 2")
+      should have message "Inconsistent entity: Expected DAG but cycle was detected: 2 - 1 - 2")
   }
 }

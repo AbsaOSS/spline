@@ -35,8 +35,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.slf4s</groupId>
-            <artifactId>slf4s-api_${scala.compat.version}</artifactId>
+            <groupId>com.typesafe.scala-logging</groupId>
+            <artifactId>scala-logging_${scala.compat.version}</artifactId>
             <optional>true</optional>
         </dependency>
 
@@ -105,6 +105,14 @@
         <dependency>
             <groupId>com.arangodb</groupId>
             <artifactId>arangodb-java-driver</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Graph utils-->
+
+        <dependency>
+            <groupId>org.scala-graph</groupId>
+            <artifactId>graph-core_${scala.compat.version}</artifactId>
             <optional>true</optional>
         </dependency>
 

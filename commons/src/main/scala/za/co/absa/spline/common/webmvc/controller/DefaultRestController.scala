@@ -25,6 +25,6 @@ class DefaultRestController {
 
   @GetMapping(Array("/**"))
   @ResponseStatus(HttpStatus.NOT_FOUND)
-  def resourceNotFound(): Unit = {}
+  def resourceNotFound(): Unit = ()
 
 }

@@ -25,8 +25,8 @@ import za.co.absa.commons.scalatest.{ConsoleStubs, SystemExitFixture}
 import za.co.absa.spline.persistence.model.CollectionDef
 import za.co.absa.spline.test.fixture.{ArangoDbFixtureAsync, TestContainersFixtureAsync}
 
-import scala.collection.JavaConverters._
-import scala.compat.java8.FutureConverters._
+import scala.jdk.CollectionConverters._
+import scala.jdk.FutureConverters._
 
 class AdminCLISpec
   extends AsyncFlatSpec
@@ -44,9 +44,9 @@ class AdminCLISpec
       captureExitStatus(AdminCLI.main(Array("db-init", connUrl.asString))) should be(0)
 
       for {
-        collections <- db.getCollections(new CollectionsReadOptions().excludeSystem(true)).toScala
-        curDbVersion <- db.query("FOR r IN dbVersion FILTER r.status == 'current' RETURN r.version", classOf[String]).toScala
-        foxxSvcResp <- db.route("/_api/foxx").get().toScala
+        collections <- db.getCollections(new CollectionsReadOptions().excludeSystem(true)).asScala
+        curDbVersion <- db.query("FOR r IN dbVersion FILTER r.status == 'current' RETURN r.version", classOf[String]).asScala
+        foxxSvcResp <- db.route("/_api/foxx").get().asScala
       } yield {
 
         // verify collections
@@ -70,10 +70,10 @@ class AdminCLISpec
     withArangoDb { (db, connUrl) =>
       captureExitStatus(AdminCLI.main(Array("db-init", connUrl.asString))) should be(0)
       for {
-        testCollection <- db.createCollection("test-collection").toScala
-        testColExists1 <- db.collection(testCollection.getName).exists().toScala
+        testCollection <- db.createCollection("test-collection").asScala
+        testColExists1 <- db.collection(testCollection.getName).exists().asScala
         statusOf2ndRun = captureExitStatus(AdminCLI.main(Array("db-init", connUrl.asString, "--force")))
-        testColExists2 <- db.collection(testCollection.getName).exists().toScala
+        testColExists2 <- db.collection(testCollection.getName).exists().asScala
       } yield {
         statusOf2ndRun should be(0)
         testColExists1.booleanValue() should be(true)
@@ -93,7 +93,7 @@ class AdminCLISpec
       } should include("Dry-run mode activated")
 
       for {
-        dbExists <- db.exists().toScala
+        dbExists <- db.exists().asScala
       } yield {
         dbExists.booleanValue() should be(false)
       }

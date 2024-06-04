@@ -22,10 +22,10 @@ import com.arangodb.model.AqlQueryOptions
 import za.co.absa.spline.persistence.LogMessageUtils.createQueryLogMessage
 
 import java.util.concurrent.CompletionException
-import scala.collection.JavaConverters._
-import scala.compat.java8.FutureConverters._
-import scala.compat.java8.StreamConverters.RichStream
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
+import scala.jdk.FutureConverters._
+import scala.jdk.StreamConverters._
 
 object ArangoImplicits {
 
@@ -38,8 +38,8 @@ object ArangoImplicits {
      * @return `true` if the collection exists; `false` if it doesn't exist; a failure if the database doesn't exist.
      */
     def existsCollection(): Future[Boolean] = {
-      col.db.getInfo.toScala.flatMap(_ =>
-        col.exists().toScala.map(Boolean.box(_)))
+      col.db.getInfo.asScala.flatMap(_ =>
+        col.exists().asScala.map(Boolean.box(_)))
     }
   }
 
@@ -61,9 +61,9 @@ object ArangoImplicits {
       queryString: String,
       bindVars: Map[String, AnyRef] = Map.empty,
       options: AqlQueryOptions = null
-    ): Future[Stream[T]] = {
+    ): Future[LazyList[T]] = {
       queryAs[T](queryString, bindVars, options)
-        .map(_.streamRemaining().toScala)
+        .map(_.streamRemaining().toScala(LazyList))
     }
 
     def queryOptional[T: Manifest](
@@ -78,13 +78,14 @@ object ArangoImplicits {
         )
     }
 
-    def queryAs[T: Manifest](queryString: String,
+    def queryAs[T: Manifest](
+      queryString: String,
       bindVars: Map[String, AnyRef] = Map.empty,
       options: AqlQueryOptions = null
     ): Future[ArangoCursorAsync[T]] = {
       val resultType = implicitly[Manifest[T]].runtimeClass.asInstanceOf[Class[T]]
       db.query(queryString, bindVars.asJava, options, resultType)
-        .toScala
+        .asScala
         .recover {
           case e: CompletionException =>
             val queryMsg = createQueryLogMessage(queryString)

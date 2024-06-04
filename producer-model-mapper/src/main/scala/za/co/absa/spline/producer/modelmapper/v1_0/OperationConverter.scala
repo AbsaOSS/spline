@@ -31,8 +31,8 @@ class OperationConverter(
   override def convert(op1: v1.OperationLike): v1_2.OperationLike = {
     val convertedParams = op1
       .params
-      .mapValues(objectConverter.convert)
-      .view.force // see: https://github.com/scala/bug/issues/4776
+      .view.mapValues(objectConverter.convert)
+      .toIndexedSeq.toMap // see: https://github.com/scala/bug/issues/4776
 
     val maybeOutput = maybeOutputConverter.flatMap(_.convert(op1))
 

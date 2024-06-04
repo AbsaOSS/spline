@@ -39,23 +39,8 @@
 
         <dependency>
             <groupId>za.co.absa.spline</groupId>
-            <artifactId>producer-model-v1.2</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- deprecated models -->
-
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
-            <artifactId>producer-model-v1.1</artifactId>
-            <version>0.7.5</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>za.co.absa.spline</groupId>
             <artifactId>producer-model</artifactId>
-            <version>0.5.1</version>
-            <optional>true</optional>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- other deps -->
@@ -63,7 +48,7 @@
         <dependency>
             <groupId>io.bfil</groupId>
             <artifactId>automapper_${scala.compat.version}</artifactId>
-            <version>0.6.2</version>
+            <version>0.7.0</version>
         </dependency>
     </dependencies>
 

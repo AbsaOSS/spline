@@ -16,9 +16,9 @@
 
 package za.co.absa.spline.arango.foxx
 
+import com.typesafe.scalalogging.StrictLogging
 import org.json4s.DefaultFormats
 import org.json4s.jackson.JsonMethods.parse
-import org.slf4s.Logging
 import za.co.absa.spline.common.rest.RESTClient
 import za.co.absa.spline.persistence.DryRunnable
 
@@ -30,24 +30,24 @@ class FoxxManagerImpl(
 )(implicit ec: ExecutionContext)
   extends FoxxManager
     with DryRunnable
-    with Logging {
+    with StrictLogging {
 
   override def install(mountPrefix: String, content: Array[Byte]): Future[Unit] = {
-    log.debug(s"Prepare Foxx service.zip: $mountPrefix")
+    logger.debug(s"Prepare Foxx service.zip: $mountPrefix")
 
     unlessDryRunAsync(restClient.post(s"_api/foxx?mount=$mountPrefix", content))
   }
 
   override def uninstall(mountPrefix: String): Future[Unit] = {
-    log.debug(s"Delete Foxx service: $mountPrefix")
+    logger.debug(s"Delete Foxx service: $mountPrefix")
     unlessDryRunAsync(restClient.delete(s"_api/foxx/service?mount=$mountPrefix"))
   }
 
   override def list(): Future[Seq[Map[String, Any]]] = {
-    log.debug(s"List Foxx services")
+    logger.debug(s"List Foxx services")
     restClient.get(s"_api/foxx").map(str => {
       val srvDefs = parse(str).extract(DefaultFormats, manifest[Seq[Map[String, Any]]])
-      log.debug(s"Found Foxx service definitions: $srvDefs")
+      logger.debug(s"Found Foxx service definitions: $srvDefs")
       srvDefs
     })
   }

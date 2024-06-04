@@ -81,13 +81,13 @@ object ExecutionPlanDeserFixAspectSpec {
 
     override def proceed(args: Array[AnyRef]): AnyRef = {
       require(this.capturedProceedingArgs == null, "method `proceed()` is called twice")
-      this.capturedProceedingArgs = args
+      this.capturedProceedingArgs = args.toIndexedSeq
       "dummy return value"
     }
 
     override def proceed(): AnyRef = null
 
-    override def set$AroundClosure(arc: AroundClosure): Unit = {}
+    override def set$AroundClosure(arc: AroundClosure): Unit = ()
 
     override def toShortString: String = null
 

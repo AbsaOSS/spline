@@ -62,19 +62,6 @@
             <groupId>com.typesafe</groupId>
             <artifactId>config</artifactId>
         </dependency>
-        <dependency>
-            <!--
-                As the 'exec:exec' of the 'maven-exec-plugin' does not take plugin dependencies
-                into account, the executable dependency has to be declared as a project dependency.
-                To prevent it from interacting with the actual project code, we exclude it from
-                the compilation classpath and make it non-transitive (hence not automatically packaged).
-            -->
-            <groupId>za.co.absa.utils</groupId>
-            <artifactId>rest-api-doc-generator</artifactId>
-            <version>1.0.7</version>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
     </dependencies>
 
     <build>
@@ -83,84 +70,45 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.3.0</version>
                 <configuration>
-                    <arguments combine.children="append">
-                        <argument>--add-opens</argument>
-                        <argument>java.base/sun.net.www.protocol.jar=ALL-UNNAMED</argument>
-                    </arguments>
+                    <includePluginDependencies>true</includePluginDependencies>
+                    <executableDependency>
+                        <groupId>za.co.absa.utils</groupId>
+                        <artifactId>rest-api-doc-generator_${scala.compat.version}</artifactId>
+                    </executableDependency>
+                    <mainClass>za.co.absa.rapidgen.RapidGenCLI</mainClass>
                 </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>za.co.absa.utils</groupId>
+                        <artifactId>rest-api-doc-generator_${scala.compat.version}</artifactId>
+                        <version>1.1.2</version>
+                    </dependency>
+                </dependencies>
                 <executions>
                     <execution>
                         <id>gen-swagger-producer-json</id>
                         <phase>process-classes</phase>
                         <goals>
-                            <goal>exec</goal>
+                            <goal>java</goal>
                         </goals>
                         <configuration>
-                            <executable>java</executable>
-                            <arguments>
-                                <argument>-classpath</argument>
-                                <classpath>
-                                    <dependency>za.co.absa.utils:rest-api-doc-generator</dependency>
-                                    <dependency>za.co.absa.spline:producer-rest-core</dependency>
-                                    <dependency>za.co.absa.spline:producer-services</dependency>
-                                    <dependency>za.co.absa.spline:producer-model-mapper</dependency>
-                                    <dependency>za.co.absa.spline:producer-model</dependency>
-                                    <dependency>za.co.absa.spline:producer-model-v1.1</dependency>
-                                    <dependency>za.co.absa.spline:producer-model-v1.2</dependency>
-                                    <dependency>za.co.absa.spline:commons</dependency>
-                                    <dependency>commons-lang:commons-lang</dependency>
-                                    <dependency>commons-configuration:commons-configuration</dependency>
-                                    <dependency>io.bfil:automapper-macros_${scala.compat.version}</dependency>
-                                    <dependency>com.twitter:finatra-jackson_${scala.compat.version}</dependency>
-                                    <dependency>com.twitter:util-validator_${scala.compat.version}</dependency>
-                                    <dependency>com.twitter:util-slf4j-api_${scala.compat.version}</dependency>
-                                    <dependency>com.twitter:util-core_${scala.compat.version}</dependency>
-                                    <dependency>com.twitter:inject-utils_${scala.compat.version}</dependency>
-                                    <dependency>com.twitter:inject-slf4j_${scala.compat.version}</dependency>
-                                    <dependency>org.hibernate.validator:hibernate-validator</dependency>
-                                    <dependency>org.jboss.logging:jboss-logging</dependency>
-                                    <dependency>jakarta.validation:jakarta.validation-api</dependency>
-                                    <dependency>jakarta.el:jakarta.el-api</dependency>
-                                    <dependency>org.aspectj:aspectjweaver</dependency>
-                                    <dependency>org.glassfish:jakarta.el</dependency>
-                                    <dependency>com.github.ben-manes.caffeine:caffeine</dependency>
-                                    <dependency>com.fasterxml.jackson.datatype:jackson-datatype-joda</dependency>
-                                    <dependency>joda-time:joda-time</dependency>
-                                </classpath>
-                                <argument>za.co.absa.rapidgen.RapidGenCLI</argument>
-                                <argument>swagger</argument>
-                                <argument>-o</argument>
-                                <argument>${swagger.docs.path}/producer.swagger.json</argument>
-                                <argument>za.co.absa.spline.producer.rest.ProducerRESTConfig</argument>
-                            </arguments>
+                            <commandlineArgs>
+                                swagger -o ${swagger.docs.path}/producer.swagger.json za.co.absa.spline.producer.rest.ProducerRESTConfig
+                            </commandlineArgs>
                         </configuration>
                     </execution>
                     <execution>
                         <id>gen-swagger-consumer-json</id>
                         <phase>process-classes</phase>
                         <goals>
-                            <goal>exec</goal>
+                            <goal>java</goal>
                         </goals>
                         <configuration>
-                            <executable>java</executable>
-                            <arguments>
-                                <argument>-classpath</argument>
-                                <classpath>
-                                    <dependency>za.co.absa.utils:rest-api-doc-generator</dependency>
-                                    <dependency>za.co.absa.spline:consumer-rest-core</dependency>
-                                    <dependency>za.co.absa.spline:consumer-services</dependency>
-                                    <dependency>za.co.absa.spline:commons</dependency>
-                                    <dependency>commons-lang:commons-lang</dependency>
-                                    <dependency>commons-configuration:commons-configuration</dependency>
-                                </classpath>
-                                <argument>za.co.absa.rapidgen.RapidGenCLI</argument>
-                                <argument>swagger</argument>
-                                <argument>-o</argument>
-                                <argument>${swagger.docs.path}/consumer.swagger.json</argument>
-                                <argument>za.co.absa.spline.consumer.rest.ConsumerRESTConfig</argument>
-                            </arguments>
+                            <commandlineArgs>
+                                swagger -o ${swagger.docs.path}/consumer.swagger.json za.co.absa.spline.consumer.rest.ConsumerRESTConfig
+                            </commandlineArgs>
                         </configuration>
                     </execution>
                 </executions>

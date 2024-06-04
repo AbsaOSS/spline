@@ -16,12 +16,11 @@
 
 package za.co.absa.spline.producer.service.model
 
-import scalax.collection.Graph
-import scalax.collection.GraphEdge.DiEdge
-import scalax.collection.GraphPredef._
-import za.co.absa.commons.graph.GraphImplicits._
+import scalax.collection.edges._
+import scalax.collection.mutable.Graph
 import za.co.absa.commons.lang.extensions.AnyExtension._
 import za.co.absa.commons.lang.extensions.TraversableOnceExtension._
+import za.co.absa.spline.common.graph.GraphImplicits._
 import za.co.absa.spline.persistence.DefaultJsonSerDe._
 import za.co.absa.spline.persistence.model.{Edge, EdgeDef}
 import za.co.absa.spline.persistence.{model => pm}
@@ -59,7 +58,7 @@ class ExecutionPlanPersistentModelBuilder private(
   private var _pmTakes: Seq[pm.Edge] = Vector.empty
 
   // attr dependency graph
-  private var _attrDepGraph = Graph.empty[AttrOrExprRef, DiEdge]
+  private val _attrDepGraph = Graph.empty[AttrOrExprRef, DiEdge[AttrOrExprRef]]
 
   def build(): ExecutionPlanPersistentModel = {
     val pmExecutionPlan = pm.ExecutionPlan(
@@ -117,7 +116,7 @@ class ExecutionPlanPersistentModelBuilder private(
     )
   }
 
-  def addOperations(operations: Seq[am.OperationLike]): this.type = {
+  private def addOperations(operations: Seq[am.OperationLike]): this.type = {
     val schemaInfoByOpId: Map[Id, SchemaInfo] = getSchemaInfos(operations)
     val schemaInfos = schemaInfoByOpId.values.distinctBy(_.oid)
 
@@ -170,7 +169,7 @@ class ExecutionPlanPersistentModelBuilder private(
     this
   }
 
-  def addAttributes(attributes: Seq[am.Attribute]): this.type = {
+  private def addAttributes(attributes: Seq[am.Attribute]): this.type = {
     for (attr <- attributes) {
       val attrKey = keyCreator.asAttributeKey(attr.id)
       this._pmAttributes :+= pm.Attribute(
@@ -190,7 +189,7 @@ class ExecutionPlanPersistentModelBuilder private(
     this
   }
 
-  def addExpressions(expressions: Seq[am.ExpressionLike]): this.type = {
+  private def addExpressions(expressions: Seq[am.ExpressionLike]): this.type = {
     expressions.foreach {
       case expr: am.Literal =>
         this._pmExpressions :+= pm.LiteralExpression(
@@ -268,7 +267,7 @@ class ExecutionPlanPersistentModelBuilder private(
   private def collectRefsWithPaths(obj: Map[String, Any], pathPrefix: Edge.FromPath): Iterable[(am.AttrOrExprRef, Edge.FromPath)] = {
     def fromVal(v: Any, p: Edge.FromPath): Iterable[(am.AttrOrExprRef, Edge.FromPath)] = v match {
       case ref: am.AttrOrExprRef => Seq(ref -> p)
-      case m: Map[String@unchecked, _] => collectRefsWithPaths(m, p)
+      case m: Map[String @unchecked, _] => collectRefsWithPaths(m, p)
       case xs: Seq[_] => xs.zipWithIndex.flatMap { case (x, i) => fromVal(x, s"$p[$i]") }
       case _ => Nil
     }
@@ -280,7 +279,7 @@ class ExecutionPlanPersistentModelBuilder private(
     this._attrDepGraph // given the attribute dependency DAG (consisting of attribute and expression references)
       .get(attrRef.ensuring(_.isAttribute)) // starting on the given attribute reference
       .outerNodeTraverser // traverse the nodes (expression & attribute refs)
-      .withMaxWeight(1, e => if (e.toOuter.from.isAttribute) 1 else 0) // to the nearest reachable attribute refs
+      .withMaxWeight(1, e => if (e.outer.source.isAttribute) 1 else 0) // to the nearest reachable attribute refs
       .filter(_.isAttribute) // collecting visited attribute refs
       .tail // except for the starting one
   }

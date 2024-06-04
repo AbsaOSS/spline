@@ -21,7 +21,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class ObjectMapperBeanPostProcessor(postProcess: ObjectMapper => Unit) extends BeanPostProcessor {
 

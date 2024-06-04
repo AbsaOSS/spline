@@ -17,7 +17,7 @@
 package za.co.absa.spline.persistence
 
 import com.arangodb.async.ArangoDatabaseAsync
-import org.slf4s.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.context.annotation.{Bean, Configuration}
 import za.co.absa.commons.config.ConfTyped
@@ -26,15 +26,15 @@ import za.co.absa.spline.common.scala13.Option
 import za.co.absa.spline.common.security.TLSUtils
 
 @Configuration
-class ArangoRepoConfig extends InitializingBean with Logging {
+class ArangoRepoConfig extends InitializingBean with LazyLogging {
 
   import za.co.absa.spline.persistence.ArangoRepoConfig._
 
   import scala.concurrent.ExecutionContext.Implicits._
 
   override def afterPropertiesSet(): Unit = {
-    log.info(s"Spline database URL: ${Database.ConnectionURL.asString}")
-    log.info(s"ArangoDB Active Failover: ${Database.ActiveFailoverMode}")
+    logger.info(s"Spline database URL: ${Database.ConnectionURL.asString}")
+    logger.info(s"ArangoDB Active Failover: ${Database.ActiveFailoverMode}")
   }
 
   @Bean def arangoDatabaseFacade: ArangoDatabaseFacade = {
