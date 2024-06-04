@@ -18,8 +18,8 @@ package za.co.absa.spline.persistence.tx
 
 import com.arangodb.async.ArangoDatabaseAsync
 
-import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.FutureConverters._
 import scala.reflect.ClassTag
 
 class FoxxPostTxBuilder(endpoint: String, body: AnyRef) extends AbstractTxBuilder {
@@ -31,7 +31,7 @@ class FoxxPostTxBuilder(endpoint: String, body: AnyRef) extends AbstractTxBuilde
           .route(endpoint)
           .withBody(body)
           .post()
-          .toScala
+          .asScala
           .asInstanceOf[Future[A]]
       }
     }

@@ -17,23 +17,23 @@
 package za.co.absa.spline.persistence.tx
 
 import com.arangodb.async.ArangoDatabaseAsync
-import org.slf4s.Logging
+import com.typesafe.scalalogging.LazyLogging
 import za.co.absa.spline.persistence.tx.JSTxBuilder.condLine
 
-import scala.compat.java8.FutureConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.FutureConverters._
 import scala.reflect.ClassTag
 
 
-class JSTxBuilder extends AbstractTxBuilder with Logging {
+class JSTxBuilder extends AbstractTxBuilder with LazyLogging {
 
   override def buildTx(): ArangoTx = {
     val jsCode = generateJs()
-    log.debug(jsCode)
+    logger.debug(jsCode)
     new ArangoTx {
       override def execute[A: ClassTag](db: ArangoDatabaseAsync)(implicit ex: ExecutionContext): Future[A] = {
         val ct = implicitly[ClassTag[A]]
-        db.transaction[A](jsCode, ct.runtimeClass.asInstanceOf[Class[A]], txOptions).toScala
+        db.transaction[A](jsCode, ct.runtimeClass.asInstanceOf[Class[A]], txOptions).asScala
       }
     }
   }

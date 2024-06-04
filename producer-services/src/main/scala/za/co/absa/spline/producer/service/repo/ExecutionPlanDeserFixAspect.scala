@@ -16,26 +16,26 @@
 
 package za.co.absa.spline.producer.service.repo
 
+import com.typesafe.scalalogging.StrictLogging
 import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.{Around, Aspect, Pointcut}
-import org.slf4s.Logging
 import org.springframework.stereotype.Component
 import za.co.absa.spline.producer.model.v1_2._
 import za.co.absa.spline.producer.service.repo.ExecutionPlanDeserFixAspect.fixExecPlan
 
 @Aspect
 @Component
-class ExecutionPlanDeserFixAspect extends Logging {
+class ExecutionPlanDeserFixAspect extends StrictLogging {
 
   @Pointcut("execution(public * za.co.absa.spline.producer.service.repo.*Repository.*(..))")
-  def publicRepositoryMethods(): Unit = {}
+  def publicRepositoryMethods(): Unit = ()
 
   @Pointcut("execution(* *(.., za.co.absa.spline.producer.model.v1_2.ExecutionPlan, ..))")
-  def acceptingExecutionPlan(): Unit = {}
+  def acceptingExecutionPlan(): Unit = ()
 
   @Around("publicRepositoryMethods() && acceptingExecutionPlan()")
   def aroundAdvice(jp: ProceedingJoinPoint): AnyRef = {
-    log.debug(s"Intercepting controller method `${jp.getSignature}`")
+    logger.debug(s"Intercepting controller method `${jp.getSignature}`")
     val origArgs = jp.getArgs
     val fixedArgs = origArgs.map {
       case ep: ExecutionPlan => fixExecPlan(ep)
@@ -45,9 +45,9 @@ class ExecutionPlanDeserFixAspect extends Logging {
   }
 }
 
-object ExecutionPlanDeserFixAspect extends Logging {
+object ExecutionPlanDeserFixAspect extends StrictLogging {
   private def fixExecPlan(execPlan: ExecutionPlan): ExecutionPlan = {
-    log.debug(s"Fixing model for execution plan #${execPlan.id}")
+    logger.debug(s"Fixing model for execution plan #${execPlan.id}")
     execPlan.copy(
       operations = fixOperations(execPlan.operations),
       attributes = execPlan.attributes.map(fixAttribute),
@@ -92,12 +92,12 @@ object ExecutionPlanDeserFixAspect extends Logging {
   }
 
   private def fixMap(obj: Map[String, Any]): Map[String, Any] = {
-    obj.mapValues(fixValue)
-      .view.force // see: https://github.com/scala/bug/issues/4776
+    // see: https://github.com/scala/bug/issues/4776
+    Map(obj.view.mapValues(fixValue).toIndexedSeq: _*)
   }
 
   private def fixValue(v: Any): Any = v match {
-    case m: Map[String@unchecked, _] => AttrOrExprRef.fromMap(m) getOrElse fixMap(m)
+    case m: Map[String @unchecked, _] => AttrOrExprRef.fromMap(m) getOrElse fixMap(m)
     case xs: Seq[_] => xs.map(fixValue)
     case _ => v
   }

@@ -65,7 +65,7 @@ class OperationDetailsController @Autowired()
     }
   }
 
-  def attachExpressions(opProps: Map[String, Any], expressionGraph: ExpressionGraph): Map[String, Any] = {
+  private def attachExpressions(opProps: Map[String, Any], expressionGraph: ExpressionGraph): Map[String, Any] = {
     val (uses, takes) = expressionGraph.edges.partition(_.`type` == ExpressionEdgeType.Uses)
 
     val nodeById: Map[String, ExpressionNode] =
@@ -75,8 +75,8 @@ class OperationDetailsController @Autowired()
 
     val operandMapping: Map[NodeId, Seq[NodeId]] = takes
       .groupBy(_.source)
-      .mapValues(_.sortBy(_.index).map(_.target).toSeq)
-      .view.force // see: https://github.com/scala/bug/issues/4776
+      .view.mapValues(_.sortBy(_.index).map(_.target).toSeq)
+      .toIndexedSeq.toMap // see: https://github.com/scala/bug/issues/4776
 
     val nodeToExprConverter = new NodeToExprAssemblyConverter(nodeById, operandMapping) with CachingConverter {
       override protected def keyOf(node: ExpressionNode): Key = node._id

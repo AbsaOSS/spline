@@ -16,9 +16,8 @@
 
 package za.co.absa.spline.producer.modelmapper.v1_0
 
-
-import za.co.absa.commons.graph.GraphImplicits._
 import za.co.absa.commons.lang.CachingConverter
+import za.co.absa.spline.common.graph.GraphImplicits._
 import za.co.absa.spline.producer.model.v1_2._
 import za.co.absa.spline.producer.modelmapper.ModelMapper
 import za.co.absa.spline.producer.{model => v1}

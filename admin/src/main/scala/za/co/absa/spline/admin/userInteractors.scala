@@ -23,6 +23,7 @@ import scala.collection.immutable.ListSet
 
 trait UserInteractor {
   def credentializeConnectionUrl(url: ArangoConnectionURL): ArangoConnectionURL
+
   def confirmDatabaseBackupReady(): Boolean
 }
 
@@ -82,7 +83,7 @@ class ConsoleUserInteractor(console: InputConsole) extends UserInteractor {
          |Have you created a database backup? [${validAnswers.mkString("/")}]:\u00A0
       """.stripMargin.trim
 
-    def userAnswers: Stream[String] = console.readLine(msg).trim.toLowerCase #:: userAnswers
+    def userAnswers: LazyList[String] = console.readLine(msg).trim.toLowerCase #:: userAnswers
 
     val userAnswer = userAnswers.filter(validAnswers).head
 

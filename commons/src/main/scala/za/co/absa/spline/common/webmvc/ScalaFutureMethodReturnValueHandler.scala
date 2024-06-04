@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.common.webmvc
 
-import org.slf4s.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.springframework.core.MethodParameter
 import org.springframework.lang.Nullable
 import org.springframework.web.context.request.async.{DeferredResult, WebAsyncUtils}
@@ -35,12 +35,12 @@ class ScalaFutureMethodReturnValueHandler(
 )(implicit ec: ExecutionContext)
   extends DeferredResultMethodReturnValueHandler
     with AsyncHandlerMethodReturnValueHandler
-    with Logging {
+    with LazyLogging {
 
   import ScalaFutureMethodReturnValueHandler._
 
-  log.debug(s"Default timeout: $defaultTimeout")
-  log.debug(s"Maximum timeout: $maximumTimeout")
+  logger.debug(s"Default timeout: $defaultTimeout")
+  logger.debug(s"Maximum timeout: $maximumTimeout")
 
   override def supportsReturnType(returnType: MethodParameter): Boolean =
     classOf[Future[_]].isAssignableFrom(returnType.getParameterType) || super.supportsReturnType(returnType)
@@ -51,7 +51,7 @@ class ScalaFutureMethodReturnValueHandler(
   override def handleReturnValue(retVal: Any, retType: MethodParameter, mav: ModelAndViewContainer, req: NativeWebRequest): Unit = retVal match {
     case future: Future[_] =>
       val maybeTimeout = getFutureTimeout(future, req)
-      log.debug(s"Future timeout: $maybeTimeout")
+      logger.debug(s"Future timeout: $maybeTimeout")
       val deferredResult = toDeferredResult(future, maybeTimeout)
       WebAsyncUtils
         .getAsyncManager(req)
@@ -80,12 +80,12 @@ object ScalaFutureMethodReturnValueHandler {
   private val TIMEOUT_HEADER = "X-SPLINE-TIMEOUT"
 
   private def convertNegOrZeroToInf(t: Duration): Duration = {
-    if (t.isFinite() && t.toMillis < 1) Duration.Inf
+    if (t.isFinite && t.toMillis < 1) Duration.Inf
     else t
   }
 
   private def convertInfToZero(t: Duration): Duration = {
-    if (t.isFinite()) t
+    if (t.isFinite) t
     else 0.millis
   }
 

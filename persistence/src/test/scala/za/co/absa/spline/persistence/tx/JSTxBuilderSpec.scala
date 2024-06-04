@@ -19,6 +19,7 @@ package za.co.absa.spline.persistence.tx
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
+import za.co.absa.commons.scalatest.WhitespaceNormalizations.whiteSpaceNormalised
 import za.co.absa.spline.persistence.model.NodeDef
 
 class JSTxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
@@ -31,7 +32,7 @@ class JSTxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
       .addQuery(NativeQuery("db.BAR();"))
       .generateJs()
 
-    generatedJS shouldEqual {
+    (generatedJS shouldEqual {
       """
         |function (_params) {
         |  const _db = require('internal').db;
@@ -43,7 +44,7 @@ class JSTxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
         |  })(_db, _params[1]);
         |}
         |""".stripMargin
-    }
+    })(after being whiteSpaceNormalised)
   }
 
   it should "generate INSERT statements" in {
@@ -52,7 +53,7 @@ class JSTxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
       .addQuery(InsertQuery(NodeDef.Operation).copy(ignoreExisting = true))
       .generateJs()
 
-    generatedJS shouldEqual {
+    (generatedJS shouldEqual {
       """
         |function (_params) {
         |  const _db = require('internal').db;
@@ -70,7 +71,7 @@ class JSTxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
         |    _db._collection("operation").insert(o, {silent:true}));
         |}
         |""".stripMargin
-    }
+    })(after being whiteSpaceNormalised)
   }
 
   it should "generate UPDATE statements" in {
@@ -79,7 +80,7 @@ class JSTxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
       .addQuery(UpdateQuery(NodeDef.DataSource, s"${UpdateQuery.DocWildcard}.baz == 777", Map.empty))
       .generateJs()
 
-    generatedJS shouldEqual {
+    (generatedJS shouldEqual {
       """
         |function (_params) {
         |  const _db = require('internal').db;
@@ -97,6 +98,6 @@ class JSTxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
         |  `, {"b": _params[1]});
         |}
         |""".stripMargin
-    }
+    })(after being whiteSpaceNormalised)
   }
 }

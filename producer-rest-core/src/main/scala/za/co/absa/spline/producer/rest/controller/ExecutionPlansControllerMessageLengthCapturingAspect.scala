@@ -18,7 +18,6 @@ package za.co.absa.spline.producer.rest.controller
 
 import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.{Around, Aspect, Pointcut}
-import org.slf4s.Logging
 import org.springframework.stereotype.Component
 import org.springframework.web.context.request.{RequestContextHolder, ServletRequestAttributes}
 import za.co.absa.spline.producer.model.{ExecutionPlan, v1_1, v1_2}
@@ -26,19 +25,19 @@ import za.co.absa.spline.producer.rest.filter.MessageLengthCapturingFilter
 
 @Aspect
 @Component
-class ExecutionPlansControllerMessageLengthCapturingAspect extends Logging {
+class ExecutionPlansControllerMessageLengthCapturingAspect {
 
   @Pointcut("execution(public * za.co.absa.spline.producer.rest.controller.*Controller.*(..))")
-  def publicControllerMethods(): Unit = {}
+  def publicControllerMethods(): Unit = ()
 
   @Pointcut("execution(* *(.., za.co.absa.spline.producer.model.ExecutionPlan, ..))")
-  def acceptsEPv10(): Unit = {}
+  def acceptsEPv10(): Unit = ()
 
   @Pointcut("execution(* *(.., za.co.absa.spline.producer.model.v1_1.ExecutionPlan, ..))")
-  def acceptsEPv11(): Unit = {}
+  def acceptsEPv11(): Unit = ()
 
   @Pointcut("execution(* *(.., za.co.absa.spline.producer.model.v1_2.ExecutionPlan, ..))")
-  def acceptsEPv12(): Unit = {}
+  def acceptsEPv12(): Unit = ()
 
   @Around("publicControllerMethods() && (acceptsEPv10() || acceptsEPv11() || acceptsEPv12())")
   def aroundAdvice(jp: ProceedingJoinPoint): AnyRef = {

@@ -38,9 +38,9 @@ import za.co.absa.spline.persistence.migration.Migrator
 import java.lang.Boolean.{FALSE, TRUE}
 import java.time.{Clock, Instant, ZoneId, ZonedDateTime}
 import java.util.concurrent.CompletableFuture.completedFuture
-import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 
 class ArangoManagerImplSpec
   extends AsyncFlatSpec
@@ -217,10 +217,10 @@ class ArangoManagerImplSpec
       .thenReturn(Future.successful(semver"1.2.3"))
 
     when(foxxMgrMock.install(any(), any()))
-      .thenReturn(Future.successful({}))
+      .thenReturn(Future.successful(()))
 
     when(foxxMgrMock.uninstall(any()))
-      .thenReturn(Future.successful({}))
+      .thenReturn(Future.successful(()))
 
     when(foxxMgrMock.list())
       .thenReturn(Future.successful(Seq(
@@ -240,7 +240,7 @@ class ArangoManagerImplSpec
       _ <- manager.upgrade()
     } yield {
       val inOrder = Mockito.inOrder(foxxMgrMock, migratorMock)
-      inOrder verify foxxMgrMock list()
+      (inOrder verify foxxMgrMock).list()
       inOrder verify foxxMgrMock uninstall "aaa"
       inOrder verify foxxMgrMock uninstall "bbb"
       inOrder verify migratorMock migrate(semver"1.2.3", semver"4.5.6")

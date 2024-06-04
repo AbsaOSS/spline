@@ -23,10 +23,8 @@ import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.model._
 import za.co.absa.spline.persistence.model.Operation.OperationTypes
 
-import java.lang
-import scala.collection.immutable
-import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.StreamConverters._
 
 @Repository
 class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExecutionPlanRepository {
@@ -36,77 +34,77 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
   override def findById(execId: ExecutionPlanInfo.Id)(implicit ec: ExecutionContext): Future[LineageDetailed] = {
     db.queryOne[LineageDetailed](
       s"""
-        |WITH executionPlan, executes, operation, follows, emits, schema, consistsOf, attribute
-        |LET execPlan = DOCUMENT("executionPlan", @execPlanId)
-        |LET ops = (
-        |    FOR op IN operation
-        |        FILTER op._belongsTo == execPlan._id
-        |        RETURN op
-        |    )
-        |LET edges = (
-        |    FOR f IN follows
-        |        FILTER f._belongsTo == execPlan._id
-        |        RETURN f
-        |    )
-        |LET schemaIds = (
-        |    FOR op IN ops
-        |        FOR schema IN 1
-        |            OUTBOUND op emits
-        |            RETURN DISTINCT schema._id
-        |    )
-        |LET attributes = (
-        |    FOR sid IN schemaIds
-        |        FOR a IN 1
-        |            OUTBOUND sid consistsOf
-        |            RETURN DISTINCT {
-        |                "id"   : a._key,
-        |                "name" : a.name,
-        |                "dataTypeId" : a.dataType
-        |            }
-        |    )
-        |LET inputs = FLATTEN(
-        |    FOR op IN ops
-        |        FILTER op.type == "Read"
-        |        RETURN op.inputSources[* RETURN {
-        |            "source"    : CURRENT,
-        |            "sourceType": op.extra.sourceType
-        |        }]
-        |    )
-        |LET output = FIRST(
-        |    ops[*
-        |        FILTER CURRENT.type == "Write"
-        |        RETURN {
-        |            "source"    : CURRENT.outputSource,
-        |            "sourceType": CURRENT.extra.destinationType
-        |        }]
-        |    )
-        |RETURN execPlan && {
-        |    "graph": {
-        |        "nodes": ops[* RETURN {
-        |                "_id"  : CURRENT._key,
-        |                "_type": CURRENT.type,
-        |                "name" : CURRENT.name || CURRENT.type
-        |            }],
-        |        "edges": edges[* RETURN {
-        |                "source": PARSE_IDENTIFIER(CURRENT._to).key,
-        |                "target": PARSE_IDENTIFIER(CURRENT._from).key
-        |            }]
-        |    },
-        |    "executionPlan": {
-        |        "_id"       : execPlan._key,
-        |        "systemInfo": execPlan.systemInfo,
-        |        "agentInfo" : execPlan.agentInfo,
-        |        "name"      : execPlan.name || execPlan._key,
-        |        "extra"     : MERGE(
-        |                         execPlan.extra,
-        |                         { attributes },
-        |                         { "appName"  : execPlan.name || execPlan._key }
-        |                      ),
-        |        "inputs"    : inputs,
-        |        "output"    : output
-        |    }
-        |}
-        |""".stripMargin,
+         |WITH executionPlan, executes, operation, follows, emits, schema, consistsOf, attribute
+         |LET execPlan = DOCUMENT("executionPlan", @execPlanId)
+         |LET ops = (
+         |    FOR op IN operation
+         |        FILTER op._belongsTo == execPlan._id
+         |        RETURN op
+         |    )
+         |LET edges = (
+         |    FOR f IN follows
+         |        FILTER f._belongsTo == execPlan._id
+         |        RETURN f
+         |    )
+         |LET schemaIds = (
+         |    FOR op IN ops
+         |        FOR schema IN 1
+         |            OUTBOUND op emits
+         |            RETURN DISTINCT schema._id
+         |    )
+         |LET attributes = (
+         |    FOR sid IN schemaIds
+         |        FOR a IN 1
+         |            OUTBOUND sid consistsOf
+         |            RETURN DISTINCT {
+         |                "id"   : a._key,
+         |                "name" : a.name,
+         |                "dataTypeId" : a.dataType
+         |            }
+         |    )
+         |LET inputs = FLATTEN(
+         |    FOR op IN ops
+         |        FILTER op.type == "Read"
+         |        RETURN op.inputSources[* RETURN {
+         |            "source"    : CURRENT,
+         |            "sourceType": op.extra.sourceType
+         |        }]
+         |    )
+         |LET output = FIRST(
+         |    ops[*
+         |        FILTER CURRENT.type == "Write"
+         |        RETURN {
+         |            "source"    : CURRENT.outputSource,
+         |            "sourceType": CURRENT.extra.destinationType
+         |        }]
+         |    )
+         |RETURN execPlan && {
+         |    "graph": {
+         |        "nodes": ops[* RETURN {
+         |                "_id"  : CURRENT._key,
+         |                "_type": CURRENT.type,
+         |                "name" : CURRENT.name || CURRENT.type
+         |            }],
+         |        "edges": edges[* RETURN {
+         |                "source": PARSE_IDENTIFIER(CURRENT._to).key,
+         |                "target": PARSE_IDENTIFIER(CURRENT._from).key
+         |            }]
+         |    },
+         |    "executionPlan": {
+         |        "_id"       : execPlan._key,
+         |        "systemInfo": execPlan.systemInfo,
+         |        "agentInfo" : execPlan.agentInfo,
+         |        "name"      : execPlan.name || execPlan._key,
+         |        "extra"     : MERGE(
+         |                         execPlan.extra,
+         |                         { attributes },
+         |                         { "appName"  : execPlan.name || execPlan._key }
+         |                      ),
+         |        "inputs"    : inputs,
+         |        "output"    : output
+         |    }
+         |}
+         |""".stripMargin,
       Map("execPlanId" -> execId)
     ).filter(null.!=)
   }
@@ -199,9 +197,9 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
 
     val findResult: Future[(Seq[ExecutionPlanInfo], Long)] = queryResult.map {
       arangoCursorAsync =>
-        val items = arangoCursorAsync.streamRemaining().toScala
+        val items = arangoCursorAsync.streamRemaining().toScala(LazyList)
         val totalCount = arangoCursorAsync.getStats.getFullCount
-        items -> totalCount
+        (items, totalCount)
     }
 
     findResult
