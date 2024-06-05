@@ -20,6 +20,8 @@ See [Spline GitHub Pages](https://absaoss.github.io/spline/)
 
 See [Getting Started](https://github.com/AbsaOSS/spline-getting-started)
 
+Fake change
+
 ### Build project
 
 ```shell
