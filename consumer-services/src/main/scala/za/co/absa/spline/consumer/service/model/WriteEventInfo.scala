@@ -18,6 +18,8 @@ package za.co.absa.spline.consumer.service.model
 import io.swagger.annotations.ApiModelProperty
 import za.co.absa.spline.persistence.model.Progress
 
+import java.util
+
 case class WriteEventInfo
 (
   @ApiModelProperty(value = "Id of the execution event")
@@ -47,7 +49,7 @@ case class WriteEventInfo
   @ApiModelProperty(value = "Other extra info")
   extra: Map[String, Any],
   @ApiModelProperty(value = "Execution event labels")
-  labels: Option[Map[String, String]]
+  labels: Option[Map[Label.Name, util.ArrayList[Label.Value]]],
 ) {
   def this() = this(null, null, null, null, null, null, null, null, null, null, null, null, null, null)
 }
