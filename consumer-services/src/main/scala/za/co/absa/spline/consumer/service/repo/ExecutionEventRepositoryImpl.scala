@@ -153,7 +153,8 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
          |        "append"           : ee.execPlanDetails.append,
          |        "durationNs"       : ee.durationNs,
          |        "error"            : ee.error,
-         |        "extra"            : ee.extra
+         |        "extra"            : ee.extra,
+         |        "labels"           : ee.labels
          |    }
          |
          |    SORT resItem.@sortField @sortOrder
