@@ -18,6 +18,8 @@ package za.co.absa.spline.consumer.service.model
 import io.swagger.annotations.ApiModelProperty
 import za.co.absa.spline.persistence.model.Progress
 
+import java.{util => ju}
+
 case class WriteEventInfo
 (
   @ApiModelProperty(value = "Id of the execution event")
@@ -43,9 +45,13 @@ case class WriteEventInfo
   @ApiModelProperty(value = "Output data source (or data) type")
   dataSourceType: String,
   @ApiModelProperty(value = "Write mode - (true=Append; false=Override)")
-  append: WriteEventInfo.Append
+  append: WriteEventInfo.Append,
+  @ApiModelProperty(value = "Other extra info")
+  extra: Map[String, Any],
+  @ApiModelProperty(value = "Execution event labels")
+  labels: Option[Map[Label.Name, ju.List[Label.Value]]],
 ) {
-  def this() = this(null, null, null, null, null, null, null, null, null, null, null, null)
+  def this() = this(null, null, null, null, null, null, null, null, null, null, null, null, null, null)
 }
 
 object WriteEventInfo {
