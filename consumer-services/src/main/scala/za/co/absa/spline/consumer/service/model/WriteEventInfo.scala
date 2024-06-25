@@ -49,7 +49,7 @@ case class WriteEventInfo
   @ApiModelProperty(value = "Other extra info")
   extra: Map[String, Any],
   @ApiModelProperty(value = "Execution event labels")
-  labels: Option[Map[Label.Name, util.ArrayList[Label.Value]]],
+  labels: Option[Map[Label.Name, ju.List[Label.Value]]],
 ) {
   def this() = this(null, null, null, null, null, null, null, null, null, null, null, null, null, null)
 }
