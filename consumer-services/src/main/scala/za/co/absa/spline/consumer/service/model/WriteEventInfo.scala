@@ -18,7 +18,7 @@ package za.co.absa.spline.consumer.service.model
 import io.swagger.annotations.ApiModelProperty
 import za.co.absa.spline.persistence.model.Progress
 
-import java.util
+import java.{util => ju}
 
 case class WriteEventInfo
 (
