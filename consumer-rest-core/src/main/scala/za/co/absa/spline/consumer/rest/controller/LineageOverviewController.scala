@@ -42,7 +42,7 @@ class LineageOverviewController @Autowired()(val repo: LineageRepository) {
       """
   )
   def lineageOverview(
-    @ApiParam("Execution event ID")
+    @ApiParam(value = "Execution event ID", required = true)
     @RequestParam("eventId")
     eventId: String,
 

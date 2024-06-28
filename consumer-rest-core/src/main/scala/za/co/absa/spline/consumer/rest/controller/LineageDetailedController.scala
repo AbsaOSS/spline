@@ -42,7 +42,7 @@ class LineageDetailedController @Autowired()(val epRepo: ExecutionPlanRepository
     value = "Get detailed execution plan (DAG)",
     notes = "Returns a logical plan DAG by execution plan ID")
   def lineageDetailed(
-    @ApiParam(value = "Execution plan ID")
+    @ApiParam(value = "Execution plan ID", required = true)
     @RequestParam("execId") execId: ExecutionPlanInfo.Id
   ): Future[LineageDetailed] = {
     epRepo.findById(execId)
@@ -52,7 +52,7 @@ class LineageDetailedController @Autowired()(val epRepo: ExecutionPlanRepository
   @ApiOperation(
     value = "Get graph of attributes that depends on attribute with provided id")
   def attributeLineageAndImpact(
-     @ApiParam(value = "Attribute ID")
+     @ApiParam(value = "Attribute ID", required = true)
      @RequestParam("attributeId") attributeId: String
   ): Future[AttributeLineageAndImpact] =
     Future.sequence(Seq(

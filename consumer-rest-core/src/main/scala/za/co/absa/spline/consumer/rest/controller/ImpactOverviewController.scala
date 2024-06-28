@@ -41,7 +41,7 @@ class ImpactOverviewController @Autowired()(val repo: ImpactRepository) {
       """
   )
   def lineageOverview(
-    @ApiParam("Execution event ID")
+    @ApiParam(value = "Execution event ID", required = true)
     @RequestParam("eventId")
     eventId: String,
 
