@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { TxManager } from './tx-manager'
+import {TxManager} from './tx-manager'
 import {
     AuxCollectionName,
     CollectionName,
@@ -27,35 +27,52 @@ import {
     TxParams,
     WriteTxInfo
 } from '../../persistence/model'
-import { store } from '../store'
-import { aql, db } from '@arangodb'
+import {store} from '../store'
+import {aql, db} from '@arangodb'
 import * as Logger from '../../utils/logger'
 import UpdateResult = ArangoDB.UpdateResult
 
 
+/**
+ * Max attempts to atomically increment the counter
+ */
+const MAX_GET_TX_NUM_ATTEMPTS = 50
+
 export class TxManagerImpl implements TxManager {
 
     private nextTxNumber(): TxNum {
-        const curCnt: Counter = store.getDocByKey(CollectionName.Counter, 'tx')
+        let attempts = MAX_GET_TX_NUM_ATTEMPTS
+        while (attempts-- > 0) {
+            try {
+                const curCnt: Counter = store.getDocByKey(CollectionName.Counter, 'tx')
 
-        // as of time of writing the '@types/arangodb:3.5.13' was the latest version,
-        // and it was not up-to-date with ArangoDB 3.10+ JavaScript API
-        // @ts-ignore
-        const updResult: UpdateResult<Counter> = db._update(
-            curCnt,
-            {
-                curVal: curCnt.curVal + 1
-            },
-            // @ts-ignore
-            {
-                overwrite: false, // check _rev
-                returnNew: true   // return an updated document in the `new` attribute
+                // as of time of writing the '@types/arangodb:3.5.13' was the latest version,
+                // and it was not up-to-date with ArangoDB 3.10+ JavaScript API
+                // @ts-ignore
+                const updResult: UpdateResult<Counter> = db._update(
+                    curCnt._id,
+                    {
+                        curVal: curCnt.curVal + 1
+                    },
+                    // @ts-ignore
+                    {
+                        overwrite: false, // check _rev
+                        returnNew: true   // return an updated document in the `new` attribute
+                    }
+                )
+
+                const newCnt: Counter = updResult.new
+
+                return newCnt.curVal
             }
-        )
-
-        const newCnt: Counter = updResult.new
-
-        return newCnt.curVal
+            catch (e) {
+                const errNum = e.errorNum
+                if (errNum !== 1200) {
+                    throw new Error(`Failed to obtain a new Tx number.\nUnderlying error ${errNum}: ${e.message}`)
+                }
+            }
+        }
+        throw new Error(`Failed to obtain a new Tx number after ${MAX_GET_TX_NUM_ATTEMPTS} attempts.`)
     }
 
     startWrite(txParams: TxParams = {}): WriteTxInfo {
