@@ -39,6 +39,7 @@
     <version>1.0.0-SNAPSHOT</version>
 
     <properties>
+        <project.rootdir>${maven.multiModuleProjectDirectory}</project.rootdir>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssX</maven.build.timestamp.format>
         <java.version>1.8</java.version>
@@ -52,8 +53,6 @@
         <springfox-swagger.version>2.9.2</springfox-swagger.version>
         <jackson.version>2.17.1</jackson.version>
         <finatra.jackson.version>21.5.0</finatra.jackson.version>
-        <node.version>v20.14.0</node.version>
-        <npm.version>10.8.0</npm.version>
 
         <!-- Extend argLine using prepared way to not influence existing dependency of JaCoCo plugin. -->
         <scalatest.argLine.extra>
@@ -65,6 +64,40 @@
 
     <build>
         <plugins>
+            <!-- Read the ".nvmrc" and populate the "node.version" property -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>generate-node-version-property</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <file>${project.build.directory}/nvm.properties</file>
+                            </files>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Scala compilation -->
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
@@ -177,7 +210,6 @@
                 <version>1.10.3</version>
                 <configuration>
                     <nodeVersion>${node.version}</nodeVersion>
-                    <npmVersion>${npm.version}</npmVersion>
                     <environmentVariables>
                         <SPLINE_BUILD_REVISION>${buildNumber}</SPLINE_BUILD_REVISION>
                         <SPLINE_BUILD_TIMESTAMP>${timestamp}</SPLINE_BUILD_TIMESTAMP>
@@ -237,7 +269,84 @@
             </plugin>
 
         </plugins>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>3.3.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
+
+    <profiles>
+        <profile>
+            <id>unix</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                </os>
+            </activation>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.codehaus.mojo</groupId>
+                            <artifactId>exec-maven-plugin</artifactId>
+                            <executions>
+                                <execution>
+                                    <id>generate-node-version-property</id>
+                                    <configuration>
+                                        <executable>sh</executable>
+                                        <arguments>
+                                            <argument>-c</argument>
+                                            <argument><![CDATA[
+                                                mkdir -p ${project.build.directory}
+                                                echo "node.version=$(cat ${project.rootdir}/.nvmrc)" > ${project.build.directory}/nvm.properties
+                                            ]]></argument>
+                                        </arguments>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>Windows</family>
+                </os>
+            </activation>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.codehaus.mojo</groupId>
+                            <artifactId>exec-maven-plugin</artifactId>
+                            <executions>
+                                <execution>
+                                    <id>generate-node-version-property</id>
+                                    <configuration>
+                                        <executable>powershell.exe</executable>
+                                        <arguments>
+                                            <argument><![CDATA[
+                                                New-Item -ItemType Directory -Path ${project.build.directory} -Force; Set-Content -Path "${project.build.directory}/nvm.properties" -Value "node.version=$(Get-Content -Path ${project.rootdir}/.nvmrc)"
+                                            ]]></argument>
+                                        </arguments>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+    </profiles>
 
     <dependencies>
         <dependency>

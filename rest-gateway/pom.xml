@@ -70,7 +70,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>3.3.0</version>
                 <configuration>
                     <includePluginDependencies>true</includePluginDependencies>
                     <executableDependency>
