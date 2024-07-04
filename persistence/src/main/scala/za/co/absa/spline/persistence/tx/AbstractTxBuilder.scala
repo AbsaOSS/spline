@@ -18,7 +18,9 @@ package za.co.absa.spline.persistence.tx
 
 import com.arangodb.model.TransactionOptions
 
-abstract class AbstractTxBuilder() {
+import scala.jdk.CollectionConverters._
+
+abstract class AbstractTxBuilder {
 
   protected var queries: Seq[Query] = Vector.empty // NOSONAR
 
@@ -29,7 +31,7 @@ abstract class AbstractTxBuilder() {
     this
   }
 
-  protected def txOptions: TransactionOptions = {
+  protected[tx] def txOptions: TransactionOptions = {
     val params = queries
       .map({
         case nq: NativeQuery => nq.params
@@ -41,7 +43,7 @@ abstract class AbstractTxBuilder() {
       .map(_.name)
       .distinct
     new TransactionOptions()
-      .params(params)
+      .params(params.asJava)
       .writeCollections(writeCollections: _*)
       .allowImplicit(false)
   }

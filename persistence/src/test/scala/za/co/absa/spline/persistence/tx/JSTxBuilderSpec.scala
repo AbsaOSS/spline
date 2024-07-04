@@ -22,6 +22,8 @@ import org.scalatestplus.mockito.MockitoSugar
 import za.co.absa.commons.scalatest.WhitespaceNormalizations.whiteSpaceNormalised
 import za.co.absa.spline.persistence.model.NodeDef
 
+import java.{util => ju}
+
 class JSTxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
 
   behavior of "generateJs()"
@@ -75,10 +77,12 @@ class JSTxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
   }
 
   it should "generate UPDATE statements" in {
-    val generatedJS = new JSTxBuilder()
+    val txBuilder = new JSTxBuilder()
       .addQuery(UpdateQuery(NodeDef.DataSource, s"${UpdateQuery.DocWildcard}.foo == 42", Map.empty))
       .addQuery(UpdateQuery(NodeDef.DataSource, s"${UpdateQuery.DocWildcard}.baz == 777", Map.empty))
-      .generateJs()
+
+    val generatedJS = txBuilder.generateJs()
+    val txOptions = txBuilder.txOptions
 
     (generatedJS shouldEqual {
       """
@@ -99,5 +103,7 @@ class JSTxBuilderSpec extends AnyFlatSpec with Matchers with MockitoSugar {
         |}
         |""".stripMargin
     })(after being whiteSpaceNormalised)
+
+    txOptions.getParams shouldEqual ju.Arrays.asList(Map.empty, Map.empty)
   }
 }
