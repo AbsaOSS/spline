@@ -49,7 +49,7 @@ class ArangoRepoConfig extends InitializingBean with LazyLogging {
   @Bean def databaseVersionChecker: DatabaseVersionChecker = new DatabaseVersionChecker(databaseVersionManager)
 }
 
-object ArangoRepoConfig extends DefaultConfigurationStack with ConfTyped {
+object ArangoRepoConfig extends DefaultConfigurationStack with ConfTyped with LazyLogging {
 
   import za.co.absa.commons.config.ConfigurationImplicits._
 
@@ -67,8 +67,15 @@ object ArangoRepoConfig extends DefaultConfigurationStack with ConfTyped {
     val DisableSSLValidation: Boolean =
       conf.getBoolean(Prop("disableSslValidation"), false)
 
-    val ActiveFailoverMode: Boolean =
-      conf.getBoolean(Prop("activeFailover"), false)
+    val ActiveFailoverMode: Boolean = {
+      val enabled = conf.getBoolean(Prop("activeFailover"), false)
+      if (enabled) {
+        // Active failover mode is deprecated in Arango ver 3.11, and to be removed in ver 3.12.
+        // See https://docs.arangodb.com/3.11/release-notes/version-3.11/incompatible-changes-in-3-11/#active-failover-deployment-mode-deprecation
+        logger.warn("Active failover mode is deprecated and will be removed in the future versions.")
+      }
+      enabled
+    }
   }
 
 }

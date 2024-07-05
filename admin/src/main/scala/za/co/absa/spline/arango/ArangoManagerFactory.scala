@@ -30,7 +30,7 @@ trait ArangoManagerFactory {
   def create(connectionURL: ArangoConnectionURL, maybeSSLContext: Option[SSLContext], dryRun: Boolean): ArangoManager
 }
 
-class ArangoManagerFactoryImpl(activeFailover: Boolean)(implicit ec: ExecutionContext) extends ArangoManagerFactory {
+class ArangoManagerFactoryImpl(implicit ec: ExecutionContext) extends ArangoManagerFactory {
 
   override def create(connectionURL: ArangoConnectionURL, maybeSSLContext: Option[SSLContext], dryRun: Boolean): ArangoManager = {
     val scriptRepo = MigrationScriptRepository
@@ -54,7 +54,7 @@ class ArangoManagerFactoryImpl(activeFailover: Boolean)(implicit ec: ExecutionCo
     }
 
     def dbFacade(): ArangoDatabaseFacade =
-      new ArangoDatabaseFacade(connectionURL, maybeSSLContext, activeFailover)
+      new ArangoDatabaseFacade(connectionURL, maybeSSLContext, activeFailover = false)
 
     AutoClosingArangoManagerProxy.create(dbManager, dbFacade)
   }

@@ -59,7 +59,7 @@ object AdminCLI extends App {
     )
   }
 
-  private val dbManagerFactory = new ArangoManagerFactoryImpl(activeFailover = false)
+  private val dbManagerFactory = new ArangoManagerFactoryImpl
   private val maybeConsole = InputConsole.systemConsoleIfAvailable()
 
   new AdminCLI(dbManagerFactory, maybeConsole).exec(args)
