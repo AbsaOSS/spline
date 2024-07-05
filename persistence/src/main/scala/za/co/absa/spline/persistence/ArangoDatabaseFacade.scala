@@ -79,8 +79,8 @@ object ArangoDatabaseFacade extends LazyLogging {
 
   import za.co.absa.commons.version.Version._
 
-  val MinArangoVerRequired: Version = semver"3.6.0"
-  val MinArangoVerRecommended: Version = ver"3.10"
+  private val ArangoDBVerMinIncluding = semver"3.9.0"
+  private val ArangoDBVerMaxExcluding = Option(semver"3.12.0")
 
   private def warmUpDb(db: ArangoDatabaseAsync): Unit = {
     val verStr = try {
@@ -98,16 +98,10 @@ object ArangoDatabaseFacade extends LazyLogging {
     val arangoVer = Version.asSemVer(verStr)
 
     // check ArangoDb server version requirements
-    if (arangoVer < MinArangoVerRequired)
+    if (arangoVer < ArangoDBVerMinIncluding || ArangoDBVerMaxExcluding.exists(arangoVer.>=))
       sys.error(s"" +
-        s"Unsupported ArangoDB server version ${arangoVer.asString}. " +
-        s"Required version: ${MinArangoVerRequired.asString} or later. " +
-        s"Recommended version: ${MinArangoVerRecommended.asString} or later.")
-
-    if (arangoVer < MinArangoVerRecommended)
-      logger.warn(s"WARNING: " +
-        s"The ArangoDB server version ${arangoVer.asString} might contain a bug that can cause Spline malfunction. " +
-        s"It's highly recommended to upgrade to ArangoDB ${MinArangoVerRecommended.asString} or later. " +
-        s"See: https://github.com/arangodb/arangodb/issues/12693")
+        s"Unsupported ArangoDB server version detected: ${arangoVer.asString}. " +
+        s"Please upgrade ArangoDB to version ${ArangoDBVerMinIncluding.asString} or higher" +
+        (ArangoDBVerMaxExcluding.map(v => s" (but less than ${v.asString} which is currently not supported).") getOrElse "."))
   }
 }
