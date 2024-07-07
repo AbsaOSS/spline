@@ -20,45 +20,46 @@ import za.co.absa.spline.persistence.model.Progress
 
 import java.{util => ju}
 
-case class WriteEventInfo
+case class ExecutionEventInfo
 (
-  @ApiModelProperty(value = "Id of the execution event")
-  executionEventId: WriteEventInfo.Id,
-  @ApiModelProperty(value = "Id of the execution plan")
-  executionPlanId: ExecutionPlanInfo.Id,
-  @ApiModelProperty(value = "Name of the framework that triggered this execution event")
-  frameworkName: String,
-  @ApiModelProperty(value = "Name of the application/job")
-  applicationName: String,
-  @ApiModelProperty(value = "Id of the application/job")
-  applicationId: String,
-  @ApiModelProperty(value = "When the execution was triggered")
-  timestamp: WriteEventInfo.Timestamp,
   @ApiModelProperty(value = "Duration of execution in nanoseconds (for successful executions)")
-  durationNs: Option[WriteEventInfo.DurationNs],
+  durationNs: Option[ExecutionEventInfo.DurationNs],
   @ApiModelProperty(value = "Error (for failed executions)")
-  error: Option[WriteEventInfo.Error],
+  error: Option[Any],
   @ApiModelProperty(value = "Output data source name")
   dataSourceName: String,
   @ApiModelProperty(value = "Output data source URI")
   dataSourceUri: String,
-  @ApiModelProperty(value = "Output data source (or data) type")
-  dataSourceType: String,
-  @ApiModelProperty(value = "Write mode - (true=Append; false=Override)")
-  append: WriteEventInfo.Append,
-  @ApiModelProperty(value = "Other extra info")
-  extra: Map[String, Any],
-  @ApiModelProperty(value = "Execution event labels")
-  labels: Option[Map[Label.Name, ju.List[Label.Value]]],
-) {
-  def this() = this(null, null, null, null, null, null, null, null, null, null, null, null, null, null)
-}
 
-object WriteEventInfo {
+  // these properties are only applicable for the WRITE execution events,
+  // therefore they are nullable to avoid deserialization issues of the READ events.
+
+  @ApiModelProperty(value = "Id of the execution event")
+  executionEventId: ExecutionEventInfo.Id = null,
+  @ApiModelProperty(value = "Id of the execution plan")
+  executionPlanId: ExecutionPlanInfo.Id = null,
+  @ApiModelProperty(value = "Name of the framework that triggered this execution event")
+  frameworkName: String = null,
+  @ApiModelProperty(value = "Name of the application/job")
+  applicationName: String = null,
+  @ApiModelProperty(value = "Id of the application/job")
+  applicationId: String = null,
+  @ApiModelProperty(value = "When the execution was triggered")
+  timestamp: ExecutionEventInfo.Timestamp = null,
+  @ApiModelProperty(value = "Output data source (or data) type")
+  dataSourceType: String = null,
+  @ApiModelProperty(value = "Write mode - (true=Append; false=Override)")
+  append: ExecutionEventInfo.Append = null,
+  @ApiModelProperty(value = "Other extra info")
+  extra: Map[String, Any] = null,
+  @ApiModelProperty(value = "Execution event labels")
+  labels: Map[Label.Name, ju.List[Label.Value]] = null,
+)
+
+object ExecutionEventInfo {
   type Id = String
   type Timestamp = java.lang.Long
   type DurationNs = Progress.JobDurationInNanos
-  type Error = Any
   type Append = java.lang.Boolean
 }
 

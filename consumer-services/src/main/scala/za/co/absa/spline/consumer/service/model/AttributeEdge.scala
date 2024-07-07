@@ -27,7 +27,5 @@ case class AttributeEdge
   @ApiModelProperty(value = "Target Node")
   target: AttributeNode.Id
 ) extends Graph.Edge {
-  def this() = this(null, null)
-
   override type JointId = AttributeNode.Id
 }

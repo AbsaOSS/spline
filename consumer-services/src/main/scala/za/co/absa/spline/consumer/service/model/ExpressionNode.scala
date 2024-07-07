@@ -28,21 +28,18 @@ case class ExpressionNode
   dataType: Option[String],
 
   @ApiModelProperty(value = "Expression name")
-  name: String,
+  name: Option[String],
 
   @ApiModelProperty(value = "Literal expression value")
   value: Option[Any],
 
   @ApiModelProperty(value = "Expression parameters")
-  params: Map[String, Any],
+  params: Map[String, Any] = Map(),
 
   @ApiModelProperty(value = "Expression extras")
-  extra: Map[String, Any],
-
+  extra: Map[String, Any] = Map(),
 
 ) extends Graph.Node {
-  def this() = this(null, null, null, null, null, null)
-
   override type Id = ExpressionNode.Id
 }
 

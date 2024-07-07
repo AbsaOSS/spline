@@ -83,7 +83,8 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
          |        "nodes": ops[* RETURN {
          |                "_id"  : CURRENT._key,
          |                "_type": CURRENT.type,
-         |                "name" : CURRENT.name || CURRENT.type
+         |                "name" : CURRENT.name || CURRENT.type,
+         |                "properties": {}
          |            }],
          |        "edges": edges[* RETURN {
          |                "source": PARSE_IDENTIFIER(CURRENT._to).key,

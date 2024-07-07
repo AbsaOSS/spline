@@ -19,9 +19,7 @@ package za.co.absa.spline.consumer.service.model
 case class Attribute(
   id: String,
   name: String,
-  dataTypeId: String) {
-  def this() = this(null, null, null)
-}
+  dataTypeId: String)
 
 object Attribute {
   type Id = String

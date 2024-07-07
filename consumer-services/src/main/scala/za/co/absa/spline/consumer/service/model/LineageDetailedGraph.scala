@@ -25,9 +25,8 @@ case class LineageDetailedGraph
   nodes: Array[Operation],
   @ApiModelProperty(value = "List of graph edges showing the triggered operations order")
   edges: Array[Transition]
-) extends Graph {
-  def this() = this(null, null)
 
+) extends Graph {
   override type Node = Operation
   override type Edge = Transition
 }

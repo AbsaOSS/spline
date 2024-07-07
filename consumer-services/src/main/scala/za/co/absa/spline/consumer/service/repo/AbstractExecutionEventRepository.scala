@@ -15,7 +15,7 @@
  */
 package za.co.absa.spline.consumer.service.repo
 
-import za.co.absa.spline.consumer.service.model.{Label, PageRequest, SortRequest, WriteEventInfo}
+import za.co.absa.spline.consumer.service.model.{Label, PageRequest, SortRequest, ExecutionEventInfo}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -41,5 +41,5 @@ trait AbstractExecutionEventRepository {
     writeAppendOptions: Array[Option[Boolean]],
     maybeApplicationId: Option[String],
     maybeDataSourceUri: Option[String])
-    (implicit ec: ExecutionContext): Future[(Seq[WriteEventInfo], Long)]
+    (implicit ec: ExecutionContext): Future[(Seq[ExecutionEventInfo], Long)]
 }

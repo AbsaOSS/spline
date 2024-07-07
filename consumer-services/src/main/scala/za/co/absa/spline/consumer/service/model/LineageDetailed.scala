@@ -25,6 +25,4 @@ case class LineageDetailed(
   executionPlan: ExecutionPlanInfo,
   @ApiModelProperty(value = "Execution plan level lineage")
   graph: LineageDetailedGraph
-) {
-  def this() = this(null, null)
-}
+)

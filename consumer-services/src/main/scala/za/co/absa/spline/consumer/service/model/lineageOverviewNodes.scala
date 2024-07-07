@@ -13,7 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package za.co.absa.spline.consumer.service.model
+
+import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
+
+
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.NAME,
+  include = JsonTypeInfo.As.PROPERTY,
+  property = "_type")
+@JsonSubTypes(value = Array(
+  new JsonSubTypes.Type(value = classOf[DataSourceNode], name = "DataSourceNode"),
+  new JsonSubTypes.Type(value = classOf[ExecutionNode], name = "ExecutionNode"),
+))
+sealed trait LineageOverviewNode extends Graph.Node {
+  val name: String
+  type Id = String
+}
+
+case class DataSourceNode
+(
+  override val _id: String,
+  override val name: String
+) extends LineageOverviewNode {
+  override type Id = String
+}
 
 case class ExecutionNode
 (
@@ -23,14 +48,10 @@ case class ExecutionNode
   agentInfo: Option[ExecutionNode.NameAndVersion],
 ) extends LineageOverviewNode {
   override type Id = String
-
-  def this() = this(null, null, null, null)
 }
 
 object ExecutionNode {
 
-  case class NameAndVersion(name: String, version: String) {
-    def this() = this(null, null)
-  }
+  case class NameAndVersion(name: String, version: String)
 
 }

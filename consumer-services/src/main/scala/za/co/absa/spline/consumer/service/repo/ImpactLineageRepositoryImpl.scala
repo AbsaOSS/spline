@@ -17,10 +17,11 @@ package za.co.absa.spline.consumer.service.repo
 
 import com.arangodb.ArangoDBException
 import com.arangodb.async.ArangoDatabaseAsync
+import com.arangodb.internal.util.ArangoSerializationFactory.Serializer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.model.LineageOverview
-import za.co.absa.spline.consumer.service.model.WriteEventInfo.Id
+import za.co.absa.spline.consumer.service.model.ExecutionEventInfo.Id
 
 import java.util.concurrent.CompletionException
 import scala.PartialFunction.cond
@@ -45,7 +46,7 @@ class ImpactLineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
       .route(routeUrl)
       .get()
       .asScala
-      .map(resp => db.util().deserialize[LineageOverview](resp.getBody, classOf[LineageOverview]))
+      .map(resp => db.util(Serializer.CUSTOM).deserialize[LineageOverview](resp.getBody, classOf[LineageOverview]))
       .recover({
         case ce: CompletionException
           if cond(ce.getCause)({ case ae: ArangoDBException => ae.getResponseCode == 404 }) =>

@@ -33,13 +33,12 @@ case class ExpressionEdge
   `type`: ExpressionEdgeType,
 
   @ApiModelProperty(value = "JSONPath of inside 'source' entity where this edge is logically attached to (if applicable)")
-  path: Edge.FromPath,
+  path: Option[Edge.FromPath],
 
   @ApiModelProperty(value = "0-based order (if applicable)")
-  index: Int
-) extends Graph.Edge {
-  def this() = this(null, null, null, null, -1)
+  index: Option[Int]
 
+) extends Graph.Edge {
   override type JointId = ExpressionNode.Id
 }
 

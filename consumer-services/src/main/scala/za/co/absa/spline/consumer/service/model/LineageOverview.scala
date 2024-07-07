@@ -23,6 +23,4 @@ case class LineageOverview(
   graph: LineageOverviewGraph,
   @ApiModelProperty(value = "Additional information")
   info: Map[String, Any]
-) {
-  def this() = this(null, null)
-}
+)

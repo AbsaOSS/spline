@@ -31,8 +31,6 @@ case class Operation
   properties: Map[String, Any]
 ) extends Graph.Node {
   override type Id = Operation.Id
-
-  def this() = this(null, null, null, null)
 }
 
 object Operation {

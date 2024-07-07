@@ -28,10 +28,7 @@ case class OperationDetails
   @ApiModelProperty(value = "Array of all the schemas")
   schemas: Array[Array[Attribute]],
   @ApiModelProperty(value = "Array of indexes of the schemas Array. The schemas at these indexes represent the input schemas")
-  inputs: Array[Integer],
+  inputs: Array[Int],
   @ApiModelProperty(value = "Index of the schemas Array. The schema at this index represents the output schemas")
-  output: Integer
-
-) {
-  def this() = this(null, null, null, null, null)
-}
+  output: Int
+)
