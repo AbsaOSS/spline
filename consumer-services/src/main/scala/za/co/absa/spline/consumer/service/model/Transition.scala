@@ -26,7 +26,5 @@ case class Transition
   @ApiModelProperty(value = "Target Operation")
   target: Operation.Id
 ) extends Graph.Edge {
-  def this() = this(null, null)
-
   override type JointId = Operation.Id
 }

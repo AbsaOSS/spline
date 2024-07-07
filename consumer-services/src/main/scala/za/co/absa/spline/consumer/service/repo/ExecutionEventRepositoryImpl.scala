@@ -106,12 +106,12 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
     writeAppendOptions: Array[Option[Boolean]],
     maybeApplicationId: Option[String],
     maybeDataSourceUri: Option[String]
-  )(implicit ec: ExecutionContext): Future[(Seq[WriteEventInfo], Long)] = {
+  )(implicit ec: ExecutionContext): Future[(Seq[ExecutionEventInfo], Long)] = {
 
     val lblNames = labels.map(_.name)
     val lblValues = labels.map(_.values)
 
-    db.queryAs[WriteEventInfo](
+    db.queryAs[ExecutionEventInfo](
       s"""
          |WITH ${SearchViewDef.ProgressSearchView.name}
          |FOR ee IN ${SearchViewDef.ProgressSearchView.name}

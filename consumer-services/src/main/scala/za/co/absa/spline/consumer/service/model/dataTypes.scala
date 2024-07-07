@@ -16,6 +16,17 @@
 
 package za.co.absa.spline.consumer.service.model
 
+import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
+
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.NAME,
+  include = JsonTypeInfo.As.PROPERTY,
+  property = "_typeHint")
+@JsonSubTypes(value = Array(
+  new JsonSubTypes.Type(value = classOf[SimpleDataType], name = "dt.Simple"),
+  new JsonSubTypes.Type(value = classOf[ArrayDataType], name = "dt.Array"),
+  new JsonSubTypes.Type(value = classOf[StructDataType], name = "dt.Struct"),
+))
 sealed trait DataType {
   def id: String
   def nullable: Boolean
@@ -25,28 +36,21 @@ case class SimpleDataType(
   override val id: String,
   override val nullable: Boolean,
   name: String
-) extends DataType {
-  def this() = this(null, false, null)
-}
+) extends DataType
 
 case class ArrayDataType(
   override val id: String,
   override val nullable: Boolean,
   elementDataTypeId: String
-) extends DataType {
-  def this() = this(null, false, null)
-}
+) extends DataType
 
 case class StructDataType(
   override val id: String,
   override val nullable: Boolean,
   fields: Array[StructField]
-) extends DataType {
-  def this() = this(null, false, null)
-}
+) extends DataType
 
 case class StructField(
   name: String,
-  dataTypeId: String) {
-  def this() = this(null, null)
-}
+  dataTypeId: String
+)

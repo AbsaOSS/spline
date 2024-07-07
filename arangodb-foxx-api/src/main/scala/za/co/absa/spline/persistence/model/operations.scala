@@ -44,8 +44,6 @@ case class Read(
   override val _key: ArangoDocument.Key,
   override val _belongsTo: Option[ArangoDocument.Id]
 ) extends Operation {
-  def this() = this(null, null, null, null, null, null)
-
   override val `type`: Operation.Type = OperationTypes.Read
 }
 
@@ -58,8 +56,6 @@ case class Write(
   override val _key: ArangoDocument.Key,
   override val _belongsTo: Option[ArangoDocument.Id]
 ) extends Operation {
-  def this() = this(null, false, null, null, null, null, null)
-
   override val `type`: Operation.Type = OperationTypes.Write
 }
 
@@ -70,7 +66,5 @@ case class Transformation(
   override val _key: ArangoDocument.Key,
   override val _belongsTo: Option[ArangoDocument.Id]
 ) extends Operation {
-  def this() = this(null, null, null, null, null)
-
   override val `type`: Operation.Type = OperationTypes.Transformation
 }

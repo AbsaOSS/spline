@@ -31,8 +31,6 @@ case class FunctionalExpression(
   arity: Int,
   params: Map[String, Any],
 ) extends Expression {
-  def this() = this(null, null, null, null, null, -1, null)
-
   val `type`: String = "Func"
 }
 
@@ -43,7 +41,5 @@ case class LiteralExpression(
   override val extra: Map[String, Any],
   value: Any,
 ) extends Expression {
-  def this() = this(null, null, null, null, null)
-
   val `type`: String = "Lit"
 }

@@ -83,7 +83,9 @@ class OperationDetailsController @Autowired()
     }
 
     uses.foldLeft(opProps) { (z, u) =>
-      val relPath = u.path.stripPrefix("$['params']")
+      val relPath = u.path
+        .getOrElse(throw new IllegalArgumentException("'path' is missing in the 'uses' type of edge."))
+        .stripPrefix("$['params']")
       val jsonPath = JsonPath.parse(relPath)
       val nodeId = u.target
       val node = nodeById(nodeId)

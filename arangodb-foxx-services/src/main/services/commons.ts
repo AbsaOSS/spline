@@ -59,7 +59,7 @@ function getStartDataSourceFromExecutionEvent(startEvent: Progress): DataSource 
             LIMIT 1
             RETURN {
                 "_id": ds._key,
-                "_class": "za.co.absa.spline.consumer.service.model.DataSourceNode",
+                "_type": "DataSourceNode",
                 "name": ds.uri
             }
         `).next()
@@ -86,12 +86,12 @@ function getPartialGraphForEvent(event: Progress) {
                     RETURN vertType == "dataSource"
                         ? {
                             "_id": vert._key,
-                            "_class": "za.co.absa.spline.consumer.service.model.DataSourceNode",
+                            "_type": "DataSourceNode",
                             "name": vert.uri
                         }
                         : MERGE(KEEP(vert, ["systemInfo", "agentInfo"]), {
                             "_id": vert._key,
-                            "_class": "za.co.absa.spline.consumer.service.model.ExecutionNode",
+                            "_type": "ExecutionNode",
                             "name": vert.name || ""
                         })
             )

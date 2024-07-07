@@ -34,8 +34,6 @@ case class AttributeNode
   transOpIds: Seq[Operation.Id]
 
 ) extends Graph.Node {
-  def this() = this(null, null, null, null)
-
   override type Id = AttributeNode.Id
 }
 

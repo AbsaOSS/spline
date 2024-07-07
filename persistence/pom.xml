@@ -87,8 +87,11 @@
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
-            <artifactId>velocypack-module-scala_${scala.compat.version}</artifactId>
-            <version>1.2.1</version>
+            <artifactId>jackson-dataformat-velocypack</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
         </dependency>
 
         <!-- test scope -->

@@ -27,8 +27,6 @@ case class ExpressionGraph(
 ) extends Graph {
   override type Node = ExpressionNode
   override type Edge = ExpressionEdge
-
-  def this() = this(null, null)
 }
 
 
