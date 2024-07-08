@@ -56,18 +56,8 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
         |            RETURN schema
         |    )
         |
-        |    LET dataTypesFormatted = (
-        |        LET execPlan = DOCUMENT(ope._belongsTo)
-        |        FOR d IN execPlan.extra.dataTypes || []
-        |            RETURN MERGE(
-        |                KEEP(d,  "id", "name", "fields", "nullable", "elementDataTypeId"),
-        |                {
-        |                    "_class": d._typeHint == "dt.Simple" ?  "za.co.absa.spline.consumer.service.model.SimpleDataType"
-        |                            : d._typeHint == "dt.Array"  ?  "za.co.absa.spline.consumer.service.model.ArrayDataType"
-        |                            :                               "za.co.absa.spline.consumer.service.model.StructDataType"
-        |                }
-        |            )
-        |    )
+        |    LET execPlan = DOCUMENT(ope._belongsTo)
+        |    LET dataTypes = execPlan.extra.dataTypes || []
         |
         |    RETURN {
         |        "operation": {
@@ -84,7 +74,7 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
         |                ope.extra
         |            )
         |        },
-        |        "dataTypes": dataTypesFormatted,
+        |        "dataTypes": dataTypes,
         |        "schemas"  : schemas,
         |        "inputs"   : LENGTH(inputs) > 0 ? RANGE(0, LENGTH(inputs) - 1) : [],
         |        "output"   : LENGTH(schemas) - 1

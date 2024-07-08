@@ -17,6 +17,7 @@
 package za.co.absa.spline.persistence.tx
 
 import com.arangodb.async.ArangoDatabaseAsync
+import com.arangodb.internal.util.ArangoSerializationFactory.Serializer
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.FutureConverters._
@@ -27,9 +28,12 @@ class FoxxPostTxBuilder(endpoint: String, body: AnyRef) extends AbstractTxBuilde
   override def buildTx(): ArangoTx =
     new ArangoTx {
       override def execute[A: ClassTag](db: ArangoDatabaseAsync)(implicit ex: ExecutionContext): Future[A] = {
+        val serialization = db.util(Serializer.CUSTOM)
+        val serializedBody = serialization.serialize(body)
+
         db
           .route(endpoint)
-          .withBody(body)
+          .withBody(serializedBody)
           .post()
           .asScala
           .asInstanceOf[Future[A]]

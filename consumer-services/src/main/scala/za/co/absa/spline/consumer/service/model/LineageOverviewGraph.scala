@@ -28,10 +28,9 @@ case class LineageOverviewGraph
   @ApiModelProperty(value = "Requested max depth")
   depthRequested: Int,
   @ApiModelProperty(value = "Computed depth")
-  depthComputed: Int,
-) extends Graph {
-  def this() = this(null, null, -1, -1)
+  depthComputed: Int
 
+) extends Graph {
   override type Node = LineageOverviewNode
   override type Edge = Transition
 }

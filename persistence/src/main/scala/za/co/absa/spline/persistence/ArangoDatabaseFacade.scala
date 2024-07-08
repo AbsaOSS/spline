@@ -17,7 +17,8 @@
 package za.co.absa.spline.persistence
 
 import com.arangodb.async.{ArangoDBAsync, ArangoDatabaseAsync}
-import com.arangodb.velocypack.module.scala.VPackScalaModule
+import com.arangodb.mapping.ArangoJack
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.typesafe.scalalogging.LazyLogging
 import org.springframework.beans.factory.DisposableBean
 import za.co.absa.commons.version.Version
@@ -36,8 +37,12 @@ class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL, maybeSSLContext: 
   private val isSecure = connectionURL.isSecure
 
   private val arango: ArangoDBAsync = {
+    val arangoJack = new ArangoJack
+    arangoJack.configure(mapper => mapper
+      .registerModule(new DefaultScalaModule)
+    )
     val arangoBuilder = new ArangoDBAsync.Builder()
-      .registerModule(new VPackScalaModule)
+      .serializer(arangoJack)
       .having(maybeUser)(_ user _)
       .having(maybePassword)(_ password _)
 

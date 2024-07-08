@@ -38,9 +38,7 @@ case class ExecutionPlanInfo
   inputs: Array[DataSourceInfo],
   @ApiModelProperty(value = "Write destination")
   output: DataSourceInfo
-) {
-  def this() = this(null, null, null, null, null, null, null)
-}
+)
 
 object ExecutionPlanInfo {
   type Id = UUID

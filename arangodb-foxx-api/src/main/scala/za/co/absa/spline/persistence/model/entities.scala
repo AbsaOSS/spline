@@ -49,9 +49,7 @@ case class Edge(
   index: Option[Edge.Index],
   path: Option[Edge.FromPath],
   override val _key: ArangoDocument.Key = null // NOSONAR
-) extends ArangoDocument {
-  def this() = this(null, null, null, null, null, null) // NOSONAR
-}
+) extends ArangoDocument
 
 object Edge {
   type Index = Int // 0-based number reflecting the position among sibling edges of the same type sharing the same {{_from}}
@@ -61,9 +59,7 @@ object Edge {
 case class DBVersion(
   version: String,
   status: String
-) extends ArangoDocument with RootEntity {
-  def this() = this(null, null) // NOSONAR
-}
+) extends ArangoDocument with RootEntity
 
 object DBVersion {
   def apply(version: String, status: Status.Type): DBVersion = DBVersion(version, status.toString)
@@ -79,9 +75,7 @@ object DBVersion {
 
 }
 
-case class Counter(override val _key: String, curVal: Long) extends ArangoDocument with RootEntity {
-  def this() = this(null, Long.MinValue) // NOSONAR
-}
+case class Counter(override val _key: String, curVal: Long) extends ArangoDocument with RootEntity
 
 /**
   * Represents a named location WHERE data can be read from or written to.
@@ -95,7 +89,6 @@ case class DataSource(
 ) extends Vertex with RootEntity {
   override val _key: DataSource.Key = null // NOSONAR
 
-  def this() = this(null, null, null) // NOSONAR
 }
 
 object DataSource {
@@ -150,7 +143,7 @@ case class Progress(
 ) extends Vertex with RootEntity
 
 object Progress {
-  type JobDurationInNanos = Long
+  type JobDurationInNanos = java.lang.Long
 }
 
 /**
@@ -165,6 +158,4 @@ case class ExecPlanDetails(
   dataSourceType: String,
   labels: Map[String, Seq[String]],
   append: Boolean
-) {
-  def this() = this(null, null, null, null, null, null, null, false) // NOSONAR
-}
+)

@@ -22,6 +22,4 @@ case class Attribute(
   dataType: Option[Any],
   extra: Map[String, Any],
   name: String,
-) extends Vertex {
-  def this() = this(null, null, null, null, null)
-}
+) extends Vertex

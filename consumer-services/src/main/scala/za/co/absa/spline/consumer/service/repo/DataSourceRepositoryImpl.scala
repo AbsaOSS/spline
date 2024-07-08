@@ -111,11 +111,11 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
     writeAppendOptions: Array[Option[Boolean]],
     maybeWriteApplicationId: Option[String],
     maybeDataSourceUri: Option[String]
-  )(implicit ec: ExecutionContext): Future[(Seq[WriteEventInfo], Long)] = {
+  )(implicit ec: ExecutionContext): Future[(Seq[ExecutionEventInfo], Long)] = {
     val lblNames = labels.map(_.name)
     val lblValues = labels.map(_.values)
 
-    db.queryAs[WriteEventInfo](
+    db.queryAs[ExecutionEventInfo](
       s"""
          |WITH ${SearchViewDef.DataSourceSearchView.name}
          |FOR ds IN ${SearchViewDef.DataSourceSearchView.name}
@@ -159,7 +159,9 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
          |        "dataSourceType"   : ds.lastWriteDetails.execPlanDetails.dataSourceType,
          |        "append"           : ds.lastWriteDetails.execPlanDetails.append,
          |        "durationNs"       : ds.lastWriteDetails.durationNs,
-         |        "error"            : ds.lastWriteDetails.error
+         |        "error"            : ds.lastWriteDetails.error,
+         |        "extra"            : ds.lastWriteDetails.extra,
+         |        "labels"           : ds.lastWriteDetails.labels
          |    }
          |
          |    SORT resItem.@sortField @sortOrder
