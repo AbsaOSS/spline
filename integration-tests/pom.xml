@@ -59,4 +59,24 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>skip-it-tests</id>
+            <activation>
+                <!--
+                Integration-tests module depends on Testcontainers,
+                that are currently not supported on Windows.
+                See: https://github.com/testcontainers/testcontainers-java/issues/2960
+                Therefore we skip integration tests on Windows.
+                -->
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
+        </profile>
+    </profiles>
+
 </project>
