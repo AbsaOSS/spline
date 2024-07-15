@@ -21,6 +21,7 @@ import { store } from './store'
 import { aql, db } from '@arangodb'
 import { withTimeTracking } from '../utils/common'
 import { TxManager } from './txm'
+import { TxTemplate } from './txm/tx-template'
 
 
 export function storeExecutionEvent(progress: Progress): void {
@@ -70,8 +71,8 @@ export function storeExecutionEvent(progress: Progress): void {
         const progressEdge: Partial<ArangoDB.Edge> =
             edge(CollectionName.Progress, progress._key, CollectionName.ExecutionPlan, progress.planKey, progress._key)
 
-        const wtxInfo: WriteTxInfo = TxManager.startWrite(
-            progress._key,
+        const txTemplate = new TxTemplate(
+            `${CollectionName.Progress}/${progress._key}`,
             {
                 execEventInfo: {
                     _key: progress._key,
@@ -81,14 +82,9 @@ export function storeExecutionEvent(progress: Progress): void {
                 }
             })
 
-        try {
+        txTemplate.doWrite((wtxInfo: WriteTxInfo) => {
             store.insertOne(progressWithPlanDetails, CollectionName.Progress, wtxInfo)
             store.insertOne(progressEdge, CollectionName.ProgressOf, wtxInfo)
-            TxManager.commit(wtxInfo)
-        }
-        catch (e) {
-            TxManager.rollback(wtxInfo)
-            throw e
-        }
+        })
     })
 }

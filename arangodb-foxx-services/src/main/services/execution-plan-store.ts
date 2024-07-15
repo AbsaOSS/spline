@@ -19,21 +19,21 @@ import { ExecutionPlanPersistentModel } from '../../external/api.model'
 import { CollectionName, WriteTxInfo } from '../persistence/model'
 import { store } from './store'
 import { withTimeTracking } from '../utils/common'
-import { TxManager } from './txm'
+import { TxTemplate } from './txm/tx-template'
 
 
 export function storeExecutionPlan(eppm: ExecutionPlanPersistentModel): void {
     const execPlanKey = eppm.executionPlan._key
     withTimeTracking(`STORE PLAN ${execPlanKey}`, () => {
-        const txInfo: WriteTxInfo = TxManager.startWrite(
-            execPlanKey,
+        const txTemplate = new TxTemplate(
+            `${CollectionName.ExecutionPlan}/${execPlanKey}`,
             {
                 execPlanInfo: {
                     _key: execPlanKey,
                 }
             })
 
-        try {
+        txTemplate.doWrite((txInfo: WriteTxInfo) => {
             // execution plan
             store.insertOne(eppm.executes, CollectionName.Executes, txInfo)
             store.insertMany(eppm.depends, CollectionName.Depends, txInfo)
@@ -61,14 +61,7 @@ export function storeExecutionPlan(eppm: ExecutionPlanPersistentModel): void {
             // expression
             store.insertMany(eppm.expressions, CollectionName.Expression, txInfo)
             store.insertMany(eppm.takes, CollectionName.Takes, txInfo)
-
-            TxManager.commit(txInfo)
-
-        }
-        catch (e) {
-            TxManager.rollback(txInfo)
-            throw e
-        }
+        })
     })
 }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {TxManager} from './tx-manager'
+import { TxManager } from './tx-manager'
 import {
     AuxCollectionName,
     CollectionName,
@@ -27,8 +27,8 @@ import {
     TxParams,
     WriteTxInfo
 } from '../../persistence/model'
-import {store} from '../store'
-import {aql, db} from '@arangodb'
+import { store } from '../store'
+import { aql, db } from '@arangodb'
 import * as Logger from '../../utils/logger'
 import UpdateResult = ArangoDB.UpdateResult
 
@@ -37,6 +37,20 @@ import UpdateResult = ArangoDB.UpdateResult
  * Max attempts to atomically increment the counter
  */
 const MAX_GET_TX_NUM_ATTEMPTS = 50
+
+/**
+ * Timestamp in milliseconds since Unix epoch
+ */
+type Timestamp = number
+
+/**
+ * Transaction record.
+ */
+type TxRecord = {
+    sid: string, // secondary transaction ID - represents a logical transaction
+    started: Timestamp,
+    obsolete?: Timestamp,
+}
 
 export class TxManagerImpl implements TxManager {
 
@@ -80,8 +94,12 @@ export class TxManagerImpl implements TxManager {
         // (opposite to one for the READ transaction) as follows:
 
         // First,
-        // register a new Tx ID in the transaction registry
-        const txId: TxId = store.insertOne({}, AuxCollectionName.TxInfo)._key
+        // register a new Tx record in the transaction registry and get its ID
+        const txRec: TxRecord = {
+            sid,
+            started: Date.now()
+        }
+        const txId: TxId = store.insertOne(txRec, AuxCollectionName.TxInfo)._key
 
         // Second,
         // obtain a next global number to fix a transaction position on a serializable time axis.
@@ -91,10 +109,9 @@ export class TxManagerImpl implements TxManager {
         const wtxInfo: WriteTxInfo = {
             num: txNum,
             uid: txId,
-            sid: sid,
             params: txParams,
         }
-        Logger.debug('[TX] WRITE STARTED', wtxInfo)
+        Logger.debug('[TX] WRITE STARTED', wtxInfo, txRec)
         return wtxInfo
     }
 

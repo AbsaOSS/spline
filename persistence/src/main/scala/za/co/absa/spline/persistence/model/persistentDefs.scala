@@ -236,7 +236,7 @@ object CollectionDef {
     override def name: String = "txInfo"
 
     override def indexDefs: Seq[IndexDef] = Seq(
-      IndexDef(Seq("sid"), (new PersistentIndexOptions).unique(true))
+      IndexDef(Seq("sid", "terminated"), (new PersistentIndexOptions).unique(true))
     )
   }
 
