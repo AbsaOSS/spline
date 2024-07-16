@@ -13,43 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package za.co.absa.spline.consumer.service.repo
 
-import com.arangodb.ArangoDBException
-import com.arangodb.async.ArangoDatabaseAsync
-import com.arangodb.internal.util.ArangoSerializationFactory.Serializer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import za.co.absa.spline.consumer.service.model.LineageOverview
 import za.co.absa.spline.consumer.service.model.ExecutionEventInfo.Id
+import za.co.absa.spline.consumer.service.model.LineageOverview
+import za.co.absa.spline.persistence.FoxxRouter
 
-import java.util.concurrent.CompletionException
-import scala.PartialFunction.cond
 import scala.concurrent.{ExecutionContext, Future}
-import scala.jdk.FutureConverters._
 
 @Repository
-class ImpactLineageRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends LineageRepository with ImpactRepository {
+class ImpactLineageRepositoryImpl @Autowired()(foxxRouter: FoxxRouter) extends LineageRepository with ImpactRepository {
 
-  override def lineageOverviewForExecutionEvent(eventId: Id, maxDepth: Int)
-    (implicit ec: ExecutionContext): Future[LineageOverview] = {
-    generalLineageOverviewForExecutionEvent(s"/spline/execution-events/$eventId/lineage-overview/$maxDepth", eventId)
+  override def lineageOverviewForExecutionEvent(eventId: Id, maxDepth: Int)(implicit ec: ExecutionContext): Future[LineageOverview] = {
+    foxxRouter.get[LineageOverview](s"/spline/execution-events/$eventId/lineage-overview/$maxDepth")
   }
 
-  override def impactOverviewForExecutionEvent(eventId: Id, maxDepth: Int)
-    (implicit ec: ExecutionContext): Future[LineageOverview] = {
-    generalLineageOverviewForExecutionEvent(s"/spline/execution-events/$eventId/impact-overview/$maxDepth", eventId)
+  override def impactOverviewForExecutionEvent(eventId: Id, maxDepth: Int)(implicit ec: ExecutionContext): Future[LineageOverview] = {
+    foxxRouter.get[LineageOverview](s"/spline/execution-events/$eventId/impact-overview/$maxDepth")
   }
-
-  private def generalLineageOverviewForExecutionEvent(routeUrl: String, eventId: Id)(implicit ec: ExecutionContext): Future[LineageOverview] =
-    db
-      .route(routeUrl)
-      .get()
-      .asScala
-      .map(resp => db.util(Serializer.CUSTOM).deserialize[LineageOverview](resp.getBody, classOf[LineageOverview]))
-      .recover({
-        case ce: CompletionException
-          if cond(ce.getCause)({ case ae: ArangoDBException => ae.getResponseCode == 404 }) =>
-          throw new NoSuchElementException(s"Event ID: $eventId")
-      })
 }

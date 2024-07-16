@@ -44,6 +44,8 @@ class ArangoRepoConfig extends InitializingBean with LazyLogging {
 
   @Bean def arangoDatabase: ArangoDatabaseAsync = arangoDatabaseFacade.db
 
+  @Bean def foxxRouter: FoxxRouter = new FoxxRouter(arangoDatabase)
+
   @Bean def databaseVersionManager: DatabaseVersionManager = new DatabaseVersionManager(arangoDatabase)
 
   @Bean def databaseVersionChecker: DatabaseVersionChecker = new DatabaseVersionChecker(databaseVersionManager)

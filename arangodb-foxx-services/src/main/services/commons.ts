@@ -68,7 +68,7 @@ export function eventLineageOverviewGraph(observedByEventFn: (p: Progress, rtxIn
     }
 
     const aqlGen = new AQLCodeGenHelper(rtxInfo)
-    const genTxIsolationCodeForTraversal = memoize((...keys) => keys, aqlGen.genTxIsolationCodeForTraversal)
+    const genTxIsolationCodeForTraversal = memoize((...keys) => keys, aqlGen.genTxIsolationCodeForTraversal).bind(aqlGen)
     const startSource = getStartDataSourceFromExecutionEvent(startEvent, genTxIsolationCodeForTraversal)
     const graphBuilder = new GraphBuilder([startSource])
 

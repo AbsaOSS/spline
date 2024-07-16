@@ -21,20 +21,22 @@ import com.typesafe.scalalogging.LazyLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.common.AsyncCallRetryer
-import za.co.absa.spline.persistence.ArangoImplicits
 import za.co.absa.spline.persistence.model._
-import za.co.absa.spline.persistence.tx._
-import za.co.absa.spline.producer.model.v1_2.ExecutionEvent._
+import za.co.absa.spline.persistence.{ArangoImplicits, FoxxRouter}
 import za.co.absa.spline.producer.model.{v1_2 => apiModel}
 import za.co.absa.spline.producer.service.UUIDCollisionDetectedException
-import za.co.absa.spline.producer.service.model.{ExecutionEventKeyCreator, ExecutionPlanPersistentModel, ExecutionPlanPersistentModelBuilder}
+import za.co.absa.spline.producer.service.model.{ExecutionEventKeyCreator, ExecutionPlanPersistentModelBuilder}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.FutureConverters._
 import scala.util.control.NonFatal
 
 @Repository
-class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retryer: AsyncCallRetryer) extends ExecutionProducerRepository
+class ExecutionProducerRepositoryImpl @Autowired()(
+  db: ArangoDatabaseAsync,
+  foxxRouter: FoxxRouter,
+  retryer: AsyncCallRetryer
+) extends ExecutionProducerRepository
   with LazyLogging {
 
   import ArangoImplicits._
@@ -78,8 +80,8 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retr
         case None =>
           // no execution plan with the given ID found
           val eppm = ExecutionPlanPersistentModelBuilder.toPersistentModel(executionPlan, persistedDSKeyByURI)
-          val tx = createExecutionPlanTransaction(eppm)
-          tx.execute[Any](db)
+
+          foxxRouter.post("/spline/execution-plans", eppm)
       }
     } yield ()
   })
@@ -119,8 +121,8 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retr
             planKey = e.planId.toString,
             execPlanDetails = null // the value is populated below in the transaction script
           )
-          val tx = createExecutionEventTransaction(p)
-          tx.execute[Any](db)
+
+          foxxRouter.post("/spline/execution-events", p)
       }
     } yield ()
   })
@@ -140,16 +142,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retr
   }
 }
 
-object ExecutionProducerRepositoryImpl {
-
-  private def createExecutionPlanTransaction(eppm: ExecutionPlanPersistentModel) = {
-    new FoxxPostTxBuilder("/spline/execution-plans", eppm).buildTx()
-  }
-
-  private def createExecutionEventTransaction(p: Progress): ArangoTx = {
-    new FoxxPostTxBuilder("/spline/execution-events", p).buildTx()
-  }
-
+private object ExecutionProducerRepositoryImpl {
   private def ensureNoExecPlanIDCollision(
     planId: apiModel.ExecutionPlan.Id,
     actualDiscriminator: apiModel.ExecutionPlan.Discriminator,
