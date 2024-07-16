@@ -38,9 +38,9 @@ import { ReadTxInfo } from '../persistence/model'
  */
 export function impactOverview(eventKey: DocumentKey, maxDepth: number, rtxInfo: ReadTxInfo): LineageOverview {
 
-    const executionEvent: Progress = getExecutionEventFromEventKey(eventKey)
-    const targetDataSource: DataSource = executionEvent && getTargetDataSourceFromExecutionEvent(executionEvent)
-    const impactGraph: LineageGraph = eventImpactOverviewGraph(executionEvent, maxDepth, rtxInfo)
+    const executionEvent: Progress = getExecutionEventFromEventKey(eventKey, rtxInfo)
+    const targetDataSource: DataSource = executionEvent && getTargetDataSourceFromExecutionEvent(executionEvent, rtxInfo)
+    const impactGraph: LineageGraph = targetDataSource && eventImpactOverviewGraph(executionEvent, maxDepth, rtxInfo)
 
     return impactGraph && constructLineageOverview(executionEvent, targetDataSource, maxDepth, impactGraph)
 }

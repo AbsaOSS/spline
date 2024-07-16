@@ -20,19 +20,29 @@ import { memoize } from '../utils/common'
 import { GraphBuilder } from '../utils/graph'
 import { ReadTxInfo } from '../persistence/model'
 import { Progress } from '../../external/api.model'
+import { AQLCodeGenHelper } from '../utils/aql-gen-helper'
 
 
-export function getExecutionEventFromEventKey(eventKey: DocumentKey): Progress {
+export function getExecutionEventFromEventKey(eventKey: DocumentKey, rtxInfo: ReadTxInfo): Progress {
+    const aqlGen = new AQLCodeGenHelper(rtxInfo)
     return db._query(aql`
         WITH progress
-        RETURN FIRST(FOR p IN progress FILTER p._key == ${eventKey} RETURN p)
+        FOR p IN progress
+            ${aqlGen.genTxIsolationCodeForLoop('p')}
+            FILTER p._key == ${eventKey}
+            LIMIT 1
+            RETURN p
     `).next()
 }
 
-export function getTargetDataSourceFromExecutionEvent(executionEvent: Progress): DataSource {
+export function getTargetDataSourceFromExecutionEvent(executionEvent: Progress, rtxInfo: ReadTxInfo): DataSource {
+    const aqlGen = new AQLCodeGenHelper(rtxInfo)
     return db._query(aql`
         WITH progress, progressOf, executionPlan, affects, dataSource
-        RETURN FIRST(FOR ds IN 2 OUTBOUND ${executionEvent} progressOf, affects RETURN ds)
+        FOR ds, e IN 2 OUTBOUND ${executionEvent} progressOf, affects
+            ${aqlGen.genTxIsolationCodeForTraversal('e')}
+            LIMIT 1
+            RETURN ds
     `).next()
 }
 
@@ -52,10 +62,54 @@ export function constructLineageOverview(executionEvent: Progress, targetDataSou
     }
 }
 
-function getStartDataSourceFromExecutionEvent(startEvent: Progress): DataSource {
+export function eventLineageOverviewGraph(observedByEventFn: (p: Progress, rtxInfo: ReadTxInfo) => Progress[], startEvent: Progress, maxDepth: number, rtxInfo: ReadTxInfo): LineageGraph {
+    if (!startEvent || maxDepth < 0) {
+        return null
+    }
+
+    const aqlGen = new AQLCodeGenHelper(rtxInfo)
+    const genTxIsolationCodeForTraversal = memoize((...keys) => keys, aqlGen.genTxIsolationCodeForTraversal)
+    const startSource = getStartDataSourceFromExecutionEvent(startEvent, genTxIsolationCodeForTraversal)
+    const graphBuilder = new GraphBuilder([startSource])
+
+    const collectPartialGraphForEvent = (event: Progress) => {
+        const partialGraph = getPartialGraphForEvent(event, genTxIsolationCodeForTraversal)
+        graphBuilder.add(partialGraph)
+    }
+
+    const traverse = memoize(e => e._id, (event: Progress, depth: number) => {
+        let remainingDepth = depth - 1
+        if (depth > 1) {
+            observedByEventFn(event, rtxInfo)
+                .forEach(writeEvent => {
+                    const remainingDepth_i = traverse(writeEvent, depth - 1)
+                    remainingDepth = Math.min(remainingDepth, remainingDepth_i)
+                })
+        }
+
+        collectPartialGraphForEvent(event)
+
+        return remainingDepth
+    })
+
+    const totalRemainingDepth = maxDepth > 0 ? traverse(startEvent, maxDepth) : 0
+    const resultedGraph = graphBuilder.graph()
+
+    return {
+        depth: maxDepth - totalRemainingDepth,
+        vertices: resultedGraph.vertices,
+        edges: resultedGraph.edges
+    }
+}
+
+function getStartDataSourceFromExecutionEvent(
+    startEvent: Progress,
+    genTxIsolationCodeForTraversal: (...aqlVarIdentifiers: string[]) => ArangoDB.Query
+): DataSource {
     return db._query(aql`
         WITH progress, progressOf, executionPlan, affects, dataSource
-        FOR ds IN 2 OUTBOUND ${startEvent} progressOf, affects
+        FOR ds, e IN 2 OUTBOUND ${startEvent} progressOf, affects
+            ${genTxIsolationCodeForTraversal('e')}
             LIMIT 1
             RETURN {
                 "_id": ds._key,
@@ -65,18 +119,33 @@ function getStartDataSourceFromExecutionEvent(startEvent: Progress): DataSource 
         `).next()
 }
 
-function getPartialGraphForEvent(event: Progress) {
+function getPartialGraphForEvent(
+    event: Progress,
+    genTxIsolationCodeForTraversal: (...aqlVarIdentifiers: string[]) => ArangoDB.Query
+): LineageGraph {
     // using the same query for backward lineage and forward lineage (impact)
     return db._query(aql`
             WITH progress, progressOf, executionPlan, affects, depends, dataSource
 
-            LET exec = FIRST(FOR ex IN 1 OUTBOUND ${event} progressOf RETURN ex)
-            LET affectedDsEdgeAndNode = FIRST(FOR v, e IN 1 OUTBOUND exec affects RETURN [v,e])
+            LET exec = FIRST(
+                FOR ex, e IN 1 OUTBOUND ${event} progressOf
+                    ${genTxIsolationCodeForTraversal('ex', 'e')}
+                    RETURN ex
+            )
+            LET affectedDsEdgeAndNode = FIRST(
+                FOR v, e IN 1 OUTBOUND exec affects
+                    ${genTxIsolationCodeForTraversal('v', 'e')}
+                    RETURN [v,e]
+            )
 
             LET affectedDsNode = affectedDsEdgeAndNode[0] // for impact: node with result datasource must be included explicitly
             LET affectedDsEdge = affectedDsEdgeAndNode[1]
 
-            LET rdsWithInEdges = (FOR ds, e IN 1 OUTBOUND exec depends RETURN [ds, e])
+            LET rdsWithInEdges = (
+                FOR ds, e IN 1 OUTBOUND exec depends
+                    ${genTxIsolationCodeForTraversal('e')}
+                    RETURN [ds, e]
+            )
             LET readSources = rdsWithInEdges[*][0]
             LET readDsEdges = rdsWithInEdges[*][1]
 
@@ -109,42 +178,4 @@ function getPartialGraphForEvent(event: Progress) {
 
             RETURN {vertices, edges}
         `).next()
-}
-
-export function eventLineageOverviewGraph(observeByEventFn: (p: Progress, rtxInfo: ReadTxInfo) => Progress[], startEvent: Progress, maxDepth: number, rtxInfo: ReadTxInfo): LineageGraph {
-    if (!startEvent || maxDepth < 0) {
-        return null
-    }
-
-    const startSource = getStartDataSourceFromExecutionEvent(startEvent)
-    const graphBuilder = new GraphBuilder([startSource])
-
-    const collectPartialGraphForEvent = (event: Progress) => {
-        const partialGraph = getPartialGraphForEvent(event)
-        graphBuilder.add(partialGraph)
-    }
-
-    const traverse = memoize(e => e._id, (event: Progress, depth: number) => {
-        let remainingDepth = depth - 1
-        if (depth > 1) {
-            observeByEventFn(event, rtxInfo)
-                .forEach(writeEvent => {
-                    const remainingDepth_i = traverse(writeEvent, depth - 1)
-                    remainingDepth = Math.min(remainingDepth, remainingDepth_i)
-                })
-        }
-
-        collectPartialGraphForEvent(event)
-
-        return remainingDepth
-    })
-
-    const totalRemainingDepth = maxDepth > 0 ? traverse(startEvent, maxDepth) : 0
-    const resultedGraph = graphBuilder.graph()
-
-    return {
-        depth: maxDepth - totalRemainingDepth,
-        vertices: resultedGraph.vertices,
-        edges: resultedGraph.edges
-    }
 }

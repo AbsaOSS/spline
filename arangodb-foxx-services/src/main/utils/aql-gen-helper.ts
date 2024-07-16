@@ -35,7 +35,7 @@ export class AQLCodeGenHelper {
     }
 
     private genTxIsolationCode(isTraversal: boolean, ...aqlVarIdentifiers: string[]): ArangoDB.Query {
-        if (aqlVarIdentifiers.length === 0) {
+        if (this.rtxInfo === null || aqlVarIdentifiers.length === 0) {
             return aql``
         }
         this.i++
