@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {DocumentKey, LineageOverview, DataSource, LineageGraph} from '../model'
+import { DataSource, DocumentKey, LineageGraph, LineageOverview } from '../model'
 
-import {aql, db} from '@arangodb'
-import {memoize} from '../utils/common'
-import {GraphBuilder} from '../utils/graph'
+import { aql, db } from '@arangodb'
+import { memoize } from '../utils/common'
+import { GraphBuilder } from '../utils/graph'
 import { ReadTxInfo } from '../persistence/model'
 import { Progress } from '../../external/api.model'
 

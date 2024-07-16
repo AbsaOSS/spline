@@ -17,9 +17,9 @@
 import { CollectionName, ReadTxInfo, TxAwareDocument, WriteTxInfo } from '../persistence/model'
 import { db } from '@arangodb'
 import { DocumentKey } from '../model'
+import { TxManager } from './txm'
 import Document = ArangoDB.Document
 import DocumentMetadata = ArangoDB.DocumentMetadata
-import { TxManager } from './txm'
 
 
 const dbCollections: Record<CollectionName, ArangoDB.Collection> =

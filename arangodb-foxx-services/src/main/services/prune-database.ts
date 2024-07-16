@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import {aql, db} from '@arangodb'
+import { aql, db } from '@arangodb'
 import * as Logger from '../utils/logger'
+
 
 export function pruneBefore(timestamp) {
     Logger.info(`[Spline] Prune data before: ${timestamp}`)
@@ -53,7 +54,7 @@ export function pruneBefore(timestamp) {
     const collections = ['executes', 'operation', 'follows', 'uses', 'expression', 'affects', 'depends', 'writesTo', 'readsFrom', 'emits', 'produces', 'consistsOf', 'derivesFrom', 'computedBy', 'takes', 'schema', 'attribute']
     for (let i = 0; i < collections.length; i++) {
         Logger.info('### Working on', collections[i], 'collection')
-        const startCount = db._query('RETURN COUNT(@@cols)', {'@cols': collections[i]}).toArray()[0]
+        const startCount = db._query('RETURN COUNT(@@cols)', { '@cols': collections[i] }).toArray()[0]
         db._query('FOR orphanExecPlanID IN @arr FOR collectionEle IN @@cols FILTER collectionEle._belongsTo == orphanExecPlanID && collectionEle._created < @purgeLimitTimestamp REMOVE collectionEle IN @@cols',
             {
                 'arr': orphanExecPlanIDsOlderThanThresholdDaysArray,
@@ -61,7 +62,7 @@ export function pruneBefore(timestamp) {
                 'purgeLimitTimestamp': timestamp
             }
         )
-        const endCount = db._query('RETURN COUNT(@@cols)', {'@cols': collections[i]}).toArray()[0]
+        const endCount = db._query('RETURN COUNT(@@cols)', { '@cols': collections[i] }).toArray()[0]
         Logger.info(startCount - endCount, collections[i], 'objects deleted...')
     }
 
@@ -71,13 +72,13 @@ export function pruneBefore(timestamp) {
     let endCount = 0
 
     Logger.info('### Working on executionPlan collection')
-    startCount = db._query('RETURN COUNT(@@cols)', {'@cols': 'executionPlan'}).toArray()[0]
+    startCount = db._query('RETURN COUNT(@@cols)', { '@cols': 'executionPlan' }).toArray()[0]
     db._query(aql`
         FOR doc IN executionPlan
             FILTER doc._id IN ${orphanExecPlanIDsOlderThanThresholdDaysArray}
             REMOVE doc IN executionPlan
     `)
-    endCount = db._query('RETURN COUNT(@@cols)', {'@cols': 'executionPlan'}).toArray()[0]
+    endCount = db._query('RETURN COUNT(@@cols)', { '@cols': 'executionPlan' }).toArray()[0]
     Logger.info(startCount - endCount, 'executionPlan objects deleted...')
 
     // Deleted other collections and then the orphanExecPlanIDs
@@ -117,7 +118,7 @@ export function pruneBefore(timestamp) {
     `).toArray()
 
     Logger.info('### Working on dataSource collection')
-    startCount = db._query('RETURN COUNT(@@cols)', {'@cols': 'dataSource'}).toArray()[0]
+    startCount = db._query('RETURN COUNT(@@cols)', { '@cols': 'dataSource' }).toArray()[0]
     db._query(aql`
         FOR source IN dataSource
             FILTER source._key IN ${orphanDataSourceKeysOlderThanThresholdDaysArray}

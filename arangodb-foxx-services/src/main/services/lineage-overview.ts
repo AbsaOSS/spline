@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {DataSource, DocumentKey, LineageGraph, LineageOverview} from '../model'
+import { DataSource, DocumentKey, LineageGraph, LineageOverview } from '../model'
 
-import {observedWritesByRead} from './observed-writes-by-read'
+import { observedWritesByRead } from './observed-writes-by-read'
 import {
     constructLineageOverview,
     eventLineageOverviewGraph,

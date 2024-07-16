@@ -16,8 +16,8 @@
 
 
 import { DocumentKey } from '../model'
-import Document = ArangoDB.Document
 import { ExecutionPlan, Progress } from '../../external/api.model'
+import Document = ArangoDB.Document
 
 
 export enum AuxCollectionName {

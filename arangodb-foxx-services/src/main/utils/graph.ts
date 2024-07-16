@@ -17,6 +17,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type TKey = string
 type TValue = any
+
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 class DistinctCollector {

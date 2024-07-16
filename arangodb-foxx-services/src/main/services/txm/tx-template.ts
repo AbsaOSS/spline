@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import {TxParams, WriteTxInfo} from '../../persistence/model'
-import {TxManager} from './index'
-import {aql, db} from '@arangodb'
+import { TxParams, WriteTxInfo } from '../../persistence/model'
+import { TxManager } from './index'
 
 
 export class TxTemplate {

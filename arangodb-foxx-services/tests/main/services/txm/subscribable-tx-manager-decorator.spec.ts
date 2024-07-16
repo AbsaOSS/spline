@@ -60,7 +60,7 @@ test('startRead() should be delegated', () => {
 })
 
 test('startWrite() should be delegated', () => {
-    const dummySID: TxId = "dummy_tx_sid"
+    const dummySID: TxId = 'dummy_tx_sid'
     const dummyTxParams: TxParams = {}
     const dummyResult = {}
     mockTxManagerImpl.startWrite.mockReturnValue(dummyResult)

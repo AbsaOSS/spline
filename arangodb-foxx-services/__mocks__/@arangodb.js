@@ -98,7 +98,7 @@ exports.aql = function aql(templateStrings, ...args) {
     return {
         query,
         bindVars,
-        _source: () => ({ strings, args })
+        _source: () => ({strings, args})
     };
 };
 
