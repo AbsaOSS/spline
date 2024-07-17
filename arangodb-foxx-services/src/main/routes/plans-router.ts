@@ -17,6 +17,9 @@
 import { createRouter } from '@arangodb/foxx'
 import { ExecutionPlanPersistentModel } from '../../external/api.model'
 import { storeExecutionPlan } from '../services/execution-plan-store'
+import Joi from 'joi'
+import { checkKeyExistence } from '../services/store'
+import { NodeCollectionName } from '../persistence/model'
 
 
 export const plansRouter: Foxx.Router = createRouter()
@@ -31,3 +34,18 @@ plansRouter
     .body(['application/json'], 'Execution Plan Persistent Model JSON')
     .response(201, 'Plan registered')
     .summary('Register a new execution plan')
+
+plansRouter
+    .get('/:planId/_exists',
+        (req: Foxx.Request, res: Foxx.Response) => {
+            const exists = checkKeyExistence(
+                NodeCollectionName.ExecutionPlan,
+                req.pathParams.planId,
+                req.queryParams.discriminator
+            )
+            res.send(exists)
+        })
+    .pathParam('planId', Joi.string().min(1).required(), 'Execution Plan ID')
+    .queryParam('discriminator', Joi.string().optional(), 'Execution Plan Discriminator')
+    .response(200, ['application/json'], 'Boolean value indicating if the execution plan exists')
+    .summary('Check if the execution plan with the given parameters exists')

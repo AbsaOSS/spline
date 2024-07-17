@@ -21,6 +21,8 @@ import { impactOverview } from '../services/impact-overview'
 import { Progress } from '../../external/api.model'
 import { storeExecutionEvent } from '../services/execution-event-store'
 import { TxManager } from '../services/txm'
+import { checkKeyExistence } from '../services/store'
+import { NodeCollectionName } from '../persistence/model'
 
 
 export const eventsRouter: Foxx.Router = createRouter()
@@ -77,3 +79,18 @@ eventsRouter
     .body(['application/json'], 'Execution Event (Progress) JSON')
     .response(201, 'Execution event recorded')
     .summary('Record a new execution event')
+
+eventsRouter
+    .get('/:eventId/_exists',
+        (req: Foxx.Request, res: Foxx.Response) => {
+            const exists = checkKeyExistence(
+                NodeCollectionName.Progress,
+                req.pathParams.eventId,
+                req.queryParams.discriminator
+            )
+            res.send(exists)
+        })
+    .pathParam('eventId', Joi.string().min(1).required(), 'Execution Event ID')
+    .queryParam('discriminator', Joi.string().optional(), 'Execution Event Discriminator')
+    .response(200, ['application/json'], 'Boolean value indicating if the execution event exists')
+    .summary('Check if the execution event with the given parameters exists')

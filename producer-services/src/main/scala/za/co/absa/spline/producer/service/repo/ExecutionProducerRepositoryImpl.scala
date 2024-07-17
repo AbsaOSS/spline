@@ -21,10 +21,9 @@ import com.typesafe.scalalogging.LazyLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.common.AsyncCallRetryer
+import za.co.absa.spline.persistence.FoxxRouter
 import za.co.absa.spline.persistence.model._
-import za.co.absa.spline.persistence.{ArangoImplicits, FoxxRouter}
 import za.co.absa.spline.producer.model.{v1_2 => apiModel}
-import za.co.absa.spline.producer.service.UUIDCollisionDetectedException
 import za.co.absa.spline.producer.service.model.{ExecutionEventKeyCreator, ExecutionPlanPersistentModelBuilder}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -39,90 +38,65 @@ class ExecutionProducerRepositoryImpl @Autowired()(
 ) extends ExecutionProducerRepository
   with LazyLogging {
 
-  import ArangoImplicits._
-  import ExecutionProducerRepositoryImpl._
-
   override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = retryer.execute({
-    val eventualMaybeExistingDiscriminatorOpt: Future[Option[String]] = db.queryOptional[String](
-      s"""
-         |WITH ${NodeDef.ExecutionPlan.name}
-         |FOR ex IN ${NodeDef.ExecutionPlan.name}
-         |    FILTER ex._key == @key
-         |    LIMIT 1
-         |    RETURN ex.discriminator
-         |    """.stripMargin,
-      Map("key" -> executionPlan.id)
-    )
+    val eventualPlanExists: Future[Boolean] =
+      foxxRouter.get[Boolean](
+        s"/spline/execution-plans/${executionPlan.id}/_exists", Map(
+          "discriminator" -> executionPlan.discriminator
+        ))
 
     val eventualPersistedDataSources: Future[Seq[DataSource]] = {
-      val dataSources: Set[DataSource] = executionPlan.dataSources.map(DataSource.apply)
-      db.queryStream[DataSource](
-        s"""
-           |WITH ${NodeDef.DataSource.name}
-           |FOR ds IN @dataSources
-           |    UPSERT { uri: ds.uri }
-           |        INSERT KEEP(ds, ['_created', 'uri', 'name'])
-           |        UPDATE {} IN ${NodeDef.DataSource.name}
-           |        RETURN KEEP(NEW, ['_key', 'uri'])
-           |    """.stripMargin,
-        Map("dataSources" -> dataSources.toArray)
-      )
+      val dataSources = executionPlan.dataSources.map(DataSource.apply).toSeq
+      Future.traverse(dataSources)(foxxRouter.post[DataSource]("/spline/data-sources", _))
     }
 
     for {
       persistedDSKeyByURI <- eventualPersistedDataSources
-      maybeExistingDiscriminatorOpt <- eventualMaybeExistingDiscriminatorOpt
-      _ <- maybeExistingDiscriminatorOpt match {
-        case Some(existingDiscriminatorOrNull) =>
-          // execution plan with the given ID already exists
-          ensureNoExecPlanIDCollision(executionPlan.id, executionPlan.discriminator.orNull, existingDiscriminatorOrNull)
-          Future.successful(())
-        case None =>
-          // no execution plan with the given ID found
-          val eppm = ExecutionPlanPersistentModelBuilder.toPersistentModel(executionPlan, persistedDSKeyByURI)
-
-          foxxRouter.post("/spline/execution-plans", eppm)
+      planExists <- eventualPlanExists
+      _ <- if (planExists) {
+        // Execution plan with the given ID already exists.
+        // Nothing else to do.
+        Future.successful(())
+      } else {
+        // No execution plan with the given ID found.
+        // Let's insert one.
+        val eppm = ExecutionPlanPersistentModelBuilder.toPersistentModel(executionPlan, persistedDSKeyByURI)
+        foxxRouter.post("/spline/execution-plans", eppm)
       }
     } yield ()
   })
 
   override def insertExecutionEvent(e: apiModel.ExecutionEvent)(implicit ec: ExecutionContext): Future[Unit] = retryer.execute({
 
-    val key = new ExecutionEventKeyCreator(e).executionEventKey
+    val eventKey = new ExecutionEventKeyCreator(e).executionEventKey
 
-    val eventualMaybeExistingDiscriminatorOpt: Future[Option[String]] = db.queryOptional[String](
-      s"""
-         |WITH ${NodeDef.Progress.name}
-         |FOR p IN ${NodeDef.Progress.name}
-         |    FILTER p._key == @key
-         |    LIMIT 1
-         |    RETURN p.discriminator
-         |    """.stripMargin,
-      Map("key" -> key)
-    )
+    val eventualEventExists: Future[Boolean] =
+      foxxRouter.get[Boolean](
+        s"/spline/execution-events/$eventKey/_exists", Map(
+          "discriminator" -> e.discriminator
+        ))
 
     for {
-      maybeExistingDiscriminatorOpt <- eventualMaybeExistingDiscriminatorOpt
-      _ <- maybeExistingDiscriminatorOpt match {
-        case Some(existingDiscriminatorOrNull) =>
-          // execution plan with the given ID already exists
-          ensureNoExecPlanIDCollision(e.planId, e.discriminator.orNull, existingDiscriminatorOrNull)
-          Future.successful(())
-        case None =>
-          // no execution plan with the given ID found
-          val p = Progress(
-            timestamp = e.timestamp,
-            durationNs = e.durationNs,
-            discriminator = e.discriminator,
-            labels = e.labels,
-            error = e.error,
-            extra = e.extra,
-            _key = key,
-            planKey = e.planId.toString,
-            execPlanDetails = null // the value is populated below in the transaction script
-          )
-
-          foxxRouter.post("/spline/execution-events", p)
+      eventExists <- eventualEventExists
+      _ <- if (eventExists) {
+        // Execution event with the given ID already exists.
+        // Nothing else to do.
+        Future.successful(())
+      } else {
+        // No execution event with the given ID found.
+        // Let's insert one.
+        val p = Progress(
+          timestamp = e.timestamp,
+          durationNs = e.durationNs,
+          discriminator = e.discriminator,
+          labels = e.labels,
+          error = e.error,
+          extra = e.extra,
+          _key = eventKey,
+          planKey = e.planId.toString,
+          execPlanDetails = null // the value is populated below in the transaction script
+        )
+        foxxRouter.post("/spline/execution-events", p)
       }
     } yield ()
   })
@@ -138,18 +112,6 @@ class ExecutionProducerRepositoryImpl @Autowired()(
       futureIsDbOk.recover { case _ => false }
     } catch {
       case NonFatal(_) => Future.successful(false)
-    }
-  }
-}
-
-private object ExecutionProducerRepositoryImpl {
-  private def ensureNoExecPlanIDCollision(
-    planId: apiModel.ExecutionPlan.Id,
-    actualDiscriminator: apiModel.ExecutionPlan.Discriminator,
-    expectedDiscriminator: apiModel.ExecutionPlan.Discriminator
-  ): Unit = {
-    if (actualDiscriminator != expectedDiscriminator) {
-      throw new UUIDCollisionDetectedException("ExecutionPlan", planId, actualDiscriminator)
     }
   }
 }

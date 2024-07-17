@@ -30,11 +30,14 @@ import scala.reflect.ClassTag
 class FoxxRouter @Autowired()(db: ArangoDatabaseAsync) {
   private val serialization = db.util(Serializer.CUSTOM)
 
-  def get[A: ClassTag](endpoint: String)(implicit ex: ExecutionContext): Future[A] = {
+  def get[A: ClassTag](endpoint: String, queryParams: Map[String, Any] = Map.empty)(implicit ex: ExecutionContext): Future[A] = {
     val aType = implicitly[ClassTag[A]].runtimeClass
-    db
-      .route(endpoint)
-      .get()
+    val routeBuilder = db.route(endpoint)
+
+    for ((k, v) <- queryParams)
+      routeBuilder.withQueryParam(k, v)
+
+    routeBuilder.get()
       .asScala
       .map(resp => serialization.deserialize[A](resp.getBody, aType))
       .recover({
@@ -45,12 +48,14 @@ class FoxxRouter @Autowired()(db: ArangoDatabaseAsync) {
   }
 
   def post[A: ClassTag](endpoint: String, body: AnyRef)(implicit ex: ExecutionContext): Future[A] = {
+    val aType = implicitly[ClassTag[A]].runtimeClass
     val serializedBody = serialization.serialize(body)
     db
       .route(endpoint)
       .withBody(serializedBody)
       .post()
       .asScala
+      .map(resp => serialization.deserialize[A](resp.getBody, aType))
       .asInstanceOf[Future[A]]
   }
 }

@@ -19,7 +19,7 @@ import joi from 'joi'
 import { pruneBefore } from '../services/prune-database'
 
 
-const adminRouter = createRouter()
+export const adminRouter = createRouter()
 
 adminRouter
     .delete('/data/before/:timestamp',
@@ -31,5 +31,3 @@ adminRouter
     .pathParam('timestamp', joi.number().integer().min(0).required(), 'Data retention threshold [timestamp in millis]')
     .summary('Prune database')
     .description('Delete the data older than the given timestamp')
-
-export default adminRouter
