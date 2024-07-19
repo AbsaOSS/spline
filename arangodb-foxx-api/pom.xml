@@ -55,17 +55,20 @@
                         <argument>--trait-to-type</argument>
                         <argument>--option-to-nullable</argument>
                         <!-- list of root entities to generate TS definitions -->
-                        <argument>za.co.absa.spline.producer.service.model.ExecutionPlanPersistentModel</argument>
                         <argument>za.co.absa.spline.persistence.model.Progress</argument>
                         <argument>za.co.absa.spline.persistence.model.DataSource</argument>
                         <argument>za.co.absa.spline.persistence.model.DBVersion</argument>
+                        <argument>za.co.absa.spline.producer.service.model.ExecutionPlanPersistentModel</argument>
+                        <argument>za.co.absa.spline.consumer.service.model.Frame</argument>
+                        <argument>za.co.absa.spline.consumer.service.model.ExecutionPlanInfo</argument>
+                        <argument>za.co.absa.spline.consumer.service.model.ExecutionEventInfo</argument>
                     </arguments>
                 </configuration>
                 <dependencies>
                     <dependency>
                         <groupId>com.github.wajda</groupId>
                         <artifactId>scala-ts_${scala.compat.version}</artifactId>
-                        <version>0.4.1.8</version>
+                        <version>0.4.1.9</version>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -88,4 +91,11 @@
             </plugin>
         </plugins>
     </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-annotations</artifactId>
+        </dependency>
+    </dependencies>
 </project>
