@@ -16,8 +16,6 @@
 
 package za.co.absa.spline.consumer.service.model
 
-import java.{util => ju}
-
 /**
  * Represents a frame of items with pagination information.
  *
@@ -27,7 +25,7 @@ import java.{util => ju}
  * @tparam T type of items
  */
 case class Frame[T](
-  items: ju.List[T],
+  items: Seq[T],
   totalCount: Long,
   offset: Int
 )

@@ -17,6 +17,7 @@
 package za.co.absa.spline.producer.service.repo
 
 import com.arangodb.async.ArangoDatabaseAsync
+import com.fasterxml.jackson.core.`type`.TypeReference._
 import com.typesafe.scalalogging.LazyLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -42,7 +43,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(
     val eventualPlanExists: Future[Boolean] =
       foxxRouter.get[Boolean](
         s"/spline/execution-plans/${executionPlan.id}/_exists", Map(
-          "discriminator" -> executionPlan.discriminator
+          "discriminator" -> executionPlan.discriminator.orNull
         ))
 
     val eventualPersistedDataSources: Future[Seq[DataSource]] = {
@@ -61,7 +62,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(
         // No execution plan with the given ID found.
         // Let's insert one.
         val eppm = ExecutionPlanPersistentModelBuilder.toPersistentModel(executionPlan, persistedDSKeyByURI)
-        foxxRouter.post("/spline/execution-plans", eppm)
+        foxxRouter.post[Nothing]("/spline/execution-plans", eppm)
       }
     } yield ()
   })
@@ -73,7 +74,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(
     val eventualEventExists: Future[Boolean] =
       foxxRouter.get[Boolean](
         s"/spline/execution-events/$eventKey/_exists", Map(
-          "discriminator" -> e.discriminator
+          "discriminator" -> e.discriminator.orNull
         ))
 
     for {
@@ -96,7 +97,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(
           planKey = e.planId.toString,
           execPlanDetails = null // the value is populated below in the transaction script
         )
-        foxxRouter.post("/spline/execution-events", p)
+        foxxRouter.post[Nothing]("/spline/execution-events", p)
       }
     } yield ()
   })

@@ -15,6 +15,8 @@
  */
 package za.co.absa.spline.persistence.model
 
+import com.fasterxml.jackson.core.`type`.TypeReference
+
 trait ArangoDocument {
   val _key: ArangoDocument.Key = null // NOSONAR
 
@@ -92,6 +94,8 @@ case class DataSource(
 }
 
 object DataSource {
+  implicit val typeRef: TypeReference[DataSource] = new TypeReference[DataSource] {}
+
   type Key = ArangoDocument.Key
   type Uri = String
   type Name = String

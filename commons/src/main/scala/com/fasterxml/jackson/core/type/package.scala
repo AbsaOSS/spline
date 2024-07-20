@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2024 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package za.co.absa.spline.consumer.service.model
 
-import com.fasterxml.jackson.core.`type`.TypeReference
-import io.swagger.annotations.{ApiModel, ApiModelProperty}
+package com.fasterxml.jackson.core
 
-@ApiModel(description = "Lineage/Impact Overview")
-case class LineageOverview(
-  @ApiModelProperty(value = "Lineage/Impact graph")
-  graph: LineageOverviewGraph,
-  @ApiModelProperty(value = "Additional information")
-  info: Map[String, Any]
-)
-
-object LineageOverview {
-  implicit val typeRef: TypeReference[LineageOverview] = new TypeReference[LineageOverview] {}
+package object `type` {
+  object TypeReference {
+    implicit val typeRefBoolean: TypeReference[Boolean] = new TypeReference[Boolean] {}
+    implicit val typeRefUnit: TypeReference[Nothing] = new TypeReference[Nothing] {}
+  }
 }

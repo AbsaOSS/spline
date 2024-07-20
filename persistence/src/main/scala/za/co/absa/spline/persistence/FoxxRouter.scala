@@ -19,19 +19,20 @@ package za.co.absa.spline.persistence
 import com.arangodb.ArangoDBException
 import com.arangodb.async.ArangoDatabaseAsync
 import com.arangodb.internal.util.ArangoSerializationFactory.Serializer
+import com.arangodb.util.{ArangoSerializer, TypeRefAwareArangoDeserializerDecor}
+import com.fasterxml.jackson.core.`type`.TypeReference
 import org.springframework.beans.factory.annotation.Autowired
 
 import java.util.concurrent.CompletionException
 import scala.PartialFunction.cond
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.FutureConverters._
-import scala.reflect.ClassTag
 
 class FoxxRouter @Autowired()(db: ArangoDatabaseAsync) {
-  private val serialization = db.util(Serializer.CUSTOM)
+  private val serializer: ArangoSerializer = db.util(Serializer.CUSTOM)
+  private val deserializer = new TypeRefAwareArangoDeserializerDecor(db.util(Serializer.CUSTOM))
 
-  def get[A: ClassTag](endpoint: String, queryParams: Map[String, Any] = Map.empty)(implicit ex: ExecutionContext): Future[A] = {
-    val aType = implicitly[ClassTag[A]].runtimeClass
+  def get[A](endpoint: String, queryParams: Map[String, Any] = Map.empty)(implicit ex: ExecutionContext, typeRef: TypeReference[A]): Future[A] = {
     val routeBuilder = db.route(endpoint)
 
     for ((k, v) <- queryParams)
@@ -39,7 +40,7 @@ class FoxxRouter @Autowired()(db: ArangoDatabaseAsync) {
 
     routeBuilder.get()
       .asScala
-      .map(resp => serialization.deserialize[A](resp.getBody, aType))
+      .map(resp => deserializer.deserialize(resp.getBody))
       .recover({
         case ce: CompletionException
           if cond(ce.getCause)({ case ae: ArangoDBException => ae.getResponseCode == 404 }) =>
@@ -47,15 +48,14 @@ class FoxxRouter @Autowired()(db: ArangoDatabaseAsync) {
       })
   }
 
-  def post[A: ClassTag](endpoint: String, body: AnyRef)(implicit ex: ExecutionContext): Future[A] = {
-    val aType = implicitly[ClassTag[A]].runtimeClass
-    val serializedBody = serialization.serialize(body)
+  def post[A](endpoint: String, body: AnyRef)(implicit ex: ExecutionContext, typeRef: TypeReference[A]): Future[A] = {
+    val serializedBody = serializer.serialize(body)
     db
       .route(endpoint)
       .withBody(serializedBody)
       .post()
       .asScala
-      .map(resp => serialization.deserialize[A](resp.getBody, aType))
+      .map(resp => deserializer.deserialize(resp.getBody))
       .asInstanceOf[Future[A]]
   }
 }
