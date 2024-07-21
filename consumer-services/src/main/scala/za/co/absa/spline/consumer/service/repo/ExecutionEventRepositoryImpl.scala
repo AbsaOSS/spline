@@ -21,6 +21,7 @@ import org.springframework.stereotype.Repository
 import za.co.absa.spline.common.StringEscapeUtils.escapeAQLSearch
 import za.co.absa.spline.consumer.service.model._
 import za.co.absa.spline.consumer.service.repo.ExecutionEventRepositoryImpl._
+import za.co.absa.spline.persistence.DefaultJsonSerDe._
 import za.co.absa.spline.persistence.FoxxRouter
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -42,23 +43,19 @@ class ExecutionEventRepositoryImpl @Autowired()(
     maybeApplicationId: Option[String],
     maybeDataSourceUri: Option[String]
   )(implicit ec: ExecutionContext): Future[Frame[ExecutionEventInfo]] = {
-    val lblNames = labels.map(_.name)
-    val lblValues = labels.map(_.values)
-
     foxxRouter.get[Frame[ExecutionEventInfo]]("/spline/execution-events", Map(
       "asAtTime" -> Long.box(asAtTime),
       "timestampStart" -> maybeTimestampStart.map(Long.box).orNull,
       "timestampEnd" -> maybeTimestampEnd.map(Long.box).orNull,
-      "pageOffset" -> Int.box(pageRequest.page - 1),
-      "pageSize" -> Int.box(pageRequest.size),
-      "sortField" -> sortRequest.sortField,
-      "sortOrder" -> sortRequest.sortOrder,
       "searchTerm" -> maybeSearchTerm.map(escapeAQLSearch).orNull,
-      "writeAppends" -> (if (writeAppendOptions.isEmpty) null else writeAppendOptions.flatten.map(Boolean.box)),
       "applicationId" -> maybeApplicationId.orNull,
       "dataSourceUri" -> maybeDataSourceUri.orNull,
-      "lblNames" -> lblNames.toSeq,
-      "lblValues" -> lblValues.toSeq,
+      "writeAppends" -> (if (writeAppendOptions.isEmpty) null else writeAppendOptions.flatten.map(Boolean.box)),
+      "labels" -> labels.toJson,
+      "sortField" -> sortRequest.field,
+      "sortOrder" -> sortRequest.order,
+      "offset" -> pageRequest.offset,
+      "limit" -> pageRequest.limit,
     ))
   }
 }

@@ -24,12 +24,17 @@ import { listExecutionEvents, storeExecutionEvent } from '../services/execution-
 import { TxManager } from '../services/txm'
 import { checkKeyExistence } from '../services/store'
 import { NodeCollectionName } from '../persistence/model'
+import * as Logger from '../utils/logger'
 
 
 export const eventsRouter: Foxx.Router = createRouter()
 
 function toBoolean(str: string): boolean {
     return str == null ? null : str.toLowerCase() === 'true'
+}
+
+function toNumber(str: string): number {
+    return str == null ? null : +str
 }
 
 // Store execution event
@@ -48,37 +53,35 @@ eventsRouter
 eventsRouter
     .get('/',
         (req: Foxx.Request, res: Foxx.Response) => {
+            Logger.debug(`Foxx: GET ${req.url}`)
             const events = listExecutionEvents(
-                +req.queryParams.asAtTime,
-                +req.queryParams.timestampStart,
-                +req.queryParams.timestampEnd,
-                +req.queryParams.pageOffset,
-                +req.queryParams.pageSize,
-                req.queryParams.sortField,
-                req.queryParams.sortOrder,
+                toNumber(req.queryParams.asAtTime),
+                toNumber(req.queryParams.timestampStart),
+                toNumber(req.queryParams.timestampEnd),
                 req.queryParams.searchTerm || null,
                 toBoolean(req.queryParams.writeAppends),
                 req.queryParams.applicationId || null,
                 req.queryParams.dataSourceUri || null,
-                req.queryParams.lblNames || [],
-                req.queryParams.lblValues || []
+                JSON.parse(req.queryParams.labels || '[]'),
+                req.queryParams.sortField,
+                req.queryParams.sortOrder,
+                toNumber(req.queryParams.offset),
+                toNumber(req.queryParams.limit),
             )
             res.send(events)
         })
-    //todo: add query params validation
-    // .queryParam('asAtTime', Joi.number().required())
-    // .queryParam('timestampStart', Joi.number().optional())
-    // .queryParam('timestampEnd', Joi.number().optional())
-    // .queryParam('pageOffset', Joi.number().required())
-    // .queryParam('pageSize', Joi.number().required())
-    // .queryParam('sortField', Joi.string().required())
-    // .queryParam('sortOrder', Joi.string().required())
-    // .queryParam('searchTerm', Joi.string().optional())
-    // .queryParam('writeAppends', Joi.boolean().optional())
-    // .queryParam('applicationId', Joi.string().optional())
-    // .queryParam('dataSourceUri', Joi.string().optional())
-    // .queryParam('lblNames', Joi.array().items(Joi.string()).required())
-    // .queryParam('lblValues', Joi.array().items(Joi.string()).required())
+    .queryParam('asAtTime', Joi.number().required())
+    .queryParam('timestampStart', Joi.number().optional())
+    .queryParam('timestampEnd', Joi.number().optional())
+    .queryParam('searchTerm', Joi.string().optional())
+    .queryParam('writeAppends', Joi.boolean().optional())
+    .queryParam('applicationId', Joi.string().optional())
+    .queryParam('dataSourceUri', Joi.string().optional())
+    .queryParam('labels', Joi.string().optional()) // serialized JSON array
+    .queryParam('sortField', Joi.string().required())
+    .queryParam('sortOrder', Joi.string().required())
+    .queryParam('offset', Joi.number().required())
+    .queryParam('limit', Joi.number().required())
     .response(200, ['application/json'])
     .summary('List execution events')
 

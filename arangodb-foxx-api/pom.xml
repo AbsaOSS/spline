@@ -62,6 +62,7 @@
                         <argument>za.co.absa.spline.consumer.service.model.Frame</argument>
                         <argument>za.co.absa.spline.consumer.service.model.ExecutionPlanInfo</argument>
                         <argument>za.co.absa.spline.consumer.service.model.ExecutionEventInfo</argument>
+                        <argument>za.co.absa.spline.consumer.service.model.Label</argument>
                     </arguments>
                 </configuration>
                 <dependencies>

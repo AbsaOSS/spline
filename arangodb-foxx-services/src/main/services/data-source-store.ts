@@ -24,8 +24,8 @@ import * as persistence from '../model'
 export function storeDataSources(ds: api.DataSource): persistence.DataSource {
     return withTimeTracking(`STORE DATA SOURCE ${ds}`, () => {
         return db._query(aql`
-            WITH ${NodeCollectionName.DataSource}
-            UPSERT { uri: ${ds.uri} }
+            WITH ${aql.literal(NodeCollectionName.DataSource)}
+            UPSERT { uri: ${ds}.uri }
             INSERT KEEP(${ds}, ['_created', 'uri', 'name'])
             UPDATE {} IN ${aql.literal(NodeCollectionName.DataSource)}
             RETURN KEEP(NEW, ['_key', 'uri'])

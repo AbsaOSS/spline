@@ -190,8 +190,8 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
         "asAtTime" -> Long.box(asAtTime),
         "pageOffset" -> Int.box(pageRequest.page - 1),
         "pageSize" -> Int.box(pageRequest.size),
-        "sortField" -> sortRequest.sortField,
-        "sortOrder" -> sortRequest.sortOrder
+        "sortField" -> sortRequest.field,
+        "sortOrder" -> sortRequest.order
       ),
       new AqlQueryOptions().fullCount(true)
     )

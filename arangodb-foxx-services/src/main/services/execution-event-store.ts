@@ -15,13 +15,14 @@
  */
 
 
-import { ExecPlanDetails, ExecutionEventInfo, Frame, Progress } from '../../external/api.model'
-import { CollectionName, edge, WriteTxInfo } from '../persistence/model'
+import { ExecPlanDetails, ExecutionEventInfo, Frame, Label, Progress } from '../../external/api.model'
+import { CollectionName, edge, ViewName, WriteTxInfo } from '../persistence/model'
 import { store } from './store'
 import { aql, db } from '@arangodb'
 import { withTimeTracking } from '../utils/common'
 import { TxManager } from './txm'
 import { TxTemplate } from './txm/tx-template'
+import * as Logger from '../utils/logger'
 
 
 const SEARCH_FIELDS = [
@@ -32,34 +33,45 @@ const SEARCH_FIELDS = [
     'execPlanDetails.dataSourceType',
 ]
 
-function escapeJavaScript(str: string): string {
-    return str.replace(/[\-\[\]\/{}()*+?.\\^$|'"\n]/g, '\\$&')
-}
-
 export function listExecutionEvents(
     asAtTime: number,
     timestampStart: number | null,
     timestampEnd: number | null,
-    pageOffset: number,
-    pageSize: number,
-    sortField: string,
-    sortOrder: string,
     searchTerm: string | null,
     writeAppends: boolean | null,
     applicationId: string | null,
     dataSourceUri: string | null,
-    lblNames: string[],
-    lblValues: string[]
+    labels: Label[],
+    sortField: string,
+    sortOrder: string,
+    offset: number,
+    limit: number,
 ): Frame<Partial<ExecutionEventInfo>> {
+    const lblNames = labels.map(lbl => lbl.name)
+    const lblValues = labels.map(lbl => lbl.values)
 
-    const q = aql`
-         WITH progress_view
-         FOR ee IN progress_view
+    const q: ArangoDB.Query = aql`
+         WITH ${aql.literal(ViewName.ProgressSearchView)}
+         FOR ee IN ${aql.literal(ViewName.ProgressSearchView)}
              SEARCH ee._created <= ${asAtTime}
                  AND (${timestampStart} == null OR IN_RANGE(ee.timestamp, ${timestampStart}, ${timestampEnd}, true, true))
                  AND (${applicationId} == null OR ${applicationId} == ee.extra.appId)
                  AND (${dataSourceUri} == null OR ${dataSourceUri} == ee.execPlanDetails.dataSourceUri)
                  AND (${writeAppends}  == null OR ee.execPlanDetails.append IN ${writeAppends})
+
+                 ${aql.join(lblNames.map((lblName, i) => aql`
+                 AND (
+                     ${lblValues[i]} ANY == ee.labels[${lblName}]
+                     OR ${lblValues[i]} ANY == ee.execPlanDetails.labels[${lblName}]
+                 )
+                 `))}
+
+                 AND (
+                     ${searchTerm} == null
+                     ${aql.join(SEARCH_FIELDS.map(fld => aql`
+                     OR ANALYZER(LIKE(ee.${aql.literal(fld)}, CONCAT("%", TOKENS(${searchTerm}, "norm_en")[0], "%")), "norm_en")
+                     `))}
+                 )
 
              LET resItem = {
                  "executionEventId" : ee._key,
@@ -79,12 +91,12 @@ export function listExecutionEvents(
              }
 
              SORT resItem.${sortField} ${sortOrder}
-             LIMIT ${pageOffset * pageSize}, ${pageSize}
+             LIMIT ${offset}, ${limit}
 
              RETURN resItem
     `
 
-    console.log('AQL query: ', q)
+    Logger.debug('AQL query: ', q)
 
     const cursor = db._query(q, { fullCount: true })
     const items: ExecutionEventInfo[] = cursor.toArray()
@@ -93,7 +105,7 @@ export function listExecutionEvents(
     return {
         items,
         totalCount,
-        offset: pageOffset * pageSize,
+        offset,
     }
 }
 

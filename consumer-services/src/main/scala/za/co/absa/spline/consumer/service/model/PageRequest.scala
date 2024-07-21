@@ -15,4 +15,9 @@
  */
 package za.co.absa.spline.consumer.service.model
 
-case class PageRequest(page: Int, size: Int)
+case class PageRequest(page: Int, size: Int) {
+
+  def offset: Int = (page - 1) * size
+
+  def limit: Int = size
+}
