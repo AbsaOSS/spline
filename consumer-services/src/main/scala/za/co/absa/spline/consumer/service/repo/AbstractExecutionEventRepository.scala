@@ -15,20 +15,11 @@
  */
 package za.co.absa.spline.consumer.service.repo
 
-import za.co.absa.spline.consumer.service.model.{Label, PageRequest, SortRequest, ExecutionEventInfo}
+import za.co.absa.spline.consumer.service.model._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AbstractExecutionEventRepository {
-
-  def getTimestampRange(
-    asAtTime: Long,
-    labels: Array[Label],
-    maybeSearchTerm: Option[String],
-    writeAppendOptions: Array[Option[Boolean]],
-    maybeApplicationId: Option[String],
-    maybeDataSourceUri: Option[String])
-    (implicit ec: ExecutionContext): Future[(Long, Long)]
 
   def find(
     asAtTime: Long,
@@ -40,6 +31,7 @@ trait AbstractExecutionEventRepository {
     maybeSearchTerm: Option[String],
     writeAppendOptions: Array[Option[Boolean]],
     maybeApplicationId: Option[String],
-    maybeDataSourceUri: Option[String])
-    (implicit ec: ExecutionContext): Future[(Seq[ExecutionEventInfo], Long)]
+    maybeDataSourceUri: Option[String]
+  )
+    (implicit ec: ExecutionContext): Future[Frame[ExecutionEventInfo]]
 }

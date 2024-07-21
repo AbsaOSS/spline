@@ -36,70 +36,6 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
 
   import za.co.absa.commons.lang.extensions.AnyExtension._
 
-  override def getTimestampRange(
-    asAtTime: Long,
-    labels: Array[Label],
-    maybeSearchTerm: Option[String],
-    writeAppendOptions: Array[Option[Boolean]],
-    maybeApplicationId: Option[String],
-    maybeDataSourceUri: Option[String]
-  )(implicit ec: ExecutionContext): Future[(Long, Long)] = {
-    val lblNames = labels.map(_.name)
-    val lblValues = labels.map(_.values)
-
-    db.queryOne[Array[Long]](
-      s"""
-         |WITH ${SearchViewDef.DataSourceSearchView.name}
-         |FOR ds IN ${SearchViewDef.DataSourceSearchView.name}
-         |    SEARCH ds._created <= @asAtTime
-         |        AND (@dataSourceUri == null OR @dataSourceUri == ds.uri)
-         |        AND (@applicationId == null OR @applicationId == ds.lastWriteDetails.extra.appId)
-         |        AND (@writeAppends   == null
-         |           OR ds.lastWriteDetails.execPlanDetails.append IN @writeAppends
-         |           OR (@includeNoWrite AND !EXISTS(ds.lastWriteDetails))
-         |        )
-      ${
-        lblNames.zipWithIndex.map({
-          case (lblName, i) =>
-            s"""
-               | AND (
-               |      @lblValues[$i] ANY == ds.lastWriteDetails.labels['${escapeJavaScript(lblName)}']
-               |   OR @lblValues[$i] ANY == ds.lastWriteDetails.execPlanDetails.labels['${escapeJavaScript(lblName)}']
-               | )
-             """.stripMargin
-        }).mkString("\n")
-      }
-         |        AND (@searchTerm == null
-      ${
-        SearchFields.map({
-          fld =>
-            s"""      OR ANALYZER(LIKE(ds.$fld, CONCAT("%", TOKENS(@searchTerm, "norm_en")[0], "%")), "norm_en")"""
-        }).mkString("\n")
-      }
-         |        )
-         |
-         |    COLLECT AGGREGATE
-         |        minTimestamp = MIN(ds.lastWriteDetails.timestamp),
-         |        maxTimestamp = MAX(ds.lastWriteDetails.timestamp)
-         |
-         |    RETURN [
-         |        minTimestamp || DATE_NOW(),
-         |        maxTimestamp || DATE_NOW()
-         |    ]
-         |""".stripMargin,
-      Map[String, AnyRef](
-        "asAtTime" -> Long.box(asAtTime),
-        "searchTerm" -> maybeSearchTerm.map(escapeAQLSearch).orNull,
-        "writeAppends" -> (if (writeAppendOptions.isEmpty) null else writeAppendOptions.flatten.map(Boolean.box)),
-        "includeNoWrite" -> Boolean.box(writeAppendOptions.contains(None)),
-        "applicationId" -> maybeApplicationId.orNull,
-        "dataSourceUri" -> maybeDataSourceUri.orNull
-      ).when(lblValues.nonEmpty) {
-        _.updated("lblValues", lblValues)
-      }
-    ).map { case Array(from, to) => from -> to }
-  }
-
   override def find(
     asAtTime: Long,
     maybeWriteTimestampStart: Option[Long],
@@ -111,10 +47,11 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
     writeAppendOptions: Array[Option[Boolean]],
     maybeWriteApplicationId: Option[String],
     maybeDataSourceUri: Option[String]
-  )(implicit ec: ExecutionContext): Future[(Seq[ExecutionEventInfo], Long)] = {
+  )(implicit ec: ExecutionContext): Future[Frame[ExecutionEventInfo]] = {
     val lblNames = labels.map(_.name)
     val lblValues = labels.map(_.values)
 
+    // TODO: call Foxx API instead of AQL query
     db.queryAs[ExecutionEventInfo](
       s"""
          |WITH ${SearchViewDef.DataSourceSearchView.name}
@@ -190,7 +127,7 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
       arangoCursorAsync =>
         val items = arangoCursorAsync.streamRemaining().toScala(LazyList)
         val totalCount = arangoCursorAsync.getStats.getFullCount
-        (items, totalCount)
+        Frame(items, totalCount, -1) // todo: calculate offset
     }
   }
 
@@ -198,6 +135,7 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
     execPlanId: ExecutionPlanInfo.Id,
     access: Option[DataSourceActionType]
   )(implicit ec: ExecutionContext): Future[Array[String]] = {
+    // TODO: call Foxx API instead of AQL query
     access
       .map({
         case Read => db.queryStream[String](

@@ -33,7 +33,6 @@ class AbstractExecutionEventsController(
   protected def find(
     timestampStart: java.lang.Long,
     timestampEnd: java.lang.Long,
-    facetTimestampEnabled: Boolean,
     asAtTime0: Long,
     pageNum: Int,
     pageSize: Int,
@@ -56,21 +55,6 @@ class AbstractExecutionEventsController(
     val maybeWriteTimestampStart = timestampStart.asOption.map(Long.unbox)
     val maybeWriteTimestampEnd = timestampEnd.asOption.map(Long.unbox)
 
-    val eventualDateRange: Future[Array[Long]] =
-      if (facetTimestampEnabled)
-        repo.getTimestampRange(
-          asAtTime,
-          labels,
-          maybeSearchTerm,
-          writeAppendOptions,
-          maybeWriteApplicationId,
-          maybeDataSourceUri
-        ) map {
-          case (totalDateFrom, totalDateTo) => Array(totalDateFrom, totalDateTo)
-        }
-      else
-        Future.successful(Array.empty)
-
     val eventualEventsWithCount =
       repo.find(
         asAtTime,
@@ -85,15 +69,13 @@ class AbstractExecutionEventsController(
         maybeDataSourceUri)
 
     for {
-      totalDateRange <- eventualDateRange
-      (events, totalCount) <- eventualEventsWithCount
+      Frame(events, totalCount, _) <- eventualEventsWithCount
     } yield {
       PageableExecutionEventsResponse(
         events.toArray,
         totalCount,
         pageRequest.page,
-        pageRequest.size,
-        totalDateRange)
+        pageRequest.size)
     }
   }
 }

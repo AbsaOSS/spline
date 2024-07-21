@@ -42,6 +42,7 @@ export class TxTemplate {
             //     // UPDATE tx.obsolete = DATE_NOW()
             //     // RETURN ...
             // `).next()
+            console.log('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF')
             throw e
         }
 

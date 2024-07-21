@@ -35,8 +35,13 @@ class FoxxRouter @Autowired()(db: ArangoDatabaseAsync) {
   def get[A](endpoint: String, queryParams: Map[String, Any] = Map.empty)(implicit ex: ExecutionContext, typeRef: TypeReference[A]): Future[A] = {
     val routeBuilder = db.route(endpoint)
 
-    for ((k, v) <- queryParams)
-      routeBuilder.withQueryParam(k, v)
+    for (
+      (k, vs) <- queryParams;
+      v <- vs match {
+        case xs: Seq[_] => xs
+        case x => Seq(x)
+      }
+    ) routeBuilder.withQueryParam(k, v)
 
     routeBuilder.get()
       .asScala

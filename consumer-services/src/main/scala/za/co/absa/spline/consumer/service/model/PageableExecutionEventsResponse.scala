@@ -27,6 +27,8 @@ case class PageableExecutionEventsResponse(
   override val pageNum: Int,
   @ApiModelProperty(value = "Page size")
   override val pageSize: Int,
+
+  @Deprecated
   @ApiModelProperty(value = "Total date range (min and max timestamp) of the result set")
-  totalDateRange: Array[Long]
+  totalDateRange: Array[Long] = Array.empty
 ) extends Pageable[ExecutionEventInfo]

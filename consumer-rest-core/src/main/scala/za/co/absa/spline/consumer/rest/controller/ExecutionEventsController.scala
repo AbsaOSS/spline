@@ -43,9 +43,6 @@ class ExecutionEventsController @Autowired()(
     @ApiParam(value = "End of the time range (inclusive)", example = "0")
     @RequestParam(value = "timestampEnd", required = false) timestampEnd: java.lang.Long,
 
-    @ApiParam(value = "Enable 'timestamp' facet computation. (default - `false`)", example = "0")
-    @RequestParam(value = "facet.timestamp", defaultValue = "false") facetTimestampEnabled: Boolean,
-
     @ApiParam(value = "Timestamp of the request, if asAtTime equals 0, the current timestamp will be applied", example = "0")
     @RequestParam(value = "asAtTime", defaultValue = "0") asAtTime0: Long,
 
@@ -79,7 +76,6 @@ class ExecutionEventsController @Autowired()(
   ): Future[PageableExecutionEventsResponse] = find(
     timestampStart,
     timestampEnd,
-    facetTimestampEnabled,
     asAtTime0,
     pageNum,
     pageSize,

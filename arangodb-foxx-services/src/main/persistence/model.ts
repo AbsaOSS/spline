@@ -53,6 +53,11 @@ export enum EdgeCollectionName {
     Uses = 'uses',
 }
 
+export const ViewName = {
+    ProgressSearchView: `${NodeCollectionName.Progress}_view`,
+    DataSourceSearchView: `${NodeCollectionName.DataSource}_view`
+}
+
 export const DataCollectionName = {
     ...NodeCollectionName,
     ...EdgeCollectionName,

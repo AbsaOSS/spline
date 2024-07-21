@@ -44,9 +44,6 @@ class DataSourcesController @Autowired()(
     @ApiParam(value = "End of the last write time range (inclusive)", example = "0")
     @RequestParam(value = "timestampEnd", required = false) writeTimestampEnd: java.lang.Long,
 
-    @ApiParam(value = "Enable 'timestamp' facet computation. (default - `false`)", example = "0")
-    @RequestParam(value = "facet.timestamp", defaultValue = "false") facetTimestampEnabled: Boolean,
-
     @ApiParam(value = "Timestamp of the request, if asAtTime equals 0, the current timestamp will be applied", example = "0")
     @RequestParam(value = "asAtTime", defaultValue = "0") asAtTime0: Long,
 
@@ -80,7 +77,6 @@ class DataSourcesController @Autowired()(
   ): Future[PageableDataSourcesResponse] = find(
     writeTimestampStart,
     writeTimestampEnd,
-    facetTimestampEnabled,
     asAtTime0,
     pageNum,
     pageSize,

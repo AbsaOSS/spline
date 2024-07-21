@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package za.co.absa.spline.consumer.rest.controller
 
 import io.swagger.annotations.{Api, ApiOperation, ApiParam}

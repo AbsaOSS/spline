@@ -15,7 +15,7 @@
  */
 
 
-import { ExecPlanDetails, Progress } from '../../external/api.model'
+import { ExecPlanDetails, ExecutionEventInfo, Frame, Progress } from '../../external/api.model'
 import { CollectionName, edge, WriteTxInfo } from '../persistence/model'
 import { store } from './store'
 import { aql, db } from '@arangodb'
@@ -23,6 +23,79 @@ import { withTimeTracking } from '../utils/common'
 import { TxManager } from './txm'
 import { TxTemplate } from './txm/tx-template'
 
+
+const SEARCH_FIELDS = [
+    'execPlanDetails.frameworkName',
+    'execPlanDetails.applicationName',
+    'extra.appId',
+    'execPlanDetails.dataSourceUri',
+    'execPlanDetails.dataSourceType',
+]
+
+function escapeJavaScript(str: string): string {
+    return str.replace(/[\-\[\]\/{}()*+?.\\^$|'"\n]/g, '\\$&')
+}
+
+export function listExecutionEvents(
+    asAtTime: number,
+    timestampStart: number | null,
+    timestampEnd: number | null,
+    pageOffset: number,
+    pageSize: number,
+    sortField: string,
+    sortOrder: string,
+    searchTerm: string | null,
+    writeAppends: boolean | null,
+    applicationId: string | null,
+    dataSourceUri: string | null,
+    lblNames: string[],
+    lblValues: string[]
+): Frame<Partial<ExecutionEventInfo>> {
+
+    const q = aql`
+         WITH progress_view
+         FOR ee IN progress_view
+             SEARCH ee._created <= ${asAtTime}
+                 AND (${timestampStart} == null OR IN_RANGE(ee.timestamp, ${timestampStart}, ${timestampEnd}, true, true))
+                 AND (${applicationId} == null OR ${applicationId} == ee.extra.appId)
+                 AND (${dataSourceUri} == null OR ${dataSourceUri} == ee.execPlanDetails.dataSourceUri)
+                 AND (${writeAppends}  == null OR ee.execPlanDetails.append IN ${writeAppends})
+
+             LET resItem = {
+                 "executionEventId" : ee._key,
+                 "executionPlanId"  : ee.execPlanDetails.executionPlanKey,
+                 "frameworkName"    : ee.execPlanDetails.frameworkName,
+                 "applicationName"  : ee.execPlanDetails.applicationName,
+                 "applicationId"    : ee.extra.appId,
+                 "timestamp"        : ee.timestamp,
+                 "dataSourceName"   : ee.execPlanDetails.dataSourceName,
+                 "dataSourceUri"    : ee.execPlanDetails.dataSourceUri,
+                 "dataSourceType"   : ee.execPlanDetails.dataSourceType,
+                 "append"           : ee.execPlanDetails.append,
+                 "durationNs"       : ee.durationNs,
+                 "error"            : ee.error,
+                 "extra"            : ee.extra,
+                 "labels"           : ee.labels
+             }
+
+             SORT resItem.${sortField} ${sortOrder}
+             LIMIT ${pageOffset * pageSize}, ${pageSize}
+
+             RETURN resItem
+    `
+
+    console.log('AQL query: ', q)
+
+    const cursor = db._query(q, { fullCount: true })
+    const items: ExecutionEventInfo[] = cursor.toArray()
+    const totalCount = cursor.getExtra().stats.fullCount
+
+    return {
+        items,
+        totalCount,
+        offset: pageOffset * pageSize,
+    }
+}
 
 export function storeExecutionEvent(progress: Progress): void {
     withTimeTracking(`STORE EVENT ${progress._key}`, () => {
