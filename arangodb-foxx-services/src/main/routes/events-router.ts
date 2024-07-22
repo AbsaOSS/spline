@@ -20,7 +20,7 @@ import Joi from 'joi'
 import { lineageOverview } from '../services/lineage-overview'
 import { impactOverview } from '../services/impact-overview'
 import { Progress } from '../../external/api.model'
-import { listExecutionEvents, storeExecutionEvent } from '../services/execution-event-store'
+import { listExecutionEventInfo_groupedByDataSource, listExecutionEvents, storeExecutionEvent } from '../services/execution-event-store'
 import { TxManager } from '../services/txm'
 import { checkKeyExistence } from '../services/store'
 import { NodeCollectionName } from '../persistence/model'
@@ -29,13 +29,6 @@ import * as Logger from '../utils/logger'
 
 export const eventsRouter: Foxx.Router = createRouter()
 
-function toBoolean(str: string): boolean {
-    return str == null ? null : str.toLowerCase() === 'true'
-}
-
-function toNumber(str: string): number {
-    return str == null ? null : +str
-}
 
 // Store execution event
 eventsRouter
@@ -49,41 +42,92 @@ eventsRouter
     .response(201, 'Execution event recorded')
     .summary('Record a new execution event')
 
+
 // List execution events
 eventsRouter
     .get('/',
         (req: Foxx.Request, res: Foxx.Response) => {
             Logger.debug(`Foxx: GET ${req.url}`)
             const events = listExecutionEvents(
-                toNumber(req.queryParams.asAtTime),
-                toNumber(req.queryParams.timestampStart),
-                toNumber(req.queryParams.timestampEnd),
-                req.queryParams.searchTerm || null,
-                toBoolean(req.queryParams.writeAppends),
-                req.queryParams.applicationId || null,
-                req.queryParams.dataSourceUri || null,
-                JSON.parse(req.queryParams.labels || '[]'),
+                req.queryParams.asAtTime,
+                req.queryParams.timestampStart,
+                req.queryParams.timestampEnd,
+                req.queryParams.searchTerm,
+                req.queryParams.writeAppends,
+                req.queryParams.applicationId,
+                req.queryParams.dataSourceUri,
+                req.queryParams.labels,
                 req.queryParams.sortField,
                 req.queryParams.sortOrder,
-                toNumber(req.queryParams.offset),
-                toNumber(req.queryParams.limit),
+                req.queryParams.offset,
+                req.queryParams.limit,
             )
             res.send(events)
         })
     .queryParam('asAtTime', Joi.number().required())
-    .queryParam('timestampStart', Joi.number().optional())
-    .queryParam('timestampEnd', Joi.number().optional())
-    .queryParam('searchTerm', Joi.string().optional())
-    .queryParam('writeAppends', Joi.boolean().optional())
-    .queryParam('applicationId', Joi.string().optional())
-    .queryParam('dataSourceUri', Joi.string().optional())
-    .queryParam('labels', Joi.string().optional()) // serialized JSON array
+    .queryParam('timestampStart', Joi.number().optional().default(null))
+    .queryParam('timestampEnd', Joi.number().optional().default(null))
+    .queryParam('searchTerm', Joi.string().optional().default(null))
+    .queryParam('writeAppends', Joi.array().items(Joi.boolean()).single().max(2).optional().default(null))
+    .queryParam('applicationId', Joi.string().optional().default(null))
+    .queryParam('dataSourceUri', Joi.string().optional().default(null))
+    .queryParam('labels', Joi.array().items(
+        Joi.object({
+            name: Joi.string().required(),
+            values: Joi.array().items(Joi.string()).required()
+        }))
+        .optional().default([]))
     .queryParam('sortField', Joi.string().required())
     .queryParam('sortOrder', Joi.string().required())
     .queryParam('offset', Joi.number().required())
     .queryParam('limit', Joi.number().required())
     .response(200, ['application/json'])
     .summary('List execution events')
+
+
+// List execution events grouped by data source
+eventsRouter
+    .get('/_grouped-by-ds',
+        (req: Foxx.Request, res: Foxx.Response) => {
+            Logger.debug(`Foxx: GET ${req.url}`)
+            const events = listExecutionEventInfo_groupedByDataSource(
+                req.queryParams.asAtTime,
+                req.queryParams.timestampStart,
+                req.queryParams.timestampEnd,
+                req.queryParams.searchTerm,
+                req.queryParams.writeAppends,
+                req.queryParams.includeNoWrite,
+                req.queryParams.applicationId,
+                req.queryParams.dataSourceUri,
+                req.queryParams.labels,
+                req.queryParams.sortField,
+                req.queryParams.sortOrder,
+                req.queryParams.offset,
+                req.queryParams.limit,
+            )
+            res.send(events)
+        })
+    .queryParam('asAtTime', Joi.number().required())
+    .queryParam('timestampStart', Joi.number().optional().default(null))
+    .queryParam('timestampEnd', Joi.number().optional().default(null))
+    .queryParam('searchTerm', Joi.string().optional().default(null))
+    .queryParam('writeAppends', Joi.array().items(Joi.boolean()).single().max(2).optional().default(null))
+    .queryParam('includeNoWrite', Joi.boolean().required())
+    .queryParam('applicationId', Joi.string().optional().default(null))
+    .queryParam('dataSourceUri', Joi.string().optional().default(null))
+    .queryParam('labels', Joi.array().items(
+        Joi.object({
+            name: Joi.string().required(),
+            values: Joi.array().items(Joi.string()).required()
+        }))
+        .optional().default([]))
+    .queryParam('sortField', Joi.string().required())
+    .queryParam('sortOrder', Joi.string().required())
+    .queryParam('offset', Joi.number().required())
+    .queryParam('limit', Joi.number().required())
+    .response(200, ['application/json'])
+    .summary('List execution events')
+
 
 // Check if execution event exists
 eventsRouter
@@ -100,6 +144,7 @@ eventsRouter
     .queryParam('discriminator', Joi.string().optional(), 'Execution Event Discriminator')
     .response(200, ['application/json'], 'Boolean value indicating if the execution event exists')
     .summary('Check if the execution event with the given parameters exists')
+
 
 // Get execution event lineage overview
 eventsRouter
@@ -122,6 +167,7 @@ eventsRouter
     .response(404, 'Lineage overview not found for the given execution event')
     .summary('Get execution event end-to-end lineage overview')
     .description('Builds a lineage of the data produced by the given execution event')
+
 
 // Get execution event impact overview
 eventsRouter

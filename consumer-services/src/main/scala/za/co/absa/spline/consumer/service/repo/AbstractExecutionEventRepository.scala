@@ -15,6 +15,7 @@
  */
 package za.co.absa.spline.consumer.service.repo
 
+import com.fasterxml.jackson.core.`type`.TypeReference
 import za.co.absa.spline.consumer.service.model._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,4 +35,8 @@ trait AbstractExecutionEventRepository {
     maybeDataSourceUri: Option[String]
   )
     (implicit ec: ExecutionContext): Future[Frame[ExecutionEventInfo]]
+}
+
+object AbstractExecutionEventRepository {
+  implicit val typeRefFrameOfExecEventInfo: TypeReference[Frame[ExecutionEventInfo]] = new TypeReference[Frame[ExecutionEventInfo]] {}
 }

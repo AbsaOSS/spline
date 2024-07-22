@@ -15,16 +15,16 @@
  */
 package za.co.absa.spline.consumer.service.repo
 
-import com.fasterxml.jackson.core.`type`.TypeReference
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.common.StringEscapeUtils.escapeAQLSearch
 import za.co.absa.spline.consumer.service.model._
-import za.co.absa.spline.consumer.service.repo.ExecutionEventRepositoryImpl._
+import za.co.absa.spline.consumer.service.repo.AbstractExecutionEventRepository._
 import za.co.absa.spline.persistence.DefaultJsonSerDe._
 import za.co.absa.spline.persistence.FoxxRouter
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 
 @Repository
 class ExecutionEventRepositoryImpl @Autowired()(
@@ -44,13 +44,13 @@ class ExecutionEventRepositoryImpl @Autowired()(
     maybeDataSourceUri: Option[String]
   )(implicit ec: ExecutionContext): Future[Frame[ExecutionEventInfo]] = {
     foxxRouter.get[Frame[ExecutionEventInfo]]("/spline/execution-events", Map(
-      "asAtTime" -> Long.box(asAtTime),
-      "timestampStart" -> maybeTimestampStart.map(Long.box).orNull,
-      "timestampEnd" -> maybeTimestampEnd.map(Long.box).orNull,
+      "asAtTime" -> asAtTime,
+      "timestampStart" -> maybeTimestampStart.orNull,
+      "timestampEnd" -> maybeTimestampEnd.orNull,
       "searchTerm" -> maybeSearchTerm.map(escapeAQLSearch).orNull,
       "applicationId" -> maybeApplicationId.orNull,
       "dataSourceUri" -> maybeDataSourceUri.orNull,
-      "writeAppends" -> (if (writeAppendOptions.isEmpty) null else writeAppendOptions.flatten.map(Boolean.box)),
+      "writeAppends" -> (if (writeAppendOptions.isEmpty) null else writeAppendOptions.flatten.toSeq.asJava),
       "labels" -> labels.toJson,
       "sortField" -> sortRequest.field,
       "sortOrder" -> sortRequest.order,
@@ -58,9 +58,4 @@ class ExecutionEventRepositoryImpl @Autowired()(
       "limit" -> pageRequest.limit,
     ))
   }
-}
-
-object ExecutionEventRepositoryImpl {
-  implicit val typeRefFrameOfExecEventInfo: TypeReference[Frame[ExecutionEventInfo]] = new TypeReference[Frame[ExecutionEventInfo]] {}
-  implicit val typeRefTupleOfLongLong: TypeReference[(Long, Long)] = new TypeReference[(Long, Long)] {}
 }

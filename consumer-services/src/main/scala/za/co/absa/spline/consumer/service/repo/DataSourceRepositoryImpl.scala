@@ -17,24 +17,25 @@
 package za.co.absa.spline.consumer.service.repo
 
 import com.arangodb.async.ArangoDatabaseAsync
-import com.arangodb.model.AqlQueryOptions
-import org.apache.commons.lang.StringEscapeUtils.escapeJavaScript
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.common.StringEscapeUtils.escapeAQLSearch
 import za.co.absa.spline.consumer.service.model.DataSourceActionType.{Read, Write}
 import za.co.absa.spline.consumer.service.model._
-import za.co.absa.spline.consumer.service.repo.DataSourceRepositoryImpl.SearchFields
+import za.co.absa.spline.consumer.service.repo.AbstractExecutionEventRepository._
 import za.co.absa.spline.persistence.ArangoImplicits._
-import za.co.absa.spline.persistence.model.{EdgeDef, NodeDef, SearchViewDef}
+import za.co.absa.spline.persistence.DefaultJsonSerDe._
+import za.co.absa.spline.persistence.FoxxRouter
+import za.co.absa.spline.persistence.model.{EdgeDef, NodeDef}
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.jdk.StreamConverters._
+import scala.jdk.CollectionConverters._
 
 @Repository
-class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends DataSourceRepository {
-
-  import za.co.absa.commons.lang.extensions.AnyExtension._
+class DataSourceRepositoryImpl @Autowired()(
+  db: ArangoDatabaseAsync,
+  foxxRouter: FoxxRouter
+) extends DataSourceRepository {
 
   override def find(
     asAtTime: Long,
@@ -48,87 +49,22 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
     maybeWriteApplicationId: Option[String],
     maybeDataSourceUri: Option[String]
   )(implicit ec: ExecutionContext): Future[Frame[ExecutionEventInfo]] = {
-    val lblNames = labels.map(_.name)
-    val lblValues = labels.map(_.values)
 
-    // TODO: call Foxx API instead of AQL query
-    db.queryAs[ExecutionEventInfo](
-      s"""
-         |WITH ${SearchViewDef.DataSourceSearchView.name}
-         |FOR ds IN ${SearchViewDef.DataSourceSearchView.name}
-         |    SEARCH ds._created <= @asAtTime
-         |        AND (@timestampStart == null OR IN_RANGE(ds.lastWriteDetails.timestamp, @timestampStart, @timestampEnd, true, true))
-         |        AND (@dataSourceUri  == null OR @dataSourceUri == ds.uri)
-         |        AND (@applicationId  == null OR @applicationId == ds.lastWriteDetails.extra.appId)
-         |        AND (@writeAppends   == null
-         |           OR ds.lastWriteDetails.execPlanDetails.append IN @writeAppends
-         |           OR (@includeNoWrite AND !EXISTS(ds.lastWriteDetails))
-         |        )
-      ${
-        lblNames.zipWithIndex.map({
-          case (lblName, i) =>
-            s"""
-               | AND (
-               |      @lblValues[$i] ANY == ds.lastWriteDetails.labels['${escapeJavaScript(lblName)}']
-               |   OR @lblValues[$i] ANY == ds.lastWriteDetails.execPlanDetails.labels['${escapeJavaScript(lblName)}']
-               | )
-             """.stripMargin
-        }).mkString("\n")
-      }
-         |        AND (@searchTerm == null
-      ${
-        SearchFields.map({
-          fld =>
-            s"""      OR ANALYZER(LIKE(ds.$fld, CONCAT("%", TOKENS(@searchTerm, "norm_en")[0], "%")), "norm_en")"""
-        }).mkString("\n")
-      }
-         |        )
-         |
-         |    LET resItem = {
-         |        "executionEventId" : ds.lastWriteDetails._key,
-         |        "executionPlanId"  : ds.lastWriteDetails.execPlanDetails.executionPlanKey,
-         |        "frameworkName"    : ds.lastWriteDetails.execPlanDetails.frameworkName,
-         |        "applicationName"  : ds.lastWriteDetails.execPlanDetails.applicationName,
-         |        "applicationId"    : ds.lastWriteDetails.extra.appId,
-         |        "timestamp"        : ds.lastWriteDetails.timestamp,
-         |        "dataSourceName"   : ds.name,
-         |        "dataSourceUri"    : ds.uri,
-         |        "dataSourceType"   : ds.lastWriteDetails.execPlanDetails.dataSourceType,
-         |        "append"           : ds.lastWriteDetails.execPlanDetails.append,
-         |        "durationNs"       : ds.lastWriteDetails.durationNs,
-         |        "error"            : ds.lastWriteDetails.error,
-         |        "extra"            : ds.lastWriteDetails.extra,
-         |        "labels"           : ds.lastWriteDetails.labels
-         |    }
-         |
-         |    SORT resItem.@sortField @sortOrder
-         |    LIMIT @pageOffset*@pageSize, @pageSize
-         |
-         |    RETURN resItem
-         |""".stripMargin,
-      Map[String, AnyRef](
-        "asAtTime" -> Long.box(asAtTime),
-        "timestampStart" -> maybeWriteTimestampStart.map(Long.box).orNull,
-        "timestampEnd" -> maybeWriteTimestampEnd.map(Long.box).orNull,
-        "pageOffset" -> Int.box(pageRequest.page - 1),
-        "pageSize" -> Int.box(pageRequest.size),
-        "sortField" -> sortRequest.field,
-        "sortOrder" -> sortRequest.order,
-        "searchTerm" -> maybeSearchTerm.map(escapeAQLSearch).orNull,
-        "writeAppends" -> (if (writeAppendOptions.isEmpty) null else writeAppendOptions.flatten.map(Boolean.box)),
-        "includeNoWrite" -> Boolean.box(writeAppendOptions.contains(None)),
-        "applicationId" -> maybeWriteApplicationId.orNull,
-        "dataSourceUri" -> maybeDataSourceUri.orNull
-      ).when(lblValues.nonEmpty) {
-        _.updated("lblValues", lblValues)
-      },
-      new AqlQueryOptions().fullCount(true)
-    ).map {
-      arangoCursorAsync =>
-        val items = arangoCursorAsync.streamRemaining().toScala(LazyList)
-        val totalCount = arangoCursorAsync.getStats.getFullCount
-        Frame(items, totalCount, -1) // todo: calculate offset
-    }
+    foxxRouter.get[Frame[ExecutionEventInfo]]("/spline/execution-events/_grouped-by-ds", Map(
+      "asAtTime" -> asAtTime,
+      "timestampStart" -> maybeWriteTimestampStart.orNull,
+      "timestampEnd" -> maybeWriteTimestampEnd.orNull,
+      "searchTerm" -> maybeSearchTerm.map(escapeAQLSearch).orNull,
+      "applicationId" -> maybeWriteApplicationId.orNull,
+      "dataSourceUri" -> maybeDataSourceUri.orNull,
+      "writeAppends" -> (if (writeAppendOptions.isEmpty) null else writeAppendOptions.flatten.toSeq.asJava),
+      "includeNoWrite" -> writeAppendOptions.contains(None),
+      "labels" -> labels.toJson,
+      "sortField" -> sortRequest.field,
+      "sortOrder" -> sortRequest.order,
+      "offset" -> pageRequest.offset,
+      "limit" -> pageRequest.limit,
+    ))
   }
 
   override def findByUsage(
@@ -170,15 +106,4 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         ).map(_.toArray)
       })
   }
-}
-
-object DataSourceRepositoryImpl {
-  private val SearchFields = Seq(
-    "uri",
-    "name",
-    "lastWriteDetails.execPlanDetails.frameworkName",
-    "lastWriteDetails.execPlanDetails.applicationName",
-    "lastWriteDetails.extra.appId",
-    "lastWriteDetails.execPlanDetails.dataSourceType",
-  )
 }

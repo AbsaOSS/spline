@@ -25,12 +25,21 @@ import { TxTemplate } from './txm/tx-template'
 import * as Logger from '../utils/logger'
 
 
-const SEARCH_FIELDS = [
+const EVENT_SEARCH_FIELDS = [
     'execPlanDetails.frameworkName',
     'execPlanDetails.applicationName',
     'extra.appId',
     'execPlanDetails.dataSourceUri',
     'execPlanDetails.dataSourceType',
+]
+
+const EVENTS_BY_DS_SEARCH_FIELDS = [
+    'uri',
+    'name',
+    'lastWriteDetails.execPlanDetails.frameworkName',
+    'lastWriteDetails.execPlanDetails.applicationName',
+    'lastWriteDetails.extra.appId',
+    'lastWriteDetails.execPlanDetails.dataSourceType',
 ]
 
 export function listExecutionEvents(
@@ -68,7 +77,7 @@ export function listExecutionEvents(
 
                  AND (
                      ${searchTerm} == null
-                     ${aql.join(SEARCH_FIELDS.map(fld => aql`
+                     ${aql.join(EVENT_SEARCH_FIELDS.map(fld => aql`
                      OR ANALYZER(LIKE(ee.${aql.literal(fld)}, CONCAT("%", TOKENS(${searchTerm}, "norm_en")[0], "%")), "norm_en")
                      `))}
                  )
@@ -94,6 +103,86 @@ export function listExecutionEvents(
              LIMIT ${offset}, ${limit}
 
              RETURN resItem
+    `
+
+    Logger.debug('AQL query: ', q)
+
+    const cursor = db._query(q, { fullCount: true })
+    const items: ExecutionEventInfo[] = cursor.toArray()
+    const totalCount = cursor.getExtra().stats.fullCount
+
+    return {
+        items,
+        totalCount,
+        offset,
+    }
+}
+
+export function listExecutionEventInfo_groupedByDataSource(
+    asAtTime: number,
+    timestampStart: number | null,
+    timestampEnd: number | null,
+    searchTerm: string | null,
+    writeAppends: boolean[] | null,
+    includeNoWrite: boolean,
+    applicationId: string | null,
+    dataSourceUri: string | null,
+    labels: Label[],
+    sortField: string,
+    sortOrder: string,
+    offset: number,
+    limit: number,
+): Frame<Partial<ExecutionEventInfo>> {
+    const lblNames = labels.map(lbl => lbl.name)
+    const lblValues = labels.map(lbl => lbl.values)
+
+    const q: ArangoDB.Query = aql`
+        WITH ${aql.literal(ViewName.DataSourceSearchView)}
+        FOR ds IN ${aql.literal(ViewName.DataSourceSearchView)}
+            SEARCH ds._created <= ${asAtTime}
+                AND (${timestampStart} == null OR IN_RANGE(ds.lastWriteDetails.timestamp, ${timestampStart}, ${timestampEnd}, true, true))
+                AND (${dataSourceUri}  == null OR ${dataSourceUri} == ds.uri)
+                AND (${applicationId}  == null OR ${applicationId} == ds.lastWriteDetails.extra.appId)
+                AND (${writeAppends}   == null
+                   OR ds.lastWriteDetails.execPlanDetails.append IN ${writeAppends}
+                   OR (${includeNoWrite} AND !EXISTS(ds.lastWriteDetails))
+                )
+
+                ${aql.join(lblNames.map((lblName, i) => aql`
+                AND (
+                    ${lblValues[i]} ANY == ds.lastWriteDetails.labels[${lblName}]
+                    OR ${lblValues[i]} ANY == ds.lastWriteDetails.execPlanDetails.labels[${lblName}]
+                )
+                `))}
+
+                AND (
+                    ${searchTerm} == null
+                    ${aql.join(EVENTS_BY_DS_SEARCH_FIELDS.map(fld => aql`
+                    OR ANALYZER(LIKE(ds.${aql.literal(fld)}, CONCAT("%", TOKENS(${searchTerm}, "norm_en")[0], "%")), "norm_en")
+                    `))}
+                )
+
+                LET resItem = {
+                    "executionEventId" : ds.lastWriteDetails._key,
+                    "executionPlanId"  : ds.lastWriteDetails.execPlanDetails.executionPlanKey,
+                    "frameworkName"    : ds.lastWriteDetails.execPlanDetails.frameworkName,
+                    "applicationName"  : ds.lastWriteDetails.execPlanDetails.applicationName,
+                    "applicationId"    : ds.lastWriteDetails.extra.appId,
+                    "timestamp"        : ds.lastWriteDetails.timestamp,
+                    "dataSourceName"   : ds.name,
+                    "dataSourceUri"    : ds.uri,
+                    "dataSourceType"   : ds.lastWriteDetails.execPlanDetails.dataSourceType,
+                    "append"           : ds.lastWriteDetails.execPlanDetails.append,
+                    "durationNs"       : ds.lastWriteDetails.durationNs,
+                    "error"            : ds.lastWriteDetails.error,
+                    "extra"            : ds.lastWriteDetails.extra,
+                    "labels"           : ds.lastWriteDetails.labels
+                }
+
+                SORT resItem.${sortField} ${sortOrder}
+                LIMIT ${offset}, ${limit}
+
+                RETURN resItem
     `
 
     Logger.debug('AQL query: ', q)

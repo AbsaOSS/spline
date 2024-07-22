@@ -21,6 +21,7 @@ import { pruneBefore } from '../services/prune-database'
 
 export const adminRouter = createRouter()
 
+
 adminRouter
     .delete('/data/before/:timestamp',
         (req: Foxx.Request, res: Foxx.Response) => {

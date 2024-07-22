@@ -24,6 +24,7 @@ import { NodeCollectionName } from '../persistence/model'
 
 export const plansRouter: Foxx.Router = createRouter()
 
+
 plansRouter
     .post('/',
         (req: Foxx.Request, res: Foxx.Response) => {
@@ -34,6 +35,7 @@ plansRouter
     .body(['application/json'], 'Execution Plan Persistent Model JSON')
     .response(201, 'Plan registered')
     .summary('Register a new execution plan')
+
 
 plansRouter
     .get('/:planId/_exists',
