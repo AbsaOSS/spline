@@ -54,22 +54,34 @@
                         <argument>${project.basedir}/target/generated-ts/api.model.ts</argument>
                         <argument>--trait-to-type</argument>
                         <argument>--option-to-nullable</argument>
+                        <argument>--string-single-quotes</argument>
+                        <argument>--indent-size</argument>
+                        <argument>4</argument>
+
+                        <!-- ================================================ -->
                         <!-- list of root entities to generate TS definitions -->
+                        <!-- ================================================ -->
+
+                        <!-- Persistence model -->
                         <argument>za.co.absa.spline.persistence.model.Progress</argument>
                         <argument>za.co.absa.spline.persistence.model.DataSource</argument>
-                        <argument>za.co.absa.spline.persistence.model.DBVersion</argument>
+
+                        <!-- Producer model -->
                         <argument>za.co.absa.spline.producer.service.model.ExecutionPlanPersistentModel</argument>
+
+                        <!-- Consumer model -->
                         <argument>za.co.absa.spline.consumer.service.model.Frame</argument>
                         <argument>za.co.absa.spline.consumer.service.model.ExecutionPlanInfo</argument>
                         <argument>za.co.absa.spline.consumer.service.model.ExecutionEventInfo</argument>
                         <argument>za.co.absa.spline.consumer.service.model.Label</argument>
+                        <argument>za.co.absa.spline.consumer.service.model.DataSourceActionType</argument>
                     </arguments>
                 </configuration>
                 <dependencies>
                     <dependency>
                         <groupId>com.github.wajda</groupId>
                         <artifactId>scala-ts_${scala.compat.version}</artifactId>
-                        <version>0.4.1.9</version>
+                        <version>0.4.1.10</version>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -94,6 +106,12 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-annotations</artifactId>

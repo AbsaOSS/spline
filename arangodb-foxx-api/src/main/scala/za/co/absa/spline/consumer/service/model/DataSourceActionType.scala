@@ -27,7 +27,7 @@ object DataSourceActionType {
   case object Write extends DataSourceActionType("write")
 
 
-  val values: Set[DataSourceActionType] = EnumerationMacros.sealedInstancesOf[DataSourceActionType]
+  val values: Seq[DataSourceActionType] = EnumerationMacros.sealedInstancesOf[DataSourceActionType].toSeq
 
   def findValueOf(name: String): Option[DataSourceActionType] =
     DataSourceActionType.values.find(_.name.equalsIgnoreCase(name))
