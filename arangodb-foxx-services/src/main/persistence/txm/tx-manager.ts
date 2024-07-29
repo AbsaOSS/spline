@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ReadTxInfo, TxAwareDocument, TxId, TxParams, WriteTxInfo } from '../../persistence/model'
+import { ReadTxInfo, TxAwareDocument, TxId, TxParams, WriteTxInfo } from '../model'
 
 
 export interface TxManager {

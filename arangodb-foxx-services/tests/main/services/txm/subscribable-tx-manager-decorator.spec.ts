@@ -15,7 +15,7 @@
  */
 
 import { ReadTxInfo, TxAwareDocument, TxEvent, TxId, TxParams, WriteTxInfo } from '../../../../src/main/persistence/model'
-import { SubscribableTxManagerDecorator } from '../../../../src/main/services/txm/subcribable-tx-manager-decorator'
+import { SubscribableTxManagerDecorator } from '../../../../src/main/persistence/txm/subcribable-tx-manager-decorator'
 
 
 const mockTxManagerImpl = {

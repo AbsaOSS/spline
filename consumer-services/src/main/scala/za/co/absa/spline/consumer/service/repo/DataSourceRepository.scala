@@ -15,6 +15,7 @@
  */
 package za.co.absa.spline.consumer.service.repo
 
+import com.fasterxml.jackson.core.`type`.TypeReference
 import za.co.absa.spline.consumer.service.model._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -25,5 +26,10 @@ trait DataSourceRepository extends AbstractExecutionEventRepository {
     execPlanId: ExecutionPlanInfo.Id,
     access: Option[DataSourceActionType])
     (implicit ec: ExecutionContext): Future[Array[String]]
+
+}
+
+object DataSourceRepository {
+  implicit val typeRefArrayOfString: TypeReference[Array[String]] = new TypeReference[Array[String]] {}
 
 }

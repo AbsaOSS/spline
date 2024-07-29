@@ -37,13 +37,13 @@ class LabelRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends LabelRep
     db.queryStream[Label.Name](
       s"""
          |WITH ${NodeDef.ExecutionPlan.name}, ${NodeDef.Progress.name}
-         |    FOR x IN UNION_DISTINCT (
+         |FOR x IN UNION_DISTINCT (
          |        FOR ep IN executionPlan FOR a IN ATTRIBUTES(ep.labels) RETURN a,
          |        FOR ee IN progress FOR a IN ATTRIBUTES(ee.labels) RETURN a
          |    )
          |    FILTER @searchTerm == null OR CONTAINS(LOWER(x), LOWER(@searchTerm))
          |    LIMIT @offset, @length
-         |RETURN x
+         |    RETURN x
          |""".stripMargin,
       Map(
         "searchTerm" -> query.orNull,

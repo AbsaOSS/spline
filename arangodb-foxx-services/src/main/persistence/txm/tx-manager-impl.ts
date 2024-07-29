@@ -26,7 +26,7 @@ import {
     TxNum,
     TxParams,
     WriteTxInfo
-} from '../../persistence/model'
+} from '../model'
 import { store } from '../store'
 import { aql, db } from '@arangodb'
 import * as Logger from '../../utils/logger'

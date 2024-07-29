@@ -81,7 +81,7 @@
                     <dependency>
                         <groupId>com.github.wajda</groupId>
                         <artifactId>scala-ts_${scala.compat.version}</artifactId>
-                        <version>0.4.1.10</version>
+                        <version>0.4.1.11</version>
                     </dependency>
                 </dependencies>
             </plugin>

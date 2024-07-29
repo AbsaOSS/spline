@@ -20,11 +20,12 @@ import Joi from 'joi'
 import { lineageOverview } from '../services/lineage-overview'
 import { impactOverview } from '../services/impact-overview'
 import { Progress } from '../../external/api.model'
-import { listExecutionEventInfo_groupedByDataSource, listExecutionEvents, storeExecutionEvent } from '../services/execution-event-store'
-import { TxManager } from '../services/txm'
-import { checkKeyExistence } from '../services/store'
-import { NodeCollectionName } from '../persistence/model'
-import * as Logger from '../utils/logger'
+import {
+    checkExecutionEventExists,
+    listExecutionEventInfo_groupedByDataSource,
+    listExecutionEvents,
+    storeExecutionEvent
+} from '../services/execution-event-store'
 
 
 export const eventsRouter: Foxx.Router = createRouter()
@@ -47,7 +48,6 @@ eventsRouter
 eventsRouter
     .get('/',
         (req: Foxx.Request, res: Foxx.Response) => {
-            Logger.debug(`Foxx: GET ${req.url}`)
             const events = listExecutionEvents(
                 req.queryParams.asAtTime,
                 req.queryParams.timestampStart,
@@ -89,7 +89,6 @@ eventsRouter
 eventsRouter
     .get('/_grouped-by-ds',
         (req: Foxx.Request, res: Foxx.Response) => {
-            Logger.debug(`Foxx: GET ${req.url}`)
             const events = listExecutionEventInfo_groupedByDataSource(
                 req.queryParams.asAtTime,
                 req.queryParams.timestampStart,
@@ -133,8 +132,7 @@ eventsRouter
 eventsRouter
     .get('/:eventId/_exists',
         (req: Foxx.Request, res: Foxx.Response) => {
-            const exists = checkKeyExistence(
-                NodeCollectionName.Progress,
+            const exists = checkExecutionEventExists(
                 req.pathParams.eventId,
                 req.queryParams.discriminator
             )
@@ -152,8 +150,7 @@ eventsRouter
         (req: Foxx.Request, res: Foxx.Response) => {
             const eventKey = req.pathParams.eventKey
             const maxDepth = req.pathParams.maxDepth
-            const rtxInfo = TxManager.startRead()
-            const overview = lineageOverview(eventKey, maxDepth, rtxInfo)
+            const overview = lineageOverview(eventKey, maxDepth)
             if (overview) {
                 res.send(overview)
             }
@@ -175,8 +172,7 @@ eventsRouter
         (req: Foxx.Request, res: Foxx.Response) => {
             const eventKey = req.pathParams.eventKey
             const maxDepth = req.pathParams.maxDepth
-            const rtxInfo = TxManager.startRead()
-            const overview = impactOverview(eventKey, maxDepth, rtxInfo)
+            const overview = impactOverview(eventKey, maxDepth)
             if (overview) {
                 res.send(overview)
             }

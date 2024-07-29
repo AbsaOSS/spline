@@ -16,24 +16,20 @@
 
 package za.co.absa.spline.consumer.service.repo
 
-import com.arangodb.async.ArangoDatabaseAsync
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.common.StringEscapeUtils.escapeAQLSearch
-import za.co.absa.spline.consumer.service.model.DataSourceActionType.{Read, Write}
 import za.co.absa.spline.consumer.service.model._
 import za.co.absa.spline.consumer.service.repo.AbstractExecutionEventRepository._
-import za.co.absa.spline.persistence.ArangoImplicits._
+import za.co.absa.spline.consumer.service.repo.DataSourceRepository._
 import za.co.absa.spline.persistence.DefaultJsonSerDe._
 import za.co.absa.spline.persistence.FoxxRouter
-import za.co.absa.spline.persistence.model.{EdgeDef, NodeDef}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters._
 
 @Repository
 class DataSourceRepositoryImpl @Autowired()(
-  db: ArangoDatabaseAsync,
   foxxRouter: FoxxRouter
 ) extends DataSourceRepository {
 
@@ -71,39 +67,9 @@ class DataSourceRepositoryImpl @Autowired()(
     execPlanId: ExecutionPlanInfo.Id,
     access: Option[DataSourceActionType]
   )(implicit ec: ExecutionContext): Future[Array[String]] = {
-    // TODO: call Foxx API instead of AQL query
-    access
-      .map({
-        case Read => db.queryStream[String](
-          s"""
-             |WITH ${NodeDef.DataSource.name}, ${EdgeDef.Depends.name}
-             |FOR ds IN 1..1
-             |    OUTBOUND DOCUMENT('executionPlan', @planId) depends
-             |    RETURN ds.uri
-             |""".stripMargin,
-          Map("planId" -> execPlanId)
-        ).map(_.toArray)
 
-        case Write => db.queryStream[String](
-          s"""
-             |WITH ${NodeDef.DataSource.name}, ${EdgeDef.Affects.name}
-             |FOR ds IN 1..1
-             |    OUTBOUND DOCUMENT('executionPlan', @planId) affects
-             |    RETURN ds.uri
-             |""".stripMargin,
-          Map("planId" -> execPlanId)
-        ).map(_.toArray)
-      })
-      .getOrElse({
-        db.queryStream[String](
-          s"""
-             |WITH ${NodeDef.DataSource.name}, ${EdgeDef.Depends.name}, ${EdgeDef.Affects.name}
-             |FOR ds IN 1..1
-             |    OUTBOUND DOCUMENT('executionPlan', @planId) affects, depends
-             |    RETURN ds.uri
-             |""".stripMargin,
-          Map("planId" -> execPlanId)
-        ).map(_.toArray)
-      })
+    foxxRouter.get[Array[String]](s"/spline/execution-plans/$execPlanId/data-sources", Map(
+      "access" -> access.orNull
+    ))
   }
 }

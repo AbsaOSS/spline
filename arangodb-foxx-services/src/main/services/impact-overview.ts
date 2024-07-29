@@ -25,6 +25,7 @@ import {
 } from './commons'
 import { Progress } from '../../external/api.model'
 import { ReadTxInfo } from '../persistence/model'
+import { TxManager } from '../persistence/txm'
 
 
 /**
@@ -33,10 +34,10 @@ import { ReadTxInfo } from '../persistence/model'
  * @param eventKey read event key
  * @param maxDepth maximum number of job nodes in any path of the resulted graph (excluding cycles).
  * It shows how far the traversal should look for the impact (forward-lineage).
- * @param rtxInfo read tx info
  * @returns za.co.absa.spline.consumer.service.model.LineageOverview
  */
-export function impactOverview(eventKey: DocumentKey, maxDepth: number, rtxInfo: ReadTxInfo): LineageOverview {
+export function impactOverview(eventKey: DocumentKey, maxDepth: number): LineageOverview {
+    const rtxInfo = TxManager.startRead()
 
     const executionEvent: Progress = getExecutionEventFromEventKey(eventKey, rtxInfo)
     const targetDataSource: DataSource = executionEvent && getTargetDataSourceFromExecutionEvent(executionEvent, rtxInfo)

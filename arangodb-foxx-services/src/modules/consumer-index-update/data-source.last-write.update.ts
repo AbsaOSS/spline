@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { TxManager } from '../../main/services/txm'
+import { TxManager } from '../../main/persistence/txm'
 import { TxEvent, WriteTxInfo } from '../../main/persistence/model'
 import * as Logger from '../../main/utils/logger'
 import { aql, db } from '@arangodb'

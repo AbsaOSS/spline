@@ -15,12 +15,25 @@
  */
 
 
-import { ExecutionPlanPersistentModel } from '../../external/api.model'
-import { CollectionName, WriteTxInfo } from '../persistence/model'
-import { store } from './store'
+import { DataSourceActionType, ExecutionPlanPersistentModel } from '../../external/api.model'
+import { CollectionName, EdgeCollectionName, NodeCollectionName, WriteTxInfo } from '../persistence/model'
+import { checkKeyExistence, store } from '../persistence/store'
 import { withTimeTracking } from '../utils/common'
-import { TxTemplate } from './txm/tx-template'
+import { TxTemplate } from '../persistence/txm/tx-template'
+import { DocumentKey } from '../model'
+import { DataSourceActionTypeValue } from './model'
+import { aql, db } from '@arangodb'
+import { AQLCodeGenHelper } from '../utils/aql-gen-helper'
+import { TxManager } from '../persistence/txm'
 
+
+export function checkExecutionPlanExists(planKey: DocumentKey, discriminator: string): boolean {
+    return checkKeyExistence(
+        NodeCollectionName.ExecutionPlan,
+        planKey,
+        discriminator
+    )
+}
 
 export function storeExecutionPlan(eppm: ExecutionPlanPersistentModel): void {
     const execPlanKey = eppm.executionPlan._key
@@ -65,3 +78,26 @@ export function storeExecutionPlan(eppm: ExecutionPlanPersistentModel): void {
     })
 }
 
+export function getDataSourceURIsByActionType(planKey: DocumentKey, access: DataSourceActionTypeValue): string[] {
+    const rtxInfo = TxManager.startRead()
+    const aqlGen = new AQLCodeGenHelper(rtxInfo)
+
+    let edges: EdgeCollectionName[]
+    if (access === DataSourceActionType.Read.name) {
+        edges = [EdgeCollectionName.Depends]
+    }
+    else if (access === DataSourceActionType.Write.name) {
+        edges = [EdgeCollectionName.Affects]
+    }
+    else {
+        edges = [EdgeCollectionName.Depends, EdgeCollectionName.Affects]
+    }
+
+    return db._query(aql`
+        WITH ${aql.literal([...edges, NodeCollectionName.DataSource].join(', '))}
+        FOR ds IN 1..1
+            OUTBOUND DOCUMENT('executionPlan', ${planKey}) ${aql.literal(edges.join(', '))}
+            ${aqlGen.genTxIsolationCodeForTraversal('ds')}
+            RETURN ds.uri
+    `).toArray()
+}

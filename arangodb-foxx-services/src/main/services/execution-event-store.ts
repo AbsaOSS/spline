@@ -16,13 +16,14 @@
 
 
 import { ExecPlanDetails, ExecutionEventInfo, Frame, Label, Progress } from '../../external/api.model'
-import { CollectionName, edge, ViewName, WriteTxInfo } from '../persistence/model'
-import { store } from './store'
+import { CollectionName, edge, NodeCollectionName, ViewName, WriteTxInfo } from '../persistence/model'
+import { checkKeyExistence, store } from '../persistence/store'
 import { aql, db } from '@arangodb'
 import { withTimeTracking } from '../utils/common'
-import { TxManager } from './txm'
-import { TxTemplate } from './txm/tx-template'
+import { TxManager } from '../persistence/txm'
+import { TxTemplate } from '../persistence/txm/tx-template'
 import * as Logger from '../utils/logger'
+import { DocumentKey } from '../model'
 
 
 const EVENT_SEARCH_FIELDS = [
@@ -196,6 +197,14 @@ export function listExecutionEventInfo_groupedByDataSource(
         totalCount,
         offset,
     }
+}
+
+export function checkExecutionEventExists(eventKey: DocumentKey, discriminator: string): boolean {
+    return checkKeyExistence(
+        NodeCollectionName.Progress,
+        eventKey,
+        discriminator
+    )
 }
 
 export function storeExecutionEvent(progress: Progress): void {

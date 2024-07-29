@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 ABSA Group Limited
+ * Copyright 2024 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { CollectionName, ReadTxInfo, TxAwareDocument, WriteTxInfo } from '../persistence/model'
+import { CollectionName, ReadTxInfo, TxAwareDocument, WriteTxInfo } from './model'
 import { aql, db } from '@arangodb'
 import { DocumentKey } from '../model'
 import { TxManager } from './txm'
@@ -58,7 +58,7 @@ function deleteByKey(colName: CollectionName, key: DocumentKey): DocumentMetadat
     return db._remove({ _id: `${colName}/${key}` }, { silent: true })
 }
 
-export function checkKeyExistence(colName: CollectionName, key: string, discriminator: string = null, rtxInfo: ReadTxInfo = null): boolean {
+export function checkKeyExistence(colName: CollectionName, key: DocumentKey, discriminator: string = null, rtxInfo: ReadTxInfo = null): boolean {
     const aqlGen = new AQLCodeGenHelper(rtxInfo)
 
     const docDiscriminatorCursor: ArangoDB.Cursor<string> = db._query(aql`

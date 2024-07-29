@@ -16,7 +16,7 @@
 
 import { TxManager } from './tx-manager'
 import events from 'events'
-import { ReadTxInfo, TxAwareDocument, TxEvent, TxId, TxParams, WriteTxInfo } from '../../persistence/model'
+import { ReadTxInfo, TxAwareDocument, TxEvent, TxId, TxParams, WriteTxInfo } from '../model'
 import * as Logger from '../../utils/logger'
 
 

@@ -15,11 +15,9 @@
  */
 
 import { createRouter } from '@arangodb/foxx'
-import { ExecutionPlanPersistentModel } from '../../external/api.model'
-import { storeExecutionPlan } from '../services/execution-plan-store'
+import { DataSourceActionType, ExecutionPlanPersistentModel } from '../../external/api.model'
+import { checkExecutionPlanExists, getDataSourceURIsByActionType, storeExecutionPlan } from '../services/execution-plan-store'
 import Joi from 'joi'
-import { checkKeyExistence } from '../services/store'
-import { NodeCollectionName } from '../persistence/model'
 
 
 export const plansRouter: Foxx.Router = createRouter()
@@ -38,10 +36,23 @@ plansRouter
 
 
 plansRouter
+    .get('/:planId/data-sources',
+        (req: Foxx.Request, res: Foxx.Response) => {
+            const uris = getDataSourceURIsByActionType(
+                req.pathParams.planId,
+                req.queryParams.access
+            )
+            res.send(uris)
+        })
+    .pathParam('planId', Joi.string().min(1).required(), 'Execution Plan ID')
+    .queryParam('access', Joi.string().optional().valid(DataSourceActionType.values).default(null), 'Access type (read/write) to filter by')
+    .response(200, ['application/json'], 'Array of data source URIs')
+
+
+plansRouter
     .get('/:planId/_exists',
         (req: Foxx.Request, res: Foxx.Response) => {
-            const exists = checkKeyExistence(
-                NodeCollectionName.ExecutionPlan,
+            const exists = checkExecutionPlanExists(
                 req.pathParams.planId,
                 req.queryParams.discriminator
             )

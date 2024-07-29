@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { TxParams, WriteTxInfo } from '../../persistence/model'
+import { TxParams, WriteTxInfo } from '../model'
 import { TxManager } from './index'
 
 
