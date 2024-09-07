@@ -45,7 +45,7 @@
         <scala.version>2.13.14</scala.version>
         <scala.compat.version>2.13</scala.compat.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
-        <logback.version>1.5.6</logback.version>
+        <logback.version>1.5.7</logback.version>
         <slf4j.version>2.0.13</slf4j.version>
         <json4s.version>3.6.12</json4s.version>
         <spring.version>5.2.9.RELEASE</spring.version>
