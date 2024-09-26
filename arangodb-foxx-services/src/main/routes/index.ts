@@ -15,6 +15,10 @@
  */
 
 import { createRouter } from '@arangodb/foxx'
+import { context } from '@arangodb/locals'
+
+// import audit from 'express-requests-logger'
+
 import { adminRouter } from './admin-router'
 import { plansRouter } from './plans-router'
 import { eventsRouter } from './events-router'
@@ -22,6 +26,11 @@ import { dsRouter } from './data-sources-router'
 
 
 const rootRouter: Foxx.Router = createRouter()
+
+/*if (context.isDevelopment) {
+    rootRouter.use(audit())
+}*/
+
 rootRouter.use('/admin', adminRouter)
 rootRouter.use('/execution-plans', plansRouter)
 rootRouter.use('/execution-events', eventsRouter)
