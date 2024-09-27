@@ -112,6 +112,7 @@
                 <configuration>
                     <excludes combine.children="append">
                         <exclude>.nvmrc</exclude>
+                        <exclude>**/.env</exclude>
                     </excludes>
                 </configuration>
             </plugin>
