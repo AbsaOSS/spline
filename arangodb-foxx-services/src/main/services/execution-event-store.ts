@@ -15,7 +15,8 @@
  */
 
 
-import { ExecPlanDetails, ExecutionEventInfo, Frame, Label, Progress } from '../../external/api.model'
+import { ExecPlanDetails, Progress } from '../../external/persistence-api.model'
+import { ExecutionEventInfo, Frame, Label } from '../../external/consumer-api.model'
 import { CollectionName, edge, NodeCollectionName, ViewName, WriteTxInfo } from '../persistence/model'
 import { checkKeyExistence, store } from '../persistence/store'
 import { aql, db } from '@arangodb'

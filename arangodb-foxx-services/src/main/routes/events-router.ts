@@ -19,7 +19,7 @@ import Joi from 'joi'
 
 import { lineageOverview } from '../services/lineage-overview'
 import { impactOverview } from '../services/impact-overview'
-import { Progress } from '../../external/api.model'
+import { Progress } from '../../external/persistence-api.model'
 import {
     checkExecutionEventExists,
     listExecutionEventInfo_groupedByDataSource,

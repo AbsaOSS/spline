@@ -1,6 +1,5 @@
 /*
- * Copyright 2020 ABSA Group Limited
- *
+ * Copyright 2024 ABSA Group Limited
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,6 +28,7 @@ import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
 ))
 sealed trait DataType {
   def id: String
+
   def nullable: Boolean
 }
 

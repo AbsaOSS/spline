@@ -15,21 +15,23 @@
  */
 
 import { createRouter } from '@arangodb/foxx'
-import { DataSource } from '../../external/persistence-api.model'
-import { storeDataSources } from '../services/data-source-store'
+import Joi from 'joi'
+import { getOperationById } from '../services/operation-store'
+import { OperationDetails } from '../../external/consumer-api.model'
 
 
-export const dsRouter: Foxx.Router = createRouter()
+export const operationsRouter: Foxx.Router = createRouter()
 
 
-// Store data source
-dsRouter
-    .post('/',
+// Get operation details
+operationsRouter
+    .get('/:operationId',
         (req: Foxx.Request, res: Foxx.Response) => {
-            const transientDS: DataSource = req.body
-            const persistentDS = storeDataSources(transientDS)
-            res.send(persistentDS)
+            const opDetails: OperationDetails = getOperationById(
+                req.pathParams.operationId
+            )
+            res.send(opDetails)
         })
-    .body(['application/json'], 'Data Source JSON')
-    .response(200, ['application/json'], 'Persistent Data Source')
-    .summary('Persist a Data Source')
+    .pathParam('operationId', Joi.string().min(1).required(), 'Operation ID')
+    .response(200, ['application/json'], 'Operation details')
+    .summary('Get operation details by ID')

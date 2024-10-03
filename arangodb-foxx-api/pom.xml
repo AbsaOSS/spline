@@ -36,10 +36,43 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>gen-persistence-model</id>
                         <phase>process-classes</phase>
                         <goals>
                             <goal>java</goal>
                         </goals>
+                        <configuration>
+                            <arguments combine.children="append">
+                                <argument>--out</argument>
+                                <argument>${project.basedir}/target/generated-ts/persistence-api.model.ts</argument>
+
+                                <!-- Persistence model -->
+                                <argument>za.co.absa.spline.persistence.model.ExecutionPlanPersistentModel</argument>
+                                <argument>za.co.absa.spline.persistence.model.Progress</argument>
+                                <argument>za.co.absa.spline.persistence.model.DataSource</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>gen-consumer-model</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <arguments combine.children="append">
+                                <argument>--out</argument>
+                                <argument>${project.basedir}/target/generated-ts/consumer-api.model.ts</argument>
+
+                                <!-- Consumer model -->
+                                <argument>za.co.absa.spline.consumer.service.model.Frame</argument>
+                                <argument>za.co.absa.spline.consumer.service.model.ExecutionPlanInfo</argument>
+                                <argument>za.co.absa.spline.consumer.service.model.ExecutionEventInfo</argument>
+                                <argument>za.co.absa.spline.consumer.service.model.Label</argument>
+                                <argument>za.co.absa.spline.consumer.service.model.DataSourceActionType</argument>
+                                <argument>za.co.absa.spline.consumer.service.model.OperationDetails</argument>
+                            </arguments>
+                        </configuration>
                     </execution>
                 </executions>
                 <configuration>
@@ -50,31 +83,11 @@
                     </executableDependency>
                     <mainClass>com.mpc.scalats.CLI</mainClass>
                     <arguments>
-                        <argument>--out</argument>
-                        <argument>${project.basedir}/target/generated-ts/api.model.ts</argument>
                         <argument>--trait-to-type</argument>
                         <argument>--option-to-nullable</argument>
                         <argument>--string-single-quotes</argument>
                         <argument>--indent-size</argument>
                         <argument>4</argument>
-
-                        <!-- ================================================ -->
-                        <!-- list of root entities to generate TS definitions -->
-                        <!-- ================================================ -->
-
-                        <!-- Persistence model -->
-                        <argument>za.co.absa.spline.persistence.model.Progress</argument>
-                        <argument>za.co.absa.spline.persistence.model.DataSource</argument>
-
-                        <!-- Producer model -->
-                        <argument>za.co.absa.spline.producer.service.model.ExecutionPlanPersistentModel</argument>
-
-                        <!-- Consumer model -->
-                        <argument>za.co.absa.spline.consumer.service.model.Frame</argument>
-                        <argument>za.co.absa.spline.consumer.service.model.ExecutionPlanInfo</argument>
-                        <argument>za.co.absa.spline.consumer.service.model.ExecutionEventInfo</argument>
-                        <argument>za.co.absa.spline.consumer.service.model.Label</argument>
-                        <argument>za.co.absa.spline.consumer.service.model.DataSourceActionType</argument>
                     </arguments>
                 </configuration>
                 <dependencies>
@@ -119,6 +132,10 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
         </dependency>
     </dependencies>
 </project>

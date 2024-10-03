@@ -17,6 +17,7 @@
 package za.co.absa.spline.consumer.service.model
 
 
+import com.fasterxml.jackson.core.`type`.TypeReference
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
 
 @ApiModel(description = "Information Details of an Operation containing the input and output schemas with the description of the dataTypes")
@@ -32,3 +33,7 @@ case class OperationDetails
   @ApiModelProperty(value = "Index of the schemas Array. The schema at this index represents the output schemas")
   output: Int
 )
+
+object OperationDetails {
+  implicit val typeRef: TypeReference[OperationDetails] = new TypeReference[OperationDetails] {}
+}

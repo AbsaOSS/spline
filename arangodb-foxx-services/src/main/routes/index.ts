@@ -21,6 +21,7 @@ import { adminRouter } from './admin-router'
 import { plansRouter } from './plans-router'
 import { eventsRouter } from './events-router'
 import { dsRouter } from './data-sources-router'
+import { operationsRouter } from './operations-router'
 import { RequestLogger } from '../middleware/request-logger.middleware'
 
 
@@ -34,5 +35,6 @@ rootRouter.use('/admin', adminRouter)
 rootRouter.use('/execution-plans', plansRouter)
 rootRouter.use('/execution-events', eventsRouter)
 rootRouter.use('/data-sources', dsRouter)
+rootRouter.use('/operations', operationsRouter)
 
 export default rootRouter

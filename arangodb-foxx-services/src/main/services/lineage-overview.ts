@@ -23,7 +23,7 @@ import {
     getExecutionEventFromEventKey,
     getTargetDataSourceFromExecutionEvent
 } from './commons'
-import { Progress } from '../../external/api.model'
+import { Progress } from '../../external/persistence-api.model'
 import { ReadTxInfo } from '../persistence/model'
 import { TxManager } from '../persistence/txm'
 

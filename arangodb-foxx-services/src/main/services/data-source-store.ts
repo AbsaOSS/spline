@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as api from '../../external/api.model'
+import * as api from '../../external/persistence-api.model'
 import { withTimeTracking } from '../utils/common'
 import { aql, db } from '@arangodb'
 import { NodeCollectionName } from '../persistence/model'

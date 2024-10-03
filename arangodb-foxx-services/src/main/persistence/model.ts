@@ -16,7 +16,7 @@
 
 
 import { DocumentKey } from '../model'
-import { ExecutionPlan, Progress } from '../../external/api.model'
+import { ExecutionPlan, Progress } from '../../external/persistence-api.model'
 import Document = ArangoDB.Document
 
 

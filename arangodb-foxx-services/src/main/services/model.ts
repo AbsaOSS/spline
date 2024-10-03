@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { DataSourceActionType } from '../../external/api.model'
+import { DataSourceActionType } from '../../external/consumer-api.model'
 
 
 export type DataSourceActionTypeValue = typeof DataSourceActionType.values[number]

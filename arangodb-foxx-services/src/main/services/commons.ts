@@ -19,7 +19,7 @@ import { aql, db } from '@arangodb'
 import { memoize } from '../utils/common'
 import { GraphBuilder } from '../utils/graph'
 import { ReadTxInfo } from '../persistence/model'
-import { Progress } from '../../external/api.model'
+import { Progress } from '../../external/persistence-api.model'
 import { AQLCodeGenHelper } from '../utils/aql-gen-helper'
 
 

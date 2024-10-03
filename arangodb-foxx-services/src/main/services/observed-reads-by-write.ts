@@ -15,7 +15,7 @@
  */
 
 import { aql, db } from '@arangodb'
-import { Progress } from '../../external/api.model'
+import { Progress } from '../../external/persistence-api.model'
 import { ReadTxInfo } from '../persistence/model'
 import { AQLCodeGenHelper } from '../utils/aql-gen-helper'
 import * as Logger from '../utils/logger'

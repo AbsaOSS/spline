@@ -15,7 +15,8 @@
  */
 
 import { createRouter } from '@arangodb/foxx'
-import { DataSourceActionType, ExecutionPlanPersistentModel } from '../../external/api.model'
+import { ExecutionPlanPersistentModel } from '../../external/persistence-api.model'
+import { DataSourceActionType } from '../../external/consumer-api.model'
 import { checkExecutionPlanExists, getDataSourceURIsByActionType, storeExecutionPlan } from '../services/execution-plan-store'
 import Joi from 'joi'
 

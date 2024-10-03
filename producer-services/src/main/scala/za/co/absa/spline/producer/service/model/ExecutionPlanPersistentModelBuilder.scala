@@ -22,7 +22,7 @@ import za.co.absa.commons.lang.extensions.AnyExtension._
 import za.co.absa.commons.lang.extensions.TraversableOnceExtension._
 import za.co.absa.spline.common.graph.GraphImplicits._
 import za.co.absa.spline.persistence.DefaultJsonSerDe._
-import za.co.absa.spline.persistence.model.{Edge, EdgeDef}
+import za.co.absa.spline.persistence.model.{Edge, EdgeDef, ExecutionPlanPersistentModel}
 import za.co.absa.spline.persistence.{model => pm}
 import za.co.absa.spline.producer.model.v1_2.AttrOrExprRef
 import za.co.absa.spline.producer.model.v1_2.OperationLike.Id
@@ -85,7 +85,7 @@ class ExecutionPlanPersistentModelBuilder private(
         )
       }
 
-    model.ExecutionPlanPersistentModel(
+    ExecutionPlanPersistentModel(
       // plan
       executionPlan = pmExecutionPlan,
       executes = pmExecutes,

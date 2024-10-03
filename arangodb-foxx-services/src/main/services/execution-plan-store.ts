@@ -15,7 +15,8 @@
  */
 
 
-import { DataSourceActionType, ExecutionPlanPersistentModel } from '../../external/api.model'
+import { ExecutionPlanPersistentModel } from '../../external/persistence-api.model'
+import { DataSourceActionType } from '../../external/consumer-api.model'
 import { CollectionName, EdgeCollectionName, NodeCollectionName, WriteTxInfo } from '../persistence/model'
 import { checkKeyExistence, store } from '../persistence/store'
 import { withTimeTracking } from '../utils/common'
