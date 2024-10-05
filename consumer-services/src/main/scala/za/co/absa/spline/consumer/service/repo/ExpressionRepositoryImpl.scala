@@ -21,15 +21,18 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.model.ExpressionGraph
 import za.co.absa.spline.consumer.service.model.Operation.Id
+import za.co.absa.spline.persistence.FoxxRouter
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Repository
-class ExpressionRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExpressionRepository {
+class ExpressionRepositoryImpl @Autowired()(foxxRouter: FoxxRouter) extends ExpressionRepository {
 
   import za.co.absa.spline.persistence.ArangoImplicits._
 
   override def expressionGraphUsedByOperation(operationId: Id)(implicit ec: ExecutionContext): Future[ExpressionGraph] = {
+    foxxRouter.get[ExpressionGraph](s"/spline/operations/$operationId/expressions/_graph")
+
     db.queryOne[ExpressionGraph](
       """
         |WITH operation, uses, expression, takes, attribute

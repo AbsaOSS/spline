@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.consumer.service.model
 
+import com.fasterxml.jackson.core.`type`.TypeReference
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
 
 @ApiModel(description = "Expression Graph")
@@ -29,4 +30,6 @@ case class ExpressionGraph(
   override type Edge = ExpressionEdge
 }
 
-
+object ExpressionGraph {
+  implicit val typeRef: TypeReference[ExpressionGraph] = new TypeReference[ExpressionGraph] {}
+}
