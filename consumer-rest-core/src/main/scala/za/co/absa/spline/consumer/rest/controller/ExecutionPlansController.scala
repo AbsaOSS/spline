@@ -19,9 +19,9 @@ package za.co.absa.spline.consumer.rest.controller
 
 import io.swagger.annotations.{Api, ApiOperation, ApiParam}
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.{HttpHeaders, HttpStatus, ResponseEntity}
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation._
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder
+import org.springframework.web.servlet.view.RedirectView
 import za.co.absa.spline.consumer.service.model._
 import za.co.absa.spline.consumer.service.repo.{DataSourceRepository, ExecutionPlanRepository}
 
@@ -82,18 +82,9 @@ class ExecutionPlansController @Autowired()
     @ApiParam(value = "Id of the execution plan")
     @PathVariable("planId") planId: ExecutionPlanInfo.Id,
     request: HttpServletRequest
-  ): Future[ResponseEntity[String]] = {
-
+  ): Future[_] = {
     epRepo.getWriteOperationId(planId).map { opId =>
-      val newUri = ServletUriComponentsBuilder.fromRequest(request)
-        .path(s"/../../../operations/{opId}") // stripping execution-plans/{planId}/write-op
-        .buildAndExpand(opId)
-        .normalize // will normalize `/one/two/../three` into `/one/three`
-        .toUri
-
-      val headers: HttpHeaders = new HttpHeaders();
-      headers.setLocation(newUri);
-      new ResponseEntity(headers, HttpStatus.FOUND);
+      new RedirectView(s"${request.getServletPath}/operations/$opId")
     }
   }
 
