@@ -14,6 +14,10 @@
  */
 
 module.exports = {
+    ignorePatterns: [
+        'node_modules/',
+        'src/external/'
+    ],
     env: {
         browser: false,
         commonjs: true,

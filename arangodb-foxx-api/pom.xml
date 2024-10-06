@@ -71,6 +71,7 @@
                                 <argument>za.co.absa.spline.consumer.service.model.Label</argument>
                                 <argument>za.co.absa.spline.consumer.service.model.DataSourceActionType</argument>
                                 <argument>za.co.absa.spline.consumer.service.model.OperationDetails</argument>
+                                <argument>za.co.absa.spline.consumer.service.model.ExpressionGraph</argument>
                             </arguments>
                         </configuration>
                     </execution>
