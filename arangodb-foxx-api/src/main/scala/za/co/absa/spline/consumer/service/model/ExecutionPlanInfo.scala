@@ -16,10 +16,10 @@
 
 package za.co.absa.spline.consumer.service.model
 
-import java.util.UUID
-
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
 import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
+
+import java.util.UUID
 
 @ApiModel(description = "Execution plan information")
 case class ExecutionPlanInfo

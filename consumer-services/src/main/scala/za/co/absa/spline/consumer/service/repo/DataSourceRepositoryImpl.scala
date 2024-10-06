@@ -46,7 +46,7 @@ class DataSourceRepositoryImpl @Autowired()(
     maybeDataSourceUri: Option[String]
   )(implicit ec: ExecutionContext): Future[Frame[ExecutionEventInfo]] = {
 
-    foxxRouter.get[Frame[ExecutionEventInfo]]("/spline/execution-events/_grouped-by-ds", Map(
+    foxxRouter.get[Frame[ExecutionEventInfo]]("/spline/consumer/execution-events/_grouped-by-ds", Map(
       "asAtTime" -> asAtTime,
       "timestampStart" -> maybeWriteTimestampStart.orNull,
       "timestampEnd" -> maybeWriteTimestampEnd.orNull,
@@ -68,7 +68,7 @@ class DataSourceRepositoryImpl @Autowired()(
     access: Option[DataSourceActionType]
   )(implicit ec: ExecutionContext): Future[Array[String]] = {
 
-    foxxRouter.get[Array[String]](s"/spline/execution-plans/$execPlanId/data-sources", Map(
+    foxxRouter.get[Array[String]](s"/spline/consumer/execution-plans/$execPlanId/data-sources", Map(
       "access" -> access.orNull
     ))
   }

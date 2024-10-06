@@ -15,9 +15,8 @@
  */
 
 import { createRouter } from '@arangodb/foxx'
-import { ExecutionPlanPersistentModel } from '../../external/persistence-api.model'
-import { DataSourceActionType } from '../../external/consumer-api.model'
-import { checkExecutionPlanExists, getDataSourceURIsByActionType, storeExecutionPlan } from '../services/execution-plan-store'
+import { ExecutionPlanPersistentModel } from '../../../external/persistence-api.model'
+import { checkExecutionPlanExists, storeExecutionPlan } from '../../services/execution-plan-store'
 import Joi from 'joi'
 
 
@@ -34,20 +33,6 @@ plansRouter
     .body(['application/json'], 'Execution Plan Persistent Model JSON')
     .response(201, 'Plan registered')
     .summary('Register a new execution plan')
-
-
-plansRouter
-    .get('/:planId/data-sources',
-        (req: Foxx.Request, res: Foxx.Response) => {
-            const uris = getDataSourceURIsByActionType(
-                req.pathParams.planId,
-                req.queryParams.access
-            )
-            res.send(uris)
-        })
-    .pathParam('planId', Joi.string().min(1).required(), 'Execution Plan ID')
-    .queryParam('access', Joi.string().optional().valid(DataSourceActionType.values).default(null), 'Access type (read/write) to filter by')
-    .response(200, ['application/json'], 'Array of data source URIs')
 
 
 plansRouter

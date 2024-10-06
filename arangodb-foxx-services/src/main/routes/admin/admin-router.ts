@@ -15,22 +15,20 @@
  */
 
 import { createRouter } from '@arangodb/foxx'
-import { context } from '@arangodb/locals'
-
-import { RequestLogger } from '../middleware/request-logger.middleware'
-import adminRouter from './admin'
-import producerRouter from './producer'
-import consumerRouter from './consumer'
+import joi from 'joi'
+import { pruneBefore } from '../../services/prune-database'
 
 
-const rootRouter: Foxx.Router = createRouter()
+export const adminRouter = createRouter()
 
-if (context.isDevelopment) {
-    rootRouter.use(RequestLogger)
-}
 
-rootRouter.use('/admin', adminRouter)
-rootRouter.use('/producer', producerRouter)
-rootRouter.use('/consumer', consumerRouter)
-
-export default rootRouter
+adminRouter
+    .delete('/data/before/:timestamp',
+        (req: Foxx.Request, res: Foxx.Response) => {
+            const timestamp = req.pathParams.timestamp
+            pruneBefore(timestamp)
+            res.send('DB Pruning done.')
+        })
+    .pathParam('timestamp', joi.number().integer().min(0).required(), 'Data retention threshold [timestamp in millis]')
+    .summary('Prune database')
+    .description('Delete the data older than the given timestamp')

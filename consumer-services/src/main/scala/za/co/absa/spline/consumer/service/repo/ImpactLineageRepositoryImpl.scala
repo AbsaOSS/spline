@@ -28,10 +28,10 @@ import scala.concurrent.{ExecutionContext, Future}
 class ImpactLineageRepositoryImpl @Autowired()(foxxRouter: FoxxRouter) extends LineageRepository with ImpactRepository {
 
   override def lineageOverviewForExecutionEvent(eventId: Id, maxDepth: Int)(implicit ec: ExecutionContext): Future[LineageOverview] = {
-    foxxRouter.get[LineageOverview](s"/spline/execution-events/$eventId/lineage-overview/$maxDepth")
+    foxxRouter.get[LineageOverview](s"/spline/consumer/execution-events/$eventId/lineage-overview/$maxDepth")
   }
 
   override def impactOverviewForExecutionEvent(eventId: Id, maxDepth: Int)(implicit ec: ExecutionContext): Future[LineageOverview] = {
-    foxxRouter.get[LineageOverview](s"/spline/execution-events/$eventId/impact-overview/$maxDepth")
+    foxxRouter.get[LineageOverview](s"/spline/consumer/execution-events/$eventId/impact-overview/$maxDepth")
   }
 }

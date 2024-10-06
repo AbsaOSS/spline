@@ -56,7 +56,11 @@ class FoxxRouter @Autowired()(db: ArangoDatabaseAsync) {
       .withBody(serializedBody)
       .post()
       .asScala
-      .map(resp => deserializer.deserialize(resp.getBody))
+      .map(resp => {
+        val body = resp.getBody
+        if (body == null) null.asInstanceOf[A]
+        else deserializer.deserialize(body)
+      })
       .asInstanceOf[Future[A]]
   }
 }

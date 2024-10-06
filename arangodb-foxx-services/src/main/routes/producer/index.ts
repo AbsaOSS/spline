@@ -15,21 +15,15 @@
  */
 
 import { createRouter } from '@arangodb/foxx'
-import { DataSource } from '../../external/persistence-api.model'
-import { storeDataSources } from '../services/data-source-store'
+import { dsRouter } from './data-sources-router'
+import { plansRouter } from './plans-router'
+import { eventsRouter } from './events-router'
 
 
-export const dsRouter: Foxx.Router = createRouter()
+const producerRouter: Foxx.Router = createRouter()
 
+producerRouter.use('/data-sources', dsRouter)
+producerRouter.use('/execution-plans', plansRouter)
+producerRouter.use('/execution-events', eventsRouter)
 
-// Store data source
-dsRouter
-    .post('/',
-        (req: Foxx.Request, res: Foxx.Response) => {
-            const transientDS: DataSource = req.body
-            const persistentDS = storeDataSources(transientDS)
-            res.send(persistentDS)
-        })
-    .body(['application/json'], 'Data Source JSON')
-    .response(200, ['application/json'], 'Persistent Data Source')
-    .summary('Persist a Data Source')
+export default producerRouter

@@ -28,6 +28,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class ExpressionRepositoryImpl @Autowired()(foxxRouter: FoxxRouter) extends ExpressionRepository {
 
   override def expressionGraphUsedByOperation(operationId: Id)(implicit ec: ExecutionContext): Future[ExpressionGraph] = {
-    foxxRouter.get[ExpressionGraph](s"/spline/operations/$operationId/expressions/_graph")
+    foxxRouter.get[ExpressionGraph](s"/spline/consumer/operations/$operationId/expressions/_graph")
   }
 }

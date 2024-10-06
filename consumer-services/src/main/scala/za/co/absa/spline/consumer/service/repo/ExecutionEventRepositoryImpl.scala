@@ -43,7 +43,7 @@ class ExecutionEventRepositoryImpl @Autowired()(
     maybeApplicationId: Option[String],
     maybeDataSourceUri: Option[String]
   )(implicit ec: ExecutionContext): Future[Frame[ExecutionEventInfo]] = {
-    foxxRouter.get[Frame[ExecutionEventInfo]]("/spline/execution-events", Map(
+    foxxRouter.get[Frame[ExecutionEventInfo]]("/spline/consumer/execution-events", Map(
       "asAtTime" -> asAtTime,
       "timestampStart" -> maybeTimestampStart.orNull,
       "timestampEnd" -> maybeTimestampEnd.orNull,

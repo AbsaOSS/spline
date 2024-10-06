@@ -16,9 +16,9 @@
 
 import { createRouter } from '@arangodb/foxx'
 import Joi from 'joi'
-import { getOperationById } from '../services/operation-store'
-import { ExpressionGraph, OperationDetails } from '../../external/consumer-api.model'
-import { expressionGraphUsedByOperation } from '../services/expressions-store'
+import { getOperationById } from '../../services/operation-store'
+import { ExpressionGraph, OperationDetails } from '../../../external/consumer-api.model'
+import { expressionGraphUsedByOperation } from '../../services/expressions-store'
 
 
 export const operationsRouter: Foxx.Router = createRouter()

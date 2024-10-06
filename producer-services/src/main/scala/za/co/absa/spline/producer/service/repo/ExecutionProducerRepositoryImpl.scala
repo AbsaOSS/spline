@@ -42,13 +42,13 @@ class ExecutionProducerRepositoryImpl @Autowired()(
   override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = retryer.execute({
     val eventualPlanExists: Future[Boolean] =
       foxxRouter.get[Boolean](
-        s"/spline/execution-plans/${executionPlan.id}/_exists", Map(
+        s"/spline/producer/execution-plans/${executionPlan.id}/_exists", Map(
           "discriminator" -> executionPlan.discriminator.orNull
         ))
 
     val eventualPersistedDataSources: Future[Seq[DataSource]] = {
       val dataSources = executionPlan.dataSources.map(DataSource.apply).toSeq
-      Future.traverse(dataSources)(foxxRouter.post[DataSource]("/spline/data-sources", _))
+      Future.traverse(dataSources)(foxxRouter.post[DataSource]("/spline/producer/data-sources", _))
     }
 
     for {
@@ -62,7 +62,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(
         // No execution plan with the given ID found.
         // Let's insert one.
         val eppm = ExecutionPlanPersistentModelBuilder.toPersistentModel(executionPlan, persistedDSKeyByURI)
-        foxxRouter.post[Nothing]("/spline/execution-plans", eppm)
+        foxxRouter.post[Nothing]("/spline/producer/execution-plans", eppm)
       }
     } yield ()
   })
@@ -73,7 +73,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(
 
     val eventualEventExists: Future[Boolean] =
       foxxRouter.get[Boolean](
-        s"/spline/execution-events/$eventKey/_exists", Map(
+        s"/spline/producer/execution-events/$eventKey/_exists", Map(
           "discriminator" -> e.discriminator.orNull
         ))
 
@@ -97,7 +97,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(
           planKey = e.planId.toString,
           execPlanDetails = null // the value is populated below in the transaction script
         )
-        foxxRouter.post[Nothing]("/spline/execution-events", p)
+        foxxRouter.post[Nothing]("/spline/producer/execution-events", p)
       }
     } yield ()
   })

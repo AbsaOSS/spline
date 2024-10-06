@@ -27,6 +27,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class OperationRepositoryImpl @Autowired()(foxxRouter: FoxxRouter) extends OperationRepository {
 
   override def findById(operationId: Operation.Id)(implicit ec: ExecutionContext): Future[OperationDetails] = {
-    foxxRouter.get[OperationDetails](s"/spline/operations/$operationId")
+    foxxRouter.get[OperationDetails](s"/spline/consumer/operations/$operationId")
   }
 }

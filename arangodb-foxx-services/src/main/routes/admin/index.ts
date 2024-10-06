@@ -14,23 +14,7 @@
  * limitations under the License.
  */
 
-import { createRouter } from '@arangodb/foxx'
-import { context } from '@arangodb/locals'
-
-import { RequestLogger } from '../middleware/request-logger.middleware'
-import adminRouter from './admin'
-import producerRouter from './producer'
-import consumerRouter from './consumer'
+import { adminRouter } from './admin-router'
 
 
-const rootRouter: Foxx.Router = createRouter()
-
-if (context.isDevelopment) {
-    rootRouter.use(RequestLogger)
-}
-
-rootRouter.use('/admin', adminRouter)
-rootRouter.use('/producer', producerRouter)
-rootRouter.use('/consumer', consumerRouter)
-
-export default rootRouter
+export default adminRouter

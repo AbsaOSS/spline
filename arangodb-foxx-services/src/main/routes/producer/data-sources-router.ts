@@ -15,20 +15,21 @@
  */
 
 import { createRouter } from '@arangodb/foxx'
-import joi from 'joi'
-import { pruneBefore } from '../services/prune-database'
+import { DataSource } from '../../../external/persistence-api.model'
+import { storeDataSources } from '../../services/data-source-store'
 
 
-export const adminRouter = createRouter()
+export const dsRouter: Foxx.Router = createRouter()
 
 
-adminRouter
-    .delete('/data/before/:timestamp',
+// Store data source
+dsRouter
+    .post('/',
         (req: Foxx.Request, res: Foxx.Response) => {
-            const timestamp = req.pathParams.timestamp
-            pruneBefore(timestamp)
-            res.send('DB Pruning done.')
+            const transientDS: DataSource = req.body
+            const persistentDS = storeDataSources(transientDS)
+            res.send(persistentDS)
         })
-    .pathParam('timestamp', joi.number().integer().min(0).required(), 'Data retention threshold [timestamp in millis]')
-    .summary('Prune database')
-    .description('Delete the data older than the given timestamp')
+    .body(['application/json'], 'Data Source JSON')
+    .response(200, ['application/json'], 'Persistent Data Source')
+    .summary('Persist a Data Source')

@@ -17,31 +17,14 @@
 import { createRouter } from '@arangodb/foxx'
 import Joi from 'joi'
 
-import { lineageOverview } from '../services/lineage-overview'
-import { impactOverview } from '../services/impact-overview'
-import { Progress } from '../../external/persistence-api.model'
-import {
-    checkExecutionEventExists,
-    listExecutionEventInfo_groupedByDataSource,
-    listExecutionEvents,
-    storeExecutionEvent
-} from '../services/execution-event-store'
+import { lineageOverview } from '../../services/lineage-overview'
+import { impactOverview } from '../../services/impact-overview'
+import { listExecutionEventInfo_groupedByDataSource, listExecutionEvents } from '../../services/execution-event-store'
+import { LineageOverview } from '../../model'
+import { ExecutionEventInfo, Frame } from '../../../external/consumer-api.model'
 
 
 export const eventsRouter: Foxx.Router = createRouter()
-
-
-// Store execution event
-eventsRouter
-    .post('/',
-        (req: Foxx.Request, res: Foxx.Response) => {
-            const execEvent: Progress = req.body
-            storeExecutionEvent(execEvent)
-            res.status('created')
-        })
-    .body(['application/json'], 'Execution Event (Progress) JSON')
-    .response(201, 'Execution event recorded')
-    .summary('Record a new execution event')
 
 
 // List execution events
@@ -89,21 +72,22 @@ eventsRouter
 eventsRouter
     .get('/_grouped-by-ds',
         (req: Foxx.Request, res: Foxx.Response) => {
-            const events = listExecutionEventInfo_groupedByDataSource(
-                req.queryParams.asAtTime,
-                req.queryParams.timestampStart,
-                req.queryParams.timestampEnd,
-                req.queryParams.searchTerm,
-                req.queryParams.writeAppends,
-                req.queryParams.includeNoWrite,
-                req.queryParams.applicationId,
-                req.queryParams.dataSourceUri,
-                req.queryParams.labels,
-                req.queryParams.sortField,
-                req.queryParams.sortOrder,
-                req.queryParams.offset,
-                req.queryParams.limit,
-            )
+            const events: Frame<Partial<ExecutionEventInfo>> =
+                listExecutionEventInfo_groupedByDataSource(
+                    req.queryParams.asAtTime,
+                    req.queryParams.timestampStart,
+                    req.queryParams.timestampEnd,
+                    req.queryParams.searchTerm,
+                    req.queryParams.writeAppends,
+                    req.queryParams.includeNoWrite,
+                    req.queryParams.applicationId,
+                    req.queryParams.dataSourceUri,
+                    req.queryParams.labels,
+                    req.queryParams.sortField,
+                    req.queryParams.sortOrder,
+                    req.queryParams.offset,
+                    req.queryParams.limit,
+                )
             res.send(events)
         })
     .queryParam('asAtTime', Joi.number().required())
@@ -128,29 +112,13 @@ eventsRouter
     .summary('List execution events')
 
 
-// Check if execution event exists
-eventsRouter
-    .get('/:eventId/_exists',
-        (req: Foxx.Request, res: Foxx.Response) => {
-            const exists = checkExecutionEventExists(
-                req.pathParams.eventId,
-                req.queryParams.discriminator
-            )
-            res.send(exists)
-        })
-    .pathParam('eventId', Joi.string().min(1).required(), 'Execution Event ID')
-    .queryParam('discriminator', Joi.string().optional(), 'Execution Event Discriminator')
-    .response(200, ['application/json'], 'Boolean value indicating if the execution event exists')
-    .summary('Check if the execution event with the given parameters exists')
-
-
 // Get execution event lineage overview
 eventsRouter
     .get('/:eventKey/lineage-overview/:maxDepth',
         (req: Foxx.Request, res: Foxx.Response) => {
-            const eventKey = req.pathParams.eventKey
-            const maxDepth = req.pathParams.maxDepth
-            const overview = lineageOverview(eventKey, maxDepth)
+            const eventKey: string = req.pathParams.eventKey
+            const maxDepth: number = req.pathParams.maxDepth
+            const overview: LineageOverview = lineageOverview(eventKey, maxDepth)
             if (overview) {
                 res.send(overview)
             }
@@ -170,9 +138,9 @@ eventsRouter
 eventsRouter
     .get('/:eventKey/impact-overview/:maxDepth',
         (req: Foxx.Request, res: Foxx.Response) => {
-            const eventKey = req.pathParams.eventKey
-            const maxDepth = req.pathParams.maxDepth
-            const overview = impactOverview(eventKey, maxDepth)
+            const eventKey: string = req.pathParams.eventKey
+            const maxDepth: number = req.pathParams.maxDepth
+            const overview: LineageOverview = impactOverview(eventKey, maxDepth)
             if (overview) {
                 res.send(overview)
             }

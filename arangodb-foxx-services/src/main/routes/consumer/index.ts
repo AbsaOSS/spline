@@ -15,22 +15,16 @@
  */
 
 import { createRouter } from '@arangodb/foxx'
-import { context } from '@arangodb/locals'
 
-import { RequestLogger } from '../middleware/request-logger.middleware'
-import adminRouter from './admin'
-import producerRouter from './producer'
-import consumerRouter from './consumer'
+import { plansRouter } from './plans-router'
+import { eventsRouter } from './events-router'
+import { operationsRouter } from './operations-router'
 
 
-const rootRouter: Foxx.Router = createRouter()
+const consumerRouter: Foxx.Router = createRouter()
 
-if (context.isDevelopment) {
-    rootRouter.use(RequestLogger)
-}
+consumerRouter.use('/execution-plans', plansRouter)
+consumerRouter.use('/execution-events', eventsRouter)
+consumerRouter.use('/operations', operationsRouter)
 
-rootRouter.use('/admin', adminRouter)
-rootRouter.use('/producer', producerRouter)
-rootRouter.use('/consumer', consumerRouter)
-
-export default rootRouter
+export default consumerRouter
