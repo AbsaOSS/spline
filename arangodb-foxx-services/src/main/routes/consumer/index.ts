@@ -19,6 +19,7 @@ import { createRouter } from '@arangodb/foxx'
 import { plansRouter } from './plans-router'
 import { eventsRouter } from './events-router'
 import { operationsRouter } from './operations-router'
+import { attributesRouter } from './attributes-router'
 
 
 const consumerRouter: Foxx.Router = createRouter()
@@ -26,5 +27,6 @@ const consumerRouter: Foxx.Router = createRouter()
 consumerRouter.use('/execution-plans', plansRouter)
 consumerRouter.use('/execution-events', eventsRouter)
 consumerRouter.use('/operations', operationsRouter)
+consumerRouter.use('/attributes', attributesRouter)
 
 export default consumerRouter

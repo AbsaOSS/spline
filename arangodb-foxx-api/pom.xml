@@ -73,6 +73,7 @@
                                 <argument>za.co.absa.spline.consumer.service.model.OperationDetails</argument>
                                 <argument>za.co.absa.spline.consumer.service.model.ExpressionGraph</argument>
                                 <argument>za.co.absa.spline.consumer.service.model.ExecutionPlanDetailed</argument>
+                                <argument>za.co.absa.spline.consumer.service.model.AttributeGraph</argument>
                             </arguments>
                         </configuration>
                     </execution>
