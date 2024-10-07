@@ -32,7 +32,7 @@ class ExecutionPlansControllerTest extends org.scalatest.flatspec.AnyFlatSpec wi
 
   it should "return an execPlan in a form of a LineageDetailed object from execPlan(id)" in {
     val ep1id = UUID.randomUUID()
-    val lineageDetailed1 = mock[LineageDetailed]
+    val lineageDetailed1 = mock[ExecutionPlanDetailed]
     val mockedEpRepo = mock[ExecutionPlanRepository]
     when(mockedEpRepo.findById(eqTo(ep1id))(any())).thenReturn(Future.successful(lineageDetailed1))
 

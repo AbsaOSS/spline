@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2024 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@ package za.co.absa.spline.consumer.service.model
 
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
 
-@ApiModel(description = "Lineage Graph")
-case class LineageDetailedGraph
+@ApiModel(description = "Operation Graph")
+case class OperationGraph
 (
-  @ApiModelProperty(value = "List of graph nodes representing the different operations of the lineage")
+  @ApiModelProperty(value = "List of graph nodes representing the operations of the execution plan")
   nodes: Array[Operation],
-  @ApiModelProperty(value = "List of graph edges showing the triggered operations order")
+  @ApiModelProperty(value = "List of graph edges representing the transitions between the operations")
   edges: Array[Transition]
 
 ) extends Graph {

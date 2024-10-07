@@ -26,7 +26,7 @@ trait ExecutionPlanRepository {
 
   def execPlanAttributeImpact(attrId: Attribute.Id)(implicit ec: ExecutionContext): Future[AttributeGraph]
 
-  def findById(execId: ExecutionPlanInfo.Id)(implicit ec: ExecutionContext): Future[LineageDetailed]
+  def findById(execId: ExecutionPlanInfo.Id)(implicit ec: ExecutionContext): Future[ExecutionPlanDetailed]
 
   def find(
     asAtTime: Long,

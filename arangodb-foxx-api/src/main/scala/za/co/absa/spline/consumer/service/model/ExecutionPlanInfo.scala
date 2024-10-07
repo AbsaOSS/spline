@@ -16,6 +16,7 @@
 
 package za.co.absa.spline.consumer.service.model
 
+import com.fasterxml.jackson.core.`type`.TypeReference
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
 import za.co.absa.spline.consumer.service.model.ExecutionPlanInfo.Id
 
@@ -42,4 +43,6 @@ case class ExecutionPlanInfo
 
 object ExecutionPlanInfo {
   type Id = UUID
+
+  implicit val typeRefFrameOfExecPlanInfo: TypeReference[Frame[ExecutionPlanInfo]] = new TypeReference[Frame[ExecutionPlanInfo]] {}
 }

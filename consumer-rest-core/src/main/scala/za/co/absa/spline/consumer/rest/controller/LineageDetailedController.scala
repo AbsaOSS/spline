@@ -20,7 +20,7 @@ import io.swagger.annotations._
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
 import za.co.absa.spline.consumer.rest.controller.LineageDetailedController.AttributeLineageAndImpact
-import za.co.absa.spline.consumer.service.model.{AttributeGraph, ExecutionPlanInfo, LineageDetailed}
+import za.co.absa.spline.consumer.service.model.{AttributeGraph, ExecutionPlanInfo, ExecutionPlanDetailed}
 import za.co.absa.spline.consumer.service.repo.ExecutionPlanRepository
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -44,7 +44,7 @@ class LineageDetailedController @Autowired()(val epRepo: ExecutionPlanRepository
   def lineageDetailed(
     @ApiParam(value = "Execution plan ID", required = true)
     @RequestParam("execId") execId: ExecutionPlanInfo.Id
-  ): Future[LineageDetailed] = {
+  ): Future[ExecutionPlanDetailed] = {
     epRepo.findById(execId)
   }
 

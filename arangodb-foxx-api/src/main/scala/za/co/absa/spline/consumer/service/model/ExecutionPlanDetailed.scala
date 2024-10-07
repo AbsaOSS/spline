@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 ABSA Group Limited
+ * Copyright 2024 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,18 @@
 
 package za.co.absa.spline.consumer.service.model
 
+import com.fasterxml.jackson.core.`type`.TypeReference
 import io.swagger.annotations.{ApiModel, ApiModelProperty}
 
 
-@ApiModel(description = "Execution Plan and Lineage Graph")
-case class LineageDetailed(
+@ApiModel(description = "Execution Plan with Operation Graph")
+case class ExecutionPlanDetailed(
   @ApiModelProperty(value = "Information related to the execution plan")
   executionPlan: ExecutionPlanInfo,
   @ApiModelProperty(value = "Execution plan level lineage")
-  graph: LineageDetailedGraph
+  graph: OperationGraph
 )
+
+object ExecutionPlanDetailed {
+  implicit val typeRef: TypeReference[ExecutionPlanDetailed] = new TypeReference[ExecutionPlanDetailed] {}
+}

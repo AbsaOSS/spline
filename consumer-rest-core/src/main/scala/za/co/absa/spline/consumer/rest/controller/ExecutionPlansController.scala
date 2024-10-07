@@ -72,7 +72,7 @@ class ExecutionPlansController @Autowired()
   def execPlan(
     @ApiParam(value = "Id of the execution plan")
     @PathVariable("planId") planId: ExecutionPlanInfo.Id
-  ): Future[LineageDetailed] = {
+  ): Future[ExecutionPlanDetailed] = {
     epRepo.findById(planId)
   }
 

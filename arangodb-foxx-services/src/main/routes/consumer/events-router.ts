@@ -31,7 +31,7 @@ export const eventsRouter: Foxx.Router = createRouter()
 eventsRouter
     .get('/',
         (req: Foxx.Request, res: Foxx.Response) => {
-            const events = listExecutionEvents(
+            const events: Frame<Partial<ExecutionEventInfo>> = listExecutionEvents(
                 req.queryParams.asAtTime,
                 req.queryParams.timestampStart,
                 req.queryParams.timestampEnd,

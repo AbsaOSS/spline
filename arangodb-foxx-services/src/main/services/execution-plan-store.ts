@@ -16,7 +16,7 @@
 
 
 import { ExecutionPlanPersistentModel } from '../../external/persistence-api.model'
-import { DataSourceActionType } from '../../external/consumer-api.model'
+import { DataSourceActionType, ExecutionPlanDetailed, ExecutionPlanInfo, Frame } from '../../external/consumer-api.model'
 import { CollectionName, EdgeCollectionName, NodeCollectionName, WriteTxInfo } from '../persistence/model'
 import { checkKeyExistence, store } from '../persistence/store'
 import { withTimeTracking } from '../utils/common'
@@ -26,6 +26,7 @@ import { DataSourceActionTypeValue } from './model'
 import { aql, db } from '@arangodb'
 import { AQLCodeGenHelper } from '../utils/aql-gen-helper'
 import { TxManager } from '../persistence/txm'
+import Cursor = ArangoDB.Cursor
 
 
 export function checkExecutionPlanExists(planKey: DocumentKey, discriminator: string): boolean {
@@ -79,6 +80,103 @@ export function storeExecutionPlan(eppm: ExecutionPlanPersistentModel): void {
     })
 }
 
+export function findExecutionPlanInfos(asAtTime: string, pageOffset: number, pageSize: number, sortField: string, sortOrder: string): Frame<ExecutionPlanInfo> {
+    const rtxInfo = TxManager.startRead()
+    const aqlGen = new AQLCodeGenHelper(rtxInfo)
+
+    const cursor: Cursor<ExecutionPlanInfo> = db._query(
+        aql`
+            WITH ${NodeCollectionName.ExecutionPlan},
+                 ${NodeCollectionName.Progress},
+                 ${NodeCollectionName.Operation},
+                 ${EdgeCollectionName.Follows},
+                 ${EdgeCollectionName.Emits},
+                 ${NodeCollectionName.Schema},
+                 ${EdgeCollectionName.ConsistsOf},
+                 ${NodeCollectionName.Attribute}
+
+            FOR execPlan IN executionPlan
+                ${aqlGen.genTxIsolationCodeForLoop('execPlan')}
+                LET progress = (
+                    FOR prog IN progress
+                        ${aqlGen.genTxIsolationCodeForLoop('prog')}
+                        FILTER prog.execPlanDetails.executionPlanKey == execPlan._key
+                        FILTER prog.timestamp <= ${asAtTime}
+                        LIMIT 1
+                        RETURN prog
+                    )
+                FILTER LENGTH(progress)
+                SORT execPlan.${sortField} ${sortOrder}
+                LIMIT ${pageOffset * pageSize}, ${pageSize}
+
+                LET ops = (
+                    FOR op IN operation
+                        FILTER op._belongsTo == execPlan._id
+                        RETURN op
+                    )
+                LET edges = (
+                    FOR f IN follows
+                        FILTER f._belongsTo == execPlan._id
+                        RETURN f
+                    )
+                LET schemaIds = (
+                    FOR op IN ops
+                        FOR schema IN 1
+                            OUTBOUND op emits
+                            RETURN DISTINCT schema._id
+                    )
+                LET attributes = (
+                    FOR sid IN schemaIds
+                        FOR a IN 1
+                            OUTBOUND sid consistsOf
+                            RETURN DISTINCT {
+                                "id"   : a._key,
+                                "name" : a.name,
+                                "dataTypeId" : a.dataType
+                            }
+                    )
+                LET inputs = FLATTEN(
+                    FOR op IN ops
+                        FILTER op.type == "Read"
+                        RETURN op.inputSources[* RETURN {
+                            "source"    : CURRENT,
+                            "sourceType": op.extra.sourceType
+                        }]
+                    )
+                LET output = FIRST(
+                    ops[*
+                        FILTER CURRENT.type == "Write"
+                        RETURN {
+                            "source"    : CURRENT.outputSource,
+                            "sourceType": CURRENT.extra.destinationType
+                        }]
+                )
+                return {
+                    "_id"       : execPlan._key,
+                    "systemInfo": execPlan.systemInfo,
+                    "agentInfo" : execPlan.agentInfo,
+                    "name"      : execPlan.name || execPlan._key,
+                    "extra"     : MERGE(
+                                     execPlan.extra,
+                                     { attributes },
+                                     { "appName"  : execPlan.name || execPlan._key }
+                                  ),
+                    "inputs"    : inputs,
+                    "output"    : output
+                }
+        `,
+        {
+            fullCount: true
+        }
+    )
+
+    return {
+        offset: 0,
+        totalCount: cursor.getExtra().stats.fullCount,
+        items: cursor.toArray()
+    }
+}
+
 export function getDataSourceURIsByActionType(planKey: DocumentKey, access: DataSourceActionTypeValue): string[] {
     const rtxInfo = TxManager.startRead()
     const aqlGen = new AQLCodeGenHelper(rtxInfo)
@@ -101,4 +199,96 @@ export function getDataSourceURIsByActionType(planKey: DocumentKey, access: Data
             ${aqlGen.genTxIsolationCodeForTraversal('ds')}
             RETURN ds.uri
     `).toArray()
+}
+
+export function getExecutionPlanDetailedById(planKey: DocumentKey): ExecutionPlanDetailed {
+    const rtxInfo = TxManager.startRead()
+    const aqlGen = new AQLCodeGenHelper(rtxInfo)
+
+    return db._query(aql`
+        WITH ${NodeCollectionName.ExecutionPlan},
+             ${EdgeCollectionName.Executes},
+             ${NodeCollectionName.Operation},
+             ${EdgeCollectionName.Follows},
+             ${EdgeCollectionName.Emits},
+             ${NodeCollectionName.Schema},
+             ${EdgeCollectionName.ConsistsOf},
+             ${NodeCollectionName.Attribute}
+
+        LET execPlan = FIRST(
+            FOR ep IN executionPlan
+                ${aqlGen.genTxIsolationCodeForLoop('ep')}
+                FILTER ep._key == ${planKey}
+                RETURN ep
+        )
+        LET ops = (
+            FOR op IN operation
+                FILTER op._belongsTo == execPlan._id
+                RETURN op
+            )
+        LET edges = (
+            FOR f IN follows
+                FILTER f._belongsTo == execPlan._id
+                RETURN f
+            )
+        LET schemaIds = (
+            FOR op IN ops
+                FOR schema IN 1
+                    OUTBOUND op emits
+                    RETURN DISTINCT schema._id
+            )
+        LET attributes = (
+            FOR sid IN schemaIds
+                FOR a IN 1
+                    OUTBOUND sid consistsOf
+                    RETURN DISTINCT {
+                        "id"   : a._key,
+                        "name" : a.name,
+                        "dataTypeId" : a.dataType
+                    }
+            )
+        LET inputs = FLATTEN(
+            FOR op IN ops
+                FILTER op.type == "Read"
+                RETURN op.inputSources[* RETURN {
+                    "source"    : CURRENT,
+                    "sourceType": op.extra.sourceType
+                }]
+            )
+        LET output = FIRST(
+            ops[*
+                FILTER CURRENT.type == "Write"
+                RETURN {
+                    "source"    : CURRENT.outputSource,
+                    "sourceType": CURRENT.extra.destinationType
+                }]
+            )
+        RETURN execPlan && {
+            "graph": {
+                "nodes": ops[* RETURN {
+                        "_id"  : CURRENT._key,
+                        "_type": CURRENT.type,
+                        "name" : CURRENT.name || CURRENT.type,
+                        "properties": {}
+                    }],
+                "edges": edges[* RETURN {
+                        "source": PARSE_IDENTIFIER(CURRENT._to).key,
+                        "target": PARSE_IDENTIFIER(CURRENT._from).key
+                    }]
+            },
+            "executionPlan": {
+                "_id"       : execPlan._key,
+                "systemInfo": execPlan.systemInfo,
+                "agentInfo" : execPlan.agentInfo,
+                "name"      : execPlan.name || execPlan._key,
+                "extra"     : MERGE(
+                                 execPlan.extra,
+                                 { attributes },
+                                 { "appName"  : execPlan.name || execPlan._key }
+                              ),
+                "inputs"    : inputs,
+                "output"    : output
+            }
+        }
+    `).next()
 }

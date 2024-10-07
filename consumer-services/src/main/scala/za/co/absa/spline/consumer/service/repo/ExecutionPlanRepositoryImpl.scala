@@ -16,98 +16,23 @@
 
 package za.co.absa.spline.consumer.service.repo
 
-import com.arangodb.async.{ArangoCursorAsync, ArangoDatabaseAsync}
-import com.arangodb.model.AqlQueryOptions
+import com.arangodb.async.ArangoDatabaseAsync
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.consumer.service.model._
+import za.co.absa.spline.persistence.ArangoImplicits.ArangoDatabaseAsyncScalaWrapper
+import za.co.absa.spline.persistence.FoxxRouter
 import za.co.absa.spline.persistence.model.Operation.OperationTypes
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.jdk.StreamConverters._
 
 @Repository
-class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends ExecutionPlanRepository {
+class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, foxxRouter: FoxxRouter) extends ExecutionPlanRepository {
 
-  import za.co.absa.spline.persistence.ArangoImplicits._
-
-  override def findById(execId: ExecutionPlanInfo.Id)(implicit ec: ExecutionContext): Future[LineageDetailed] = {
-    db.queryOne[LineageDetailed](
-      s"""
-         |WITH executionPlan, executes, operation, follows, emits, schema, consistsOf, attribute
-         |LET execPlan = DOCUMENT("executionPlan", @execPlanId)
-         |LET ops = (
-         |    FOR op IN operation
-         |        FILTER op._belongsTo == execPlan._id
-         |        RETURN op
-         |    )
-         |LET edges = (
-         |    FOR f IN follows
-         |        FILTER f._belongsTo == execPlan._id
-         |        RETURN f
-         |    )
-         |LET schemaIds = (
-         |    FOR op IN ops
-         |        FOR schema IN 1
-         |            OUTBOUND op emits
-         |            RETURN DISTINCT schema._id
-         |    )
-         |LET attributes = (
-         |    FOR sid IN schemaIds
-         |        FOR a IN 1
-         |            OUTBOUND sid consistsOf
-         |            RETURN DISTINCT {
-         |                "id"   : a._key,
-         |                "name" : a.name,
-         |                "dataTypeId" : a.dataType
-         |            }
-         |    )
-         |LET inputs = FLATTEN(
-         |    FOR op IN ops
-         |        FILTER op.type == "Read"
-         |        RETURN op.inputSources[* RETURN {
-         |            "source"    : CURRENT,
-         |            "sourceType": op.extra.sourceType
-         |        }]
-         |    )
-         |LET output = FIRST(
-         |    ops[*
-         |        FILTER CURRENT.type == "Write"
-         |        RETURN {
-         |            "source"    : CURRENT.outputSource,
-         |            "sourceType": CURRENT.extra.destinationType
-         |        }]
-         |    )
-         |RETURN execPlan && {
-         |    "graph": {
-         |        "nodes": ops[* RETURN {
-         |                "_id"  : CURRENT._key,
-         |                "_type": CURRENT.type,
-         |                "name" : CURRENT.name || CURRENT.type,
-         |                "properties": {}
-         |            }],
-         |        "edges": edges[* RETURN {
-         |                "source": PARSE_IDENTIFIER(CURRENT._to).key,
-         |                "target": PARSE_IDENTIFIER(CURRENT._from).key
-         |            }]
-         |    },
-         |    "executionPlan": {
-         |        "_id"       : execPlan._key,
-         |        "systemInfo": execPlan.systemInfo,
-         |        "agentInfo" : execPlan.agentInfo,
-         |        "name"      : execPlan.name || execPlan._key,
-         |        "extra"     : MERGE(
-         |                         execPlan.extra,
-         |                         { attributes },
-         |                         { "appName"  : execPlan.name || execPlan._key }
-         |                      ),
-         |        "inputs"    : inputs,
-         |        "output"    : output
-         |    }
-         |}
-         |""".stripMargin,
-      Map("execPlanId" -> execId)
-    ).filter(null.!=)
+  override def findById(planId: ExecutionPlanInfo.Id)(implicit ec: ExecutionContext): Future[ExecutionPlanDetailed] = {
+    foxxRouter
+      .get[ExecutionPlanDetailed](s"/spline/consumer/execution-plans/$planId/_detailed")
+      .filter(null.!=)
   }
 
   override def find(
@@ -115,91 +40,18 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     pageRequest: PageRequest,
     sortRequest: SortRequest
   )(implicit ec: ExecutionContext): Future[(Seq[ExecutionPlanInfo], Long)] = {
-    val queryResult: Future[ArangoCursorAsync[ExecutionPlanInfo]] = db.queryAs[ExecutionPlanInfo](
-      s"""
-         |WITH executionPlan, progress, operation, follows, emits, schema, consistsOf, attribute
-         |FOR execPlan IN executionPlan
-         |    LET progress = (
-         |        FOR prog IN progress
-         |            FILTER prog.execPlanDetails.executionPlanKey == execPlan._key
-         |            FILTER prog.timestamp <= @asAtTime
-         |            LIMIT 1
-         |            RETURN prog
-         |        )
-         |    FILTER LENGTH(progress)
-         |    SORT execPlan.@sortField @sortOrder
-         |    LIMIT @pageOffset*@pageSize, @pageSize
-         |
-         |    LET ops = (
-         |        FOR op IN operation
-         |            FILTER op._belongsTo == execPlan._id
-         |            RETURN op
-         |        )
-         |    LET edges = (
-         |        FOR f IN follows
-         |            FILTER f._belongsTo == execPlan._id
-         |            RETURN f
-         |        )
-         |    LET schemaIds = (
-         |        FOR op IN ops
-         |            FOR schema IN 1
-         |                OUTBOUND op emits
-         |                RETURN DISTINCT schema._id
-         |        )
-         |    LET attributes = (
-         |        FOR sid IN schemaIds
-         |            FOR a IN 1
-         |                OUTBOUND sid consistsOf
-         |                RETURN DISTINCT {
-         |                    "id"   : a._key,
-         |                    "name" : a.name,
-         |                    "dataTypeId" : a.dataType
-         |                }
-         |        )
-         |    LET inputs = FLATTEN(
-         |        FOR op IN ops
-         |            FILTER op.type == "Read"
-         |            RETURN op.inputSources[* RETURN {
-         |                "source"    : CURRENT,
-         |                "sourceType": op.extra.sourceType
-         |            }]
-         |        )
-         |    LET output = FIRST(
-         |        ops[*
-         |            FILTER CURRENT.type == "Write"
-         |            RETURN {
-         |                "source"    : CURRENT.outputSource,
-         |                "sourceType": CURRENT.extra.destinationType
-         |            }]
-         |    )
-         |    return {
-         |        "_id"       : execPlan._key,
-         |        "systemInfo": execPlan.systemInfo,
-         |        "agentInfo" : execPlan.agentInfo,
-         |        "name"      : execPlan.name || execPlan._key,
-         |        "extra"     : MERGE(
-         |                         execPlan.extra,
-         |                         { attributes },
-         |                         { "appName"  : execPlan.name || execPlan._key }
-         |                      ),
-         |        "inputs"    : inputs,
-         |        "output"    : output
-         |    }
-         |""".stripMargin,
-      Map[String, AnyRef](
-        "asAtTime" -> Long.box(asAtTime),
-        "pageOffset" -> Int.box(pageRequest.page - 1),
-        "pageSize" -> Int.box(pageRequest.size),
-        "sortField" -> sortRequest.field,
-        "sortOrder" -> sortRequest.order
-      ),
-      new AqlQueryOptions().fullCount(true)
-    )
+    val execPlanInfoFrame: Future[Frame[ExecutionPlanInfo]] = foxxRouter.get[Frame[ExecutionPlanInfo]](s"/spline/consumer/execution-plans/", Map[String, AnyRef](
+      "asAtTime" -> Long.box(asAtTime),
+      "pageOffset" -> Int.box(pageRequest.page - 1),
+      "pageSize" -> Int.box(pageRequest.size),
+      "sortField" -> sortRequest.field,
+      "sortOrder" -> sortRequest.order
+    ))
 
-    val findResult: Future[(Seq[ExecutionPlanInfo], Long)] = queryResult.map {
-      arangoCursorAsync =>
-        val items = arangoCursorAsync.streamRemaining().toScala(LazyList)
-        val totalCount = arangoCursorAsync.getStats.getFullCount
+    val findResult: Future[(Seq[ExecutionPlanInfo], Long)] = execPlanInfoFrame.map {
+      frame =>
+        val items = frame.items
+        val totalCount = frame.totalCount
         (items, totalCount)
     }
 
