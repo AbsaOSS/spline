@@ -1,0 +1,1 @@
+[{"planId":"cdda3528-5413-540c-8430-6f00eded4b7f","timestamp":1731833438223,"durationNs":165695394,"extra":{"appId":"local-1731833428809","user":"root","readMetrics":{"numOutputRows":1,"scanTime":-2},"writeMetrics":{"numFiles":1,"numOutputBytes":8,"numOutputRows":1,"numParts":0}}}]

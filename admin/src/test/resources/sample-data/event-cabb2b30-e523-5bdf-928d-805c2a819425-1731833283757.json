@@ -1,0 +1,1 @@
+[{"planId":"cabb2b30-e523-5bdf-928d-805c2a819425","timestamp":1731833283757,"durationNs":708003456,"extra":{"appId":"local-1731833276661","user":"root","readMetrics":{"numOutputRows":5},"writeMetrics":{"numFiles":2,"numOutputBytes":860,"numOutputRows":5,"numParts":0}}}]
