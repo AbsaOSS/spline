@@ -41,10 +41,8 @@
     <properties>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssX</maven.build.timestamp.format>
-        <java.version>1.8</java.version>
         <scala.version>2.13.16</scala.version>
         <scala.compat.version>2.13</scala.compat.version>
-        <maven.compiler.source>${java.version}</maven.compiler.source>
         <logback.version>1.5.18</logback.version>
         <slf4j.version>2.0.13</slf4j.version>
         <json4s.version>3.6.12</json4s.version>
@@ -54,12 +52,11 @@
         <finatra.jackson.version>21.5.0</finatra.jackson.version>
         <node.version>v20.14.0</node.version>
         <npm.version>10.8.0</npm.version>
-
-        <!-- Extend argLine using prepared way to not influence existing dependency of JaCoCo plugin. -->
         <scalatest.argLine.extra>
             --add-opens=java.base/java.util=ALL-UNNAMED
+            --add-opens=java.base/sun.nio.ch=ALL-UNNAMED
             --add-opens=java.base/sun.net.www.protocol.jar=ALL-UNNAMED
-            --add-exports=java.base/sun.nio.ch=ALL-UNNAMED
+            -Djava.security.manager=allow <!-- this is required since Java 17, to allow `System.setSecurityManager()` to be called -->
         </scalatest.argLine.extra>
     </properties>
 
@@ -72,7 +69,6 @@
                 <configuration>
                     <scalaVersion>${scala.version}</scalaVersion>
                     <args>
-                        <arg>-target:jvm-${java.version}</arg>
                         <arg>-feature</arg>
                         <arg>-deprecation</arg>
                         <arg>-unchecked</arg>
@@ -122,6 +118,7 @@
                 <artifactId>scalatest-maven-plugin</artifactId>
                 <version>2.0.1</version>
                 <configuration>
+                    <argLine>${scalatest.argLine.extra}</argLine>
                     <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
                     <junitxml>.</junitxml>
                     <filereports>WDF TestSuite.txt</filereports>
@@ -303,6 +300,14 @@
                 <groupId>org.scalaz</groupId>
                 <artifactId>scalaz-core_${scala.compat.version}</artifactId>
                 <version>7.2.29</version>
+            </dependency>
+
+            <!-- ByteBuddy -->
+
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy</artifactId>
+                <version>1.17.5</version>
             </dependency>
 
             <!-- Json4s -->
