@@ -19,7 +19,8 @@ package za.co.absa.spline.gateway.kafka
 import com.fasterxml.jackson.databind.{ObjectMapper, PropertyNamingStrategies}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.twitter.finatra.jackson.FinatraInternalModules
-import org.apache.commons.configuration.ConfigurationConverter
+import org.apache.commons.configuration2.ConfigurationConverter
+import org.apache.commons.configuration2.ConfigurationImplicits._
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, StringDeserializer}
 import org.springframework.context.annotation.{Bean, ComponentScan, Configuration}
@@ -33,7 +34,6 @@ import org.springframework.kafka.support.JacksonUtils
 import org.springframework.kafka.support.converter.Jackson2JavaTypeMapper.TypePrecedence
 import org.springframework.kafka.support.converter.{ByteArrayJsonMessageConverter, DefaultJackson2JavaTypeMapper, RecordMessageConverter}
 import za.co.absa.commons.config.ConfTyped
-import za.co.absa.commons.config.ConfigurationImplicits.{ConfigurationOptionalWrapper, ConfigurationRequiredWrapper}
 import za.co.absa.spline.common.config.DefaultConfigurationStack
 
 import java.util.concurrent.TimeUnit

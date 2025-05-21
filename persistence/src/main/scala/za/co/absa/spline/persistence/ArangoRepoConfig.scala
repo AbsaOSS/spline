@@ -49,7 +49,7 @@ class ArangoRepoConfig extends InitializingBean with Logging {
 
 object ArangoRepoConfig extends DefaultConfigurationStack with ConfTyped {
 
-  import za.co.absa.commons.config.ConfigurationImplicits._
+  import org.apache.commons.configuration2.ConfigurationImplicits._
 
   override val rootPrefix: String = "spline"
 

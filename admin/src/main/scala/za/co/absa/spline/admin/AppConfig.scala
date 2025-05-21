@@ -16,16 +16,20 @@
 
 package za.co.absa.spline.admin
 
-import org.apache.commons.configuration.{CompositeConfiguration, PropertiesConfiguration, SystemConfiguration}
+import org.apache.commons.configuration2.ConfigurationImplicits._
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder
+import org.apache.commons.configuration2.builder.fluent.Parameters
+import org.apache.commons.configuration2.{CompositeConfiguration, PropertiesConfiguration, SystemConfiguration}
 import za.co.absa.commons.config.ConfTyped
-import za.co.absa.commons.config.ConfigurationImplicits._
 
 import java.util
 
 object AppConfig
   extends CompositeConfiguration(util.Arrays.asList(
     new SystemConfiguration,
-    new PropertiesConfiguration(ClassLoader.getSystemResource("spline-cli.properties"))
+    new FileBasedConfigurationBuilder(classOf[PropertiesConfiguration])
+      .configure(new Parameters().fileBased().setURL(ClassLoader.getSystemResource("spline-cli.properties")))
+      .getConfiguration,
   )) with ConfTyped {
 
   private val conf = this
