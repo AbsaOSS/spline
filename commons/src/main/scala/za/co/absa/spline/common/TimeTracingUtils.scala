@@ -16,7 +16,7 @@
 
 package za.co.absa.spline.common
 
-import org.apache.commons.lang.time.StopWatch
+import org.apache.commons.lang3.time.StopWatch
 import org.slf4s.Logging
 
 object TimeTracingUtils extends Logging {
