@@ -32,7 +32,7 @@ See [Building Docker](https://github.com/AbsaOSS/spline-getting-started/blob/mai
 
 ### Building from source code
 
-1. Install Java 11 and Maven 3.6 or above
+1. Install Java 21 and Maven 3.9 or above
 2. Run Maven build
 
 ```shell
