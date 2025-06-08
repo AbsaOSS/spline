@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM tomcat:9-jre11-openjdk-slim-buster
+FROM tomcat:9.0.105-jre11-temurin
 
 LABEL \
     vendor="ABSA" \
