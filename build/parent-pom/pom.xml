@@ -51,12 +51,11 @@
         <finatra.jackson.version>21.5.0</finatra.jackson.version>
         <node.version>v20.14.0</node.version>
         <npm.version>10.8.0</npm.version>
-
-        <!-- Extend argLine using prepared way to not influence existing dependency of JaCoCo plugin. -->
         <scalatest.argLine.extra>
             --add-opens=java.base/java.util=ALL-UNNAMED
+            --add-opens=java.base/sun.nio.ch=ALL-UNNAMED
             --add-opens=java.base/sun.net.www.protocol.jar=ALL-UNNAMED
-            --add-exports=java.base/sun.nio.ch=ALL-UNNAMED
+            -Djava.security.manager=allow <!-- this is required since Java 17, to allow `System.setSecurityManager()` to be called -->
         </scalatest.argLine.extra>
     </properties>
 
@@ -300,6 +299,14 @@
                 <groupId>org.scalaz</groupId>
                 <artifactId>scalaz-core_${scala.compat.version}</artifactId>
                 <version>7.2.29</version>
+            </dependency>
+
+            <!-- ByteBuddy -->
+
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy</artifactId>
+                <version>1.17.5</version>
             </dependency>
 
             <!-- Json4s -->
