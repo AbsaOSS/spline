@@ -70,15 +70,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>3.3.0</version>
-                <configuration>
-                    <includePluginDependencies>true</includePluginDependencies>
-                    <executableDependency>
-                        <groupId>za.co.absa.utils</groupId>
-                        <artifactId>rest-api-doc-generator_${scala.compat.version}</artifactId>
-                    </executableDependency>
-                    <mainClass>za.co.absa.rapidgen.RapidGenCLI</mainClass>
-                </configuration>
+                <version>3.5.0</version>
                 <dependencies>
                     <dependency>
                         <groupId>za.co.absa.utils</groupId>
@@ -86,29 +78,45 @@
                         <version>1.1.2</version>
                     </dependency>
                 </dependencies>
+                <configuration>
+                    <includePluginDependencies>true</includePluginDependencies>
+                    <executable>java</executable>
+                    <arguments combine.children="append">
+                        <argument>--add-opens=java.base/sun.net.www.protocol.jar=ALL-UNNAMED</argument>
+                        <argument>-classpath</argument>
+                        <classpath/>
+                        <argument>za.co.absa.rapidgen.RapidGenCLI</argument>
+                    </arguments>
+                </configuration>
                 <executions>
                     <execution>
                         <id>gen-swagger-producer-json</id>
                         <phase>process-classes</phase>
                         <goals>
-                            <goal>java</goal>
+                            <goal>exec</goal>
                         </goals>
                         <configuration>
-                            <commandlineArgs>
-                                swagger -o ${swagger.docs.path}/producer.swagger.json za.co.absa.spline.producer.rest.ProducerRESTConfig
-                            </commandlineArgs>
+                            <arguments>
+                                <argument>swagger</argument>
+                                <argument>-o</argument>
+                                <argument>${swagger.docs.path}/producer.swagger.json</argument>
+                                <argument>za.co.absa.spline.producer.rest.ProducerRESTConfig</argument>
+                            </arguments>
                         </configuration>
                     </execution>
                     <execution>
                         <id>gen-swagger-consumer-json</id>
                         <phase>process-classes</phase>
                         <goals>
-                            <goal>java</goal>
+                            <goal>exec</goal>
                         </goals>
                         <configuration>
-                            <commandlineArgs>
-                                swagger -o ${swagger.docs.path}/consumer.swagger.json za.co.absa.spline.consumer.rest.ConsumerRESTConfig
-                            </commandlineArgs>
+                            <arguments>
+                                <argument>swagger</argument>
+                                <argument>-o</argument>
+                                <argument>${swagger.docs.path}/consumer.swagger.json</argument>
+                                <argument>za.co.absa.spline.consumer.rest.ConsumerRESTConfig</argument>
+                            </arguments>
                         </configuration>
                     </execution>
                 </executions>

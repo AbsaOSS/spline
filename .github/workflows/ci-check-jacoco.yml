@@ -10,11 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup Scala
-        uses: olafurpg/setup-scala@v10
+        uses: coursier/setup-action@v1
         with:
-          java-version: "adopt@1.11"
+          jvm: "corretto:21"
       - name: Build and run tests
         run: mvn verify -Dcode-coverage
       - name: Add coverage to PR

@@ -34,7 +34,7 @@
     <parent>
         <groupId>za.co.absa</groupId>
         <artifactId>root-pom</artifactId>
-        <version>1.0.11</version>
+        <version>1.0.14</version>
     </parent>
 
     <developers>
@@ -104,6 +104,15 @@
                         -Dscm.connection=${project.scm.connection}
                         -Dscm.developerConnection=${project.scm.developerConnection}
                     </completionGoals>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.rat</groupId>
+                <artifactId>apache-rat-plugin</artifactId>
+                <configuration>
+                    <excludes combine.children="append">
+                        <exclude>.sdkmanrc</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
         </plugins>
