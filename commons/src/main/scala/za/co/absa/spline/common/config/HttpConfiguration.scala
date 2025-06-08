@@ -16,9 +16,9 @@
 
 package za.co.absa.spline.common.config
 
-import org.apache.commons.configuration.Configuration
+import org.apache.commons.configuration2.Configuration
+import org.apache.commons.configuration2.ConfigurationImplicits._
 import za.co.absa.commons.config.ConfTyped
-import za.co.absa.commons.config.ConfigurationImplicits._
 import za.co.absa.spline.common.config.HttpConfiguration.{DefaultDefaultTimeout, DefaultMaximumTimeout}
 
 import scala.concurrent.duration._

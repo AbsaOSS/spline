@@ -51,7 +51,7 @@ class ArangoRepoConfig extends InitializingBean with LazyLogging {
 
 object ArangoRepoConfig extends DefaultConfigurationStack with ConfTyped with LazyLogging {
 
-  import za.co.absa.commons.config.ConfigurationImplicits._
+  import org.apache.commons.configuration2.ConfigurationImplicits._
 
   override val rootPrefix: String = "spline"
 

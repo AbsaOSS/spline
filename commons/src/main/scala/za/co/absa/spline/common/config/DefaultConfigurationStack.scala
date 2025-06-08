@@ -16,8 +16,7 @@
 
 package za.co.absa.spline.common.config
 
-import org.apache.commons.configuration._
-import za.co.absa.commons.config.UpperSnakeCaseEnvironmentConfiguration
+import org.apache.commons.configuration2.{CompositeConfiguration, EnvironmentConfiguration, JNDIConfiguration, SystemConfiguration}
 import za.co.absa.spline.common.config.DefaultConfigurationStack.jndiConfigurationIfAvailable
 
 import java.util

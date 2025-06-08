@@ -17,7 +17,7 @@ package za.co.absa.spline.consumer.service.repo
 
 import com.arangodb.async.ArangoDatabaseAsync
 import com.arangodb.model.AqlQueryOptions
-import org.apache.commons.lang.StringEscapeUtils.escapeJavaScript
+import org.apache.commons.text.StringEscapeUtils.escapeJava
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.common.StringEscapeUtils.escapeAQLSearch
@@ -59,8 +59,8 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
           case (lblName, i) =>
             s"""
                | AND (
-               |      @lblValues[$i] ANY == ee.labels['${escapeJavaScript(lblName)}']
-               |   OR @lblValues[$i] ANY == ee.execPlanDetails.labels['${escapeJavaScript(lblName)}']
+               |      @lblValues[$i] ANY == ee.labels['${escapeJava(lblName)}']
+               |   OR @lblValues[$i] ANY == ee.execPlanDetails.labels['${escapeJava(lblName)}']
                | )
              """.stripMargin
         }).mkString("\n")
@@ -125,8 +125,8 @@ class ExecutionEventRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends
           case (lblName, i) =>
             s"""
                | AND (
-               |      @lblValues[$i] ANY == ee.labels['${escapeJavaScript(lblName)}']
-               |   OR @lblValues[$i] ANY == ee.execPlanDetails.labels['${escapeJavaScript(lblName)}']
+               |      @lblValues[$i] ANY == ee.labels['${escapeJava(lblName)}']
+               |   OR @lblValues[$i] ANY == ee.execPlanDetails.labels['${escapeJava(lblName)}']
                | )
              """.stripMargin
         }).mkString("\n")

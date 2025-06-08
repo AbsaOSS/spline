@@ -19,7 +19,8 @@ package za.co.absa.spline.gateway.kafka
 import com.fasterxml.jackson.databind.{ObjectMapper, PropertyNamingStrategies}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.twitter.finatra.jackson.FinatraInternalModules
-import org.apache.commons.configuration.ConfigurationConverter
+import org.apache.commons.configuration2.ConfigurationConverter
+import org.apache.commons.configuration2.ConfigurationImplicits._
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer, StringDeserializer, StringSerializer}
@@ -36,7 +37,6 @@ import org.springframework.kafka.support.converter.Jackson2JavaTypeMapper.TypePr
 import org.springframework.kafka.support.converter.{ByteArrayJsonMessageConverter, ConversionException, DefaultJackson2JavaTypeMapper, RecordMessageConverter}
 import org.springframework.util.backoff.{BackOff, ExponentialBackOff}
 import za.co.absa.commons.config.ConfTyped
-import za.co.absa.commons.config.ConfigurationImplicits.{ConfigurationOptionalWrapper, ConfigurationRequiredWrapper}
 import za.co.absa.spline.common.config.DefaultConfigurationStack
 import za.co.absa.spline.producer.service.InconsistentEntityException
 
