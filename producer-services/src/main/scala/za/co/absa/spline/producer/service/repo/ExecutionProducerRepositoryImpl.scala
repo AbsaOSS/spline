@@ -21,12 +21,12 @@ import org.slf4s.Logging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import za.co.absa.spline.common.AsyncCallRetryer
+import za.co.absa.spline.persistence.ArangoImplicits
 import za.co.absa.spline.persistence.model._
 import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, TxBuilder}
-import za.co.absa.spline.persistence.ArangoImplicits
 import za.co.absa.spline.producer.model.v1_1.ExecutionEvent._
 import za.co.absa.spline.producer.model.{v1_1 => apiModel}
-import za.co.absa.spline.producer.service.model.{ExecutionEventKeyCreator, ExecutionPlanPersistentModel, ExecutionPlanPersistentModelBuilder}
+import za.co.absa.spline.producer.service.model.{ExecutionEventKeyCreator, ExecutionPlanApiModelAssembler, ExecutionPlanPersistentModel, ExecutionPlanPersistentModelBuilder}
 import za.co.absa.spline.producer.service.{InconsistentEntityException, UUIDCollisionDetectedException}
 
 import java.util.UUID
@@ -80,6 +80,23 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, repe
       }
     } yield Unit
   })
+
+  override def fetchExecutionPlan(id: UUID)(implicit ec: ExecutionContext): Future[apiModel.ExecutionPlan] = {
+    // 1. read the execution plan and all its components from the database
+    val eventualExecutionPlan = db.queryOne[ExecutionPlanPersistentModel](
+      // todo: this is incorrect, I'll fix it later.
+      s"""
+         |WITH ${NodeDef.ExecutionPlan.name}
+         |FOR ep IN ${NodeDef.ExecutionPlan.name}
+         |    FILTER ep._key == @key
+         |    RETURN ep
+         |""".stripMargin,
+      Map("key" -> id.toString)
+    )
+
+    // 2. convert the persistent model to the API model
+    eventualExecutionPlan.map { eppm => ExecutionPlanApiModelAssembler.toApiModel(eppm) }
+  }
 
   override def insertExecutionEvents(events: Array[apiModel.ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = repeater.execute({
     val eventualExecPlanInfos: Future[Seq[ExecPlanInfo]] = db.queryStream[ExecPlanInfo](
@@ -137,9 +154,9 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, repe
   }
 }
 
-object ExecutionProducerRepositoryImpl {
+private object ExecutionProducerRepositoryImpl {
 
-  case class ExecPlanInfo(
+  private case class ExecPlanInfo(
     key: ArangoDocument.Key,
     discriminator: ExecutionPlan.Discriminator,
     details: ExecPlanDetails) {

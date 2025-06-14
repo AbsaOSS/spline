@@ -16,8 +16,6 @@
 
 package za.co.absa.spline.producer.rest.controller
 
-import java.util.UUID
-
 import io.swagger.annotations.{Api, ApiOperation, ApiResponse, ApiResponses}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -26,6 +24,7 @@ import za.co.absa.spline.producer.model.v1_1.ExecutionPlan
 import za.co.absa.spline.producer.rest.ProducerAPI
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 
+import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 @RestController
@@ -181,8 +180,19 @@ class ExecutionPlansController @Autowired()(
     new ApiResponse(code = 201, message = "Execution Plan is stored with the UUID returned in a response body")
   ))
   @ResponseStatus(HttpStatus.CREATED)
-  def executionPlan(@RequestBody execPlan: ExecutionPlan): Future[UUID] = repo
+  def addExecutionPlan(@RequestBody execPlan: ExecutionPlan): Future[UUID] = repo
     .insertExecutionPlan(execPlan)
     .map(_ => execPlan.id)
 
+  @GetMapping(Array("/execution-plans/{id}"))
+  @ApiOperation(
+    value = "Get Execution Plan",
+    notes = "Retrieves an Execution Plan by its UUID")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Execution Plan is returned in a response body")
+  ))
+  @ResponseStatus(HttpStatus.OK)
+  def getExecutionPlan(@PathVariable id: UUID): Future[ExecutionPlan] = {
+    repo.fetchExecutionPlan(id)
+  }
 }
