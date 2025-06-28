@@ -28,14 +28,13 @@ import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 @RestController
-@RequestMapping(consumes = Array(ProducerAPI.MimeTypeV1_1))
 @Api(tags = Array("execution"))
 class ExecutionPlansController @Autowired()(
   val repo: ExecutionProducerRepository) {
 
   import ExecutionContext.Implicits.global
 
-  @PostMapping(Array("/execution-plans"))
+  @PostMapping(path = Array("/execution-plans"), consumes = Array(ProducerAPI.MimeTypeV1_1))
   @ApiOperation(
     value = "Save Execution Plan",
     notes =
@@ -184,7 +183,7 @@ class ExecutionPlansController @Autowired()(
     .insertExecutionPlan(execPlan)
     .map(_ => execPlan.id)
 
-  @GetMapping(Array("/execution-plans/{id}"))
+  @GetMapping(path = Array("/execution-plans/{id}"), produces = Array(ProducerAPI.MimeTypeV1_1))
   @ApiOperation(
     value = "Get Execution Plan",
     notes = "Retrieves an Execution Plan by its UUID")
