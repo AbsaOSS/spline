@@ -82,20 +82,72 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, repe
   })
 
   override def fetchExecutionPlan(id: UUID)(implicit ec: ExecutionContext): Future[apiModel.ExecutionPlan] = {
-    // 1. read the execution plan and all its components from the database
     val eventualExecutionPlan = db.queryOne[ExecutionPlanPersistentModel](
-      // todo: this is incorrect, I'll fix it later.
       s"""
-         |WITH ${NodeDef.ExecutionPlan.name}
-         |FOR ep IN ${NodeDef.ExecutionPlan.name}
-         |    FILTER ep._key == @key
-         |    RETURN ep
+         |WITH ${allPlanCollectionNames.mkString(", ")}, ${NodeDef.DataSource.name}
+         |LET v_plan = FIRST(FOR ep IN executionPlan FILTER ep._key == @plan_key RETURN ep)
+         |
+         |LET e_executes =  FIRST (FOR e IN executes FILTER e._belongsTo == v_plan._id RETURN e)
+         |LET es_depends =        (FOR e IN depends FILTER e._belongsTo == v_plan._id RETURN e)
+         |LET e_affects =   FIRST (FOR e IN affects FILTER e._belongsTo == v_plan._id RETURN e)
+         |
+         |LET vs_operations =     (FOR v IN operation FILTER v._belongsTo == v_plan._id RETURN v)
+         |LET es_follows =        (FOR e IN follows FILTER e._belongsTo == v_plan._id RETURN e)
+         |LET es_reads_from =     (FOR e IN readsFrom FILTER e._belongsTo == v_plan._id RETURN e)
+         |LET e_writes_to = FIRST (FOR e IN writesTo FILTER e._belongsTo == v_plan._id RETURN e)
+         |LET es_emits =          (FOR e IN emits FILTER e._belongsTo == v_plan._id RETURN e)
+         |LET es_uses =           (FOR e IN uses FILTER e._belongsTo == v_plan._id RETURN e)
+         |LET es_produces =       (FOR e IN produces FILTER e._belongsTo == v_plan._id RETURN e)
+         |
+         |LET vs_sources =        (FOR ds IN 1 OUTBOUND v_plan depends, affects RETURN ds)
+         |
+         |LET vs_schemas =        (FOR v IN schema FILTER v._belongsTo == v_plan._id RETURN v)
+         |LET es_consists_of =    (FOR e IN consistsOf FILTER e._belongsTo == v_plan._id RETURN e)
+         |
+         |LET vs_attributes =     (FOR v IN attribute FILTER v._belongsTo == v_plan._id RETURN v)
+         |LET es_computed_by =    (FOR e IN computedBy FILTER e._belongsTo == v_plan._id RETURN e)
+         |LET es_derives_from =   (FOR e IN derivesFrom FILTER e._belongsTo == v_plan._id RETURN e)
+         |
+         |LET vs_expressions =    (FOR v IN expression FILTER v._belongsTo == v_plan._id RETURN v)
+         |LET es_takes =          (FOR e IN takes FILTER e._belongsTo == v_plan._id RETURN e)
+         |
+         |RETURN {
+         |  // execution plan
+         |  "executionPlan" : v_plan,
+         |  "executes"      : e_executes,
+         |  "depends"       : es_depends,
+         |  "affects"       : e_affects,
+         |
+         |  // operation
+         |  "operations"    : vs_operations,
+         |  "follows"       : es_follows,
+         |  "readsFrom"     : es_reads_from,
+         |  "writesTo"      : e_writes_to,
+         |  "emits"         : es_emits,
+         |  "uses"          : es_uses,
+         |  "produces"      : es_produces,
+         |
+         |  // data source
+         |  "dataSources"   : vs_sources,
+         |
+         |  // schema
+         |  "schemas"       : vs_schemas,
+         |  "consistsOf"    : es_consists_of,
+         |
+         |  // attribute
+         |  "attributes"    : vs_attributes,
+         |  "computedBy"    : es_computed_by,
+         |  "derivesFrom"   : es_derives_from,
+         |
+         |  // expression
+         |  "expressions"   : vs_expressions,
+         |  "takes"         : es_takes
+         |}
          |""".stripMargin,
-      Map("key" -> id.toString)
+      Map("plan_key" -> id.toString)
     )
 
-    // 2. convert the persistent model to the API model
-    eventualExecutionPlan.map { eppm => ExecutionPlanApiModelAssembler.toApiModel(eppm) }
+    eventualExecutionPlan.map(ExecutionPlanApiModelAssembler.toApiModel)
   }
 
   override def insertExecutionEvents(events: Array[apiModel.ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = repeater.execute({
@@ -155,6 +207,27 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, repe
 }
 
 private object ExecutionProducerRepositoryImpl {
+
+  val allPlanCollectionNames: Seq[String] = Seq(
+    NodeDef.ExecutionPlan.name,
+    EdgeDef.Executes.name,
+    EdgeDef.Depends.name,
+    EdgeDef.Affects.name,
+    NodeDef.Operation.name,
+    EdgeDef.Follows.name,
+    EdgeDef.ReadsFrom.name,
+    EdgeDef.WritesTo.name,
+    EdgeDef.Emits.name,
+    EdgeDef.Uses.name,
+    EdgeDef.Produces.name,
+    NodeDef.Schema.name,
+    EdgeDef.ConsistsOf.name,
+    NodeDef.Attribute.name,
+    EdgeDef.ComputedBy.name,
+    EdgeDef.DerivesFrom.name,
+    NodeDef.Expression.name,
+    EdgeDef.Takes.name
+  )
 
   private case class ExecPlanInfo(
     key: ArangoDocument.Key,
