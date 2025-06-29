@@ -18,10 +18,15 @@ package za.co.absa.spline.producer.service.model
 
 import za.co.absa.spline.producer.model.v1_1._
 
-class ExecutionEventKeyCreator(ee: ExecutionEvent)
-  extends AbstractNodeKeyCreator(ee.planId) {
+class ExecutionEventKeyConverter private(ee: ExecutionEvent)
+  extends AbstractNodeKeyConverter(ee.planId) {
 
   def executionEventKey: String =
     asCompositeKey(java.lang.Long.toString(ee.timestamp, 36))
 
+}
+
+object ExecutionEventKeyConverter {
+  def from(ee: ExecutionEvent): ExecutionEventKeyConverter =
+    new ExecutionEventKeyConverter(ee)
 }

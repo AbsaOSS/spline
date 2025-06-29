@@ -26,7 +26,7 @@ import za.co.absa.spline.persistence.model._
 import za.co.absa.spline.persistence.tx.{ArangoTx, InsertQuery, TxBuilder}
 import za.co.absa.spline.producer.model.v1_1.ExecutionEvent._
 import za.co.absa.spline.producer.model.{v1_1 => apiModel}
-import za.co.absa.spline.producer.service.model.{ExecutionEventKeyCreator, ExecutionPlanApiModelAssembler, ExecutionPlanPersistentModel, ExecutionPlanPersistentModelBuilder}
+import za.co.absa.spline.producer.service.model.{ExecutionEventKeyConverter, ExecutionPlanApiModelAssembler, ExecutionPlanPersistentModel, ExecutionPlanPersistentModelBuilder}
 import za.co.absa.spline.producer.service.{InconsistentEntityException, UUIDCollisionDetectedException}
 
 import java.util.UUID
@@ -293,7 +293,7 @@ private object ExecutionProducerRepositoryImpl {
     val progressNodes = events
       .zip(execPlansDetails)
       .map { case (e, pd) =>
-        val key = new ExecutionEventKeyCreator(e).executionEventKey
+        val key = ExecutionEventKeyConverter.from(e).executionEventKey
         Progress(
           timestamp = e.timestamp,
           durationNs = e.durationNs,

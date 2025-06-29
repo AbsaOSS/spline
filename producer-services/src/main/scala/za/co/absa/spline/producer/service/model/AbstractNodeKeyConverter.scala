@@ -16,15 +16,15 @@
 
 package za.co.absa.spline.producer.service.model
 
-import za.co.absa.spline.producer.model.v1_1._
+import java.util.UUID
 
-class ExecutionPlanKeyCreator(ep: ExecutionPlan) extends AbstractNodeKeyCreator(ep.id) {
+abstract class AbstractNodeKeyConverter(prefix: UUID) {
+  protected def asCompositeKey(suffix: String) = s"$prefix:$suffix"
+}
 
-  def asOperationKey(opId: OperationLike.Id): String = asCompositeKey(opId)
-
-  def asSchemaKey(opId: OperationLike.Id): String = asCompositeKey(opId)
-
-  def asAttributeKey(attrId: Attribute.Id): String = asCompositeKey(attrId)
-
-  def asExpressionKey(exprId: ExpressionLike.Id): String = asCompositeKey(exprId)
+object AbstractNodeKeyConverter {
+  protected[model] def parseCompositeKey(compositeKey: String): (String, String) = {
+    val Array(prefix, suffix) = compositeKey.split(":", 2)
+    (prefix, suffix)
+  }
 }

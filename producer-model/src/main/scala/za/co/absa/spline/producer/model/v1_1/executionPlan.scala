@@ -72,3 +72,12 @@ case class Expressions(
 }
 
 case class NameAndVersion(name: String, version: String)
+
+object NameAndVersion {
+  def fromMap(m: Map[String, Any]): NameAndVersion = {
+    NameAndVersion(
+      name = m("name").toString,
+      version = m("version").toString
+    )
+  }
+}
