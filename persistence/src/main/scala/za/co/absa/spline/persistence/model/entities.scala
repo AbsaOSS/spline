@@ -38,6 +38,7 @@ trait RootEntity {
 }
 
 trait Vertex extends ArangoDocument {
+  val _id: ArangoDocument.Id = null
   def _key: ArangoDocument.Key
 }
 

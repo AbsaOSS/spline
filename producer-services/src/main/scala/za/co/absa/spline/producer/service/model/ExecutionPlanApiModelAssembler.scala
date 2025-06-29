@@ -25,8 +25,8 @@ import java.util.UUID
 object ExecutionPlanApiModelAssembler {
   def toApiModel(eppm: ExecutionPlanPersistentModel): am.ExecutionPlan = {
 
-    val opsByKey: Map[String, pm.Operation] =
-      eppm.operations.map(op => op._key -> op).toMap
+    val opsById: Map[String, pm.Operation] =
+      eppm.operations.map(op => op._id -> op).toMap
 
     val childrenKeysByOpKey: Map[String, Seq[String]] =
       eppm.follows
@@ -34,7 +34,7 @@ object ExecutionPlanApiModelAssembler {
         .mapValues(_.map(_._from))
 
     val writeOpModel: pm.Write =
-      opsByKey(eppm.executes._to).asInstanceOf[pm.Write]
+      opsById(eppm.executes._to).asInstanceOf[pm.Write]
 
     val readOpModels: Seq[pm.Read] = eppm.operations
       .filter(_.`type` == pm.Operation.OpType.Read)
