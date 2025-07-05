@@ -237,7 +237,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, repe
 
 private object ExecutionProducerRepositoryImpl {
 
-  val allPlanCollectionNames: Seq[String] = Seq(
+  private val allPlanCollectionNames: Seq[String] = Seq(
     NodeDef.ExecutionPlan.name,
     EdgeDef.Executes.name,
     EdgeDef.Depends.name,
