@@ -27,7 +27,9 @@ case class ExecutionEvent(
   discriminator: Option[ExecutionPlan.Discriminator] = None,
   error: Option[Any] = None,
   extra: Map[String, Any] = Map.empty
-)
+) {
+  def this() = this(null, 0L, null, null, null, null)
+}
 
 object ExecutionEvent {
   type DurationNs = java.lang.Long

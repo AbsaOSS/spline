@@ -20,7 +20,7 @@ import io.swagger.annotations.{Api, ApiOperation, ApiResponse, ApiResponses}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation._
-import za.co.absa.spline.producer.model.v1_1.ExecutionPlan
+import za.co.absa.spline.producer.model.v1_1.{ExecutionEvent, ExecutionPlan}
 import za.co.absa.spline.producer.rest.ProducerAPI
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 
@@ -205,5 +205,17 @@ class ExecutionPlansController @Autowired()(
   @ResponseStatus(HttpStatus.OK)
   def getExecutionPlan(@PathVariable id: UUID): Future[ExecutionPlan] = {
     repo.fetchExecutionPlan(id)
+  }
+
+  @GetMapping(path = Array("/execution-plans/{id}/events"), produces = Array(ProducerAPI.MimeTypeV1_1))
+  @ApiOperation(
+    value = "Get Execution Events for Execution Plan",
+    notes = "Retrieves Execution Events for a given Execution Plan by its UUID")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Execution Events are returned in a response body")
+  ))
+  @ResponseStatus(HttpStatus.OK)
+  def getExecutionEvents(@PathVariable("id") planId: UUID): Future[Seq[ExecutionEvent]] = {
+    repo.fetchExecutionEvents(planId)
   }
 }

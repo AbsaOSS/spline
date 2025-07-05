@@ -42,6 +42,20 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, repe
   import ArangoImplicits._
   import ExecutionProducerRepositoryImpl._
 
+  override def isDatabaseOk()(implicit ec: ExecutionContext): Future[Boolean] = {
+    try {
+      val anySplineCollectionName = NodeDef.ExecutionPlan.name
+      val futureIsDbOk = db.collection(anySplineCollectionName).exists.toScala.mapTo[Boolean]
+      futureIsDbOk.foreach { isDbOk =>
+        if (!isDbOk)
+          log.error(s"Collection '$anySplineCollectionName' does not exist. Spline database is not initialized properly!")
+      }
+      futureIsDbOk.recover { case _ => false }
+    } catch {
+      case NonFatal(_) => Future.successful(false)
+    }
+  }
+
   override def insertExecutionPlan(executionPlan: apiModel.ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit] = repeater.execute({
     // Here I have to use the type parameter `Any` and cast to `String` later due to ArangoDb Java driver issue.
     // See https://github.com/arangodb/arangodb-java-driver/issues/389
@@ -201,18 +215,23 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, repe
     } yield res
   })
 
-  override def isDatabaseOk()(implicit ec: ExecutionContext): Future[Boolean] = {
-    try {
-      val anySplineCollectionName = NodeDef.ExecutionPlan.name
-      val futureIsDbOk = db.collection(anySplineCollectionName).exists.toScala.mapTo[Boolean]
-      futureIsDbOk.foreach { isDbOk =>
-        if (!isDbOk)
-          log.error(s"Collection '$anySplineCollectionName' does not exist. Spline database is not initialized properly!")
-      }
-      futureIsDbOk.recover { case _ => false }
-    } catch {
-      case NonFatal(_) => Future.successful(false)
-    }
+  override def fetchExecutionEvents(planId: apiModel.ExecutionPlan.Id)(implicit ec: ExecutionContext): Future[Seq[apiModel.ExecutionEvent]] = {
+    db.queryAs[apiModel.ExecutionEvent](
+      s"""
+         |WITH ${NodeDef.Progress.name}, ${EdgeDef.ProgressOf.name}
+         |FOR p IN ${NodeDef.Progress.name}
+         |    FILTER STARTS_WITH(p._key, CONCAT(@planKey, ":"))
+         |    RETURN {
+         |        planId:         @planKey,
+         |        timestamp:      p.timestamp,
+         |        durationNs:     p.durationNs,
+         |        discriminator:  p.discriminator,
+         |        error:          p.error,
+         |        extra:          p.extra,
+         |    }
+         |""".stripMargin,
+      Map("planKey" -> planId)
+    ).map(_.streamRemaining.toScala)
   }
 }
 
