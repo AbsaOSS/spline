@@ -183,6 +183,18 @@ class ExecutionPlansController @Autowired()(
     .insertExecutionPlan(execPlan)
     .map(_ => execPlan.id)
 
+  @GetMapping(path = Array("/execution-plans"), produces = Array(ProducerAPI.MimeTypeV1_1))
+  @ApiOperation(
+    value = "Get Execution Plans IDs",
+    notes = "Retrieves the list of Execution Plan UUIDs that have been stored in the system")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Execution Plan UUIDs are returned in a response body")
+  ))
+  @ResponseStatus(HttpStatus.OK)
+  def getExecutionPlanIDs: Future[Seq[UUID]] = {
+    repo.fetchExecutionPlanIds()
+  }
+
   @GetMapping(path = Array("/execution-plans/{id}"), produces = Array(ProducerAPI.MimeTypeV1_1))
   @ApiOperation(
     value = "Get Execution Plan",
