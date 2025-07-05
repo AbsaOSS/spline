@@ -18,26 +18,20 @@ package za.co.absa.spline.producer.service.model
 
 import org.apache.commons.lang3.StringUtils.substringAfter
 import za.co.absa.commons.lang.OptionImplicits.TraversableWrapper
+import za.co.absa.spline.persistence.model.NodeDef
 import za.co.absa.spline.persistence.{model => pm}
+import za.co.absa.spline.producer.model.v1_1.AttrOrExprRef
+import za.co.absa.spline.producer.model.v1_1.AttrOrExprRef.exprRef
 import za.co.absa.spline.producer.model.{v1_1 => am}
+import za.co.absa.spline.producer.service.model.ExecutionPlanKeyConverter.toLocalKey
 
 import java.util.UUID
 
 object ExecutionPlanApiModelAssembler {
   def toApiModel(eppm: ExecutionPlanPersistentModel): am.ExecutionPlan = {
-    val opsById: Map[pm.ArangoDocument.Id, pm.Operation] =
-      eppm.operations.map(op => op._id -> op).toMap
-
-    val writeOpModel: pm.Write =
-      opsById(eppm.executes._to).asInstanceOf[pm.Write]
-
-    val readOpModels: Seq[pm.Read] = eppm.operations
-      .filter(_.`type` == pm.Operation.OpType.Read)
-      .map(_.asInstanceOf[pm.Read])
-
-    val dataOpModels: Seq[pm.Transformation] = eppm.operations
-      .filter(_.`type` == pm.Operation.OpType.Transformation)
-      .map(_.asInstanceOf[pm.Transformation])
+    val writeOpModel: pm.Write = eppm.operations.collectFirst({ case wop: pm.Write => wop }).get
+    val readOpModels: Seq[pm.Read] = eppm.operations.collect({ case rop: pm.Read => rop })
+    val dataOpModels: Seq[pm.Transformation] = eppm.operations.collect({ case dop: pm.Transformation => dop })
 
     val childrenOpKeysByParentOpKey: Map[pm.ArangoDocument.Key, Seq[pm.ArangoDocument.Key]] =
       eppm.follows
@@ -61,41 +55,61 @@ object ExecutionPlanApiModelAssembler {
         })
         .toMap
 
+    val exprKeyByAttrKeyItComputes: Map[pm.ArangoDocument.Key, pm.ArangoDocument.Key] =
+      eppm.computedBy
+        .map(e => substringAfter(e._from, "/") -> substringAfter(e._to, "/"))
+        .toMap
+
+    val exprChildRefsByParentExprKey: Map[pm.ArangoDocument.Key, Seq[AttrOrExprRef]] =
+      eppm.takes
+        .map(e => substringAfter(e._from, "/") -> {
+          val Array(collectionName, objKey) = e._to.split("/", 2)
+          collectionName match {
+            case NodeDef.Expression.name => am.AttrOrExprRef.attrRef(toLocalKey(objKey))
+            case NodeDef.Attribute.name => am.AttrOrExprRef.attrRef(toLocalKey(objKey))
+          }
+        })
+        .groupBy(_._1)
+        .mapValues(_.map(_._2))
+
+
     // Assembling components of the API model ExecutionPlan
 
     val operations = am.Operations(
       write = am.WriteOperation(
-        id = ExecutionPlanKeyConverter.toLocalKey(writeOpModel._key),
+        id = toLocalKey(writeOpModel._key),
         name = writeOpModel.name,
-        childIds = childrenOpKeysByParentOpKey(writeOpModel._key).map(ExecutionPlanKeyConverter.toLocalKey),
+        childIds = childrenOpKeysByParentOpKey(writeOpModel._key).map(toLocalKey),
         outputSource = writeOpModel.outputSource,
         append = writeOpModel.append,
         params = writeOpModel.params,
         extra = writeOpModel.extra
       ),
       reads = readOpModels.map(rop => am.ReadOperation(
-        id = ExecutionPlanKeyConverter.toLocalKey(rop._key),
+        id = toLocalKey(rop._key),
         name = rop.name,
         inputSources = rop.inputSources,
-        output = outputAttrKeysByOpKey.get(rop._key).map(_.map(ExecutionPlanKeyConverter.toLocalKey)),
+        output = outputAttrKeysByOpKey.get(rop._key).map(_.map(toLocalKey)),
         params = rop.params,
         extra = rop.extra
       )),
       other = dataOpModels.map(dop => am.DataOperation(
-        id = ExecutionPlanKeyConverter.toLocalKey(dop._key),
+        id = toLocalKey(dop._key),
         name = dop.name,
-        childIds = childrenOpKeysByParentOpKey(dop._key).map(ExecutionPlanKeyConverter.toLocalKey),
-        output = outputAttrKeysByOpKey.get(dop._key).map(_.map(ExecutionPlanKeyConverter.toLocalKey)),
+        childIds = childrenOpKeysByParentOpKey(dop._key).map(toLocalKey),
+        output = outputAttrKeysByOpKey.get(dop._key).map(_.map(toLocalKey)),
         params = dop.params,
         extra = dop.extra
       )),
     )
 
     val attributes = eppm.attributes.map(attr => am.Attribute(
-      id = attr._key,
+      id = toLocalKey(attr._key),
       name = attr.name,
       dataType = attr.dataType,
-      childRefs = ???,
+      childRefs = exprKeyByAttrKeyItComputes.get(attr._key)
+        .map((toLocalKey _).andThen(exprRef).andThen(Seq(_)))
+        .getOrElse(Nil),
       extra = attr.extra
     ))
 
@@ -107,15 +121,15 @@ object ExecutionPlanApiModelAssembler {
 
       am.Expressions(
         functions = funcExprModels.map(fe => am.FunctionalExpression(
-          id = fe._key,
+          id = toLocalKey(fe._key),
           name = fe.name,
-          childRefs = ???,
+          childRefs = exprChildRefsByParentExprKey.getOrElse(fe._key, Nil),
           dataType = fe.dataType,
           params = fe.params,
           extra = fe.extra
         )),
         constants = litExprModels.map(le => am.Literal(
-          id = le._key,
+          id = toLocalKey(le._key),
           value = le.value,
           dataType = le.dataType,
           extra = le.extra
