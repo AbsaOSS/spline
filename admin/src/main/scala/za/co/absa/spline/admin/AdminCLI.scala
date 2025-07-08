@@ -29,6 +29,7 @@ import za.co.absa.spline.persistence.AuxiliaryDBAction._
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManagerFactory, ArangoManagerFactoryImpl}
 
+import java.io.File
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
@@ -124,6 +125,18 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
 
       this.placeNewLine()
 
+      (cmd("db-import")
+        action ((_, c) => c.copy(cmd = DBImport()))
+        text "Import external data into the Spline database"
+        children(
+        opt[File]("path")
+          text "Path to the directory containing the data files to import."
+          action { case (path, c@AdminCLIConfig(cmd: DBImport, _, _)) => c.copy(cmd.copy(path = path)) })
+        children (this.dbCommandOptions: _*)
+        )
+
+      this.placeNewLine()
+
       (cmd("db-exec")
         action ((_, c) => c.copy(cmd = DBExec()))
         text "Auxiliary actions mainly intended for development, testing etc."
@@ -186,6 +199,10 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
       case DBUpgrade(url) =>
         val dbManager = dbManagerFactory.create(url, sslCtxOpt)
         Await.result(dbManager.upgrade(), Duration.Inf)
+
+      case DBImport(url, path) =>
+        val dbManager = dbManagerFactory.create(url, sslCtxOpt)
+        Await.result(dbManager.importData(path), Duration.Inf)
 
       case DBExec(url, actions) =>
         val dbManager = dbManagerFactory.create(url, sslCtxOpt)

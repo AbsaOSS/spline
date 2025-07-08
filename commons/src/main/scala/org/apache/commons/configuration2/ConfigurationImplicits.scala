@@ -18,7 +18,7 @@ package org.apache.commons.configuration2
 
 import org.apache.commons.lang3.StringUtils.{isBlank, isNotBlank}
 
-import scala.jdk.CollectionConverters._
+import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 import scala.util.Try
 

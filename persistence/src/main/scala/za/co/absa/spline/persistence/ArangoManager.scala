@@ -30,10 +30,11 @@ import za.co.absa.spline.persistence.foxx.{FoxxManager, FoxxSourceResolver}
 import za.co.absa.spline.persistence.migration.Migrator
 import za.co.absa.spline.persistence.model.{CollectionDef, GraphDef, ViewDef}
 
+import java.io.File
 import scala.collection.JavaConverters._
 import scala.collection.immutable._
 import scala.compat.java8.FutureConverters._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Awaitable, ExecutionContext, Future}
 import scala.io.Source
 
 trait ArangoManager {
@@ -43,6 +44,7 @@ trait ArangoManager {
    */
   def initialize(onExistsAction: OnDBExistsAction): Future[Boolean]
   def upgrade(): Future[Unit]
+  def importData(path: File): Future[Unit]
   def execute(actions: AuxiliaryDBAction*): Future[Unit]
 }
 
@@ -94,6 +96,25 @@ class ArangoManagerImpl(
           _ <- createFoxxServices()
         } yield {}
       })
+  }
+
+  override def importData(path: File): Future[Unit] = {
+    log.debug(s"Import data from $path")
+    if (!path.exists() || !path.isDirectory) {
+      Future.failed(new IllegalArgumentException(s"Path $path does not exist or is not a directory"))
+    } else {
+      // list all files in the directory and import them
+      val files = path.listFiles().filter(_.isFile).toSeq
+      if (files.isEmpty) {
+        log.warn(s"No data files found in $path")
+        Future.successful(())
+      } else {
+        log.debug(s"Found data files: ${files.map(_.getName).mkString(", ")}")
+//        Future.traverse(files)(file => db.importData(file).toScala).map(_ => {})
+        ???
+        Future.successful(())
+      }
+    }
   }
 
   override def execute(actions: AuxiliaryDBAction*): Future[Unit] = {

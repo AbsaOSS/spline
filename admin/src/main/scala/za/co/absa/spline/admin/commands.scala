@@ -19,6 +19,8 @@ package za.co.absa.spline.admin
 import za.co.absa.spline.admin.DBCommand._
 import za.co.absa.spline.persistence.{ArangoConnectionURL, AuxiliaryDBAction}
 
+import java.io.File
+
 sealed trait Command
 
 sealed trait DBCommand extends Command {
@@ -37,6 +39,14 @@ object DBCommand {
   type DBCommandProps = (Url)
 
   def unapply(cmd: DBCommand): Option[DBCommandProps] = Some((cmd.dbUrl))
+}
+
+case class DBImport(
+  override val dbUrl: Url = null,
+  path: File = null,
+) extends DBCommand {
+  protected override type Self = DBImport
+  protected override val selfCopy: DBCommandProps => Self = copy(_)
 }
 
 case class DBInit(
