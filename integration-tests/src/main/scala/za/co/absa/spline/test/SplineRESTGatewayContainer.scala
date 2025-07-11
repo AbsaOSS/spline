@@ -21,13 +21,15 @@ import org.testcontainers.containers.{GenericContainer, Network}
 import org.testcontainers.images.builder.ImageFromDockerfile
 import za.co.absa.spline.persistence.ArangoConnectionURL
 
+import java.io.File
 import java.nio.file.{Files, Path}
 import java.time.Duration
 
 //noinspection deprecation
 class SplineRESTGatewayContainer
   extends {
-    private val warExplodedDir: Path = Files.list(Path.of("rest-gateway", "target"))
+    private val warModuleDir: File = new File(getClass.getResource("/").getFile, "../../../rest-gateway").getCanonicalFile
+    private val warExplodedDir: Path = Files.list(Path.of(warModuleDir.getPath, "target"))
       .filter(p => Files.isDirectory(p) && p.getFileName.toString.startsWith("spline-rest-server-"))
       .findFirst()
       .orElseThrow(() => new RuntimeException("No spline-rest-server-* directory found"))
@@ -35,7 +37,7 @@ class SplineRESTGatewayContainer
 
   } with GenericContainer[SplineRESTGatewayContainer](
     new ImageFromDockerfile()
-      .withFileFromPath(".", Path.of("rest-gateway"))
+      .withFileFromPath(".", warModuleDir.toPath)
       .withBuildArg("PROJECT_BUILD_FINAL_NAME", warExplodedDir.toString)
   ) {
 
