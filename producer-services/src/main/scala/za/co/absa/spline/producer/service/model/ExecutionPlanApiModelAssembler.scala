@@ -96,7 +96,7 @@ object ExecutionPlanApiModelAssembler {
       other = dataOpModels.map(dop => am.DataOperation(
         id = toLocalKey(dop._key),
         name = dop.name,
-        childIds = childrenOpKeysByParentOpKey(dop._key).map(toLocalKey),
+        childIds = childrenOpKeysByParentOpKey.getOrElse(dop._key, Nil).map(toLocalKey),
         output = outputAttrKeysByOpKey.get(dop._key).map(_.map(toLocalKey)),
         params = dop.params,
         extra = dop.extra

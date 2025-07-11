@@ -26,6 +26,7 @@ sealed trait Command
 
 sealed trait DBCommand extends Command {
   def dbUrl: Url
+
   def dbUrl_= : Url => Self = selfCopy(_)
 
   protected type Self <: DBCommand
@@ -43,6 +44,11 @@ object DBCommand {
 }
 
 case class LineageImport(
+  producerApiUrl: URL = null,
+  lineageDumpPath: File = null,
+) extends Command
+
+case class LineageExport(
   producerApiUrl: URL = null,
   lineageDumpPath: File = null,
 ) extends Command

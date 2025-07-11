@@ -20,6 +20,7 @@ import com.arangodb.model.CollectionsReadOptions
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.testcontainers.shaded.org.hamcrest.Matchers.blankString
+import za.co.absa.commons.io.TempDirectory
 import za.co.absa.commons.reflect.EnumerationMacros.sealedInstancesOf
 import za.co.absa.commons.scalatest.{ConsoleStubs, SystemExitFixture}
 import za.co.absa.spline.persistence.model.CollectionDef
@@ -86,7 +87,8 @@ class AdminCLISpec
   behavior of "lineage-import / lineage-export"
 
   it should "import and export lineage files" in {
-    val testLineageDumpDirPath = getClass.getResource("/sample-lineage-data").getPath
+    val testLineageInputDir = getClass.getResource("/sample-lineage-data").getPath
+    val testLineageOutputDir = TempDirectory("spline-test-lineage-output").deleteOnExit().path
 
     // Start the ArangoDB instance
     withArangoDb { (_, connUrl) =>
@@ -107,11 +109,27 @@ class AdminCLISpec
           captureExitStatus {
             AdminCLI.main(Array(
               "lineage-import",
-              "--dir", testLineageDumpDirPath,
+              "--dir", testLineageInputDir,
               "--producer-url", s"http://$host:$port/producer"
             ))
           } should be(0)
         } should (include("Imported 43 execution plans and 52 execution events") and include("DONE"))
+
+        captureStdOut {
+          captureExitStatus {
+            AdminCLI.main(Array(
+              "lineage-export",
+              "--dir", testLineageOutputDir.toString,
+              "--producer-url", s"http://$host:$port/producer"
+            ))
+          } should be(0)
+        } should (include("Exported 43 execution plans and 52 execution events") and include("DONE"))
+
+        // TODO: Compare the exported files (testLineageOutputDir) with the original directory (testLineageInputDir)
+        // Verify that the output directory contains the same amount of files as the input directory.
+        // Verify that the output directory contains the same files (names) as the input directory.
+        // Verify that the files in the output directory match the files in the input directory.
+        // The files are JSON, so comparison of their content should be done according to JSON equivalency principles.
       }
     }
   }

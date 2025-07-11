@@ -96,6 +96,47 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, repe
     } yield Unit
   })
 
+  override def insertExecutionEvents(events: Array[apiModel.ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = repeater.execute({
+    val eventualExecPlanInfos: Future[Seq[ExecPlanInfo]] = db.queryStream[ExecPlanInfo](
+      s"""
+         |WITH executionPlan, executes, operation, dataSource
+         |FOR ep IN executionPlan
+         |    FILTER ep._key IN @keys
+         |
+         |    LET wo = FIRST(FOR v IN 1 OUTBOUND ep executes RETURN v)
+         |    LET ds = FIRST(FOR v IN 1 OUTBOUND ep affects RETURN v)
+         |
+         |    RETURN {
+         |        key           : ep._key,
+         |        discriminator : ep.discriminator,
+         |        details: {
+         |            "executionPlanKey" : ep._key,
+         |            "frameworkName"    : CONCAT(ep.systemInfo.name, " ", ep.systemInfo.version),
+         |            "applicationName"  : ep.name,
+         |            "dataSourceUri"    : ds.uri,
+         |            "dataSourceName"   : ds.name,
+         |            "dataSourceType"   : wo.extra.destinationType,
+         |            "append"           : wo.append
+         |        }
+         |    }
+         |""".stripMargin,
+      Map("keys" -> events.map(_.planId))
+    )
+
+    for {
+      execPlansInfos <- eventualExecPlanInfos
+      (execPlanDiscrById, execPlansDetails) = execPlansInfos
+        .foldLeft((Map.empty[apiModel.ExecutionPlan.Id, apiModel.ExecutionPlan.Discriminator], Vector.empty[ExecPlanDetails])) {
+          case ((descrByIdAcc, detailsAcc), ExecPlanInfo(id, discr, details)) =>
+            (descrByIdAcc + (UUID.fromString(id) -> discr), detailsAcc :+ details)
+        }
+      res <- {
+        events.foreach(e => ensureNoExecPlanIDCollision(e.planId, e.discriminator.orNull, execPlanDiscrById(e.planId)))
+        createInsertTransaction(events, execPlansDetails.toArray).execute(db)
+      }
+    } yield res
+  })
+
   override def fetchExecutionPlanIds()(implicit ec: ExecutionContext): Future[Seq[UUID]] = {
     db.queryAs[apiModel.ExecutionPlan.Id](
       s"""
@@ -174,47 +215,6 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, repe
 
     eventualExecutionPlan.map(ExecutionPlanApiModelAssembler.toApiModel)
   }
-
-  override def insertExecutionEvents(events: Array[apiModel.ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit] = repeater.execute({
-    val eventualExecPlanInfos: Future[Seq[ExecPlanInfo]] = db.queryStream[ExecPlanInfo](
-      s"""
-         |WITH executionPlan, executes, operation, dataSource
-         |FOR ep IN executionPlan
-         |    FILTER ep._key IN @keys
-         |
-         |    LET wo = FIRST(FOR v IN 1 OUTBOUND ep executes RETURN v)
-         |    LET ds = FIRST(FOR v IN 1 OUTBOUND ep affects RETURN v)
-         |
-         |    RETURN {
-         |        key           : ep._key,
-         |        discriminator : ep.discriminator,
-         |        details: {
-         |            "executionPlanKey" : ep._key,
-         |            "frameworkName"    : CONCAT(ep.systemInfo.name, " ", ep.systemInfo.version),
-         |            "applicationName"  : ep.name,
-         |            "dataSourceUri"    : ds.uri,
-         |            "dataSourceName"   : ds.name,
-         |            "dataSourceType"   : wo.extra.destinationType,
-         |            "append"           : wo.append
-         |        }
-         |    }
-         |""".stripMargin,
-      Map("keys" -> events.map(_.planId))
-    )
-
-    for {
-      execPlansInfos <- eventualExecPlanInfos
-      (execPlanDiscrById, execPlansDetails) = execPlansInfos
-        .foldLeft((Map.empty[apiModel.ExecutionPlan.Id, apiModel.ExecutionPlan.Discriminator], Vector.empty[ExecPlanDetails])) {
-          case ((descrByIdAcc, detailsAcc), ExecPlanInfo(id, discr, details)) =>
-            (descrByIdAcc + (UUID.fromString(id) -> discr), detailsAcc :+ details)
-        }
-      res <- {
-        events.foreach(e => ensureNoExecPlanIDCollision(e.planId, e.discriminator.orNull, execPlanDiscrById(e.planId)))
-        createInsertTransaction(events, execPlansDetails.toArray).execute(db)
-      }
-    } yield res
-  })
 
   override def fetchExecutionEvents(planId: apiModel.ExecutionPlan.Id)(implicit ec: ExecutionContext): Future[Seq[apiModel.ExecutionEvent]] = {
     db.queryStream[Map[String, Any]](

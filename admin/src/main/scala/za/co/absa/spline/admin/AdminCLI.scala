@@ -21,6 +21,7 @@ import org.apache.http.Consts
 import org.apache.http.entity.ContentType
 import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
+import org.slf4s.Logging
 import scopt.{OptionDef, OptionParser}
 import za.co.absa.spline.admin.AdminCLI.AdminCLIConfig
 import za.co.absa.spline.common.ConsoleUtils._
@@ -29,12 +30,14 @@ import za.co.absa.spline.common.rest.RESTClientApacheHttpImpl
 import za.co.absa.spline.common.scala13.Option
 import za.co.absa.spline.common.security.TLSUtils
 import za.co.absa.spline.persistence.AuxiliaryDBAction._
+import za.co.absa.spline.persistence.DefaultJsonSerDe._
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManagerFactory, ArangoManagerFactoryImpl}
 import za.co.absa.spline.producer.rest.ProducerAPI
 
 import java.io.File
 import java.net.URL
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.duration._
@@ -70,7 +73,7 @@ object AdminCLI extends App {
   new AdminCLI(dbManagerFactory).exec(args)
 }
 
-class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
+class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
 
   def exec(args: Array[String]): Unit = {
 
@@ -161,7 +164,7 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
       (cmd("lineage-import")
         action ((_, c) => c.copy(cmd = LineageImport()))
         text "Import lineage data files into the Spline database"
-        children (
+        children(
         opt[File]("dir")
           text "Path to the directory containing the lineage data files to import."
           required()
@@ -170,7 +173,21 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
           text "Producer API base URL to which the lineage data files will be posted."
           required()
           action { case (url, c@AdminCLIConfig(cmd: LineageImport, _, _)) => c.copy(cmd.copy(producerApiUrl = url)) }
-        ))
+      ))
+
+      (cmd("lineage-export")
+        action ((_, c) => c.copy(cmd = LineageExport()))
+        text "Export lineage data files from the Spline database"
+        children(
+        opt[File]("dir")
+          text "Path to the directory where the lineage data files will be exported."
+          required()
+          action { case (dir, c@AdminCLIConfig(cmd: LineageExport, _, _)) => c.copy(cmd.copy(lineageDumpPath = dir)) },
+        opt[URL]("producer-url")
+          text "Producer API base URL from which the lineage data files will be fetched."
+          required()
+          action { case (url, c@AdminCLIConfig(cmd: LineageExport, _, _)) => c.copy(cmd.copy(producerApiUrl = url)) }
+      ))
 
       checkConfig {
         case AdminCLIConfig(null, _, _) =>
@@ -246,6 +263,56 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
 
         val (nPlans, nEvents) = Await.result(resFuture, Duration.Inf)
         println(ansi"%green{Imported $nPlans execution plans and $nEvents execution events from $path}")
+
+      case LineageExport(producerApiBaseUrl, path) =>
+        path.mkdirs()
+
+        val restClient = new RESTClientApacheHttpImpl(
+          uri = producerApiBaseUrl.toURI,
+          maybeSslContext = sslCtxOpt,
+          maybeCredentials = None
+        )
+
+        val resFuture = restClient
+          .get("execution-plans")
+          .map(_.fromJson[Array[String]])
+          .flatMap((ids: Array[String]) => {
+            if (ids.isEmpty) {
+              println(ansi"%yellow{No lineage data found in the database}")
+              Future.successful((0, 0))
+            } else {
+              println(s"Found ${ids.length} execution plans in the database. Exporting to $path/ ...")
+              ids.foldLeft(Future.successful((0, 0))) { (prevFut, planId) =>
+                prevFut.flatMap { case (nPlans, nEvents) =>
+                  log.debug(s"Exporting execution plan with id: $planId")
+                  val eventualPlanJson = restClient.get(s"execution-plans/$planId")
+                  val eventualEventJsons = restClient.get(s"execution-plans/$planId/events")
+                  for {
+                    planJson <- eventualPlanJson
+                    events <- eventualEventJsons.map(_.fromJson[Seq[Map[String, Any]]])
+                  } yield {
+                    Files.writeString(
+                      path.toPath.resolve(s"plan-$planId.json"),
+                      planJson,
+                      StandardCharsets.UTF_8
+                    )
+                    events.foreach(event => {
+                      val eventJson = event.toJson
+                      Files.writeString(
+                        path.toPath.resolve(s"event-$planId-${event("timestamp")}.json"),
+                        eventJson,
+                        StandardCharsets.UTF_8
+                      )
+                    })
+                    (nPlans + 1, nEvents + events.length)
+                  }
+                }
+              }
+            }
+          })
+
+        val (nPlans, nEvents) = Await.result(resFuture, Duration.Inf)
+        println(ansi"%green{Exported $nPlans execution plans and $nEvents execution events}")
 
       case DBExec(url, actions) =>
         val dbManager = dbManagerFactory.create(url, sslCtxOpt)
