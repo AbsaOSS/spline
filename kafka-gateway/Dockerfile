@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM tomcat:9.0.105-jre11-temurin
+FROM tomcat:9.0.107-jre11-temurin
 
 LABEL \
     vendor="ABSA" \
