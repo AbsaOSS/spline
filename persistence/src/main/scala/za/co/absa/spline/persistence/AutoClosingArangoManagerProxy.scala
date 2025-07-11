@@ -18,7 +18,6 @@ package za.co.absa.spline.persistence
 
 import com.arangodb.async.ArangoDatabaseAsync
 
-import java.io.File
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -33,9 +32,6 @@ class AutoClosingArangoManagerProxy(
 
   override def upgrade(): Future[Unit] =
     withManager(_.upgrade())
-
-  override def importData(path: File): Future[Unit] =
-    withManager(_.importData(path))
 
   override def execute(actions: AuxiliaryDBAction*): Future[Unit] =
     withManager(_.execute(actions: _*))

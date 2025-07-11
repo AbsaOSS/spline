@@ -53,6 +53,13 @@
         <!-- test scope -->
 
         <dependency>
+            <groupId>za.co.absa.spline</groupId>
+            <artifactId>rest-gateway</artifactId>
+            <version>${project.version}</version>
+            <type>war</type>
+        </dependency>
+
+        <dependency>
             <groupId>org.scala-lang.modules</groupId>
             <artifactId>scala-java8-compat_${scala.compat.version}</artifactId>
             <scope>test</scope>

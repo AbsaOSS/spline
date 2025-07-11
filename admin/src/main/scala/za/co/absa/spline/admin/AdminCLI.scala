@@ -17,25 +17,31 @@
 package za.co.absa.spline.admin
 
 import ch.qos.logback.classic.{Level, Logger}
+import org.apache.http.Consts
+import org.apache.http.entity.ContentType
 import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
 import scopt.{OptionDef, OptionParser}
 import za.co.absa.spline.admin.AdminCLI.AdminCLIConfig
 import za.co.absa.spline.common.ConsoleUtils._
 import za.co.absa.spline.common.SplineBuildInfo
+import za.co.absa.spline.common.rest.RESTClientApacheHttpImpl
 import za.co.absa.spline.common.scala13.Option
 import za.co.absa.spline.common.security.TLSUtils
 import za.co.absa.spline.persistence.AuxiliaryDBAction._
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManagerFactory, ArangoManagerFactoryImpl}
+import za.co.absa.spline.producer.rest.ProducerAPI
 
 import java.io.File
-import scala.concurrent.Await
+import java.net.URL
+import java.nio.file.Files
+import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+import scala.jdk.CollectionConverters._
 
 object AdminCLI extends App {
-
-  import scala.concurrent.ExecutionContext.Implicits._
 
   case class AdminCLIConfig(
     cmd: Command = null,
@@ -125,18 +131,6 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
 
       this.placeNewLine()
 
-      (cmd("db-import")
-        action ((_, c) => c.copy(cmd = DBImport()))
-        text "Import external data into the Spline database"
-        children(
-        opt[File]("path")
-          text "Path to the directory containing the data files to import."
-          action { case (path, c@AdminCLIConfig(cmd: DBImport, _, _)) => c.copy(cmd.copy(path = path)) })
-        children (this.dbCommandOptions: _*)
-        )
-
-      this.placeNewLine()
-
       (cmd("db-exec")
         action ((_, c) => c.copy(cmd = DBExec()))
         text "Auxiliary actions mainly intended for development, testing etc."
@@ -161,6 +155,22 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
           action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(ViewsCreate)) })
         children (this.dbCommandOptions: _*)
         )
+
+      this.placeNewLine()
+
+      (cmd("lineage-import")
+        action ((_, c) => c.copy(cmd = LineageImport()))
+        text "Import lineage data files into the Spline database"
+        children (
+        opt[File]("dir")
+          text "Path to the directory containing the lineage data files to import."
+          required()
+          action { case (dir, c@AdminCLIConfig(cmd: LineageImport, _, _)) => c.copy(cmd.copy(lineageDumpPath = dir)) },
+        opt[URL]("producer-url")
+          text "Producer API base URL to which the lineage data files will be posted."
+          required()
+          action { case (url, c@AdminCLIConfig(cmd: LineageImport, _, _)) => c.copy(cmd.copy(producerApiUrl = url)) }
+        ))
 
       checkConfig {
         case AdminCLIConfig(null, _, _) =>
@@ -200,9 +210,42 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) {
         val dbManager = dbManagerFactory.create(url, sslCtxOpt)
         Await.result(dbManager.upgrade(), Duration.Inf)
 
-      case DBImport(url, path) =>
-        val dbManager = dbManagerFactory.create(url, sslCtxOpt)
-        Await.result(dbManager.importData(path), Duration.Inf)
+      case LineageImport(producerApiBaseUrl, path) =>
+        val dir = path.toPath
+
+        val restClient = new RESTClientApacheHttpImpl(
+          uri = producerApiBaseUrl.toURI,
+          maybeSslContext = sslCtxOpt,
+          maybeCredentials = None
+        )
+
+        def process(pattern: String, url: String): Future[Int] = {
+          val dirStream = Files.newDirectoryStream(dir, pattern)
+          try {
+            dirStream.asScala
+              .map(_.toFile)
+              .filter(_.isFile)
+              .foldLeft(Future.successful(0)) { (prevFut, file) =>
+                prevFut.flatMap { n =>
+                  restClient.post(
+                    path = url,
+                    body = Files.readString(file.toPath),
+                    contentType = ContentType.create(ProducerAPI.MimeTypeV1_1, Consts.UTF_8)
+                  ).map(_ => n + 1)
+                }
+              }
+          } finally {
+            dirStream.close()
+          }
+        }
+
+        val resFuture = for {
+          nPlans <- process("plan-*.json", "execution-plans")
+          nEvents <- process("event-*.json", "execution-events")
+        } yield (nPlans, nEvents)
+
+        val (nPlans, nEvents) = Await.result(resFuture, Duration.Inf)
+        println(ansi"%green{Imported $nPlans execution plans and $nEvents execution events from $path}")
 
       case DBExec(url, actions) =>
         val dbManager = dbManagerFactory.create(url, sslCtxOpt)

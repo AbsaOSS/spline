@@ -16,6 +16,8 @@
 
 package za.co.absa.spline.common.rest
 
+import org.apache.http.entity.ContentType
+
 import scala.concurrent.Future
 
 trait RESTClient {
@@ -23,4 +25,6 @@ trait RESTClient {
   def delete(path: String): Future[Unit]
   def post(path: String, body: String): Future[Unit]
   def post(path: String, body: Array[Byte]): Future[Unit]
+  def post(path: String, body: Array[Byte], contentType: ContentType): Future[Unit]
+  def post(path: String, body: String, contentType: ContentType): Future[Unit]
 }

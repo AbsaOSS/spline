@@ -30,6 +30,7 @@ import za.co.absa.spline.producer.service.model.{ExecutionEventKeyConverter, Exe
 import za.co.absa.spline.producer.service.{InconsistentEntityException, UUIDCollisionDetectedException}
 
 import java.util.UUID
+import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters._
 import scala.compat.java8.StreamConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -216,7 +217,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, repe
   })
 
   override def fetchExecutionEvents(planId: apiModel.ExecutionPlan.Id)(implicit ec: ExecutionContext): Future[Seq[apiModel.ExecutionEvent]] = {
-    db.queryAs[apiModel.ExecutionEvent](
+    db.queryStream[Map[String, Any]](
       s"""
          |WITH ${NodeDef.Progress.name}, ${EdgeDef.ProgressOf.name}
          |FOR p IN ${NodeDef.Progress.name}
@@ -231,7 +232,15 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, repe
          |    }
          |""".stripMargin,
       Map("planKey" -> planId)
-    ).map(_.streamRemaining.toScala)
+    ).map(_.map(d =>
+      apiModel.ExecutionEvent(
+        planId = planId,
+        timestamp = d("timestamp").asInstanceOf[Number].longValue(),
+        durationNs = d.get("durationNs").map(_.asInstanceOf[Number].longValue()),
+        discriminator = d.get("discriminator").map(_.asInstanceOf[ExecutionPlan.Discriminator]),
+        error = d.get("error"),
+        extra = d.getOrElse("extra", Map.empty).asInstanceOf[java.util.Map[String, Any]].asScala.toMap
+      )))
   }
 }
 

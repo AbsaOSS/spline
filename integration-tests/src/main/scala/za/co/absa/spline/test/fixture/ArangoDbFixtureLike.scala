@@ -18,6 +18,7 @@ package za.co.absa.spline.test.fixture
 
 import com.arangodb.async.ArangoDatabaseAsync
 import io.testcontainers.arangodb.containers.ArangoContainer
+import org.testcontainers.containers.Network
 import za.co.absa.commons.version.Version._
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoDatabaseFacade}
 
@@ -43,5 +44,9 @@ trait ArangoDbFixtureLike {
 
 object ArangoDbFixtureLike {
   private val ArangoDbVersion = ver"3.11"
-  private val ArangoDbContainer: ArangoContainer = new ArangoContainer(ArangoDbVersion.asString).withoutAuth()
+  private val ArangoDbContainer: ArangoContainer =
+    new ArangoContainer(ArangoDbVersion.asString)
+      .withoutAuth()
+      .withNetwork(Network.newNetwork())
+      .withNetworkAliases("arangodb")
 }

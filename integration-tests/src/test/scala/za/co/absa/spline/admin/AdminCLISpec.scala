@@ -23,6 +23,7 @@ import org.testcontainers.shaded.org.hamcrest.Matchers.blankString
 import za.co.absa.commons.reflect.EnumerationMacros.sealedInstancesOf
 import za.co.absa.commons.scalatest.{ConsoleStubs, SystemExitFixture}
 import za.co.absa.spline.persistence.model.CollectionDef
+import za.co.absa.spline.test.SplineRESTGatewayContainer
 import za.co.absa.spline.test.fixture.{ArangoDbFixtureAsync, TestContainersFixtureAsync}
 
 import scala.collection.JavaConverters._
@@ -82,18 +83,36 @@ class AdminCLISpec
     }
   }
 
-  behavior of "db-import / db-export"
+  behavior of "lineage-import / lineage-export"
 
   it should "import and export lineage files" in {
+    val testLineageDumpDirPath = getClass.getResource("/sample-lineage-data").getPath
 
-    withArangoDb { (db, connUrl) =>
-      captureStdOut {
-        captureExitStatus {
-          AdminCLI.main(Array(
-            "db-import", connUrl.asString,
-            "--path", getClass.getResource("/sample-lineage-data").getPath))
-        } should be(0)
-      } should include("imported 43 execution plans and 52 events")
+    // Start the ArangoDB instance
+    withArangoDb { (_, connUrl) =>
+
+      // Initialize the database
+      AdminCLI.main(Array("db-init", connUrl.asString))
+
+      // Start the Spline REST Gateway container
+      withTestContainer(
+        new SplineRESTGatewayContainer()
+          .withArangoDbConnection(connUrl, ArangoDbContainer.getNetwork)
+      ) { restGWContainer =>
+        val host = restGWContainer.getHost
+        val port = restGWContainer.getMappedPort(8080)
+
+        // Run the test
+        captureStdOut {
+          captureExitStatus {
+            AdminCLI.main(Array(
+              "lineage-import",
+              "--dir", testLineageDumpDirPath,
+              "--producer-url", s"http://$host:$port/producer"
+            ))
+          } should be(0)
+        } should (include("Imported 43 execution plans and 52 execution events") and include("DONE"))
+      }
     }
   }
 }
