@@ -37,13 +37,15 @@ object ExecutionPlanApiModelAssembler {
       eppm.follows
         .map(e => substringAfter(e._from, "/") -> substringAfter(e._to, "/"))
         .groupBy(_._1)
-        .view.mapValues(_.map(_._2)).toMap
+        .mapValues(_.map(_._2))
+        .view.force // see: https://github.com/scala/bug/issues/4776
 
     val attrKeysBySchemaKey: Map[pm.ArangoDocument.Key, Seq[pm.ArangoDocument.Key]] =
       eppm.consistsOf
         .map(e => substringAfter(e._from, "/") -> substringAfter(e._to, "/"))
         .groupBy(_._1)
-        .view.mapValues(_.map(_._2)).toMap
+        .mapValues(_.map(_._2))
+        .view.force // see: https://github.com/scala/bug/issues/4776
 
     val outputAttrKeysByOpKey: Map[pm.ArangoDocument.Key, Seq[pm.ArangoDocument.Key]] =
       eppm.emits
@@ -71,6 +73,7 @@ object ExecutionPlanApiModelAssembler {
         })
         .groupBy(_._1)
         .mapValues(_.map(_._2))
+        .view.force // see: https://github.com/scala/bug/issues/4776
 
 
     // Assembling components of the API model ExecutionPlan
