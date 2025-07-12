@@ -138,13 +138,13 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, repe
   })
 
   override def fetchExecutionPlanIds()(implicit ec: ExecutionContext): Future[Seq[UUID]] = {
-    db.queryAs[apiModel.ExecutionPlan.Id](
+    db.queryStream[apiModel.ExecutionPlan.Id](
       s"""
          |WITH ${NodeDef.ExecutionPlan.name}
          |FOR ep IN ${NodeDef.ExecutionPlan.name}
          |    RETURN ep._key
          |""".stripMargin
-    ).map(_.streamRemaining.toScala)
+    )
   }
 
   override def fetchExecutionPlan(id: UUID)(implicit ec: ExecutionContext): Future[apiModel.ExecutionPlan] = {
