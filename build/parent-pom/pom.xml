@@ -45,7 +45,6 @@
         <logback.version>1.2.13</logback.version>
         <slf4j.version>1.7.25</slf4j.version>
         <json4s.version>3.6.11</json4s.version>
-        <spring.version>5.3.39</spring.version>
         <springfox-swagger.version>2.9.2</springfox-swagger.version>
         <jackson.version>2.12.7</jackson.version>
         <finatra.jackson.version>21.5.0</finatra.jackson.version>
@@ -443,7 +442,7 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-framework-bom</artifactId>
-                <version>${spring.version}</version>
+                <version>5.3.39</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -529,6 +528,16 @@
                 <version>${logback.version}</version>
             </dependency>
 
+            <!-- Netty -->
+
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-bom</artifactId>
+                <version>4.1.121.Final</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <!-- others -->
 
             <dependency>
@@ -546,11 +555,15 @@
                 <artifactId>config</artifactId>
                 <version>1.4.0</version>
             </dependency>
-
             <dependency>
                 <groupId>org.scala-graph</groupId>
                 <artifactId>graph-core_${scala.compat.version}</artifactId>
                 <version>1.12.5</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>33.4.8-jre</version>
             </dependency>
 
             <!-- Test scope dependencies -->
