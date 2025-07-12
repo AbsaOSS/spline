@@ -37,13 +37,13 @@ object ExecutionPlanApiModelAssembler {
       eppm.follows
         .map(e => substringAfter(e._from, "/") -> substringAfter(e._to, "/"))
         .groupBy(_._1)
-        .mapValues(_.map(_._2))
+        .view.mapValues(_.map(_._2)).toMap
 
     val attrKeysBySchemaKey: Map[pm.ArangoDocument.Key, Seq[pm.ArangoDocument.Key]] =
       eppm.consistsOf
         .map(e => substringAfter(e._from, "/") -> substringAfter(e._to, "/"))
         .groupBy(_._1)
-        .mapValues(_.map(_._2))
+        .view.mapValues(_.map(_._2)).toMap
 
     val outputAttrKeysByOpKey: Map[pm.ArangoDocument.Key, Seq[pm.ArangoDocument.Key]] =
       eppm.emits
