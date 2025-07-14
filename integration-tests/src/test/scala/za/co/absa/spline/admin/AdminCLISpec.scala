@@ -113,7 +113,7 @@ class AdminCLISpec
               "--producer-url", s"http://$host:$port/producer"
             ))
           } should be(0)
-        } should (include("Imported 43 execution plans and 52 execution events") and include("DONE"))
+        } should (include("Imported 43 execution plans with events") and include("DONE"))
 
         captureStdOut {
           captureExitStatus {

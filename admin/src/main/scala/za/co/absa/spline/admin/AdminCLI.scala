@@ -175,6 +175,8 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
           action { case (url, c@AdminCLIConfig(cmd: LineageImport, _, _)) => c.copy(cmd.copy(producerApiUrl = url)) }
       ))
 
+      this.placeNewLine()
+
       (cmd("lineage-export")
         action ((_, c) => c.copy(cmd = LineageExport()))
         text "Export lineage data files from the Spline database"
@@ -236,7 +238,7 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
           maybeCredentials = None
         )
 
-        def process(pattern: String, url: String): Future[Int] = {
+        def process(pattern: String, url: String, fileContentToBodyFn: String => String): Future[Int] = {
           val dirStream = Files.newDirectoryStream(dir, pattern)
           try {
             dirStream.asScala
@@ -244,9 +246,10 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
               .filter(_.isFile)
               .foldLeft(Future.successful(0)) { (prevFut, file) =>
                 prevFut.flatMap { n =>
+                  val rawJsonStr = Files.readString(file.toPath).trim
                   restClient.post(
                     path = url,
-                    body = Files.readString(file.toPath),
+                    body = fileContentToBodyFn(rawJsonStr),
                     contentType = ContentType.create(ProducerAPI.MimeTypeV1_1, Consts.UTF_8)
                   ).map(_ => n + 1)
                 }
@@ -257,12 +260,12 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
         }
 
         val resFuture = for {
-          nPlans <- process("plan-*.json", "execution-plans")
-          nEvents <- process("event-*.json", "execution-events")
-        } yield (nPlans, nEvents)
+          nPlans <- process("plan-*.json", "execution-plans", identity)
+          _ <- process("event-*.json", "execution-events", s => if (s startsWith "[") s else s"[$s]")
+        } yield nPlans
 
-        val (nPlans, nEvents) = Await.result(resFuture, Duration.Inf)
-        println(ansi"%green{Imported $nPlans execution plans and $nEvents execution events from $path}")
+        val nPlans = Await.result(resFuture, Duration.Inf)
+        println(ansi"%green{Imported $nPlans execution plans with events from $path}")
 
       case LineageExport(producerApiBaseUrl, path) =>
         path.mkdirs()
