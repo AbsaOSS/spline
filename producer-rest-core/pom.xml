@@ -21,6 +21,8 @@
     <artifactId>producer-rest-core</artifactId>
     <packaging>jar</packaging>
 
+    <name>Spline Producer REST Core</name>
+
     <parent>
         <groupId>za.co.absa.spline</groupId>
         <artifactId>parent-pom</artifactId>

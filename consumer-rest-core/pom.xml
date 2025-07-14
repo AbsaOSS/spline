@@ -21,6 +21,8 @@
     <artifactId>consumer-rest-core</artifactId>
     <packaging>jar</packaging>
 
+    <name>Spline Consumer REST Core</name>
+
     <parent>
         <groupId>za.co.absa.spline</groupId>
         <artifactId>parent-pom</artifactId>

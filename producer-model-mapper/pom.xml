@@ -27,6 +27,8 @@
 
     <artifactId>producer-model-mapper</artifactId>
 
+    <name>Spline Producer Model Mapper</name>
+
     <dependencies>
         <dependency>
             <groupId>za.co.absa.spline</groupId>

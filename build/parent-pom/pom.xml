@@ -28,6 +28,8 @@
     <artifactId>parent-pom</artifactId>
     <packaging>pom</packaging>
 
+    <name>Spline Parent POM</name>
+
     <scm>
         <url>https://github.com/AbsaOSS/spline</url>
         <connection>${scm.connection}</connection>

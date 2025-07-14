@@ -28,6 +28,8 @@
     <artifactId>rest-gateway</artifactId>
     <packaging>war</packaging>
 
+    <name>Spline REST Gateway</name>
+
     <properties>
         <swagger.docs.path>${project.build.directory}/api/docs</swagger.docs.path>
         <timestamp>${maven.build.timestamp}</timestamp>

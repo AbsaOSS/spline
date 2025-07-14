@@ -27,6 +27,8 @@
 
     <artifactId>consumer-services</artifactId>
 
+    <name>Spline Consumer Services</name>
+
     <dependencies>
         <dependency>
             <groupId>io.swagger</groupId>
