@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 ABSA Group Limited
+ * Copyright 2025 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.service.model
+package za.co.absa.spline.test.fixture
 
-import za.co.absa.spline.producer.model.v1_1._
+import org.scalatest.AsyncTestSuite
+import org.testcontainers.containers.GenericContainer
 
-class ExecutionPlanKeyCreator(ep: ExecutionPlan) extends AbstractNodeKeyCreator(ep.id) {
+import scala.concurrent.Future
 
-  def asOperationKey(opId: OperationLike.Id): String = asCompositeKey(opId)
+trait TestContainersFixtureAsync {
+  this: AsyncTestSuite =>
 
-  def asSchemaKey(opId: OperationLike.Id): String = asCompositeKey(opId)
-
-  def asAttributeKey(attrId: Attribute.Id): String = asCompositeKey(attrId)
-
-  def asExpressionKey(exprId: ExpressionLike.Id): String = asCompositeKey(exprId)
+  def withTestContainer[A <: GenericContainer[A], B](container: A)(testBody: A => Future[B]): Future[B] = {
+    container.start()
+    testBody(container) andThen {
+      case _ => container.stop()
+    }
+  }
 }

@@ -16,6 +16,8 @@
 
 package za.co.absa.spline.producer.rest
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonInclude.Value
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.twitter.finatra.jackson.FinatraInternalModules
@@ -46,5 +48,10 @@ class ProducerRESTConfig extends WebMvcConfigurer {
   @Bean def jacksonConfigurer = new ObjectMapperBeanPostProcessor(_
     .registerModule(DefaultScalaModule)
     .setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE)
-    .registerModule(FinatraInternalModules.caseClassModule))
+    .registerModule(FinatraInternalModules.caseClassModule)
+    .setSerializationInclusion(JsonInclude.Include.ALWAYS)
+
+    // Exclude Scala Option.None (absent) fields from serialization
+    .configOverride(classOf[scala.Option[_]])
+      .setInclude(Value.construct(JsonInclude.Include.NON_ABSENT, JsonInclude.Include.ALWAYS)))
 }

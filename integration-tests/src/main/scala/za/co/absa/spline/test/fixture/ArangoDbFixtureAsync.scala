@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 ABSA Group Limited
+ * Copyright 2025 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,20 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.service.model
+package za.co.absa.spline.test.fixture
 
-import java.util.UUID
+import com.arangodb.async.ArangoDatabaseAsync
+import za.co.absa.spline.persistence.ArangoConnectionURL
 
-abstract class AbstractNodeKeyCreator(prefix: UUID) {
-  protected def asCompositeKey(suffix: String) = s"$prefix:$suffix"
+import scala.concurrent.Future
+
+trait ArangoDbFixtureAsync extends ArangoDbFixtureLike {
+  this: TestContainersFixtureAsync =>
+
+  def withArangoDb[A](testBody: (ArangoDatabaseAsync, ArangoConnectionURL) => Future[A]): Future[A] = {
+    withTestContainer(ArangoDbContainer) {
+      runTestBody(testBody)
+    }
+  }
 }
+

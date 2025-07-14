@@ -16,6 +16,8 @@
 
 package za.co.absa.spline.persistence.model
 
+import za.co.absa.spline.persistence.model.Operation.OpType
+
 sealed trait Operation extends Vertex {
   def name: Option[Operation.Name]
   def params: Map[String, Any]
@@ -26,6 +28,12 @@ sealed trait Operation extends Vertex {
 object Operation {
   type Name = String
   type Type = String
+
+  object OpType {
+    val Read: Type = "Read"
+    val Write: Type = "Write"
+    val Transformation: Type = "Transformation"
+  }
 }
 
 case class Read(
@@ -38,7 +46,7 @@ case class Read(
 ) extends Operation {
   def this() = this(null, null, null, null, null, null)
 
-  override val `type`: Operation.Type = "Read"
+  override val `type`: Operation.Type = OpType.Read
 }
 
 case class Write(
@@ -52,7 +60,7 @@ case class Write(
 ) extends Operation {
   def this() = this(null, false, null, null, null, null, null)
 
-  override val `type`: Operation.Type = "Write"
+  override val `type`: Operation.Type = OpType.Write
 }
 
 case class Transformation(
@@ -64,5 +72,5 @@ case class Transformation(
 ) extends Operation {
   def this() = this(null, null, null, null, null)
 
-  override val `type`: Operation.Type = "Transformation"
+  override val `type`: Operation.Type = OpType.Transformation
 }

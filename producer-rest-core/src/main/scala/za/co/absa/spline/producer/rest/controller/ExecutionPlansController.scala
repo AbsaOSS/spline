@@ -16,27 +16,25 @@
 
 package za.co.absa.spline.producer.rest.controller
 
-import java.util.UUID
-
 import io.swagger.annotations.{Api, ApiOperation, ApiResponse, ApiResponses}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation._
-import za.co.absa.spline.producer.model.v1_1.ExecutionPlan
+import za.co.absa.spline.producer.model.v1_1.{ExecutionEvent, ExecutionPlan}
 import za.co.absa.spline.producer.rest.ProducerAPI
 import za.co.absa.spline.producer.service.repo.ExecutionProducerRepository
 
+import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 @RestController
-@RequestMapping(consumes = Array(ProducerAPI.MimeTypeV1_1))
 @Api(tags = Array("execution"))
 class ExecutionPlansController @Autowired()(
   val repo: ExecutionProducerRepository) {
 
   import ExecutionContext.Implicits.global
 
-  @PostMapping(Array("/execution-plans"))
+  @PostMapping(path = Array("/execution-plans"), consumes = Array(ProducerAPI.MimeTypeV1_1))
   @ApiOperation(
     value = "Save Execution Plan",
     notes =
@@ -181,8 +179,43 @@ class ExecutionPlansController @Autowired()(
     new ApiResponse(code = 201, message = "Execution Plan is stored with the UUID returned in a response body")
   ))
   @ResponseStatus(HttpStatus.CREATED)
-  def executionPlan(@RequestBody execPlan: ExecutionPlan): Future[UUID] = repo
+  def addExecutionPlan(@RequestBody execPlan: ExecutionPlan): Future[UUID] = repo
     .insertExecutionPlan(execPlan)
     .map(_ => execPlan.id)
 
+  @GetMapping(path = Array("/execution-plans"), produces = Array(ProducerAPI.MimeTypeV1_1))
+  @ApiOperation(
+    value = "Get Execution Plans IDs",
+    notes = "Retrieves the list of Execution Plan UUIDs that have been stored in the system")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Execution Plan UUIDs are returned in a response body")
+  ))
+  @ResponseStatus(HttpStatus.OK)
+  def getExecutionPlanIDs: Future[Seq[UUID]] = {
+    repo.fetchExecutionPlanIds()
+  }
+
+  @GetMapping(path = Array("/execution-plans/{id}"), produces = Array(ProducerAPI.MimeTypeV1_1))
+  @ApiOperation(
+    value = "Get Execution Plan",
+    notes = "Retrieves an Execution Plan by its UUID")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Execution Plan is returned in a response body")
+  ))
+  @ResponseStatus(HttpStatus.OK)
+  def getExecutionPlan(@PathVariable id: UUID): Future[ExecutionPlan] = {
+    repo.fetchExecutionPlan(id)
+  }
+
+  @GetMapping(path = Array("/execution-plans/{id}/events"), produces = Array(ProducerAPI.MimeTypeV1_1))
+  @ApiOperation(
+    value = "Get Execution Events for Execution Plan",
+    notes = "Retrieves Execution Events for a given Execution Plan by its UUID")
+  @ApiResponses(Array(
+    new ApiResponse(code = 200, message = "Execution Events are returned in a response body")
+  ))
+  @ResponseStatus(HttpStatus.OK)
+  def getExecutionEvents(@PathVariable("id") planId: UUID): Future[Seq[ExecutionEvent]] = {
+    repo.fetchExecutionEvents(planId)
+  }
 }

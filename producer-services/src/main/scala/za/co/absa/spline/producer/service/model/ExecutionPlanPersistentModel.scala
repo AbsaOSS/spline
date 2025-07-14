@@ -50,4 +50,26 @@ case class ExecutionPlanPersistentModel(
   // expression
   expressions: Seq[Expression],
   takes: Seq[Edge], // ... attribute or expression
-)
+) {
+  def this() = this(
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  )
+}

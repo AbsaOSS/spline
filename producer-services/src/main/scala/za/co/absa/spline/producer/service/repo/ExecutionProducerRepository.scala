@@ -18,10 +18,14 @@ package za.co.absa.spline.producer.service.repo
 
 import za.co.absa.spline.producer.model.v1_1.{ExecutionEvent, ExecutionPlan}
 
+import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ExecutionProducerRepository {
+  def isDatabaseOk()(implicit ec: ExecutionContext): Future[Boolean]
   def insertExecutionPlan(executionPlan: ExecutionPlan)(implicit ec: ExecutionContext): Future[Unit]
   def insertExecutionEvents(executionEvents: Array[ExecutionEvent])(implicit ec: ExecutionContext): Future[Unit]
-  def isDatabaseOk()(implicit ec: ExecutionContext): Future[Boolean]
+  def fetchExecutionPlanIds()(implicit ec: ExecutionContext): Future[Seq[UUID]]
+  def fetchExecutionPlan(id: UUID)(implicit ec: ExecutionContext): Future[ExecutionPlan]
+  def fetchExecutionEvents(planId: ExecutionPlan.Id)(implicit ec: ExecutionContext): Future[Seq[ExecutionEvent]]
 }

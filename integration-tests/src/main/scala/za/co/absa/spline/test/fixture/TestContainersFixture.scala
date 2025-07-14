@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 ABSA Group Limited
+ * Copyright 2025 ABSA Group Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package za.co.absa.spline.producer.service.model
+package za.co.absa.spline.test.fixture
 
-import za.co.absa.spline.producer.model.v1_1._
+import org.testcontainers.containers.GenericContainer
+import za.co.absa.commons.lang.ARM._
 
-class ExecutionEventKeyCreator(ee: ExecutionEvent)
-  extends AbstractNodeKeyCreator(ee.planId) {
+trait TestContainersFixture {
 
-  def executionEventKey: String =
-    asCompositeKey(java.lang.Long.toString(ee.timestamp, 36))
-
+  def withTestContainer[A <: GenericContainer[A], B](container: A)(testBody: A => B): B = {
+    using(container) { _ =>
+      container.start()
+      testBody(container)
+    }
+  }
 }

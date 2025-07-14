@@ -17,14 +17,16 @@
 package za.co.absa.spline.common.rest
 
 import org.apache.commons.io.IOUtils
+import org.apache.http.Consts
 import org.apache.http.auth.Credentials
 import org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPost, HttpRequestBase}
 import org.apache.http.conn.ssl.NoopHostnameVerifier
-import org.apache.http.entity.{AbstractHttpEntity, ByteArrayEntity, StringEntity}
+import org.apache.http.entity.{AbstractHttpEntity, ByteArrayEntity, ContentType, StringEntity}
 import org.apache.http.impl.auth.BasicScheme
 import org.apache.http.impl.client.HttpClients
 import za.co.absa.commons.lang.ARM
 import za.co.absa.commons.lang.ARM.managed
+import za.co.absa.spline.common.rest.RESTClientApacheHttpImpl.PlainTextUtf8ContentType
 
 import java.net.URI
 import javax.net.ssl.SSLContext
@@ -47,11 +49,21 @@ class RESTClientApacheHttpImpl(
     baseUri => new HttpDelete(s"$baseUri/$path")
   }.map(_ => {})
 
-  override def post(path: String, body: String): Future[Unit] =
-    post(path, new StringEntity(body))
-
-  override def post(path: String, body: Array[Byte]): Future[Unit] =
+  override def post(path: String, body: Array[Byte]): Future[Unit] = {
     post(path, new ByteArrayEntity(body))
+  }
+
+  override def post(path: String, body: String): Future[Unit] = {
+    post(path, new StringEntity(body, PlainTextUtf8ContentType))
+  }
+
+  override def post(path: String, body: Array[Byte], contentType: ContentType): Future[Unit] = {
+    post(path, new ByteArrayEntity(body, contentType))
+  }
+
+  override def post(path: String, body: String, contentType: ContentType): Future[Unit] = {
+    post(path, new StringEntity(body, contentType))
+  }
 
   private def post(path: String, entity: AbstractHttpEntity): Future[Unit] = execHttp {
     baseUri =>
@@ -90,7 +102,7 @@ class RESTClientApacheHttpImpl(
       case 200 | 201 | 204 =>
         respBody
       case _ =>
-        throw new HttpStatusException(respStatusLine.getStatusCode, s"ArangoDB response: $respStatusLine. $respBody")
+        throw new HttpStatusException(respStatusLine.getStatusCode, s"$respStatusLine $respBody")
     }
   }
 
@@ -101,4 +113,8 @@ class RESTClientApacheHttpImpl(
       .having(maybeSslContext)(_ setSSLContext _)
       .build()
   }
+}
+
+object RESTClientApacheHttpImpl {
+  private final val PlainTextUtf8ContentType = ContentType.create("text/plain", Consts.UTF_8)
 }

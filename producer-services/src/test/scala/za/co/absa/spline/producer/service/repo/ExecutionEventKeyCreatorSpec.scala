@@ -19,7 +19,7 @@ package za.co.absa.spline.producer.service.repo
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import za.co.absa.spline.producer.model.v1_1.ExecutionEvent
-import za.co.absa.spline.producer.service.model.ExecutionEventKeyCreator
+import za.co.absa.spline.producer.service.model.ExecutionEventKeyConverter
 
 import java.util.UUID
 
@@ -33,7 +33,7 @@ class ExecutionEventKeyCreatorSpec extends AnyFlatSpec with Matchers {
       error = None,
       extra = Map.empty)
 
-    new ExecutionEventKeyCreator(testEvent).executionEventKey should be("00000000-0000-0000-0000-000000000000:kf12oi")
+    ExecutionEventKeyConverter.from(testEvent).executionEventKey should be("00000000-0000-0000-0000-000000000000:kf12oi")
   }
 
 }

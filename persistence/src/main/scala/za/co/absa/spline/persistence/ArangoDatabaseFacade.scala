@@ -19,11 +19,13 @@ package za.co.absa.spline.persistence
 import com.arangodb.ArangoDBException
 import com.arangodb.async.{ArangoDBAsync, ArangoDatabaseAsync}
 import com.arangodb.velocypack.module.scala.VPackScalaModule
+import com.arangodb.velocypack.{VPackDeserializationContext, VPackSetupContext, VPackSlice}
 import org.slf4s.Logging
 import org.springframework.beans.factory.DisposableBean
 import za.co.absa.commons.lang.OptionImplicits.AnyWrapper
 import za.co.absa.commons.version.Version
 import za.co.absa.commons.version.impl.SemVer20Impl.SemanticVersion
+import za.co.absa.spline.persistence.model.{Expression, FunctionalExpression, LiteralExpression, Operation, Read, Transformation, Write}
 
 import javax.net.ssl._
 import scala.concurrent._
@@ -39,7 +41,30 @@ class ArangoDatabaseFacade(connectionURL: ArangoConnectionURL, maybeSSLContext: 
 
   private val arango: ArangoDBAsync = {
     val arangoBuilder = new ArangoDBAsync.Builder()
-      .registerModule(new VPackScalaModule)
+      .registerModule(new VPackScalaModule {
+        override def setup[C <: VPackSetupContext[C]](context: C): Unit = {
+          super.setup(context)
+          context.registerDeserializer(
+            classOf[Operation],
+            (_: VPackSlice, vpack: VPackSlice, context: VPackDeserializationContext) => {
+              vpack.get("type").getAsString match {
+                case Operation.OpType.Read => context.deserialize[Read](vpack, classOf[Read])
+                case Operation.OpType.Write => context.deserialize[Write](vpack, classOf[Write])
+                case Operation.OpType.Transformation => context.deserialize[Transformation](vpack, classOf[Transformation])
+              }
+            }
+          )
+          context.registerDeserializer(
+            classOf[Expression],
+            (_: VPackSlice, vpack: VPackSlice, context: VPackDeserializationContext) => {
+              vpack.get("type").getAsString match {
+                case Expression.ExprType.Functional => context.deserialize[FunctionalExpression](vpack, classOf[FunctionalExpression])
+                case Expression.ExprType.Literal => context.deserialize[LiteralExpression](vpack, classOf[LiteralExpression])
+              }
+            }
+          )
+        }
+      })
       .having(maybeUser)(_ user _)
       .having(maybePassword)(_ password _)
 

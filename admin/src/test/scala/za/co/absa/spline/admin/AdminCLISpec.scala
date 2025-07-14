@@ -169,5 +169,13 @@ class AdminCLISpec
       import za.co.absa.spline.persistence.AuxiliaryDBAction._
       verify(arangoManagerMock).execute(IndicesDelete, ViewsDelete, FoxxReinstall, ViewsCreate, IndicesCreate)
     }
+
+    behavior of "Lineage-import"
+
+    it should "call no action" in {
+      captureStdErr {
+        captureExitStatus(cli.exec(Array("lineage-import"))) should be(1)
+      } should include("--help")
+    }
   }
 }

@@ -22,6 +22,15 @@ sealed trait Expression extends Vertex {
   def extra: Map[String, Any]
 }
 
+object Expression {
+  type Type = String
+
+  object ExprType {
+    val Functional: Type = "Func"
+    val Literal: Type = "Lit"
+  }
+}
+
 case class FunctionalExpression(
   override val _key: ArangoDocument.Key,
   override val _belongsTo: Option[ArangoDocument.Id],

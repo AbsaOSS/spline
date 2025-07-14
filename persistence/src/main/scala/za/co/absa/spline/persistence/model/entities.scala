@@ -38,6 +38,7 @@ trait RootEntity {
 }
 
 trait Vertex extends ArangoDocument {
+  val _id: ArangoDocument.Id = null
   def _key: ArangoDocument.Key
 }
 
@@ -114,7 +115,9 @@ case class ExecutionPlan(
   agentInfo: Map[String, Any],
   extra: Map[String, Any],
   override val _key: ArangoDocument.Key
-) extends Vertex with RootEntity
+) extends Vertex with RootEntity {
+  def this() = this(null, null, null, null, null, null)
+}
 
 object ExecutionPlan {
   type Name = String

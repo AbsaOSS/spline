@@ -19,10 +19,14 @@ package za.co.absa.spline.admin
 import za.co.absa.spline.admin.DBCommand._
 import za.co.absa.spline.persistence.{ArangoConnectionURL, AuxiliaryDBAction}
 
+import java.io.File
+import java.net.URL
+
 sealed trait Command
 
 sealed trait DBCommand extends Command {
   def dbUrl: Url
+
   def dbUrl_= : Url => Self = selfCopy(_)
 
   protected type Self <: DBCommand
@@ -39,29 +43,39 @@ object DBCommand {
   def unapply(cmd: DBCommand): Option[DBCommandProps] = Some((cmd.dbUrl))
 }
 
+case class LineageImport(
+  producerApiUrl: URL = null,
+  lineageDumpPath: File = null,
+) extends Command
+
+case class LineageExport(
+  producerApiUrl: URL = null,
+  lineageDumpPath: File = null,
+) extends Command
+
 case class DBInit(
   override val dbUrl: Url = null,
   force: Boolean = false,
   skip: Boolean = false
 ) extends DBCommand {
-  protected override type Self = DBInit
-  protected override val selfCopy: DBCommandProps => Self = copy(_)
+  override protected type Self = DBInit
+  override protected val selfCopy: DBCommandProps => Self = copy(_, force, skip)
 }
 
 //noinspection ConvertibleToMethodValue
 case class DBUpgrade(
   override val dbUrl: Url = null,
 ) extends DBCommand {
-  protected override type Self = DBUpgrade
-  protected override val selfCopy: DBCommandProps => Self = copy(_)
+  override protected type Self = DBUpgrade
+  override protected val selfCopy: DBCommandProps => Self = copy(_)
 }
 
 case class DBExec(
   override val dbUrl: Url = null,
   actions: Seq[AuxiliaryDBAction] = Nil,
 ) extends DBCommand {
-  protected override type Self = DBExec
-  protected override val selfCopy: DBCommandProps => Self = copy(_)
+  override protected type Self = DBExec
+  override protected val selfCopy: DBCommandProps => Self = copy(_, actions)
 
   def addAction(action: AuxiliaryDBAction): DBExec = copy(actions = actions :+ action)
 }
