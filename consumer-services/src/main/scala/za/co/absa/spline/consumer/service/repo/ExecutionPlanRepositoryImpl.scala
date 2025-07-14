@@ -32,7 +32,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     db.queryOne[LineageDetailed](
       """
         |WITH executionPlan, executes, operation, follows, emits, schema, consistsOf, attribute
-        |LET execPlan = DOCUMENT("executionPlan", @execPlanId)
+        |LET execPlan = FIRST(FOR d IN executionPlan FILTER d._key == @execPlanId RETURN d)
         |LET ops = (
         |    FOR op IN operation
         |        FILTER op._belongsTo == execPlan._id
@@ -110,7 +110,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     db.queryOne[AttributeGraph](
       """
         |WITH attribute, derivesFrom, operation, follows, produces, emits, schema, consistsOf
-        |LET theAttr = DOCUMENT("attribute", @attrId)
+        |LET theAttr = FIRST(FOR d IN attribute FILTER d._key == @attrId RETURN d)
         |LET theOriginId = FIRST(
         |    FOR op IN 1
         |        INBOUND theAttr produces
@@ -180,7 +180,7 @@ class ExecutionPlanRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends 
     db.queryOne[AttributeGraph](
       """
         |WITH attribute, derivesFrom, operation, produces, emits, schema, consistsOf
-        |LET theAttr = DOCUMENT("attribute", @attrId)
+        |LET theAttr = FIRST(FOR d IN attribute FILTER d._key == @attrId RETURN d)
         |
         |LET attrsWithEdges = (
         |    FOR v, e IN 0..999999

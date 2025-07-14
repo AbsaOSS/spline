@@ -57,7 +57,7 @@ class OperationRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Oper
         |    )
         |
         |    LET dataTypesFormatted = (
-        |        LET execPlan = DOCUMENT(ope._belongsTo)
+        |        LET execPlan = FIRST(FOR d IN executionPlan FILTER d._id == ope._belongsTo RETURN d)
         |        FOR d IN execPlan.extra.dataTypes || []
         |            RETURN MERGE(
         |                KEEP(d,  "id", "name", "fields", "nullable", "elementDataTypeId"),

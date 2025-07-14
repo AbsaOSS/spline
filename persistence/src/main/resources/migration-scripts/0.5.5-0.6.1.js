@@ -115,7 +115,7 @@ db._query(aql`
     WITH executes, operation, follows
     FOR ex IN executes
         LET epId = ex._from
-        LET wop = DOCUMENT("operation", ex._to)
+        LET wop = FIRST(FOR op IN operation FILTER op._id == ex._to RETURN op)
         
         FOR op IN 0..999999
             OUTBOUND wop follows
@@ -139,7 +139,7 @@ db._query(aql`
     WITH executes, operation, follows
     FOR ex IN executes
         LET epId = ex._from
-        LET wop = DOCUMENT("operation", ex._to)
+        LET wop = FIRST(FOR op IN operation FILTER op._id == ex._to RETURN op)
         
         FOR op, flw IN 0..999999
             OUTBOUND wop follows
@@ -153,7 +153,7 @@ db._query(aql`
     WITH executes, operation, follows, readsFrom
     FOR ex IN executes
         LET epId = ex._from
-        LET wop = DOCUMENT("operation", ex._to)
+        LET wop = FIRST(FOR op IN operation FILTER op._id == ex._to RETURN op)
         
         FOR op IN 0..999999
             OUTBOUND wop follows
@@ -168,7 +168,7 @@ db._query(aql`
     WITH executes, operation, follows, writesTo
     FOR ex IN executes
         LET epId = ex._from
-        LET wop = DOCUMENT("operation", ex._to)
+        LET wop = FIRST(FOR op IN operation FILTER op._id == ex._to RETURN op)
         
         FOR op, e IN 0..999999
             OUTBOUND wop follows
