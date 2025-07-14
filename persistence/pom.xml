@@ -27,6 +27,8 @@
 
     <artifactId>persistence</artifactId>
 
+    <name>Spline Persistence</name>
+
     <dependencies>
         <dependency>
             <groupId>za.co.absa.spline</groupId>

@@ -28,6 +28,8 @@
     <artifactId>admin</artifactId>
     <packaging>jar</packaging>
 
+    <name>Spline Admin CLI</name>
+
     <properties>
         <dockerfile.imageName>spline-admin</dockerfile.imageName>
         <spline.cli.executable>java -jar ${project.build.finalName}.jar</spline.cli.executable>

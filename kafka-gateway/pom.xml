@@ -28,6 +28,8 @@
     <artifactId>kafka-gateway</artifactId>
     <packaging>war</packaging>
 
+    <name>Spline Kafka Gateway</name>
+
     <properties>
         <dockerfile.imageName>spline-kafka-server</dockerfile.imageName>
     </properties>

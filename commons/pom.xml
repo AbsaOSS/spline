@@ -28,6 +28,14 @@
     <artifactId>commons</artifactId>
     <packaging>jar</packaging>
 
+    <name>Spline Commons</name>
+
+    <properties>
+        <timestamp>${maven.build.timestamp}</timestamp>
+        <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssX</maven.build.timestamp.format>
+    </properties>
+
+
     <dependencies>
         <dependency>
             <groupId>za.co.absa.commons</groupId>

@@ -27,6 +27,8 @@
 
     <artifactId>producer-model</artifactId>
 
+    <name>Spline Producer Model V1.1</name>
+
     <dependencies>
         <dependency>
             <groupId>za.co.absa.spline</groupId>

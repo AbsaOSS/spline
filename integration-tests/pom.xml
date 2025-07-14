@@ -27,6 +27,8 @@
 
     <artifactId>integration-tests</artifactId>
 
+    <name>Spline Integration Tests</name>
+
     <dependencies>
         <dependency>
             <groupId>org.scalatest</groupId>
