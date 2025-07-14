@@ -46,7 +46,7 @@ class SplineRESTGatewayContainer
     Wait.forHttp("/about/readiness")
       .forPort(8080)
       .forStatusCode(200)
-      .withStartupTimeout(Duration.ofSeconds(15))
+      .withStartupTimeout(Duration.ofMinutes(2))
   )
 
   def withArangoDbConnection(connUrl: ArangoConnectionURL, network: Network): SplineRESTGatewayContainer = {
