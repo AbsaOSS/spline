@@ -32,10 +32,10 @@
         <url>https://github.com/AbsaOSS/spline</url>
         <connection>${scm.connection}</connection>
         <developerConnection>${scm.developerConnection}</developerConnection>
-        <tag>HEAD</tag>
+        <tag>release/0.8.0</tag>
     </scm>
 
-    <version>0.8.0-SNAPSHOT</version>
+    <version>0.8.0</version>
 
     <properties>
         <timestamp>${maven.build.timestamp}</timestamp>
