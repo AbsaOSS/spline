@@ -67,7 +67,7 @@ object ExecutionPlanApiModelAssembler {
         .map(e => substringAfter(e._from, "/") -> {
           val Array(collectionName, objKey) = e._to.split("/", 2)
           collectionName match {
-            case NodeDef.Expression.name => am.AttrOrExprRef.attrRef(toLocalKey(objKey))
+            case NodeDef.Expression.name => am.AttrOrExprRef.exprRef(toLocalKey(objKey))
             case NodeDef.Attribute.name => am.AttrOrExprRef.attrRef(toLocalKey(objKey))
           }
         })
