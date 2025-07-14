@@ -1,11 +1,11 @@
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/za.co.absa.spline/parent-pom/badge.svg)](https://search.maven.org/search?q=g:za.co.absa.spline)
+[![Maven Central Version](https://img.shields.io/maven-central/v/za.co.absa.spline/parent-pom?color=158fcd)](https://central.sonatype.com/namespace/za.co.absa.spline)
+[![Docker Pulls](https://badgen.net/docker/pulls/absaoss/spline-rest-server?icon=docker&label=pulls)](https://hub.docker.com/r/absaoss/spline-rest-server/)
 [![TeamCity build (develop)](https://teamcity.jetbrains.com/app/rest/builds/aggregated/strob:%28locator:%28buildType:%28id:OpenSourceProjects_AbsaOSSSpline_AutomaticBuildsWithTests_Spark24%29,branch:develop%29%29/statusIcon.svg)](https://teamcity.jetbrains.com/viewType.html?buildTypeId=OpenSourceProjects_AbsaOSSSpline_AutomaticBuildsWithTests_Spark24&branch=develop&tab=buildTypeStatusDiv)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9b7ba650a3874c2888dba2d25fa73d88)](https://app.codacy.com/gh/AbsaOSS/spline?utm_source=github.com&utm_medium=referral&utm_content=AbsaOSS/spline&utm_campaign=Badge_Grade_Settings)
 [![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=AbsaOSS_spline&metric=alert_status)](https://sonarcloud.io/dashboard?id=AbsaOSS_spline)
 [![SonarCloud Maintainability](https://sonarcloud.io/api/project_badges/measure?project=AbsaOSS_spline&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=AbsaOSS_spline)
 [![SonarCloud Reliability](https://sonarcloud.io/api/project_badges/measure?project=AbsaOSS_spline&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=AbsaOSS_spline)
 [![SonarCloud Security](https://sonarcloud.io/api/project_badges/measure?project=AbsaOSS_spline&metric=security_rating)](https://sonarcloud.io/dashboard?id=AbsaOSS_spline)
-[![Docker Pulls](https://badgen.net/docker/pulls/absaoss/spline-rest-server?icon=docker&label=pulls)](https://hub.docker.com/r/absaoss/spline-rest-server/)
 
 Spline — an open-source data lineage tracking solution for data processing frameworks like Apache Spark and others
 ---
