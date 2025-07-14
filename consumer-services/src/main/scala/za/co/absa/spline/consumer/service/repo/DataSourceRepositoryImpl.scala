@@ -195,8 +195,9 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         case Read => db.queryStream[String](
           s"""
              |WITH ${NodeDef.DataSource.name}, ${EdgeDef.Depends.name}
+             |LET ep = FIRST(FOR d IN executionPlan FILTER d._key == @planId RETURN d)
              |FOR ds IN 1..1
-             |    OUTBOUND DOCUMENT('executionPlan', @planId) depends
+             |    OUTBOUND ep depends
              |    RETURN ds.uri
              |""".stripMargin,
           Map("planId" -> execPlanId)
@@ -205,8 +206,9 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         case Write => db.queryStream[String](
           s"""
              |WITH ${NodeDef.DataSource.name}, ${EdgeDef.Affects.name}
+             |LET ep = FIRST(FOR d IN executionPlan FILTER d._key == @planId RETURN d)
              |FOR ds IN 1..1
-             |    OUTBOUND DOCUMENT('executionPlan', @planId) affects
+             |    OUTBOUND ep affects
              |    RETURN ds.uri
              |""".stripMargin,
           Map("planId" -> execPlanId)
@@ -216,8 +218,9 @@ class DataSourceRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Dat
         db.queryStream[String](
           s"""
              |WITH ${NodeDef.DataSource.name}, ${EdgeDef.Depends.name}, ${EdgeDef.Affects.name}
+             |LET ep = FIRST(FOR d IN executionPlan FILTER d._key == @planId RETURN d)
              |FOR ds IN 1..1
-             |    OUTBOUND DOCUMENT('executionPlan', @planId) affects, depends
+             |    OUTBOUND ep affects, depends
              |    RETURN ds.uri
              |""".stripMargin,
           Map("planId" -> execPlanId)

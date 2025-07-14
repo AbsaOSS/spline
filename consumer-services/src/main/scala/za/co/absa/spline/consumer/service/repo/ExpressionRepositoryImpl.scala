@@ -33,7 +33,7 @@ class ExpressionRepositoryImpl @Autowired()(db: ArangoDatabaseAsync) extends Exp
     db.queryOne[ExpressionGraph](
       """
         |WITH operation, uses, expression, takes, attribute
-        |LET op = DOCUMENT("operation", @operationId)
+        |LET op = FIRST(FOR d IN operation FILTER d._key == @operationId RETURN d)
         |LET ps = (
         |    FOR v, e IN 1..999999
         |        OUTBOUND op uses, takes
