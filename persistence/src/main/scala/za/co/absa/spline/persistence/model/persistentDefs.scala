@@ -28,7 +28,9 @@ sealed trait GraphElementDef
 
 sealed trait CollectionDef {
   def name: String
+
   def collectionType: CollectionType
+
   def indexDefs: Seq[IndexDef] = Nil
 }
 
@@ -78,9 +80,11 @@ sealed trait EdgeToAttrOrExprOps {
   this: Edge12Def =>
 
   def edgeToAttr(from: Any, to: Any, belongsToKey: ArangoDocument.Key, path: Edge.FromPath): Edge = edgeTo1(from, to, belongsToKey, None, Some(path))
+
   def edgeToAttr(from: Any, to: Any, belongsToKey: ArangoDocument.Key, index: Int): Edge = edgeTo1(from, to, belongsToKey, Some(index), None)
 
   def edgeToExpr(from: Any, to: Any, belongsToKey: ArangoDocument.Key, path: Edge.FromPath): Edge = edgeTo2(from, to, belongsToKey, None, Some(path))
+
   def edgeToExpr(from: Any, to: Any, belongsToKey: ArangoDocument.Key, index: Int): Edge = edgeTo2(from, to, belongsToKey, Some(index), None)
 }
 
@@ -122,31 +126,89 @@ object EdgeDef {
     )
   }
 
-  object WritesTo extends Edge11Def("writesTo", Operation, DataSource, ExecutionPlan) with CollectionDef
+  object WritesTo extends Edge11Def("writesTo", Operation, DataSource, ExecutionPlan) with CollectionDef {
+    override def indexDefs: Seq[IndexDef] = Seq(
+      IndexDef(Seq("_belongsTo"), new PersistentIndexOptions),
+    )
+  }
 
-  object ReadsFrom extends Edge11Def("readsFrom", Operation, DataSource, ExecutionPlan) with CollectionDef
 
-  object Executes extends Edge11Def("executes", ExecutionPlan, Operation, ExecutionPlan) with CollectionDef
+  object ReadsFrom extends Edge11Def("readsFrom", Operation, DataSource, ExecutionPlan) with CollectionDef {
+    override def indexDefs: Seq[IndexDef] = Seq(
+      IndexDef(Seq("_belongsTo"), new PersistentIndexOptions),
+    )
+  }
 
-  object Depends extends Edge11Def("depends", ExecutionPlan, DataSource, ExecutionPlan) with CollectionDef
 
-  object Affects extends Edge11Def("affects", ExecutionPlan, DataSource, ExecutionPlan) with CollectionDef
+  object Executes extends Edge11Def("executes", ExecutionPlan, Operation, ExecutionPlan) with CollectionDef {
+    override def indexDefs: Seq[IndexDef] = Seq(
+      IndexDef(Seq("_belongsTo"), new PersistentIndexOptions),
+    )
+  }
+
+
+  object Depends extends Edge11Def("depends", ExecutionPlan, DataSource, ExecutionPlan) with CollectionDef {
+    override def indexDefs: Seq[IndexDef] = Seq(
+      IndexDef(Seq("_belongsTo"), new PersistentIndexOptions),
+    )
+  }
+
+  object Affects extends Edge11Def("affects", ExecutionPlan, DataSource, ExecutionPlan) with CollectionDef {
+    override def indexDefs: Seq[IndexDef] = Seq(
+      IndexDef(Seq("_belongsTo"), new PersistentIndexOptions),
+    )
+  }
 
   object ProgressOf extends Edge11Def("progressOf", Progress, ExecutionPlan, None) with CollectionDef
 
-  object Emits extends Edge11Def("emits", Operation, Schema, ExecutionPlan) with CollectionDef
 
-  object Produces extends Edge11Def("produces", Operation, Attribute, ExecutionPlan) with CollectionDef
+  object Emits extends Edge11Def("emits", Operation, Schema, ExecutionPlan) with CollectionDef {
+    override def indexDefs: Seq[IndexDef] = Seq(
+      IndexDef(Seq("_belongsTo"), new PersistentIndexOptions),
+    )
+  }
 
-  object ConsistsOf extends Edge11Def("consistsOf", Schema, Attribute, ExecutionPlan) with CollectionDef
 
-  object ComputedBy extends Edge11Def("computedBy", Attribute, Expression, ExecutionPlan) with CollectionDef
+  object Produces extends Edge11Def("produces", Operation, Attribute, ExecutionPlan) with CollectionDef {
+    override def indexDefs: Seq[IndexDef] = Seq(
+      IndexDef(Seq("_belongsTo"), new PersistentIndexOptions),
+    )
+  }
 
-  object DerivesFrom extends Edge11Def("derivesFrom", Attribute, Attribute, ExecutionPlan) with CollectionDef
 
-  object Takes extends Edge12Def("takes", Expression, Attribute, Expression, ExecutionPlan) with EdgeToAttrOrExprOps with CollectionDef
+  object ConsistsOf extends Edge11Def("consistsOf", Schema, Attribute, ExecutionPlan) with CollectionDef {
+    override def indexDefs: Seq[IndexDef] = Seq(
+      IndexDef(Seq("_belongsTo"), new PersistentIndexOptions),
+    )
+  }
 
-  object Uses extends Edge12Def("uses", Operation, Attribute, Expression, ExecutionPlan) with EdgeToAttrOrExprOps with CollectionDef
+
+  object ComputedBy extends Edge11Def("computedBy", Attribute, Expression, ExecutionPlan) with CollectionDef {
+    override def indexDefs: Seq[IndexDef] = Seq(
+      IndexDef(Seq("_belongsTo"), new PersistentIndexOptions),
+    )
+  }
+
+
+  object DerivesFrom extends Edge11Def("derivesFrom", Attribute, Attribute, ExecutionPlan) with CollectionDef {
+    override def indexDefs: Seq[IndexDef] = Seq(
+      IndexDef(Seq("_belongsTo"), new PersistentIndexOptions),
+    )
+  }
+
+
+  object Takes extends Edge12Def("takes", Expression, Attribute, Expression, ExecutionPlan) with EdgeToAttrOrExprOps with CollectionDef {
+    override def indexDefs: Seq[IndexDef] = Seq(
+      IndexDef(Seq("_belongsTo"), new PersistentIndexOptions),
+    )
+  }
+
+
+  object Uses extends Edge12Def("uses", Operation, Attribute, Expression, ExecutionPlan) with EdgeToAttrOrExprOps with CollectionDef {
+    override def indexDefs: Seq[IndexDef] = Seq(
+      IndexDef(Seq("_belongsTo"), new PersistentIndexOptions),
+    )
+  }
 
 }
 
@@ -188,11 +250,23 @@ object NodeDef {
       IndexDef(Seq("execPlanDetails.append"), new PersistentIndexOptions))
   }
 
-  object Schema extends NodeDef("schema") with CollectionDef
+  object Schema extends NodeDef("schema") with CollectionDef {
+    override def indexDefs: Seq[IndexDef] = Seq(
+      IndexDef(Seq("_belongsTo"), new PersistentIndexOptions)
+    )
+  }
 
-  object Attribute extends NodeDef("attribute") with CollectionDef
+  object Attribute extends NodeDef("attribute") with CollectionDef {
+    override def indexDefs: Seq[IndexDef] = Seq(
+      IndexDef(Seq("_belongsTo"), new PersistentIndexOptions)
+    )
+  }
 
-  object Expression extends NodeDef("expression") with CollectionDef
+  object Expression extends NodeDef("expression") with CollectionDef {
+    override def indexDefs: Seq[IndexDef] = Seq(
+      IndexDef(Seq("_belongsTo"), new PersistentIndexOptions)
+    )
+  }
 
 }
 
