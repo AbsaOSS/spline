@@ -18,4 +18,8 @@ package za.co.absa.spline.common.rest
 
 import org.apache.http.HttpException
 
-class HttpStatusException(val status: Int, message: String) extends HttpException(message)
+class HttpStatusException(
+  val status: Int,
+  val message: String,
+  val request: String
+) extends HttpException(s"$request failed with status $status: $message")

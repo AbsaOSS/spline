@@ -102,7 +102,7 @@ class RESTClientApacheHttpImpl(
       case 200 | 201 | 204 =>
         respBody
       case _ =>
-        throw new HttpStatusException(respStatusLine.getStatusCode, s"$respStatusLine $respBody")
+        throw new HttpStatusException(respStatusLine.getStatusCode, s"$respStatusLine $respBody", request.toString)
     }
   }
 
