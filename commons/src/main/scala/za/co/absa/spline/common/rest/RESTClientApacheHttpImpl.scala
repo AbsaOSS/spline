@@ -19,7 +19,7 @@ package za.co.absa.spline.common.rest
 import org.apache.commons.io.IOUtils
 import org.apache.http.Consts
 import org.apache.http.auth.Credentials
-import org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPost, HttpRequestBase}
+import org.apache.http.client.methods.{CloseableHttpResponse, HttpDelete, HttpGet, HttpPost, HttpRequestBase}
 import org.apache.http.conn.ssl.NoopHostnameVerifier
 import org.apache.http.entity.{AbstractHttpEntity, ByteArrayEntity, ContentType, StringEntity}
 import org.apache.http.impl.auth.BasicScheme
@@ -30,7 +30,7 @@ import za.co.absa.spline.common.rest.RESTClientApacheHttpImpl.PlainTextUtf8Conte
 
 import java.net.URI
 import javax.net.ssl.SSLContext
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future, blocking}
 
 class RESTClientApacheHttpImpl(
   uri: URI,
@@ -85,7 +85,7 @@ class RESTClientApacheHttpImpl(
     val (respStatusLine, respBody) =
       for {
         httpClient <- managed(createClient)
-        response <- managed(httpClient.execute(request))
+        response <- managed(blocking[CloseableHttpResponse](httpClient.execute(request)))
       } yield {
         val maybeBody = Option(response.getEntity)
           .map(e => {

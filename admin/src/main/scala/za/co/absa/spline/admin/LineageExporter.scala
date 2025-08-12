@@ -8,10 +8,11 @@ import za.co.absa.spline.persistence.DefaultJsonSerDe._
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
+import java.util.concurrent.ExecutorService
 import scala.concurrent.Future
 
 class LineageExporter(restClient: RESTClientApacheHttpImpl)
-                     (implicit ec: scala.concurrent.ExecutionContext)
+                     (implicit ec: scala.concurrent.ExecutionContext, es: ExecutorService)
   extends Logging {
 
   def exportTo(dir: File): Future[(Int, Int)] = {
@@ -24,7 +25,7 @@ class LineageExporter(restClient: RESTClientApacheHttpImpl)
           println(ansi"%yellow{No lineage data found in the database}")
           Future.successful((0, 0))
         } else {
-          println(ansi"Found %bold{${ids.length}} execution plans in the database. Processing in %bold{${Runtime.getRuntime.availableProcessors}} threads.")
+          println(ansi"Found %bold{${ids.length}} execution plans in the database.")
           doExport(ids, dir.toPath)
         }
       }

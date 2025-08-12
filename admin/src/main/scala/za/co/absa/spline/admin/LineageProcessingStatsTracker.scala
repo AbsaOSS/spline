@@ -3,6 +3,7 @@ package za.co.absa.spline.admin
 import za.co.absa.spline.admin.LineageProcessingStatsTracker.{ReportIntervalDocs, formatHMS}
 
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.{ExecutorService, ForkJoinPool, ThreadPoolExecutor}
 
 object LineageProcessingStatsTracker {
   private val ReportIntervalDocs = 50
@@ -15,7 +16,8 @@ object LineageProcessingStatsTracker {
   }
 }
 
-class LineageProcessingStatsTracker(val totalDocs: Int) {
+class LineageProcessingStatsTracker(val totalDocs: Int)
+                                   (implicit es: ExecutorService) {
   private val processedDocs = new AtomicInteger(0)
   private val startTime = System.nanoTime()
 
@@ -35,9 +37,16 @@ class LineageProcessingStatsTracker(val totalDocs: Int) {
     val speedDocsPerSec: Double = if (elapsedSeconds > 0) docs / elapsedSeconds else 0
     val etaSeconds: Int = if (speedDocsPerSec > 0) ((totalDocs - docs) / speedDocsPerSec).toInt else 0
 
+    val threads: Int = es match {
+      case fjp: ForkJoinPool => fjp.getRunningThreadCount
+      case es: ThreadPoolExecutor => es.getActiveCount
+      case _ => Thread.activeCount
+    }
+
     val msg = "" +
       f"| Progress: $percent%3d%% " +
       f"| Plans: $docs%5d/$totalDocs%-5d " +
+      f"| Threads: $threads%4d " +
       f"| Speed: $speedDocsPerSec%8.2f plans/sec " +
       f"| Elapsed: ${formatHMS(elapsedSeconds)}%8s " +
       f"| ETA: ${formatHMS(etaSeconds)}%8s " +

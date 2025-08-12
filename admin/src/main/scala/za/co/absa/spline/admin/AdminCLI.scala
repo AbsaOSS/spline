@@ -33,9 +33,9 @@ import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManagerFactory,
 
 import java.io.File
 import java.net.URL
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits._
+import java.util.concurrent.{ExecutorService, Executors}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext}
 
 object AdminCLI extends App {
 
@@ -43,6 +43,7 @@ object AdminCLI extends App {
     cmd: Command = null,
     logLevel: Level = Level.INFO,
     disableSslValidation: Boolean = false,
+    parallelism: Int = Runtime.getRuntime.availableProcessors(),
   )
 
   implicit class OptionParserOps(val p: OptionParser[AdminCLIConfig]) extends AnyVal {
@@ -52,11 +53,11 @@ object AdminCLI extends App {
       p.arg[String]("<db_url>")
         required()
         text s"ArangoDB connection string in the format: ${ArangoConnectionURL.HumanReadableFormat}"
-        action { case (url, c@AdminCLIConfig(cmd: DBCommand, _, _)) => c.copy(cmd.dbUrl = ArangoConnectionURL(url)) }
+        action { case (url, c@AdminCLIConfig(cmd: DBCommand, _, _, _)) => c.copy(cmd.dbUrl = ArangoConnectionURL(url)) }
     )
   }
 
-  private val dbManagerFactoryImpl = new ArangoManagerFactoryImpl()
+  private val dbManagerFactoryImpl = new ArangoManagerFactoryImpl()(ExecutionContext.global)
   private val maybeConsole = InputConsole.systemConsoleIfAvailable()
 
   val dbManagerFactory = maybeConsole
@@ -103,6 +104,11 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
         text s"Disable validation of self-signed SSL certificates. (Don't use on production)."
         action { case (_, conf) => conf.copy(disableSslValidation = true) })
 
+      (opt[Int]("threads")
+        text s"Number of threads to use for parallel processing. Default is the maximum number of processors available to the JVM; never smaller than 1."
+        validate (p => if (p > 0) success else failure("Number of threads must be a positive integer"))
+        action ((p, conf) => conf.copy(parallelism = p)))
+
       this.placeNewLine()
 
       (cmd("db-init")
@@ -111,10 +117,10 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
         children(
         opt[Unit]('f', "force")
           text "Re-create the database if one already exists."
-          action { case (_, c@AdminCLIConfig(cmd: DBInit, _, _)) => c.copy(cmd.copy(force = true)) },
+          action { case (_, c@AdminCLIConfig(cmd: DBInit, _, _, _)) => c.copy(cmd.copy(force = true)) },
         opt[Unit]('s', "skip")
           text "Skip existing database. Don't throw error, just end."
-          action { case (_, c@AdminCLIConfig(cmd: DBInit, _, _)) => c.copy(cmd.copy(skip = true)) })
+          action { case (_, c@AdminCLIConfig(cmd: DBInit, _, _, _)) => c.copy(cmd.copy(skip = true)) })
         children (this.dbCommandOptions: _*)
         )
 
@@ -133,22 +139,22 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
         children(
         opt[Unit]("check-access")
           text "Check access to the database"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(CheckDBAccess)) },
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _, _)) => c.copy(cmd.addAction(CheckDBAccess)) },
         opt[Unit]("foxx-reinstall")
           text "Reinstall Foxx services"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(FoxxReinstall)) },
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _, _)) => c.copy(cmd.addAction(FoxxReinstall)) },
         opt[Unit]("indices-delete")
           text "Delete indices"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(IndicesDelete)) },
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _, _)) => c.copy(cmd.addAction(IndicesDelete)) },
         opt[Unit]("indices-create")
           text "Create indices"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(IndicesCreate)) },
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _, _)) => c.copy(cmd.addAction(IndicesCreate)) },
         opt[Unit]("views-delete")
           text "Delete views"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(ViewsDelete)) },
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _, _)) => c.copy(cmd.addAction(ViewsDelete)) },
         opt[Unit]("views-create")
           text "Create views"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(ViewsCreate)) })
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _, _)) => c.copy(cmd.addAction(ViewsCreate)) })
         children (this.dbCommandOptions: _*)
         )
 
@@ -161,11 +167,11 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
         opt[File]("dir")
           text "Path to the directory containing the lineage data files to import."
           required()
-          action { case (dir, c@AdminCLIConfig(cmd: LineageImport, _, _)) => c.copy(cmd.copy(lineageDumpPath = dir)) },
+          action { case (dir, c@AdminCLIConfig(cmd: LineageImport, _, _, _)) => c.copy(cmd.copy(lineageDumpPath = dir)) },
         opt[URL]("producer-url")
           text "Producer API base URL to which the lineage data files will be posted."
           required()
-          action { case (url, c@AdminCLIConfig(cmd: LineageImport, _, _)) => c.copy(cmd.copy(producerApiUrl = url)) }
+          action { case (url, c@AdminCLIConfig(cmd: LineageImport, _, _, _)) => c.copy(cmd.copy(producerApiUrl = url)) }
       ))
 
       this.placeNewLine()
@@ -177,19 +183,19 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
         opt[File]("dir")
           text "Path to the directory where the lineage data files will be exported."
           required()
-          action { case (dir, c@AdminCLIConfig(cmd: LineageExport, _, _)) => c.copy(cmd.copy(lineageDumpPath = dir)) },
+          action { case (dir, c@AdminCLIConfig(cmd: LineageExport, _, _, _)) => c.copy(cmd.copy(lineageDumpPath = dir)) },
         opt[URL]("producer-url")
           text "Producer API base URL from which the lineage data files will be fetched."
           required()
-          action { case (url, c@AdminCLIConfig(cmd: LineageExport, _, _)) => c.copy(cmd.copy(producerApiUrl = url)) }
+          action { case (url, c@AdminCLIConfig(cmd: LineageExport, _, _, _)) => c.copy(cmd.copy(producerApiUrl = url)) }
       ))
 
       checkConfig {
-        case AdminCLIConfig(null, _, _) =>
+        case AdminCLIConfig(null, _, _, _) =>
           failure("No command given")
-        case AdminCLIConfig(cmd: DBCommand, _, _) if cmd.dbUrl == null =>
+        case AdminCLIConfig(cmd: DBCommand, _, _, _) if cmd.dbUrl == null =>
           failure("DB connection string is required")
-        case AdminCLIConfig(cmd: DBInit, _, _) if cmd.force && cmd.skip =>
+        case AdminCLIConfig(cmd: DBInit, _, _, _) if cmd.force && cmd.skip =>
           failure("Options '--force' and '--skip' cannot be used together")
         case _ =>
           success
@@ -206,6 +212,9 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
       .setLevel(conf.logLevel)
 
     val sslCtxOpt = Option.when(conf.disableSslValidation)(TLSUtils.TrustingAllSSLContext)
+    implicit val threadPool: ExecutorService = Executors.newWorkStealingPool(conf.parallelism)
+    implicit val execContext: ExecutionContext = ExecutionContext.fromExecutorService(threadPool)
+
 
     conf.cmd match {
       case DBInit(url, force, skip) =>

@@ -10,6 +10,7 @@ import za.co.absa.spline.producer.rest.ProducerAPI
 
 import java.io.File
 import java.nio.file.Files
+import java.util.concurrent.ExecutorService
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters._
 
@@ -19,7 +20,7 @@ object LineageImporter {
 }
 
 class LineageImporter(restClient: RESTClientApacheHttpImpl)
-                     (implicit ec: scala.concurrent.ExecutionContext)
+                     (implicit ec: scala.concurrent.ExecutionContext, es: ExecutorService)
   extends Logging {
 
   def importFrom(dir: File): Future[Int] = {
