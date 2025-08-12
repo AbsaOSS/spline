@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, ForkJoinPool, ThreadPoolExecutor}
 
 object LineageProcessingStatsTracker {
-  private val ReportIntervalDocs = 50
+  private val ReportIntervalDocs = 100
 
   private def formatHMS(totalSec: Long): String = {
     val h = totalSec / 3600
