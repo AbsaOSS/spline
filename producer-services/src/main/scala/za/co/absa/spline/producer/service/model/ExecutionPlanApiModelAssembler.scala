@@ -26,9 +26,20 @@ import za.co.absa.spline.producer.model.{v1_1 => am}
 import za.co.absa.spline.producer.service.model.ExecutionPlanKeyConverter.toLocalKey
 
 import java.util.UUID
+import scala.util.control.NonFatal
 
 object ExecutionPlanApiModelAssembler {
-  def toApiModel(eppm: ExecutionPlanPersistentModel): am.ExecutionPlan = {
+
+  private def withErrorHandling(plan: => am.ExecutionPlan): am.ExecutionPlan = {
+    try {
+      plan
+    } catch {
+      case NonFatal(e) =>
+        throw new RuntimeException(s"Failed to convert persistence model of ExecutionPlan ID ${plan.id} to API model: ${e.getMessage}", e)
+    }
+  }
+
+  def toApiModel(eppm: ExecutionPlanPersistentModel): am.ExecutionPlan = withErrorHandling {
     val writeOpModel: pm.Write = eppm.operations.collectFirst({ case wop: pm.Write => wop }).get
     val readOpModels: Seq[pm.Read] = eppm.operations.collect({ case rop: pm.Read => rop })
     val dataOpModels: Seq[pm.Transformation] = eppm.operations.collect({ case dop: pm.Transformation => dop })
