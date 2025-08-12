@@ -51,6 +51,7 @@ case class LineageImport(
 case class LineageExport(
   producerApiUrl: URL = null,
   lineageDumpPath: File = null,
+  failOnErrors: Boolean = true,
 ) extends Command
 
 case class DBInit(

@@ -187,7 +187,10 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
         opt[URL]("producer-url")
           text "Producer API base URL from which the lineage data files will be fetched."
           required()
-          action { case (url, c@AdminCLIConfig(cmd: LineageExport, _, _, _)) => c.copy(cmd.copy(producerApiUrl = url)) }
+          action { case (url, c@AdminCLIConfig(cmd: LineageExport, _, _, _)) => c.copy(cmd.copy(producerApiUrl = url)) },
+        opt[Unit]("skip-errors")
+          text "Skip errors during export. If not specified, the export will fail on any error."
+          action { case (_, c@AdminCLIConfig(cmd: LineageExport, _, _, _)) => c.copy(cmd.copy(failOnErrors = false)) },
       ))
 
       checkConfig {
@@ -242,13 +245,13 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
         val nPlans = Await.result(eventualResult, Duration.Inf)
         println(ansi"%green{Imported $nPlans execution plans with events from $path}")
 
-      case LineageExport(producerApiBaseUrl, path) =>
+      case LineageExport(producerApiBaseUrl, path, failOnErrors) =>
         val restClient = new RESTClientApacheHttpImpl(
           uri = producerApiBaseUrl.toURI,
           maybeSslContext = sslCtxOpt,
           maybeCredentials = None
         )
-        val exporter = new LineageExporter(restClient)
+        val exporter = new LineageExporter(restClient, failOnErrors)
         val eventualResult = exporter.exportTo(path)
         val (nPlans, nEvents) = Await.result(eventualResult, Duration.Inf)
         println(ansi"%green{Exported $nPlans execution plans and $nEvents execution events}")
