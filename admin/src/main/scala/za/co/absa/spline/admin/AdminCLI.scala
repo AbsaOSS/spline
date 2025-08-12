@@ -17,8 +17,6 @@
 package za.co.absa.spline.admin
 
 import ch.qos.logback.classic.{Level, Logger}
-import org.apache.http.Consts
-import org.apache.http.entity.ContentType
 import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
 import org.slf4s.Logging
@@ -30,19 +28,14 @@ import za.co.absa.spline.common.rest.RESTClientApacheHttpImpl
 import za.co.absa.spline.common.scala13.Option
 import za.co.absa.spline.common.security.TLSUtils
 import za.co.absa.spline.persistence.AuxiliaryDBAction._
-import za.co.absa.spline.persistence.DefaultJsonSerDe._
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManagerFactory, ArangoManagerFactoryImpl}
-import za.co.absa.spline.producer.rest.ProducerAPI
 
 import java.io.File
 import java.net.URL
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
-import scala.jdk.CollectionConverters._
 
 object AdminCLI extends App {
 
@@ -230,91 +223,25 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
         Await.result(dbManager.upgrade(), Duration.Inf)
 
       case LineageImport(producerApiBaseUrl, path) =>
-        val dir = path.toPath
-
         val restClient = new RESTClientApacheHttpImpl(
           uri = producerApiBaseUrl.toURI,
           maybeSslContext = sslCtxOpt,
           maybeCredentials = None
         )
-
-        def process(pattern: String, url: String, fileContentToBodyFn: String => String): Future[Int] = {
-          val dirStream = Files.newDirectoryStream(dir, pattern)
-          try {
-            dirStream.asScala
-              .map(_.toFile)
-              .filter(_.isFile)
-              .foldLeft(Future.successful(0)) { (prevFut, file) =>
-                prevFut.flatMap { n =>
-                  val rawJsonStr = Files.readString(file.toPath).trim
-                  restClient.post(
-                    path = url,
-                    body = fileContentToBodyFn(rawJsonStr),
-                    contentType = ContentType.create(ProducerAPI.MimeTypeV1_1, Consts.UTF_8)
-                  ).map(_ => n + 1)
-                }
-              }
-          } finally {
-            dirStream.close()
-          }
-        }
-
-        val resFuture = for {
-          nPlans <- process("plan-*.json", "execution-plans", identity)
-          _ <- process("event-*.json", "execution-events", s => if (s startsWith "[") s else s"[$s]")
-        } yield nPlans
-
-        val nPlans = Await.result(resFuture, Duration.Inf)
+        val importer = new LineageImporter(restClient)
+        val eventualResult = importer.importFrom(path)
+        val nPlans = Await.result(eventualResult, Duration.Inf)
         println(ansi"%green{Imported $nPlans execution plans with events from $path}")
 
       case LineageExport(producerApiBaseUrl, path) =>
-        path.mkdirs()
-
         val restClient = new RESTClientApacheHttpImpl(
           uri = producerApiBaseUrl.toURI,
           maybeSslContext = sslCtxOpt,
           maybeCredentials = None
         )
-
-        val resFuture = restClient
-          .get("execution-plans")
-          .map(_.fromJson[Array[String]])
-          .flatMap((ids: Array[String]) => {
-            if (ids.isEmpty) {
-              println(ansi"%yellow{No lineage data found in the database}")
-              Future.successful((0, 0))
-            } else {
-              println(s"Found ${ids.length} execution plans in the database. Exporting to $path/ ...")
-              ids.foldLeft(Future.successful((0, 0))) { (prevFut, planId) =>
-                prevFut.flatMap { case (nPlans, nEvents) =>
-                  log.debug(s"Exporting execution plan with id: $planId")
-                  val eventualPlanJson = restClient.get(s"execution-plans/$planId")
-                  val eventualEventJsons = restClient.get(s"execution-plans/$planId/events")
-                  for {
-                    planJson <- eventualPlanJson
-                    events <- eventualEventJsons.map(_.fromJson[Seq[Map[String, Any]]])
-                  } yield {
-                    Files.writeString(
-                      path.toPath.resolve(s"plan-$planId.json"),
-                      planJson,
-                      StandardCharsets.UTF_8
-                    )
-                    events.foreach(event => {
-                      val eventJson = event.toJson
-                      Files.writeString(
-                        path.toPath.resolve(s"event-$planId-${event("timestamp")}.json"),
-                        eventJson,
-                        StandardCharsets.UTF_8
-                      )
-                    })
-                    (nPlans + 1, nEvents + events.length)
-                  }
-                }
-              }
-            }
-          })
-
-        val (nPlans, nEvents) = Await.result(resFuture, Duration.Inf)
+        val exporter = new LineageExporter(restClient)
+        val eventualResult = exporter.exportTo(path)
+        val (nPlans, nEvents) = Await.result(eventualResult, Duration.Inf)
         println(ansi"%green{Exported $nPlans execution plans and $nEvents execution events}")
 
       case DBExec(url, actions) =>
