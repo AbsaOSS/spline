@@ -1,6 +1,7 @@
 package za.co.absa.spline.admin
 
 import org.slf4s.Logging
+import za.co.absa.spline.admin.LineageExporter.executionPlanJsonFileName
 import za.co.absa.spline.common.ConsoleUtils._
 import za.co.absa.spline.common.rest.RESTClientApacheHttpImpl
 import za.co.absa.spline.persistence.DefaultJsonSerDe._
@@ -11,24 +12,42 @@ import java.nio.file.{Files, Path}
 import java.util.concurrent.ExecutorService
 import scala.concurrent.Future
 
+object LineageExporter {
+  private def executionPlanJsonFileName(planId: String) = {
+    s"plan-$planId.json"
+  }
+}
+
 class LineageExporter(restClient: RESTClientApacheHttpImpl)
                      (implicit ec: scala.concurrent.ExecutionContext, es: ExecutorService)
   extends Logging {
 
   def exportTo(dir: File): Future[(Int, Int)] = {
+    val dirPath = dir.toPath
     dir.mkdirs()
     restClient
       .get("execution-plans")
       .map(_.fromJson[Array[String]])
-      .flatMap { ids =>
-        if (ids.isEmpty) {
-          println(ansi"%yellow{No lineage data found in the database}")
-          Future.successful((0, 0))
-        } else {
-          println(ansi"Found %bold{${ids.length}} execution plans in the database.")
-          doExport(ids, dir.toPath)
+      .flatMap(ids => {
+        val idsToExport = ids.filterNot(planId =>
+          Files.exists(dirPath.resolve(executionPlanJsonFileName(planId)))
+        )
+        (ids, idsToExport) match {
+          case (Array(), _) =>
+            println(ansi"%yellow{No execution plans found. Nothing to export.}")
+            Future.successful((0, 0))
+          case (_, Array()) =>
+            println(ansi"%yellow{No new lineage data to export. All plans already exported.}")
+            Future.successful((0, 0))
+          case _ =>
+            if (idsToExport.length != ids.length) {
+              val skipped = ids.length - idsToExport.length
+              println(ansi"%yellow{Skipped %bold{$skipped} execution plans that already exist in the target directory.}")
+            }
+            println(ansi"Found %bold{${idsToExport.length}} execution plans to export.")
+            doExport(idsToExport, dirPath)
         }
-      }
+      })
   }
 
   private def doExport(ids: Array[String], dir: Path): Future[(Int, Int)] = {
@@ -56,7 +75,7 @@ class LineageExporter(restClient: RESTClientApacheHttpImpl)
           // the plan file indicates that all related events have also been saved.
           log.debug(s"Writing execution plan with id: $planId")
           Files.writeString(
-            dir.resolve(s"plan-$planId.json"),
+            dir.resolve(executionPlanJsonFileName(planId)),
             planJson,
             StandardCharsets.UTF_8
           )
