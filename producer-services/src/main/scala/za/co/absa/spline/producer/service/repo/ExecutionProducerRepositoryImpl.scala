@@ -151,63 +151,68 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, repe
     val eventualExecutionPlan = db.queryOne[ExecutionPlanPersistentModel](
       s"""
          |WITH ${allPlanCollectionNames.mkString(", ")}, ${NodeDef.DataSource.name}
-         |LET v_plan = FIRST(FOR ep IN executionPlan FILTER ep._key == @plan_key RETURN ep)
          |
-         |LET e_executes =  FIRST (FOR e IN executes FILTER e._belongsTo == v_plan._id RETURN e)
-         |LET es_depends =        (FOR e IN depends FILTER e._belongsTo == v_plan._id RETURN e)
-         |LET e_affects =   FIRST (FOR e IN affects FILTER e._belongsTo == v_plan._id RETURN e)
+         |// Single-shard plan lookup
+         |LET v_plan  = UNSET(DOCUMENT('executionPlan', @plan_key) || {}, ['_rev','_created'])
+         |LET planId  = v_plan ? v_plan._id : null
+         |FILTER planId != null
          |
-         |LET vs_operations =     (FOR v IN operation FILTER v._belongsTo == v_plan._id RETURN v)
-         |LET es_follows =        (FOR e IN follows FILTER e._belongsTo == v_plan._id RETURN e)
-         |LET es_reads_from =     (FOR e IN readsFrom FILTER e._belongsTo == v_plan._id RETURN e)
-         |LET e_writes_to = FIRST (FOR e IN writesTo FILTER e._belongsTo == v_plan._id RETURN e)
-         |LET es_emits =          (FOR e IN emits FILTER e._belongsTo == v_plan._id RETURN e)
-         |LET es_uses =           (FOR e IN uses FILTER e._belongsTo == v_plan._id RETURN e)
-         |LET es_produces =       (FOR e IN produces FILTER e._belongsTo == v_plan._id RETURN e)
+         |// Bulk fetch per collection (DB-Server filtering on _belongsTo)
+         |LET e_executes      = FIRST(FOR e IN executes     FILTER e._belongsTo == planId RETURN UNSET(e, ['_id','_key','_rev','_belongsTo','_created']))
+         |LET es_depends      =      (FOR e IN depends      FILTER e._belongsTo == planId RETURN UNSET(e, ['_id','_key','_rev','_belongsTo','_created']))
+         |LET e_affects       = FIRST(FOR e IN affects      FILTER e._belongsTo == planId RETURN UNSET(e, ['_id','_key','_rev','_belongsTo','_created']))
+         |LET vs_operations   =      (FOR v IN operation    FILTER v._belongsTo == planId RETURN UNSET(v, ['_id','_rev','_belongsTo','_created']))
+         |LET es_follows      =      (FOR e IN follows      FILTER e._belongsTo == planId RETURN UNSET(e, ['_id','_key','_rev','_belongsTo','_created']))
+         |LET es_reads_from   =      (FOR e IN readsFrom    FILTER e._belongsTo == planId RETURN UNSET(e, ['_id','_key','_rev','_belongsTo','_created']))
+         |LET e_writes_to     = FIRST(FOR e IN writesTo     FILTER e._belongsTo == planId RETURN UNSET(e, ['_id','_key','_rev','_belongsTo','_created']))
+         |LET es_emits        =      (FOR e IN emits        FILTER e._belongsTo == planId RETURN UNSET(e, ['_id','_key','_rev','_belongsTo','_created']))
+         |LET es_uses         =      (FOR e IN uses         FILTER e._belongsTo == planId RETURN UNSET(e, ['_id','_key','_rev','_belongsTo','_created']))
+         |LET es_produces     =      (FOR e IN produces     FILTER e._belongsTo == planId RETURN UNSET(e, ['_id','_key','_rev','_belongsTo','_created']))
+         |LET vs_schemas      =      (FOR v IN schema       FILTER v._belongsTo == planId RETURN UNSET(v, ['_id','_rev','_belongsTo','_created']))
+         |LET es_consists_of  =      (FOR e IN consistsOf   FILTER e._belongsTo == planId RETURN UNSET(e, ['_id','_key','_rev','_belongsTo','_created']))
+         |LET vs_attributes   =      (FOR v IN attribute    FILTER v._belongsTo == planId RETURN UNSET(v, ['_id','_rev','_belongsTo','_created']))
+         |LET es_computed_by  =      (FOR e IN computedBy   FILTER e._belongsTo == planId RETURN UNSET(e, ['_id','_key','_rev','_belongsTo','_created']))
+         |LET es_derives_from =      (FOR e IN derivesFrom  FILTER e._belongsTo == planId RETURN UNSET(e, ['_id','_key','_rev','_belongsTo','_created']))
+         |LET vs_expressions  =      (FOR v IN expression   FILTER v._belongsTo == planId RETURN UNSET(v, ['_id','_rev','_belongsTo','_created']))
+         |LET es_takes        =      (FOR e IN takes        FILTER e._belongsTo == planId RETURN UNSET(e, ['_id','_key','_rev','_belongsTo','_created']))
          |
-         |LET vs_sources =        (FOR ds IN 1 OUTBOUND v_plan depends, affects RETURN ds)
-         |
-         |LET vs_schemas =        (FOR v IN schema FILTER v._belongsTo == v_plan._id RETURN v)
-         |LET es_consists_of =    (FOR e IN consistsOf FILTER e._belongsTo == v_plan._id RETURN e)
-         |
-         |LET vs_attributes =     (FOR v IN attribute FILTER v._belongsTo == v_plan._id RETURN v)
-         |LET es_computed_by =    (FOR e IN computedBy FILTER e._belongsTo == v_plan._id RETURN e)
-         |LET es_derives_from =   (FOR e IN derivesFrom FILTER e._belongsTo == v_plan._id RETURN e)
-         |
-         |LET vs_expressions =    (FOR v IN expression FILTER v._belongsTo == v_plan._id RETURN v)
-         |LET es_takes =          (FOR e IN takes FILTER e._belongsTo == v_plan._id RETURN e)
+         |// Data sources: push _from filter down to DB-Servers (uses composite index)
+         |LET ids_affects  = (
+         |  FOR e IN affects
+         |    FILTER e._belongsTo == planId AND e._from == planId
+         |    RETURN e._to
+         |)
+         |LET ids_depends  = (
+         |  FOR e IN depends
+         |    FILTER e._belongsTo == planId AND e._from == planId
+         |    RETURN e._to
+         |)
+         |LET ids_dataSource = UNION(ids_affects, ids_depends)
+         |LET vs_sources = (FOR ds IN dataSource FILTER ds._id IN ids_dataSource RETURN UNSET(ds, ['_id','_rev','_belongsTo','_created']))
          |
          |RETURN {
-         |  // execution plan
-         |  "executionPlan" : v_plan,
-         |  "executes"      : e_executes,
-         |  "depends"       : es_depends,
-         |  "affects"       : e_affects,
+         |  executionPlan : v_plan,
          |
-         |  // operation
-         |  "operations"    : vs_operations,
-         |  "follows"       : es_follows,
-         |  "readsFrom"     : es_reads_from,
-         |  "writesTo"      : e_writes_to,
-         |  "emits"         : es_emits,
-         |  "uses"          : es_uses,
-         |  "produces"      : es_produces,
+         |  executes     : e_executes,
+         |  depends      : es_depends,
+         |  affects      : e_affects,
+         |  operations   : vs_operations,
+         |  follows      : es_follows,
+         |  readsFrom    : es_reads_from,
+         |  writesTo     : e_writes_to,
+         |  emits        : es_emits,
+         |  uses         : es_uses,
+         |  produces     : es_produces,
          |
-         |  // data source
-         |  "dataSources"   : vs_sources,
+         |  dataSources  : vs_sources,
          |
-         |  // schema
-         |  "schemas"       : vs_schemas,
-         |  "consistsOf"    : es_consists_of,
-         |
-         |  // attribute
-         |  "attributes"    : vs_attributes,
-         |  "computedBy"    : es_computed_by,
-         |  "derivesFrom"   : es_derives_from,
-         |
-         |  // expression
-         |  "expressions"   : vs_expressions,
-         |  "takes"         : es_takes
+         |  schemas      : vs_schemas,
+         |  consistsOf   : es_consists_of,
+         |  attributes   : vs_attributes,
+         |  computedBy   : es_computed_by,
+         |  derivesFrom  : es_derives_from,
+         |  expressions  : vs_expressions,
+         |  takes        : es_takes
          |}
          |""".stripMargin,
       Map("plan_key" -> id.toString)
