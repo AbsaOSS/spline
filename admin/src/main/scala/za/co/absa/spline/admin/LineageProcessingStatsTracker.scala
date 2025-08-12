@@ -8,7 +8,7 @@ import java.util.concurrent.{ExecutorService, ForkJoinPool, ThreadPoolExecutor}
 object LineageProcessingStatsTracker {
   private val ReportIntervalDocs = 100
 
-  private def formatHMS(totalSec: Long): String = {
+  private def formatHMS(totalSec: Int): String = {
     val h = totalSec / 3600
     val m = (totalSec % 3600) / 60
     val s = totalSec % 60
