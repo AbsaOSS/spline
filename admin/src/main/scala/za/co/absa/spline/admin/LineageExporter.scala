@@ -111,7 +111,7 @@ class LineageExporter(restClient: RESTClientApacheHttpImpl, failOnErrors: Boolea
     if (failOnErrors) fut
     else fut.recover {
       case e: Throwable =>
-        println(ansi"%yellow{Skipped due to error: %bold{${e.getMessage}}}")
+        println(ansi"%yellow{Skipped due to error: ${e.getMessage}}")
         fallbackValue
     }
   }
