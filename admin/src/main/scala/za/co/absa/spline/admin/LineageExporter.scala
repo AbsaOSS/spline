@@ -32,6 +32,8 @@ class LineageExporter(restClient: RESTClientApacheHttpImpl, failOnErrors: Boolea
   extends Logging {
 
   def exportTo(dir: File): Future[(Int, Int)] = {
+    println(ansi"Checking the database...")
+
     val dirPath = dir.toPath
     dir.mkdirs()
     restClient

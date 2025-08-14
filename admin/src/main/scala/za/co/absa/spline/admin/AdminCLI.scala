@@ -242,8 +242,8 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
         )
         val importer = new LineageImporter(restClient)
         val eventualResult = importer.importFrom(path)
-        val nPlans = Await.result(eventualResult, Duration.Inf)
-        println(ansi"%green{Imported $nPlans execution plans with events from $path}")
+        val (nPlans, nEvents) = Await.result(eventualResult, Duration.Inf)
+        println(ansi"Imported %bold{$nPlans} execution plans and %bold{$nEvents} execution events")
 
       case LineageExport(producerApiBaseUrl, path, failOnErrors) =>
         val restClient = new RESTClientApacheHttpImpl(
@@ -254,7 +254,7 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
         val exporter = new LineageExporter(restClient, failOnErrors)
         val eventualResult = exporter.exportTo(path)
         val (nPlans, nEvents) = Await.result(eventualResult, Duration.Inf)
-        println(ansi"%green{Exported $nPlans execution plans and $nEvents execution events}")
+        println(ansi"Exported %bold{$nPlans} execution plans and %bold{$nEvents} execution events")
 
       case DBExec(url, actions) =>
         val dbManager = dbManagerFactory.create(url, sslCtxOpt)

@@ -5,6 +5,7 @@ import org.apache.http.entity.ContentType
 import org.slf4s.Logging
 import za.co.absa.commons.lang.ARM
 import za.co.absa.spline.admin.LineageImporter.{EventFilePattern, PlanFilePattern}
+import za.co.absa.spline.common.ConsoleUtils._
 import za.co.absa.spline.common.rest.RESTClientApacheHttpImpl
 import za.co.absa.spline.producer.rest.ProducerAPI
 
@@ -23,10 +24,14 @@ class LineageImporter(restClient: RESTClientApacheHttpImpl)
                      (implicit ec: scala.concurrent.ExecutionContext, es: ExecutorService)
   extends Logging {
 
-  def importFrom(dir: File): Future[Int] = {
+  def importFrom(dir: File): Future[(Int, Int)] = {
+    println(ansi"Reading %bold{$dir/}...")
+
     val planFiles = Files.newDirectoryStream(dir.toPath, PlanFilePattern).asScala.toSeq
-    val totalDocs = planFiles.size
-    val statsTracker = new LineageProcessingStatsTracker(totalDocs)
+    val totalPlans = planFiles.size
+    val statsTracker = new LineageProcessingStatsTracker(totalPlans)
+
+    println(ansi"Found %bold{$totalPlans} execution plans to import.")
 
     def process(pattern: String, url: String, fileContentToBodyFn: String => String): Future[Int] = {
       ARM.using(Files.newDirectoryStream(dir.toPath, pattern)) { dirStream =>
@@ -35,6 +40,7 @@ class LineageImporter(restClient: RESTClientApacheHttpImpl)
           .filter(_.isFile)
           .foldLeft(Future.successful(0)) { (prevFut, file) =>
             prevFut.flatMap { n =>
+              log.debug(s"Processing file: ${file.getName}")
               val rawJsonStr = Files.readString(file.toPath).trim
               restClient.post(
                 path = url,
@@ -56,7 +62,7 @@ class LineageImporter(restClient: RESTClientApacheHttpImpl)
 
     for {
       nPlans <- process(PlanFilePattern, "execution-plans", identity)
-      _ <- process(EventFilePattern, "execution-events", s => if (s startsWith "[") s else s"[$s]")
-    } yield nPlans
+      nEvents <- process(EventFilePattern, "execution-events", s => if (s startsWith "[") s else s"[$s]")
+    } yield (nPlans, nEvents)
   }
 }
