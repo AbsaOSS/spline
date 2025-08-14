@@ -27,7 +27,7 @@ object LineageImporter {
   private val ProducerAPIContentType: ContentType = ContentType.create(ProducerAPI.MimeTypeV1_1, Consts.UTF_8)
 }
 
-class LineageImporter(restClient: RESTClientApacheHttpImpl)
+class LineageImporter(restClient: RESTClientApacheHttpImpl, failOnErrors: Boolean)
                      (implicit ec: scala.concurrent.ExecutionContext, es: ExecutorService)
   extends Logging {
 
@@ -71,9 +71,10 @@ class LineageImporter(restClient: RESTClientApacheHttpImpl)
           log.debug(s"Processing file: ${file.getName}")
           val rawFileContent = Files.readString(file.toPath).trim
           val jsonContent = contentPreprocessingFn(rawFileContent)
-          doImport(jsonContent, endpoint)
+          val eventualStats = doImport(jsonContent, endpoint)
             .andThen({ case Success(_) => progressTracker.tap(Console.out) })
             .map { _ => n + 1 }
+          withErrorHandling(eventualStats, n, file.getName)
         }
       }
   }
@@ -84,5 +85,14 @@ class LineageImporter(restClient: RESTClientApacheHttpImpl)
       body = rawFileContent,
       contentType = ProducerAPIContentType
     )
+  }
+
+  private def withErrorHandling[A](fut: Future[A], fallbackValue: A, filename: => String): Future[A] = {
+    if (failOnErrors) fut
+    else fut.recover {
+      case e: Throwable =>
+        println(ansi"%yellow{File %bold{$filename} skipped due to error: ${e.getMessage}}")
+        fallbackValue
+    }
   }
 }

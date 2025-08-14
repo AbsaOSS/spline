@@ -46,6 +46,7 @@ object DBCommand {
 case class LineageImport(
   producerApiUrl: URL = null,
   lineageDumpPath: File = null,
+  failOnErrors: Boolean = true,
 ) extends Command
 
 case class LineageExport(
