@@ -172,9 +172,9 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
           text "Producer API base URL to which the lineage data files will be posted."
           required()
           action { case (url, c@AdminCLIConfig(cmd: LineageImport, _, _, _)) => c.copy(cmd.copy(producerApiUrl = url)) },
-        opt[Unit]("skip-errors")
-          text "Skip errors during export. If not specified, the export will fail on any error."
-          action { case (_, c@AdminCLIConfig(cmd: LineageImport, _, _, _)) => c.copy(cmd.copy(failOnErrors = false)) },
+        opt[Unit]("fail-fast")
+          text "Fail on the first error during import. If not specified, the import will continue on errors."
+          action { case (_, c@AdminCLIConfig(cmd: LineageImport, _, _, _)) => c.copy(cmd.copy(failOnErrors = true)) },
       ))
 
       this.placeNewLine()
@@ -191,9 +191,9 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
           text "Producer API base URL from which the lineage data files will be fetched."
           required()
           action { case (url, c@AdminCLIConfig(cmd: LineageExport, _, _, _)) => c.copy(cmd.copy(producerApiUrl = url)) },
-        opt[Unit]("skip-errors")
-          text "Skip errors during export. If not specified, the export will fail on any error."
-          action { case (_, c@AdminCLIConfig(cmd: LineageExport, _, _, _)) => c.copy(cmd.copy(failOnErrors = false)) },
+        opt[Unit]("fail-fast")
+          text "Fail on the first error during export. If not specified, the export will continue on errors."
+          action { case (_, c@AdminCLIConfig(cmd: LineageExport, _, _, _)) => c.copy(cmd.copy(failOnErrors = true)) },
       ))
 
       checkConfig {
