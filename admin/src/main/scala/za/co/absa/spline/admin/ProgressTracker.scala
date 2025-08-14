@@ -1,11 +1,12 @@
 package za.co.absa.spline.admin
 
-import za.co.absa.spline.admin.LineageProcessingStatsTracker.{ReportIntervalDocs, formatHMS}
+import za.co.absa.spline.admin.ProgressTracker.{ReportIntervalDocs, formatHMS}
 
+import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, ForkJoinPool, ThreadPoolExecutor}
 
-object LineageProcessingStatsTracker {
+object ProgressTracker {
   private val ReportIntervalDocs = 100
 
   private def formatHMS(totalSec: Int): String = {
@@ -16,23 +17,23 @@ object LineageProcessingStatsTracker {
   }
 }
 
-class LineageProcessingStatsTracker(val totalDocs: Int)
-                                   (implicit es: ExecutorService) {
+class ProgressTracker(val totalDocs: Int)
+                     (implicit es: ExecutorService) {
+
   private val processedDocs = new AtomicInteger(0)
   private val startTime = System.nanoTime()
 
-  def incrementPlans(): Int = {
-    processedDocs.incrementAndGet()
+  def tap(printStream: PrintStream): Unit = {
+    val docs = processedDocs.incrementAndGet()
+    val shouldPrintMessage = docs % ReportIntervalDocs == 0 || docs == totalDocs
+    if (shouldPrintMessage) {
+      val message = progressMessage(docs)
+      printStream.println(message)
+    }
   }
 
-  def shouldReport: Boolean = {
-    val docs = processedDocs.get()
-    docs % ReportIntervalDocs == 0 || docs == totalDocs
-  }
-
-  def progressMessage: String = {
-    val docs: Int = processedDocs.get()
-    val percent: Int = ((processedDocs.get().toDouble / totalDocs) * 100).toInt
+  private def progressMessage(docs: Int): String = {
+    val percent: Int = ((docs.toDouble / totalDocs) * 100).toInt
     val elapsedSeconds: Int = ((System.nanoTime() - startTime) / 1e9).toInt
     val speedDocsPerSec: Double = if (elapsedSeconds > 0) docs / elapsedSeconds else 0
     val etaSeconds: Int = if (speedDocsPerSec > 0) ((totalDocs - docs) / speedDocsPerSec).toInt else 0
@@ -45,9 +46,9 @@ class LineageProcessingStatsTracker(val totalDocs: Int)
 
     val msg = "" +
       f"| Progress: $percent%3d%% " +
-      f"| Plans: $docs%5d/$totalDocs%-5d " +
+      f"| Docs: $docs%5d/$totalDocs%-5d " +
       f"| Threads: $threads%4d " +
-      f"| Speed: $speedDocsPerSec%8.2f plans/sec " +
+      f"| Speed: $speedDocsPerSec%8.2f docs/sec " +
       f"| Elapsed: ${formatHMS(elapsedSeconds)}%8s " +
       f"| ETA: ${formatHMS(etaSeconds)}%8s " +
       f"|"

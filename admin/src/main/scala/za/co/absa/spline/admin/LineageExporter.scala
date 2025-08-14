@@ -65,7 +65,7 @@ class LineageExporter(restClient: RESTClientApacheHttpImpl, failOnErrors: Boolea
     println(ansi"Exporting to %bold{$dir/}")
 
     val totalDocs = ids.length
-    val statsTracker = new LineageProcessingStatsTracker(totalDocs)
+    val progressTracker = new ProgressTracker(totalDocs)
 
     val eventualProcessedPlanAndEventCounts: Future[Seq[(Int, Int)]] =
       Future.traverse(ids.toSeq) { planId =>
@@ -91,10 +91,7 @@ class LineageExporter(restClient: RESTClientApacheHttpImpl, failOnErrors: Boolea
             StandardCharsets.UTF_8
           )
 
-          statsTracker.incrementPlans()
-          if (statsTracker.shouldReport) {
-            println(statsTracker.progressMessage)
-          }
+          progressTracker.tap(Console.out)
 
           (1, events.length)
         }

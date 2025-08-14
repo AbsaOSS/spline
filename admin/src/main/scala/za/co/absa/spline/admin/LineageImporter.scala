@@ -4,20 +4,27 @@ import org.apache.http.Consts
 import org.apache.http.entity.ContentType
 import org.slf4s.Logging
 import za.co.absa.commons.lang.ARM
-import za.co.absa.spline.admin.LineageImporter.{EventFilePattern, PlanFilePattern}
+import za.co.absa.spline.admin.LineageImporter._
 import za.co.absa.spline.common.ConsoleUtils._
 import za.co.absa.spline.common.rest.RESTClientApacheHttpImpl
 import za.co.absa.spline.producer.rest.ProducerAPI
 
 import java.io.File
-import java.nio.file.Files
+import java.nio.file.{DirectoryStream, Files, Path}
 import java.util.concurrent.ExecutorService
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters._
+import scala.util.Success
 
 object LineageImporter {
-  val EventFilePattern = "event-*.json"
-  val PlanFilePattern = "plan-*.json"
+
+  private val EventFilePattern = "event-*.json"
+  private val PlanFilePattern = "plan-*.json"
+
+  private val ExecutionPlansRestEndpoint = "execution-plans"
+  private val ExecutionEventsRestEndpoint = "execution-events"
+
+  private val ProducerAPIContentType: ContentType = ContentType.create(ProducerAPI.MimeTypeV1_1, Consts.UTF_8)
 }
 
 class LineageImporter(restClient: RESTClientApacheHttpImpl)
@@ -27,42 +34,55 @@ class LineageImporter(restClient: RESTClientApacheHttpImpl)
   def importFrom(dir: File): Future[(Int, Int)] = {
     println(ansi"Reading %bold{$dir/}...")
 
-    val planFiles = Files.newDirectoryStream(dir.toPath, PlanFilePattern).asScala.toSeq
-    val totalPlans = planFiles.size
-    val statsTracker = new LineageProcessingStatsTracker(totalPlans)
+    val totalPlans = for (dirStream <- ARM.managed(Files.newDirectoryStream(dir.toPath, PlanFilePattern))) yield dirStream.asScala.size
+    val totalEvents = for (dirStream <- ARM.managed(Files.newDirectoryStream(dir.toPath, EventFilePattern))) yield dirStream.asScala.size
 
-    println(ansi"Found %bold{$totalPlans} execution plans to import.")
+    println(ansi"Found %bold{$totalPlans} plans and %bold{$totalEvents} event files to import.")
 
-    def process(pattern: String, url: String, fileContentToBodyFn: String => String): Future[Int] = {
-      ARM.using(Files.newDirectoryStream(dir.toPath, pattern)) { dirStream =>
-        dirStream.asScala
-          .map(_.toFile)
-          .filter(_.isFile)
-          .foldLeft(Future.successful(0)) { (prevFut, file) =>
-            prevFut.flatMap { n =>
-              log.debug(s"Processing file: ${file.getName}")
-              val rawJsonStr = Files.readString(file.toPath).trim
-              restClient.post(
-                path = url,
-                body = fileContentToBodyFn(rawJsonStr),
-                contentType = ContentType.create(ProducerAPI.MimeTypeV1_1, Consts.UTF_8)
-              ) map { _ =>
-                if (pattern == PlanFilePattern) {
-                  statsTracker.incrementPlans()
-                  if (statsTracker.shouldReport) {
-                    println(statsTracker.progressMessage)
-                  }
-                }
-                n + 1
-              }
-            }
-          }
-      }
-    }
+    val plansImportProgress = new ProgressTracker(totalPlans)
+    val eventsImportProgress = new ProgressTracker(totalEvents)
 
     for {
-      nPlans <- process(PlanFilePattern, "execution-plans", identity)
-      nEvents <- process(EventFilePattern, "execution-events", s => if (s startsWith "[") s else s"[$s]")
-    } yield (nPlans, nEvents)
+      plansDirectoryStream <- ARM.managed(Files.newDirectoryStream(dir.toPath, PlanFilePattern))
+      eventsDirectoryStream <- ARM.managed(Files.newDirectoryStream(dir.toPath, EventFilePattern))
+      nPlans <- {
+        println(ansi"%bold{Importing execution plans...}")
+        processAll(plansDirectoryStream, plansImportProgress, ExecutionPlansRestEndpoint, s => s)
+      }
+      nEvents <- {
+        println(ansi"%bold{Importing execution events...}")
+        processAll(eventsDirectoryStream, eventsImportProgress, ExecutionEventsRestEndpoint, s => if (s startsWith "[") s else s"[$s]")
+      }
+    }
+    yield (nPlans, nEvents)
+  }
+
+  private def processAll(
+    dirStream: DirectoryStream[Path],
+    progressTracker: ProgressTracker,
+    endpoint: String,
+    contentPreprocessingFn: String => String
+  ): Future[Int] = {
+    dirStream.asScala
+      .map(_.toFile)
+      .filter(_.isFile)
+      .foldLeft(Future.successful(0)) { (prevFut, file) =>
+        prevFut.flatMap { n =>
+          log.debug(s"Processing file: ${file.getName}")
+          val rawFileContent = Files.readString(file.toPath).trim
+          val jsonContent = contentPreprocessingFn(rawFileContent)
+          doImport(jsonContent, endpoint)
+            .andThen({ case Success(_) => progressTracker.tap(Console.out) })
+            .map { _ => n + 1 }
+        }
+      }
+  }
+
+  private def doImport(rawFileContent: String, endpoint: String) = {
+    restClient.post(
+      path = endpoint,
+      body = rawFileContent,
+      contentType = ProducerAPIContentType
+    )
   }
 }
