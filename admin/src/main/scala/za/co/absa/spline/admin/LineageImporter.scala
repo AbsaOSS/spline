@@ -63,20 +63,21 @@ class LineageImporter(restClient: RESTClientApacheHttpImpl, failOnErrors: Boolea
     endpoint: String,
     contentPreprocessingFn: String => String
   ): Future[Int] = {
-    dirStream.asScala
+    val filesIterable = dirStream.asScala
       .map(_.toFile)
       .filter(_.isFile)
-      .foldLeft(Future.successful(0)) { (prevFut, file) =>
-        prevFut.flatMap { n =>
-          log.debug(s"Processing file: ${file.getName}")
-          val rawFileContent = Files.readString(file.toPath).trim
-          val jsonContent = contentPreprocessingFn(rawFileContent)
-          val eventualStats = doImport(jsonContent, endpoint)
-            .andThen({ case Success(_) => progressTracker.tap(Console.out) })
-            .map { _ => n + 1 }
-          withErrorHandling(eventualStats, n, file.getName)
-        }
-      }
+
+    val eventualCounts = Future.traverse(filesIterable) { file =>
+      log.debug(s"Processing file: ${file.getName}")
+      val rawFileContent = Files.readString(file.toPath).trim
+      val jsonContent = contentPreprocessingFn(rawFileContent)
+      val eventualRes = doImport(jsonContent, endpoint)
+        .andThen({ case Success(_) => progressTracker.tap(Console.out) })
+        .map(_ => 1)
+      withErrorHandling(eventualRes, 0, file.getName)
+    }
+
+    eventualCounts.map(_.sum)
   }
 
   private def doImport(rawFileContent: String, endpoint: String) = {
@@ -87,6 +88,7 @@ class LineageImporter(restClient: RESTClientApacheHttpImpl, failOnErrors: Boolea
     )
   }
 
+  //noinspection SameParameterValue
   private def withErrorHandling[A](fut: Future[A], fallbackValue: A, filename: => String): Future[A] = {
     if (failOnErrors) fut
     else fut.recover {

@@ -10,7 +10,7 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 import java.util.concurrent.ExecutorService
-import scala.concurrent.Future
+import scala.concurrent.{Future, blocking}
 
 object LineageExporter {
 
@@ -72,16 +72,18 @@ class LineageExporter(restClient: RESTClientApacheHttpImpl, failOnErrors: Boolea
         log.debug(s"Exporting execution plan with id: $planId")
         val eventualPlanJson = restClient.get(s"execution-plans/$planId")
         val eventualEventJsons = restClient.get(s"execution-plans/$planId/events")
-        val eventualStats = for {
+        val eventualCounts = for {
           planJson <- eventualPlanJson
           events <- eventualEventJsons.map(_.fromJson[Seq[EventUntyped]])
         } yield {
           log.debug(s"Writing execution events for plan with id: $planId")
-          events.foreach(event => Files.writeString(
-            dir.resolve(executionEventJsonFileName(event)),
-            event.toJson,
-            StandardCharsets.UTF_8
-          ))
+          events.foreach(event => blocking {
+            Files.writeString(
+              dir.resolve(executionEventJsonFileName(event)),
+              event.toJson,
+              StandardCharsets.UTF_8
+            )
+          })
           // we write the plan file to disk the last, so that the existence of
           // the plan file indicates that all related events have also been saved.
           log.debug(s"Writing execution plan with id: $planId")
@@ -96,7 +98,7 @@ class LineageExporter(restClient: RESTClientApacheHttpImpl, failOnErrors: Boolea
           (1, events.length)
         }
 
-        withErrorHandling(eventualStats, (0, 0))
+        withErrorHandling(eventualCounts, (0, 0))
       }
 
     eventualProcessedPlanAndEventCounts map { results: Seq[(Int, Int)] =>
