@@ -44,11 +44,11 @@ class LineageImporter(restClient: RESTClientApacheHttpImpl, failOnErrors: Boolea
 
     for {
       plansDirectoryStream <- ARM.managed(Files.newDirectoryStream(dir.toPath, PlanFilePattern))
-      eventsDirectoryStream <- ARM.managed(Files.newDirectoryStream(dir.toPath, EventFilePattern))
       nPlans <- {
         println(ansi"%bold{Importing execution plans...}")
         processAll(plansDirectoryStream, plansImportProgress, ExecutionPlansRestEndpoint, s => s)
       }
+      eventsDirectoryStream <- ARM.managed(Files.newDirectoryStream(dir.toPath, EventFilePattern))
       nEvents <- {
         println(ansi"%bold{Importing execution events...}")
         processAll(eventsDirectoryStream, eventsImportProgress, ExecutionEventsRestEndpoint, s => if (s startsWith "[") s else s"[$s]")
@@ -93,7 +93,7 @@ class LineageImporter(restClient: RESTClientApacheHttpImpl, failOnErrors: Boolea
     if (failOnErrors) fut
     else fut.recover {
       case e: Throwable =>
-        println(ansi"%yellow{File %bold{$filename} skipped due to error: ${e.getMessage}}")
+        Console.err.println(ansi"%yellow{File %bold{$filename} skipped due to error: ${e.getMessage}}")
         fallbackValue
     }
   }
