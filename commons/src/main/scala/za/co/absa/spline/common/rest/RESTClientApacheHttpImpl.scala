@@ -17,7 +17,7 @@
 package za.co.absa.spline.common.rest
 
 import org.apache.http.auth.Credentials
-import org.apache.http.client.methods.{HttpDelete, HttpGet, HttpPost, HttpRequestBase}
+import org.apache.http.client.methods.{CloseableHttpResponse, HttpDelete, HttpGet, HttpPost, HttpRequestBase}
 import org.apache.http.conn.ssl.NoopHostnameVerifier
 import org.apache.http.entity.{AbstractHttpEntity, ByteArrayEntity, StringEntity}
 import org.apache.http.impl.auth.BasicScheme
@@ -27,7 +27,7 @@ import za.co.absa.commons.lang.ARM.managed
 
 import java.net.URI
 import javax.net.ssl.SSLContext
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future, blocking}
 import scala.io.Source
 
 class RESTClientApacheHttpImpl(
@@ -73,7 +73,7 @@ class RESTClientApacheHttpImpl(
     val (respStatusLine, respBody) =
       for {
         httpClient <- managed(createClient)
-        response <- managed(httpClient.execute(request))
+        response <- managed(blocking[CloseableHttpResponse](httpClient.execute(request)))
       } yield {
         val maybeBody = Option(response.getEntity)
           .map(e => {
@@ -90,7 +90,7 @@ class RESTClientApacheHttpImpl(
       case 200 | 201 | 204 =>
         respBody
       case _ =>
-        throw new HttpStatusException(respStatusLine.getStatusCode, s"ArangoDB response: $respStatusLine. $respBody")
+        throw new HttpStatusException(respStatusLine.getStatusCode, s"$respStatusLine $respBody", request.toString)
     }
   }
 

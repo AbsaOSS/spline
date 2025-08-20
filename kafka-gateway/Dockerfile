@@ -26,6 +26,7 @@ EXPOSE 8080
 EXPOSE 8009
 
 RUN rm -rf /usr/local/tomcat/webapps/*
+RUN chown -R 1001:0 /usr/local/tomcat/conf
 
 USER 1001
 ARG PROJECT_BUILD_FINAL_NAME

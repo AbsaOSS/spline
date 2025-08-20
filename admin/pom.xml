@@ -127,9 +127,14 @@
                     <archive>
                         <manifestEntries>
                             <Main-Class>za.co.absa.spline.admin.AdminCLI</Main-Class>
-                            <Add-Opens>java.base/java.util</Add-Opens>
-                            <Add-Opens>java.base/sun.nio.ch</Add-Opens>
-                            <Add-Opens>java.base/sun.net.www.protocol.jar</Add-Opens>
+                            <Add-Opens>
+                                <!--
+                                --> java.base/java.util<!--
+                                --> java.base/sun.nio.ch<!--
+                                --> java.base/sun.nio.fs<!--
+                                --> java.base/sun.net.www.protocol.jar<!--
+                                -->
+                            </Add-Opens>
                         </manifestEntries>
                     </archive>
                 </configuration>

@@ -17,7 +17,7 @@
 # Run image using:
 # $> docker run --rm -it absaoss/spline-admin:latest
 
-FROM adoptopenjdk:11-jre
+FROM eclipse-temurin:21-jre-alpine
 
 ARG PROJECT_BUILD_FINAL_NAME
 ARG IMAGE_NAME
@@ -30,11 +30,7 @@ LABEL \
     license="Apache License, version 2.0" \
     name="Spline Admin Tool"
 
-# Install Tini
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-            tini=0.18* \
- && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache tini=0.19.0-r3 curl=8.14.1-r1
 
 USER 1001
 

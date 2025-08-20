@@ -56,6 +56,7 @@
         <scalatest.argLine.extra>
             --add-opens=java.base/java.util=ALL-UNNAMED
             --add-opens=java.base/sun.nio.ch=ALL-UNNAMED
+            --add-opens=java.base/sun.nio.fs=ALL-UNNAMED
             --add-opens=java.base/sun.net.www.protocol.jar=ALL-UNNAMED
             -Djava.security.manager=allow <!-- this is required since Java 17, to allow `System.setSecurityManager()` to be called -->
         </scalatest.argLine.extra>
