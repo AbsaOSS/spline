@@ -18,7 +18,7 @@ package za.co.absa.spline.producer.service.model
 
 import org.apache.commons.lang3.StringUtils.substringAfter
 import za.co.absa.commons.lang.OptionImplicits.TraversableWrapper
-import za.co.absa.spline.persistence.model.NodeDef
+import za.co.absa.spline.persistence.model.{ArangoDocument, NodeDef}
 import za.co.absa.spline.persistence.{model => pm}
 import za.co.absa.spline.producer.model.v1_1.AttrOrExprRef
 import za.co.absa.spline.producer.model.v1_1.AttrOrExprRef.exprRef
@@ -26,9 +26,20 @@ import za.co.absa.spline.producer.model.{v1_1 => am}
 import za.co.absa.spline.producer.service.model.ExecutionPlanKeyConverter.toLocalKey
 
 import java.util.UUID
+import scala.util.control.NonFatal
 
 object ExecutionPlanApiModelAssembler {
-  def toApiModel(eppm: ExecutionPlanPersistentModel): am.ExecutionPlan = {
+
+  private def withErrorHandling[A](planId: ArangoDocument.Key)(body: => A): A = {
+    try {
+      body
+    } catch {
+      case NonFatal(e) =>
+        throw new RuntimeException(s"Failed to convert persistence model of ExecutionPlan ID $planId to API model: ${e.getMessage}", e)
+    }
+  }
+
+  def toApiModel(eppm: ExecutionPlanPersistentModel): am.ExecutionPlan = withErrorHandling(eppm.executionPlan._key) {
     val writeOpModel: pm.Write = eppm.operations.collectFirst({ case wop: pm.Write => wop }).get
     val readOpModels: Seq[pm.Read] = eppm.operations.collect({ case rop: pm.Read => rop })
     val dataOpModels: Seq[pm.Transformation] = eppm.operations.collect({ case dop: pm.Transformation => dop })

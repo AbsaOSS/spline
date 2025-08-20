@@ -113,7 +113,7 @@ class AdminCLISpec
               "--producer-url", s"http://$host:$port/producer"
             ))
           } should be(0)
-        } should (include("Imported 43 execution plans with events") and include("DONE"))
+        } should (include("Imported 43 execution plans and 52 execution events") and include("DONE"))
 
         captureStdOut {
           captureExitStatus {
@@ -124,12 +124,6 @@ class AdminCLISpec
             ))
           } should be(0)
         } should (include("Exported 43 execution plans and 52 execution events") and include("DONE"))
-
-        // TODO: Compare the exported files (testLineageOutputDir) with the original directory (testLineageInputDir)
-        // Verify that the output directory contains the same amount of files as the input directory.
-        // Verify that the output directory contains the same files (names) as the input directory.
-        // Verify that the files in the output directory match the files in the input directory.
-        // The files are JSON, so comparison of their content should be done according to JSON equivalency principles.
       }
     }
   }

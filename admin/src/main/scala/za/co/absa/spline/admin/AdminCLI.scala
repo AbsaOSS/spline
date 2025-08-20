@@ -17,8 +17,6 @@
 package za.co.absa.spline.admin
 
 import ch.qos.logback.classic.{Level, Logger}
-import org.apache.http.Consts
-import org.apache.http.entity.ContentType
 import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
 import org.slf4s.Logging
@@ -30,19 +28,14 @@ import za.co.absa.spline.common.rest.RESTClientApacheHttpImpl
 import za.co.absa.spline.common.scala13.Option
 import za.co.absa.spline.common.security.TLSUtils
 import za.co.absa.spline.persistence.AuxiliaryDBAction._
-import za.co.absa.spline.persistence.DefaultJsonSerDe._
 import za.co.absa.spline.persistence.OnDBExistsAction.{Drop, Fail, Skip}
 import za.co.absa.spline.persistence.{ArangoConnectionURL, ArangoManagerFactory, ArangoManagerFactoryImpl}
-import za.co.absa.spline.producer.rest.ProducerAPI
 
 import java.io.File
 import java.net.URL
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import scala.concurrent.ExecutionContext.Implicits._
+import java.util.concurrent.{ExecutorService, Executors}
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
-import scala.jdk.CollectionConverters._
+import scala.concurrent.{Await, ExecutionContext}
 
 object AdminCLI extends App {
 
@@ -50,6 +43,7 @@ object AdminCLI extends App {
     cmd: Command = null,
     logLevel: Level = Level.INFO,
     disableSslValidation: Boolean = false,
+    parallelism: Int = Runtime.getRuntime.availableProcessors(),
   )
 
   implicit class OptionParserOps(val p: OptionParser[AdminCLIConfig]) extends AnyVal {
@@ -59,11 +53,11 @@ object AdminCLI extends App {
       p.arg[String]("<db_url>")
         required()
         text s"ArangoDB connection string in the format: ${ArangoConnectionURL.HumanReadableFormat}"
-        action { case (url, c@AdminCLIConfig(cmd: DBCommand, _, _)) => c.copy(cmd.dbUrl = ArangoConnectionURL(url)) }
+        action { case (url, c@AdminCLIConfig(cmd: DBCommand, _, _, _)) => c.copy(cmd.dbUrl = ArangoConnectionURL(url)) }
     )
   }
 
-  private val dbManagerFactoryImpl = new ArangoManagerFactoryImpl()
+  private val dbManagerFactoryImpl = new ArangoManagerFactoryImpl()(ExecutionContext.global)
   private val maybeConsole = InputConsole.systemConsoleIfAvailable()
 
   val dbManagerFactory = maybeConsole
@@ -110,6 +104,11 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
         text s"Disable validation of self-signed SSL certificates. (Don't use on production)."
         action { case (_, conf) => conf.copy(disableSslValidation = true) })
 
+      (opt[Int]("threads")
+        text s"Number of threads to use for parallel processing. Default is the maximum number of processors available to the JVM; never smaller than 1."
+        validate (p => if (p > 0) success else failure("Number of threads must be a positive integer"))
+        action ((p, conf) => conf.copy(parallelism = p)))
+
       this.placeNewLine()
 
       (cmd("db-init")
@@ -118,10 +117,10 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
         children(
         opt[Unit]('f', "force")
           text "Re-create the database if one already exists."
-          action { case (_, c@AdminCLIConfig(cmd: DBInit, _, _)) => c.copy(cmd.copy(force = true)) },
+          action { case (_, c@AdminCLIConfig(cmd: DBInit, _, _, _)) => c.copy(cmd.copy(force = true)) },
         opt[Unit]('s', "skip")
           text "Skip existing database. Don't throw error, just end."
-          action { case (_, c@AdminCLIConfig(cmd: DBInit, _, _)) => c.copy(cmd.copy(skip = true)) })
+          action { case (_, c@AdminCLIConfig(cmd: DBInit, _, _, _)) => c.copy(cmd.copy(skip = true)) })
         children (this.dbCommandOptions: _*)
         )
 
@@ -140,22 +139,22 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
         children(
         opt[Unit]("check-access")
           text "Check access to the database"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(CheckDBAccess)) },
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _, _)) => c.copy(cmd.addAction(CheckDBAccess)) },
         opt[Unit]("foxx-reinstall")
           text "Reinstall Foxx services"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(FoxxReinstall)) },
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _, _)) => c.copy(cmd.addAction(FoxxReinstall)) },
         opt[Unit]("indices-delete")
           text "Delete indices"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(IndicesDelete)) },
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _, _)) => c.copy(cmd.addAction(IndicesDelete)) },
         opt[Unit]("indices-create")
           text "Create indices"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(IndicesCreate)) },
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _, _)) => c.copy(cmd.addAction(IndicesCreate)) },
         opt[Unit]("views-delete")
           text "Delete views"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(ViewsDelete)) },
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _, _)) => c.copy(cmd.addAction(ViewsDelete)) },
         opt[Unit]("views-create")
           text "Create views"
-          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _)) => c.copy(cmd.addAction(ViewsCreate)) })
+          action { case (_, c@AdminCLIConfig(cmd: DBExec, _, _, _)) => c.copy(cmd.addAction(ViewsCreate)) })
         children (this.dbCommandOptions: _*)
         )
 
@@ -168,11 +167,14 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
         opt[File]("dir")
           text "Path to the directory containing the lineage data files to import."
           required()
-          action { case (dir, c@AdminCLIConfig(cmd: LineageImport, _, _)) => c.copy(cmd.copy(lineageDumpPath = dir)) },
+          action { case (dir, c@AdminCLIConfig(cmd: LineageImport, _, _, _)) => c.copy(cmd.copy(lineageDumpPath = dir)) },
         opt[URL]("producer-url")
           text "Producer API base URL to which the lineage data files will be posted."
           required()
-          action { case (url, c@AdminCLIConfig(cmd: LineageImport, _, _)) => c.copy(cmd.copy(producerApiUrl = url)) }
+          action { case (url, c@AdminCLIConfig(cmd: LineageImport, _, _, _)) => c.copy(cmd.copy(producerApiUrl = url)) },
+        opt[Unit]("fail-fast")
+          text "Fail on the first error during import. If not specified, the import will continue on errors."
+          action { case (_, c@AdminCLIConfig(cmd: LineageImport, _, _, _)) => c.copy(cmd.copy(failOnErrors = true)) },
       ))
 
       this.placeNewLine()
@@ -184,19 +186,22 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
         opt[File]("dir")
           text "Path to the directory where the lineage data files will be exported."
           required()
-          action { case (dir, c@AdminCLIConfig(cmd: LineageExport, _, _)) => c.copy(cmd.copy(lineageDumpPath = dir)) },
+          action { case (dir, c@AdminCLIConfig(cmd: LineageExport, _, _, _)) => c.copy(cmd.copy(lineageDumpPath = dir)) },
         opt[URL]("producer-url")
           text "Producer API base URL from which the lineage data files will be fetched."
           required()
-          action { case (url, c@AdminCLIConfig(cmd: LineageExport, _, _)) => c.copy(cmd.copy(producerApiUrl = url)) }
+          action { case (url, c@AdminCLIConfig(cmd: LineageExport, _, _, _)) => c.copy(cmd.copy(producerApiUrl = url)) },
+        opt[Unit]("fail-fast")
+          text "Fail on the first error during export. If not specified, the export will continue on errors."
+          action { case (_, c@AdminCLIConfig(cmd: LineageExport, _, _, _)) => c.copy(cmd.copy(failOnErrors = true)) },
       ))
 
       checkConfig {
-        case AdminCLIConfig(null, _, _) =>
+        case AdminCLIConfig(null, _, _, _) =>
           failure("No command given")
-        case AdminCLIConfig(cmd: DBCommand, _, _) if cmd.dbUrl == null =>
+        case AdminCLIConfig(cmd: DBCommand, _, _, _) if cmd.dbUrl == null =>
           failure("DB connection string is required")
-        case AdminCLIConfig(cmd: DBInit, _, _) if cmd.force && cmd.skip =>
+        case AdminCLIConfig(cmd: DBInit, _, _, _) if cmd.force && cmd.skip =>
           failure("Options '--force' and '--skip' cannot be used together")
         case _ =>
           success
@@ -213,6 +218,9 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
       .setLevel(conf.logLevel)
 
     val sslCtxOpt = Option.when(conf.disableSslValidation)(TLSUtils.TrustingAllSSLContext)
+    implicit val threadPool: ExecutorService = Executors.newWorkStealingPool(conf.parallelism)
+    implicit val execContext: ExecutionContext = ExecutionContext.fromExecutorService(threadPool)
+
 
     conf.cmd match {
       case DBInit(url, force, skip) =>
@@ -229,93 +237,27 @@ class AdminCLI(dbManagerFactory: ArangoManagerFactory) extends Logging {
         val dbManager = dbManagerFactory.create(url, sslCtxOpt)
         Await.result(dbManager.upgrade(), Duration.Inf)
 
-      case LineageImport(producerApiBaseUrl, path) =>
-        val dir = path.toPath
-
+      case LineageImport(producerApiBaseUrl, path, failOnErrors) =>
         val restClient = new RESTClientApacheHttpImpl(
           uri = producerApiBaseUrl.toURI,
           maybeSslContext = sslCtxOpt,
           maybeCredentials = None
         )
+        val importer = new LineageImporter(restClient, failOnErrors)
+        val eventualResult = importer.importFrom(path)
+        val (nPlans, nEvents) = Await.result(eventualResult, Duration.Inf)
+        println(ansi"Imported %bold{$nPlans} execution plans and %bold{$nEvents} execution events")
 
-        def process(pattern: String, url: String, fileContentToBodyFn: String => String): Future[Int] = {
-          val dirStream = Files.newDirectoryStream(dir, pattern)
-          try {
-            dirStream.asScala
-              .map(_.toFile)
-              .filter(_.isFile)
-              .foldLeft(Future.successful(0)) { (prevFut, file) =>
-                prevFut.flatMap { n =>
-                  val rawJsonStr = Files.readString(file.toPath).trim
-                  restClient.post(
-                    path = url,
-                    body = fileContentToBodyFn(rawJsonStr),
-                    contentType = ContentType.create(ProducerAPI.MimeTypeV1_1, Consts.UTF_8)
-                  ).map(_ => n + 1)
-                }
-              }
-          } finally {
-            dirStream.close()
-          }
-        }
-
-        val resFuture = for {
-          nPlans <- process("plan-*.json", "execution-plans", identity)
-          _ <- process("event-*.json", "execution-events", s => if (s startsWith "[") s else s"[$s]")
-        } yield nPlans
-
-        val nPlans = Await.result(resFuture, Duration.Inf)
-        println(ansi"%green{Imported $nPlans execution plans with events from $path}")
-
-      case LineageExport(producerApiBaseUrl, path) =>
-        path.mkdirs()
-
+      case LineageExport(producerApiBaseUrl, path, failOnErrors) =>
         val restClient = new RESTClientApacheHttpImpl(
           uri = producerApiBaseUrl.toURI,
           maybeSslContext = sslCtxOpt,
           maybeCredentials = None
         )
-
-        val resFuture = restClient
-          .get("execution-plans")
-          .map(_.fromJson[Array[String]])
-          .flatMap((ids: Array[String]) => {
-            if (ids.isEmpty) {
-              println(ansi"%yellow{No lineage data found in the database}")
-              Future.successful((0, 0))
-            } else {
-              println(s"Found ${ids.length} execution plans in the database. Exporting to $path/ ...")
-              ids.foldLeft(Future.successful((0, 0))) { (prevFut, planId) =>
-                prevFut.flatMap { case (nPlans, nEvents) =>
-                  log.debug(s"Exporting execution plan with id: $planId")
-                  val eventualPlanJson = restClient.get(s"execution-plans/$planId")
-                  val eventualEventJsons = restClient.get(s"execution-plans/$planId/events")
-                  for {
-                    planJson <- eventualPlanJson
-                    events <- eventualEventJsons.map(_.fromJson[Seq[Map[String, Any]]])
-                  } yield {
-                    Files.writeString(
-                      path.toPath.resolve(s"plan-$planId.json"),
-                      planJson,
-                      StandardCharsets.UTF_8
-                    )
-                    events.foreach(event => {
-                      val eventJson = event.toJson
-                      Files.writeString(
-                        path.toPath.resolve(s"event-$planId-${event("timestamp")}.json"),
-                        eventJson,
-                        StandardCharsets.UTF_8
-                      )
-                    })
-                    (nPlans + 1, nEvents + events.length)
-                  }
-                }
-              }
-            }
-          })
-
-        val (nPlans, nEvents) = Await.result(resFuture, Duration.Inf)
-        println(ansi"%green{Exported $nPlans execution plans and $nEvents execution events}")
+        val exporter = new LineageExporter(restClient, failOnErrors)
+        val eventualResult = exporter.exportTo(path)
+        val (nPlans, nEvents) = Await.result(eventualResult, Duration.Inf)
+        println(ansi"Exported %bold{$nPlans} execution plans and %bold{$nEvents} execution events")
 
       case DBExec(url, actions) =>
         val dbManager = dbManagerFactory.create(url, sslCtxOpt)
