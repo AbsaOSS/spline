@@ -20,6 +20,6 @@ import org.apache.http.HttpException
 
 class HttpStatusException(
   val status: Int,
-  val message: String,
+  val msg: String,
   val request: String
-) extends HttpException(s"$request failed with status $status: $message")
+) extends HttpException(s"$request failed with status $status: $msg")
