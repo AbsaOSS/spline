@@ -72,7 +72,7 @@ class InternalArangoDatabaseOps(db: ArangoDatabaseAsync)(implicit ec: ExecutionC
       case e: HttpStatusException if e.status == 404 =>
         sys.error("" +
           "'/_admin/execute' endpoint is unreachable. " +
-          "Make sure ArangoDB server is running with '--javascript.allow-admin-execute' option. " +
-          "See https://www.arangodb.com/docs/stable/programs-arangod-javascript.html#javascript-code-execution")
+          "Make sure ArangoDB server is running with '--javascript.allow-admin-execute=true'. " +
+          "See https://docs.arangodb.com/3.11/components/arangodb-server/options/#--javascriptallow-admin-execute")
     }
 }
