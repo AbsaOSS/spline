@@ -20,7 +20,7 @@
 
     <groupId>za.co.absa.spline</groupId>
     <artifactId>spline</artifactId>
-    <version>0.8.3</version>
+    <version>0.8.4-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
@@ -30,7 +30,7 @@
         <url>https://github.com/AbsaOSS/spline</url>
         <connection>${scm.connection}</connection>
         <developerConnection>${scm.developerConnection}</developerConnection>
-        <tag>release/0.8.3</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <parent>
