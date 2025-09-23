@@ -19,7 +19,7 @@ package za.co.absa.spline.common.rest
 import org.apache.commons.io.IOUtils
 import org.apache.http.Consts
 import org.apache.http.auth.Credentials
-import org.apache.http.client.methods.{CloseableHttpResponse, HttpDelete, HttpGet, HttpPost, HttpRequestBase}
+import org.apache.http.client.methods._
 import org.apache.http.conn.ssl.NoopHostnameVerifier
 import org.apache.http.entity.{AbstractHttpEntity, ByteArrayEntity, ContentType, StringEntity}
 import org.apache.http.impl.auth.BasicScheme
@@ -99,7 +99,7 @@ class RESTClientApacheHttpImpl(
       }
 
     respStatusLine.getStatusCode match {
-      case 200 | 201 | 204 =>
+      case code if (200 to 299) contains code =>
         respBody
       case _ =>
         throw new HttpStatusException(respStatusLine.getStatusCode, s"$respStatusLine $respBody", request.toString)
