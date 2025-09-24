@@ -28,7 +28,7 @@ import za.co.absa.spline.producer.rest.ProducerAPI
 import java.io.File
 import java.nio.file.{DirectoryStream, Files, Path}
 import java.util.concurrent.ExecutorService
-import scala.concurrent.Future
+import scala.concurrent.{Future, blocking}
 import scala.jdk.CollectionConverters._
 import scala.util.Success
 
@@ -84,15 +84,23 @@ class LineageImporter(restClient: RESTClientApacheHttpImpl, failOnErrors: Boolea
       .filter(_.isFile)
 
     val eventualCounts = Future.traverse(filesIterable) { file =>
-      log.debug(s"Processing file: ${file.getName}")
-      val rawFileContent = Files.readString(file.toPath).trim
-      val jsonContent = contentPreprocessingFn(rawFileContent)
-      val eventualRes = doImport(jsonContent, endpoint)
-        .andThen({ case Success(_) => progressTracker.tap(Console.out) })
-        .map(_ => 1)
-      withErrorHandling(eventualRes, 0, file.getName)
-    }
+      for {
+        jsonContent <- Future {
+          blocking {
+            log.debug(s"Processing file: ${file.getName}")
+            val rawFileContent = Files.readString(file.toPath).trim
+            contentPreprocessingFn(rawFileContent)
+          }
+        }
 
+        eventualRes = doImport(jsonContent, endpoint)
+          .andThen({ case Success(_) => progressTracker.tap(Console.out) })
+          .map(_ => 1)
+
+        res <- withErrorHandling(eventualRes, 0, file.getName)
+
+      } yield res
+    }
     eventualCounts.map(_.sum)
   }
 
