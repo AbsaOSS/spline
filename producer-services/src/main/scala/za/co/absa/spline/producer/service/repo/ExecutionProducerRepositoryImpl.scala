@@ -224,9 +224,8 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, repe
   override def fetchExecutionEvents(planId: apiModel.ExecutionPlan.Id)(implicit ec: ExecutionContext): Future[Seq[apiModel.ExecutionEvent]] = {
     db.queryStream[Map[String, Any]](
       s"""
-         |WITH ${NodeDef.Progress.name}, ${EdgeDef.ProgressOf.name}
-         |FOR p IN ${NodeDef.Progress.name}
-         |    FILTER STARTS_WITH(p._key, CONCAT(@planKey, ":"))
+         |WITH ${NodeDef.Progress.name}, ${NodeDef.ExecutionPlan.name}
+         |FOR p IN 1 INBOUND CONCAT('${NodeDef.ExecutionPlan.name}/', @planKey) progressOf
          |    RETURN {
          |        planId:         @planKey,
          |        timestamp:      p.timestamp,
