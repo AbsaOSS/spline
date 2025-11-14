@@ -138,6 +138,7 @@ class ExecutionProducerRepositoryImpl @Autowired()(db: ArangoDatabaseAsync, retr
       case NonFatal(_) => Future.successful(false)
     }
   }
+
 }
 
 object ExecutionProducerRepositoryImpl {
