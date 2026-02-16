@@ -39,7 +39,7 @@ jobs:
         id: jacoco
         # Only comment on PR if we have write permissions (not from fork or dependabot)
         if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
-        uses: madrapps/jacoco-report@v1.7.2
+        uses: madrapps/jacoco-report@50d3aff4548aa991e6753342d9ba291084e63848 # v1.7.2
         with:
           paths: ${{ env.JACOCO_PATHS }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -52,7 +52,7 @@ jobs:
         # Only run this step if we couldn't comment on PR (fork or dependabot)
         # This writes the report to workflow summary instead of PR comments
         if: github.event.pull_request.head.repo.full_name != github.repository || github.actor == 'dependabot[bot]'
-        uses: madrapps/jacoco-report@v1.7.2
+        uses: madrapps/jacoco-report@50d3aff4548aa991e6753342d9ba291084e63848 # v1.7.2
         with:
           paths: ${{ env.JACOCO_PATHS }}
           token: ${{ secrets.GITHUB_TOKEN }}
