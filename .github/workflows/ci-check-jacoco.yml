@@ -8,6 +8,24 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      JACOCO_PATHS: >
+        ${{ github.workspace }}/admin/target/site/jacoco/jacoco.xml,
+        ${{ github.workspace }}/arangodb-foxx-api/target/site/jacoco/jacoco.xml,
+        ${{ github.workspace }}/commons/target/site/jacoco/jacoco.xml,
+        ${{ github.workspace }}/consumer-rest-core/target/site/jacoco/jacoco.xml,
+        ${{ github.workspace }}/consumer-services/target/site/jacoco/jacoco.xml,
+        ${{ github.workspace }}/kafka-gateway/target/site/jacoco/jacoco.xml,
+        ${{ github.workspace }}/persistence/target/site/jacoco/jacoco.xml,
+        ${{ github.workspace }}/producer-model/target/site/jacoco/jacoco.xml,
+        ${{ github.workspace }}/producer-model-mapper/target/site/jacoco/jacoco.xml,
+        ${{ github.workspace }}/producer-rest-core/target/site/jacoco/jacoco.xml,
+        ${{ github.workspace }}/producer-services/target/site/jacoco/jacoco.xml,
+        ${{ github.workspace }}/rest-gateway/target/site/jacoco/jacoco.xml,
+        ${{ github.workspace }}/test-data-generator/target/site/jacoco/jacoco.xml
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,33 +37,43 @@ jobs:
         run: mvn verify -Dcode-coverage
       - name: Add coverage to PR
         id: jacoco
-        uses: madrapps/jacoco-report@v1.3
+        # Only comment on PR if we have write permissions (not from fork or dependabot)
+        if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
+        uses: madrapps/jacoco-report@50d3aff4548aa991e6753342d9ba291084e63848 # v1.7.2
         with:
-          paths: >
-            ${{ github.workspace }}/admin/target/site/jacoco/jacoco.xml,
-            ${{ github.workspace }}/arangodb-foxx-api/target/site/jacoco/jacoco.xml,
-            ${{ github.workspace }}/commons/target/site/jacoco/jacoco.xml,
-            ${{ github.workspace }}/consumer-rest-core/target/site/jacoco/jacoco.xml,
-            ${{ github.workspace }}/consumer-services/target/site/jacoco/jacoco.xml,
-            ${{ github.workspace }}/kafka-gateway/target/site/jacoco/jacoco.xml,
-            ${{ github.workspace }}/persistence/target/site/jacoco/jacoco.xml,
-            ${{ github.workspace }}/producer-model/target/site/jacoco/jacoco.xml,
-            ${{ github.workspace }}/producer-model-mapper/target/site/jacoco/jacoco.xml,
-            ${{ github.workspace }}/producer-rest-core/target/site/jacoco/jacoco.xml,
-            ${{ github.workspace }}/producer-services/target/site/jacoco/jacoco.xml,
-            ${{ github.workspace }}/rest-gateway/target/site/jacoco/jacoco.xml,
-            ${{ github.workspace }}/test-data-generator/target/site/jacoco/jacoco.xml
+          paths: ${{ env.JACOCO_PATHS }}
           token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-overall: 0.0
           min-coverage-changed-files: 80.0
           title: JaCoCo code coverage report
           update-comment: true
+      - name: Add coverage to workflow summary (for forks/dependabot)
+        id: jacoco-summary
+        # Only run this step if we couldn't comment on PR (fork or dependabot)
+        # This writes the report to workflow summary instead of PR comments
+        if: github.event.pull_request.head.repo.full_name != github.repository || github.actor == 'dependabot[bot]'
+        uses: madrapps/jacoco-report@50d3aff4548aa991e6753342d9ba291084e63848 # v1.7.2
+        with:
+          paths: ${{ env.JACOCO_PATHS }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 0.0
+          min-coverage-changed-files: 80.0
+          title: JaCoCo code coverage report
+          # Use workflow summary for PRs without write permissions
+          comment-type: summary
       - name: Get the Coverage info
         run: |
-          echo "Total coverage ${{ steps.jacoco.outputs.coverage-overall }}"
-          echo "Changed Files coverage ${{ steps.jacoco.outputs.coverage-changed-files }}"
+          if [ "${{ steps.jacoco.conclusion }}" == "success" ]; then
+            echo "Total coverage ${{ steps.jacoco.outputs.coverage-overall }}"
+            echo "Changed Files coverage ${{ steps.jacoco.outputs.coverage-changed-files }}"
+          elif [ "${{ steps.jacoco-summary.conclusion }}" == "success" ]; then
+            echo "Total coverage ${{ steps.jacoco-summary.outputs.coverage-overall }}"
+            echo "Changed Files coverage ${{ steps.jacoco-summary.outputs.coverage-changed-files }}"
+          fi
       - name: Fail PR if changed files coverage is less than 80%
-        if: ${{ steps.jacoco.outputs.coverage-changed-files < 80.0 }}
+        if: |
+          (steps.jacoco.conclusion == 'success' && steps.jacoco.outputs.coverage-changed-files < 80.0) ||
+          (steps.jacoco-summary.conclusion == 'success' && steps.jacoco-summary.outputs.coverage-changed-files < 80.0)
         uses: actions/github-script@v6
         with:
           script: |
