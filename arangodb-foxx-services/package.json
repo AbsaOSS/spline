@@ -1,6 +1,6 @@
 {
   "name": "spline_foxx_services",
-  "version": "1.0.0-RC1-SNAPSHOT",
+  "version": "1.0.0-RC1",
   "license": "Apache-2.0",
   "copyright": "2022 ABSA Group Limited",
   "private": true,
