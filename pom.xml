@@ -100,7 +100,7 @@
                         -Dscm.developerConnection=${project.scm.developerConnection}
                     </preparationGoals>
                     <completionGoals>
-                        generate-resources
+                        generate-resources -Dmdep.skip=true
                         scm:add -Dincludes=**/package*.json -Dexcludes=**/node_modules/**
                         -Dscm.url=${project.scm.url}
                         -Dscm.connection=${project.scm.connection}
