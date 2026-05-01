@@ -30,7 +30,7 @@ LABEL \
     license="Apache License, version 2.0" \
     name="Spline Admin Tool"
 
-RUN apk add --no-cache 'tini~=0.19' 'curl~=8.14'
+RUN apk add --no-cache 'tini~=0.19' 'curl~=8'
 
 USER 1001
 
