@@ -28,6 +28,8 @@
     <artifactId>arangodb-foxx-services</artifactId>
     <packaging>pom</packaging>
 
+    <name>Spline ArangoDB Foxx Services</name>
+
     <properties>
         <externalSourceDirectory>src/external</externalSourceDirectory>
     </properties>

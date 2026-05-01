@@ -27,6 +27,8 @@
 
     <artifactId>arangodb-foxx-api</artifactId>
 
+    <name>Spline ArangoDB Foxx API</name>
+
     <build>
         <plugins>
             <plugin>
