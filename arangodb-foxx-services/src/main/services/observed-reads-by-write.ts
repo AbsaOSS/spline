@@ -37,6 +37,7 @@ export function observedReadsByWrite(writeEvent: Progress, rtxInfo: ReadTxInfo):
 
         FOR wExPlan, wpo IN 1 OUTBOUND ${writeEvent} progressOf
             ${aqlGen.genTxIsolationCodeForTraversal('wExPlan', 'wpo')}
+            FILTER ${writeEvent}.error == null
             LET wds = FIRST(
                 FOR ds IN 1 OUTBOUND wExPlan affects
                     RETURN ds
@@ -52,6 +53,7 @@ export function observedReadsByWrite(writeEvent: Progress, rtxInfo: ReadTxInfo):
                         FOR breakingEvent, bpo IN 1 INBOUND breakingExPlan progressOf // looking to find writeOps' execPlan and event
                             ${aqlGen.genTxIsolationCodeForTraversal('breakingEvent', 'bpo')}
                             FILTER breakingEvent.timestamp > minReadTime
+                               AND breakingEvent.error == null
                             SORT breakingEvent.timestamp DESC
                             RETURN breakingEvent.timestamp
             )
